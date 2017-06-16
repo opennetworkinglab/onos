@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, fs, ns, mast, ps, is, wss, lion;
+    var $log, $scope, fs, ns, mast, ps, is, wss;
 
     // internal state
     var detailsPanel,
@@ -32,7 +32,6 @@
         topTable,
         bottom,
         iconDiv,
-        nameDiv,
         wSize;
 
 
@@ -41,28 +40,39 @@
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
-        htPdg = 479,
-        wtPdg = 532,
-
         pName = 'cluster-details-panel',
         detailsReq = 'clusterDetailsRequest',
         detailsResp = 'clusterDetailsResponse',
-
         propOrder = [
             'id', 'ip'
-        ],
-        friendlyProps = [
-            'Node ID', 'IP Address'
         ],
         deviceCols = [
             'id', 'type', 'chassisid', 'mfr',
             'hw', 'sw', 'protocol', 'serial'
-        ],
-        friendlyDeviceCols = [
-            'URI', 'Type', 'Chassis ID', 'Vendor',
-            'H/W Version', 'S/W Version', 'Protocol',
-            'Serial #'
         ];
+
+    // deferred fetching of user-visible strings, so that lion context is set
+    function getLionProps() {
+        var l = $scope.lion;
+        return [
+            l('node_id'),
+            l('ip_address')
+        ];
+    }
+
+    function getLionDeviceCols() {
+        var l = $scope.lion;
+        return [
+            l('uri'),
+            l('type'),
+            l('chassis_id'),
+            l('vendor'),
+            l('hw_version'),
+            l('sw_version'),
+            l('protocol'),
+            l('serial_number')
+        ];
+    }
 
     function closePanel() {
         if (detailsPanel.isVisible()) {
@@ -83,7 +93,7 @@
     }
 
     function setUpPanel() {
-        var container, closeBtn, tblDiv;
+        var container, closeBtn;
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
@@ -100,27 +110,29 @@
         bottom = container.append('div').classed('bottom', true);
         bottom.append('h2').classed('devices-title', true).text('Devices');
         bottom.append('table');
-        //ToDo add more details
+        //TODO: add more details
     }
 
-    function addProp(tbody, index, value) {
+    function addProp(tbody, label, value) {
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).text(txt);
         }
-        addCell('label', friendlyProps[index] + ' :');
+        addCell('label', label + ' :');
         addCell('value', value);
     }
 
     function populateTop(details) {
+        var propLabels = getLionProps();
+
         is.loadEmbeddedIcon(iconDiv, 'node', 40);
         top.select('h2').text(details.id);
 
         var tbody = topTable.append('tbody');
 
         propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, details[prop]);
+            addProp(tbody, propLabels[i], details[prop]);
         });
     }
 
@@ -138,7 +150,7 @@
             tbody = table.append('tbody'),
             tbWidth, tbHeight;
 
-        friendlyDeviceCols.forEach(function (col) {
+        getLionDeviceCols().forEach(function (col) {
             theader.append('th').text(col);
         });
         devices.forEach(function (device) {
@@ -182,10 +194,7 @@
 
         populateTop(details);
         populateBottom(details.devices);
-
-        //ToDo add more details
         detailsPanel.height(pHeight);
-        //detailsPanel.width(wtPdg); ToDO Use this when needed!
     }
 
     function respDetailsCb(data) {
@@ -200,9 +209,7 @@
         'PanelService', 'IconService','WebSocketService',
         'LionService', 'TableBuilderService',
 
-            // var $log, $scope, fs, ns, mast, ps, is, wss, lion;
-
-    function (_$log_, _$scope_, _fs_, _ns_, _mast_, _ps_, _is_, _wss_, _lion_, tbs) {
+    function (_$log_, _$scope_, _fs_, _ns_, _mast_, _ps_, _is_, _wss_, lion, tbs) {
             var handlers = {};
 
             $log = _$log_;
@@ -213,8 +220,8 @@
             ps = _ps_;
             is = _is_;
             wss = _wss_;
-            lion = _lion_;
 
+            $scope.lion = lion.bundle('core.view.cluster');
             $scope.panelData = {};
 
             tbs.buildTable({
@@ -240,11 +247,6 @@
             wss.unbindHandlers(handlers);
         });
 
-        // ++++ Temp test code for Localization POC ++++
-        var bun = lion.bundle('core.cluster');
-        $log.debug('Lion bundle test: computer = ', bun.computer);
-        // ++++ Temp test code for Localization POC ++++
-
         $log.log('OvClusterCtrl has been created');
     }])
 
@@ -252,7 +254,8 @@
     ['$rootScope', '$window', '$timeout', 'KeyService',
     function ($rootScope, $window, $timeout, ks) {
         return function (scope) {
-            var unbindWatch;
+            var unbindWatch,
+                lion = scope.lion;
 
             function heightCalc() {
                 pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
@@ -275,12 +278,12 @@
             }
             // create key bindings to handle panel
             ks.keyBindings({
-                esc: [handleEscape, 'Close the details panel'],
+                esc: [handleEscape, lion('k_esc_hint')],
                 _helpFormat: ['esc']
             });
             ks.gestureNotes([
-                ['click', 'Select a row to show cluster node details'],
-                ['scroll down', 'See available cluster nodes']
+                [lion('k_click'), lion('k_click_hint')],
+                [lion('k_scroll_down'), lion('k_scroll_down_hint')]
             ]);
             // if the panelData changes
             scope.$watch('panelData', function () {

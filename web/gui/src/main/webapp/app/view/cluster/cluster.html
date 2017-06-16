@@ -2,7 +2,7 @@
 <div id="ov-cluster">
     <div class="tabular-header">
         <h2>
-            Cluster Nodes ({{tableData.length}} total)
+            {{lion('title_cluster_nodes')}} ({{tableData.length}} {{lion('total')}})
         </h2>
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
@@ -16,12 +16,14 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="_iconid_state" class="table-icon" col-width="84px" sortable>Active </td>
-                    <td colId="_iconid_started" class="table-icon" col-width="90px" sortable>Started </td>
-                    <td colId="id" sortable>ID </td>
-                    <td colId="ip" sortable>IP Address </td>
-                    <td colId="tcp" sortable>TCP Port </td>
-                    <td colId="updated" sortable>Last Updated </td>
+                    <td colId="_iconid_state" class="table-icon"
+                        col-width="84px" sortable> {{lion('active')}} </td>
+                    <td colId="_iconid_started" class="table-icon"
+                        col-width="90px" sortable> {{lion('started')}} </td>
+                    <td colId="id" sortable> {{lion('node_id')}} </td>
+                    <td colId="ip" sortable> {{lion('ip_address')}} </td>
+                    <td colId="tcp" sortable> {{lion('tcp_port')}} </td>
+                    <td colId="updated" sortable> {{lion('last_updated')}} </td>
                 </tr>
             </table>
         </div>
