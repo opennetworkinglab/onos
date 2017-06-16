@@ -121,7 +121,6 @@ public final class LionUtils {
      * that base name.
      * <p>
      * For example, supposing the jar file contains:
-     * <p>
      * <pre>
      * org/onosproject/util/example/SomeBundle.properties
      * </pre>
@@ -153,7 +152,6 @@ public final class LionUtils {
      * the same jar file.
      * <p>
      * For example, supposing the jar file contains:
-     * <p>
      * <pre>
      * org/onosproject/util/example/SomeObject.class
      * org/onosproject/util/example/SomeObject.properties
@@ -185,7 +183,6 @@ public final class LionUtils {
      * the same jar file.
      * <p>
      * For example, supposing the jar file contains:
-     * <p>
      * <pre>
      * org/onosproject/util/example/SomeObject.class
      * org/onosproject/util/example/DisplayStrings.properties
