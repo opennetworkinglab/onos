@@ -13,6 +13,7 @@ TEST_DEPS = [
     '//core/store/dist:onos-core-dist',
     '//core/store/dist:onos-core-dist-tests',
     '//utils/osgi:onlab-osgi-tests',
+    '//incubator/bmv2/model:onos-incubator-bmv2-model'
 ]
 
 osgi_jar_with_tests (

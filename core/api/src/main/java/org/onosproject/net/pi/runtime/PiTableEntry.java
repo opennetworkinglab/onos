@@ -19,7 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import java.util.Collection;
@@ -39,7 +39,7 @@ public final class PiTableEntry {
     private static final double NO_TIMEOUT = -1;
 
     private final PiTableId tableId;
-    private final Collection<PiFieldMatch> fieldMatches;
+    private final Map<PiHeaderFieldId, PiFieldMatch> fieldMatches;
     private final PiTableAction tableAction;
     private final long cookie;
     private final int priority;
@@ -48,7 +48,7 @@ public final class PiTableEntry {
     private PiTableEntry(PiTableId tableId, Map<PiHeaderFieldId, PiFieldMatch> fieldMatches,
                          PiTableAction tableAction, long cookie, int priority, double timeout) {
         this.tableId = tableId;
-        this.fieldMatches = ImmutableSet.copyOf(fieldMatches.values());
+        this.fieldMatches = ImmutableMap.copyOf(fieldMatches);
         this.tableAction = tableAction;
         this.cookie = cookie;
         this.priority = priority;
@@ -70,7 +70,17 @@ public final class PiTableEntry {
      * @return collection of field matches
      */
     public Collection<PiFieldMatch> fieldMatches() {
-        return fieldMatches;
+        return fieldMatches.values();
+    }
+
+    /**
+     * If present, returns the field match associated with the given header field identifier.
+     *
+     * @param fieldId field identifier
+     * @return optional field match
+     */
+    public Optional<PiFieldMatch> fieldMatch(PiHeaderFieldId fieldId) {
+        return Optional.ofNullable(fieldMatches.get(fieldId));
     }
 
     /**
@@ -171,7 +181,7 @@ public final class PiTableEntry {
          * @param tableId table identifier
          * @return this
          */
-        Builder forTable(PiTableId tableId) {
+        public Builder forTable(PiTableId tableId) {
             this.tableId = checkNotNull(tableId);
             return this;
         }
@@ -182,7 +192,7 @@ public final class PiTableEntry {
          * @param tableAction table action
          * @return this
          */
-        Builder withAction(PiTableAction tableAction) {
+        public Builder withAction(PiTableAction tableAction) {
             this.tableAction = checkNotNull(tableAction);
             return this;
         }
@@ -193,7 +203,7 @@ public final class PiTableEntry {
          * @param fieldMatch field match
          * @return this
          */
-        Builder withFieldMatch(PiFieldMatch fieldMatch) {
+        public Builder withFieldMatch(PiFieldMatch fieldMatch) {
             this.fieldMatches.put(fieldMatch.fieldId(), fieldMatch);
             return this;
         }
@@ -204,7 +214,7 @@ public final class PiTableEntry {
          * @param fieldMatches collection of field matches
          * @return this
          */
-        Builder withFieldMatches(Collection<PiFieldMatch> fieldMatches) {
+        public Builder withFieldMatches(Collection<PiFieldMatch> fieldMatches) {
             fieldMatches.forEach(f -> this.fieldMatches.put(f.fieldId(), f));
             return this;
         }
@@ -215,7 +225,7 @@ public final class PiTableEntry {
          * @param cookie cookie
          * @return this
          */
-        Builder withCookie(long cookie) {
+        public Builder withCookie(long cookie) {
             this.cookie = cookie;
             return this;
         }
@@ -226,7 +236,7 @@ public final class PiTableEntry {
          * @param priority priority
          * @return this
          */
-        Builder withPriority(int priority) {
+        public Builder withPriority(int priority) {
             checkArgument(priority >= 0, "Priority must be a positive integer.");
             this.priority = priority;
             return this;
@@ -238,7 +248,7 @@ public final class PiTableEntry {
          * @param seconds timeout in seconds
          * @return this
          */
-        Builder withTimeout(double seconds) {
+        public Builder withTimeout(double seconds) {
             checkArgument(seconds > 0, "Timeout must be greater than zero.");
             this.timeout = seconds;
             return this;
@@ -249,7 +259,7 @@ public final class PiTableEntry {
          *
          * @return a new table entry
          */
-        PiTableEntry build() {
+        public PiTableEntry build() {
             checkNotNull(tableId);
             checkNotNull(tableAction);
             return new PiTableEntry(tableId, fieldMatches, tableAction, cookie, priority, timeout);

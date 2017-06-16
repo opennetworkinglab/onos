@@ -18,15 +18,17 @@ package org.onosproject.net.pi.model;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiTableAction;
+import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.util.Optional;
 
 /**
- * An interpreter of a protocol-independent pipeline.
+ * An interpreter of a protocol-independent pipeline model.
  */
 @Beta
 public interface PiPipelineInterpreter extends HandlerBehaviour {
@@ -50,6 +52,16 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      * @return optional criterion type
      */
     Optional<Criterion.Type> mapPiHeaderFieldId(PiHeaderFieldId headerFieldId);
+
+    /**
+     * Returns a protocol-independent table id equivalent to the given numeric table id (as in
+     * {@link FlowRule#tableId()}). If not present, it means that the given numeric table id cannot
+     * be mapped to any table of the pipeline model.
+     *
+     * @param flowRuleTableId a numeric table id
+     * @return a protocol-independent table id
+     */
+    Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId);
 
     /**
      * Returns a table action of a protocol-independent pipeline that is functionally equivalent to

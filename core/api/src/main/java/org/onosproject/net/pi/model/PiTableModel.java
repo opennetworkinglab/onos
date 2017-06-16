@@ -19,6 +19,7 @@ package org.onosproject.net.pi.model;
 import com.google.common.annotations.Beta;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Model of a match+action table in a protocol-independent pipeline.
@@ -67,4 +68,14 @@ public interface PiTableModel {
      * @return a collection of action models
      */
     Collection<PiActionModel> actions();
+
+    /**
+     * Returns the action model associated with the given name, if present.
+     * If not present, it means that this table does not support such an action.
+     *
+     * @param name string value
+     * @return optional action model
+     */
+    Optional<PiActionModel> action(String name);
+
 }

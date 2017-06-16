@@ -38,6 +38,15 @@ public final class PiActionId extends Identifier<String> {
     }
 
     /**
+     * Returns the name of the action.
+     *
+     * @return action name
+     */
+    public String name() {
+        return this.identifier;
+    }
+
+    /**
      * Returns an action identifier with the given name.
      *
      * @param name action name

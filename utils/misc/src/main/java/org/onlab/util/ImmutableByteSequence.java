@@ -23,6 +23,8 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.ArrayUtils.reverse;
 
 /**
@@ -240,5 +242,72 @@ public final class ImmutableByteSequence {
     @Override
     public String toString() {
         return HexString.toHexString(value.array());
+    }
+
+    /**
+     * Trims or expands the given byte sequence so to fit a given bit-width. When trimming, the
+     * operations is deemed to be safe only if the trimmed bits are zero, otherwise an exception
+     * will be thrown. When expanding, the sequence will be padded with zeros. The returned byte
+     * sequence will have minimum size to contain the given bit-width.
+     *
+     * @param original a byte sequence
+     * @param bitWidth a non-zero positive integer
+     * @return a new byte sequence
+     * @throws ByteSequenceTrimException if the byte sequence cannot be fitted
+     */
+    public static ImmutableByteSequence fit(ImmutableByteSequence original, int bitWidth)
+            throws ByteSequenceTrimException {
+
+        checkNotNull(original, "byte sequence cannot be null");
+        checkArgument(bitWidth > 0, "bit-width must be a non-zero positive integer");
+
+        int newByteWidth = (int) Math.ceil((double) bitWidth / 8);
+
+        byte[] originalBytes = original.asArray();
+
+        if (newByteWidth > original.size()) {
+            // pad missing bytes with zeros
+            return ImmutableByteSequence.copyFrom(Arrays.copyOf(originalBytes, newByteWidth));
+        }
+
+        byte[] newBytes = new byte[newByteWidth];
+        // ImmutableByteSequence is always big-endian, hence check the array in reverse order
+        int diff = originalBytes.length - newByteWidth;
+        for (int i = originalBytes.length - 1; i >= 0; i--) {
+            byte ob = originalBytes[i]; // original byte
+            byte nb; // new byte
+            if (i > diff) {
+                // no need to truncate, copy as is
+                nb = ob;
+            } else if (i == diff) {
+                // truncate this byte, check if we're loosing something
+                byte mask = (byte) ((1 >> ((bitWidth % 8) + 1)) - 1);
+                if ((ob & ~mask) != 0) {
+                    throw new ByteSequenceTrimException(originalBytes, bitWidth);
+                } else {
+                    nb = (byte) (ob & mask);
+                }
+            } else {
+                // drop this byte, check if we're loosing something
+                if (originalBytes[i] != 0) {
+                    throw new ByteSequenceTrimException(originalBytes, bitWidth);
+                } else {
+                    continue;
+                }
+            }
+            newBytes[i - diff] = nb;
+        }
+
+        return ImmutableByteSequence.copyFrom(newBytes);
+    }
+
+    /**
+     * Signals that a byte sequence cannot be trimmed.
+     */
+    public static class ByteSequenceTrimException extends Exception {
+        ByteSequenceTrimException(byte[] bytes, int bitWidth) {
+            super(format("cannot trim %s into a %d long bits value",
+                         HexString.toHexString(bytes), bitWidth));
+        }
     }
 }

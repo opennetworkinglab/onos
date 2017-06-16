@@ -18,13 +18,16 @@ package org.onosproject.bmv2.model;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.pi.model.PiActionModel;
 import org.onosproject.net.pi.model.PiTableMatchFieldModel;
 import org.onosproject.net.pi.model.PiTableModel;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.*;
@@ -40,7 +43,7 @@ public final class Bmv2TableModel implements PiTableModel {
     private final boolean hasCounters;
     private final boolean supportAging;
     private final Set<PiTableMatchFieldModel> matchFields;
-    private final Set<PiActionModel> actions;
+    private final Map<String, PiActionModel> actions;
 
     /**
      * Creates new BMv2 table model.
@@ -68,7 +71,9 @@ public final class Bmv2TableModel implements PiTableModel {
         this.hasCounters = hasCounters;
         this.supportAging = supportAging;
         this.matchFields = ImmutableSet.copyOf(matchFields);
-        this.actions = ImmutableSet.copyOf(actions);
+        ImmutableMap.Builder<String, PiActionModel> mapBuilder = ImmutableMap.builder();
+        actions.forEach(a -> mapBuilder.put(a.name(), a));
+        this.actions = mapBuilder.build();
     }
 
     /**
@@ -107,7 +112,12 @@ public final class Bmv2TableModel implements PiTableModel {
 
     @Override
     public Collection<PiActionModel> actions() {
-        return actions;
+        return actions.values();
+    }
+
+    @Override
+    public Optional<PiActionModel> action(String name) {
+        return Optional.ofNullable(actions.get(name));
     }
 
     @Override
@@ -143,7 +153,7 @@ public final class Bmv2TableModel implements PiTableModel {
                 .add("hasCounters", hasCounters)
                 .add("supportAging", supportAging)
                 .add("matchFields", matchFields)
-                .add("actions", actions)
+                .add("actions", actions.values())
                 .toString();
     }
 }
