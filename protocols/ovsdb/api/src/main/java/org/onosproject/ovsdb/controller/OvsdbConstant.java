@@ -106,4 +106,7 @@ public final class OvsdbConstant {
 
     /** Ovsdb Bridge table, Controller column name. */
     public static final String BRIDGE_CONTROLLER = "controller";
+
+    /** Openflow port Error. */
+    public static final int OFPORT_ERROR = -1;
 }

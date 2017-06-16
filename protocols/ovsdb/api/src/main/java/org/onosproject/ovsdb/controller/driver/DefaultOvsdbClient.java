@@ -32,6 +32,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.onlab.packet.IpAddress;
@@ -55,6 +57,8 @@ import org.onosproject.ovsdb.controller.OvsdbQueue;
 import org.onosproject.ovsdb.controller.OvsdbRowStore;
 import org.onosproject.ovsdb.controller.OvsdbStore;
 import org.onosproject.ovsdb.controller.OvsdbTableStore;
+import org.onosproject.ovsdb.rfc.exception.ColumnSchemaNotFoundException;
+import org.onosproject.ovsdb.rfc.exception.VersionMismatchException;
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
@@ -122,6 +126,7 @@ import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE_EXTERNAL_ID_K
 import static org.onosproject.ovsdb.controller.OvsdbConstant.TYPEVXLAN;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.UUID;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE_CONTROLLER;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT_ERROR;
 
 /**
  * An representation of an ovsdb client.
@@ -129,6 +134,7 @@ import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE_CONTROLLER;
 public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientService {
 
     private static final int TRANSACTCONFIG_TIMEOUT = 3; //sec
+    private static final int OFPORT_ERROR_COMPARISON = 0;
 
     private final Logger log = LoggerFactory.getLogger(DefaultOvsdbClient.class);
 
@@ -1696,5 +1702,88 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     public void disconnect() {
         channel.disconnect();
         this.agent.removeConnectedNode(nodeId);
+    }
+
+    @Override
+    public List<OvsdbPortName> getPorts(List<String> portNames, DeviceId deviceId) {
+        Uuid bridgeUuid = getBridgeUuid(deviceId);
+        if (bridgeUuid == null) {
+            log.error("Can't find the bridge for the deviceId {}", deviceId);
+            return Collections.emptyList();
+        }
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+        Row bridgeRow = getRow(DATABASENAME, BRIDGE, bridgeUuid.value());
+        Bridge bridge = (Bridge) TableGenerator.getTable(dbSchema, bridgeRow, OvsdbTable.BRIDGE);
+        if (bridge == null) {
+            return Collections.emptyList();
+        }
+        OvsdbSet setPorts = (OvsdbSet) bridge.getPortsColumn().data();
+        Set<Uuid> portSet = setPorts.set();
+        if (portSet.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Uuid, Port> portMap = portSet.stream().collect(Collectors.toMap(
+                java.util.function.Function.identity(), port -> (Port) TableGenerator
+                        .getTable(dbSchema, getRow(DATABASENAME,
+                                PORT, port.value()), OvsdbTable.PORT)));
+
+        List<OvsdbPortName> portList = portMap.entrySet().stream().filter(port -> Objects.nonNull(port.getValue())
+                && portNames.contains(port.getValue().getName())
+                && Objects.nonNull(getInterfacebyPort(port.getKey().value(), port.getValue().getName())))
+                .map(port -> new OvsdbPortName(port.getValue().getName())).collect(Collectors.toList());
+
+        return Collections.unmodifiableList(portList);
+    }
+
+    @Override
+    public boolean getPortError(List<OvsdbPortName> portNames, DeviceId bridgeId) {
+        Uuid bridgeUuid = getBridgeUuid(bridgeId);
+
+        List<Interface> interfaceList = portNames.stream().collect(Collectors
+                .toMap(java.util.function.Function.identity(),
+                        port -> (Interface) getInterfacebyPort(getPortUuid(port.value(),
+                                bridgeUuid.value()), port.value())))
+                .entrySet().stream().filter(intf -> Objects.nonNull(intf.getValue())
+                        && ((OvsdbSet) intf.getValue().getOpenFlowPortColumn().data()).set()
+                        .stream().findAny().orElse(OFPORT_ERROR_COMPARISON).equals(OFPORT_ERROR))
+                .map(intf -> intf.getValue()).collect(Collectors.toList());
+
+        interfaceList.forEach(intf -> new Consumer<Interface>() {
+            @Override
+            public void accept(Interface intf) {
+                try {
+                    Set<String> setErrors = ((OvsdbSet) intf.getErrorColumn().data()).set();
+                    log.info("Port has errors. ofport value - {}, Interface - {} has error - {} ",
+                            intf.getOpenFlowPortColumn().data(), intf.getName(), setErrors.stream()
+                                    .findFirst().get());
+                } catch (ColumnSchemaNotFoundException | VersionMismatchException  e) {
+                    log.debug("Port has errors. ofport value - {}, Interface - {} has error - {} ",
+                            intf.getOpenFlowPortColumn().data(), intf.getName(), e);
+                }
+            }
+        }.accept(intf));
+
+        return !interfaceList.isEmpty();
+    }
+
+    private Interface getInterfacebyPort(String portUuid, String portName) {
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+
+        Row portRow = getRow(DATABASENAME, PORT, portUuid);
+        Port port = (Port) TableGenerator.getTable(dbSchema, portRow,
+                OvsdbTable.PORT);
+        if (port == null) {
+            return null;
+        }
+
+        OvsdbSet setInterfaces = (OvsdbSet) port.getInterfacesColumn().data();
+        Set<Uuid> interfaces = setInterfaces.set();
+
+        return interfaces.stream().map(intf -> (Interface) TableGenerator
+                .getTable(dbSchema, getRow(DATABASENAME,
+                        INTERFACE, intf.value()), OvsdbTable.INTERFACE))
+                .filter(intf -> Objects.nonNull(intf) && portName.equalsIgnoreCase(intf.getName()))
+                .findFirst().orElse(null);
     }
 }

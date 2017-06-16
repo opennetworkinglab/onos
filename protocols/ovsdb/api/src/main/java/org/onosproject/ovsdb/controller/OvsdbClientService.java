@@ -334,4 +334,24 @@ public interface OvsdbClientService extends OvsdbRpc {
      * Disconnects the OVSDB server.
      */
     void disconnect();
+
+    /**
+     * Gets created  ports for the particular bridgeId.
+     *
+     * @param portNames  the portNames which needs to checked for create
+     * @param bridgeId   bridgeIdentifier
+     * @return OvsdbPortNames  the created ports from port table for the bridgeId by considering input port list.
+     * Considered port as created if port's interface table also gets created,irrespective
+     * of ofport value(has errors or not)
+     */
+    public List<OvsdbPortName> getPorts(List<String> portNames, DeviceId bridgeId);
+
+    /**
+     * Gets error status for the given portNames.
+     *
+     * @param portNames  the portNames which need to be checked for errors
+     * @param bridgeId   bridgeIdentifier
+     * @return errorstatus true if input port list contains error, false otherwise
+     */
+    boolean getPortError(List<OvsdbPortName>  portNames, DeviceId bridgeId);
 }

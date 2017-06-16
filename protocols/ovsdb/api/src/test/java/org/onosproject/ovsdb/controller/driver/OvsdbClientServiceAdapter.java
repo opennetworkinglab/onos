@@ -16,6 +16,7 @@
 
 package org.onosproject.ovsdb.controller.driver;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
 import org.onosproject.ovsdb.controller.OvsdbQos;
 import org.onosproject.ovsdb.controller.OvsdbQueue;
+import org.onosproject.ovsdb.controller.OvsdbPortName;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.operations.Operation;
@@ -277,5 +279,15 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public ListenableFuture<List<JsonNode>> transact(DatabaseSchema dbSchema, List<Operation> operations) {
         return null;
+    }
+
+    @Override
+    public List<OvsdbPortName> getPorts(List<String> portNames, DeviceId bridgeId) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean getPortError(List<OvsdbPortName> portNames, DeviceId bridgeId) {
+        return false;
     }
 }
