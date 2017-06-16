@@ -87,29 +87,9 @@ public class HostHandler {
         log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
         if (accepted(host)) {
-            // Populate bridging table entry
-            log.debug("Populating bridging entry for host {}/{} at {}:{}",
-                    mac, vlanId, deviceId, port);
-            ForwardingObjective.Builder fob =
-                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port, false);
-            if (fob == null) {
-                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
-                return;
-            }
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Brigding rule for {}/{} populated",
-                                             mac, vlanId),
-                    (objective, error) ->
-                            log.warn("Failed to populate bridging rule for {}/{}: {}",
-                                     mac, vlanId, error));
-            flowObjectiveService.forward(deviceId, fob.add(context));
-
+            processBridgingRule(deviceId, port, mac, vlanId, false);
             ips.forEach(ip -> {
-                // Populate IP table entry
-                if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
-                    srManager.routingRulePopulator.populateRoute(
-                            deviceId, ip.toIpPrefix(), mac, vlanId, port);
-                }
+                processRoutingRule(deviceId, port, mac, vlanId, ip, false);
             });
         }
     }
@@ -128,25 +108,9 @@ public class HostHandler {
         log.info("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
 
         if (accepted(host)) {
-            // Revoke bridging table entry
-            ForwardingObjective.Builder fob =
-                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port, true);
-            if (fob == null) {
-                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
-                return;
-            }
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} revoked", host),
-                    (objective, error) ->
-                            log.warn("Failed to revoke host rule for {}: {}", host, error));
-            flowObjectiveService.forward(deviceId, fob.remove(context));
-
-            // Revoke IP table entry
+            processBridgingRule(deviceId, port, mac, vlanId, true);
             ips.forEach(ip -> {
-                if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
-                    srManager.routingRulePopulator.revokeRoute(
-                            deviceId, ip.toIpPrefix(), mac, vlanId, port);
-                }
+                processRoutingRule(deviceId, port, mac, vlanId, ip, true);
             });
         }
     }
@@ -166,48 +130,16 @@ public class HostHandler {
                 mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
 
         if (accepted(event.prevSubject())) {
-            // Revoke previous bridging table entry
-            ForwardingObjective.Builder prevFob =
-                    bridgingFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort, true);
-            if (prevFob == null) {
-                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
-                return;
-            }
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} revoked", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to revoke host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(prevDeviceId, prevFob.remove(context));
-
-            // Revoke previous IP table entry
+            processBridgingRule(prevDeviceId, prevPort, mac, vlanId, true);
             prevIps.forEach(ip -> {
-                if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
-                    srManager.routingRulePopulator.revokeRoute(
-                            prevDeviceId, ip.toIpPrefix(), mac, vlanId, prevPort);
-                }
+                processRoutingRule(prevDeviceId, prevPort, mac, vlanId, ip, true);
             });
         }
 
         if (accepted(event.subject())) {
-            // Populate new bridging table entry
-            ForwardingObjective.Builder newFob =
-                    bridgingFwdObjBuilder(newDeviceId, mac, vlanId, newPort, false);
-            if (newFob == null) {
-                log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
-                return;
-            }
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {} populated", event.subject()),
-                    (objective, error) ->
-                            log.warn("Failed to populate host rule for {}: {}", event.subject(), error));
-            flowObjectiveService.forward(newDeviceId, newFob.add(context));
-
-            // Populate new IP table entry
+            processBridgingRule(newDeviceId, newPort, mac, vlanId, false);
             newIps.forEach(ip -> {
-                if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
-                    srManager.routingRulePopulator.populateRoute(
-                            newDeviceId, ip.toIpPrefix(), mac, vlanId, newPort);
-                }
+                processRoutingRule(newDeviceId, newPort, mac, vlanId, ip, false);
             });
         }
     }
@@ -228,22 +160,14 @@ public class HostHandler {
         if (accepted(event.prevSubject())) {
             // Revoke previous IP table entry
             Sets.difference(prevIps, newIps).forEach(ip -> {
-                if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
-                    log.info("revoking previous IP rule:{}", ip);
-                    srManager.routingRulePopulator.revokeRoute(
-                            prevDeviceId, ip.toIpPrefix(), mac, vlanId, prevPort);
-                }
+                processRoutingRule(prevDeviceId, prevPort, mac, vlanId, ip, true);
             });
         }
 
         if (accepted(event.subject())) {
             // Populate new IP table entry
             Sets.difference(newIps, prevIps).forEach(ip -> {
-                if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
-                    log.info("populating new IP rule:{}", ip);
-                    srManager.routingRulePopulator.populateRoute(
-                            newDeviceId, ip.toIpPrefix(), mac, vlanId, newPort);
-                }
+                processRoutingRule(newDeviceId, newPort, mac, vlanId, ip, false);
             });
         }
     }
@@ -321,6 +245,60 @@ public class HostHandler {
                 .withPriority(100)
                 .fromApp(srManager.appId)
                 .makePermanent();
+    }
+
+    /**
+     * Populate or revoke a bridging rule on given deviceId that matches given mac, given vlan and
+     * output to given port.
+     *
+     * @param deviceId device ID
+     * @param port port
+     * @param mac mac address
+     * @param vlanId VLAN ID
+     * @param revoke true to revoke the rule; false to populate
+     */
+    private void processBridgingRule(DeviceId deviceId, PortNumber port, MacAddress mac,
+                                     VlanId vlanId, boolean revoke) {
+        log.debug("{} bridging entry for host {}/{} at {}:{}", revoke ? "Revoking" : "Populating",
+                mac, vlanId, deviceId, port);
+
+        ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, revoke);
+        if (fob == null) {
+            log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
+            return;
+        }
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Brigding rule for {}/{} {}", mac, vlanId,
+                        revoke ? "revoked" : "populated"),
+                (objective, error) -> log.warn("Failed to {} bridging rule for {}/{}: {}",
+                        revoke ? "revoked" : "populated", mac, vlanId, error));
+        flowObjectiveService.forward(deviceId, revoke ? fob.remove(context) : fob.add(context));
+    }
+
+    /**
+     * Populate or revoke a routing rule on given deviceId that matches given ip,
+     * set destination mac to given mac, set vlan to given vlan and output to given port.
+     *
+     * @param deviceId device ID
+     * @param port port
+     * @param mac mac address
+     * @param vlanId VLAN ID
+     * @param ip IP address
+     * @param revoke true to revoke the rule; false to populate
+     */
+    private void processRoutingRule(DeviceId deviceId, PortNumber port, MacAddress mac,
+                                    VlanId vlanId, IpAddress ip, boolean revoke) {
+        ConnectPoint location = new ConnectPoint(deviceId, port);
+        if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
+            log.info("{} routing rule for {} at {}", revoke ? "Revoking" : "Populating",
+                    ip, location);
+            if (revoke) {
+                srManager.routingRulePopulator.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            } else {
+                srManager.routingRulePopulator.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            }
+        }
     }
 
     /**
