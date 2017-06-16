@@ -55,7 +55,7 @@ function o {
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
-alias obf='(cd $ONOS_ROOT && buck build onos)'
+alias obf='(cd $ONOS_ROOT && onos-buck build onos)'
 alias obd='onos-build-docs'
 alias op='onos-package'
 alias ot='onos-test'
@@ -64,7 +64,7 @@ alias deprecatedAlias='echo "This alias has been deprecated."'
 alias obi=deprecatedAlias
 alias obs=deprecatedAlias
 
-alias ok='NO_BUCKD=1 buck run onos-local --'
+alias ok='NO_BUCKD=1 onos-buck run onos-local --'
 alias oh='onos localhost halt'
 
 alias ol='onos-log'
