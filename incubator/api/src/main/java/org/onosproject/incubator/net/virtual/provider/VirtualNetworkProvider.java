@@ -46,7 +46,9 @@ public interface VirtualNetworkProvider extends Provider {
      * @param src       source connection point
      * @param dst       destination connection point
      * @return new tunnel's id
+     * @deprecated in Loon Release (1.11)
      */
+    @Deprecated
     TunnelId createTunnel(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
 
     /**
@@ -54,7 +56,9 @@ public interface VirtualNetworkProvider extends Provider {
      *
      * @param networkId virtual network identifier
      * @param tunnelId  tunnel identifier
+     * @deprecated in Loon Release (1.11)
      */
+    @Deprecated
     void destroyTunnel(NetworkId networkId, TunnelId tunnelId);
 
 }
