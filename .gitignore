@@ -21,10 +21,14 @@ bucklets/plugins/
 
 /bin/
 lib/yang
+/tools/gui/bin
+/tools/gui/node_modules
+/tools/gui/package-lock.json
 
 web/gui/src/main/webapp/tests/node_modules
 web/gui/src/test/_karma/node_modules
 web/gui/src/main/webapp/node_modules/
+web/gui/src/main/webapp/dist/
 
 npm-debug.log
 sonar-project.properties
