@@ -3,7 +3,7 @@
 # Builds and installs all tools needed for developing and testing P4 support in
 # ONOS.
 #
-# Tested on Ubuntu 14.04.
+# Tested on Ubuntu 14.04 and 16.04.
 #
 # Recommended minimum system requirements:
 # 4 GB of RAM
@@ -26,12 +26,7 @@ NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 
 function do_requirements {
     sudo apt update
-    #FIXME the following two lines seem like they are not required, at least for 16.04
-    sudo apt install -y python-software-properties software-properties-common
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    sudo apt update
-    #FIXME 14.04 needs special gcc, 16.04 can use apt-get default
-    sudo apt install -y --no-install-recommends \
+    sudo apt-get install -y --no-install-recommends \
         autoconf \
         automake \
         bison \
@@ -39,14 +34,14 @@ function do_requirements {
         cmake \
         cpp \
         curl \
-        dpkg-dev \
         flex \
-        g++-4.9 \
-        gcc-4.9 \
         git \
         libboost-dev \
+        libboost-program-options-dev \
+        libboost-system-dev \
         libboost-filesystem-dev \
-        libboost-iostreams-dev \
+        libboost-thread-dev \
+        libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-system-dev \
         libboost-test-dev \
@@ -59,6 +54,8 @@ function do_requirements {
         libgc1c2 \
         libgflags-dev \
         libgmp-dev \
+        libjudy-dev \
+        libpcap-dev \
         libgmp10 \
         libgmpxx4ldbl \
         libjudy-dev \
@@ -78,10 +75,29 @@ function do_requirements {
         tcpdump \
         wget \
         unzip
+}
+
+function do_requirements_1404 {
+    sudo apt install -y python-software-properties software-properties-common
+    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    sudo apt update
+    sudo apt install -y \
+        dpkg-dev \
+        g++-4.9 \
+        gcc-4.9 \
+        libboost-iostreams-dev
 
     # Needed for p4c.
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
     sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
+}
+
+function do_requirements_1604 {
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \
+        ca-certificates \
+        g++ \
+        libboost-iostreams1.58-dev
 }
 
 function do_protobuf {
@@ -148,7 +164,7 @@ function do_bmv2 {
     git checkout ${BMV2_COMMIT}
 
     ./autogen.sh
-    # FIXME: to build with debugger, we need to install nanomsg first (see bmv2's install_deps.sh)
+    # TODO: to build with debugger, we need to install nanomsg first (see bmv2's install_deps.sh)
     ./configure --without-thrift --without-nanomsg --with-pi
     make -j${NUM_CORES}
     sudo make install
@@ -180,20 +196,6 @@ function do_p4c {
     sudo ldconfig
 }
 
-# FIXME: Can we deprecate this?
-function do_p4c_bm {
-    # old BMv2 compiler
-    cd ${BUILD_DIR}
-    if [ ! -d p4c-bmv2 ]; then
-        git clone https://github.com/p4lang/p4c-bm.git p4c-bmv2
-    fi
-    cd p4c-bmv2
-    git fetch
-    git checkout ${P4C_BM_COMMIT}
-    sudo pip install -r requirements.txt
-    sudo python setup.py install
-}
-
 function check_commit {
     if [ ! -e $2 ]; then
         return 0 # true
@@ -202,6 +204,14 @@ function check_commit {
         return 0 # true
     fi
     return 1 # false
+}
+
+# The following is borrowed from Mininet's util/install.sh
+function version_ge {
+    # sort -V sorts by *version number*
+    latest=`printf "$1\n$2" | sort -V | tail -1`
+    # If $1 is latest version, then $1 >= $2
+    [ "$1" == "$latest" ]
 }
 
 MUST_DO_ALL=false
@@ -216,15 +226,28 @@ function check_and_do {
         echo "#"
         echo "# Building ${proj_dir} (${commit_id})"
         echo "#"
+        # Print commands used to install to aid debugging
+        set -x
         if ! ${DID_REQUIREMENTS} = true; then
-        #FIXME need version check for 14.04 vs 16.04
             do_requirements
+            #TODO consider other Linux distros; presently this script assumes that it is running on Ubuntu
+            RELEASE=`lsb_release -rs`
+            if version_ge $RELEASE 16.04; then
+                do_requirements_1604
+            elif version_ge $RELEASE 14.04; then
+                do_requirements_1404
+            else
+                echo "Ubuntu version $RELEASE is not supported"
+                exit 1
+            fi
             DID_REQUIREMENTS=true
         fi
         eval ${func_name}
         echo ${commit_id} > ${BUILD_DIR}/${proj_dir}/.last_built_commit
         # Build all next projects as they might depend on this one.
         MUST_DO_ALL=true
+        # Disable printing to reduce output
+        set +x
     else
         echo "${proj_dir} is up to date (commit ${commit_id})"
     fi
@@ -238,6 +261,5 @@ check_and_do ${GRPC_COMMIT} grpc do_grpc
 check_and_do ${PI_COMMIT} p4runtime do_p4runtime
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2
 check_and_do ${P4C_COMMIT} p4c do_p4c
-check_and_do ${P4C_BM_COMMIT} p4c-bmv2 do_p4c_bm
 
 echo "Done!"
