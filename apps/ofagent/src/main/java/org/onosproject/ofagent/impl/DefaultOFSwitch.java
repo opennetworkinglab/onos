@@ -33,6 +33,8 @@ import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
+import org.projectfloodlight.openflow.protocol.OFRoleReply;
+import org.projectfloodlight.openflow.protocol.OFRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFSetConfig;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsRequest;
@@ -219,8 +221,21 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void processRoleRequest(Channel channel, OFMessage msg) {
-        // TODO process role request and send reply
-        log.debug("Functionality not yet supported for {}", msg);
+        OFRoleRequest ofRoleRequest = (OFRoleRequest) msg;
+        OFControllerRole oldRole = role(channel);
+        OFControllerRole newRole = ofRoleRequest.getRole();
+        if (oldRole.equals(newRole)) {
+            log.trace("No change needed to existing role {}", oldRole);
+        } else {
+            log.trace("Changing role from {} to {}", oldRole, newRole);
+            setRole(channel, newRole);
+        }
+        OFRoleReply ofRoleReply = FACTORY.buildRoleReply()
+                .setRole(role(channel))
+                .setXid(msg.getXid())
+                .build();
+        channel.writeAndFlush(Collections.singletonList(ofRoleReply));
+        log.trace("request {}; reply {}", msg, ofRoleReply);
     }
 
     @Override

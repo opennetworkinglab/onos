@@ -121,6 +121,9 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
                     case ECHO_REQUEST:
                         handler.ofSwitch.processEchoRequest(handler.channel, msg);
                         break;
+                    case ROLE_REQUEST:
+                        handler.ofSwitch.processRoleRequest(handler.channel, msg);
+                        break;
                     case ERROR:
                         handler.logErrorClose((OFErrorMsg) msg);
                         break;
