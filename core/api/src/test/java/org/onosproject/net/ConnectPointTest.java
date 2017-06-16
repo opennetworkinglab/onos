@@ -121,12 +121,15 @@ public class ConnectPointTest {
         switch (r) {
             case BEFORE:
                 assertTrue("Bad before", cpA.compareTo(cpB) < 0);
+                assertTrue("Bad before", cpB.compareTo(cpA) > 0);
                 break;
             case SAME_AS:
                 assertTrue("Bad same_as", cpA.compareTo(cpB) == 0);
+                assertTrue("Bad same_as", cpB.compareTo(cpA) == 0);
                 break;
             case AFTER:
                 assertTrue("Bad after", cpA.compareTo(cpB) > 0);
+                assertTrue("Bad after", cpB.compareTo(cpA) < 0);
                 break;
             default:
                 fail("Bad relation");

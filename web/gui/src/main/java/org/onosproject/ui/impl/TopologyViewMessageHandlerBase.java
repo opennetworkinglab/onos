@@ -74,6 +74,11 @@ import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     private static final String NO_GEO_VALUE = "0.0";
+    private static final String DASH = "-";
+
+    // nav paths are the view names for hot-link navigation from topo view...
+    private static final String DEVICE_NAV_PATH = "device";
+    private static final String HOST_NAV_PATH = "host";
 
     // default to an "add" event...
     private static final DefaultHashMap<ClusterEvent.Type, String> CLUSTER_EVENT =
@@ -139,7 +144,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
     }
 
-    // Returns the specified set of IP addresses as a string.
+    // Returns the first of the given set of IP addresses as a string.
     private String ip(Set<IpAddress> ipAddresses) {
         Iterator<IpAddress> it = ipAddresses.iterator();
         return it.hasNext() ? it.next().toString() : "unknown";
@@ -210,6 +215,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String uiType = device.annotations().value(AnnotationKeys.UI_TYPE);
         String devType = uiType != null ? uiType :
                 device.type().toString().toLowerCase();
+        String name = device.annotations().value(AnnotationKeys.NAME);
+        name = isNullOrEmpty(name) ? device.id().toString() : name;
 
         ObjectNode payload = objectNode()
                 .put("id", device.id().toString())
@@ -217,15 +224,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("online", services.device().isAvailable(device.id()))
                 .put("master", master(device.id()));
 
-        // Generate labels: id, chassis id, no-label, optional-name
-        String name = device.annotations().value(AnnotationKeys.NAME);
-        ArrayNode labels = arrayNode();
-        labels.add("");
-        labels.add(isNullOrEmpty(name) ? device.id().toString() : name);
-        labels.add(device.id().toString());
-
-        // Add labels, props and stuff the payload into envelope.
-        payload.set("labels", labels);
+        payload.set("labels", labels("", name, device.id().toString()));
         payload.set("props", props(device.annotations()));
         addGeoLocation(device, payload);
         addMetaUi(device.id().toString(), payload);
@@ -256,18 +255,19 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         Host host = event.subject();
         Host prevHost = event.prevSubject();
         String hostType = host.annotations().value(AnnotationKeys.UI_TYPE);
+        String ip = ip(host.ipAddresses());
 
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
                 .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
+
         payload.set("cp", hostConnect(host.location()));
         if (prevHost != null && prevHost.location() != null) {
             payload.set("prevCp", hostConnect(prevHost.location()));
         }
-        payload.set("labels", labels(ip(host.ipAddresses()),
-                                     host.mac().toString()));
+        payload.set("labels", labels(nameForHost(host), ip, host.mac().toString()));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
         addMetaUi(host.id().toString(), payload);
@@ -378,6 +378,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String typeId = device.type().toString().toLowerCase();
 
         return new PropertyPanel(title, typeId)
+                .navPath(DEVICE_NAV_PATH)
                 .id(deviceId.toString())
 
                 .addProp(Properties.URI, deviceId.toString())
@@ -435,18 +436,25 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return count;
     }
 
+    private boolean useDefaultName(String annotName) {
+        return isNullOrEmpty(annotName) || DASH.equals(annotName);
+    }
+
+    private String nameForHost(Host host) {
+        String name = host.annotations().value(AnnotationKeys.NAME);
+        return useDefaultName(name) ? ip(host.ipAddresses()) : name;
+    }
+
     // Returns host details response.
     protected PropertyPanel hostDetails(HostId hostId) {
         Host host = services.host().getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value(AnnotationKeys.TYPE);
-        String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
-
-        String title = isNullOrEmpty(name) ? hostId.toString() : name;
         String typeId = isNullOrEmpty(type) ? "endstation" : type;
 
-        return new PropertyPanel(title, typeId)
+        return new PropertyPanel(nameForHost(host), typeId)
+                .navPath(HOST_NAV_PATH)
                 .id(hostId.toString())
                 .addProp(Properties.MAC, host.mac())
                 .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")

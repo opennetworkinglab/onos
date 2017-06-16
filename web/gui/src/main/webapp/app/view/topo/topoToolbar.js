@@ -75,6 +75,7 @@
             hosts: 0,
             offdev: 1,
             dlbls: 0,
+            hlbls: 0,
             porthl: 1,
             bg: 0,
             spr: 0,
@@ -278,7 +279,7 @@
         toolbar.toggle();
         persistTopoPrefs('toolbar');
     }
-    
+
     function selectOverlay(ovid) {
         var idx = ovIndex[defaultOverlay] || 0,
             pidx = (ovid === null) ? 0 : ovIndex[ovid] || -1;

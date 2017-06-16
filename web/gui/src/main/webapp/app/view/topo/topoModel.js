@@ -366,6 +366,16 @@
         return a;
     }
 
+    function findHosts() {
+        var hosts = [];
+        nodes.forEach(function (d) {
+            if (d.class === 'host') {
+                hosts.push(d);
+            }
+        });
+        return hosts;
+    }
+
     function findAttachedHosts(devId) {
         var hosts = [];
         nodes.forEach(function (d) {
@@ -453,6 +463,7 @@
                 findLink: findLink,
                 findLinkById: findLinkById,
                 findDevices: findDevices,
+                findHosts: findHosts,
                 findAttachedHosts: findAttachedHosts,
                 findAttachedLinks: findAttachedLinks,
                 findBadLinks: findBadLinks

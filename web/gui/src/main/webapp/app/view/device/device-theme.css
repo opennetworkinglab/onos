@@ -18,15 +18,6 @@
  ONOS GUI -- Device View (theme) -- CSS file
  */
 
-
-.light .dev-icon svg.embeddedIcon .icon .glyph {
-    fill: #0071bd;
-}
-
-.light #device-details-panel .editable {
-    border-bottom: 1px dashed #ca504b;
-}
-
 .light #device-details-panel .bottom th {
     background-color: #e5e5e6;
 }
@@ -38,12 +29,3 @@
     background-color: #f4f4f4;
 }
 
-/* ========== DARK Theme ========== */
-
-.dark .dev-icon svg.embeddedIcon .icon .glyph {
-    fill: #375b7f;
-}
-
-.dark #device-details-panel .editable {
-    border-bottom: 1px dashed #df4f4a;
-}

@@ -61,6 +61,7 @@
             Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
             N: [fltr.clickAction, 'Cycle node layers'],
             L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
+            'shift-L': [tfs.cycleHostLabels, 'Cycle host labels'],
             U: [tfs.unpin, 'Unpin node (hover mouse over)'],
             R: [resetZoom, 'Reset pan / zoom'],
             dot: [ttbs.toggleToolbar, 'Toggle Toolbar'],
@@ -83,7 +84,7 @@
 
             _helpFormat: [
                 ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S' ],
-                ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'E', '-', 'dot'],
+                ['X', 'Z', 'N', 'L', 'shift-L', 'U', 'R', '-', 'E', '-', 'dot'],
                 []   // this column reserved for overlay actions
             ]
         };
@@ -494,6 +495,7 @@
         toggleMap(prefsState.bg);
         toggleSprites(prefsState.spr);
         t3s.setDevLabIndex(prefsState.dlbls);
+        t3s.setHostLabIndex(prefsState.hlbls);
         flash.enable(true);
     }
 

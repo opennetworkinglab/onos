@@ -31,6 +31,7 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
 
     private static final String IPS = "ips";
     private static final String LOCATIONS = "locations";
+    private static final String DASH = "-";
 
     @Override
     public boolean isValid() {
@@ -39,6 +40,17 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
         this.ipAddresses();
         return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
                 GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
+    }
+
+    @Override
+    public String name() {
+        // NOTE:
+        // We don't want to default to host ID if friendly name is not set;
+        // (it isn't particularly friendly, e.g. "00:00:00:00:00:01/None").
+        // We'd prefer to clear the annotation, but if we pass null, then the
+        // value won't get set (see BasicElementOperator). So, instead we will
+        // return a DASH to signify "use the default friendly name".
+        return get(NAME, DASH);
     }
 
     /**

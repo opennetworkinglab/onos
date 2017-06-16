@@ -33,6 +33,7 @@ public class PropertyPanel {
     private String title;
     private String typeId;
     private String id;
+    private String navPath;
     private List<Prop> properties = new ArrayList<>();
     private List<ButtonId> buttons = new ArrayList<>();
 
@@ -40,7 +41,7 @@ public class PropertyPanel {
      * Constructs a property panel model with the given title and
      * type identifier (icon to display).
      *
-     * @param title title text
+     * @param title  title text
      * @param typeId type (icon) ID
      */
     public PropertyPanel(String title, String typeId) {
@@ -67,6 +68,20 @@ public class PropertyPanel {
     }
 
     /**
+     * Adds a navigation path field to the panel data, to be included in
+     * the returned JSON data to the client. This is typically used to
+     * configure the topology view with the appropriate navigation path for
+     * a hot-link to some other view.
+     *
+     * @param navPath the navigation path
+     * @return self for chaining
+     */
+    public PropertyPanel navPath(String navPath) {
+        this.navPath = navPath;
+        return this;
+    }
+
+    /**
      * Adds an ID field to the panel data, to be included in
      * the returned JSON data to the client.
      *
@@ -81,7 +96,7 @@ public class PropertyPanel {
     /**
      * Adds a property to the panel data.
      *
-     * @param key property key
+     * @param key   property key
      * @param value property value
      * @return self, for chaining
      */
@@ -93,7 +108,7 @@ public class PropertyPanel {
     /**
      * Adds a property to the panel data, using a decimal formatter.
      *
-     * @param key property key
+     * @param key   property key
      * @param value property value
      * @return self, for chaining
      */
@@ -105,7 +120,7 @@ public class PropertyPanel {
     /**
      * Adds a property to the panel data, using a decimal formatter.
      *
-     * @param key property key
+     * @param key   property key
      * @param value property value
      * @return self, for chaining
      */
@@ -119,7 +134,7 @@ public class PropertyPanel {
      * {@link Object#toString toString()} method is used to convert the
      * value to a string.
      *
-     * @param key property key
+     * @param key   property key
      * @param value property value
      * @return self, for chaining
      */
@@ -134,8 +149,8 @@ public class PropertyPanel {
      * value to a string, from which the characters defined in the given
      * regular expression string are stripped.
      *
-     * @param key property key
-     * @param value property value
+     * @param key     property key
+     * @param value   property value
      * @param reStrip regexp characters to strip from value string
      * @return self, for chaining
      */
@@ -171,6 +186,15 @@ public class PropertyPanel {
      */
     public String typeId() {
         return typeId;
+    }
+
+    /**
+     * Returns the navigation path.
+     *
+     * @return the navigation path
+     */
+    public String navPath() {
+        return navPath;
     }
 
     /**
@@ -235,7 +259,7 @@ public class PropertyPanel {
     public PropertyPanel removeProps(String... keys) {
         Set<String> forRemoval = Sets.newHashSet(keys);
         List<Prop> toKeep = new ArrayList<>();
-        for (Prop p: properties) {
+        for (Prop p : properties) {
             if (!forRemoval.contains(p.key())) {
                 toKeep.add(p);
             }
@@ -274,7 +298,7 @@ public class PropertyPanel {
     public PropertyPanel removeButtons(ButtonId... descriptors) {
         Set<ButtonId> forRemoval = Sets.newHashSet(descriptors);
         List<ButtonId> toKeep = new ArrayList<>();
-        for (ButtonId bd: buttons) {
+        for (ButtonId bd : buttons) {
             if (!forRemoval.contains(bd)) {
                 toKeep.add(bd);
             }
@@ -306,7 +330,7 @@ public class PropertyPanel {
         /**
          * Constructs a property data value.
          *
-         * @param key property key
+         * @param key   property key
          * @param value property value
          */
         public Prop(String key, String value) {

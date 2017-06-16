@@ -47,6 +47,7 @@ public final class TopoJson {
 
     static final String TITLE = "title";
     static final String TYPE = "type";
+    static final String NAV_PATH = "navPath";
     static final String PROP_ORDER = "propOrder";
     static final String PROPS = "props";
     static final String BUTTONS = "buttons";
@@ -63,7 +64,8 @@ public final class TopoJson {
     }
 
     // non-instantiable
-    private TopoJson() { }
+    private TopoJson() {
+    }
 
     /**
      * Returns a formatted message ready to send to the topology view
@@ -178,6 +180,10 @@ public final class TopoJson {
                 .put(TITLE, pp.title())
                 .put(TYPE, pp.typeId())
                 .put(ID, pp.id());
+
+        if (pp.navPath() != null) {
+            result.put(NAV_PATH, pp.navPath());
+        }
 
         ObjectNode pnode = objectNode();
         ArrayNode porder = arrayNode();

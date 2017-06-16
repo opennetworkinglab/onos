@@ -35,8 +35,7 @@
         sumMax = 226,           // summary panel max height
         padTop = 16,            // summary panel padding below masthead
         padding = 16,           // panel internal padding
-        padFudge = padTop + 2 * padding,
-        devPath = 'device';
+        padFudge = padTop + 2 * padding;
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
@@ -230,10 +229,9 @@
     // === -----------------------------------------------------
     //  Functions for populating the detail panel
 
-    var isDevice = {
-        switch: 1,
-        roadm: 1,
-        otn:1
+    var navPathIdKey = {
+        device: 'devId',
+        host: 'hostId'
     };
 
     function displaySingle(data) {
@@ -246,15 +244,19 @@
                 .classed('clickable', true),
             table = detail.appendBody('table'),
             tbody = table.append('tbody'),
-            navFn;
+            navFn,
+            navPath;
 
         gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
 
-        // only add navigation when displaying a device
-        if (isDevice[data.type]) {
+        // add navigation hot-link if defined
+        navPath = data.navPath;
+        if (navPath) {
             navFn = function () {
-                ns.navTo(devPath, { devId: data.id });
+                var arg = {};
+                arg[navPathIdKey[navPath]] = data.id;
+                ns.navTo(navPath, arg);
             };
 
             svg.on('click', navFn);

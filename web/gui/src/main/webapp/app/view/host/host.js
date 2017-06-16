@@ -29,7 +29,6 @@
         pStartY,
         pHeight,
         top,
-        bottom,
         iconDiv,
         wSize,
         editingName = false,
@@ -37,15 +36,19 @@
 
     // constants
     var topPdg = 28,
-        ctnrPdg = 24,
-        scrollSize = 17,
-
         pName = 'host-details-panel',
         detailsReq = 'hostDetailsRequest',
         detailsResp = 'hostDetailsResponse',
         nameChangeReq = 'hostNameChangeRequest',
         nameChangeResp = 'hostNameChangeResponse';
 
+    var propOrder = [
+            'id', 'ip', 'mac', 'vlan', 'configured', 'location'
+        ],
+        friendlyProps = [
+            'Host ID', 'IP Address', 'MAC Address', 'VLAN',
+            'Configured', 'Location'
+        ];
 
     function closePanel() {
         if (detailsPanel.isVisible()) {
@@ -71,12 +74,13 @@
     function editNameSave() {
         var nameH2 = top.select('h2'),
             id = $scope.panelData.id,
+            ip = $scope.panelData.ip,
             val,
             newVal;
 
         if (editingName) {
             val = nameH2.select('input').property('value').trim();
-            newVal = val || id;
+            newVal = val || ip;
 
             exitEditMode(nameH2, newVal);
             $scope.panelData.name = newVal;
@@ -115,7 +119,7 @@
     }
 
     function setUpPanel() {
-        var container, closeBtn, tblDiv;
+        var container, closeBtn;
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
@@ -126,22 +130,29 @@
         iconDiv = top.append('div').classed('host-icon', true);
         top.append('h2').classed('editable clickable', true).on('click', editName);
 
-        // tblDiv = top.append('div').classed('top-tables', true);
-        // tblDiv.append('div').classed('left', true).append('table');
-        // tblDiv.append('div').classed('right', true).append('table');
-
+        top.append('div').classed('top-tables', true);
         top.append('hr');
+    }
 
-        // bottom = container.append('div').classed('bottom', true);
-        // bottom.append('h2').classed('ports-title', true).text('Ports');
-        // bottom.append('table');
+    function addProp(tbody, index, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).text(txt);
+        }
+        addCell('label', friendlyProps[index] + ' :');
+        addCell('value', value);
     }
 
     function populateTop(details) {
+        var tab = top.select('.top-tables').append('tbody');
+
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
         top.select('h2').text(details.name);
 
-        // TODO: still need to add host properties (one per line)
+        propOrder.forEach(function (prop, i) {
+            addProp(tab, i, details[prop]);
+        });
     }
 
     function populateDetails(details) {
@@ -149,7 +160,7 @@
         populateTop(details);
         detailsPanel.height(pHeight);
         // configure width based on content.. for now hardcoded
-        detailsPanel.width(600);
+        detailsPanel.width(400);
     }
 
     function respDetailsCb(data) {

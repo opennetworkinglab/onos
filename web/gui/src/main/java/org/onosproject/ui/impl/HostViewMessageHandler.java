@@ -23,6 +23,8 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -36,9 +38,11 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.HostId.hostId;
 
@@ -63,11 +67,13 @@ public class HostViewMessageHandler extends UiMessageHandler {
     private static final String ID = "id";
     private static final String MAC = "mac";
     private static final String VLAN = "vlan";
+    private static final String IP = "ip";
     private static final String IPS = "ips";
     private static final String LOCATION = "location";
     private static final String LOCATIONS = "locations";
     private static final String CONFIGURED = "configured";
 
+    private static final String DASH = "-";
 
     private static final String HOST_ICON_PREFIX = "hostIcon_";
 
@@ -92,10 +98,20 @@ public class HostViewMessageHandler extends UiMessageHandler {
                 (isNullOrEmpty(hostType) ? "endstation" : hostType);
     }
 
+    // Returns the first of the given set of IP addresses as a string.
+    private String ip(Set<IpAddress> ipAddresses) {
+        Iterator<IpAddress> it = ipAddresses.iterator();
+        return it.hasNext() ? it.next().toString() : "unknown";
+    }
+
+    private boolean useDefaultName(String nameAnnotated) {
+        return isNullOrEmpty(nameAnnotated) || DASH.equals(nameAnnotated);
+    }
+
     // returns the "friendly name" for the host
     private String getHostName(Host host) {
-        // TODO: acutally use the name field (not just the ID)
-        return host.id().toString();
+        String name = host.annotations().value(AnnotationKeys.NAME);
+        return useDefaultName(name) ? ip(host.ipAddresses()) : name;
     }
 
     // handler for host table requests
@@ -151,7 +167,7 @@ public class HostViewMessageHandler extends UiMessageHandler {
             public String format(Object value) {
                 Set<IpAddress> ips = (Set<IpAddress>) value;
                 if (ips.isEmpty()) {
-                    return "(No IP Addresses for this host)";
+                    return "(No IP Addresses)";
                 }
                 StringBuilder sb = new StringBuilder();
                 for (IpAddress ip : ips) {
@@ -187,6 +203,7 @@ public class HostViewMessageHandler extends UiMessageHandler {
             data.put(TYPE_IID, getTypeIconId(host))
                     .put(NAME, getHostName(host))
                     .put(ID, hostId.toString())
+                    .put(IP, ip(host.ipAddresses()))
                     .put(MAC, host.mac().toString())
                     .put(VLAN, host.vlan().toString())
                     .put(CONFIGURED, host.configured())
@@ -216,17 +233,25 @@ public class HostViewMessageHandler extends UiMessageHandler {
     }
 
     private final class NameChangeHandler extends RequestHandler {
-        public NameChangeHandler() {
+        private NameChangeHandler() {
             super(HOST_NAME_CHANGE_REQ);
         }
 
         @Override
         public void process(ObjectNode payload) {
-            // TODO:
+            HostId hostId = hostId(string(payload, ID, ""));
+            String name = emptyToNull(string(payload, NAME, null));
+            log.debug("Name change request: {} -- '{}'", hostId, name);
 
-            ObjectNode root = objectNode();
+            NetworkConfigService service = get(NetworkConfigService.class);
+            BasicHostConfig cfg =
+                    service.addConfig(hostId, BasicHostConfig.class);
 
-            sendMessage(HOST_NAME_CHANGE_RESP, root);
+            // Name attribute missing from the payload (or empty string)
+            // means that the friendly name should be unset.
+            cfg.name(name);
+            cfg.apply();
+            sendMessage(HOST_NAME_CHANGE_RESP, payload);
         }
     }
 }

@@ -22,3 +22,18 @@
     cursor: pointer;
 }
 
+.light .editable {
+    border-bottom: 1px dashed #ca504b;
+}
+
+.dark .editable {
+    border-bottom: 1px dashed #df4f4a;
+}
+
+.light svg.embeddedIcon .icon .glyph {
+    fill: #0071bd;
+}
+
+.dark svg.embeddedIcon .icon .glyph {
+    fill: #375b7f;
+}

@@ -139,6 +139,22 @@
         ps.setPrefs('topo_prefs', p);
     }
 
+    function incHostLabIndex() {
+        setHostLabIndex(hostLabelIndex+1);
+        switch(hostLabelIndex) {
+            case 0: return 'Show friendly host labels';
+            case 1: return 'Show host IP Addresses';
+            case 2: return 'Show host MAC Addresses';
+        }
+    }
+
+    function setHostLabIndex(mode) {
+        hostLabelIndex = mode % 3;
+        var p = ps.getPrefs('topo_prefs', ttbs.defaultPrefs);
+        p.hlbls = hostLabelIndex;
+        ps.setPrefs('topo_prefs', p);
+    }
+
     function hostLabel(d) {
         var idx = (hostLabelIndex < d.labels.length) ? hostLabelIndex : 0;
         return d.labels[idx];
@@ -617,6 +633,8 @@
 
                 incDevLabIndex: incDevLabIndex,
                 setDevLabIndex: setDevLabIndex,
+                incHostLabIndex: incHostLabIndex,
+                setHostLabIndex: setHostLabIndex,
                 hostLabel: hostLabel,
                 deviceLabel: deviceLabel,
                 trimLabel: trimLabel,

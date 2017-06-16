@@ -26,6 +26,7 @@
         hosts: 0,
         offdev: 1,
         dlbls: 0,
+        hlbls: 0,
         porthl: 1,
         bg: 0,
         spr: 0,

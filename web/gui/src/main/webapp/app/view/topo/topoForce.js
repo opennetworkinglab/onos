@@ -516,6 +516,13 @@
         });
     }
 
+    function cycleHostLabels() {
+        flash.flash(td3.incHostLabIndex());
+        tms.findHosts().forEach(function (d) {
+            td3.updateHostLabel(d);
+        });
+    }
+
     function unpin() {
         var hov = tss.hovered();
         if (hov) {
@@ -1240,6 +1247,7 @@
                 togglePorts: tls.togglePorts,
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
+                cycleHostLabels: cycleHostLabels,
                 unpin: unpin,
                 showMastership: showMastership,
                 showBadLinks: showBadLinks,

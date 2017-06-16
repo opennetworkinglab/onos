@@ -210,10 +210,11 @@ describe('factory: view/topo/topoModel.js', function() {
     it('should define api functions', function () {
         expect(fs.areFunctions(tms, [
             'initModel', 'newDim', 'destroyModel',
-            'positionNode', 'resetAllLocations', 'createDeviceNode', 'createHostNode',
+            'positionNode', 'resetAllLocations',
+            'createDeviceNode', 'createHostNode',
             'createHostLink', 'createLink',
             'coordFromLngLat', 'lngLatFromCoord',
-            'findLink', 'findLinkById', 'findDevices',
+            'findLink', 'findLinkById', 'findDevices', 'findHosts',
             'findAttachedHosts', 'findAttachedLinks', 'findBadLinks'
         ])).toBeTruthy();
     });
