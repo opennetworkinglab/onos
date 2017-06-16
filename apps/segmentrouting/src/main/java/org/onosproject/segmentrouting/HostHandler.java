@@ -35,12 +35,14 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
-import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Handles host-related events.
@@ -56,120 +58,158 @@ public class HostHandler {
      *
      * @param srManager Segment Routing manager
      */
-    public HostHandler(SegmentRoutingManager srManager) {
+    HostHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         hostService = srManager.hostService;
         flowObjectiveService = srManager.flowObjectiveService;
     }
 
     protected void init(DeviceId devId) {
-        hostService.getHosts().forEach(host -> {
-            DeviceId deviceId = host.location().deviceId();
-            // The host does not attach to this device
-            if (!deviceId.equals(devId)) {
-                return;
-            }
-            processHostAdded(host);
-        });
+        hostService.getHosts().forEach(host ->
+            host.locations().stream()
+                    .filter(location -> location.deviceId().equals(devId))
+                    .forEach(location -> processHostAddedAtLocation(host, location))
+        );
     }
 
-    protected void processHostAddedEvent(HostEvent event) {
+    void processHostAddedEvent(HostEvent event) {
         processHostAdded(event.subject());
     }
 
-    protected void processHostAdded(Host host) {
-        MacAddress mac = host.mac();
-        VlanId vlanId = host.vlan();
-        HostLocation location = host.location();
-        DeviceId deviceId = location.deviceId();
-        PortNumber port = location.port();
-        Set<IpAddress> ips = host.ipAddresses();
-        log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
-
-        if (accepted(host)) {
-            processBridgingRule(deviceId, port, mac, vlanId, false);
-            ips.forEach(ip -> {
-                processRoutingRule(deviceId, port, mac, vlanId, ip, false);
-            });
-        }
+    private void processHostAdded(Host host) {
+        host.locations().forEach(location -> processHostAddedAtLocation(host, location));
     }
 
-    protected void processHostRemoveEvent(HostEvent event) {
+    void processHostAddedAtLocation(Host host, HostLocation location) {
+        checkArgument(host.locations().contains(location), "{} is not a location of {}", location, host);
+
+        MacAddress mac = host.mac();
+        VlanId vlanId = host.vlan();
+        Set<HostLocation> locations = host.locations();
+        Set<IpAddress> ips = host.ipAddresses();
+        log.info("Host {}/{} is added at {}", mac, vlanId, locations);
+
+        processBridgingRule(location.deviceId(), location.port(), mac, vlanId, false);
+        ips.forEach(ip ->
+                processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, false)
+        );
+    }
+
+    void processHostRemovedEvent(HostEvent event) {
         processHostRemoved(event.subject());
     }
 
-    protected void processHostRemoved(Host host) {
+    private void processHostRemoved(Host host) {
         MacAddress mac = host.mac();
         VlanId vlanId = host.vlan();
-        HostLocation location = host.location();
-        DeviceId deviceId = location.deviceId();
-        PortNumber port = location.port();
+        Set<HostLocation> locations = host.locations();
         Set<IpAddress> ips = host.ipAddresses();
-        log.info("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
+        log.info("Host {}/{} is removed from {}", mac, vlanId, locations);
 
-        if (accepted(host)) {
-            processBridgingRule(deviceId, port, mac, vlanId, true);
-            ips.forEach(ip -> {
-                processRoutingRule(deviceId, port, mac, vlanId, ip, true);
-            });
-        }
+        locations.forEach(location -> {
+            processBridgingRule(location.deviceId(), location.port(), mac, vlanId, true);
+            ips.forEach(ip ->
+                processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, true)
+            );
+        });
     }
 
-    protected void processHostMovedEvent(HostEvent event) {
+    void processHostMovedEvent(HostEvent event) {
         MacAddress mac = event.subject().mac();
         VlanId vlanId = event.subject().vlan();
-        HostLocation prevLocation = event.prevSubject().location();
-        DeviceId prevDeviceId = prevLocation.deviceId();
-        PortNumber prevPort = prevLocation.port();
+        Set<HostLocation> prevLocations = event.prevSubject().locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        HostLocation newLocation = event.subject().location();
-        DeviceId newDeviceId = newLocation.deviceId();
-        PortNumber newPort = newLocation.port();
+        Set<HostLocation> newLocations = event.subject().locations();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.info("Host {}/{} is moved from {}:{} to {}:{}",
-                mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
+        log.info("Host {}/{} is moved from {} to {}", mac, vlanId, prevLocations, newLocations);
 
-        if (accepted(event.prevSubject())) {
-            processBridgingRule(prevDeviceId, prevPort, mac, vlanId, true);
-            prevIps.forEach(ip -> {
-                processRoutingRule(prevDeviceId, prevPort, mac, vlanId, ip, true);
-            });
-        }
+        Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
+                .collect(Collectors.toSet());
 
-        if (accepted(event.subject())) {
-            processBridgingRule(newDeviceId, newPort, mac, vlanId, false);
-            newIps.forEach(ip -> {
-                processRoutingRule(newDeviceId, newPort, mac, vlanId, ip, false);
+        // For each old location
+        Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
+            // TODO Switch to backup link when pair device is configured
+
+            // Remove bridging rule and routing rules for unchanged IPs if the host moves from a switch to another.
+            // Otherwise, do not remove and let the adding part update the old flow
+            if (!newDeviceIds.contains(prevLocation.deviceId())) {
+                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId, true);
+                Sets.intersection(prevIps, newIps).forEach(ip ->
+                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
+                                ip, true)
+                );
+            }
+
+            // Remove bridging rules if new interface vlan is different from old interface vlan
+            // Otherwise, do not remove and let the adding part update the old flow
+            if (newLocations.stream().noneMatch(newLocation -> {
+                VlanId oldAssignedVlan = srManager.getInternalVlanId(prevLocation);
+                VlanId newAssignedVlan = srManager.getInternalVlanId(newLocation);
+                // Host is tagged and the new location has the host vlan in vlan-tagged
+                return srManager.getTaggedVlanId(newLocation).contains(vlanId) ||
+                        (oldAssignedVlan != null && newAssignedVlan != null &&
+                        // Host is untagged and the new location has the same assigned vlan
+                        oldAssignedVlan.equals(newAssignedVlan));
+            })) {
+                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId, true);
+            }
+
+            // Remove routing rules for unchanged IPs if none of the subnet of new location contains
+            // the IP. Otherwise, do not remove and let the adding part update the old flow
+            Sets.intersection(prevIps, newIps).forEach(ip -> {
+                if (newLocations.stream().noneMatch(newLocation ->
+                        srManager.deviceConfiguration.inSameSubnet(newLocation, ip))) {
+                    processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
+                            ip, true);
+                }
             });
-        }
+
+            // Remove routing rules for old IPs
+            Sets.difference(prevIps, newIps).forEach(ip ->
+                processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
+                        ip, true)
+            );
+        });
+
+        // For each new location, add all new IPs.
+        Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
+            processBridgingRule(newLocation.deviceId(), newLocation.port(), mac, vlanId, false);
+            newIps.forEach(ip ->
+                    processRoutingRule(newLocation.deviceId(), newLocation.port(), mac, vlanId,
+                            ip, false)
+            );
+        });
+
+        // For each unchanged location, add new IPs and remove old IPs.
+        Sets.intersection(newLocations, prevLocations).forEach(unchangedLocation -> {
+            Sets.difference(prevIps, newIps).forEach(ip ->
+                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), mac,
+                            vlanId, ip, true)
+            );
+
+            Sets.difference(newIps, prevIps).forEach(ip ->
+                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), mac,
+                        vlanId, ip, false)
+            );
+        });
     }
 
-    protected void processHostUpdatedEvent(HostEvent event) {
+    void processHostUpdatedEvent(HostEvent event) {
         MacAddress mac = event.subject().mac();
         VlanId vlanId = event.subject().vlan();
-        HostLocation prevLocation = event.prevSubject().location();
-        DeviceId prevDeviceId = prevLocation.deviceId();
-        PortNumber prevPort = prevLocation.port();
+        Set<HostLocation> locations = event.subject().locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        HostLocation newLocation = event.subject().location();
-        DeviceId newDeviceId = newLocation.deviceId();
-        PortNumber newPort = newLocation.port();
         Set<IpAddress> newIps = event.subject().ipAddresses();
         log.info("Host {}/{} is updated", mac, vlanId);
 
-        if (accepted(event.prevSubject())) {
-            // Revoke previous IP table entry
-            Sets.difference(prevIps, newIps).forEach(ip -> {
-                processRoutingRule(prevDeviceId, prevPort, mac, vlanId, ip, true);
-            });
-        }
-
-        if (accepted(event.subject())) {
-            // Populate new IP table entry
-            Sets.difference(newIps, prevIps).forEach(ip -> {
-                processRoutingRule(newDeviceId, newPort, mac, vlanId, ip, false);
-            });
-        }
+        locations.forEach(location -> {
+            Sets.difference(prevIps, newIps).forEach(ip ->
+                    processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, true)
+            );
+            Sets.difference(newIps, prevIps).forEach(ip ->
+                    processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, false)
+            );
+        });
     }
 
     /**
@@ -185,7 +225,7 @@ public class HostHandler {
      * @param revoke true if forwarding objective is meant to revoke forwarding rule
      * @return Forwarding objective builder
      */
-    private ForwardingObjective.Builder bridgingFwdObjBuilder(
+    ForwardingObjective.Builder bridgingFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId hostVlanId,
             PortNumber outport, boolean revoke) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
@@ -290,33 +330,16 @@ public class HostHandler {
     private void processRoutingRule(DeviceId deviceId, PortNumber port, MacAddress mac,
                                     VlanId vlanId, IpAddress ip, boolean revoke) {
         ConnectPoint location = new ConnectPoint(deviceId, port);
-        if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
-            log.info("{} routing rule for {} at {}", revoke ? "Revoking" : "Populating",
-                    ip, location);
-            if (revoke) {
-                srManager.routingRulePopulator.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
-            } else {
-                srManager.routingRulePopulator.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
-            }
+        if (!srManager.deviceConfiguration.inSameSubnet(location, ip)) {
+            log.info("{} is not included in the subnet config of {}/{}. Ignored.", ip, deviceId, port);
+            return;
         }
-    }
 
-    /**
-     * Determines whether a host should be accepted by SR or not.
-     *
-     * @param host host to be checked
-     * @return true if segment routing accepts the host
-     */
-    private boolean accepted(Host host) {
-        SegmentRoutingAppConfig appConfig = srManager.cfgService
-                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
-
-        boolean accepted = appConfig == null ||
-                (!appConfig.suppressHostByProvider().contains(host.providerId().id()) &&
-                !appConfig.suppressHostByPort().contains(host.location()));
-        if (!accepted) {
-            log.info("Ignore suppressed host {}", host.id());
+        log.info("{} routing rule for {} at {}", revoke ? "Revoking" : "Populating", ip, location);
+        if (revoke) {
+            srManager.routingRulePopulator.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+        } else {
+            srManager.routingRulePopulator.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
         }
-        return accepted;
     }
 }

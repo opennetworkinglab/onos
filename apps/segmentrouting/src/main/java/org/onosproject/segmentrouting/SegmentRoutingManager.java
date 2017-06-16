@@ -648,6 +648,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Returns internal VLAN for untagged hosts on given connect point.
+     * <p>
+     * The internal VLAN is either vlan-untagged for an access port,
+     * or vlan-native for a trunk port.
+     *
+     * @param connectPoint connect point
+     * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
+     */
+    public VlanId getInternalVlanId(ConnectPoint connectPoint) {
+        VlanId untaggedVlanId = getUntaggedVlanId(connectPoint);
+        VlanId nativeVlanId = getNativeVlanId(connectPoint);
+        return untaggedVlanId != null ? untaggedVlanId : nativeVlanId;
+    }
+
+    /**
      * Returns vlan port map of given device.
      *
      * @param deviceId device id
@@ -1465,7 +1480,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     hostHandler.processHostMovedEvent(event);
                     break;
                 case HOST_REMOVED:
-                    hostHandler.processHostRemoveEvent(event);
+                    hostHandler.processHostRemovedEvent(event);
                     break;
                 case HOST_UPDATED:
                     hostHandler.processHostUpdatedEvent(event);
