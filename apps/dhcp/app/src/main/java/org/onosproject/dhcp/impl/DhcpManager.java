@@ -28,8 +28,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPOption;
-import org.onlab.packet.DHCPPacketType;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -89,9 +88,6 @@ import java.util.concurrent.TimeUnit;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedIP;
-import static org.onlab.packet.DHCPPacketType.DHCPACK;
-import static org.onlab.packet.DHCPPacketType.DHCPNAK;
-import static org.onlab.packet.DHCPPacketType.DHCPOFFER;
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
 import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requested;
@@ -344,7 +340,7 @@ public class DhcpManager implements DhcpService {
             dhcpReply.setClientHardwareAddress(dhcpPacket.getClientHardwareAddress());
             dhcpReply.setTransactionId(dhcpPacket.getTransactionId());
 
-            if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
+            if (outgoingMessageType != DHCP.MsgType.DHCPNAK.getValue()) {
                 dhcpReply.setYourIPAddress(ipOffered.toInt());
                 dhcpReply.setServerIPAddress(dhcpServerReply.toInt());
                 if (dhcpPacket.getGatewayIPAddress() == 0) {
@@ -355,8 +351,8 @@ public class DhcpManager implements DhcpService {
             dhcpReply.setHardwareAddressLength((byte) 6);
 
             // DHCP Options.
-            DHCPOption option = new DHCPOption();
-            List<DHCPOption> optionList = new ArrayList<>();
+            DhcpOption option = new DhcpOption();
+            List<DhcpOption> optionList = new ArrayList<>();
 
             // DHCP Message Type.
             option.setCode(OptionCode_MessageType.getValue());
@@ -366,15 +362,15 @@ public class DhcpManager implements DhcpService {
             optionList.add(option);
 
             // DHCP Server Identifier.
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_DHCPServerIp.getValue());
             option.setLength((byte) 4);
             option.setData(dhcpServerReply.toOctets());
             optionList.add(option);
 
-            if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
+            if (outgoingMessageType != DHCP.MsgType.DHCPNAK.getValue()) {
                 // IP Address Lease Time.
-                option = new DHCPOption();
+                option = new DhcpOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_LeaseTime.getValue());
                 option.setLength((byte) 4);
                 option.setData(ByteBuffer.allocate(4)
@@ -382,28 +378,28 @@ public class DhcpManager implements DhcpService {
                 optionList.add(option);
 
                 // IP Address Renewal Time.
-                option = new DHCPOption();
+                option = new DhcpOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_RenewalTime.getValue());
                 option.setLength((byte) 4);
                 option.setData(ByteBuffer.allocate(4).putInt(renewalTime).array());
                 optionList.add(option);
 
                 // IP Address Rebinding Time.
-                option = new DHCPOption();
+                option = new DhcpOption();
                 option.setCode(DHCP.DHCPOptionCode.OPtionCode_RebindingTime.getValue());
                 option.setLength((byte) 4);
                 option.setData(ByteBuffer.allocate(4).putInt(rebindingTime).array());
                 optionList.add(option);
 
                 // Subnet Mask.
-                option = new DHCPOption();
+                option = new DhcpOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_SubnetMask.getValue());
                 option.setLength((byte) 4);
                 option.setData(subnetMaskReply.toOctets());
                 optionList.add(option);
 
                 // Broadcast Address.
-                option = new DHCPOption();
+                option = new DhcpOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_BroadcastAddress.getValue());
                 option.setLength((byte) 4);
                 option.setData(broadcastReply.toOctets());
@@ -411,7 +407,7 @@ public class DhcpManager implements DhcpService {
 
                 // Router Address.
                 if (routerAddressReply.isPresent()) {
-                    option = new DHCPOption();
+                    option = new DhcpOption();
                     option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
                     option.setLength((byte) 4);
                     option.setData(routerAddressReply.get().toOctets());
@@ -420,7 +416,7 @@ public class DhcpManager implements DhcpService {
 
                 // DNS Server Address.
                 if (domainServerReply.isPresent()) {
-                    option = new DHCPOption();
+                    option = new DhcpOption();
                     option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
                     option.setLength((byte) 4);
                     option.setData(domainServerReply.get().toOctets());
@@ -429,7 +425,7 @@ public class DhcpManager implements DhcpService {
             }
 
             // End Option.
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(DHCP.DHCPOptionCode.OptionCode_END.getValue());
             option.setLength((byte) 1);
             optionList.add(option);
@@ -472,16 +468,16 @@ public class DhcpManager implements DhcpService {
             }
 
             Ethernet packet = context.inPacket().parsed();
-            DHCPPacketType incomingPacketType = null;
+            DHCP.MsgType incomingPacketType = null;
             boolean flagIfRequestedIP = false;
             boolean flagIfServerIP = false;
             Ip4Address requestedIP = Ip4Address.valueOf("0.0.0.0");
             Ip4Address serverIP = Ip4Address.valueOf("0.0.0.0");
 
-            for (DHCPOption option : dhcpPayload.getOptions()) {
+            for (DhcpOption option : dhcpPayload.getOptions()) {
                 if (option.getCode() == OptionCode_MessageType.getValue()) {
                     byte[] data = option.getData();
-                    incomingPacketType = DHCPPacketType.getType(data[0]);
+                    incomingPacketType = DHCP.MsgType.getType(data[0]);
                 }
                 if (option.getCode() == OptionCode_RequestedIP.getValue()) {
                     byte[] data = option.getData();
@@ -500,7 +496,7 @@ public class DhcpManager implements DhcpService {
                 return;
             }
 
-            DHCPPacketType outgoingPacketType;
+            DHCP.MsgType outgoingPacketType;
             MacAddress clientMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
             VlanId vlanId = VlanId.vlanId(packet.getVlanID());
             HostId hostId = HostId.hostId(clientMac, vlanId);
@@ -513,7 +509,7 @@ public class DhcpManager implements DhcpService {
                         Ethernet ethReply = buildReply(
                                 packet,
                                 ipOffered,
-                                (byte) DHCPOFFER.getValue());
+                                (byte) DHCP.MsgType.DHCPOFFER.getValue());
                         sendReply(context, ethReply);
                     }
                     break;
@@ -536,10 +532,10 @@ public class DhcpManager implements DhcpService {
                             .assignmentStatus(Option_Requested).build();
 
                     if (dhcpStore.assignIP(hostId, ipAssignment)) {
-                        outgoingPacketType = DHCPACK;
+                        outgoingPacketType = DHCP.MsgType.DHCPACK;
                         discoverHost(context, requestedIP);
                     } else {
-                        outgoingPacketType = DHCPNAK;
+                        outgoingPacketType = DHCP.MsgType.DHCPNAK;
                     }
 
                     Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());

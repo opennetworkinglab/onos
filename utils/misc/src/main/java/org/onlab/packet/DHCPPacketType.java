@@ -18,6 +18,10 @@
 
 package org.onlab.packet;
 
+/**
+ * @deprecated 1.11 Loon, move into DHCP class.
+ */
+@Deprecated
 public enum DHCPPacketType {
     // From RFC 1533
     DHCPDISCOVER(1), DHCPOFFER(2), DHCPREQUEST(3), DHCPDECLINE(4), DHCPACK(5), DHCPNAK(

@@ -25,8 +25,7 @@ import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ARP;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPOption;
-import org.onlab.packet.DHCPPacketType;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
@@ -614,9 +613,9 @@ public class HostLocationProviderTest {
         @Override
         public InboundPacket inPacket() {
             byte[] dhcpMsgType = new byte[1];
-            dhcpMsgType[0] = (byte) DHCPPacketType.DHCPREQUEST.getValue();
+            dhcpMsgType[0] = (byte) DHCP.MsgType.DHCPREQUEST.getValue();
 
-            DHCPOption dhcpOption = new DHCPOption();
+            DhcpOption dhcpOption = new DhcpOption();
             dhcpOption.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
             dhcpOption.setData(dhcpMsgType);
             dhcpOption.setLength((byte) 1);
@@ -658,9 +657,9 @@ public class HostLocationProviderTest {
         @Override
         public InboundPacket inPacket() {
             byte[] dhcpMsgType = new byte[1];
-            dhcpMsgType[0] = (byte) DHCPPacketType.DHCPACK.getValue();
+            dhcpMsgType[0] = (byte) DHCP.MsgType.DHCPACK.getValue();
 
-            DHCPOption dhcpOption = new DHCPOption();
+            DhcpOption dhcpOption = new DhcpOption();
             dhcpOption.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
             dhcpOption.setData(dhcpMsgType);
             dhcpOption.setLength((byte) 1);

@@ -28,8 +28,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPOption;
-import org.onlab.packet.DHCPPacketType;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -421,11 +420,11 @@ public class DhcpRelay {
             }
 
             Ethernet packet = context.inPacket().parsed();
-            DHCPPacketType incomingPacketType = null;
-            for (DHCPOption option : dhcpPayload.getOptions()) {
+            DHCP.MsgType incomingPacketType = null;
+            for (DhcpOption option : dhcpPayload.getOptions()) {
                 if (option.getCode() == OptionCode_MessageType.getValue()) {
                     byte[] data = option.getData();
-                    incomingPacketType = DHCPPacketType.getType(data[0]);
+                    incomingPacketType = DHCP.MsgType.getType(data[0]);
                 }
             }
 

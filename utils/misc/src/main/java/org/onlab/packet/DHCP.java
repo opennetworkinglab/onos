@@ -18,12 +18,16 @@
 
 package org.onlab.packet;
 
-import java.io.UnsupportedEncodingException;
+import com.google.common.collect.ImmutableMap;
+import org.onlab.packet.dhcp.DhcpOption;
+import org.onlab.packet.dhcp.DhcpRelayAgentOption;
+
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.packet.PacketUtils.checkInput;
@@ -53,25 +57,97 @@ public class DHCP extends BasePacket {
     public static final int MIN_HEADER_LENGTH = 240;
     public static final byte OPCODE_REQUEST = 0x1;
     public static final byte OPCODE_REPLY = 0x2;
-
     public static final byte HWTYPE_ETHERNET = 0x1;
 
+    private static final Map<Byte, Deserializer<? extends DhcpOption>> OPTION_DESERIALIZERS =
+            ImmutableMap.of(DHCPOptionCode.OptionCode_CircuitID.value, DhcpRelayAgentOption.deserializer());
+    private static final int UNSIGNED_BYTE_MASK = 0xff;
+    private static final int BASE_OPTION_LEN = 60;
+    private static final int MIN_DHCP_LEN = 240;
+    private static final int BASE_HW_ADDR_LEN = 16;
+    private static final byte PAD_BYTE = 0;
+    private static final int BASE_SERVER_NAME_LEN = 64;
+    private static final int BASE_BOOT_FILE_NAME_LEN = 128;
+    private static final int MAGIC_COOKIE = 0x63825363;
+
     public enum DHCPOptionCode {
-        OptionCode_SubnetMask((byte) 1), OptionCode_RouterAddress((byte) 3), OptionCode_DomainServer((byte) 6),
-        OptionCode_HostName((byte) 12), OptionCode_DomainName((byte) 15), OptionCode_BroadcastAddress((byte) 28),
-        OptionCode_RequestedIP((byte) 50), OptionCode_LeaseTime((byte) 51), OptionCode_MessageType((byte) 53),
+        OptionCode_Pad((byte) 0), OptionCode_SubnetMask((byte) 1),
+        OptionCode_RouterAddress((byte) 3), OptionCode_DomainServer((byte) 6),
+        OptionCode_HostName((byte) 12), OptionCode_DomainName((byte) 15),
+        OptionCode_BroadcastAddress((byte) 28), OptionCode_RequestedIP((byte) 50),
+        OptionCode_LeaseTime((byte) 51), OptionCode_MessageType((byte) 53),
         OptionCode_DHCPServerIp((byte) 54), OptionCode_RequestedParameters((byte) 55),
-        OptionCode_RenewalTime((byte) 58), OPtionCode_RebindingTime((byte) 59), OptionCode_ClientID((byte) 61),
-        OptionCode_CircuitID((byte) 82), OptionCode_END((byte) 255);
+        OptionCode_RenewalTime((byte) 58), OPtionCode_RebindingTime((byte) 59),
+        OptionCode_ClientID((byte) 61), OptionCode_CircuitID((byte) 82),
+        OptionCode_END((byte) 255);
 
         protected byte value;
 
-        private DHCPOptionCode(final byte value) {
+        DHCPOptionCode(final byte value) {
             this.value = value;
         }
 
         public byte getValue() {
             return this.value;
+        }
+    }
+
+    public enum MsgType {
+        // From RFC 1533
+        DHCPDISCOVER(1), DHCPOFFER(2), DHCPREQUEST(3), DHCPDECLINE(4), DHCPACK(5),
+        DHCPNAK(6), DHCPRELEASE(7),
+
+        // From RFC2132
+        DHCPINFORM(8),
+
+        // From RFC3203
+        DHCPFORCERENEW(9),
+
+        // From RFC4388
+        DHCPLEASEQUERY(10), DHCPLEASEUNASSIGNED(11), DHCPLEASEUNKNOWN(12),
+        DHCPLEASEACTIVE(13);
+
+        protected int value;
+
+        MsgType(final int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return this.value;
+        }
+
+        public static MsgType getType(final int value) {
+            switch (value) {
+                case 1:
+                    return DHCPDISCOVER;
+                case 2:
+                    return DHCPOFFER;
+                case 3:
+                    return DHCPREQUEST;
+                case 4:
+                    return DHCPDECLINE;
+                case 5:
+                    return DHCPACK;
+                case 6:
+                    return DHCPNAK;
+                case 7:
+                    return DHCPRELEASE;
+                case 8:
+                    return DHCPINFORM;
+                case 9:
+                    return DHCPFORCERENEW;
+                case 10:
+                    return DHCPLEASEQUERY;
+                case 11:
+                    return DHCPLEASEUNASSIGNED;
+                case 12:
+                    return DHCPLEASEUNKNOWN;
+                case 13:
+                    return DHCPLEASEACTIVE;
+                default:
+                    return null;
+            }
         }
     }
 
@@ -89,7 +165,7 @@ public class DHCP extends BasePacket {
     protected byte[] clientHardwareAddress;
     protected String serverName;
     protected String bootFileName;
-    protected List<DHCPOption> options = new ArrayList<DHCPOption>();
+    protected List<DhcpOption> options = new ArrayList<DhcpOption>();
 
     /**
      * @return the opCode
@@ -302,9 +378,9 @@ public class DHCP extends BasePacket {
      *            The option code to get
      * @return The value of the option if it exists, null otherwise
      */
-    public DHCPOption getOption(final DHCPOptionCode optionCode) {
-        for (final DHCPOption opt : this.options) {
-            if (opt.code == optionCode.value) {
+    public DhcpOption getOption(final DHCPOptionCode optionCode) {
+        for (final DhcpOption opt : this.options) {
+            if (opt.getCode() == optionCode.getValue()) {
                 return opt;
             }
         }
@@ -314,7 +390,7 @@ public class DHCP extends BasePacket {
     /**
      * @return the options
      */
-    public List<DHCPOption> getOptions() {
+    public List<DhcpOption> getOptions() {
         return this.options;
     }
 
@@ -323,7 +399,7 @@ public class DHCP extends BasePacket {
      *            the options to set
      * @return this
      */
-    public DHCP setOptions(final List<DHCPOption> options) {
+    public DHCP setOptions(final List<DhcpOption> options) {
         this.options = options;
         return this;
     }
@@ -331,16 +407,15 @@ public class DHCP extends BasePacket {
     /**
      * @return the packetType base on option 53
      */
-    public DHCPPacketType getPacketType() {
-        final ListIterator<DHCPOption> lit = this.options.listIterator();
-        while (lit.hasNext()) {
-            final DHCPOption option = lit.next();
-            // only care option 53
-            if (option.getCode() == 53) {
-                return DHCPPacketType.getType(option.getData()[0]);
-            }
-        }
-        return null;
+    public MsgType getPacketType() {
+        return this.options.parallelStream()
+                .filter(op -> op.getCode() == DHCPOptionCode.OptionCode_MessageType.getValue())
+                .map(DhcpOption::getData)
+                .filter(data -> data.length != 0)
+                .map(data -> data[0])
+                .map(MsgType::getType)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -385,19 +460,20 @@ public class DHCP extends BasePacket {
         // minimum size 240 including magic cookie, options generally padded to
         // 300
         int optionsLength = 0;
-        for (final DHCPOption option : this.options) {
-            if (option.getCode() == 0 || option.getCode() == ((byte) 255)) {
+        for (final DhcpOption option : this.options) {
+            if (option.getCode() == DHCPOptionCode.OptionCode_Pad.getValue() ||
+                    option.getCode() == DHCPOptionCode.OptionCode_END.getValue()) {
                 optionsLength += 1;
             } else {
-                optionsLength += 2 + (0xff & option.getLength());
+                optionsLength += 2 + (UNSIGNED_BYTE_MASK & option.getLength());
             }
         }
         int optionsPadLength = 0;
-        if (optionsLength < 60) {
-            optionsPadLength = 60 - optionsLength;
+        if (optionsLength < BASE_OPTION_LEN) {
+            optionsPadLength = BASE_OPTION_LEN - optionsLength;
         }
 
-        final byte[] data = new byte[240 + optionsLength + optionsPadLength];
+        final byte[] data = new byte[MIN_DHCP_LEN + optionsLength + optionsPadLength];
         final ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.opCode);
         bb.put(this.hardwareType);
@@ -410,127 +486,44 @@ public class DHCP extends BasePacket {
         bb.putInt(this.yourIPAddress);
         bb.putInt(this.serverIPAddress);
         bb.putInt(this.gatewayIPAddress);
-        checkArgument(this.clientHardwareAddress.length <= 16,
+        checkArgument(this.clientHardwareAddress.length <= BASE_HW_ADDR_LEN,
                 "Hardware address is too long (%s bytes)", this.clientHardwareAddress.length);
         bb.put(this.clientHardwareAddress);
-        if (this.clientHardwareAddress.length < 16) {
-            for (int i = 0; i < 16 - this.clientHardwareAddress.length; ++i) {
-                bb.put((byte) 0x0);
+        if (this.clientHardwareAddress.length < BASE_HW_ADDR_LEN) {
+            for (int i = 0; i < BASE_HW_ADDR_LEN - this.clientHardwareAddress.length; ++i) {
+                bb.put(PAD_BYTE);
             }
         }
-        this.writeString(this.serverName, bb, 64);
-        this.writeString(this.bootFileName, bb, 128);
+        this.writeString(this.serverName, bb, BASE_SERVER_NAME_LEN);
+        this.writeString(this.bootFileName, bb, BASE_BOOT_FILE_NAME_LEN);
         // magic cookie
-        bb.put((byte) 0x63);
-        bb.put((byte) 0x82);
-        bb.put((byte) 0x53);
-        bb.put((byte) 0x63);
-        for (final DHCPOption option : this.options) {
-            dhcpOptionToByteArray(option, bb);
+        bb.putInt(MAGIC_COOKIE);
+        for (final DhcpOption option : this.options) {
+            bb.put(option.serialize());
         }
         // assume the rest is padded out with zeroes
         return data;
     }
 
-    public static ByteBuffer dhcpOptionToByteArray(DHCPOption option, ByteBuffer bb) {
-        final int code = option.getCode() & 0xff;
-        bb.put((byte) code);
-        if (code != 0 && code != 255) {
-            bb.put(option.getLength());
-            bb.put(option.getData());
-        }
-        return bb;
-    }
-
     @Override
     public IPacket deserialize(final byte[] data, final int offset,
                                final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        if (bb.remaining() < DHCP.MIN_HEADER_LENGTH) {
-            return this;
+        try {
+            return deserializer().deserialize(data, offset, length);
+        } catch (DeserializationException e) {
+            return null;
         }
-
-        this.opCode = bb.get();
-        this.hardwareType = bb.get();
-        this.hardwareAddressLength = bb.get();
-        this.hops = bb.get();
-        this.transactionId = bb.getInt();
-        this.seconds = bb.getShort();
-        this.flags = bb.getShort();
-        this.clientIPAddress = bb.getInt();
-        this.yourIPAddress = bb.getInt();
-        this.serverIPAddress = bb.getInt();
-        this.gatewayIPAddress = bb.getInt();
-        final int hardwareAddressLength = 0xff & this.hardwareAddressLength;
-        this.clientHardwareAddress = new byte[hardwareAddressLength];
-
-        bb.get(this.clientHardwareAddress);
-        for (int i = hardwareAddressLength; i < 16; ++i) {
-            bb.get();
-        }
-        this.serverName = this.readString(bb, 64);
-        this.bootFileName = this.readString(bb, 128);
-        // read the magic cookie
-        // magic cookie
-        bb.get();
-        bb.get();
-        bb.get();
-        bb.get();
-        // read options
-        while (bb.hasRemaining()) {
-            final DHCPOption option = new DHCPOption();
-            int code = 0xff & bb.get(); // convert signed byte to int in range
-            // [0,255]
-            option.setCode((byte) code);
-            if (code == 0) {
-                // skip these
-                continue;
-            } else if (code != 255) {
-                if (bb.hasRemaining()) {
-                    final int l = 0xff & bb.get(); // convert signed byte to
-                    // int in range [0,255]
-                    option.setLength((byte) l);
-                    if (bb.remaining() >= l) {
-                        final byte[] optionData = new byte[l];
-                        bb.get(optionData);
-                        option.setData(optionData);
-                    } else {
-                        // Skip the invalid option and set the END option
-                        code = 0xff;
-                        option.setCode((byte) code);
-                        option.setLength((byte) 0);
-                    }
-                } else {
-                    // Skip the invalid option and set the END option
-                    code = 0xff;
-                    option.setCode((byte) code);
-                    option.setLength((byte) 0);
-                }
-            }
-            this.options.add(option);
-            if (code == 255) {
-                // remaining bytes are supposed to be 0, but ignore them just in
-                // case
-                break;
-            }
-        }
-
-        return this;
     }
 
     protected void writeString(final String string, final ByteBuffer bb,
             final int maxLength) {
         if (string == null) {
             for (int i = 0; i < maxLength; ++i) {
-                bb.put((byte) 0x0);
+                bb.put(PAD_BYTE);
             }
         } else {
-            byte[] bytes = null;
-            try {
-                bytes = string.getBytes("ascii");
-            } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException("Failure encoding server name", e);
-            }
+            byte[] bytes;
+            bytes = string.getBytes(StandardCharsets.US_ASCII);
             int writeLength = bytes.length;
             if (writeLength > maxLength) {
                 writeLength = maxLength;
@@ -545,12 +538,8 @@ public class DHCP extends BasePacket {
     private static String readString(final ByteBuffer bb, final int maxLength) {
         final byte[] bytes = new byte[maxLength];
         bb.get(bytes);
-        String result = null;
-        try {
-            result = new String(bytes, "ascii").trim();
-        } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeException("Failure decoding string", e);
-        }
+        String result;
+        result = new String(bytes, StandardCharsets.US_ASCII).trim();
         return result;
     }
 
@@ -577,55 +566,63 @@ public class DHCP extends BasePacket {
             dhcp.yourIPAddress = bb.getInt();
             dhcp.serverIPAddress = bb.getInt();
             dhcp.gatewayIPAddress = bb.getInt();
-            final int hardwareAddressLength = 0xff & dhcp.hardwareAddressLength;
+            final int hardwareAddressLength = UNSIGNED_BYTE_MASK & dhcp.hardwareAddressLength;
             dhcp.clientHardwareAddress = new byte[hardwareAddressLength];
 
             bb.get(dhcp.clientHardwareAddress);
-            for (int i = hardwareAddressLength; i < 16; ++i) {
+            for (int i = hardwareAddressLength; i < BASE_HW_ADDR_LEN; ++i) {
                 bb.get();
             }
-            dhcp.serverName = readString(bb, 64);
-            dhcp.bootFileName = readString(bb, 128);
+            dhcp.serverName = readString(bb, BASE_SERVER_NAME_LEN);
+            dhcp.bootFileName = readString(bb, BASE_BOOT_FILE_NAME_LEN);
             // read the magic cookie
             // magic cookie
-            bb.get();
-            bb.get();
-            bb.get();
-            bb.get();
+            bb.getInt();
 
             // read options
             boolean foundEndOptionsMarker = false;
             while (bb.hasRemaining()) {
-                final DHCPOption option = new DHCPOption();
-                int code = 0xff & bb.get(); // convert signed byte to int in range
-                // [0,255]
-                option.setCode((byte) code);
-                if (code == 0) {
-                    // skip these
+                DhcpOption option;
+
+                int pos = bb.position();
+                int optCode = UNSIGNED_BYTE_MASK & bb.array()[pos]; // to unsigned integer
+                int optLen;
+                byte[] optData;
+
+                if (optCode == DHCPOptionCode.OptionCode_Pad.value) {
+                    // pad, skip
+                    // read option code
+                    bb.get();
                     continue;
-                } else if (code != 255) {
-                    if (bb.hasRemaining()) {
-                        final int l = 0xff & bb.get(); // convert signed byte to
-                        // int in range [0,255]
-                        option.setLength((byte) l);
-                        if (bb.remaining() >= l) {
-                            final byte[] optionData = new byte[l];
-                            bb.get(optionData);
-                            option.setData(optionData);
-                            dhcp.options.add(option);
-                        } else {
-                            throw new DeserializationException(
-                                    "Buffer underflow while reading DHCP option");
-                        }
-                    }
-                } else if (code == 255) {
-                    DHCPOption end = new DHCPOption();
-                    end.setCode((byte) 255);
-                    dhcp.options.add(end);
-                    // remaining bytes are supposed to be 0, but ignore them just in
-                    // case
+                }
+                if (optCode == (UNSIGNED_BYTE_MASK & DHCPOptionCode.OptionCode_END.value)) {
+                    // end of dhcp options or invalid option and set the END option
+                    option = new DhcpOption();
+                    option.setCode((byte) optCode);
+                    dhcp.options.add(option);
                     foundEndOptionsMarker = true;
                     break;
+                }
+
+                if (bb.remaining() < 2) {
+                    // No option length
+                    throw new DeserializationException("Buffer underflow while reading DHCP option");
+                }
+
+                optLen = UNSIGNED_BYTE_MASK & bb.array()[pos + 1];
+                if (bb.remaining() < DhcpOption.DEFAULT_LEN + optLen) {
+                    // Invalid option length
+                    throw new DeserializationException("Buffer underflow while reading DHCP option");
+                }
+                optData = new byte[DhcpOption.DEFAULT_LEN + optLen];
+                bb.get(optData);
+                if (OPTION_DESERIALIZERS.containsKey((byte) optCode)) {
+                    option = OPTION_DESERIALIZERS.get((byte) optCode).deserialize(optData, 0, optData.length);
+                    dhcp.options.add(option);
+                } else {
+                    // default option
+                    option = DhcpOption.deserializer().deserialize(optData, 0, optData.length);
+                    dhcp.options.add(option);
                 }
             }
 

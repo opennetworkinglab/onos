@@ -18,6 +18,7 @@ package org.onlab.packet;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
+import org.onlab.packet.dhcp.Dhcp6Option;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -80,7 +81,7 @@ public class Dhcp6Test {
         assertEquals(dhcp6.getTransactionId(), TRANSACTION_ID);
         assertEquals(dhcp6.getOptions().size(), 1);
 
-        DHCP6Option clientIdOption = dhcp6.getOptions().get(0);
+        Dhcp6Option clientIdOption = dhcp6.getOptions().get(0);
         assertEquals(clientIdOption.getCode(), DHCP6.OptionCode.CLIENTID.value());
         assertArrayEquals(clientIdOption.getData(), OPT_CLIENT_ID_BYTE_ARR);
     }
@@ -110,7 +111,7 @@ public class Dhcp6Test {
         assertArrayEquals(dhcp6.getPeerAddress(), PEER_ADDRESS.toOctets());
         assertEquals(dhcp6.getOptions().size(), 1);
 
-        DHCP6Option clientIdOption = dhcp6.getOptions().get(0);
+        Dhcp6Option clientIdOption = dhcp6.getOptions().get(0);
         assertEquals(clientIdOption.getCode(), DHCP6.OptionCode.CLIENTID.value());
         assertArrayEquals(clientIdOption.getData(), OPT_CLIENT_ID_BYTE_ARR);
     }
@@ -124,13 +125,13 @@ public class Dhcp6Test {
         dhcp6.setMsgType(DHCP6.MsgType.REQUEST.value());
         dhcp6.setTransactionId(TRANSACTION_ID);
 
-        DHCP6Option opt1 = new DHCP6Option();
+        Dhcp6Option opt1 = new Dhcp6Option();
         opt1.setCode(DHCP6.OptionCode.CLIENTID.value());
         opt1.setLength(OPT_CLIENT_ID_SIZE);
         opt1.setData(OPT_CLIENT_ID_BYTE_ARR);
 
 
-        DHCP6Option opt2 = new DHCP6Option();
+        Dhcp6Option opt2 = new Dhcp6Option();
         opt2.setCode(DHCP6.OptionCode.AUTH.value());
         opt2.setLength(OPT_AUTH_SIZE);
         opt2.setData(OPT_AUTH_BYTE_AR);
@@ -162,13 +163,13 @@ public class Dhcp6Test {
         dhcp6.setLinkAddress(LINK_ADDRESS.toOctets());
         dhcp6.setPeerAddress(PEER_ADDRESS.toOctets());
 
-        DHCP6Option opt1 = new DHCP6Option();
+        Dhcp6Option opt1 = new Dhcp6Option();
         opt1.setCode(DHCP6.OptionCode.CLIENTID.value());
         opt1.setLength(OPT_CLIENT_ID_SIZE);
         opt1.setData(OPT_CLIENT_ID_BYTE_ARR);
 
 
-        DHCP6Option opt2 = new DHCP6Option();
+        Dhcp6Option opt2 = new Dhcp6Option();
         opt2.setCode(DHCP6.OptionCode.AUTH.value());
         opt2.setLength(OPT_AUTH_SIZE);
         opt2.setData(OPT_AUTH_BYTE_AR);

@@ -20,8 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPOption;
-import org.onlab.packet.DHCPPacketType;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -109,7 +108,7 @@ public class DhcpManagerTest {
      */
     @Test
     public void testDiscover() {
-        Ethernet reply = constructDhcpPacket(DHCPPacketType.DHCPDISCOVER);
+        Ethernet reply = constructDhcpPacket(DHCP.MsgType.DHCPDISCOVER);
         sendPacket(reply);
     }
 
@@ -118,7 +117,7 @@ public class DhcpManagerTest {
      */
     @Test
     public void testRequest() {
-        Ethernet reply = constructDhcpPacket(DHCPPacketType.DHCPREQUEST);
+        Ethernet reply = constructDhcpPacket(DHCP.MsgType.DHCPREQUEST);
         sendPacket(reply);
     }
 
@@ -141,7 +140,7 @@ public class DhcpManagerTest {
      * @param packetType DHCP Message Type
      * @return Ethernet packet
      */
-    private Ethernet constructDhcpPacket(DHCPPacketType packetType) {
+    private Ethernet constructDhcpPacket(DHCP.MsgType packetType) {
 
         // Ethernet Frame.
         Ethernet ethReply = new Ethernet();
@@ -174,8 +173,8 @@ public class DhcpManagerTest {
         dhcpReply.setHardwareAddressLength((byte) 6);
 
         // DHCP Options.
-        DHCPOption option = new DHCPOption();
-        List<DHCPOption> optionList = new ArrayList<>();
+        DhcpOption option = new DhcpOption();
+        List<DhcpOption> optionList = new ArrayList<>();
 
         // DHCP Message Type.
         option.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
@@ -185,7 +184,7 @@ public class DhcpManagerTest {
         optionList.add(option);
 
         // DHCP Requested IP.
-        option = new DHCPOption();
+        option = new DhcpOption();
         option.setCode(DHCP.DHCPOptionCode.OptionCode_RequestedIP.getValue());
         option.setLength((byte) 4);
         optionData = Ip4Address.valueOf(EXPECTED_IP).toOctets();
@@ -193,7 +192,7 @@ public class DhcpManagerTest {
         optionList.add(option);
 
         // End Option.
-        option = new DHCPOption();
+        option = new DhcpOption();
         option.setCode(DHCP.DHCPOptionCode.OptionCode_END.getValue());
         option.setLength((byte) 1);
         optionList.add(option);

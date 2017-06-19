@@ -20,10 +20,14 @@ import com.google.common.base.Charsets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.dhcp.DhcpOption;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +35,33 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for DHCP class.
  */
 public class DhcpTest {
+
+    // For serialize test
+    private static final int TRANSACTION_ID = 1000;
+    private static final MacAddress CLIENT1_HOST_MAC = MacAddress.valueOf("1a:1a:1a:1a:1a:1a");
+    private static final Ip4Address REQ_IP = Ip4Address.valueOf("10.2.0.2");
+    private static final byte[] EXPECTED_SERIALIZED = ByteBuffer.allocate(300)
+            .put((byte) 0x01) // op code
+            .put((byte) 0x01) // hardware type
+            .put((byte) 0x06) // hardware address len
+            .put((byte) 0x00) // hops
+            .putInt(0x3e8) // transaction id
+            .putShort((short) 0x0) // seconds
+            .putShort((short) 0x0) // flags
+            .putInt(0) // client ip
+            .putInt(0) // your ip
+            .putInt(0) // server ip
+            .putInt(0) // gateway ip
+            .put(CLIENT1_HOST_MAC.toBytes()) // client hardware address
+            .put(new byte[10]) // pad
+            .put(new byte[64]) // server name
+            .put(new byte[128]) // boot file name
+            .putInt(0x63825363) // magic cookie
+            .put(new byte[]{0x35, 0x1, 0x3}) // msg type
+            .put(new byte[]{0x32, 0x4, 0xa, 0x2, 0x0, 0x2}) // requested ip
+            .put((byte) 0xff) // end of options
+            .put(new byte[50]) // pad
+            .array();
 
     private Deserializer<DHCP> deserializer = DHCP.deserializer();
 
@@ -50,7 +81,7 @@ public class DhcpTest {
     private String bootFileName = "test-file";
 
     private String hostName = "test-host";
-    private DHCPOption hostNameOption = new DHCPOption();
+    private DhcpOption hostNameOption = new DhcpOption();
 
     private byte[] byteHeader;
 
@@ -97,7 +128,7 @@ public class DhcpTest {
         bb.put(hostNameOption.getData());
 
         // End of options marker
-        bb.put((byte) (0xff & 255));
+        bb.put((DHCP.DHCPOptionCode.OptionCode_END.getValue()));
 
         byteHeader = bb.array();
     }
@@ -161,5 +192,50 @@ public class DhcpTest {
         assertTrue(StringUtils.contains(str, "serverName=" + serverName));
         assertTrue(StringUtils.contains(str, "bootFileName=" + bootFileName));
         // TODO: add option unit test
+    }
+
+
+
+    @Test
+    public void testSerialize() throws Exception {
+        DHCP dhcpReply = new DHCP();
+        dhcpReply.setOpCode(DHCP.OPCODE_REQUEST);
+
+        dhcpReply.setYourIPAddress(0);
+        dhcpReply.setServerIPAddress(0);
+
+        dhcpReply.setTransactionId(TRANSACTION_ID);
+        dhcpReply.setClientHardwareAddress(CLIENT1_HOST_MAC.toBytes());
+        dhcpReply.setHardwareType(DHCP.HWTYPE_ETHERNET);
+        dhcpReply.setHardwareAddressLength((byte) 6);
+
+        // DHCP Options.
+        DhcpOption option = new DhcpOption();
+        List<DhcpOption> optionList = new ArrayList<>();
+
+        // DHCP Message Type.
+        option.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
+        option.setLength((byte) 1);
+        byte[] optionData = {(byte) DHCP.MsgType.DHCPREQUEST.getValue()};
+        option.setData(optionData);
+        optionList.add(option);
+
+        // DHCP Requested IP.
+        option = new DhcpOption();
+        option.setCode(DHCP.DHCPOptionCode.OptionCode_RequestedIP.getValue());
+        option.setLength((byte) 4);
+        optionData = REQ_IP.toOctets();
+        option.setData(optionData);
+        optionList.add(option);
+
+        // End Option.
+        option = new DhcpOption();
+        option.setCode(DHCP.DHCPOptionCode.OptionCode_END.getValue());
+        option.setLength((byte) 1);
+        optionList.add(option);
+
+        dhcpReply.setOptions(optionList);
+
+        assertArrayEquals(EXPECTED_SERIALIZED, dhcpReply.serialize());
     }
 }

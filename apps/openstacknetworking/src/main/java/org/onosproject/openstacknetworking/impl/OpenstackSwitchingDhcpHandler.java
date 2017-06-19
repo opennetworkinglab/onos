@@ -25,8 +25,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPOption;
-import org.onlab.packet.DHCPPacketType;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -63,8 +62,8 @@ import java.util.Dictionary;
 import java.util.List;
 
 import static org.onlab.packet.DHCP.DHCPOptionCode.*;
-import static org.onlab.packet.DHCPPacketType.DHCPACK;
-import static org.onlab.packet.DHCPPacketType.DHCPOFFER;
+import static org.onlab.packet.DHCP.MsgType.DHCPACK;
+import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -192,7 +191,7 @@ public class OpenstackSwitchingDhcpHandler {
                 return;
             }
 
-            DHCPPacketType inPacketType = getPacketType(dhcpPacket);
+            DHCP.MsgType inPacketType = getPacketType(dhcpPacket);
             if (inPacketType == null || dhcpPacket.getClientHardwareAddress() == null) {
                 log.trace("Malformed DHCP packet received, ignore it");
                 return;
@@ -235,14 +234,14 @@ public class OpenstackSwitchingDhcpHandler {
             }
         }
 
-        private DHCPPacketType getPacketType(DHCP dhcpPacket) {
-            DHCPOption optType = dhcpPacket.getOption(OptionCode_MessageType);
+        private DHCP.MsgType getPacketType(DHCP dhcpPacket) {
+            DhcpOption optType = dhcpPacket.getOption(OptionCode_MessageType);
             if (optType == null) {
                 log.trace("DHCP packet with no message type, ignore it");
                 return null;
             }
 
-            DHCPPacketType inPacketType = DHCPPacketType.getType(optType.getData()[0]);
+            DHCP.MsgType inPacketType = DHCP.MsgType.getType(optType.getData()[0]);
             if (inPacketType == null) {
                 log.trace("DHCP packet with no packet type, ignore it");
             }
@@ -318,9 +317,9 @@ public class OpenstackSwitchingDhcpHandler {
             dhcpReply.setServerIPAddress(gatewayIp.toInt());
             dhcpReply.setClientHardwareAddress(request.getClientHardwareAddress());
 
-            List<DHCPOption> options = Lists.newArrayList();
+            List<DhcpOption> options = Lists.newArrayList();
             // message type
-            DHCPOption option = new DHCPOption();
+            DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_MessageType.getValue());
             option.setLength((byte) 1);
             byte[] optionData = {msgType};
@@ -328,14 +327,14 @@ public class OpenstackSwitchingDhcpHandler {
             options.add(option);
 
             // server identifier
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_DHCPServerIp.getValue());
             option.setLength((byte) 4);
             option.setData(gatewayIp.toOctets());
             options.add(option);
 
             // lease time
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_LeaseTime.getValue());
             option.setLength((byte) 4);
             option.setData(DHCP_DATA_LEASE_INFINITE);
@@ -343,7 +342,7 @@ public class OpenstackSwitchingDhcpHandler {
 
             // subnet mask
             Ip4Address subnetMask = Ip4Address.makeMaskPrefix(subnetPrefixLen);
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_SubnetMask.getValue());
             option.setLength((byte) 4);
             option.setData(subnetMask.toOctets());
@@ -351,35 +350,35 @@ public class OpenstackSwitchingDhcpHandler {
 
             // broadcast address
             Ip4Address broadcast = Ip4Address.makeMaskedAddress(yourIp, subnetPrefixLen);
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_BroadcastAddress.getValue());
             option.setLength((byte) 4);
             option.setData(broadcast.toOctets());
             options.add(option);
 
             // domain server
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_DomainServer.getValue());
             option.setLength((byte) 4);
             option.setData(DEFAULT_DNS.toOctets());
             options.add(option);
 
             // TODO fix MTU value to be configurable
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(DHCP_OPTION_MTU);
             option.setLength((byte) 2);
             option.setData(DHCP_DATA_MTU_DEFAULT);
             options.add(option);
 
             // router address
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_RouterAddress.getValue());
             option.setLength((byte) 4);
             option.setData(gatewayIp.toOctets());
             options.add(option);
 
             // end option
-            option = new DHCPOption();
+            option = new DhcpOption();
             option.setCode(OptionCode_END.getValue());
             option.setLength((byte) 1);
             options.add(option);

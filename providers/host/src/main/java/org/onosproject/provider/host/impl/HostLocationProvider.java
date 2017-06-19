@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
@@ -489,7 +488,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                     .anyMatch(dhcpOption -> dhcpOption.getCode() ==
                                             DHCP.DHCPOptionCode.OptionCode_MessageType.getValue() &&
                                             dhcpOption.getLength() == 1 &&
-                                            dhcpOption.getData()[0] == DHCPPacketType.DHCPACK.getValue())) {
+                                            dhcpOption.getData()[0] == DHCP.MsgType.DHCPACK.getValue())) {
                                 MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
                                 VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
                                 HostId hostId = HostId.hostId(hostMac, hostVlan);

@@ -18,6 +18,7 @@ package org.onlab.packet;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.onlab.packet.dhcp.Dhcp6Option;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -91,7 +92,7 @@ public class DHCP6 extends BasePacket {
 
     // general field
     private byte msgType; // 1 byte
-    private List<DHCP6Option> options;
+    private List<Dhcp6Option> options;
 
     // non-relay field
     private int transactionId; // 3 bytes
@@ -111,7 +112,7 @@ public class DHCP6 extends BasePacket {
     @Override
     public byte[] serialize() {
         int payloadLength = options.stream()
-                .mapToInt(DHCP6Option::getLength)
+                .mapToInt(Dhcp6Option::getLength)
                 .sum();
 
         // 2 bytes code and 2 bytes length
@@ -186,7 +187,7 @@ public class DHCP6 extends BasePacket {
 
             dhcp6.options = Lists.newArrayList();
             while (bb.remaining() >= OPT_CODE_SIZE) {
-                DHCP6Option option = new DHCP6Option();
+                Dhcp6Option option = new Dhcp6Option();
                 short code = bb.getShort();
                 if (bb.remaining() < OPT_LEN_SIZE) {
                     throw new DeserializationException(
@@ -235,7 +236,7 @@ public class DHCP6 extends BasePacket {
      *
      * @return DHCPv6 options
      */
-    public List<DHCP6Option> getOptions() {
+    public List<Dhcp6Option> getOptions() {
         return options;
     }
 
@@ -289,7 +290,7 @@ public class DHCP6 extends BasePacket {
      *
      * @param options the options
      */
-    public void setOptions(List<DHCP6Option> options) {
+    public void setOptions(List<Dhcp6Option> options) {
         this.options = options;
     }
 

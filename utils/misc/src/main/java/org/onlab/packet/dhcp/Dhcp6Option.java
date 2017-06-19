@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.onlab.packet;
+package org.onlab.packet.dhcp;
 
 /**
  * Representation of an DHCPv6 Option.
  * Base on RFC-3315.
  */
-public class DHCP6Option {
+public class Dhcp6Option {
     private short code;
     private short length;
     private byte[] data;
