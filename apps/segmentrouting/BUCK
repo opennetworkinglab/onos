@@ -15,6 +15,7 @@ BUNDLES = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
+    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar_with_tests (

@@ -47,7 +47,7 @@ import java.util.Set;
  */
 public class HostHandler {
     private static final Logger log = LoggerFactory.getLogger(HostHandler.class);
-    private final SegmentRoutingManager srManager;
+    protected final SegmentRoutingManager srManager;
     private HostService hostService;
     private FlowObjectiveService flowObjectiveService;
 
