@@ -282,8 +282,8 @@
                 _helpFormat: ['esc']
             });
             ks.gestureNotes([
-                [lion('k_click'), lion('k_click_hint')],
-                [lion('k_scroll_down'), lion('k_scroll_down_hint')]
+                [lion('click'), lion('k_click_hint')],
+                [lion('scroll_down'), lion('k_scroll_down_hint')]
             ]);
             // if the panelData changes
             scope.$watch('panelData', function () {

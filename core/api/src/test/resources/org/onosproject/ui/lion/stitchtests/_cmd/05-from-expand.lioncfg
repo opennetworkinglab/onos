@@ -1,0 +1,4 @@
+# 05. from expanding alias
+alias xy xyzzy.wizard
+from xy.spell import zonk, zip, zuffer
+from xy.learn import zap, zigzag

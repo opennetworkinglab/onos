@@ -1,0 +1,2 @@
+# 06. from star
+from star.singular import *

@@ -1,0 +1,6 @@
+# 07. star is special
+from abc import foo, bar
+from star.bad1 import *, foo
+from star.good import *
+from star.bad2 import foo, *, bar
+from star.bad3 import xanth, *

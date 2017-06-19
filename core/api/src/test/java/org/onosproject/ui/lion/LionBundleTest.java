@@ -18,17 +18,36 @@
 package org.onosproject.ui.lion;
 
 import org.junit.Test;
+import org.onosproject.ui.AbstractUiTest;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for {@link LionBundle}.
  */
-public class LionBundleTest {
+public class LionBundleTest extends AbstractUiTest {
+
+    private static final String ID = "foo";
+    private static final String KEY_A = "ka";
+    private static final String KEY_B = "kb";
+    private static final String VAL_A = "Alpha";
+    private static final String VAL_B = "Beta";
 
     private LionBundle bundle;
 
     @Test
     public void basic() {
+        title("basic");
 
-//        bundle = new LionBundle();
+        bundle = new LionBundle.Builder(ID)
+                .addItem(KEY_A, VAL_A)
+                .addItem(KEY_B, VAL_B)
+                .build();
+        print(bundle);
+        assertEquals("wrong id", ID, bundle.id());
+        assertEquals("wrong item count", 2, bundle.size());
+
+        assertEquals("wrong A lookup", VAL_A, bundle.getValue(KEY_A));
+        assertEquals("wrong B lookup", VAL_B, bundle.getValue(KEY_B));
     }
 }

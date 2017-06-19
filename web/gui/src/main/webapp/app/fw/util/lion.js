@@ -34,28 +34,33 @@
 
         if (bundleKey === 'core.view.cluster') {
             bundle = {
+                // grouped to match core.view.cluster.lioncfg
                 title_cluster_nodes: 'Cluster Nodes',
-                total: 'Total',
-                active: 'Active',
-                started: 'Started',
+                k_esc_hint: 'Close the details panel',
+                k_click_hint: 'Select a row to show cluster node details',
+                k_scroll_down_hint: 'See available cluster nodes',
+
+                devices: 'Devices',
                 node_id: 'Node ID',
                 ip_address: 'IP Address',
                 tcp_port: 'TCP Port',
-                last_updated: 'Last Updated',
-                devices: 'Devices',
                 uri: 'URI',
+                protocol: 'Protocol',
+
                 type: 'Type',
                 chassis_id: 'Chassis ID',
                 vendor: 'Vendor',
                 hw_version: 'H/W Version',
                 sw_version: 'S/W Version',
-                protocol: 'Protocol',
                 serial_number: 'Serial #',
-                k_esc_hint: 'Close the details panel',
-                k_click_hint: 'Select a row to show cluster node details',
-                k_scroll_down_hint: 'See available cluster nodes',
-                k_click: 'click',
-                k_scroll_down: 'scroll down'
+
+                total: 'Total',
+                active: 'Active',
+                started: 'Started',
+                last_updated: 'Last Updated',
+
+                click: 'click',
+                scroll_down: 'scroll down'
             };
         }
 

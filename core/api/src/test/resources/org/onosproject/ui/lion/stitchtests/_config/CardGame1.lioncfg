@@ -1,0 +1,10 @@
+# test configuration
+
+bundle CardGame1
+
+alias cs core.stuff
+
+from app.Cards import *
+
+from cs.Rank import ace, king, queen, jack, ten
+from cs.Suit import spades, clubs

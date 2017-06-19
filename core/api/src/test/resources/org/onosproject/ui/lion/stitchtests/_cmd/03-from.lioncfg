@@ -1,0 +1,2 @@
+# 03. good from
+from foo.bar import fizzbuzz
