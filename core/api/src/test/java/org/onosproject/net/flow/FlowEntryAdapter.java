@@ -134,6 +134,11 @@ public class FlowEntryAdapter implements FlowEntry {
     }
 
     @Override
+    public TableId table() {
+        return DEFAULT_TABLE;
+    }
+
+    @Override
     public boolean exactMatch(FlowRule rule) {
         return false;
     }

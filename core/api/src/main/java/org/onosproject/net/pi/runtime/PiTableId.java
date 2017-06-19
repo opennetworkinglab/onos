@@ -18,6 +18,7 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
+import org.onosproject.net.flow.TableId;
 
 import java.util.Optional;
 
@@ -28,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Identifier of a table in a protocol-independent pipeline.
  */
 @Beta
-public final class PiTableId extends Identifier<String> {
+public final class PiTableId extends Identifier<String> implements TableId  {
 
     private final String scope;
     private final String name;
@@ -85,5 +86,8 @@ public final class PiTableId extends Identifier<String> {
         return Optional.ofNullable(scope);
     }
 
-
+    @Override
+    public Type type() {
+        return Type.PIPELINE_INDEPENDENT;
+    }
 }

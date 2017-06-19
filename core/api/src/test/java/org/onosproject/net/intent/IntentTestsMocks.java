@@ -30,6 +30,8 @@ import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
+import org.onosproject.net.flow.IndexTableId;
+import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -314,14 +316,14 @@ public class IntentTestsMocks {
         static int nextId = 0;
 
         int priority;
-        int tableId;
+        IndexTableId tableId;
         long timestamp;
         int id;
         FlowRuleExtPayLoad payLoad;
 
         public MockFlowRule(int priority) {
             this.priority = priority;
-            this.tableId = 0;
+            this.tableId = DEFAULT_TABLE;
             this.timestamp = System.currentTimeMillis();
             this.id = nextId++;
             this.payLoad = null;
@@ -414,6 +416,11 @@ public class IntentTestsMocks {
 
         @Override
         public int tableId() {
+            return tableId.id();
+        }
+
+        @Override
+        public TableId table() {
             return tableId;
         }
 

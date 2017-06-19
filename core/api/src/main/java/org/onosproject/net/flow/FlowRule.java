@@ -25,6 +25,7 @@ import org.onosproject.net.DeviceId;
  */
 public interface FlowRule {
 
+    IndexTableId DEFAULT_TABLE = IndexTableId.of(0);
     int MAX_TIMEOUT = 60;
     int MIN_PRIORITY = 0;
     int MAX_PRIORITY = 65535;
@@ -153,8 +154,17 @@ public interface FlowRule {
      * Returns the table id for this rule.
      *
      * @return an integer.
+     * @deprecated in Loon release (version 1.11.0). Use {@link #table()} instead.
      */
+    @Deprecated
     int tableId();
+
+    /**
+     * Returns the table identifier for this rule.
+     *
+     * @return a table identifier.
+     */
+    TableId table();
 
     /**
      * {@inheritDoc}
@@ -227,12 +237,26 @@ public interface FlowRule {
         Builder forDevice(DeviceId deviceId);
 
         /**
-         * Sets the table id for this flow rule. Default value is 0.
+         * Sets the table id for this flow rule, when the identifier is of type {@link TableId.Type#INDEX}. Default
+         * value is 0.
+         * <p>
+         * <em>Important:</em> This method is left here for backward compatibility with applications that specifies
+         * table identifiers using integers, e.g. as in OpenFlow. Currently there is no plan to deprecate this method,
+         * however, new applications should favor using {@link #forTable(TableId)}.
          *
          * @param tableId an integer
          * @return this
          */
         Builder forTable(int tableId);
+
+        /**
+         * Sets the table identifier for this flow rule.
+         * Default identifier is of type {@link TableId.Type#INDEX} and value 0.
+         *
+         * @param tableId table identifier
+         * @return this
+         */
+        Builder forTable(TableId tableId);
 
         /**
          * Sets the selector (or match field) for this flow rule.

@@ -51,6 +51,7 @@ import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -344,6 +345,11 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public int tableId() {
             return 0;
+        }
+
+        @Override
+        public TableId table() {
+            return DEFAULT_TABLE;
         }
 
         @Override
