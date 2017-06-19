@@ -16,30 +16,7 @@
 
 package org.onosproject.protocol.http.ctl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
@@ -55,7 +32,28 @@ import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The implementation of HttpSBController.
@@ -300,12 +298,17 @@ public class HttpSBControllerImpl implements HttpSBController {
                                       .build()).build();
     }
 
-    protected String getUrlString(DeviceId device, String request) {
-        if (deviceMap.get(device).url() != null) {
-            return deviceMap.get(device).protocol() + COLON + DOUBLESLASH + deviceMap.get(device).url() + request;
+    protected String getUrlString(DeviceId deviceId, String request) {
+        RestSBDevice restSBDevice = deviceMap.get(deviceId);
+        if (restSBDevice == null) {
+            log.warn("restSbDevice cannot be NULL!");
+            return "";
+        }
+        if (restSBDevice.url() != null) {
+            return restSBDevice.protocol() + COLON + DOUBLESLASH + restSBDevice.url() + request;
         } else {
-            return deviceMap.get(device).protocol() + COLON + DOUBLESLASH + deviceMap.get(device).ip().toString()
-                    + COLON + deviceMap.get(device).port() + request;
+            return restSBDevice.protocol() + COLON + DOUBLESLASH + restSBDevice.ip().toString()
+                    + COLON + restSBDevice.port() + request;
         }
     }
 
