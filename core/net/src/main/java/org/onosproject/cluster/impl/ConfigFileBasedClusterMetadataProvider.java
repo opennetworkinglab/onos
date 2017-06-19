@@ -22,8 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -130,7 +130,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         checkState(isAvailable());
         synchronized (this) {
             if (cachedMetadata.get() == null) {
-                cachedMetadata.set(fetchMetadata(metadataUrl));
+                cachedMetadata.set(blockForMetadata(metadataUrl));
             }
             return cachedMetadata.get();
         }
@@ -183,6 +183,21 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         }
     }
 
+    private Versioned<ClusterMetadata> blockForMetadata(String metadataUrl) {
+        for (;;) {
+            Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);
+            if (metadata != null) {
+                return metadata;
+            }
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
     private Versioned<ClusterMetadata> fetchMetadata(String metadataUrl) {
         try {
             URL url = new URL(metadataUrl);
@@ -193,13 +208,26 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 version = file.lastModified();
                 metadata = mapper.readValue(new FileInputStream(file), ClusterMetadata.class);
             } else if ("http".equals(url.getProtocol())) {
-                URLConnection conn = url.openConnection();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+                    return null;
+                }
                 version = conn.getLastModified();
                 metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
             }
+
             if (null == metadata) {
                 log.warn("Metadata is null in the function fetchMetadata");
                 throw new NullPointerException();
+            }
+
+            // If the configured partitions are empty then return a null metadata to indicate that the configuration
+            // needs to be polled until the partitions are populated.
+            if (metadata.getPartitions().isEmpty() || metadata.getPartitions().stream()
+                    .map(partition -> partition.getMembers().size())
+                    .reduce(Math::min)
+                    .orElse(0) == 0) {
+                return null;
             }
             return new Versioned<>(new ClusterMetadata(PROVIDER_ID,
                                                        metadata.getName(),
@@ -284,7 +312,8 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         // TODO: We are merely polling the url.
         // This can be easily addressed for files. For http urls we need to move to a push style protocol.
         Versioned<ClusterMetadata> latestMetadata = fetchMetadata(metadataUrl);
-        if (cachedMetadata.get() != null && cachedMetadata.get().version() < latestMetadata.version()) {
+        if (cachedMetadata.get() != null && latestMetadata != null
+                && cachedMetadata.get().version() < latestMetadata.version()) {
             cachedMetadata.set(latestMetadata);
             providerService.clusterMetadataChanged(latestMetadata);
         }
