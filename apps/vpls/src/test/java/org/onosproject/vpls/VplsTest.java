@@ -234,7 +234,7 @@ public abstract class VplsTest {
      * @return the mac address
      */
     protected static MacAddress getMac(int n) {
-        return MacAddress.valueOf(String.format("00:00:00:00:00:%s", n));
+        return MacAddress.valueOf(String.format("00:00:00:00:00:%02x", n));
     }
 
     /**
