@@ -21,6 +21,7 @@ import org.onlab.util.Identifier;
 
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -32,27 +33,37 @@ public final class PiTableId extends Identifier<String> {
     private final String scope;
     private final String name;
 
-    /**
-     * Creates a new table identifier for the given scope and table name.
-     *
-     * @param scope table scope
-     * @param name  table name
-     */
-    public PiTableId(String scope, String name) {
-        super(checkNotNull(scope) + '.' + checkNotNull(name));
+    private PiTableId(String scope, String name) {
+        super((scope != null ? scope + "." : "") + name);
         this.scope = scope;
         this.name = name;
     }
 
     /**
-     * Creates a new table identifier for the given table name.
+     * Returns a table identifier for the given table scope and name.
+     *
+     * @param scope table scope
+     * @param name  table name
+     * @return table identifier
+     */
+    public static PiTableId of(String scope, String name) {
+        checkNotNull(name);
+        checkNotNull(scope);
+        checkArgument(!name.isEmpty(), "Name can't be empty");
+        checkArgument(!scope.isEmpty(), "Scope can't be empty");
+        return new PiTableId(scope, name);
+    }
+
+    /**
+     * Returns a table identifier for the given table name.
      *
      * @param name table name
+     * @return table identifier
      */
-    public PiTableId(String name) {
-        super(checkNotNull(name));
-        this.name = name;
-        this.scope = null;
+    public static PiTableId of(String name) {
+        checkNotNull(name);
+        checkArgument(!name.isEmpty(), "Name can't be empty");
+        return new PiTableId(null, name);
     }
 
 

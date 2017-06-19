@@ -23,29 +23,39 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Identifier of an action of a match+action table in a protocol-independent pipeline.
+ * Identifier of an action's runtime parameter in a match+action table of a protocol-independent pipeline.
  */
 @Beta
-public final class PiActionId extends Identifier<String> {
+public final class PiActionParamId extends Identifier<String> {
 
-    /**
-     * Creates an action identifier.
-     *
-     * @param name action name
-     */
-    private PiActionId(String name) {
+    private final String name;
+
+    // TODO: if needed, we might add here support for positional parameters.
+    // E.g. add a second constructor that takes the "position" of a parameter, vs. its name.
+
+    private PiActionParamId(String name) {
         super(name);
+        this.name = name;
     }
 
     /**
-     * Returns an action identifier with the given name.
+     * Returns the name of this parameter.
      *
-     * @param name action name
-     * @return action identifier
+     * @return parameter name
      */
-    public static PiActionId of(String name) {
+    public String name() {
+        return name;
+    }
+
+    /**
+     * Returns a parameter identifier with the given name.
+     *
+     * @param name parameter name
+     * @return parameter identifier
+     */
+    public static PiActionParamId of(String name) {
         checkNotNull(name);
         checkArgument(!name.isEmpty(), "Name can't be empty");
-        return new PiActionId(name);
+        return new PiActionParamId(name);
     }
 }

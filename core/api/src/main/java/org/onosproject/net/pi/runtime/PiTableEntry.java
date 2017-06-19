@@ -143,6 +143,11 @@ public final class PiTableEntry {
                 .toString();
     }
 
+    /**
+     * Returns a table entry builder.
+     *
+     * @return a new builder
+     */
     public static Builder builder() {
         return new Builder();
     }

@@ -18,6 +18,9 @@ package org.onosproject.net.pi.runtime;
 
 import org.onlab.util.Identifier;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Identifier of a packet's header field.
  */
@@ -27,18 +30,7 @@ public final class PiHeaderFieldId extends Identifier<String> {
     private final String fieldName;
     private final int index;
 
-    /**
-     * Creates a new header field identifier for the given header name, field name and index.
-     * <p>
-     * Index represents the position of this header in the packet w.r.t. to other headers of the
-     * same type. Index 0 points to the first instance of the header, 1 the second one, etc. Helpful
-     * when dealing with stacked headers, e.g. to match on the second MPLS label.
-     *
-     * @param headerName header name
-     * @param fieldName  field name
-     * @param index      index
-     */
-    public PiHeaderFieldId(String headerName, String fieldName, int index) {
+    private PiHeaderFieldId(String headerName, String fieldName, int index) {
         super(headerName +
                       (index > 0 ? "[" + String.valueOf(index) + "]" : "") +
                       "." + fieldName);
@@ -48,13 +40,36 @@ public final class PiHeaderFieldId extends Identifier<String> {
     }
 
     /**
-     * Creates a new header field identifier for the given header name and field name.
+     * Returns an header field identifier for the given header name, field name and index.
+     * <p>
+     * Index represents the position of this header in the packet w.r.t. to other headers of the
+     * same type. Index 0 points to the first instance of the header, 1 the second one, etc. Helpful
+     * when dealing with stacked headers, e.g. to match on the second MPLS label.
      *
      * @param headerName header name
      * @param fieldName  field name
+     * @param index      index
+     * @return header field identifier
      */
-    public PiHeaderFieldId(String headerName, String fieldName) {
-        this(headerName, fieldName, 0);
+    public static PiHeaderFieldId of(String headerName, String fieldName, int index) {
+        checkNotNull(headerName);
+        checkNotNull(fieldName);
+        checkArgument(!headerName.isEmpty(), "Header name can't be empty");
+        checkArgument(!fieldName.isEmpty(), "Field name can't be empty");
+        checkArgument(index >= 0, "Index must be a positive integer");
+        return new PiHeaderFieldId(headerName, fieldName, index);
+    }
+
+    /**
+     * Returns an header field identifier for the given header name and field name.
+     * Index is set to default value 0.
+     *
+     * @param headerName header name
+     * @param fieldName  field name
+     * @return header field identifier
+     */
+    public static PiHeaderFieldId of(String headerName, String fieldName) {
+        return of(headerName, fieldName, 0);
     }
 
     /**
