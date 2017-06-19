@@ -19,9 +19,7 @@ package org.onosproject.incubator.net.routing;
 import org.onlab.packet.IpAddress;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Adapter class for the route service.
@@ -35,11 +33,6 @@ public class RouteServiceAdapter implements RouteAdminService {
     @Override
     public void withdraw(Collection<Route> routes) {
 
-    }
-
-    @Override
-    public Map<RouteTableId, Collection<Route>> getAllRoutes() {
-        return null;
     }
 
     @Override
@@ -59,16 +52,6 @@ public class RouteServiceAdapter implements RouteAdminService {
 
     @Override
     public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
-        return null;
-    }
-
-    @Override
-    public Collection<Route> getRoutesForNextHop(IpAddress nextHop) {
-        return null;
-    }
-
-    @Override
-    public Set<NextHop> getNextHops() {
         return null;
     }
 

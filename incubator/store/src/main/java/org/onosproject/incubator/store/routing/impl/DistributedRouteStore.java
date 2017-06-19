@@ -21,7 +21,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.routing.InternalRouteEvent;
-import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteSet;
 import org.onosproject.incubator.net.routing.RouteStore;
@@ -137,12 +136,6 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     }
 
     @Override
-    public Route longestPrefixMatch(IpAddress ip) {
-        // Not supported
-        return null;
-    }
-
-    @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
         return getDefaultRouteTable(ip).getRoutesForNextHop(ip);
     }
@@ -150,28 +143,6 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     @Override
     public RouteSet getRoutes(IpPrefix prefix) {
         return getDefaultRouteTable(prefix.address()).getRoutes(prefix);
-    }
-
-    @Override
-    public void updateNextHop(IpAddress ip, NextHopData nextHopData) {
-        // Not supported
-    }
-
-    @Override
-    public void removeNextHop(IpAddress ip, NextHopData nextHopData) {
-        // Not supported
-    }
-
-    @Override
-    public NextHopData getNextHop(IpAddress ip) {
-        // Not supported
-        return null;
-    }
-
-    @Override
-    public Map<IpAddress, NextHopData> getNextHops() {
-        // Not supported
-        return Collections.emptyMap();
     }
 
     private void createRouteTable(RouteTableId tableId) {

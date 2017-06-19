@@ -28,7 +28,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.routing.InternalRouteEvent;
-import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteSet;
 import org.onosproject.incubator.net.routing.RouteStore;
@@ -43,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Dictionary;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -154,11 +152,6 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     }
 
     @Override
-    public Route longestPrefixMatch(IpAddress ip) {
-        return currentRouteStore.longestPrefixMatch(ip);
-    }
-
-    @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
         return currentRouteStore.getRoutesForNextHop(ip);
     }
@@ -166,25 +159,5 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     @Override
     public RouteSet getRoutes(IpPrefix prefix) {
         return currentRouteStore.getRoutes(prefix);
-    }
-
-    @Override
-    public void updateNextHop(IpAddress ip, NextHopData nextHopData) {
-        currentRouteStore.updateNextHop(ip, nextHopData);
-    }
-
-    @Override
-    public void removeNextHop(IpAddress ip, NextHopData nextHopData) {
-        currentRouteStore.removeNextHop(ip, nextHopData);
-    }
-
-    @Override
-    public NextHopData getNextHop(IpAddress ip) {
-        return currentRouteStore.getNextHop(ip);
-    }
-
-    @Override
-    public Map<IpAddress, NextHopData> getNextHops() {
-        return currentRouteStore.getNextHops();
     }
 }

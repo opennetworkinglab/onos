@@ -23,7 +23,6 @@ import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.incubator.net.routing.InternalRouteEvent;
-import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteSet;
 import org.onosproject.incubator.net.routing.RouteStore;
@@ -102,11 +101,6 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     }
 
     @Override
-    public Route longestPrefixMatch(IpAddress ip) {
-        return getDefaultRouteTable(ip).longestPrefixMatch(ip);
-    }
-
-    @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
         return getDefaultRouteTable(ip).getRoutesForNextHop(ip);
     }
@@ -114,28 +108,6 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     @Override
     public RouteSet getRoutes(IpPrefix prefix) {
         return getDefaultRouteTable(prefix.address()).getRoutes(prefix);
-    }
-
-    @Override
-    public void updateNextHop(IpAddress ip, NextHopData nextHopData) {
-        // No longer needed
-    }
-
-    @Override
-    public void removeNextHop(IpAddress ip, NextHopData nextHopData) {
-        // No longer needed
-    }
-
-    @Override
-    public NextHopData getNextHop(IpAddress ip) {
-        // No longer needed
-        return null;
-    }
-
-    @Override
-    public Map<IpAddress, NextHopData> getNextHops() {
-        // No longer needed
-        return Collections.emptyMap();
     }
 
     private RouteTable getDefaultRouteTable(Route route) {

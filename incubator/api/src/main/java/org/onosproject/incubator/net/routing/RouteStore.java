@@ -22,7 +22,6 @@ import org.onlab.packet.IpPrefix;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -78,49 +77,4 @@ public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate
     @Beta
     RouteSet getRoutes(IpPrefix prefix);
 
-    /**
-     * Updates a next hop information in the store.
-     *
-     * @param ip IP address
-     * @param nextHopData Information of the next hop
-     */
-    @Deprecated
-    void updateNextHop(IpAddress ip, NextHopData nextHopData);
-
-    /**
-     * Removes a next hop information from the store.
-     *
-     * @param ip IP address
-     * @param nextHopData Information of the next hop
-     */
-    @Deprecated
-    void removeNextHop(IpAddress ip, NextHopData nextHopData);
-
-    /**
-     * Returns the information of the given next hop.
-     *
-     * @param ip next hop IP
-     * @return Information of the next hop
-     */
-    @Deprecated
-    NextHopData getNextHop(IpAddress ip);
-
-    /**
-     * Returns all next hops in the route store.
-     *
-     * @return next hops
-     */
-    @Deprecated
-    Map<IpAddress, NextHopData> getNextHops();
-
-    /**
-     * Performs a longest prefix match with the given IP address.
-     *
-     * @param ip IP to look up
-     * @return longest prefix match route
-     * @deprecated in Kingfisher release. Now handled by the manager instead of
-     * the store
-     */
-    @Deprecated
-    Route longestPrefixMatch(IpAddress ip);
 }

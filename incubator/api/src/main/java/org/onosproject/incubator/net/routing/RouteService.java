@@ -20,24 +20,12 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.event.ListenerService;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * Unicast IP route service.
  */
 public interface RouteService extends ListenerService<RouteEvent, RouteListener> {
-
-    /**
-     * Returns all routes for all route tables in the system.
-     *
-     * @return map of route table name to routes in that table
-     * @deprecated in Kingfisher release. Use {@link #getRoutes(RouteTableId)}
-     * instead.
-     */
-    @Deprecated
-    Map<RouteTableId, Collection<Route>> getAllRoutes();
 
     /**
      * Returns information about all routes in the given route table.
@@ -55,6 +43,14 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
     Collection<RouteTableId> getRouteTables();
 
     /**
+     * Performs a longest prefix lookup on the given IP address.
+     *
+     * @param ip IP address to look up
+     * @return most specific matching route, if one exists
+     */
+    Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip);
+
+    /**
      * Performs a longest prefix match on the given IP address. The call will
      * return the route with the most specific prefix that contains the given
      * IP address.
@@ -66,30 +62,4 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      */
     @Deprecated
     Route longestPrefixMatch(IpAddress ip);
-
-    /**
-     * Performs a longest prefix lookup on the given IP address.
-     *
-     * @param ip IP address to look up
-     * @return most specific matching route, if one exists
-     */
-    Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip);
-
-    /**
-     * Returns the routes for the given next hop.
-     *
-     * @param nextHop next hop IP address
-     * @return routes for this next hop
-     */
-    @Deprecated
-    Collection<Route> getRoutesForNextHop(IpAddress nextHop);
-
-    /**
-     * Returns all next hops in the route store.
-     *
-     * @return set of next hops
-     */
-    @Deprecated
-    Set<NextHop> getNextHops();
-
 }
