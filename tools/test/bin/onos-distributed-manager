@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python
 """
  Copyright 2017-present Open Networking Laboratory
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,70 +36,80 @@ curl  -X GET  http://10.15.176.228:5000/cluster.json
 
 """
 
+httpStatusOK = 200
+httpStatusNotFound = 404
+httpStatusBadRequest = 400
 
-@app.route('/', methods=['GET', 'POST', 'DELETE', 'PUT'])
-def data_handler():
+@app.route('/', methods=['GET'])
+def data_get_handler():
 
-    if request.method == 'GET':
-        pagereturn = "<h2> Onos Distributed Controller Manager2 </h2>"
-        pagereturn += "<br><h3> Status of Added controllers  </h3><br>"
-        pagereturn += " Id,&emsp; Ip,&emsp; Port,&emsp; Is Active <br> "
+    pagereturn = "<h2> Onos Distributed Controller Manager2 </h2>"
+    pagereturn += "<br><h3> Status of Added controllers  </h3><br>"
+    pagereturn += " Id,&emsp; Ip,&emsp; Port,&emsp; Is Active <br> "
 
-        for key in controller_list.keys():
-            pagereturn += controller_list[key]["Id"] + ",&emsp; " + \
-                  controller_list[key]["IpAddress"] + ",&emsp; " + \
-                  str(controller_list[key]["Port"]) + ",&emsp; " + \
-                  str(controller_list[key]["IsEnable"])
-            pagereturn += " <br>"
+    for key in controller_list.keys():
+        pagereturn += controller_list[key]["Id"] + ",&emsp; " + \
+                      controller_list[key]["IpAddress"] + ",&emsp; " + \
+                      str(controller_list[key]["Port"]) + ",&emsp; " + \
+                      str(controller_list[key]["IsEnable"])
+        pagereturn += " <br>"
 
-        return pagereturn
-    elif request.method == 'POST':
+    return pagereturn, httpStatusOK
 
-        if request.is_json:
-            content = dict(request.json)
 
-            if content["Id"] in controller_list:
-                return "Content Id is already in the list"
+@app.route('/', methods=['POST'])
+def data_post_handler():
 
-            else:
-                controller_list[content["Id"]] = content
-
-        else:
-            return "json required"
-
-        return "POST called with content"
-
-    elif request.method == 'PUT':
-        if request.is_json:
-            content = dict(request.json)
-
-            if content["Id"] in controller_list:
-                controller_list[content["Id"]] = content
-
-            else:
-                return "Id %s is not found ", content["Id"]
-        else:
-            return "json data is missing"
-
-    elif request.method == 'DELETE':
-        if request.is_json:
-            content = dict(request.json)
-
-        else:
-            return "No json is found"
+    if request.is_json:
+        content = dict(request.json)
 
         if content["Id"] in controller_list:
-            del controller_list[content["Id"]]
-            return "Deletion succeed."
+            return "Content Id is already in the list", httpStatusBadRequest
 
         else:
-            return "Id is not found"
+            controller_list[content["Id"]] = content
 
     else:
-        return "Undefined method call"
+        return "json required", httpStatusBadRequest
+
+    return "POST called with content", httpStatusOK
+
+
+@app.route('/', methods=['PUT'])
+def data_put_handler():
+
+    if request.is_json:
+        content = dict(request.json)
+
+        if content["Id"] in controller_list:
+            controller_list[content["Id"]] = content
+            return "Update succeeded", httpStatusOK
+
+        else:
+            return "Id %s is not found " %(content["Id"]), httpStatusNotFound
+    else:
+        return "json data is missing", httpStatusBadRequest
+
+
+@app.route('/', methods=['DELETE'])
+def data_delete_handler():
+
+    if request.is_json:
+        content = dict(request.json)
+
+    else:
+        return "No json is found", httpStatusBadRequest
+
+    if content["Id"] in controller_list:
+        del controller_list[content["Id"]]
+        return "Deletion succeed.", httpStatusOK
+
+    else:
+        return "Id is not found", httpStatusNotFound
+
 """
 This function returns onos cluster information
-based on data is
+based on data in memory
 """
 
 
@@ -129,7 +139,7 @@ def cluster_responder():
     cluster_info["nodes"] = nodes
     cluster_info["name"] = -1394421542720337000
     cluster_info["partitions"] = partition
-    return jsonify(cluster_info)
+    return jsonify(cluster_info), httpStatusOK
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
