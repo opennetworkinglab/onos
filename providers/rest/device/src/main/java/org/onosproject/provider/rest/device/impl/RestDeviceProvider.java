@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onlab.util.SharedScheduledExecutorService;
+import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
@@ -48,6 +50,8 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
@@ -62,6 +66,7 @@ import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 
 import javax.ws.rs.ProcessingException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,6 +75,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -99,6 +105,7 @@ public class RestDeviceProvider extends AbstractProvider
     protected static final String ISNOTNULL = "Rest device is not null";
     private static final String UNKNOWN = "unknown";
     private static final int REST_TIMEOUT_SEC = 5;
+    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -125,6 +132,7 @@ public class RestDeviceProvider extends AbstractProvider
 
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
+    private SharedScheduledExecutorService portStatisticsExecutor = SharedScheduledExecutors.getPoolThreadExecutor();
 
     protected final List<ConfigFactory> factories = ImmutableList.of(
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
@@ -148,6 +156,7 @@ public class RestDeviceProvider extends AbstractProvider
     private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
 
     private Set<DeviceId> addedDevices = new HashSet<>();
+    private ScheduledFuture<?> scheduledTask;
 
 
     @Activate
@@ -158,6 +167,7 @@ public class RestDeviceProvider extends AbstractProvider
         cfgService.addListener(cfgLister);
         executor.execute(RestDeviceProvider.this::createAndConnectDevices);
         executor.execute(RestDeviceProvider.this::createDevices);
+        scheduledTask = schedulePolling();
         log.info("Started");
     }
 
@@ -168,6 +178,7 @@ public class RestDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         factories.forEach(cfgService::unregisterConfigFactory);
+        scheduledTask.cancel(true);
         log.info("Stopped");
     }
 
@@ -395,6 +406,32 @@ public class RestDeviceProvider extends AbstractProvider
                 });
         //Removing devices not wanted anymore
         toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
+    }
+
+    private ScheduledFuture schedulePolling() {
+        return portStatisticsExecutor.scheduleAtFixedRate(this::executePortStatisticsUpdate,
+                                                          DEFAULT_POLL_FREQUENCY_SECONDS / 2,
+                                                          DEFAULT_POLL_FREQUENCY_SECONDS,
+                                                          TimeUnit.SECONDS);
+    }
+
+    private void executePortStatisticsUpdate() {
+        controller.getDevices().keySet().forEach(this::updatePortStatistics);
+    }
+
+    private void updatePortStatistics(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        checkNotNull(device, "device cannot be null");
+
+        if (device.is(PortStatisticsDiscovery.class)) {
+            PortStatisticsDiscovery portStatisticsDiscovery = device.as(PortStatisticsDiscovery.class);
+            Collection<PortStatistics> portStatistics = portStatisticsDiscovery.discoverPortStatistics();
+            if (portStatistics != null && !portStatistics.isEmpty()) {
+                providerService.updatePortStatistics(deviceId, portStatistics);
+            }
+        } else {
+            log.debug("No port statistics getter behaviour for device {}", deviceId);
+        }
     }
 
     private void discoverPorts(DeviceId deviceId) {
