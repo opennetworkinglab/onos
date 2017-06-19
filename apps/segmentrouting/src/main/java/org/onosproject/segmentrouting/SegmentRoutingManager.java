@@ -374,10 +374,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
         multicastRouteService.addListener(mcastListener);
+        routeService.addListener(routeListener);
 
         cfgListener.configureNetwork();
-
-        routeService.addListener(routeListener);
 
         log.info("Started");
     }
@@ -408,6 +407,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(mcastConfigFactory);
         cfgService.unregisterConfigFactory(pwaasConfigFactory);
 
+        hostService.removeListener(hostListener);
         packetService.removeProcessor(processor);
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
