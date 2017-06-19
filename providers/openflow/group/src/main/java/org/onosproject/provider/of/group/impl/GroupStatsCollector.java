@@ -38,7 +38,7 @@ public class GroupStatsCollector implements TimerTask {
 
     private final OpenFlowSwitch sw;
     private final Logger log = getLogger(getClass());
-    private final int refreshInterval;
+    private int refreshInterval;
 
     private Timeout timeout;
 
@@ -92,6 +92,10 @@ public class GroupStatsCollector implements TimerTask {
                         .setXid(descXid)
                         .build();
         sw.sendMsg(descStatsRequest);
+    }
+
+    public void adjustRate(int pollInterval) {
+        this.refreshInterval = pollInterval;
     }
 
     /**

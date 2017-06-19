@@ -36,6 +36,10 @@
             <artifactId>onos-providers-openflow-flow</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
