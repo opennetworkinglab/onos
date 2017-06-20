@@ -273,6 +273,8 @@ public class HttpSBControllerImpl implements HttpSBController {
             return MediaType.APPLICATION_XML_TYPE;
         case JSON:
             return MediaType.APPLICATION_JSON_TYPE;
+        case MediaType.WILDCARD:
+            return MediaType.WILDCARD_TYPE;
         default:
             throw new IllegalArgumentException("Unsupported media type " + type);
 
