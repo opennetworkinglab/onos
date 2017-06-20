@@ -15,9 +15,14 @@
 """
 
 from flask import Flask, jsonify, request
+import argparse
+import json
+import sys
+import httplib
+from httplib import OK, NOT_FOUND, BAD_REQUEST
+import jsonschema
+from jsonschema import validate
 
-app = Flask(__name__)
-controller_list = {}
 
 """
 Onos Distributed Manager
@@ -28,118 +33,196 @@ Message Samples :
 curl  -H "Content-Type: application/json" -X POST
      --data '{"Id":"1.2.3.4","IpAddress":"1.2.3.4","Port":3456,"IsEnable":true}' http://localhost:5000
 --Updating node
-curl  -H "Content-Type: application/json" -X PUT --data '{"Id":"1.2.3.4","IsEnable":false}' http://localhost:5000
+curl  -H "Content-Type: application/json" -X PUT --data '{"Id":"1.2.3.4","IpAddress":"1.2.3.4","Port":3456,"IsEnable":true}' http://localhost:5000
 --Deleting node
-curl  -H "Content-Type: application/json" -X DELETE --data '{"Id":"1.2.3.4","IsEnable":false}' http://localhost:5000
+curl  -H "Content-Type: application/json" -X DELETE --data '{"Id":"1.2.3.4","IpAddress":"1.2.3.4","Port":3456,"IsEnable":true}' http://localhost:5000
 --Getting node data
 curl  -X GET  http://10.15.176.228:5000/cluster.json
 
 """
 
-httpStatusOK = 200
-httpStatusNotFound = 404
-httpStatusBadRequest = 400
+
+schema = {
+    "type": "object",
+    "properties": {
+        "Id": {"type": "string"},
+        "Port": {"type": "number"},
+        "IsEnable": {"type": "boolean"},
+        "IpAddress": {"type": "string"},
+    },
+    "required": ["Id", "Port", "IsEnable", "IpAddress"]
+}
+
+
+def is_valid_node_json(content):
+    try:
+        validate(content, schema)
+    except Exception as validation_error:
+        return False
+
+    return True
+
+class Manager:
+    controller_list = {}
+    persistence_filename = ""
+
+    def save_to_file(self):
+        data = json.dumps(self.controller_list)
+        try:
+            with open(self.persistence_filename, 'w') as file:
+                file.write(data)
+                file.close()
+        except Exception as error:
+            print error
+            sys.exit()
+
+    def load_from_file(self):
+        try:
+            with open(self.persistence_filename, 'r') as file:
+                data = file.read()
+                self.controller_list = json.loads(data)
+        except Exception:
+            self.save_to_file()
+
+    def data_get_handler(self):
+
+        pagereturn = "<h2> Onos Distributed Controller Manager2 </h2>"
+        pagereturn += "<br><h3> Status of Added controllers  </h3><br>"
+        pagereturn += " Id,&emsp; Ip,&emsp; Port,&emsp; Is Active <br> "
+
+        for key in self.controller_list.keys():
+            pagereturn += self.controller_list[key]["Id"] + ",&emsp; " + \
+                          self.controller_list[key]["IpAddress"] + ",&emsp; " + \
+                          str(self.controller_list[key]["Port"]) + ",&emsp; " + \
+                          str(self.controller_list[key]["IsEnable"])
+            pagereturn += " <br>"
+
+        return pagereturn, OK
+
+    def data_post_handler(self, content):
+        if not is_valid_node_json(content):
+            return "Id, IpAddress, Port, and IsEnable must be specified", \
+                   BAD_REQUEST
+
+        if content["Id"] in self.controller_list:
+            return "Content Id is already in the list", BAD_REQUEST
+
+        else:
+            self.controller_list[content["Id"]] = content
+            self.save_to_file()
+
+        return "POST called with content", OK
+
+    def data_put_handler(self, content):
+        if not is_valid_node_json(content):
+            return "Id, IpAddress, Port, and IsEnable must be specified", \
+                   BAD_REQUEST
+
+        if content["Id"] in self.controller_list:
+            self.controller_list[content["Id"]] = content
+            self.save_to_file()
+            return "Update succeeded", OK
+
+        else:
+            return "Id %s is not found " % (content["Id"]), NOT_FOUND
+
+    def data_delete_handler(self, content):
+        if content["Id"] in self.controller_list:
+            del self.controller_list[content["Id"]]
+            self.save_to_file()
+            return "Deletion succeed.", OK
+
+        else:
+            return "Id is not found", NOT_FOUND
+
+    """
+    This function returns onos cluster information
+    based on data in memory
+    """
+
+    def cluster_responder(self):
+
+        cluster_info = dict()
+        nodes = list()
+        partition = dict()
+        # Todo: For first release , only 1 partition implemented
+        cluster_members = list()
+
+        # "nodes" array
+        for controller_id in self.controller_list:
+            controller_node = self.controller_list[controller_id]
+            if controller_node["IsEnable"]:
+                node_data = dict()
+                node_data["ip"] = controller_node["IpAddress"]
+                node_data["id"] = controller_node["Id"]
+                node_data["port"] = controller_node["Port"]
+                nodes.append(node_data)
+                cluster_members.append(controller_node["Id"])
+
+        partition["id"] = 1  # Todo: this will be updated .
+        partition["members"] = cluster_members
+
+        cluster_info["nodes"] = nodes
+        cluster_info["name"] = -1394421542720337000 # Todo: add a real value here
+        cluster_info["partitions"] = partition
+        return jsonify(cluster_info), OK
+
+app = Flask(__name__)
+manager = Manager()
+
 
 @app.route('/', methods=['GET'])
 def data_get_handler():
-
-    pagereturn = "<h2> Onos Distributed Controller Manager2 </h2>"
-    pagereturn += "<br><h3> Status of Added controllers  </h3><br>"
-    pagereturn += " Id,&emsp; Ip,&emsp; Port,&emsp; Is Active <br> "
-
-    for key in controller_list.keys():
-        pagereturn += controller_list[key]["Id"] + ",&emsp; " + \
-                      controller_list[key]["IpAddress"] + ",&emsp; " + \
-                      str(controller_list[key]["Port"]) + ",&emsp; " + \
-                      str(controller_list[key]["IsEnable"])
-        pagereturn += " <br>"
-
-    return pagereturn, httpStatusOK
-
-
-@app.route('/', methods=['POST'])
-def data_post_handler():
-
-    if request.is_json:
-        content = dict(request.json)
-
-        if content["Id"] in controller_list:
-            return "Content Id is already in the list", httpStatusBadRequest
-
-        else:
-            controller_list[content["Id"]] = content
-
-    else:
-        return "json required", httpStatusBadRequest
-
-    return "POST called with content", httpStatusOK
-
-
-@app.route('/', methods=['PUT'])
-def data_put_handler():
-
-    if request.is_json:
-        content = dict(request.json)
-
-        if content["Id"] in controller_list:
-            controller_list[content["Id"]] = content
-            return "Update succeeded", httpStatusOK
-
-        else:
-            return "Id %s is not found " %(content["Id"]), httpStatusNotFound
-    else:
-        return "json data is missing", httpStatusBadRequest
-
-
-@app.route('/', methods=['DELETE'])
-def data_delete_handler():
-
-    if request.is_json:
-        content = dict(request.json)
-
-    else:
-        return "No json is found", httpStatusBadRequest
-
-    if content["Id"] in controller_list:
-        del controller_list[content["Id"]]
-        return "Deletion succeed.", httpStatusOK
-
-    else:
-        return "Id is not found", httpStatusNotFound
-
-"""
-This function returns onos cluster information
-based on data in memory
-"""
+    return manager.data_get_handler()
 
 
 @app.route('/cluster.json', methods=['GET'])
 def cluster_responder():
+    return manager.cluster_responder()
 
-    cluster_info = dict()
-    nodes = list()
-    partition = dict()
-    # Todo: For first release , only 1 partition implemented
-    cluster_members = list()
 
-    # "nodes" array
-    for controller_id in controller_list:
-        controller_node = controller_list[controller_id]
-        if controller_node["IsEnable"]:
-            node_data = dict()
-            node_data["ip"] = controller_node["IpAddress"]
-            node_data["id"] = controller_node["Id"]
-            node_data["port"] = controller_node["Port"]
-            nodes.append(node_data)
-            cluster_members.append(controller_node["Id"])
+@app.route('/', methods=['POST'])
+def data_post_handler():
+    if request.is_json:
+        content = dict(request.json)
+        return manager.data_post_handler(content)
+    else:
+        return "json required", BAD_REQUEST
 
-    partition["id"] = 1  # Todo: this will be updated .
-    partition["members"] = cluster_members
 
-    cluster_info["nodes"] = nodes
-    cluster_info["name"] = -1394421542720337000
-    cluster_info["partitions"] = partition
-    return jsonify(cluster_info), httpStatusOK
+@app.route('/', methods=['PUT'])
+def data_put_handler():
+    if request.is_json:
+        content = dict(request.json)
+        return manager.data_put_handler(content)
+    else:
+        return "json data is missing", BAD_REQUEST
+
+
+@app.route('/', methods=['DELETE'])
+def data_delete_handler():
+    if request.is_json:
+        content = dict(request.json)
+        return manager.data_delete_handler(content)
+    else:
+        return "No json is found", BAD_REQUEST
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Web server and app to maintain ONOS cluster state.")
+    parser.add_argument(
+        '-p', '--persistence-filename',
+        default='./onos-distributed-manager-persistence.json',
+        help="Filename used to store persistence information." )
+
+    args = parser.parse_args()
+    manager.persistence_filename = args.persistence_filename
+    manager.load_from_file()
+
+    app.run(host="0.0.0.0", debug=True)
+
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    manager = Manager()
+    main()
