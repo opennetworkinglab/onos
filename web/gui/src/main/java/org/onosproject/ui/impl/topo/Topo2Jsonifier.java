@@ -453,11 +453,11 @@ public class Topo2Jsonifier {
                 .put("online", deviceService.isAvailable(device.id()))
                 .put("master", master(device.id()))
                 .put("layer", device.layer());
-
         Device d = device.backingDevice();
-
-        addProps(node, d);
-        addGeoGridLocation(node, d);
+        if (d != null) {
+            addProps(node, d);
+            addGeoGridLocation(node, d);
+        }
         addMetaUi(node, ridStr, device.idAsString());
 
         return node;
