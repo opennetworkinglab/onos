@@ -179,6 +179,7 @@ public class RestDeviceProvider extends AbstractProvider
         providerService = null;
         factories.forEach(cfgService::unregisterConfigFactory);
         scheduledTask.cancel(true);
+        executor.shutdown();
         log.info("Stopped");
     }
 
