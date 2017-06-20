@@ -16,6 +16,8 @@
 
 package org.onosproject.ui.topo;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
@@ -23,6 +25,8 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ui.AbstractUiTest;
+
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -40,6 +44,19 @@ public class TopoUtilsTest extends AbstractUiTest {
 
     private static final ConnectPoint CP_FU = deviceConnectPoint("fu:001/3");
     private static final ConnectPoint CP_BAH = deviceConnectPoint("bah:002/5");
+
+    private static Locale systemLocale;
+
+    @BeforeClass
+    public static void classSetup() {
+        systemLocale = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+    }
+
+    @AfterClass
+    public static void classTeardown() {
+        Locale.setDefault(systemLocale);
+    }
 
     private static final Link LINK_FU_BAH = DefaultLink.builder()
             .src(CP_FU)
