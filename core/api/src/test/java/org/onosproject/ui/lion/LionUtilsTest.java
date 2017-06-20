@@ -20,10 +20,11 @@ package org.onosproject.ui.lion;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.onosproject.ui.AbstractUiTest;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -174,8 +175,30 @@ public class LionUtilsTest extends AbstractUiTest {
         checkLanguageCountry(locale, "ko", "KR");
     }
 
+    // -- Testing generateLionBundles(...)
+
+    private static final String LION_BASE = "/org/onosproject/ui/lion/stitchtests";
+
+    private static final String[] LION_TAGS = {"CardGame1"};
+
+    @Test
+    public void generateLionBundles() {
+        title("generateLionBundles");
+        List<LionBundle> bundles =
+                LionUtils.generateLionBundles(LION_BASE, LION_TAGS);
+        print(bundles);
+        assertEquals("missing the bundle", 1, bundles.size());
+
+        LionBundle b = bundles.get(0);
+        assertEquals("wrong id", "CardGame1", b.id());
+        assertEquals("unexpected item count", 12, b.size());
+        assertEquals("missing 3oak", "Three of a Kind", b.getValue("three_oak"));
+        assertEquals("missing queen", "Queen", b.getValue("queen"));
+        assertEquals("missing clubs", "Clubs", b.getValue("clubs"));
+    }
 
     // -- Testing loading of correct bundle, based on locale
+
     private void checkLookups(String computer, String disk, String monitor,
                               String keyboard) {
         res = LionUtils.getBundledResource(LionUtils.class, "MyBundle");

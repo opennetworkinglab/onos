@@ -104,6 +104,15 @@ public class UiExtensionManager
     private static final int IDX_USER = 0;
     private static final int IDX_KEY = 1;
 
+    private static final String LION_BASE = "/org/onosproject/ui/lion";
+
+    private static final String[] LION_TAGS = {
+            "core.view.Cluster",
+
+            // TODO: fill this out, once we have written the other config files
+    };
+
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // List of all extensions
@@ -214,6 +223,9 @@ public class UiExtensionManager
                 );
 
         return new UiExtension.Builder(CL, coreViews)
+                // TODO: currently broken, until BundleStitcher & LionConfig
+                //        have been moved to web.gui module...
+//                .lionBundles(generateLionBundles(LION_BASE, LION_TAGS))
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
                 .topo2OverlayFactory(topo2OverlayFactory)
@@ -222,14 +234,15 @@ public class UiExtensionManager
                 .build();
     }
 
+
     @Activate
     public void activate() {
         Serializer serializer = Serializer.using(KryoNamespaces.API,
-                     ObjectNode.class, ArrayNode.class,
-                     JsonNodeFactory.class, LinkedHashMap.class,
-                     TextNode.class, BooleanNode.class,
-                     LongNode.class, DoubleNode.class, ShortNode.class,
-                     IntNode.class, NullNode.class, UiSessionToken.class);
+                                                 ObjectNode.class, ArrayNode.class,
+                                                 JsonNodeFactory.class, LinkedHashMap.class,
+                                                 TextNode.class, BooleanNode.class,
+                                                 LongNode.class, DoubleNode.class, ShortNode.class,
+                                                 IntNode.class, NullNode.class, UiSessionToken.class);
 
         prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)

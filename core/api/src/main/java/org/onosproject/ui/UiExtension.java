@@ -16,6 +16,7 @@
 package org.onosproject.ui;
 
 import com.google.common.collect.ImmutableList;
+import org.onosproject.ui.lion.LionBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public final class UiExtension {
     private final ClassLoader classLoader;
     private final String resourcePath;
     private final List<UiView> viewList;
+    private final List<LionBundle> lionBundles;
     private final UiMessageHandlerFactory messageHandlerFactory;
     private final UiTopoOverlayFactory topoOverlayFactory;
     private final UiTopo2OverlayFactory topo2OverlayFactory;
@@ -54,6 +56,7 @@ public final class UiExtension {
 
     // private constructor - only the builder calls this
     private UiExtension(ClassLoader cl, String path, List<UiView> views,
+                        List<LionBundle> bundles,
                         UiMessageHandlerFactory mhFactory,
                         UiTopoOverlayFactory toFactory,
                         UiTopo2OverlayFactory to2Factory,
@@ -61,6 +64,7 @@ public final class UiExtension {
         classLoader = cl;
         resourcePath = path;
         viewList = views;
+        lionBundles = bundles;
         messageHandlerFactory = mhFactory;
         topoOverlayFactory = toFactory;
         topo2OverlayFactory = to2Factory;
@@ -93,6 +97,16 @@ public final class UiExtension {
      */
     public List<UiView> views() {
         return isValid ? viewList : ImmutableList.of();
+    }
+
+    /**
+     * Returns the list of localization bundles that this extension is
+     * contributing.
+     *
+     * @return contributed localization bundles
+     */
+    public List<LionBundle> lionBundles() {
+        return ImmutableList.copyOf(lionBundles);
     }
 
     /**
@@ -162,6 +176,7 @@ public final class UiExtension {
 
         private String resourcePath = EMPTY;
         private List<UiView> viewList = new ArrayList<>();
+        private List<LionBundle> lionBundles = new ArrayList<>();
         private UiMessageHandlerFactory messageHandlerFactory = null;
         private UiTopoOverlayFactory topoOverlayFactory = null;
         private UiTopo2OverlayFactory topo2OverlayFactory = null;
@@ -181,6 +196,19 @@ public final class UiExtension {
             checkArgument(!views.isEmpty(), "Must provide at least one view");
             classLoader = cl;
             viewList = views;
+        }
+
+        /**
+         * Sets the localization bundles (aka {@code LionBundle}s) that this
+         * UI extension is contributing.
+         *
+         * @param bundles the bundles to register
+         * @return self, for chaining
+         */
+        public Builder lionBundles(List<LionBundle> bundles) {
+            checkNotNull(bundles, "Must provide a list");
+            lionBundles = bundles;
+            return this;
         }
 
         /**
@@ -246,6 +274,7 @@ public final class UiExtension {
          */
         public UiExtension build() {
             return new UiExtension(classLoader, resourcePath, viewList,
+                                   lionBundles,
                                    messageHandlerFactory, topoOverlayFactory,
                                    topo2OverlayFactory, topoMapFactory);
         }

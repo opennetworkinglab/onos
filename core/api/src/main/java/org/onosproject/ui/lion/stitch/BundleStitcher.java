@@ -25,7 +25,7 @@ import java.util.Set;
 
 /**
  * Gathers and stitches together a localization bundle according to a
- *  "lion" configuration file.
+ * "lion" configuration file.
  */
 public class BundleStitcher {
 
@@ -58,6 +58,7 @@ public class BundleStitcher {
      *
      * @param id the bundle ID
      * @return a corresponding lion bundle
+     * @throws IllegalArgumentException if the bundle config cannot be loaded
      */
     public LionBundle stitch(String id) {
         String source = base + SLASH + CONFIG_DIR + SLASH + id + SUFFIX;

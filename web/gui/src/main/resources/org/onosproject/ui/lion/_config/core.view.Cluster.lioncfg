@@ -15,13 +15,13 @@
 #
 #
 
-bundle core.view.cluster
+bundle core.view.Cluster
 
 alias cv core.view
 alias cc core.common
 
-from cv.cluster import *
-from cc.network import devices, node_id, ip_address, tcp_port, uri, protocol
-from cc.props import type, chassis_id, vendor, hw_version, sw_version, serial_number
-from cc.state import total, active, started, last_updated
-from cc.ui import click, scroll_down
+from cv.Cluster import *
+from cc.Network import devices, node_id, ip_address, tcp_port, uri, protocol
+from cc.Props import type, chassis_id, vendor, hw_version, sw_version, serial_number
+from cc.State import total, active, started, last_updated
+from cc.Ui import click, scroll_down

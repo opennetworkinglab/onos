@@ -80,7 +80,7 @@ public class LionConfig {
         InputStream is = getClass().getResourceAsStream(source);
         try {
             lines = IOUtils.readLines(is, UTF_8);
-        } catch (IOException e) {
+        } catch (NullPointerException | IOException e) {
             throw new IllegalArgumentException("Failed to read: " + source, e);
         }
 
@@ -173,7 +173,7 @@ public class LionConfig {
     private boolean singleStarCheck(CmdFrom from) {
         from.starred = false;
         Set<String> keys = from.keys();
-        for (String k: keys) {
+        for (String k : keys) {
             if (STAR.equals(k)) {
                 from.starred = true;
             }
