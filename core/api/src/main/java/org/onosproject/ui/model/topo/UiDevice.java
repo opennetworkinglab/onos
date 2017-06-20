@@ -112,6 +112,7 @@ public class UiDevice extends UiNode {
      * @return the device type
      */
     public String type() {
-        return backingDevice().type().toString().toLowerCase();
+        Device device = backingDevice();
+        return device == null ? null : device.type().toString().toLowerCase();
     }
 }
