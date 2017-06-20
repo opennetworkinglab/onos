@@ -25,9 +25,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
 public class MutableAdjacencyListsGraph<V extends Vertex, E extends Edge<V>>
-implements MutableGraph<V, E> {
-    private Set<V> vertexes = new HashSet<V>();
-    private Set<E> edges = new HashSet<E>();
+        implements MutableGraph<V, E> {
+    private Set<V> vertexes = new HashSet<>();
+    private Set<E> edges = new HashSet<>();
 
     private SetMultimap<V, E> sources = HashMultimap.create();
     private SetMultimap<V, E> destinations = HashMultimap.create();
@@ -35,8 +35,8 @@ implements MutableGraph<V, E> {
     /**
      * Creates a graph comprising of the specified vertexes and edges.
      *
-     * @param vertex   set of graph vertexes
-     * @param edge     set of graph edges
+     * @param vertex set of graph vertexes
+     * @param edge   set of graph edges
      */
     public MutableAdjacencyListsGraph(Set<V> vertex, Set<E> edge) {
         vertexes.addAll(vertex);
@@ -99,53 +99,40 @@ implements MutableGraph<V, E> {
 
     @Override
     public void addVertex(V vertex) {
-        if (vertexes != null) {
-              if (!vertexes.contains(vertex)) {
-                    vertexes.add(vertex);
-                }
-        }
+        vertexes.add(vertex);
     }
 
     @Override
     public void removeVertex(V vertex) {
-        if (vertexes != null && edges != null) {
-            if (vertexes.contains(vertex)) {
-                vertexes.remove(vertex);
-                Set<E> srcEdgesList = sources.get(vertex);
-                Set<E> dstEdgesList = destinations.get(vertex);
-                edges.removeAll(srcEdgesList);
-                edges.removeAll(dstEdgesList);
-                sources.remove(vertex, srcEdgesList);
-                sources.remove(vertex, dstEdgesList);
-            }
+        if (vertexes.remove(vertex)) {
+            Set<E> srcEdgesList = sources.get(vertex);
+            Set<E> dstEdgesList = destinations.get(vertex);
+            edges.removeAll(srcEdgesList);
+            edges.removeAll(dstEdgesList);
+            sources.remove(vertex, srcEdgesList);
+            sources.remove(vertex, dstEdgesList);
         }
     }
 
     @Override
     public void addEdge(E edge) {
-        if (edges != null) {
-                if (!edges.contains(edge)) {
-                    edges.add(edge);
-                    sources.put(edge.src(), edge);
-                    destinations.put(edge.dst(), edge);
-                }
+        if (edges.add(edge)) {
+            sources.put(edge.src(), edge);
+            destinations.put(edge.dst(), edge);
         }
     }
 
     @Override
     public void removeEdge(E edge) {
-        if (edges != null) {
-            if (edges.contains(edge)) {
-                edges.remove(edge);
-                sources.remove(edge.src(), edge);
-                destinations.remove(edge.dst(), edge);
-            }
+        if (edges.remove(edge)) {
+            sources.remove(edge.src(), edge);
+            destinations.remove(edge.dst(), edge);
         }
     }
 
     @Override
     public Graph<V, E> toImmutable() {
-        return null;
+        return new AdjacencyListsGraph<>(vertexes, edges);
     }
 
     /**
