@@ -20,6 +20,7 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.assertEquals;
 import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 
@@ -72,6 +73,49 @@ public class BellmanFordGraphSearchTest extends BreadthFirstSearchTest {
         paths = search.search(graph, A, null, weigher, ALL_PATHS).paths();
         printPaths(paths);
         assertEquals("incorrect paths count", 6, paths.size());
+    }
+    @Test
+    public void testNegativeEdge() {
+        graph = new AdjacencyListsGraph<>(of(A, B, C, D),
+                of(new TestEdge(A, B, W3),
+                        new TestEdge(A, C, W4),
+                        new TestEdge(C, B, NW2),
+                        new TestEdge(B, C, W2),
+                        new TestEdge(A, D, W5),
+                        new TestEdge(D, B, new TestDoubleWeight(-3))));
+        GraphPathSearch<TestVertex, TestEdge> gs = graphSearch();
+        Set<Path<TestVertex, TestEdge>> paths = gs.search(graph, A, B, weigher, 1).paths();
+        printPaths(paths);
+        assertEquals("incorrect path count", 1, paths.size());
+        assertEquals("incoreect path cost", new TestDoubleWeight(2), paths.iterator().next().cost());
+
+        executeSearch(graphSearch(), graph, A, B, weigher, 2, W2);
+    }
+
+    @Test
+    public void multipleNegatives() {
+        graph = new AdjacencyListsGraph<>(of(A, B, C, D, E),
+                of(new TestEdge(A, B, W1),
+                        new TestEdge(B, C, W1),
+                        new TestEdge(C, D, W1),
+                        new TestEdge(D, E, W1),
+                        new TestEdge(A, B, new TestDoubleWeight(-4)),
+                        new TestEdge(A, C, new TestDoubleWeight(-3)),
+                        new TestEdge(A, D, NW1),
+                        new TestEdge(D, C, NW1)));
+        executeSearch(graphSearch(), graph, A, E, weigher, 2, NW1);
+        executeSinglePathSearch(graphSearch(), graph, A, E, weigher, 1, NW1);
+        executeSearch(graphSearch(), graph, B, C, weigher, 1, W1);
+    }
+
+    @Test
+    public void manualWeights() {
+        graph = new AdjacencyListsGraph<>(of(A, B, C),
+                of(new TestEdge(A, B, new TestDoubleWeight(-3.3)),
+                        new TestEdge(B, C, new TestDoubleWeight(1.3)),
+                        new TestEdge(A, C, new TestDoubleWeight(-1.9)),
+                        new TestEdge(B, C, new TestDoubleWeight(1.5))));
+        executeSearch(graphSearch(), graph, A, C, weigher, 1, new TestDoubleWeight(-2.0));
     }
 
 }
