@@ -283,6 +283,15 @@ public class LionConfig {
         Cmd(String orig) {
             this.orig = orig;
         }
+
+        /**
+         * Returns the original string from the configuration file.
+         *
+         * @return original from string
+         */
+        public String orig() {
+            return orig;
+        }
     }
 
     private static final class CmdBundle extends Cmd {

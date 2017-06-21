@@ -81,6 +81,7 @@ import static org.onosproject.security.AppPermission.Type.UI_READ;
 import static org.onosproject.security.AppPermission.Type.UI_WRITE;
 import static org.onosproject.ui.UiView.Category.NETWORK;
 import static org.onosproject.ui.UiView.Category.PLATFORM;
+import static org.onosproject.ui.impl.lion.BundleStitcher.generateBundles;
 
 /**
  * Manages the user interface extensions.
@@ -223,9 +224,7 @@ public class UiExtensionManager
                 );
 
         return new UiExtension.Builder(CL, coreViews)
-                // TODO: currently broken, until BundleStitcher & LionConfig
-                //        have been moved to web.gui module...
-//                .lionBundles(generateBundles(LION_BASE, LION_TAGS))
+                .lionBundles(generateBundles(LION_BASE, LION_TAGS))
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
                 .topo2OverlayFactory(topo2OverlayFactory)

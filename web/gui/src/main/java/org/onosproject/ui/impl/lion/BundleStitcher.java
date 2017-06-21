@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -66,31 +67,52 @@ public class BundleStitcher {
      *
      * @param id the bundle ID
      * @return a corresponding lion bundle
-     * @throws IllegalArgumentException if the bundle config cannot be loaded
+     * @throws IllegalArgumentException if the config cannot be loaded
+     *                                  or the bundle cannot be stitched
      */
     public LionBundle stitch(String id) {
         String source = base + SLASH + CONFIG_DIR + SLASH + id + SUFFIX;
+
+        // the following may throw IllegalArgumentException...
         LionConfig cfg = new LionConfig().load(source);
+
         LionBundle.Builder builder = new LionBundle.Builder(id);
+        int total = 0;
+        int added = 0;
 
         for (LionConfig.CmdFrom from : cfg.entries()) {
-            addItemsToBuilder(builder, from);
+            total += 1;
+            log.debug("  processing: {}", from.orig());
+            if (addItemsToBuilder(builder, from)) {
+                added += 1;
+            }
         }
-
+        log.debug("  added items for {}/{} FROM entries", added, total);
         return builder.build();
     }
 
-    private void addItemsToBuilder(LionBundle.Builder builder,
-                                   LionConfig.CmdFrom from) {
+    private boolean addItemsToBuilder(LionBundle.Builder builder,
+                                      LionConfig.CmdFrom from) {
         String resBundleName = base + SLASH + from.res();
         String resFqbn = convertToFqbn(resBundleName);
-        ResourceBundle bundle = LionUtils.getBundledResource(resFqbn);
+        ResourceBundle bundle = null;
+        boolean ok = true;
 
-        if (from.starred()) {
-            addAllItems(builder, bundle);
-        } else {
-            addItems(builder, bundle, from.keys());
+        try {
+            bundle = LionUtils.getBundledResource(resFqbn);
+        } catch (MissingResourceException e) {
+            log.warn("Cannot find resource bundle: {}", resFqbn);
+            log.debug("BOOM!", e);
+            ok = false;
         }
+
+        if (ok) {
+            Set<String> keys = from.starred() ? bundle.keySet() : from.keys();
+            addItems(builder, bundle, keys);
+            log.debug("  added {} item(s) from {}", keys.size(), from.res());
+        }
+
+        return ok;
     }
 
     // to fully-qualified-bundle-name
@@ -99,10 +121,6 @@ public class BundleStitcher {
             throw new IllegalArgumentException("path should start with '/'");
         }
         return path.substring(1).replaceAll(SLASH, DOT);
-    }
-
-    private void addAllItems(LionBundle.Builder builder, ResourceBundle bundle) {
-        addItems(builder, bundle, bundle.keySet());
     }
 
     private void addItems(LionBundle.Builder builder, ResourceBundle bundle,
@@ -148,19 +166,20 @@ public class BundleStitcher {
      * @param tags the list of bundles to generate
      * @return a list of generated localization bundles
      */
-    public static List<LionBundle> generateBundles(String base,
-                                                   String... tags) {
-        List<LionBundle> result = new ArrayList<>(tags.length);
+    public static List<LionBundle> generateBundles(String base, String... tags) {
+        List<LionBundle> bundles = new ArrayList<>(tags.length);
         BundleStitcher stitcher = new BundleStitcher(base);
         for (String tag : tags) {
             try {
-                LionBundle b = stitcher.stitch(tag);
-                result.add(b);
+                LionBundle lion = stitcher.stitch(tag);
+                bundles.add(lion);
+                log.info("Generated LION bundle: {}", lion);
 
             } catch (IllegalArgumentException e) {
                 log.warn("Unable to generate bundle: {} / {}", base, tag);
+                log.debug("BOOM!", e);
             }
         }
-        return ImmutableList.copyOf(result);
+        return ImmutableList.copyOf(bundles);
     }
 }
