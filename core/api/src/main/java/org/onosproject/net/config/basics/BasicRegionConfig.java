@@ -34,8 +34,13 @@ public final class BasicRegionConfig extends BasicElementConfig<RegionId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
-                RACK_ADDRESS, OWNER, TYPE, DEVICES);
+        // Validate type/devices
+        type();
+        devices();
+
+        return super.isValid()
+                && hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
+                                 RACK_ADDRESS, OWNER, TYPE, DEVICES);
     }
 
     @Override

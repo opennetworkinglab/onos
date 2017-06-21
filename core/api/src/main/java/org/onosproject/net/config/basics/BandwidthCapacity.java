@@ -45,6 +45,9 @@ public class BandwidthCapacity extends Config<ConnectPoint> {
 
     @Override
     public boolean isValid() {
+        // Validate the capacity
+        capacity();
+
         // Open for extension (adding fields) in the future,
         // must have CAPACITY field.
         return isNumber(CAPACITY, FieldPresence.MANDATORY);
