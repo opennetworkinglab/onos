@@ -223,7 +223,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // automatically denied. The DENY filter is used to deny packets
             // that are otherwise permitted by the PERMIT filter.
             // Use ACL table flow rules here for DENY filtering objectives
-            log.debug("filter objective other than PERMIT currently not supported");
+            log.warn("filter objective other than PERMIT currently not supported");
             fail(filteringObjective, ObjectiveError.UNSUPPORTED);
         }
     }
@@ -348,20 +348,20 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                  boolean install, ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
-        PortCriterion portCriterion;
+        PortCriterion portCriterion = null;
         EthCriterion ethCriterion = null;
         VlanIdCriterion vidCriterion = null;
         if (!filt.key().equals(Criteria.dummy()) &&
                 filt.key().type() == Criterion.Type.IN_PORT) {
             portCriterion = (PortCriterion) filt.key();
-        } else {
-            log.warn("No key defined in filtering objective from app: {}. Not"
-                    + "processing filtering objective", applicationId);
-            fail(filt, ObjectiveError.BADPARAMS);
-            return;
         }
-        log.debug("Received filtering objective for dev/port: {}/{}", deviceId,
-                 portCriterion.port());
+        if (portCriterion == null) {
+            log.debug("No IN_PORT defined in filtering objective from app: {}",
+                    applicationId);
+        } else {
+            log.debug("Received filtering objective for dev/port: {}/{}", deviceId,
+                    portCriterion.port());
+        }
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion criterion : filt.conditions()) {
@@ -415,7 +415,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         if (vidCriterion == null) {
             // NOTE: it is possible that a filtering objective only has ethCriterion
-            log.debug("filtering objective missing VLAN, cannot program VLAN Table");
+            log.info("filtering objective missing VLAN, cannot program VLAN Table");
         } else {
             /*
              * NOTE: Separate vlan filtering rules and assignment rules
@@ -543,14 +543,20 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<>();
-        if (portCriterion != null && PortNumber.ALL.equals(portCriterion.port())) {
-            for (Port port : deviceService.getPorts(deviceId)) {
-                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
-                    portnums.add(port.number());
+        if (portCriterion != null) {
+            if (PortNumber.ALL.equals(portCriterion.port())) {
+                for (Port port : deviceService.getPorts(deviceId)) {
+                    if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                        portnums.add(port.number());
+                    }
                 }
+            } else {
+                portnums.add(portCriterion.port());
             }
         } else {
-            portnums.add(portCriterion.port());
+            log.warn("Filtering Objective missing Port Criterion . " +
+                    "VLAN Table cannot be programmed for {}",
+                    deviceId);
         }
 
         for (PortNumber pnum : portnums) {
@@ -611,98 +617,197 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         //handling untagged packets via assigned VLAN
-        if (vidCriterion.vlanId() == VlanId.NONE) {
+        if (vidCriterion != null && vidCriterion.vlanId() == VlanId.NONE) {
             vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
+        }
+        List<FlowRule> rules = new ArrayList<>();
+        OfdpaMatchVlanVid ofdpaMatchVlanVid = null;
+        if (vidCriterion != null && requireVlanExtensions()) {
+            ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
         }
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<>();
-        if (portCriterion != null && PortNumber.ALL.equals(portCriterion.port())) {
-            for (Port port : deviceService.getPorts(deviceId)) {
-                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
-                    portnums.add(port.number());
+        if (portCriterion != null) {
+            if (PortNumber.ALL.equals(portCriterion.port())) {
+                for (Port port : deviceService.getPorts(deviceId)) {
+                    if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                        portnums.add(port.number());
+                    }
                 }
+            } else {
+                portnums.add(portCriterion.port());
+            }
+            for (PortNumber pnum : portnums) {
+                rules.add(buildTmacRuleForIpv4(ethCriterion,
+                        vidCriterion,
+                        ofdpaMatchVlanVid,
+                        applicationId,
+                        pnum));
+                rules.add(buildTmacRuleForMpls(ethCriterion,
+                        vidCriterion,
+                        ofdpaMatchVlanVid,
+                        applicationId,
+                        pnum));
+                rules.add(buildTmacRuleForIpv6(ethCriterion,
+                        vidCriterion,
+                        ofdpaMatchVlanVid,
+                        applicationId,
+                        pnum));
             }
         } else {
-            portnums.add(portCriterion.port());
-        }
-
-        List<FlowRule> rules = new ArrayList<>();
-        for (PortNumber pnum : portnums) {
-            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
-            // for unicast IP packets
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            if (matchInPortTmacTable()) {
-                selector.matchInPort(pnum);
-            }
-            if (requireVlanExtensions()) {
-                selector.extension(ofdpaMatchVlanVid, deviceId);
-            } else {
-                selector.matchVlanId(vidCriterion.vlanId());
-            }
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-            selector.matchEthDst(ethCriterion.mac());
-            treatment.transition(UNICAST_ROUTING_TABLE);
-            FlowRule rule = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(DEFAULT_PRIORITY)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(TMAC_TABLE).build();
-            rules.add(rule);
-            //for MPLS packets
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-            if (matchInPortTmacTable()) {
-                selector.matchInPort(pnum);
-            }
-            if (requireVlanExtensions()) {
-                selector.extension(ofdpaMatchVlanVid, deviceId);
-            } else {
-                selector.matchVlanId(vidCriterion.vlanId());
-            }
-            selector.matchEthType(Ethernet.MPLS_UNICAST);
-            selector.matchEthDst(ethCriterion.mac());
-            treatment.transition(MPLS_TABLE_0);
-            rule = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(DEFAULT_PRIORITY)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(TMAC_TABLE).build();
-            rules.add(rule);
-            /*
-             * TMAC rules for IPv6 packets
-             */
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-            if (matchInPortTmacTable()) {
-                selector.matchInPort(pnum);
-            }
-            if (requireVlanExtensions()) {
-                selector.extension(ofdpaMatchVlanVid, deviceId);
-            } else {
-                selector.matchVlanId(vidCriterion.vlanId());
-            }
-            selector.matchEthType(Ethernet.TYPE_IPV6);
-            selector.matchEthDst(ethCriterion.mac());
-            treatment.transition(UNICAST_ROUTING_TABLE);
-            rule = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(DEFAULT_PRIORITY)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(TMAC_TABLE).build();
-            rules.add(rule);
+            rules.add(buildTmacRuleForIpv4(ethCriterion,
+                    vidCriterion,
+                    ofdpaMatchVlanVid,
+                    applicationId,
+                    null));
+            rules.add(buildTmacRuleForMpls(ethCriterion,
+                    vidCriterion,
+                    ofdpaMatchVlanVid,
+                    applicationId,
+                    null));
+            rules.add(buildTmacRuleForIpv6(ethCriterion,
+                    vidCriterion,
+                    ofdpaMatchVlanVid,
+                    applicationId,
+                    null));
         }
         return rules;
+    }
+
+    /**
+     * Builds TMAC rules for IPv4 packets.
+     *
+     * @param ethCriterion
+     * @param vidCriterion
+     * @param ofdpaMatchVlanVid
+     * @param applicationId
+     * @param pnum
+     * @return TMAC rule for IPV4 packets
+     */
+    private FlowRule buildTmacRuleForIpv4(EthCriterion ethCriterion,
+                                          VlanIdCriterion vidCriterion,
+                                          OfdpaMatchVlanVid ofdpaMatchVlanVid,
+                                          ApplicationId applicationId,
+                                          PortNumber pnum) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        if (pnum != null) {
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            } else {
+                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
+            }
+        }
+        if (vidCriterion != null) {
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
+        }
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+        selector.matchEthDst(ethCriterion.mac());
+        treatment.transition(UNICAST_ROUTING_TABLE);
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+    }
+
+    /**
+     * Builds TMAC rule for MPLS packets.
+     *
+     * @param ethCriterion
+     * @param vidCriterion
+     * @param ofdpaMatchVlanVid
+     * @param applicationId
+     * @param pnum
+     * @return TMAC rule for MPLS packets
+     */
+    private FlowRule buildTmacRuleForMpls(EthCriterion ethCriterion,
+                                          VlanIdCriterion vidCriterion,
+                                          OfdpaMatchVlanVid ofdpaMatchVlanVid,
+                                          ApplicationId applicationId,
+                                          PortNumber pnum) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        if (pnum != null) {
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            } else {
+                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
+            }
+        }
+        if (vidCriterion != null) {
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
+        }
+        selector.matchEthType(Ethernet.MPLS_UNICAST);
+        selector.matchEthDst(ethCriterion.mac());
+        treatment.transition(MPLS_TABLE_0);
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+    }
+
+    /**
+     * Builds TMAC rules for IPv6 packets.
+     *
+     * @param ethCriterion
+     * @param vidCriterion
+     * @param ofdpaMatchVlanVid
+     * @param applicationId
+     * @param pnum
+     * @return TMAC rule for IPV6 packets
+     */
+     private FlowRule buildTmacRuleForIpv6(EthCriterion ethCriterion,
+                                          VlanIdCriterion vidCriterion,
+                                          OfdpaMatchVlanVid ofdpaMatchVlanVid,
+                                          ApplicationId applicationId,
+                                          PortNumber pnum) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        if (pnum != null) {
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            } else {
+                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
+            }
+        }
+         if (vidCriterion != null) {
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
+        }
+        selector.matchEthType(Ethernet.TYPE_IPV6);
+        selector.matchEthDst(ethCriterion.mac());
+        treatment.transition(UNICAST_ROUTING_TABLE);
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
     }
 
     protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
@@ -833,7 +938,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             for (Instruction ins : fwd.treatment().allInstructions()) {
                 if (ins instanceof OutputInstruction) {
                     OutputInstruction o = (OutputInstruction) ins;
-                    if (o.port() == PortNumber.CONTROLLER) {
+                    if (o != null && PortNumber.CONTROLLER.equals(o.port())) {
                         ttBuilder.add(o);
                     } else {
                         log.warn("Only allowed treatments in versatile forwarding "
@@ -850,6 +955,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         if (fwd.nextId() != null) {
             // overide case
             NextGroup next = getGroupForNextObjective(fwd.nextId());
+            if (next == null) {
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return Collections.emptySet();
+            }
             List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
             // we only need the top level group's key to point the flow to it
             Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());

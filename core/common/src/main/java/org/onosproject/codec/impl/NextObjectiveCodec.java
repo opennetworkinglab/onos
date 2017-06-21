@@ -139,7 +139,7 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
                 break;
             default:
                 throw new IllegalArgumentException("The requested type " + typeStr +
-                " is not defined for FilteringObjective.");
+                " is not defined for NextObjective.");
         }
 
         // decode treatments
@@ -172,7 +172,7 @@ public final class NextObjectiveCodec extends JsonCodec<NextObjective> {
                 break;
             default:
                 throw new IllegalArgumentException("The requested operation " + opStr +
-                " is not defined for FilteringObjective.");
+                " is not defined for NextObjective.");
         }
 
         return nextObjective;

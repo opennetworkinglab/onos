@@ -291,7 +291,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
         }
         if (queued) {
-            log.debug("Queued forwarding objective {} for nextId {} meant for device {}",
+            log.info("Queued forwarding objective {} for nextId {} meant for device {}",
                       fwd.id(), fwd.nextId(), deviceId);
         }
         return queued;
@@ -319,7 +319,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
         }
         if (queued) {
-            log.debug("Queued next objective {} with operation {} meant for device {}",
+            log.info("Queued next objective {} with operation {} meant for device {}",
                       next.id(), next.op(), deviceId);
         }
         return queued;
