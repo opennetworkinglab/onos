@@ -79,14 +79,14 @@ public class GroupStatsCollector implements TimerTask {
         if (!sw.isConnected()) {
             return;
         }
-        Long statsXid = OpenFlowGroupProvider.getXidAndAdd(2);
+        long statsXid = OpenFlowGroupProvider.getXidAndAdd(2);
         OFGroupStatsRequest statsRequest = sw.factory().buildGroupStatsRequest()
                 .setGroup(OFGroup.ALL)
                 .setXid(statsXid)
                 .build();
         sw.sendMsg(statsRequest);
 
-        Long descXid = statsXid + 1;
+        long descXid = statsXid + 1;
         OFGroupDescStatsRequest descStatsRequest =
                 sw.factory().buildGroupDescStatsRequest()
                         .setXid(descXid)
