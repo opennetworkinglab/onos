@@ -85,6 +85,15 @@ public final class LionBundle {
     }
 
     /**
+     * Returns an immutable set of the items in this bundle.
+     *
+     * @return the items in this bundle
+     */
+    public Set<LionItem> getItems() {
+        return items;
+    }
+
+    /**
      * Dump the contents of the bundle.
      *
      * @return dumped contents

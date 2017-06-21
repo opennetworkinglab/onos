@@ -69,6 +69,9 @@ public class UiWebSocket
     private static final String USER = "user";
     private static final String BOOTSTRAP = "bootstrap";
 
+    private static final String UBERLION = "uberlion";
+    private static final String LION = "lion";
+
     private static final String TOPO = "topo";
 
     private static final long MAX_AGE_MS = 30_000;
@@ -140,6 +143,14 @@ public class UiWebSocket
         topoSession.enableEvent(viewId.equals(TOPO));
     }
 
+    private ObjectNode objectNode() {
+        return mapper.createObjectNode();
+    }
+
+    private ArrayNode arrayNode() {
+        return mapper.createArrayNode();
+    }
+
     /**
      * Provides a reference to the topology session.
      *
@@ -188,6 +199,7 @@ public class UiWebSocket
             topoSession.init();
             createHandlersAndOverlays();
             sendBootstrapData();
+            sendUberLionBundle();
             log.info("GUI client connected -- user <{}>", userName);
 
         } catch (ServiceNotFoundException e) {
@@ -258,9 +270,9 @@ public class UiWebSocket
 
     @Override
     public synchronized void sendMessage(String type, ObjectNode payload) {
-        ObjectNode message = mapper.createObjectNode();
+        ObjectNode message = objectNode();
         message.put(EVENT, type);
-        message.set(PAYLOAD, payload != null ? payload : mapper.createObjectNode());
+        message.set(PAYLOAD, payload != null ? payload : objectNode());
         sendMessage(message);
     }
 
@@ -317,7 +329,7 @@ public class UiWebSocket
     }
 
     private ObjectNode notAuthorized(UiSessionToken token) {
-        return mapper.createObjectNode()
+        return objectNode()
                 .put("message", "invalid authentication token")
                 .put("badToken", token.toString());
     }
@@ -378,10 +390,10 @@ public class UiWebSocket
     // fail-over to an alternate cluster member if necessary.
     private void sendBootstrapData() {
         ClusterService service = directory.get(ClusterService.class);
-        ArrayNode instances = mapper.createArrayNode();
+        ArrayNode instances = arrayNode();
 
         for (ControllerNode node : service.getNodes()) {
-            ObjectNode instance = mapper.createObjectNode()
+            ObjectNode instance = objectNode()
                     .put(ID, node.id().toString())
                     .put(IP, node.ip().toString())
                     .put(GlyphConstants.UI_ATTACHED,
@@ -389,7 +401,7 @@ public class UiWebSocket
             instances.add(instance);
         }
 
-        ObjectNode payload = mapper.createObjectNode();
+        ObjectNode payload = objectNode();
         payload.set(CLUSTER_NODES, instances);
         payload.put(USER, userName);
         sendMessage(BOOTSTRAP, payload);
@@ -401,5 +413,25 @@ public class UiWebSocket
             log.error("Unable to reference UiTokenService");
         }
         return service;
+    }
+
+    // sends the collated localization bundle data up to the client.
+    private void sendUberLionBundle() {
+        UiExtensionService service = directory.get(UiExtensionService.class);
+        ObjectNode lion = objectNode();
+
+        service.getExtensions().forEach(ext -> {
+            ext.lionBundles().forEach(lb -> {
+                ObjectNode lionMap = objectNode();
+                lb.getItems().forEach(item -> {
+                    lionMap.put(item.key(), item.value());
+                });
+                lion.set(lb.id(), lionMap);
+            });
+        });
+
+        ObjectNode payload = objectNode();
+        payload.set(LION, lion);
+        sendMessage(UBERLION, payload);
     }
 }

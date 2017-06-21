@@ -69,6 +69,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -115,6 +116,9 @@ public class UiExtensionManager
 
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    // First thing to do is to set the locale (before creating core extension).
+    private final Locale runtimeLocale = LionUtils.setupRuntimeLocale();
 
     // List of all extensions
     private final List<UiExtension> extensions = Lists.newArrayList();
@@ -237,11 +241,11 @@ public class UiExtensionManager
     @Activate
     public void activate() {
         Serializer serializer = Serializer.using(KryoNamespaces.API,
-                                                 ObjectNode.class, ArrayNode.class,
-                                                 JsonNodeFactory.class, LinkedHashMap.class,
-                                                 TextNode.class, BooleanNode.class,
-                                                 LongNode.class, DoubleNode.class, ShortNode.class,
-                                                 IntNode.class, NullNode.class, UiSessionToken.class);
+                     ObjectNode.class, ArrayNode.class,
+                     JsonNodeFactory.class, LinkedHashMap.class,
+                     TextNode.class, BooleanNode.class,
+                     LongNode.class, DoubleNode.class, ShortNode.class,
+                     IntNode.class, NullNode.class, UiSessionToken.class);
 
         prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)
@@ -259,7 +263,6 @@ public class UiExtensionManager
         tokens = tokensConsistentMap.asJavaMap();
 
         register(core);
-        LionUtils.setupRuntimeLocale();
 
         log.info("Started");
     }
@@ -289,7 +292,8 @@ public class UiExtensionManager
     public synchronized void unregister(UiExtension extension) {
         checkPermission(UI_WRITE);
         extensions.remove(extension);
-        extension.views().stream().map(UiView::id).collect(toSet()).forEach(views::remove);
+        extension.views().stream()
+                .map(UiView::id).collect(toSet()).forEach(views::remove);
         UiWebSocketServlet.sendToAll(GUI_REMOVED, null);
     }
 
