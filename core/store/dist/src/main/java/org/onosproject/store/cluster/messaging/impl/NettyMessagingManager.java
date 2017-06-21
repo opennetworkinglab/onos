@@ -303,6 +303,7 @@ public class NettyMessagingManager implements MessagingService {
             try {
                 responsePayload = handler.apply(message.sender(), message.payload());
             } catch (Exception e) {
+                log.debug("An error occurred in a message handler: {}", e);
                 status = Status.ERROR_HANDLER_EXCEPTION;
             }
             sendReply(message, status, Optional.ofNullable(responsePayload));
@@ -314,7 +315,13 @@ public class NettyMessagingManager implements MessagingService {
         checkPermission(CLUSTER_WRITE);
         handlers.put(type, message -> {
             handler.apply(message.sender(), message.payload()).whenComplete((result, error) -> {
-                Status status = error == null ? Status.OK : Status.ERROR_HANDLER_EXCEPTION;
+                Status status;
+                if (error == null) {
+                    status = Status.OK;
+                } else {
+                    log.debug("An error occurred in a message handler: {}", error);
+                    status = Status.ERROR_HANDLER_EXCEPTION;
+                }
                 sendReply(message, status, Optional.ofNullable(result));
             });
         });
