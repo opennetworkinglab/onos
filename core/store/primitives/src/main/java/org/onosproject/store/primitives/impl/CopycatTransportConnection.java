@@ -58,6 +58,8 @@ import static org.onosproject.store.primitives.impl.CopycatTransport.SUCCESS;
  * Base Copycat Transport connection.
  */
 public class CopycatTransportConnection implements Connection {
+    private static final int MAX_MESSAGE_SIZE = 1024 * 1024;
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final long connectionId;
     private final String localSubject;
@@ -99,7 +101,11 @@ public class CopycatTransportConnection implements Connection {
                 ((ReferenceCounted<?>) message).release();
             }
 
-            messagingService.sendAsync(endpoint, remoteSubject, baos.toByteArray())
+            byte[] bytes = baos.toByteArray();
+            if (bytes.length > MAX_MESSAGE_SIZE) {
+                throw new IllegalArgumentException(message + " exceeds maximum message size " + MAX_MESSAGE_SIZE);
+            }
+            messagingService.sendAsync(endpoint, remoteSubject, bytes)
                     .whenComplete((r, e) -> {
                         if (e != null) {
                             context.executor().execute(() -> future.completeExceptionally(e));
@@ -124,9 +130,14 @@ public class CopycatTransportConnection implements Connection {
             if (message instanceof ReferenceCounted) {
                 ((ReferenceCounted<?>) message).release();
             }
+
+            byte[] bytes = baos.toByteArray();
+            if (bytes.length > MAX_MESSAGE_SIZE) {
+                throw new IllegalArgumentException(message + " exceeds maximum message size " + MAX_MESSAGE_SIZE);
+            }
             messagingService.sendAndReceive(endpoint,
                                             remoteSubject,
-                                            baos.toByteArray(),
+                                            bytes,
                                             context.executor())
                     .whenComplete((response, error) -> handleResponse(response, error, future));
         } catch (SerializationException | IOException e) {
@@ -144,11 +155,11 @@ public class CopycatTransportConnection implements Connection {
             CompletableFuture<T> future) {
         if (error != null) {
             Throwable rootCause = Throwables.getRootCause(error);
-            if (rootCause instanceof MessagingException || rootCause instanceof SocketException) {
+            if (rootCause instanceof MessagingException.NoRemoteHandler) {
                 future.completeExceptionally(new TransportException(error));
-                if (rootCause instanceof MessagingException.NoRemoteHandler) {
-                    close(rootCause);
-                }
+                close(rootCause);
+            } else if (rootCause instanceof SocketException) {
+                future.completeExceptionally(new TransportException(error));
             } else {
                 future.completeExceptionally(error);
             }
@@ -214,7 +225,11 @@ public class CopycatTransportConnection implements Connection {
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                     baos.write(error != null ? FAILURE : SUCCESS);
                     context.serializer().writeObject(error != null ? error : result, baos);
-                    return baos.toByteArray();
+                    byte[] bytes = baos.toByteArray();
+                    if (bytes.length > MAX_MESSAGE_SIZE) {
+                        throw new IllegalArgumentException("response exceeds maximum message size " + MAX_MESSAGE_SIZE);
+                    }
+                    return bytes;
                 } catch (IOException e) {
                     Throwables.propagate(e);
                     return null;
@@ -281,7 +296,7 @@ public class CopycatTransportConnection implements Connection {
                     Throwable wrappedError = error;
                     if (error != null) {
                         Throwable rootCause = Throwables.getRootCause(error);
-                        if (MessagingException.class.isAssignableFrom(rootCause.getClass())) {
+                        if (rootCause instanceof MessagingException.NoRemoteHandler) {
                             wrappedError = new TransportException(error);
                         }
                         future.completeExceptionally(wrappedError);
