@@ -21,7 +21,7 @@ def checkstyle(
     jar_target = None,
     ):
 
-    if srcs and jar_target:
+    if srcs:
         base = get_base_path()
         files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs])
 
@@ -35,7 +35,7 @@ def checkstyle(
         sh_test(
                 name = name + '-checkstyle',
                 test = '//tools/build/conf:start-buck-daemon',
-                deps = [ jar_target,
+                deps = [ ':' + name + '-checkstyle-files',
                          '//tools/build/conf:onos-java-header',
                          '//tools/build/conf:onos-build-conf', ],
                 args = [
@@ -198,7 +198,6 @@ def osgi_jar(
       checkstyle(
           name = name,
           srcs = srcs,
-          jar_target = ':'+ name,
       )
 
   if do_javadocs:
@@ -287,9 +286,8 @@ def osgi_jar_with_tests(
       )
 
       checkstyle(
-          name = name + '-tests' + '-checkstyle',
+          name = name + '-tests',
           srcs = test_srcs,
-          jar_target = ':' + name + '-tests',
       )
 
       sonar(
