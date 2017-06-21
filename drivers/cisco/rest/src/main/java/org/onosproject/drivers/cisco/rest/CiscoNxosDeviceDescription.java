@@ -53,10 +53,8 @@ public class CiscoNxosDeviceDescription extends AbstractHandlerBehaviour
     private final Logger log = getLogger(getClass());
 
     private static final String UNKNOWN = "unknown";
-
     private static final String SHOW_INTERFACES_CMD = "show interface";
     private static final String SHOW_VERSION_CMD = "show version";
-
     private static final String MANUFACTURER = "manufacturer";
     private static final String CHASSIS_ID = "chassis_id";
     private static final String KICKSTART_VER = "kickstart_ver_str";
@@ -70,7 +68,6 @@ public class CiscoNxosDeviceDescription extends AbstractHandlerBehaviour
     private static final String SLASH = "/";
     private static final String ZERO = "0";
     private static final int ONE_THOUSAND = 1000;
-
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
@@ -121,7 +118,6 @@ public class CiscoNxosDeviceDescription extends AbstractHandlerBehaviour
         cmd.add(SHOW_INTERFACES_CMD);
 
         String req = NxApiRequest.generate(cmd, NxApiRequest.CommandType.CLI);
-
         String response = NxApiRequest.post(controller, deviceId, req);
 
         // parse interface information from response

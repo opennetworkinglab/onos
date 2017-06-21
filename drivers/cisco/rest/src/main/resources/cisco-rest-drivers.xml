@@ -18,5 +18,7 @@
     <driver name="cisco-rest" manufacturer="Cisco" hwVersion="" swVersion="NXOS">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.cisco.rest.CiscoNxosDeviceDescription"/>
+        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
+                   impl="org.onosproject.drivers.cisco.rest.CiscoNxosPortStatistics"/>
     </driver>
 </drivers>
