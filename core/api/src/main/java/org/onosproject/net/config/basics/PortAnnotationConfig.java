@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.BaseConfig;
+import org.onosproject.net.config.InvalidFieldException;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -47,8 +48,24 @@ public class PortAnnotationConfig
 
     private final Logger log = getLogger(getClass());
 
+    private static final int KEY_MAX_LENGTH = 1024;
+    private static final int VALUE_MAX_LENGTH = 1024;
+
     @Override
     public boolean isValid() {
+        JsonNode jsonNode = object.path(ENTRIES);
+        if (jsonNode.isObject()) {
+            jsonNode.fields().forEachRemaining(entry -> {
+                if (entry.getKey().length() > KEY_MAX_LENGTH) {
+                    throw new InvalidFieldException(entry.getKey(),
+                            entry.getKey() + " exceeds maximum length " + KEY_MAX_LENGTH);
+                }
+                if (entry.getValue().asText("").length() > VALUE_MAX_LENGTH) {
+                    throw new InvalidFieldException(entry.getKey(),
+                            entry.getKey() + " exceeds maximum length " + VALUE_MAX_LENGTH);
+                }
+            });
+        }
         return hasField(ENTRIES) && object.get(ENTRIES).isObject();
     }
 

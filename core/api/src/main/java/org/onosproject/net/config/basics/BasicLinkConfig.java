@@ -46,6 +46,9 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
 
     @Override
     public boolean isValid() {
+        // Validate type/devices
+        type();
+
         return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE, IS_BIDIRECTIONAL) &&
                 isBoolean(ALLOWED, OPTIONAL) && isNumber(METRIC, OPTIONAL) &&
                 isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL) &&

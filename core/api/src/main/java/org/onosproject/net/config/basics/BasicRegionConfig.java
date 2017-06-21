@@ -45,11 +45,15 @@ public final class BasicRegionConfig extends BasicElementConfig<RegionId> {
     private static final String LAT_OR_Y = "latOrY";
     private static final String LONG_OR_X = "LongOrX";
 
-
     @Override
     public boolean isValid() {
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
-                             RACK_ADDRESS, OWNER, TYPE, DEVICES, LOC_IN_PEERS);
+        // Validate type/devices
+        type();
+        devices();
+
+        return super.isValid()
+                && hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
+                RACK_ADDRESS, OWNER, TYPE, DEVICES, LOC_IN_PEERS);
     }
 
     @Override
