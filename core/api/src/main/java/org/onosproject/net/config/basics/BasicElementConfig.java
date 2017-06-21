@@ -34,6 +34,12 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     protected static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
     private static final double DEFAULT_COORD = 0.0;
 
+    private static final int NAME_MAX_LENGTH = 256;
+    private static final int UI_TYPE_MAX_LENGTH = 128;
+    private static final int LOC_TYPE_MAX_LENGTH = 32;
+    private static final int RACK_ADDRESS_MAX_LENGTH = 256;
+    private static final int OWNER_MAX_LENGTH = 128;
+
     /**
      * Returns friendly label for the element.
      *
@@ -166,4 +172,11 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
         return (BasicElementConfig) setOrClear(OWNER, owner);
     }
 
+    @Override
+    public boolean isValid() {
+        return isValidLength(NAME, NAME_MAX_LENGTH)
+                && isValidLength(UI_TYPE, UI_TYPE_MAX_LENGTH)
+                && isValidLength(RACK_ADDRESS, RACK_ADDRESS_MAX_LENGTH)
+                && isValidLength(OWNER, OWNER_MAX_LENGTH);
+    }
 }

@@ -24,6 +24,12 @@ public class CoreConfig extends Config<ApplicationId> {
 
     protected static final String DEFAULT_LINK_DISCOVERY_MODE = "PERMISSIVE";
 
+    @Override
+    public boolean isValid() {
+        linkDiscoveryMode();
+        return hasOnlyFields(LINK_DISCOVERY_MODE);
+    }
+
     /**
      * Returns the link discovery mode.
      *

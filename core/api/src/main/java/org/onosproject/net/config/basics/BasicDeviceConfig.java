@@ -19,6 +19,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.key.DeviceKeyId;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Basic configuration for network infrastructure devices.
  */
@@ -33,11 +35,25 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
     private static final String SERIAL = "serial";
     private static final String DEVICE_KEY_ID = "deviceKeyId";
 
+    private static final int DRIVER_MAX_LENGTH = 256;
+    private static final int MANUFACTURER_MAX_LENGTH = 256;
+    private static final int HW_VERSION_MAX_LENGTH = 256;
+    private static final int SW_VERSION_MAX_LENGTH = 256;
+    private static final int SERIAL_MAX_LENGTH = 256;
+    private static final int MANAGEMENT_ADDRESS_MAX_LENGTH = 1024;
+
     @Override
     public boolean isValid() {
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
-                RACK_ADDRESS, OWNER, TYPE, DRIVER, MANUFACTURER, HW_VERSION,
-                SW_VERSION, SERIAL, MANAGEMENT_ADDRESS, DEVICE_KEY_ID);
+        return super.isValid()
+                && hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
+                                RACK_ADDRESS, OWNER, TYPE, DRIVER, MANUFACTURER, HW_VERSION,
+                                SW_VERSION, SERIAL, MANAGEMENT_ADDRESS, DEVICE_KEY_ID)
+                && isValidLength(DRIVER, DRIVER_MAX_LENGTH)
+                && isValidLength(MANUFACTURER, MANUFACTURER_MAX_LENGTH)
+                && isValidLength(HW_VERSION, MANUFACTURER_MAX_LENGTH)
+                && isValidLength(SW_VERSION, MANUFACTURER_MAX_LENGTH)
+                && isValidLength(SERIAL, MANUFACTURER_MAX_LENGTH)
+                && isValidLength(MANAGEMENT_ADDRESS, MANAGEMENT_ADDRESS_MAX_LENGTH);
     }
 
     /**
@@ -75,6 +91,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig driver(String driverName) {
+        checkArgument(driverName.length() <= DRIVER_MAX_LENGTH,
+                "driver exceeds maximum length " + DRIVER_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(DRIVER, driverName);
     }
 
@@ -94,6 +112,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig manufacturer(String manufacturerName) {
+        checkArgument(manufacturerName.length() <= MANUFACTURER_MAX_LENGTH,
+                "manufacturer exceeds maximum length " + MANUFACTURER_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(MANUFACTURER, manufacturerName);
     }
 
@@ -113,6 +133,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig hwVersion(String hwVersion) {
+        checkArgument(hwVersion.length() <= HW_VERSION_MAX_LENGTH,
+                "hwVersion exceeds maximum length " + HW_VERSION_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(HW_VERSION, hwVersion);
     }
 
@@ -132,6 +154,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig swVersion(String swVersion) {
+        checkArgument(swVersion.length() <= SW_VERSION_MAX_LENGTH,
+                "swVersion exceeds maximum length " + SW_VERSION_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(SW_VERSION, swVersion);
     }
 
@@ -151,6 +175,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig serial(String serial) {
+        checkArgument(serial.length() <= SERIAL_MAX_LENGTH,
+                "serial exceeds maximum length " + SERIAL_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(SERIAL, serial);
     }
 
@@ -170,6 +196,8 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return self
      */
     public BasicDeviceConfig managementAddress(String managementAddress) {
+        checkArgument(managementAddress.length() <= MANAGEMENT_ADDRESS_MAX_LENGTH,
+                "serialNumber exceeds maximum length " + MANAGEMENT_ADDRESS_MAX_LENGTH);
         return (BasicDeviceConfig) setOrClear(MANAGEMENT_ADDRESS, managementAddress);
     }
 

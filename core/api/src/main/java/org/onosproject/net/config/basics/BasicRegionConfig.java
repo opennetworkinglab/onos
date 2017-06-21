@@ -36,7 +36,12 @@ public final class BasicRegionConfig extends Config<RegionId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(NAME, TYPE, DEVICES);
+        // Validate type/devices
+        type();
+        devices();
+
+        return super.isValid()
+                && hasOnlyFields(NAME, TYPE, DEVICES);
     }
 
     @Override
