@@ -409,7 +409,7 @@ public class DistributedFlowRuleStore
         NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null) {
-            log.warn("No master for {} : flows will be marked for removal", deviceId);
+            log.warn("No master for {} ", deviceId);
 
             updateStoreInternal(operation);
 

@@ -360,7 +360,7 @@ public class FlowRuleManagerTest {
                            f3, FlowEntryState.PENDING_ADD)));
 
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
-                       RULE_ADDED, RULE_ADDED);
+                       RULE_ADDED, RULE_ADDED, RULE_ADD_REQUESTED);
     }
 
     @Test

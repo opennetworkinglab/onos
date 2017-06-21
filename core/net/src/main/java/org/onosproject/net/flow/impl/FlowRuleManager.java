@@ -398,7 +398,7 @@ public class FlowRuleManager
         }
 
 
-        private void flowMissing(FlowEntry flowRule) {
+        private void flowMissing(FlowEntry flowRule, boolean isFlowOnlyInStore) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
             FlowRuleProvider frp = getProvider(flowRule.deviceId());
@@ -407,10 +407,18 @@ public class FlowRuleManager
                 case PENDING_REMOVE:
                 case REMOVED:
                     event = store.removeFlowRule(flowRule);
+                    log.debug("Flow {} removed", flowRule);
                     break;
                 case ADDED:
                 case PENDING_ADD:
                     event = store.pendingFlowRule(flowRule);
+                    if (isFlowOnlyInStore) {
+                        // Publishing RULE_ADD_REQUESTED event facilitates
+                        // preparation of statistics for the concerned rule
+                        if (event == null) {
+                            event = new FlowRuleEvent(FlowRuleEvent.Type.RULE_ADD_REQUESTED, flowRule);
+                        }
+                    }
                     try {
                         frp.applyFlowRule(flowRule);
                     } catch (UnsupportedOperationException e) {
@@ -426,7 +434,6 @@ public class FlowRuleManager
             }
 
             if (event != null) {
-                log.debug("Flow {} removed", flowRule);
                 post(event);
             }
         }
@@ -525,7 +532,7 @@ public class FlowRuleManager
                             // the two rules are not an exact match - remove the
                             // switch's rule and install our rule
                             extraneousFlow(rule);
-                            flowMissing(storedRule);
+                            flowMissing(storedRule, false);
                         }
                     } else {
                         // the device has a rule the store does not have
@@ -544,8 +551,8 @@ public class FlowRuleManager
                 for (FlowEntry rule : storedRules.keySet()) {
                     try {
                         // there are rules in the store that aren't on the switch
-                        log.debug("Adding rule in store, but not on switch {}", rule);
-                        flowMissing(rule);
+                        log.debug("Adding the rule that is present in store but not on switch : {}", rule);
+                        flowMissing(rule, true);
                     } catch (Exception e) {
                         log.warn("Can't add missing flow rule:", e);
                     }
