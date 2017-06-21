@@ -84,6 +84,15 @@ public final class LionBundle {
         return mapped.get(key);
     }
 
+    /**
+     * Dump the contents of the bundle.
+     *
+     * @return dumped contents
+     */
+    public String dump() {
+        return mapped.toString();
+    }
+
     // === --------------------------------------------------------------------
 
     /**

@@ -19,12 +19,12 @@ package org.onosproject.ui.impl.lion;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.ui.lion.LionBundle;
-import org.onosproject.ui.lion.LionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -94,14 +94,19 @@ public class BundleStitcher {
     private boolean addItemsToBuilder(LionBundle.Builder builder,
                                       LionConfig.CmdFrom from) {
         String resBundleName = base + SLASH + from.res();
-        String resFqbn = convertToFqbn(resBundleName);
+        String fqbn = convertToFqbn(resBundleName);
         ResourceBundle bundle = null;
         boolean ok = true;
 
         try {
-            bundle = LionUtils.getBundledResource(resFqbn);
+            // NOTE: have to be explicit about the locale and class-loader
+            //       for this to work under Karaf, apparently...
+            Locale locale = Locale.getDefault();
+            ClassLoader classLoader = getClass().getClassLoader();
+            bundle = ResourceBundle.getBundle(fqbn, locale, classLoader);
+
         } catch (MissingResourceException e) {
-            log.warn("Cannot find resource bundle: {}", resFqbn);
+            log.warn("Cannot find resource bundle: {}", fqbn);
             log.debug("BOOM!", e);
             ok = false;
         }
@@ -174,6 +179,7 @@ public class BundleStitcher {
                 LionBundle lion = stitcher.stitch(tag);
                 bundles.add(lion);
                 log.info("Generated LION bundle: {}", lion);
+                log.debug(" Dumped: {}", lion.dump());
 
             } catch (IllegalArgumentException e) {
                 log.warn("Unable to generate bundle: {} / {}", base, tag);
