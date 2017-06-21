@@ -15,7 +15,7 @@
  *
  */
 
-package org.onosproject.ui.lion.stitch;
+package org.onosproject.ui.impl.lion;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.onosproject.ui.AbstractUiTest;
 import org.onosproject.ui.lion.LionBundle;
 
+import java.util.List;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
@@ -34,8 +35,10 @@ import static org.junit.Assert.assertEquals;
  */
 public class BundleStitcherTest extends AbstractUiTest {
 
-    private static final String TEST_RESOURCE_BASE =
-            "/org/onosproject/ui/lion/stitchtests";
+    private static final String LION_BASE = "/org/onosproject/ui/lion";
+
+    private static final String[] LION_TAGS = {"CardGame1"};
+
 
     private static final String[] CARD_GAME_1_KEYS = {
             "of", "flush", "full_house", "pair", "three_oak",
@@ -78,7 +81,7 @@ public class BundleStitcherTest extends AbstractUiTest {
 
 
     private BundleStitcher testStitcher() {
-        return new BundleStitcher(TEST_RESOURCE_BASE);
+        return new BundleStitcher(LION_BASE);
     }
 
     private void verifyItems(LionBundle lion, String[] values) {
@@ -89,6 +92,24 @@ public class BundleStitcherTest extends AbstractUiTest {
             String actValue = lion.getValue(key);
             assertEquals("wrong mapping", expValue, actValue);
         }
+    }
+
+    // -- Testing generateLionBundles(...)
+
+    @Test
+    public void generateBundles() {
+        title("generateBundles");
+        List<LionBundle> bundles =
+                BundleStitcher.generateBundles(LION_BASE, LION_TAGS);
+        print(bundles);
+        assertEquals("missing the bundle", 1, bundles.size());
+
+        LionBundle b = bundles.get(0);
+        assertEquals("wrong id", "CardGame1", b.id());
+        assertEquals("unexpected item count", 12, b.size());
+        assertEquals("missing 3oak", "Three of a Kind", b.getValue("three_oak"));
+        assertEquals("missing queen", "Queen", b.getValue("queen"));
+        assertEquals("missing clubs", "Clubs", b.getValue("clubs"));
     }
 
     @Test
@@ -105,12 +126,12 @@ public class BundleStitcherTest extends AbstractUiTest {
 
     /*
      * TODO: Andrea to localize
-     * Under: ${ONOS_ROOT}/core/api/src/test/resources/
+     * Under: ${ONOS_ROOT}/web/gui/src/test/resources/
      *
      * Bundles to Localize:
-     *    org/onosproject/ui/lion/stitchtests/app/Cards.properties
-     *    org/onosproject/ui/lion/stitchtests/core/stuff/Rank.properties
-     *    org/onosproject/ui/lion/stitchtests/core/stuff/Suit.properties
+     *    org/onosproject/ui/lion/app/Cards.properties
+     *    org/onosproject/ui/lion/core/stuff/Rank.properties
+     *    org/onosproject/ui/lion/core/stuff/Suit.properties
      */
     @Ignore("Andrea to localize bundles to Italian")
     @Test

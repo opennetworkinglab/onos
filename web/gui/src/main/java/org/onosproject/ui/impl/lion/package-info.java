@@ -16,6 +16,6 @@
  */
 
 /**
- * Facilities for stitching together localization bundles.
+ * Set of resources providing localization utilities for the ONOS GUI.
  */
-package org.onosproject.ui.lion.stitch;
+package org.onosproject.ui.impl.lion;

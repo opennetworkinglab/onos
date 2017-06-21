@@ -225,7 +225,7 @@ public class UiExtensionManager
         return new UiExtension.Builder(CL, coreViews)
                 // TODO: currently broken, until BundleStitcher & LionConfig
                 //        have been moved to web.gui module...
-//                .lionBundles(generateLionBundles(LION_BASE, LION_TAGS))
+//                .lionBundles(generateBundles(LION_BASE, LION_TAGS))
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
                 .topo2OverlayFactory(topo2OverlayFactory)

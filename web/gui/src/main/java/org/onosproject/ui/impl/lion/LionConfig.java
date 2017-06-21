@@ -15,7 +15,7 @@
  *
  */
 
-package org.onosproject.ui.lion.stitch;
+package org.onosproject.ui.impl.lion;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;

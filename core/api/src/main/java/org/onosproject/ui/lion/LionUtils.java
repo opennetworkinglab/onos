@@ -17,13 +17,9 @@
 
 package org.onosproject.ui.lion;
 
-import com.google.common.collect.ImmutableList;
-import org.onosproject.ui.lion.stitch.BundleStitcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -214,59 +210,5 @@ public final class LionUtils {
         sb.append(className.substring(0, dot));
         sb.append(DOT).append(baseName);
         return ResourceBundle.getBundle(sb.toString());
-    }
-
-    /**
-     * Generates an immutable list of localization bundles, using the specified
-     * resource tree (base) and localization configuration file names (tags).
-     * <p>
-     * As an example, you might invoke:
-     * <pre>
-     * private static final String LION_BASE = "/org/onosproject/ui/lion";
-     *
-     * private static final String[] LION_TAGS = {
-     *     "core.view.App",
-     *     "core.view.Settings",
-     *     "core.view.Cluster",
-     *     "core.view.Processor",
-     *     "core.view.Partition",
-     * };
-     *
-     * List&lt;LionBundle&gt; bundles =
-     *      LionUtils.generateLionBundles(LION_BASE, LION_TAGS);
-     * </pre>
-     * It is expected that in the "LION_BASE" directory there is a subdirectory
-     * named "_config" which contains the configuration files listed in the
-     * "LION_TAGS" array, each with a ".lioncfg" suffix...
-     * <pre>
-     * /org/onosproject/ui/lion/
-     *   |
-     *   +-- _config
-     *         |
-     *         +-- core.view.App.lioncfg
-     *         +-- core.view.Settings.lioncfg
-     *         :
-     * </pre>
-     * These files collate a localization bundle for their particular view
-     * by referencing resource bundles and their keys.
-     *
-     * @param base the base resource directory path
-     * @param tags the list of bundles to generate
-     * @return a list of generated localization bundles
-     */
-    public static List<LionBundle> generateLionBundles(String base,
-                                                       String... tags) {
-        List<LionBundle> result = new ArrayList<>(tags.length);
-        BundleStitcher stitcher = new BundleStitcher(base);
-        for (String tag : tags) {
-            try {
-                LionBundle b = stitcher.stitch(tag);
-                result.add(b);
-
-            } catch (IllegalArgumentException e) {
-                log.warn("Unable to generate bundle: {} / {}", base, tag);
-            }
-        }
-        return ImmutableList.copyOf(result);
     }
 }

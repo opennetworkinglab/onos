@@ -15,7 +15,7 @@
  *
  */
 
-package org.onosproject.ui.lion.stitch;
+package org.onosproject.ui.impl.lion;
 
 import org.junit.Test;
 import org.onosproject.ui.AbstractUiTest;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class LionConfigTest extends AbstractUiTest {
 
-    private static final String ROOT = "/org/onosproject/ui/lion/stitchtests/";
+    private static final String ROOT = "/org/onosproject/ui/lion/";
     private static final String CMD_ROOT = ROOT + "_cmd/";
     private static final String CONFIG_ROOT = ROOT + "_config/";
 
