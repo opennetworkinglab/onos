@@ -89,12 +89,13 @@
 
         .controller('OnosCtrl', [
             '$log', '$scope', '$route', '$routeParams', '$location',
+            'LionService',
             'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
             'PanelService', 'FlashService', 'QuickHelpService', 'EeService',
             'WebSocketService', 'SpriteService',
 
             function (_$log_, $scope, $route, $routeParams, $location,
-                      ks, ts, gs, vs, ps, flash, qhs, ee, wss, ss) {
+                      lion, ks, ts, gs, vs, ps, flash, qhs, ee, wss, ss) {
                 var self = this;
                 $log = _$log_;
 
@@ -108,6 +109,7 @@
                 $scope.onos['viewMap'] = viewMap;
 
                 // initialize services...
+                lion.init();
                 ts.init();
                 ks.installOn(d3.select('body'));
                 ks.bindQhs(qhs);

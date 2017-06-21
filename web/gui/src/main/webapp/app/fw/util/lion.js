@@ -21,51 +21,33 @@
 (function () {
     'use strict';
 
-    var $log, fs;
+    // injected services
+    var $log, fs, wss;
 
-    // returns a lion bundle (function) for the given bundle-key
-    function bundle(bundleKey) {
-        var bundle = {
-            computer: 'Calcolatore',
-            disk: 'Disco',
-            monitor: 'Schermo',
-            keyboard: 'Tastiera'
-        };
+    // private state
+    var handlers = {
+            uberlion: uberlion
+        },
+        ubercache = {};
 
-        if (bundleKey === 'core.view.cluster') {
-            bundle = {
-                // grouped to match core.view.cluster.lioncfg
-                title_cluster_nodes: 'Cluster Nodes',
-                k_esc_hint: 'Close the details panel',
-                k_click_hint: 'Select a row to show cluster node details',
-                k_scroll_down_hint: 'See available cluster nodes',
+    // handler for uberlion event..
+    function uberlion(data) {
+        $log.debug('LION service: uber-lion bundle received:', data);
+        ubercache = data.lion;
+    }
 
-                devices: 'Devices',
-                node_id: 'Node ID',
-                ip_address: 'IP Address',
-                tcp_port: 'TCP Port',
-                uri: 'URI',
-                protocol: 'Protocol',
+    function init() {
+        wss.bindHandlers(handlers);
+    }
 
-                type: 'Type',
-                chassis_id: 'Chassis ID',
-                vendor: 'Vendor',
-                hw_version: 'H/W Version',
-                sw_version: 'S/W Version',
-                serial_number: 'Serial #',
+    // returns a lion bundle (function) for the given bundle ID
+    function bundle(bundleId) {
+        var bundle = ubercache[bundleId];
 
-                total: 'Total',
-                active: 'Active',
-                started: 'Started',
-                last_updated: 'Last Updated',
-
-                click: 'click',
-                scroll_down: 'scroll down'
-            };
+        if (!bundle) {
+            $log.warn('No lion bundle registered:', bundleId);
+            bundle = {};
         }
-
-        // TODO: Use message handler mech. to get bundle from server
-        $log.warn('Using fake bundle', bundle);
 
         return function (key) {
             return bundle[key] || '%' + key + '%';
@@ -73,13 +55,15 @@
     }
 
     angular.module('onosUtil')
-        .factory('LionService', ['$log', 'FnService',
+        .factory('LionService', ['$log', 'FnService', 'WebSocketService',
 
-        function (_$log_, _fs_) {
+        function (_$log_, _fs_, _wss_) {
             $log = _$log_;
             fs = _fs_;
+            wss = _wss_;
 
             return {
+                init: init,
                 bundle: bundle
             };
         }]);

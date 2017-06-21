@@ -221,7 +221,7 @@
             is = _is_;
             wss = _wss_;
 
-            $scope.lion = lion.bundle('core.view.cluster');
+            $scope.lion = lion.bundle('core.view.Cluster');
             $scope.panelData = {};
 
             tbs.buildTable({
