@@ -22,6 +22,7 @@ import org.onlab.packet.ChassisId;
 import java.net.URI;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Device.Type;
 import com.google.common.base.Objects;
@@ -31,6 +32,12 @@ import com.google.common.base.Objects;
  */
 public class DefaultDeviceDescription extends AbstractDescription
         implements DeviceDescription {
+
+    private static final int MANUFACTURER_MAX_LENGTH = 256;
+    private static final int HW_VERSION_MAX_LENGTH = 256;
+    private static final int SW_VERSION_MAX_LENGTH = 256;
+    private static final int SERIAL_NUMBER_MAX_LENGTH = 256;
+
     private final URI uri;
     private final Type type;
     private final String manufacturer;
@@ -81,6 +88,24 @@ public class DefaultDeviceDescription extends AbstractDescription
         super(annotations);
         this.uri = checkNotNull(uri, "Device URI cannot be null");
         this.type = checkNotNull(type, "Device type cannot be null");
+
+        if (hwVersion != null) {
+            checkArgument(hwVersion.length() <= HW_VERSION_MAX_LENGTH,
+                    "hwVersion exceeds maximum length " + HW_VERSION_MAX_LENGTH);
+        }
+        if (swVersion != null) {
+            checkArgument(swVersion.length() <= SW_VERSION_MAX_LENGTH,
+                    "swVersion exceeds maximum length " + SW_VERSION_MAX_LENGTH);
+        }
+        if (manufacturer != null) {
+            checkArgument(manufacturer.length() <= MANUFACTURER_MAX_LENGTH,
+                    "manufacturer exceeds maximum length " + MANUFACTURER_MAX_LENGTH);
+        }
+        if (serialNumber != null) {
+            checkArgument(serialNumber.length() <= SERIAL_NUMBER_MAX_LENGTH,
+                    "serialNumber exceeds maximum length " + SERIAL_NUMBER_MAX_LENGTH);
+        }
+
         this.manufacturer = manufacturer;
         this.hwVersion = hwVersion;
         this.swVersion = swVersion;
