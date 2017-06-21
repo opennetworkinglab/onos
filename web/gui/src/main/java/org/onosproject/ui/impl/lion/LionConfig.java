@@ -19,10 +19,9 @@ package org.onosproject.ui.impl.lion;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.Resources;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +33,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.io.Resources.getResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -77,10 +77,9 @@ public class LionConfig {
      * @throws IllegalArgumentException if there is a problem reading the file
      */
     public LionConfig load(String source) {
-        InputStream is = getClass().getResourceAsStream(source);
         try {
-            lines = IOUtils.readLines(is, UTF_8);
-        } catch (NullPointerException | IOException e) {
+            lines = Resources.readLines(getResource(getClass(), source), UTF_8);
+        } catch (IOException e) {
             throw new IllegalArgumentException("Failed to read: " + source, e);
         }
 
