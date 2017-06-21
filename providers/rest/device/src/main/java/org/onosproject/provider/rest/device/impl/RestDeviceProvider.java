@@ -130,8 +130,7 @@ public class RestDeviceProvider extends AbstractProvider
     private DeviceProviderService providerService;
     private ApplicationId appId;
 
-    private final ExecutorService executor =
-            Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
+    private ExecutorService executor;
     private SharedScheduledExecutorService portStatisticsExecutor = SharedScheduledExecutors.getPoolThreadExecutor();
 
     protected final List<ConfigFactory> factories = ImmutableList.of(
@@ -164,6 +163,7 @@ public class RestDeviceProvider extends AbstractProvider
         appId = coreService.registerApplication(APP_NAME);
         providerService = providerRegistry.register(this);
         factories.forEach(cfgService::registerConfigFactory);
+        executor = Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
         cfgService.addListener(cfgLister);
         executor.execute(RestDeviceProvider.this::createAndConnectDevices);
         executor.execute(RestDeviceProvider.this::createDevices);
