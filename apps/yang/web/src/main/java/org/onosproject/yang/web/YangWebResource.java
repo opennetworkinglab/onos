@@ -40,10 +40,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import static org.onosproject.yang.compiler.datamodel.utils.DataModelUtils.deSerializeDataModel;
 import static org.onosproject.yang.compiler.utils.io.impl.YangIoUtils.deleteDirectory;
@@ -52,17 +55,20 @@ import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.processYa
 /**
  * Yang files upload resource.
  */
-@Path("compiler")
+@Path("models")
 public class YangWebResource extends AbstractWebResource {
     private static final String YANG_FILE_EXTENSION = ".yang";
     private static final String SER_FILE_EXTENSION = ".ser";
+    private static final String JAR_FILE_EXTENSION = ".jar";
+    private static final String ZIP_FILE_EXTENSION = ".zip";
     private static final String REGISTER = "register";
     private static final String UNREGISTER = "unregister";
     private static final String CODE_GEN_DIR = "target/generated-sources/";
-    private static final String META_DATA_DIR = "target/yang/resources/";
+    private static final String YANG_RESOURCES = "target/yang/resources/";
     private static final String SERIALIZED_FILE_NAME = "YangMetaData.ser";
     private static final String UNKNOWN_KEY = "Key must be either register " +
             "or unregister.";
+    private static final String SLASH = "/";
 
     /**
      * Compiles and registers the given yang files.
@@ -71,7 +77,6 @@ public class YangWebResource extends AbstractWebResource {
      * @return 200 OK
      * @throws IOException when fails to generate a file
      */
-    @Path("upload")
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response upload(FormDataMultiPart formData) throws IOException {
@@ -79,7 +84,7 @@ public class YangWebResource extends AbstractWebResource {
 
         for (Map.Entry<String, List<File>> entry : input.entrySet()) {
             deleteDirectory(CODE_GEN_DIR);
-            deleteDirectory(META_DATA_DIR);
+            deleteDirectory(YANG_RESOURCES);
 
             YangCompilerService liveCompiler = get(YangCompilerService.class);
             liveCompiler.compileYangFiles(createCompilationParam(
@@ -138,19 +143,34 @@ public class YangWebResource extends AbstractWebResource {
             throws IOException {
         YangCompilationParam param = new DefaultYangCompilationParam();
         for (File file : inputFiles) {
-            if (file.getName().endsWith(YANG_FILE_EXTENSION)) {
-                param.addYangFile(Paths.get(file.getAbsolutePath()));
-            } else if (file.getName().endsWith(SER_FILE_EXTENSION)) {
-                param.addDependentSchema(Paths.get(file.getAbsolutePath()));
+            if (file.getName().endsWith(JAR_FILE_EXTENSION)
+                    || file.getName().endsWith(ZIP_FILE_EXTENSION)) {
+                List<File> files = decompressFile(file);
+
+                for (File f : files) {
+                    param = addToParam(param, f);
+                }
+            } else {
+                param = addToParam(param, file);
             }
         }
         param.setCodeGenDir(Paths.get(CODE_GEN_DIR));
-        param.setMetadataGenDir(Paths.get(META_DATA_DIR));
+        param.setMetadataGenDir(Paths.get(YANG_RESOURCES));
+        return param;
+    }
+
+    private YangCompilationParam addToParam(YangCompilationParam param,
+                                            File file) {
+        if (file.getName().endsWith(YANG_FILE_EXTENSION)) {
+            param.addYangFile(Paths.get(file.getAbsolutePath()));
+        } else if (file.getName().endsWith(SER_FILE_EXTENSION)) {
+            param.addDependentSchema(Paths.get(file.getAbsolutePath()));
+        }
         return param;
     }
 
     private ModelRegistrationParam getModelRegParam() throws IOException {
-        String metaPath = META_DATA_DIR + SERIALIZED_FILE_NAME;
+        String metaPath = YANG_RESOURCES + SERIALIZED_FILE_NAME;
         List<YangNode> curNodes = getYangNodes(metaPath);
         if (curNodes != null && !curNodes.isEmpty()) {
             YangModel model = processYangModel(metaPath, curNodes);
@@ -161,11 +181,53 @@ public class YangWebResource extends AbstractWebResource {
     }
 
     private List<YangNode> getYangNodes(String path) throws IOException {
-        List<YangNode> nodes = new LinkedList<YangNode>();
+        List<YangNode> nodes = new LinkedList<>();
         File file = new File(path);
         if (file.getName().endsWith(SER_FILE_EXTENSION)) {
             nodes.addAll(deSerializeDataModel(file.toString()));
         }
         return nodes;
+    }
+
+    private static List<File> decompressFile(File jarFile)
+            throws IOException {
+        ZipFile zip = new ZipFile(jarFile);
+        final List<File> unzipedFiles = new LinkedList<>();
+
+        // first get all directories,
+        // then make those directory on the destination Path
+        for (Enumeration<? extends ZipEntry> enums = zip.entries();
+             enums.hasMoreElements();) {
+            ZipEntry entry = enums.nextElement();
+
+            String fileName = YANG_RESOURCES + entry.getName();
+            File f = new File(fileName);
+
+            if (fileName.endsWith(SLASH)) {
+                f.mkdirs();
+            }
+        }
+
+        //now create all files
+        for (Enumeration<? extends ZipEntry> enums = zip.entries();
+             enums.hasMoreElements();) {
+            ZipEntry entry = enums.nextElement();
+            String fileName = YANG_RESOURCES + entry.getName();
+            File f = new File(fileName);
+
+            if (!fileName.endsWith(SLASH)) {
+                InputStream is = zip.getInputStream(entry);
+                FileOutputStream fos = new FileOutputStream(f);
+
+                // write contents of 'is' to 'fos'
+                while (is.available() > 0) {
+                    fos.write(is.read());
+                }
+                unzipedFiles.add(f);
+                fos.close();
+                is.close();
+            }
+        }
+        return unzipedFiles;
     }
 }
