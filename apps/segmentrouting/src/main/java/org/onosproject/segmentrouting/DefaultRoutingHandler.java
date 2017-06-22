@@ -1040,7 +1040,7 @@ public class DefaultRoutingHandler {
 
         @Override
         public void run() {
-            log.info("RETRY FILTER ATTEMPT {} ** dev:{}", ++counter, devId);
+            log.debug("RETRY FILTER ATTEMPT {} ** dev:{}", ++counter, devId);
             PortFilterInfo thisRun = rulePopulator.populateVlanMacFilters(devId);
             boolean sameResult = prevRun.equals(thisRun);
             log.debug("dev:{} prevRun:{} thisRun:{} sameResult:{}", devId, prevRun,

@@ -1041,7 +1041,7 @@ public class DefaultGroupHandler {
 
         @Override
         public void run() {
-            log.info("RETRY Hash buckets for linkup: {}", link);
+            log.debug("RETRY Hash buckets for linkup: {}", link);
             Set<NeighborSet> nsSet = nsNextObjStore.keySet()
                     .stream()
                     .filter(nsStoreEntry -> nsStoreEntry.deviceId().equals(deviceId))
