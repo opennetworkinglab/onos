@@ -20,12 +20,22 @@ package org.onosproject.ui.lion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Locale;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 
 /**
  * Utility methods for dealing with Localization Bundles etc.
+ * <p>
+ * Note that each of the {@link #getBundledResource} methods use a custom
+ * {@link ResourceBundle.Control} instance which reads in the input stream
+ * using UTF-8.
  */
 public final class LionUtils {
 
@@ -137,12 +147,31 @@ public final class LionUtils {
      * a property from the bundle, at which time a
      * {@link java.util.MissingResourceException} will be thrown.
      *
-     * @param basename the (fully qualified) basename of the bundle properties
-     *                 file
+     * @param basename the (fully qualified) basename of the bundle
+     *                 properties file
      * @return the associated resource bundle
      */
     public static ResourceBundle getBundledResource(String basename) {
-        return ResourceBundle.getBundle(basename);
+        return ResourceBundle.getBundle(basename, new UTF8Control());
+    }
+
+    /**
+     * This method takes a fully qualified name and returns a
+     * {@link ResourceBundle} which is loaded from a properties file with
+     * that base name. The locale to use for bundle selection, and the
+     * class loader to use for the search path are also specified.
+     *
+     * @param basename    the (fully qualified) basename of the bundle
+     *                    properties file
+     * @param locale      the locale
+     * @param classLoader the class loader
+     * @return the appropriate resource bundle
+     */
+    public static ResourceBundle getBundledResource(String basename,
+                                                    Locale locale,
+                                                    ClassLoader classLoader) {
+        return ResourceBundle.getBundle(basename, locale, classLoader,
+                                        new UTF8Control());
     }
 
     /**
@@ -172,7 +201,7 @@ public final class LionUtils {
      * @return the associated resource bundle
      */
     public static ResourceBundle getBundledResource(Class<?> c) {
-        return ResourceBundle.getBundle(c.getName());
+        return ResourceBundle.getBundle(c.getName(), new UTF8Control());
     }
 
     /**
@@ -209,6 +238,56 @@ public final class LionUtils {
         int dot = className.lastIndexOf(DOT);
         sb.append(className.substring(0, dot));
         sb.append(DOT).append(baseName);
-        return ResourceBundle.getBundle(sb.toString());
+
+        return ResourceBundle.getBundle(sb.toString(), new UTF8Control());
+    }
+
+    /*
+     * Private implementation of a Control for reading .properties files
+     * using UTF-8 (rather than the default ISO-8859-1).
+     *
+     * Ref: https://stackoverflow.com/questions/4659929/
+     *      how-to-use-utf-8-in-resource-properties-with-resourcebundle
+     */
+    private static class UTF8Control extends ResourceBundle.Control {
+        private static final String PROPERTIES = "properties";
+        private static final String UTF_8 = "UTF-8";
+
+        @Override
+        public ResourceBundle newBundle(String baseName, Locale locale,
+                                        String format, ClassLoader loader,
+                                        boolean reload)
+                throws IllegalAccessException, InstantiationException, IOException {
+
+            // Copy of (some older version of) the default implementation...
+            String bundleName = toBundleName(baseName, locale);
+            String resourceName = toResourceName(bundleName, PROPERTIES);
+            ResourceBundle bundle = null;
+            InputStream stream = null;
+            if (reload) {
+                URL url = loader.getResource(resourceName);
+                if (url != null) {
+                    URLConnection connection = url.openConnection();
+                    if (connection != null) {
+                        connection.setUseCaches(false);
+                        stream = connection.getInputStream();
+                    }
+                }
+            } else {
+                stream = loader.getResourceAsStream(resourceName);
+            }
+            if (stream != null) {
+                try {
+                    // Only this line is changed to make it
+                    // read .properties files as UTF-8:
+                    bundle = new PropertyResourceBundle(
+                            new InputStreamReader(stream, UTF_8)
+                    );
+                } finally {
+                    stream.close();
+                }
+            }
+            return bundle;
+        }
     }
 }

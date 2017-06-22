@@ -20,7 +20,6 @@ package org.onosproject.ui.lion;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.ui.AbstractUiTest;
 
@@ -210,21 +209,7 @@ public class LionUtilsTest extends AbstractUiTest {
         checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
     }
 
-    // TODO: figure out why extended character sets are not handled properly
-    /*  For example, the Korean test fails as follows
-
-        === messagesInKorean ===
-        res locale is ko
-        a keyboard in this language is 'í¤ë³´ë'
-
-        org.junit.ComparisonFailure: wrong computer
-        Expected :컴퓨터
-        Actual   :ì»´í¨í°
-
-     */
-
     @Test
-    @Ignore("Not chinese friendly, yet...")
     public void messagesInZhTw() {
         title("messagesInZhTW");
         Locale.setDefault(Locale.TRADITIONAL_CHINESE);
@@ -232,7 +217,6 @@ public class LionUtilsTest extends AbstractUiTest {
     }
 
     @Test
-    @Ignore("Not korean friendly, yet...")
     public void messagesInKorean() {
         title("messagesInKorean");
         Locale.setDefault(Locale.KOREA);
@@ -240,7 +224,6 @@ public class LionUtilsTest extends AbstractUiTest {
     }
 
     @Test
-    @Ignore("Not chinese friendly, yet...")
     public void messagesInZhCN() {
         title("messagesInZhCN");
         Locale.setDefault(Locale.SIMPLIFIED_CHINESE);

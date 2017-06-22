@@ -19,6 +19,7 @@ package org.onosproject.ui.impl.lion;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.ui.lion.LionBundle;
+import org.onosproject.ui.lion.LionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +104,7 @@ public class BundleStitcher {
             //       for this to work under Karaf, apparently...
             Locale locale = Locale.getDefault();
             ClassLoader classLoader = getClass().getClassLoader();
-            bundle = ResourceBundle.getBundle(fqbn, locale, classLoader);
+            bundle = LionUtils.getBundledResource(fqbn, locale, classLoader);
 
         } catch (MissingResourceException e) {
             log.warn("Cannot find resource bundle: {}", fqbn);
