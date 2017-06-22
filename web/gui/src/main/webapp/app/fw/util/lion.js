@@ -32,8 +32,18 @@
 
     // handler for uberlion event..
     function uberlion(data) {
-        $log.debug('LION service: uber-lion bundle received:', data);
         ubercache = data.lion;
+
+        $log.info('LION service: Locale... [' + data.locale + ']');
+        $log.info('LION service: Bundles installed...');
+
+        for (var p in ubercache) {
+            if (ubercache.hasOwnProperty(p)) {
+                $log.info('            :=> ', p);
+            }
+        }
+
+        $log.debug('LION service: uber-lion bundle received:', data);
     }
 
     function init() {

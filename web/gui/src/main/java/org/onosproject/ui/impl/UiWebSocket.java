@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -71,6 +72,7 @@ public class UiWebSocket
 
     private static final String UBERLION = "uberlion";
     private static final String LION = "lion";
+    private static final String LOCALE = "locale";
 
     private static final String TOPO = "topo";
 
@@ -432,6 +434,7 @@ public class UiWebSocket
 
         ObjectNode payload = objectNode();
         payload.set(LION, lion);
+        payload.put(LOCALE, Locale.getDefault().toString());
         sendMessage(UBERLION, payload);
     }
 }
