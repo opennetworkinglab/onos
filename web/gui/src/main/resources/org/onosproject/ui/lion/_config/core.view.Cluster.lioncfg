@@ -18,9 +18,13 @@
 bundle core.view.Cluster
 
 alias cv core.view
+alias cf core.fw
 alias cc core.common
 
 from cv.Cluster import *
+
+from cf.QuickHelp import qh_hint_close_detail
+
 from cc.Network import devices, node_id, ip_address, tcp_port, uri, protocol
 from cc.Props import type, chassis_id, vendor, hw_version, sw_version, serial_number
 from cc.State import total, active, started, last_updated

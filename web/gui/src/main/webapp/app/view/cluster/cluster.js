@@ -278,12 +278,12 @@
             }
             // create key bindings to handle panel
             ks.keyBindings({
-                esc: [handleEscape, lion('k_esc_hint')],
+                esc: [handleEscape, lion('qh_hint_close_detail')],
                 _helpFormat: ['esc']
             });
             ks.gestureNotes([
-                [lion('click'), lion('k_click_hint')],
-                [lion('scroll_down'), lion('k_scroll_down_hint')]
+                [lion('click'), lion('qh_hint_click')],
+                [lion('scroll_down'), lion('qh_hint_scroll_down')]
             ]);
             // if the panelData changes
             scope.$watch('panelData', function () {

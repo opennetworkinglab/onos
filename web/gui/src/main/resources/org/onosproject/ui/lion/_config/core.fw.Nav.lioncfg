@@ -15,13 +15,21 @@
 #
 #
 
-# Common button text
-ok=OK
-cancel=Cancel
+bundle core.fw.Nav
 
-# Gesture text
-click=click
-scroll_down=scroll down
+alias cv core.view
 
-# Common control button tooltips
-tt_ctl_auto_refresh=Toggle auto refresh
+from core.fw.Nav import *
+
+from cv.App import nav_item_app
+from cv.Settings import nav_item_settings
+from cv.Cluster import nav_item_cluster
+from cv.Processor import nav_item_processor
+from cv.Partition import nav_item_partition
+from cv.Topo import nav_item_topo
+from cv.Topo2 import nav_item_topo2
+from cv.Device import nav_item_device
+from cv.Link import nav_item_link
+from cv.Host import nav_item_host
+from cv.Intent import nav_item_intent
+from cv.Tunnel import nav_item_tunnel

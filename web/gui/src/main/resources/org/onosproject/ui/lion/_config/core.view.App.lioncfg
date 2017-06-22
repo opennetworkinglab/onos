@@ -15,13 +15,16 @@
 #
 #
 
-# Common button text
-ok=OK
-cancel=Cancel
+bundle core.view.App
 
-# Gesture text
-click=click
-scroll_down=scroll down
+alias cv core.view
+alias cf core.fw
+alias cc core.common
 
-# Common control button tooltips
-tt_ctl_auto_refresh=Toggle auto refresh
+from cv.App import *
+
+from cf.QuickHelp import qh_hint_close_detail
+
+from cc.Props import icon, title, app_id, version, category, origin, state, role
+from cc.Action import activate, deactivate, uninstall
+from cc.Ui import click, scroll_down
