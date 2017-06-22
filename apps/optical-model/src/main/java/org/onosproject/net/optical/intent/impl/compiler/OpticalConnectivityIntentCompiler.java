@@ -133,7 +133,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Stream<Path> paths = getOpticalPaths(intent);
         Optional<Map.Entry<Path, List<OchSignal>>> found = paths
                 .map(path ->
-                        Maps.immutableEntry(path, findFirstAvailableLambda(path)))
+                        Maps.immutableEntry(path, findFirstAvailableLambda(intent, path)))
                 .filter(entry -> !entry.getValue().isEmpty())
                 .filter(entry -> convertToResources(entry.getKey(),
                         entry.getValue()).stream().allMatch(resourceService::isAvailable))
@@ -220,7 +220,11 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * @param path the path
      * @return list of consecutive and available OChSignals
      */
-    private List<OchSignal> findFirstAvailableLambda(Path path) {
+    private List<OchSignal> findFirstAvailableLambda(OpticalConnectivityIntent intent, Path path) {
+        if (intent.ochSignal().isPresent()) {
+            return Collections.singletonList(intent.ochSignal().get());
+        }
+
         Set<OchSignal> lambdas = findCommonLambdas(path);
         if (lambdas.isEmpty()) {
             return Collections.emptyList();

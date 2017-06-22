@@ -18,13 +18,17 @@ package org.onosproject.net.optical.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.util.Spectrum;
 import org.onosproject.cli.app.AllApplicationNamesCompleter;
 import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.cli.net.ConnectivityIntentCommand;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
@@ -72,6 +76,12 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             required = false, multiValued = false)
     private boolean bidirectional = false;
 
+    @Option(name = "-c", aliases = "--channel",
+            description = "Optical channel in GHz to use for the intent (e.g., 193.1). " +
+            "Uses 50 GHz spaced DWDM channel plan by default.",
+            required = false, multiValued = false)
+    private Double channel;
+
 
     private ConnectPoint createConnectPoint(String devicePortString) {
         String[] splitted = devicePortString.split("/");
@@ -91,6 +101,16 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         }
 
         return null;
+    }
+
+    private OchSignal createOchSignal(Double channel) {
+        if (channel == null) {
+            return null;
+        }
+
+        ChannelSpacing spacing = ChannelSpacing.CHL_50GHZ;
+        int multiplier = (int) (Math.round(channel - Spectrum.CENTER_FREQUENCY.asHz() / spacing.frequency().asHz()));
+        return new OchSignal(GridType.DWDM, spacing, multiplier, 4);
     }
 
     @Override
@@ -155,6 +175,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                     .dst(egress)
                     .signalType(signalType)
                     .bidirectional(bidirectional)
+                    .ochSignal(createOchSignal(channel))
                     .build();
         } else {
             print("Unable to create optical intent between connect points %s and %s", ingress, egress);

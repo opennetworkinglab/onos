@@ -545,6 +545,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
             builder.append('\n').append(format("signal type=%s", ci.getSignalType()));
             builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
+            builder.append('\n').append(format("ochSignal=%s", ci.ochSignal()));
         } else if (intent instanceof OpticalOduIntent) {
             OpticalOduIntent ci = (OpticalOduIntent) intent;
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));

@@ -19,10 +19,12 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.ResourceGroup;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,6 +38,7 @@ public final class OpticalConnectivityIntent extends Intent {
     private final ConnectPoint dst;
     private final OduSignalType signalType;
     private final boolean isBidirectional;
+    private final Optional<OchSignal> ochSignal;
 
     /**
      * Creates an optical connectivity intent between the specified
@@ -47,34 +50,7 @@ public final class OpticalConnectivityIntent extends Intent {
      * @param dst the destination transponder port
      * @param signalType signal type
      * @param isBidirectional indicates if intent is unidirectional
-     * @param priority priority to use for flows from this intent
-     * @deprecated 1.9.1
-     */
-    @Deprecated
-    protected OpticalConnectivityIntent(ApplicationId appId,
-                                        Key key,
-                                        ConnectPoint src,
-                                        ConnectPoint dst,
-                                        OduSignalType signalType,
-                                        boolean isBidirectional,
-                                        int priority) {
-        super(appId, key, Collections.emptyList(), priority, null);
-        this.src = checkNotNull(src);
-        this.dst = checkNotNull(dst);
-        this.signalType = checkNotNull(signalType);
-        this.isBidirectional = isBidirectional;
-    }
-
-    /**
-     * Creates an optical connectivity intent between the specified
-     * connection points.
-     *
-     * @param appId application identification
-     * @param key intent key
-     * @param src the source transponder port
-     * @param dst the destination transponder port
-     * @param signalType signal type
-     * @param isBidirectional indicates if intent is unidirectional
+     * @param ochSignal optional OCh signal
      * @param priority priority to use for flows from this intent
      * @param resourceGroup resource group of this intent
      */
@@ -84,6 +60,7 @@ public final class OpticalConnectivityIntent extends Intent {
                                         ConnectPoint dst,
                                         OduSignalType signalType,
                                         boolean isBidirectional,
+                                        Optional<OchSignal> ochSignal,
                                         int priority,
                                         ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), priority, resourceGroup);
@@ -91,6 +68,7 @@ public final class OpticalConnectivityIntent extends Intent {
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
         this.isBidirectional = isBidirectional;
+        this.ochSignal = ochSignal;
     }
 
     /**
@@ -111,6 +89,7 @@ public final class OpticalConnectivityIntent extends Intent {
         private ConnectPoint dst;
         private OduSignalType signalType;
         private boolean isBidirectional;
+        private Optional<OchSignal> ochSignal = Optional.empty();
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -177,6 +156,17 @@ public final class OpticalConnectivityIntent extends Intent {
         }
 
         /**
+         * Sets the OCh signal of the intent.
+         *
+         * @param ochSignal the lambda
+         * @return this builder
+         */
+        public Builder ochSignal(OchSignal ochSignal) {
+            this.ochSignal = Optional.ofNullable(ochSignal);
+            return this;
+        }
+
+        /**
          * Builds an optical connectivity intent from the accumulated parameters.
          *
          * @return point to point intent
@@ -190,6 +180,7 @@ public final class OpticalConnectivityIntent extends Intent {
                     dst,
                     signalType,
                     isBidirectional,
+                    ochSignal,
                     priority,
                     resourceGroup
             );
@@ -205,6 +196,7 @@ public final class OpticalConnectivityIntent extends Intent {
         this.dst = null;
         this.signalType = null;
         this.isBidirectional = false;
+        this.ochSignal = null;
     }
 
     /**
@@ -243,6 +235,15 @@ public final class OpticalConnectivityIntent extends Intent {
         return isBidirectional;
     }
 
+    /**
+     * Returns the OCh signal of the intent.
+     *
+     * @return the lambda
+     */
+    public Optional<OchSignal> ochSignal() {
+        return ochSignal;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -255,6 +256,7 @@ public final class OpticalConnectivityIntent extends Intent {
                 .add("dst", dst)
                 .add("signalType", signalType)
                 .add("isBidirectional", isBidirectional)
+                .add("ochSignal", ochSignal)
                 .add("resourceGroup", resourceGroup())
                 .toString();
     }
