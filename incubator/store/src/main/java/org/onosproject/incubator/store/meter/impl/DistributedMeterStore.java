@@ -273,6 +273,14 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
+    public Collection<Meter> getAllMeters(DeviceId deviceId) {
+        return Collections2.transform(
+                Collections2.filter(meters.asJavaMap().values(),
+                        (MeterData m) -> m.meter().deviceId().equals(deviceId)),
+                MeterData::meter);
+    }
+
+    @Override
     public void failedMeter(MeterOperation op, MeterFailReason reason) {
         MeterKey key = MeterKey.key(op.meter().deviceId(), op.meter().id());
         meters.computeIfPresent(key, (k, v) ->

@@ -15,7 +15,6 @@
  */
 package org.onosproject.incubator.net.meter.impl;
 
-import org.apache.commons.lang3.tuple.Pair;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -55,7 +54,6 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -252,30 +250,27 @@ public class MeterManager
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
             //FIXME: FOLLOWING CODE CANNOT BE TESTED UNTIL SOMETHING THAT
             //FIXME: IMPLEMENTS METERS EXISTS
-            Map<Pair<DeviceId, MeterId>, Meter> storedMeterMap = store.getAllMeters().stream()
-                    .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), Function.identity()));
+            Collection<Meter> allMeters = store.getAllMeters(deviceId);
 
             Map<MeterId, Meter> meterEntriesMap = meterEntries.stream()
                     .collect(Collectors.toMap(Meter::id, Meter -> Meter));
 
-            storedMeterMap.keySet().stream()
-                    .filter(m -> m.getLeft().equals(deviceId)).forEach(m -> {
-                if ((storedMeterMap.get(m).state().equals(MeterState.PENDING_ADD) ||
-                        storedMeterMap.get(m).state().equals(MeterState.ADDED)) &&
-                        !meterEntriesMap.containsKey(m.getRight())) {
+            allMeters.stream().forEach(m -> {
+                if ((m.state().equals(MeterState.PENDING_ADD) ||
+                        m.state().equals(MeterState.ADDED)) &&
+                        !meterEntriesMap.containsKey(m.id())) {
                     // The meter is missing in the device. Reinstall!
-                    Meter meter = storedMeterMap.get(Pair.of(deviceId, m.getRight()));
                     provider().performMeterOperation(deviceId,
-                            new MeterOperation(meter, MeterOperation.Type.ADD));
+                            new MeterOperation(m, MeterOperation.Type.ADD));
                 }
-
             });
 
             meterEntries.stream()
-                    .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)
+                    .filter(m -> allMeters.stream()
+                            .anyMatch(sm -> sm.deviceId().equals(deviceId) && sm.id().equals(m.id())))
                     .forEach(m -> store.updateMeterState(m));
 
-            storedMeterMap.values().forEach(m -> {
+            allMeters.forEach(m -> {
                 if (m.state() == MeterState.PENDING_ADD) {
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,
