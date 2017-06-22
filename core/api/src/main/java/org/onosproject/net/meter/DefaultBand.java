@@ -17,6 +17,7 @@ package org.onosproject.net.meter;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A default implementation for a Band.
@@ -128,9 +129,9 @@ public final class DefaultBand implements Band, BandEntry {
 
         @Override
         public DefaultBand build() {
+            checkNotNull(type, "Band type can not be null");
             checkArgument(type == Type.REMARK ^ prec == null,
                     "Only REMARK bands can have a precedence.");
-
             return new DefaultBand(type, rate, burstSize, prec);
         }
     }

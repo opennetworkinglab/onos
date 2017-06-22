@@ -324,11 +324,11 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
     private Collection<Band> buildBands(List<OFMeterBandStats> bandStats) {
         return bandStats.stream().map(stat -> {
-            DefaultBand band = DefaultBand.builder().build();
+            DefaultBand band = ((DefaultBand.Builder) DefaultBand.builder().ofType(DefaultBand.Type.DROP)).build();
             band.setBytes(stat.getByteBandCount().getValue());
             band.setPackets(stat.getPacketBandCount().getValue());
             return band;
-        }).collect(Collectors.toSet());
+        }).collect(Collectors.toList());
     }
 
     private void signalMeterError(OFMeterModFailedErrorMsg meterError,
