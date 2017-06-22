@@ -656,7 +656,7 @@ public class RoutingRulePopulator {
                 errorPorts++;
             }
         }
-        log.info("Filtering on dev:{}, disabledPorts:{}, errorPorts:{}, filteredPorts:{}",
+        log.debug("Filtering on dev:{}, disabledPorts:{}, errorPorts:{}, filteredPorts:{}",
                   deviceId, disabledPorts, errorPorts, filteredPorts);
         return srManager.defaultRoutingHandler.new PortFilterInfo(disabledPorts,
                                                        errorPorts, filteredPorts);
