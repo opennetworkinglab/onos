@@ -27,6 +27,8 @@ import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * Handles RouteEvent and manages routing entries.
  */
@@ -55,6 +57,11 @@ public class RouteHandler {
     }
 
     private void processRouteAddedInternal(ResolvedRoute route) {
+        if (!isReady()) {
+            log.info("System is not ready. Skip adding route for {}", route.prefix());
+            return;
+        }
+
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
         VlanId nextHopVlan = route.nextHopVlan();
@@ -78,6 +85,11 @@ public class RouteHandler {
     }
 
     private void processRouteRemovedInternal(ResolvedRoute route) {
+        if (!isReady()) {
+            log.info("System is not ready. Skip removing route for {}", route.prefix());
+            return;
+        }
+
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
         VlanId nextHopVlan = route.nextHopVlan();
@@ -87,5 +99,11 @@ public class RouteHandler {
         srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(prefix));
         srManager.routingRulePopulator.revokeRoute(
                 location.deviceId(), prefix, nextHopMac, nextHopVlan, location.port());
+    }
+
+    private boolean isReady() {
+        return Objects.nonNull(srManager.deviceConfiguration) &&
+                Objects.nonNull(srManager.defaultRoutingHandler) &&
+                Objects.nonNull(srManager.routingRulePopulator);
     }
 }
