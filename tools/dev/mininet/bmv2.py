@@ -72,14 +72,23 @@ class ONOSBmv2Switch(Switch):
         if not srcIP:
             warn("WARN: unable to get device IP address, won't do onos-netcfg")
             return
-        onosDeviceId = "bmv2:%s:%s#%s" % (srcIP, self.grpcPort, self.deviceId)
-        cfgData = {"devices": {
-            onosDeviceId: {
-                "basic": {
-                    "name": "bmv2:%s" % self.deviceId
+        onosDeviceId = "bmv2:%s" % self.deviceId
+        cfgData = {
+            "devices": {
+                "device:%s" % onosDeviceId: {
+                    "generalprovider": {
+                        "p4runtime": {
+                            "ip": srcIP,
+                            "port": self.grpcPort,
+                            "deviceKeyId": "p4runtime:%s" % onosDeviceId
+                        }
+                    },
+                    "basic": {
+                        "driver": "bmv2"
+                    }
                 }
             }
-        }}
+        }
         with open(self.netcfgfile, 'w') as fp:
             json.dump(cfgData, fp, indent=4)
         # Build netcfg URL
@@ -89,9 +98,13 @@ class ONOSBmv2Switch(Switch):
         pm.add_password(None, url, os.environ['ONOS_WEB_USER'], os.environ['ONOS_WEB_PASS'])
         urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(pm)))
         # Push config data to controller
-        f = urllib2.urlopen(urllib2.Request(url, json.dumps(cfgData), {'Content-Type': 'application/json'}))
-        print f.read()
-        f.close()
+        req = urllib2.Request(url, json.dumps(cfgData), {'Content-Type': 'application/json'})
+        try:
+            f = urllib2.urlopen(req)
+            print f.read()
+            f.close()
+        except urllib2.URLError as e:
+            warn("WARN: unable to push config to ONOS (%s)" % e.reason)
 
     def start(self, controllers):
         args = [BMV2_TARGET, '--device-id %s' % str(self.deviceId)]
