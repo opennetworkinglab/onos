@@ -248,21 +248,32 @@ public class MeterManager
 
         @Override
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
-            //FIXME: FOLLOWING CODE CANNOT BE TESTED UNTIL SOMETHING THAT
-            //FIXME: IMPLEMENTS METERS EXISTS
             Collection<Meter> allMeters = store.getAllMeters(deviceId);
 
             Map<MeterId, Meter> meterEntriesMap = meterEntries.stream()
                     .collect(Collectors.toMap(Meter::id, Meter -> Meter));
 
+            // Look for meters defined in onos and missing in the device (restore)
             allMeters.stream().forEach(m -> {
                 if ((m.state().equals(MeterState.PENDING_ADD) ||
                         m.state().equals(MeterState.ADDED)) &&
                         !meterEntriesMap.containsKey(m.id())) {
                     // The meter is missing in the device. Reinstall!
+                    log.debug("Adding meter missing in device {} {}", deviceId, m);
                     provider().performMeterOperation(deviceId,
                             new MeterOperation(m, MeterOperation.Type.ADD));
                 }
+            });
+
+            // Look for meters defined in the device and not in onos (remove)
+            meterEntriesMap.entrySet().stream()
+                    .filter(md -> !allMeters.stream().anyMatch(m -> m.id().equals(md.getKey())))
+                    .forEach(mio -> {
+                        // The meter is missin in onos. Uninstall!
+                        log.debug("Remove meter in device not in onos {} {}", deviceId, mio.getKey());
+                        Meter meter = mio.getValue();
+                        provider().performMeterOperation(deviceId,
+                                new MeterOperation(meter, MeterOperation.Type.REMOVE));
             });
 
             meterEntries.stream()
