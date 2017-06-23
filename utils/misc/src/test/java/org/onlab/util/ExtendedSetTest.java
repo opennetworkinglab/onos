@@ -15,8 +15,11 @@
  */
 package org.onlab.util;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Maps;
@@ -64,6 +67,174 @@ public class ExtendedSetTest {
         assertTrue(set.add(small));
         set.conditionalRemove(medium, existing -> existing.value2() < medium.value2);
         assertFalse(set.contains(small));
+
+        assertTrue(set.add(small));
+        set.conditionalRemove(medium, existing -> existing.value2() > medium.value2);
+        assertTrue(set.contains(small));
+
+    }
+
+    @Test
+    public void testIsEmpty() {
+        ExtendedSet<TestValue> nonemptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(nonemptyset.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        assertTrue(nonemptyset.contains(val));
+        assertFalse(nonemptyset.isEmpty());
+
+        ExtendedSet<TestValue> emptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        assertTrue(emptyset.isEmpty());
+
+    }
+
+    @Test
+    public void testClear() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        assertTrue(set.contains(val));
+        set.clear();
+        assertFalse(set.contains(val));
+    }
+
+    @Test
+    public void testSize() {
+        ExtendedSet<TestValue> nonemptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(nonemptyset.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        assertTrue(nonemptyset.contains(val));
+        assertEquals(1, nonemptyset.size());
+        TestValue secval = new TestValue("goo", 2);
+        assertTrue(nonemptyset.insertOrReplace(secval, existing -> existing.value2() < secval.value2()));
+        assertTrue(nonemptyset.contains(secval));
+        assertEquals(2, nonemptyset.size());
+
+        ExtendedSet<TestValue> emptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        assertEquals(0, emptyset.size());
+    }
+
+    @Test
+    public void testIterator() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(nextval, existing -> existing.value2() < nextval.value2()));
+        assertTrue(set.contains(nextval));
+        Iterator<TestValue> iterator = set.iterator();
+        assertEquals(val, iterator.next());
+        assertTrue(iterator.hasNext());
+        assertEquals(nextval, iterator.next());
+    }
+
+    @Test
+    public void testToArray() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(nextval, existing -> existing.value2() < nextval.value2()));
+        Object[] array = set.toArray();
+        TestValue[] valarray = {val, nextval};
+        assertArrayEquals(valarray, array);
+        assertTrue(set.toArray(new TestValue[0])[0] instanceof TestValue);
+
+    }
+
+    @Test
+    public void testContainsAll() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(nextval, existing -> existing.value2() < nextval.value2()));
+        ArrayList<TestValue> vals = new ArrayList<TestValue>();
+        vals.add(val);
+        vals.add(nextval);
+        assertTrue(set.containsAll(vals));
+    }
+
+    @Test
+    public void testRemove() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(nextval, existing -> existing.value2() < nextval.value2()));
+        assertTrue(set.remove(val));
+        assertFalse(set.contains(val));
+        assertTrue(set.remove(nextval));
+        assertFalse(set.contains(nextval));
+    }
+
+    @Test
+    public void testAddAll() {
+        ExtendedSet<TestValue> nonemptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(nonemptyset.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        TestValue finalval = new TestValue("shoo", 3);
+        ArrayList<TestValue> vals = new ArrayList<TestValue>();
+        vals.add(nextval);
+        vals.add(finalval);
+        assertTrue(nonemptyset.addAll(vals));
+        assertTrue(nonemptyset.contains(nextval));
+        assertTrue(nonemptyset.contains(finalval));
+
+        ExtendedSet<TestValue> emptyset = new ExtendedSet<>(Maps.newConcurrentMap());
+        vals = new ArrayList<TestValue>();
+        vals.add(val);
+        vals.add(nextval);
+        vals.add(finalval);
+        assertTrue(emptyset.addAll(vals));
+        assertTrue(emptyset.contains(val));
+        assertTrue(emptyset.contains(nextval));
+        assertTrue(emptyset.contains(finalval));
+    }
+
+    @Test
+    public void testRemoveAll() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue val = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(val, existing -> existing.value2() < val.value2()));
+        TestValue nextval = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(nextval, existing -> existing.value2() < nextval.value2()));
+        TestValue finalval = new TestValue("shoo", 3);
+        assertTrue(set.insertOrReplace(finalval, existing -> existing.value2() < finalval.value2()));
+        ArrayList<TestValue> vals = new ArrayList<TestValue>();
+        vals.add(nextval);
+        vals.add(finalval);
+        assertTrue(set.removeAll(vals));
+        assertFalse(set.contains(nextval));
+        assertFalse(set.contains(finalval));
+    }
+
+    @Test
+    @Ignore("retainAll appears to violate the documented semantics because it does" +
+            " not properly remove the items that are not in the Collection parameter.")
+    public void testRetainAll() {
+        ExtendedSet<TestValue> set = new ExtendedSet<>(Maps.newConcurrentMap());
+        TestValue small = new TestValue("foo", 1);
+        assertTrue(set.insertOrReplace(small, existing -> existing.value2() < small.value2()));
+        TestValue medium = new TestValue("goo", 2);
+        assertTrue(set.insertOrReplace(medium, existing -> existing.value2() < medium.value2()));
+        TestValue large = new TestValue("shoo", 3);
+        assertTrue(set.insertOrReplace(large, existing -> existing.value2() < large.value2()));
+        TestValue extreme = new TestValue("who", 4);
+        assertTrue(set.insertOrReplace(extreme, existing -> existing.value2() < extreme.value2()));
+        ArrayList<TestValue> firstvals = new ArrayList<TestValue>();
+        firstvals.add(medium);
+        firstvals.add(extreme);
+        set.retainAll(firstvals);
+        assertTrue(set.contains(medium));
+        assertTrue(set.contains(extreme));
+        assertFalse(set.contains(small));
+        assertFalse(set.contains(large));
+        ArrayList<TestValue> secondval = new ArrayList<TestValue>();
+        secondval.add(medium);
+        set.retainAll(secondval);
+        assertFalse(set.contains(extreme));
+        assertTrue(set.contains(medium));
     }
 
     private class TestValue {
