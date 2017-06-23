@@ -129,7 +129,6 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     private void initializePipeline() {
         connectTables(SRC_VNI_TABLE, ACL_TABLE);
         connectTables(ACL_TABLE, JUMP_TABLE);
-        setUpTableMissEntry(ACL_TABLE);
         setupJumpTable();
     }
 
