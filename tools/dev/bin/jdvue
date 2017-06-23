@@ -27,5 +27,8 @@ find "${@:-.}" -type f -name \*.java \
     | xargs grep -E "^[ \t]*import .*;.*|^[ \t]*package .*;.*" \
     | tr -d '\r' > $name.db
 
+DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=y"
+
 # Now run the Java Dependency Viewer jar on the catalog
-java -jar ${JAR} $name && rm $name.db && open $name.html
+[ -z "$jdvueDebug" ] && DEBUG_OPTS=""
+java $DEBUG_OPTS -jar ${JAR} $name && rm $name.db && open $name.html
