@@ -82,7 +82,7 @@ public class SegmentRoutingDeviceConfig extends Config<DeviceId> {
                 isEdgeRouter() != null &&
                 adjacencySids() != null &&
                 // pairDeviceId and pairLocalPort must be both configured or both omitted
-                !(hasField(PAIR_DEVICE_ID) ^ hasField(PAIR_LOCAL_PORT)) &&
+                (hasField(PAIR_DEVICE_ID) == hasField(PAIR_LOCAL_PORT)) &&
                 (!hasField(PAIR_DEVICE_ID) || pairDeviceId() != null) &&
                 (!hasField(PAIR_LOCAL_PORT) || pairLocalPort() != null);
     }

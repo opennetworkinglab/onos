@@ -103,6 +103,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -190,7 +191,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private AppConfigHandler appCfgHandler = null;
     XConnectHandler xConnectHandler = null;
     private McastHandler mcastHandler = null;
-    HostHandler hostHandler = null;
+    private HostHandler hostHandler = null;
     private RouteHandler routeHandler = null;
     private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
     private L2TunnelHandler l2TunnelHandler = null;
@@ -290,7 +291,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 }
             };
 
-    private Object threadSchedulerLock = new Object();
+    private static final Object THREAD_SCHED_LOCK = new Object();
     private static int numOfEventsQueued = 0;
     private static int numOfEventsExecuted = 0;
     private static int numOfHandlerExecution = 0;
@@ -605,7 +606,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param connectPoint connect point
      * @return untagged VLAN or null if not configured
      */
-    public VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
+    VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
         return interfaceService.getInterfacesByPort(connectPoint).stream()
                 .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
                 .map(Interface::vlanUntagged)
@@ -621,11 +622,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param connectPoint connect point
      * @return tagged VLAN or empty set if not configured
      */
-    public Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
+    Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
         return interfaces.stream()
                 .map(Interface::vlanTagged)
-                .flatMap(vlanIds -> vlanIds.stream())
+                .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }
 
@@ -638,7 +639,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param connectPoint connect point
      * @return native VLAN or null if not configured
      */
-    public VlanId getNativeVlanId(ConnectPoint connectPoint) {
+    VlanId getNativeVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
         return interfaces.stream()
                 .filter(intf -> !intf.vlanNative().equals(VlanId.NONE))
@@ -656,10 +657,33 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param connectPoint connect point
      * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
      */
-    public VlanId getInternalVlanId(ConnectPoint connectPoint) {
+    VlanId getInternalVlanId(ConnectPoint connectPoint) {
         VlanId untaggedVlanId = getUntaggedVlanId(connectPoint);
         VlanId nativeVlanId = getNativeVlanId(connectPoint);
         return untaggedVlanId != null ? untaggedVlanId : nativeVlanId;
+    }
+
+    /**
+     * Returns optional pair device ID of given device.
+     *
+     * @param deviceId device ID
+     * @return optional pair device ID. Might be empty if pair device is not configured
+     */
+    Optional<DeviceId> getPairDeviceId(DeviceId deviceId) {
+        SegmentRoutingDeviceConfig deviceConfig =
+                cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
+        return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairDeviceId);
+    }
+    /**
+     * Returns optional pair device local port of given device.
+     *
+     * @param deviceId device ID
+     * @return optional pair device ID. Might be empty if pair device is not configured
+     */
+    Optional<PortNumber> getPairLocalPorts(DeviceId deviceId) {
+        SegmentRoutingDeviceConfig deviceConfig =
+                cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
+        return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
     }
 
     /**
@@ -675,9 +699,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
                 .forEach(intf -> {
                     vlanPortMap.put(intf.vlanUntagged(), intf.connectPoint().port());
-                    intf.vlanTagged().forEach(vlanTagged -> {
-                        vlanPortMap.put(vlanTagged, intf.connectPoint().port());
-                    });
+                    intf.vlanTagged().forEach(vlanTagged ->
+                        vlanPortMap.put(vlanTagged, intf.connectPoint().port())
+                    );
                     vlanPortMap.put(intf.vlanNative(), intf.connectPoint().port());
                 });
         vlanPortMap.removeAll(VlanId.NONE);
@@ -694,7 +718,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param vlanId VLAN ID
      * @return next objective ID or -1 if it was not found
      */
-    public int getVlanNextObjectiveId(DeviceId deviceId, VlanId vlanId) {
+    int getVlanNextObjectiveId(DeviceId deviceId, VlanId vlanId) {
         if (groupHandlerMap.get(deviceId) != null) {
             log.trace("getVlanNextObjectiveId query in device {}", deviceId);
             return groupHandlerMap.get(deviceId).getVlanNextObjectiveId(vlanId);
@@ -738,7 +762,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param devId the device identifier
      * @return the groupHandler object for the device id, or null if not found
      */
-    public DefaultGroupHandler getGroupHandler(DeviceId devId) {
+    DefaultGroupHandler getGroupHandler(DeviceId devId) {
         return groupHandlerMap.get(devId);
     }
 
@@ -752,7 +776,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param link the infrastructure link being queried
      * @return true if this controller instance has seen this link before
      */
-    public boolean isSeenLink(Link link) {
+    boolean isSeenLink(Link link) {
         return seenLinks.containsKey(link);
     }
 
@@ -763,7 +787,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param link the link to update in the seen-link local store
      * @param up the status of the link, true if up, false if down
      */
-    public void updateSeenLink(Link link, boolean up) {
+    void updateSeenLink(Link link, boolean up) {
         seenLinks.put(link, up);
     }
 
@@ -776,7 +800,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *         true if the seen-link is up;
      *         false if the seen-link is down
      */
-    public Boolean isSeenLinkUp(Link link) {
+    Boolean isSeenLinkUp(Link link) {
         return seenLinks.get(link);
     }
 
@@ -785,7 +809,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *
      * @param link the infrastructure link to purge
      */
-    public void purgeSeenLink(Link link) {
+    private void purgeSeenLink(Link link) {
         seenLinks.remove(link);
     }
 
@@ -799,7 +823,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *  @return true if a seen-link exists that is up, and shares the
      *          same src and dst switches as the link being queried
      */
-    public boolean isParallelLink(Link link) {
+    private boolean isParallelLink(Link link) {
         for (Entry<Link, Boolean> seen : seenLinks.entrySet()) {
             Link seenLink = seen.getKey();
            if (seenLink.equals(link)) {
@@ -959,7 +983,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @SuppressWarnings("rawtypes")
     private void scheduleEventHandlerIfNotScheduled(Event event) {
-        synchronized (threadSchedulerLock) {
+        synchronized (THREAD_SCHED_LOCK) {
             eventQueue.add(event);
             numOfEventsQueued++;
 
@@ -981,8 +1005,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             try {
                 while (true) {
                     @SuppressWarnings("rawtypes")
-                    Event event = null;
-                    synchronized (threadSchedulerLock) {
+                    Event event;
+                    synchronized (THREAD_SCHED_LOCK) {
                         if (!eventQueue.isEmpty()) {
                             event = eventQueue.poll();
                             numOfEventsExecuted++;
@@ -1223,14 +1247,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 });
         vlanNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
-                .forEach(entry -> {
-                    vlanNextObjStore.remove(entry.getKey());
-                });
+                .forEach(entry -> vlanNextObjStore.remove(entry.getKey()));
         portNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
-                .forEach(entry -> {
-                    portNextObjStore.remove(entry.getKey());
-                });
+                .forEach(entry -> portNextObjStore.remove(entry.getKey()));
 
         seenLinks.keySet().removeIf(key -> key.src().deviceId().equals(device.id()) ||
                 key.dst().deviceId().equals(device.id()));
@@ -1339,7 +1359,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          *
          * @param srManager segment routing manager
          */
-        public InternalConfigListener(SegmentRoutingManager srManager) {
+        InternalConfigListener(SegmentRoutingManager srManager) {
             this.srManager = srManager;
         }
 

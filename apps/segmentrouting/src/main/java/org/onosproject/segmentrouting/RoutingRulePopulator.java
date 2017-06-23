@@ -87,7 +87,7 @@ public class RoutingRulePopulator {
      *
      * @param srManager segment routing manager reference
      */
-    public RoutingRulePopulator(SegmentRoutingManager srManager) {
+    RoutingRulePopulator(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.rulePopulationCounter = new AtomicLong(0);
@@ -96,7 +96,7 @@ public class RoutingRulePopulator {
     /**
      * Resets the population counter.
      */
-    public void resetCounter() {
+    void resetCounter() {
         rulePopulationCounter.set(0);
     }
 
@@ -105,7 +105,7 @@ public class RoutingRulePopulator {
      *
      * @return number of rules
      */
-    public long getCounter() {
+    long getCounter() {
         return rulePopulationCounter.get();
     }
 
@@ -229,14 +229,9 @@ public class RoutingRulePopulator {
             } else if (nativeVlan != null) {
                 mbuilder.matchVlanId(nativeVlan);
             } else {
-                // TODO: This check is turned off for now since vRouter still assumes that
-                // hosts are internally tagged with INTERNAL_VLAN.
-                // We should turn this back on when we move forward to the bridging CPR approach.
-                //
-                //log.warn("Untagged nexthop {}/{} is not allowed on {} without untagged or native vlan",
-                //        hostMac, hostVlanId, connectPoint);
-                //return null;
-                mbuilder.matchVlanId(INTERNAL_VLAN);
+                log.warn("Untagged nexthop {}/{} is not allowed on {} without untagged or native vlan",
+                        hostMac, hostVlanId, connectPoint);
+                return null;
             }
         } else {
             log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed"
@@ -278,7 +273,7 @@ public class RoutingRulePopulator {
      *                 map for destSw2.
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId targetSw, Set<IpPrefix> subnets,
+    boolean populateIpRuleForSubnet(DeviceId targetSw, Set<IpPrefix> subnets,
             DeviceId destSw1, DeviceId destSw2, Map<DeviceId, Set<DeviceId>> nextHops) {
         for (IpPrefix subnet : subnets) {
             if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
@@ -294,7 +289,7 @@ public class RoutingRulePopulator {
      * @param subnets subnet being removed
      * @return true if all rules are removed successfully, false otherwise
      */
-    public boolean revokeIpRuleForSubnet(Set<IpPrefix> subnets) {
+    boolean revokeIpRuleForSubnet(Set<IpPrefix> subnets) {
         for (IpPrefix subnet : subnets) {
             if (!revokeIpRuleForRouter(subnet)) {
                 return false;
@@ -319,7 +314,7 @@ public class RoutingRulePopulator {
      *                  should not be an entry for destSw2 in this map.
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForRouter(DeviceId targetSw,
+    private boolean populateIpRuleForRouter(DeviceId targetSw,
                                            IpPrefix ipPrefix, DeviceId destSw1,
                                            DeviceId destSw2,
                                            Map<DeviceId, Set<DeviceId>> nextHops) {
@@ -427,7 +422,7 @@ public class RoutingRulePopulator {
      * @param ipPrefix the IP address of the destination router
      * @return true if all rules are removed successfully, false otherwise
      */
-    public boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
+    private boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
         TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(ipPrefix);
         TrafficSelector selector = sbuilder.build();
         TrafficTreatment dummyTreatment = DefaultTrafficTreatment.builder().build();
@@ -446,9 +441,9 @@ public class RoutingRulePopulator {
                 (objective, error) ->
                         log.warn("Failed to revoke IP rule for router {}: {}", ipPrefix, error));
 
-        srManager.deviceService.getAvailableDevices().forEach(device -> {
-            srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context));
-        });
+        srManager.deviceService.getAvailableDevices().forEach(device ->
+            srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context))
+        );
 
         return true;
     }
@@ -568,7 +563,7 @@ public class RoutingRulePopulator {
      * @param routerIp the router ip
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
+    boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
                                     Set<DeviceId> nextHops,
                                     IpAddress routerIp) {
 
@@ -585,7 +580,7 @@ public class RoutingRulePopulator {
         }
 
         List<ForwardingObjective> fwdObjs = new ArrayList<>();
-        Collection<ForwardingObjective> fwdObjsMpls = Collections.emptyList();
+        Collection<ForwardingObjective> fwdObjsMpls;
         // Generates the transit rules used by the standard "routing".
         fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, true);
         if (fwdObjsMpls.isEmpty()) {
@@ -594,11 +589,13 @@ public class RoutingRulePopulator {
         fwdObjs.addAll(fwdObjsMpls);
         // Generates the transit rules used by the MPLS Pwaas. For now it is
         // the only case !BoS supported.
-        /*fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
+        /*
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
         if (fwdObjsMpls.isEmpty()) {
             return false;
         }
-        fwdObjs.addAll(fwdObjsMpls);*/
+        fwdObjs.addAll(fwdObjsMpls);
+        */
 
         for (ForwardingObjective fwdObj : fwdObjs) {
             log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
@@ -699,7 +696,7 @@ public class RoutingRulePopulator {
      * @param deviceId  the switch dpid for the router
      * @return PortFilterInfo information about the processed ports
      */
-    public PortFilterInfo populateVlanMacFilters(DeviceId deviceId) {
+    PortFilterInfo populateVlanMacFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
@@ -736,7 +733,7 @@ public class RoutingRulePopulator {
      * @param install true to install the filtering objective, false to remove
      * @return true if no errors occurred during the build of the filtering objective
      */
-    public boolean processSinglePortFilters(DeviceId deviceId, PortNumber portnum, boolean install) {
+    boolean processSinglePortFilters(DeviceId deviceId, PortNumber portnum, boolean install) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
         VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
         Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
@@ -825,7 +822,7 @@ public class RoutingRulePopulator {
      *
      * @param deviceId the switch dpid for the router
      */
-    public void populateIpPunts(DeviceId deviceId) {
+    void populateIpPunts(DeviceId deviceId) {
         Ip4Address routerIpv4, pairRouterIpv4 = null;
         Ip6Address routerIpv6, pairRouterIpv6 = null;
         try {
@@ -900,7 +897,7 @@ public class RoutingRulePopulator {
      *
      * @param deviceId the switch dpid for the router
      */
-    public void populateArpNdpPunts(DeviceId deviceId) {
+    void populateArpNdpPunts(DeviceId deviceId) {
         // We are not the master just skip.
         if (!srManager.mastershipService.isLocalMaster(deviceId)) {
             log.debug("Not installing ARP/NDP punts - not the master for dev:{} ",
@@ -908,60 +905,120 @@ public class RoutingRulePopulator {
             return;
         }
 
+        ForwardingObjective fwdObj;
         // We punt all ARP packets towards the controller.
-        ForwardingObjective puntFwd = puntArpFwdObjective()
+        fwdObj = arpFwdObjective(null, true, PacketPriority.CONTROL.priorityValue())
                 .add(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install packet request for ARP to {}: {}",
+                        log.warn("Failed to install forwarding objective to punt ARP to {}: {}",
                                  deviceId, error);
                     }
                 });
-        srManager.flowObjectiveService.forward(deviceId, puntFwd);
+        srManager.flowObjectiveService.forward(deviceId, fwdObj);
 
         // We punt all NDP packets towards the controller.
-        puntFwd = puntNdpFwdObjective()
+        fwdObj = ndpFwdObjective(null, true, PacketPriority.CONTROL.priorityValue())
                 .add(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install packet request for NDP to {}: {}",
+                        log.warn("Failed to install forwarding objective to punt NDP to {}: {}",
                                  deviceId, error);
                     }
                 });
-        srManager.flowObjectiveService.forward(deviceId, puntFwd);
+        srManager.flowObjectiveService.forward(deviceId, fwdObj);
+
+        srManager.getPairLocalPorts(deviceId).ifPresent(port -> {
+            ForwardingObjective pairFwdObj;
+            // Do not punt ARP packets from pair port
+            pairFwdObj = arpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1)
+                    .add(new ObjectiveContext() {
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
+                                    deviceId, error);
+                        }
+                    });
+            srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+
+            // Do not punt NDP packets from pair port
+            pairFwdObj = ndpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1)
+                    .add(new ObjectiveContext() {
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
+                                    deviceId, error);
+                        }
+                    });
+            srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+
+            // Do not forward DAD packets from pair port
+            pairFwdObj = dad6FwdObjective(port, PacketPriority.CONTROL.priorityValue() + 2)
+                    .add(new ObjectiveContext() {
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            log.warn("Failed to install forwarding objective to drop DAD to {}: {}",
+                                    deviceId, error);
+                        }
+                    });
+            srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+        });
     }
 
-    private ForwardingObjective.Builder fwdObjBuilder(TrafficSelector selector) {
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.punt();
-
+    private ForwardingObjective.Builder fwdObjBuilder(TrafficSelector selector,
+                                                      TrafficTreatment treatment, int priority) {
         return DefaultForwardingObjective.builder()
-                .withPriority(PacketPriority.CONTROL.priorityValue())
+                .withPriority(priority)
                 .withSelector(selector)
                 .fromApp(srManager.appId)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withTreatment(tBuilder.build())
+                .withTreatment(treatment)
                 .makePermanent();
     }
 
-    private ForwardingObjective.Builder puntArpFwdObjective() {
-
+    private ForwardingObjective.Builder arpFwdObjective(PortNumber port, boolean punt, int priority) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(TYPE_ARP);
+        if (port != null) {
+            sBuilder.matchInPort(port);
+        }
 
-        return fwdObjBuilder(sBuilder.build());
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        if (punt) {
+            tBuilder.punt();
+        }
+        return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
     }
 
-    private ForwardingObjective.Builder puntNdpFwdObjective() {
-
+    private ForwardingObjective.Builder ndpFwdObjective(PortNumber port, boolean punt, int priority) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(TYPE_IPV6)
                 .matchIPProtocol(PROTOCOL_ICMP6)
-                .matchIcmpv6Type(NEIGHBOR_SOLICITATION)
-                .build();
+                .matchIcmpv6Type(NEIGHBOR_SOLICITATION);
+        if (port != null) {
+            sBuilder.matchInPort(port);
+        }
 
-        return fwdObjBuilder(sBuilder.build());
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        if (punt) {
+            tBuilder.punt();
+        }
+        return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
+    }
+
+    private ForwardingObjective.Builder dad6FwdObjective(PortNumber port, int priority) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(TYPE_IPV6)
+                .matchIPv6Src(Ip6Address.ZERO.toIpPrefix())
+                .matchIPProtocol(PROTOCOL_ICMP6)
+                .matchIcmpv6Type(NEIGHBOR_SOLICITATION);
+        if (port != null) {
+            sBuilder.matchInPort(port);
+        }
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.wipeDeferred();
+        return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
     }
 
     /**
@@ -971,7 +1028,7 @@ public class RoutingRulePopulator {
      *
      * @param deviceId switch ID to set the rules
      */
-    public void populateSubnetBroadcastRule(DeviceId deviceId) {
+    void populateSubnetBroadcastRule(DeviceId deviceId) {
         srManager.getVlanPortMap(deviceId).asMap().forEach((vlanId, ports) -> {
             int nextId = srManager.getVlanNextObjectiveId(deviceId, vlanId);
 

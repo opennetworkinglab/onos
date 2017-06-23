@@ -16,6 +16,8 @@
 
 package org.onosproject.segmentrouting;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -35,6 +37,8 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -52,6 +56,7 @@ import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 
 import java.util.Map;
 import java.util.Objects;
@@ -90,10 +95,13 @@ public class HostHandlerTest {
     // Device
     private static final DeviceId DEV1 = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DEV2 = DeviceId.deviceId("of:0000000000000002");
+    private static final DeviceId DEV3 = DeviceId.deviceId("of:000000000000003");
+    private static final DeviceId DEV4 = DeviceId.deviceId("of:000000000000004");
     // Port
     private static final PortNumber P1 = PortNumber.portNumber(1);
     private static final PortNumber P2 = PortNumber.portNumber(2);
     private static final PortNumber P3 = PortNumber.portNumber(3);
+    private static final PortNumber P9 = PortNumber.portNumber(9);
     // Connect Point
     private static final ConnectPoint CP11 = new ConnectPoint(DEV1, P1);
     private static final HostLocation HOST_LOC11 = new HostLocation(CP11, 0);
@@ -105,10 +113,19 @@ public class HostHandlerTest {
     private static final HostLocation HOST_LOC21 = new HostLocation(CP21, 0);
     private static final ConnectPoint CP22 = new ConnectPoint(DEV2, P2);
     private static final HostLocation HOST_LOC22 = new HostLocation(CP22, 0);
+    // Connect Point for dual-homed host failover
+    private static final ConnectPoint CP31 = new ConnectPoint(DEV3, P1);
+    private static final HostLocation HOST_LOC31 = new HostLocation(CP31, 0);
+    private static final ConnectPoint CP41 = new ConnectPoint(DEV4, P1);
+    private static final HostLocation HOST_LOC41 = new HostLocation(CP41, 0);
+    private static final ConnectPoint CP39 = new ConnectPoint(DEV3, P9);
+    private static final ConnectPoint CP49 = new ConnectPoint(DEV4, P9);
     // Interface VLAN
     private static final VlanId INTF_VLAN_UNTAGGED = VlanId.vlanId((short) 10);
     private static final Set<VlanId> INTF_VLAN_TAGGED = Sets.newHashSet(VlanId.vlanId((short) 20));
     private static final VlanId INTF_VLAN_NATIVE = VlanId.vlanId((short) 30);
+    private static final Set<VlanId> INTF_VLAN_PAIR = Sets.newHashSet(VlanId.vlanId((short) 10),
+            VlanId.vlanId((short) 20), VlanId.vlanId((short) 30));
     // Interface subnet
     private static final IpPrefix INTF_PREFIX1 = IpPrefix.valueOf("10.0.1.254/24");
     private static final IpPrefix INTF_PREFIX2 = IpPrefix.valueOf("10.0.2.254/24");
@@ -130,6 +147,7 @@ public class HostHandlerTest {
         srManager.routingRulePopulator = new MockRoutingRulePopulator();
         srManager.interfaceService = new MockInterfaceService();
         srManager.hostService = new MockHostService();
+        srManager.cfgService = new MockNetworkConfigRegistry();
 
         hostHandler = new HostHandler(srManager);
 
@@ -280,7 +298,7 @@ public class HostHandlerTest {
                 Sets.newHashSet(HOST_LOC13), Sets.newHashSet(HOST_IP11), false);
 
         // Add a host
-        // Expect: add a new routing rule. no change to bridging rule.
+        // Expect: add one new routing rule, one new bridging rule
         hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
         assertEquals(1, routingTable.size());
         assertNotNull(routingTable.get(new RoutingTableKey(DEV1, HOST_IP11.toIpPrefix())));
@@ -368,6 +386,88 @@ public class HostHandlerTest {
         assertEquals(2, bridgingTable.size());
         assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P2, bridgingTable.get(new BridingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+    }
+
+    @Test
+    public void testDualHomingSingleLocationFail() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
+
+        // Add a host
+        // Expect: add four new routing rules, two new bridging rules
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(4, routingTable.size());
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, bridgingTable.size());
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Host becomes single-homed
+        // Expect: redirect flows from host location to pair link
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        assertEquals(4, routingTable.size());
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P9, routingTable.get(new RoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P9, routingTable.get(new RoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, bridgingTable.size());
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, bridgingTable.get(new BridingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Host becomes dual-homed again
+        // Expect: Redirect flows from pair link back to host location
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host1, host2));
+        assertEquals(4, routingTable.size());
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, bridgingTable.size());
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+    }
+
+    @Test
+    public void testDualHomingBothLocationFail() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
+
+        // Add a host
+        // Expect: add four new routing rules, two new bridging rules
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(4, routingTable.size());
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, bridgingTable.size());
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Host becomes single-homed
+        // Expect: redirect flows from host location to pair link
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        assertEquals(4, routingTable.size());
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, routingTable.get(new RoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P9, routingTable.get(new RoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P9, routingTable.get(new RoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, bridgingTable.size());
+        assertEquals(P1, bridgingTable.get(new BridingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, bridgingTable.get(new BridingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Host loses both locations
+        // Expect: Remove last location and all previous redirection flows
+        hostHandler.processHostRemovedEvent(new HostEvent(HostEvent.Type.HOST_REMOVED, host2));
+        assertEquals(0, routingTable.size());
+        assertEquals(0, bridgingTable.size());
     }
 
     @Test
@@ -501,9 +601,48 @@ public class HostHandlerTest {
             } else if (CP22.equals(cp)) {
                 intf = new Interface(null, CP22, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                         INTF_VLAN_UNTAGGED, null, null);
+            } else if (CP31.equals(cp)) {
+                intf = new Interface(null, CP31, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                        INTF_VLAN_UNTAGGED, null, null);
+            } else if (CP39.equals(cp)) {
+                intf = new Interface(null, CP39, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                        null, INTF_VLAN_PAIR, null);
+            } else if (CP41.equals(cp)) {
+                intf = new Interface(null, CP41, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                        INTF_VLAN_UNTAGGED, null, null);
+            } else if (CP49.equals(cp)) {
+                intf = new Interface(null, CP49, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                        null, INTF_VLAN_PAIR, null);
             }
-
             return Objects.nonNull(intf) ? Sets.newHashSet(intf) : Sets.newHashSet();
+        }
+    }
+
+    class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            if (subject instanceof DeviceId) {
+                DeviceId deviceId = (DeviceId) subject;
+                ObjectMapper mapper = new ObjectMapper();
+                ConfigApplyDelegate delegate = new MockCfgDelegate();
+                JsonNode emptyTree = new ObjectMapper().createObjectNode();
+
+                SegmentRoutingDeviceConfig config = new SegmentRoutingDeviceConfig();
+                config.init(deviceId, "host-handler-test", emptyTree, mapper, delegate);
+                config.setPairDeviceId(subject.equals(DEV3) ? DEV4 : DEV3)
+                        .setPairLocalPort(P9);
+
+                return (C) config;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    class MockCfgDelegate implements ConfigApplyDelegate {
+        @Override
+        public void onApply(@SuppressWarnings("rawtypes") Config config) {
+            config.apply();
         }
     }
 

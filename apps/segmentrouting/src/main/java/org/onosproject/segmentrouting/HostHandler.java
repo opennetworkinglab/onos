@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -100,42 +102,77 @@ public class HostHandler {
     }
 
     private void processHostRemoved(Host host) {
-        MacAddress mac = host.mac();
-        VlanId vlanId = host.vlan();
+        MacAddress hostMac = host.mac();
+        VlanId hostVlanId = host.vlan();
         Set<HostLocation> locations = host.locations();
         Set<IpAddress> ips = host.ipAddresses();
-        log.info("Host {}/{} is removed from {}", mac, vlanId, locations);
+        log.info("Host {}/{} is removed from {}", hostMac, hostVlanId, locations);
 
         locations.forEach(location -> {
-            processBridgingRule(location.deviceId(), location.port(), mac, vlanId, true);
+            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
             ips.forEach(ip ->
-                processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, true)
+                processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
             );
+
+            // Also remove redirection flows on the pair device if exists.
+            Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
+            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(location.deviceId());
+            if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
+                // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
+                //       when the host is untagged
+                VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+
+                processBridgingRule(pairDeviceId.get(), pairLocalPort.get(), hostMac, vlanId, true);
+                ips.forEach(ip ->
+                        processRoutingRule(pairDeviceId.get(), pairLocalPort.get(), hostMac, vlanId,
+                                ip, true));
+            }
         });
     }
 
     void processHostMovedEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
+        MacAddress hostMac = event.subject().mac();
+        VlanId hostVlanId = event.subject().vlan();
         Set<HostLocation> prevLocations = event.prevSubject().locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
         Set<HostLocation> newLocations = event.subject().locations();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.info("Host {}/{} is moved from {} to {}", mac, vlanId, prevLocations, newLocations);
+        log.info("Host {}/{} is moved from {} to {}", hostMac, hostVlanId, prevLocations, newLocations);
 
         Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
                 .collect(Collectors.toSet());
 
         // For each old location
         Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
-            // TODO Switch to backup link when pair device is configured
+            // Remove routing rules for old IPs
+            Sets.difference(prevIps, newIps).forEach(ip ->
+                    processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
+                            ip, true)
+            );
+
+            // Redirect the flows to pair link if configured
+            // Note: Do not continue removing any rule
+            Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId());
+            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(prevLocation.deviceId());
+            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() && newLocations.stream()
+                    .anyMatch(location -> location.deviceId().equals(pairDeviceId.get()))) {
+                // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
+                //       when the host is untagged
+                VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(prevLocation)).orElse(hostVlanId);
+
+                processBridgingRule(prevLocation.deviceId(), pairLocalPort.get(), hostMac, vlanId, false);
+                newIps.forEach(ip ->
+                        processRoutingRule(prevLocation.deviceId(), pairLocalPort.get(), hostMac, vlanId,
+                            ip, false));
+                return;
+            }
 
             // Remove bridging rule and routing rules for unchanged IPs if the host moves from a switch to another.
             // Otherwise, do not remove and let the adding part update the old flow
             if (!newDeviceIds.contains(prevLocation.deviceId())) {
-                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId, true);
+                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId, true);
                 Sets.intersection(prevIps, newIps).forEach(ip ->
-                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
+                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
                                 ip, true)
                 );
             }
@@ -146,12 +183,12 @@ public class HostHandler {
                 VlanId oldAssignedVlan = srManager.getInternalVlanId(prevLocation);
                 VlanId newAssignedVlan = srManager.getInternalVlanId(newLocation);
                 // Host is tagged and the new location has the host vlan in vlan-tagged
-                return srManager.getTaggedVlanId(newLocation).contains(vlanId) ||
+                return srManager.getTaggedVlanId(newLocation).contains(hostVlanId) ||
                         (oldAssignedVlan != null && newAssignedVlan != null &&
                         // Host is untagged and the new location has the same assigned vlan
                         oldAssignedVlan.equals(newAssignedVlan));
             })) {
-                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId, true);
+                processBridgingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId, true);
             }
 
             // Remove routing rules for unchanged IPs if none of the subnet of new location contains
@@ -159,23 +196,17 @@ public class HostHandler {
             Sets.intersection(prevIps, newIps).forEach(ip -> {
                 if (newLocations.stream().noneMatch(newLocation ->
                         srManager.deviceConfiguration.inSameSubnet(newLocation, ip))) {
-                    processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
+                    processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
                             ip, true);
                 }
             });
-
-            // Remove routing rules for old IPs
-            Sets.difference(prevIps, newIps).forEach(ip ->
-                processRoutingRule(prevLocation.deviceId(), prevLocation.port(), mac, vlanId,
-                        ip, true)
-            );
         });
 
         // For each new location, add all new IPs.
         Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
-            processBridgingRule(newLocation.deviceId(), newLocation.port(), mac, vlanId, false);
+            processBridgingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId, false);
             newIps.forEach(ip ->
-                    processRoutingRule(newLocation.deviceId(), newLocation.port(), mac, vlanId,
+                    processRoutingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId,
                             ip, false)
             );
         });
@@ -183,13 +214,13 @@ public class HostHandler {
         // For each unchanged location, add new IPs and remove old IPs.
         Sets.intersection(newLocations, prevLocations).forEach(unchangedLocation -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
-                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), mac,
-                            vlanId, ip, true)
+                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
+                            hostVlanId, ip, true)
             );
 
             Sets.difference(newIps, prevIps).forEach(ip ->
-                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), mac,
-                        vlanId, ip, false)
+                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
+                        hostVlanId, ip, false)
             );
         });
     }
