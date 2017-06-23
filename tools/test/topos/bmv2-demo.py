@@ -10,6 +10,11 @@ if 'ONOS_ROOT' not in os.environ:
 else:
     ONOS_ROOT = os.environ["ONOS_ROOT"]
     sys.path.append(ONOS_ROOT + "/tools/dev/mininet")
+if 'RUN_PACK_PATH' not in os.environ:
+    print "Environment var $RUN_PACK_PATH not set"
+    exit()
+else:
+    RUN_PACK_PATH = os.environ["RUN_PACK_PATH"]
 
 from onos import ONOSCluster, ONOSCLI
 from bmv2 import ONOSBmv2Switch
@@ -161,7 +166,7 @@ def main(args):
     # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
 
     print "Setting netcfg..."
-    call(("%s/tools/test/bin/onos-netcfg" % ONOS_ROOT, onosIp,
+    call(("%s/onos-netcfg" % RUN_PACK_PATH, onosIp,
           "%s/tools/test/topos/bmv2-demo-cfg.json" % ONOS_ROOT))
 
     if not args.onos_ip:

@@ -25,7 +25,8 @@ export KARAF_LOG=$KARAF_ROOT/data/log/karaf.log
 # Setup a path
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/test/bin:$ONOS_ROOT/tools/test/scenarios/bin"
-export PATH="$ONOS_ROOT/tools/package/runtime/bin:$PATH"
+export RUN_PACK_PATH=${RUN_PACK_PATH:-$ONOS_ROOT/tools/package/runtime/bin}
+export PATH="$RUN_PACK_PATH:$PATH"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
 export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 

@@ -232,8 +232,8 @@ def setup(argv):
         with open(filename, 'w') as outfile:
             json.dump(domainCfgs[i], outfile, indent=4, separators=(',', ': '))
 
-        output = quietRun('%s/tools/test/bin/onos-netcfg %s %s &'\
-                           % (LINCSwitch.onosDir,
+        output = quietRun('%s/onos-netcfg %s %s &'\
+                           % (LINCSwitch.runPackDir,
                               domains[i].getControllers()[0].ip,
                               filename), shell=True)
         # successful output contains the two characters '{}'

@@ -264,7 +264,7 @@ class LINCSwitch(OpticalSwitch):
     sysConfig = "/home/{}/linc-oe/rel/linc/releases/1.0/sys.config".format(user)
     ### dict of containing dpids as key and corresponding LINC switchId as values ###
     dpidsToLINCSwitchId = dpids_to_ids(sysConfig)
-    
+
     ### ONOS Directory ###
     try:
         onosDir = os.environ[ 'ONOS_ROOT' ]
@@ -274,6 +274,12 @@ class LINCSwitch(OpticalSwitch):
             error('Please set ONOS_ROOT environment variable!\n')
         else:
             os.environ[ 'ONOS_ROOT' ] = onosDir
+    ### ONOS-netcfg directory ###
+    try:
+        runPackDir = os.environ[ 'RUN_PACK_PATH' ]
+    except:
+        runPackDir = onosDir+"/tools/package/runtime/bin"
+        os.environ[ 'RUN_PACK_PATH' ] = runPackDir
     ### REST USER/PASS ###
     try:
         restUser = os.environ[ 'ONOS_WEB_USER' ]
@@ -412,8 +418,8 @@ class LINCSwitch(OpticalSwitch):
         with open("crossConnect.json", 'w') as fd:
             json.dump(crossConnectJSON, fd, indent=4, separators=(',', ': '))
         info('*** Pushing crossConnect.json to ONOS\n')
-        output = quietRun('%s/tools/test/bin/onos-netcfg %s\
-         Topology.json' % (self.onosDir, self.controllers[ 0 ].ip), shell=True)
+        output = quietRun('%s/onos-netcfg %s\
+         Topology.json' % (self.runPackDir, self.controllers[ 0 ].ip), shell=True)
 
     def stop_oe(self):
         '''
@@ -578,8 +584,8 @@ class LINCSwitch(OpticalSwitch):
 
         info('*** Pushing Topology.json to ONOS\n')
         for index in range(len(LINCSwitch.controllers)):
-            output = quietRun('%s/tools/test/bin/onos-netcfg %s Topology.json &'\
-                               % (LINCSwitch.onosDir, LINCSwitch.controllers[ index ].ip), shell=True)
+            output = quietRun('%s/onos-netcfg %s Topology.json &'\
+                               % (LINCSwitch.runPackDir, LINCSwitch.controllers[ index ].ip), shell=True)
             # successful output contains the two characters '{}'
             # if there is more output than this, there is an issue
             if output.strip('{}'):
