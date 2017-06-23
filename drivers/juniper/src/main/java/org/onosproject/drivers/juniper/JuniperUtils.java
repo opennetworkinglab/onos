@@ -17,7 +17,10 @@
 package org.onosproject.drivers.juniper;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.ChassisId;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -39,18 +42,23 @@ import org.slf4j.Logger;
 import com.google.common.base.Strings;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.onosproject.drivers.juniper.StaticRoute.DEFAULT_METRIC_STATIC_ROUTE;
+import static org.onosproject.drivers.juniper.StaticRoute.toFlowRulePriority;
 import static org.onosproject.net.Device.Type.ROUTER;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.slf4j.LoggerFactory.getLogger;
 
 // Ref: Junos YANG:
 //   https://github.com/Juniper/yang
+
 /**
  * Utility class for Netconf XML for Juniper.
  * Tested with MX240 junos 14.2
@@ -95,6 +103,8 @@ public final class JuniperUtils {
             ".*Private base address\\s*([:,0-9,a-f,A-F]*).*";
     private static final Pattern ADD_PATTERN =
             Pattern.compile(REGEX_ADD, Pattern.DOTALL);
+
+    public static final String PROTOCOL_NAME = "protocol-name";
 
     private static final String JUNIPER = "JUNIPER";
     private static final String UNKNOWN = "UNKNOWN";
@@ -159,6 +169,80 @@ public final class JuniperUtils {
         return RPC_TAG_NETCONF_BASE +
                 request + RPC_CLOSE_TAG;
     }
+
+    /**
+     * Helper method to commit a config.
+     *
+     * @return string contains the result of the commit
+     */
+    public static String commitBuilder() {
+        return RPC_TAG_NETCONF_BASE +
+                "<commit/>" + RPC_CLOSE_TAG;
+    }
+
+    /**
+     * Helper method to build the schema for returning to a previously
+     * committed configuration.
+     *
+     * @param versionToReturn Configuration to return to. The range of values is from 0 through 49.
+     *                        The most recently saved configuration is number 0,
+     *                        and the oldest saved configuration is number 49.
+     * @return string containing the XML schema
+     */
+    public static String rollbackBuilder(int versionToReturn) {
+        return RPC_TAG_NETCONF_BASE +
+                "<get-rollback-information>" +
+                "<rollback>" + versionToReturn + "</rollback>" +
+                "</get-rollback-information>" +
+                RPC_CLOSE_TAG;
+    }
+
+
+    /**
+     * Helper method to build an XML schema to configure a static route
+     * given a {@link StaticRoute}.
+     *
+     * @param staticRoute the static route to be configured
+     * @return string contains the result of the configuration
+     */
+    public static String routeAddBuilder(StaticRoute staticRoute) {
+        StringBuilder rpc = new StringBuilder("<configuration>\n");
+        rpc.append("<routing-options>\n");
+        rpc.append("<static>\n");
+        rpc.append("<route>\n");
+        rpc.append("<destination>" + staticRoute.ipv4Dst().toString() + "</destination>\n");
+        rpc.append("<next-hop>" + staticRoute.nextHop() + "</next-hop>\n");
+
+        if (staticRoute.getMetric() != DEFAULT_METRIC_STATIC_ROUTE) {
+            rpc.append("<metric>" + staticRoute.getMetric() + "</metric>");
+        }
+
+        rpc.append("</route>\n");
+        rpc.append("</static>\n");
+        rpc.append("</routing-options>\n");
+        rpc.append("</configuration>\n");
+
+        return rpc.toString();
+    }
+
+    /**
+     * Helper method to build a XML schema to delete a static route
+     * given a {@link StaticRoute}.
+     * @param staticRoute the static route to be deleted
+     * @return string contains the result of the configuratio
+     */
+    public static String routeDeleteBuilder(StaticRoute staticRoute) {
+        return "<configuration>\n" +
+        "<routing-options>\n" +
+        "<static>\n" +
+        "<route operation=\"delete\">\n" +
+        "<name>" + staticRoute.ipv4Dst().toString() + "</name>\n" +
+        "</route>\n" +
+        "</static>\n" +
+        "</routing-options>\n" +
+        "</configuration>\n";
+    }
+
 
     /**
      * Parses device configuration and returns the device description.
@@ -456,6 +540,70 @@ public final class JuniperUtils {
             this.localPortName = pName;
             this.remoteChassisId = new ChassisId(chassisId);
             this.remotePortIndex = pIndex;
+        }
+    }
+
+    protected enum OperationType {
+        ADD,
+        REMOVE,
+    }
+
+    /**
+     * Parses {@literal route-information} tree.
+     * This implementation supports only static routes.
+     *
+     * @param cfg route-information
+     * @return a collection of static routes
+     */
+    public static Collection<StaticRoute> parseRoutingTable(HierarchicalConfiguration cfg) {
+
+        Collection<StaticRoute> staticRoutes = new HashSet<>();
+        HierarchicalConfiguration routeInfo =
+                cfg.configurationAt("route-information");
+        List<HierarchicalConfiguration> routeTables = routeInfo.configurationsAt("route-table");
+        for (HierarchicalConfiguration routeTable : routeTables) {
+            List<HierarchicalConfiguration> routes = routeTable.configurationsAt("rt");
+            for (HierarchicalConfiguration route : routes) {
+                if (route != null) {
+                    HierarchicalConfiguration rtEntry = route.configurationAt("rt-entry");
+                    if (rtEntry.getString(PROTOCOL_NAME) != null &&
+                            rtEntry.getString(PROTOCOL_NAME).contains("Static")) {
+                        parseStaticRoute(rtEntry,
+                                route.getString("rt-destination"),
+                                rtEntry.getString("metric"))
+                                .ifPresent(x -> staticRoutes.add(x));
+
+                    }
+                }
+            }
+        }
+        return staticRoutes;
+    }
+
+    /**
+     * Parse the {@literal rt-entry} for static routes.
+     *
+     * @param rtEntry     rt-entry filtered by {@literal protocol-name} equals to Static
+     * @param destination rt-destination
+     * @return optional of static route
+     */
+    private static Optional<StaticRoute> parseStaticRoute(HierarchicalConfiguration rtEntry,
+                                                          String destination, String metric) {
+
+        Ip4Prefix ipDst = Ip4Prefix.valueOf(destination);
+
+        HierarchicalConfiguration nextHop = rtEntry.configurationAt("nh");
+        String to = nextHop.getString("to");
+        if (StringUtils.isEmpty(to)) {
+            return Optional.empty();
+        }
+        Ip4Address nextHopIp = Ip4Address.valueOf(to);
+
+        if (metric == null) {
+            return Optional.of(new StaticRoute(ipDst, nextHopIp, false));
+        } else {
+            return Optional.of(new StaticRoute(ipDst, nextHopIp, false,
+                    toFlowRulePriority(Integer.parseInt(metric))));
         }
     }
 }

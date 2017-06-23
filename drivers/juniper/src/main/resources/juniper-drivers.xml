@@ -19,6 +19,8 @@
             hwVersion="" swVersion="JunOS">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.juniper.DeviceDiscoveryJuniperImpl"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.juniper.FlowRuleJuniperImpl"/>
         <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
                    impl="org.onosproject.drivers.juniper.LinkDiscoveryJuniperImpl"/>
     </driver>
