@@ -109,9 +109,16 @@ public class UiExtensionManager
     private static final String LION_BASE = "/org/onosproject/ui/lion";
 
     private static final String[] LION_TAGS = {
+            // framework component localization
+            "core.fw.Mast",
+            "core.fw.Nav",
+            "core.fw.QuickHelp",
+
+            // view component localization
+            "core.view.App",
             "core.view.Cluster",
 
-            // TODO: fill this out, once we have written the other config files
+            // TODO: More to come...
     };
 
 
