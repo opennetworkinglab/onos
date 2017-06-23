@@ -4,7 +4,6 @@ COMPILE_DEPS = [
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/snmp/api:onos-protocols-snmp-api',
     '//protocols/tl1/api:onos-protocols-tl1-api',
-    '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
     '//incubator/api:onos-incubator-api',
     '//apps/optical-model:onos-apps-optical-model',
     '//drivers/optical:onos-drivers-optical',

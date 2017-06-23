@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.tl1.device.impl;
+package org.onosproject.tl1.device;
 
 import com.google.common.annotations.Beta;
 import org.apache.commons.lang3.tuple.Pair;
@@ -27,6 +27,11 @@ import org.onosproject.net.config.Config;
  */
 @Beta
 public class Tl1DeviceConfig extends Config<DeviceId> {
+
+    /**
+     * TL1 provider scheme and ConfigKey.
+     */
+    public static final String TL1 = "tl1";
 
     private static final String IP = "ip";
     private static final String PORT = "port";
@@ -78,7 +83,7 @@ public class Tl1DeviceConfig extends Config<DeviceId> {
 
     private Pair<String, Integer> extractIpPort() {
         String info = subject.toString();
-        if (info.startsWith(Tl1DeviceProvider.TL1)) {
+        if (info.startsWith(TL1)) {
             //+1 is due to length of colon separator
             String ip = info.substring(info.indexOf(":") + 1, info.lastIndexOf(":"));
             int port = Integer.parseInt(info.substring(info.lastIndexOf(":") + 1));

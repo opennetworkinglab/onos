@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.tl1.impl;
-
-import org.onosproject.tl1.Tl1Command;
+package org.onosproject.tl1;
 
 import java.util.Optional;
 

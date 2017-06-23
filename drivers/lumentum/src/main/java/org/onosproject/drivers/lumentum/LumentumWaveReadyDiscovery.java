@@ -31,10 +31,10 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.tl1.DefaultTl1Command;
 import org.onosproject.tl1.Tl1Command;
 import org.onosproject.tl1.Tl1Controller;
 import org.onosproject.tl1.Tl1Device;
-import org.onosproject.tl1.impl.DefaultTl1Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
