@@ -31,6 +31,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
+import org.onosproject.net.flow.criteria.PiCriterion;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.flow.criteria.Criterion.Type.EXTENSION;
 
 /**
@@ -410,6 +412,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchArpOp(int arpOp) {
             return add(Criteria.matchArpOp(arpOp));
+        }
+
+        @Override
+        public Builder matchPi(PiCriterion piCriterion) {
+            return add(checkNotNull(piCriterion, "Protocol-independent criterion cannot be null"));
         }
 
         @Override

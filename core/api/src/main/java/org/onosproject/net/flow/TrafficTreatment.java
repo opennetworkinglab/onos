@@ -17,6 +17,7 @@ package org.onosproject.net.flow;
 
 import java.util.List;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -30,6 +31,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.pi.runtime.PiTableAction;
 
 /**
  * Abstraction of network traffic treatment.
@@ -394,6 +396,15 @@ public interface TrafficTreatment {
          * @return a treatment builder.
          */
         Builder setArpOp(short op);
+
+        /**
+         * Sets the protocol independent table action.
+         *
+         * @param piTableAction protocol-independent table action
+         * @return a treatment builder.
+         */
+        @Beta
+        Builder piTableAction(PiTableAction piTableAction);
 
         /**
          * Uses an extension treatment.
