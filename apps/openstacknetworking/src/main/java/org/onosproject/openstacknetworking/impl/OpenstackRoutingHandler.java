@@ -20,14 +20,19 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -65,9 +70,11 @@ import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -84,7 +91,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_OVS_SNAT_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
@@ -103,6 +110,11 @@ public class OpenstackRoutingHandler {
     private static final String MSG_DISABLED = "Disabled ";
     private static final String ERR_SET_FLOWS = "Failed to set flows for router %s:";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
+    private static final boolean USE_STATEFUL_SNAT = false;
+
+    @Property(name = "useStatefulSnat", boolValue = USE_STATEFUL_SNAT,
+            label = "Use Stateful SNAT for source NATing")
+    private boolean useStatefulSnat = USE_STATEFUL_SNAT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -137,6 +149,9 @@ public class OpenstackRoutingHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
     private final ExecutorService eventExecutor = newSingleThreadScheduledExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
@@ -154,6 +169,7 @@ public class OpenstackRoutingHandler {
         osNodeService.addListener(osNodeListener);
         osRouterService.addListener(osRouterListener);
         instancePortService.addListener(instancePortListener);
+        configService.registerProperties(getClass());
 
         log.info("Started");
     }
@@ -164,9 +180,28 @@ public class OpenstackRoutingHandler {
         osNodeService.removeListener(osNodeListener);
         instancePortService.removeListener(instancePortListener);
         leadershipService.withdraw(appId.name());
+        configService.unregisterProperties(getClass(), false);
         eventExecutor.shutdown();
 
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "useStatefulSnat");
+        if (flag == null) {
+            log.info("useStatefulSnat is not configured, " +
+                    "using current value of {}", useStatefulSnat);
+        } else {
+            useStatefulSnat = flag;
+            log.info("Configured. useStatefulSnat is {}",
+                    useStatefulSnat ? "enabled" : "disabled");
+        }
+
+        resetSnatRules();
     }
 
     private void routerUpdated(Router osRouter) {
@@ -229,7 +264,29 @@ public class OpenstackRoutingHandler {
                     install);
         });
 
-        IpAddress natAddress = getGatewayIpAddress(osRouter);
+        if (useStatefulSnat) {
+            setStatefulSnatRules(routerIface, install);
+        } else {
+            setReactiveSnatRules(routerIface, install);
+        }
+
+        final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
+        log.info(updateStr + "external access for subnet({})", osSubnet.getCidr());
+    }
+
+    private void setStatefulSnatRules(RouterInterface routerIface, boolean install) {
+        Subnet osSubnet = osNetworkService.subnet(routerIface.getSubnetId());
+        Network osNet = osNetworkService.network(osSubnet.getNetworkId());
+
+        Optional<Router> osRouter = osRouterService.routers().stream()
+                .filter(router -> osRouterService.routerInterfaces(routerIface.getId()) != null)
+                .findAny();
+
+        if (!osRouter.isPresent()) {
+            log.error("Cannot find a router for router interface {} ", routerIface);
+            return;
+        }
+        IpAddress natAddress = getGatewayIpAddress(osRouter.get());
         if (natAddress == null) {
             return;
         }
@@ -251,9 +308,19 @@ public class OpenstackRoutingHandler {
                                 natAddress, Long.parseLong(osNet.getProviderSegID()),
                                 gwNode.patchPortNum(), install);
                 });
+    }
 
-        final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
-        log.info(updateStr + "external access for subnet({})", osSubnet.getCidr());
+    private void setReactiveSnatRules(RouterInterface routerIface, boolean install) {
+        Subnet osSubnet = osNetworkService.subnet(routerIface.getSubnetId());
+        Network osNet = osNetworkService.network(osSubnet.getNetworkId());
+
+        osNodeService.completeNodes(GATEWAY)
+                .forEach(gwNode -> setRulesToController(
+                        gwNode.intgBridge(),
+                        osNet.getProviderSegID(),
+                        IpPrefix.valueOf(osSubnet.getCidr()),
+                        osNet.getNetworkType(),
+                        install));
     }
 
     private IpAddress getGatewayIpAddress(Router osRouter) {
@@ -269,6 +336,24 @@ public class OpenstackRoutingHandler {
         }
 
         return IpAddress.valueOf(extSubnet.get().getGateway());
+    }
+
+    private void resetSnatRules() {
+        if (useStatefulSnat) {
+            osRouterService.routerInterfaces().forEach(
+                    routerIface -> {
+                        setReactiveSnatRules(routerIface, false);
+                        setStatefulSnatRules(routerIface, true);
+                    }
+            );
+        } else {
+            osRouterService.routerInterfaces().forEach(
+                    routerIface -> {
+                        setStatefulSnatRules(routerIface, false);
+                        setReactiveSnatRules(routerIface, true);
+                    }
+            );
+        }
     }
 
     private void setGatewayIcmp(Subnet osSubnet, boolean install) {
@@ -628,7 +713,7 @@ public class OpenstackRoutingHandler {
                 deviceId,
                 selector,
                 treatment,
-                PRIORITY_OVS_SNAT_RULE,
+                PRIORITY_STATEFUL_SNAT_RULE,
                 GW_COMMON_TABLE,
                 install);
     }
@@ -660,11 +745,72 @@ public class OpenstackRoutingHandler {
                 deviceId,
                 selector,
                 treatment,
-                PRIORITY_OVS_SNAT_RULE,
+                PRIORITY_STATEFUL_SNAT_RULE,
                 GW_COMMON_TABLE,
                 install);
     }
 
+    private void setRulesToController(DeviceId deviceId, String segmentId, IpPrefix srcSubnet,
+                                      NetworkType networkType, boolean install) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(srcSubnet);
+
+        switch (networkType) {
+            case VXLAN:
+                sBuilder.matchTunnelId(Long.parseLong(segmentId))
+                        .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
+                break;
+            case VLAN:
+                sBuilder.matchVlanId(VlanId.vlanId(segmentId))
+                        .matchEthDst(osNodeService.node(deviceId).vlanPortMac());
+                break;
+            default:
+                final String error = String.format(
+                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        networkType.toString());
+                throw new IllegalStateException(error);
+        }
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setEthDst(Constants.DEFAULT_GATEWAY_MAC);
+
+        if (networkType.equals(NetworkType.VLAN)) {
+            tBuilder.popVlan();
+        }
+
+        tBuilder.setOutput(PortNumber.CONTROLLER);
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_EXTERNAL_ROUTING_RULE,
+                GW_COMMON_TABLE,
+                install);
+
+
+        // Sends ICMP response to controller for SNATing ingress traffic
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                .matchIcmpType(ICMP.TYPE_ECHO_REPLY)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.CONTROLLER)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                selector,
+                treatment,
+                PRIORITY_INTERNAL_ROUTING_RULE,
+                GW_COMMON_TABLE,
+                install);
+    }
 
     private class InternalRouterEventListener implements OpenstackRouterListener {
 
