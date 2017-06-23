@@ -83,7 +83,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
+import java.util.concurrent.CountDownLatch;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -94,7 +94,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.onlab.junit.TestTools.assertAfter;
 import static org.onosproject.provider.netconf.device.impl.NetconfDeviceProvider.APP_NAME;
 import static org.onosproject.provider.netconf.device.impl.NetconfDeviceProvider.SCHEME_NAME;
 
@@ -173,6 +172,8 @@ public class NetconfDeviceProviderTest {
     private boolean available = false;
     private boolean firstRequest = true;
 
+    private CountDownLatch deviceAdded;
+
     @Before
     public void setUp() throws IOException {
         coreService = createMock(CoreService.class);
@@ -205,6 +206,7 @@ public class NetconfDeviceProviderTest {
         JsonNode jsonNodeEmpty = mapper.createObjectNode();
         netconfDeviceConfigEmptyIpv4.init(subject, key, jsonNodeEmpty, mapper, delegate);
         netconfDeviceConfigEmptyIpv6.init(subjectIpv6, key, jsonNodeEmpty, mapper, delegate);
+        deviceAdded = new CountDownLatch(0);
     }
 
     @Test
@@ -263,34 +265,36 @@ public class NetconfDeviceProviderTest {
 
     @Test
     @Ignore("Test is brittle")
-    public void addDeviceOld() {
+    public void addDeviceOld() throws InterruptedException {
+        // expecting 1 device add
+        deviceAdded = new CountDownLatch(1);
         assertNotNull(providerService);
         assertTrue("Event should be relevant", provider.cfgListener.isRelevant(deviceAddedEvent));
         assertTrue("Event should be relevant", provider.cfgListener.isRelevant(deviceAddedEventOld));
         available = true;
         provider.cfgListener.event(deviceAddedEventOld);
 
-        assertAfter(DELAY_DISCOVERY, DELAY_DURATION_DISCOVERY, () -> {
-            assertEquals("Device should be added", 1, deviceStore.getDeviceCount());
-            assertTrue("Device incorrectly added" + NETCONF_DEVICE_ID_STRING_OLD,
-                       devices.containsKey(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING_OLD)));
-        });
+        deviceAdded.await();
+        assertEquals("Device should be added", 1, deviceStore.getDeviceCount());
+        assertTrue("Device incorrectly added" + NETCONF_DEVICE_ID_STRING_OLD,
+                   devices.containsKey(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING_OLD)));
         devices.clear();
     }
 
     @Test
-    public void addDeviceNew() {
+    public void addDeviceNew() throws InterruptedException {
+        // expecting 1 device add
+        deviceAdded = new CountDownLatch(1);
         assertNotNull(providerService);
         assertTrue("Event should be relevant", provider.cfgListener.isRelevant(deviceAddedEvent));
         assertTrue("Event should be relevant", provider.cfgListener.isRelevant(deviceAddedEventOld));
         available = true;
         provider.cfgListener.event(deviceAddedEvent);
 
-        assertAfter(DELAY_DISCOVERY, DELAY_DURATION_DISCOVERY, () -> {
-            assertEquals("Device should be added", 1, deviceStore.getDeviceCount());
-            assertTrue("Device incorrectly added" + NETCONF_DEVICE_ID_STRING,
-                       devices.containsKey(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING)));
-        });
+        deviceAdded.await();
+        assertEquals("Device should be added", 1, deviceStore.getDeviceCount());
+        assertTrue("Device incorrectly added" + NETCONF_DEVICE_ID_STRING,
+                   devices.containsKey(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING)));
         devices.clear();
     }
 
@@ -420,6 +424,7 @@ public class NetconfDeviceProviderTest {
                                                     desc.manufacturer(), desc.hwVersion(),
                                                     desc.swVersion(), desc.serialNumber(),
                                                     desc.chassisId(), desc.annotations()));
+            deviceAdded.countDown();
             return null;
         }
 
