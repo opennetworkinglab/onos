@@ -18,12 +18,12 @@ package org.onosproject.kafkaintegration.converter;
 import com.google.protobuf.GeneratedMessageV3;
 
 import org.onosproject.event.Event;
-import org.onosproject.grpc.net.Device.DeviceCore;
-import org.onosproject.grpc.net.Device.DeviceType;
-import org.onosproject.grpc.net.DeviceEvent.DeviceEventType;
-import org.onosproject.grpc.net.DeviceEvent.DeviceNotification;
-import org.onosproject.grpc.net.Port.PortCore;
-import org.onosproject.grpc.net.Port.PortType;
+import org.onosproject.grpc.net.models.DeviceProtoOuterClass.DeviceProto;
+import org.onosproject.grpc.net.models.DeviceEnums.DeviceType;
+import org.onosproject.grpc.net.models.DeviceEnums.DeviceEventType;
+import org.onosproject.grpc.net.models.DeviceEventProto.DeviceNotification;
+import org.onosproject.grpc.net.models.PortEnums.PortType;
+import org.onosproject.grpc.net.models.PortProtoOuterClass;
 import org.onosproject.net.device.DeviceEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class DeviceEventConverter implements EventConverter {
 
         if (!deviceEventTypeSupported(deviceEvent)) {
             log.error("Unsupported Onos Device Event {}. There is no matching"
-                    + "proto Device Event type", deviceEvent.type().toString());
+                              + "proto Device Event type", deviceEvent.type().toString());
             return null;
         }
 
@@ -70,8 +70,8 @@ public class DeviceEventConverter implements EventConverter {
         DeviceNotification.Builder notificationBuilder =
                 DeviceNotification.newBuilder();
 
-        DeviceCore deviceCore =
-                DeviceCore.newBuilder()
+        DeviceProto deviceCore =
+                DeviceProto.newBuilder()
                         .setChassisId(deviceEvent.subject().chassisId().id()
                                               .toString())
                         .setDeviceId(deviceEvent.subject().id().toString())
@@ -83,10 +83,10 @@ public class DeviceEventConverter implements EventConverter {
                                          .valueOf(deviceEvent.subject().type().name()))
                         .build();
 
-        PortCore portCore = null;
+        PortProtoOuterClass.PortProto portProto = null;
         if (deviceEvent.port() != null) {
-            portCore =
-                    PortCore.newBuilder()
+            portProto =
+                    PortProtoOuterClass.PortProto.newBuilder()
                             .setIsEnabled(deviceEvent.port().isEnabled())
                             .setPortNumber(deviceEvent.port().number()
                                                    .toString())
@@ -95,7 +95,7 @@ public class DeviceEventConverter implements EventConverter {
                                              .valueOf(deviceEvent.port().type().name()))
                             .build();
 
-            notificationBuilder.setPort(portCore);
+            notificationBuilder.setPort(portProto);
         }
 
         notificationBuilder.setDeviceEventType(getProtoType(deviceEvent))

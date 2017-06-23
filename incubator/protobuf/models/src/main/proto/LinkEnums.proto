@@ -1,0 +1,40 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package Link;
+
+enum LinkType {
+    // Signifies that this is a direct single-segment link.
+    DIRECT = 0;
+
+    // Signifies that this link is potentially comprised from multiple
+    // underlying segments or hops, and as such should be used to tag
+    // links traversing optical paths, tunnels or intervening 'dark'
+    // switches.
+    INDIRECT = 1;
+
+    // Signifies that this link is an edge, i.e. host link.
+    EDGE = 2;
+
+    // Signifies that this link represents a logical link backed by
+    // some form of a tunnel, e.g., GRE, MPLS, ODUk, OCH.
+    TUNNEL = 3;
+
+    // Signifies that this link is realized by fiber (either single channel or WDM).
+    OPTICAL = 4;
+
+    // Signifies that this link is a virtual link or a pseudo-wire.
+    VIRTUAL = 5;
+}
+
+enum LinkState {
+    ACTIVE = 0;
+    INACTIVE = 1;
+}
+
+// Link Event Types
+enum LinkEventType {
+    LINK_ADDED = 0;
+    LINK_UPDATED = 1;
+    LINK_REMOVED = 2;
+}

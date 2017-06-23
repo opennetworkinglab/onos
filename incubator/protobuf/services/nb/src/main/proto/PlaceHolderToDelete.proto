@@ -1,0 +1,6 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.net.services.nb";
+
+message ToDelete{
+
+}

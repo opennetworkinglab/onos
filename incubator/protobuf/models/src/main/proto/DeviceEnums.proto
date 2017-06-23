@@ -1,0 +1,39 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package Device;
+
+enum MastershipRole {
+    NONE = 0;
+    MASTER = 1;
+    STANDBY = 2;
+}
+
+enum DeviceType {
+    OTHER = 0;
+    SWITCH = 1;
+    ROUTER = 2;
+    ROADM = 3;
+    OTN = 4;
+    ROADM_OTN = 5;
+    FIREWALL = 6;
+    BALANCER = 7;
+    IPS = 8;
+    IDS = 9;
+    CONTROLLER = 10;
+    VIRTUAL = 11;
+    FIBER_SWITCH = 12;
+    MICROWAVE = 13;
+}
+
+enum DeviceEventType {
+    DEVICE_ADDED = 0;
+    DEVICE_UPDATED = 1;
+    DEVICE_REMOVED = 2;
+    DEVICE_SUSPENDED = 3;
+    DEVICE_AVAILABILITY_CHANGED = 4;
+    PORT_ADDED = 5;
+    PORT_UPDATED = 6;
+    PORT_REMOVED = 7;
+    PORT_STATS_UPDATED = 8;
+}

@@ -52,7 +52,7 @@ def fetch_protoc_binary(
 
 def fetch_grpc_plugin_binary(
         grpc_plugin_version = GRPC_PLUGIN_VERSION
-):
+    ):
     file_name = "protoc-gen-grpc-java-%s-%s.exe" % (grpc_plugin_version, get_system_arch())
     if file_name not in GRPC_JAVA_SHA1S:
         raise Exception('Cannot download %s, architecture not supported' % file_name)
@@ -79,10 +79,10 @@ def grpc_jar(
     name = None,
     deps = [],
     #NOTE: if targeting a directory also built with maven this path MUST end in
-        # /proto because maven plugin interprets imports relative to the proto
-        # directory and BUCK interprets imports relative to the last directory
-        # listed in the first listed proto_path which contains the specified
-        # file
+    # /proto because maven plugin interprets imports relative to the proto
+    # directory and BUCK interprets imports relative to the last directory
+    # listed in the first listed proto_path which contains the specified
+    # file
     proto_paths = [],
     proto_match_patterns = [ "**/proto/**/*.proto" ],
     protoc_version = PROTOC_VERSION,
@@ -112,7 +112,7 @@ def grpc_jar(
               + '$SRCS',
     )
 
-    osgi_jar_with_tests(
+    osgi_jar(
         name = name,
         srcs = [ ':' + protoc ],
         deps = deps + [ ':' + protoc ],

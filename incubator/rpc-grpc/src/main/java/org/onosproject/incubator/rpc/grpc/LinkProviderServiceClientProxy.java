@@ -15,7 +15,7 @@
  */
 package org.onosproject.incubator.rpc.grpc;
 
-import static org.onosproject.incubator.protobuf.net.ProtobufUtils.asMap;
+import static org.onosproject.incubator.protobuf.models.ProtobufUtils.asMap;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;

@@ -16,12 +16,12 @@
 package org.onosproject.kafkaintegration.converter;
 
 import org.onosproject.event.Event;
-import org.onosproject.grpc.net.Link.ConnectPoint;
-import org.onosproject.grpc.net.Link.LinkCore;
-import org.onosproject.grpc.net.Link.LinkState;
-import org.onosproject.grpc.net.Link.LinkType;
-import org.onosproject.grpc.net.LinkEvent.LinkEventType;
-import org.onosproject.grpc.net.LinkEvent.LinkNotification;
+import org.onosproject.grpc.net.models.ConnectPointProto.ConnectPoint;
+import org.onosproject.grpc.net.models.LinkProtoOuterClass.LinkProto;
+import org.onosproject.grpc.net.models.LinkEnums.LinkState;
+import org.onosproject.grpc.net.models.LinkEnums.LinkType;
+import org.onosproject.grpc.net.models.LinkEnums.LinkEventType;
+import org.onosproject.grpc.net.models.LinkEventProto.LinkNotification;
 import org.onosproject.net.link.LinkEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class LinkEventConverter implements EventConverter {
 
         if (!linkEventTypeSupported(linkEvent)) {
             log.error("Unsupported Onos Event {}. There is no matching "
-                    + "proto Event type", linkEvent.type().toString());
+                              + "proto Event type", linkEvent.type().toString());
             return null;
         }
 
@@ -62,20 +62,20 @@ public class LinkEventConverter implements EventConverter {
     private LinkNotification buildDeviceProtoMessage(LinkEvent linkEvent) {
         LinkNotification notification = LinkNotification.newBuilder()
                 .setLinkEventType(getProtoType(linkEvent))
-                .setLink(LinkCore.newBuilder()
-                        .setState(LinkState
-                                .valueOf(linkEvent.subject().state().name()))
-                        .setType(LinkType.valueOf(linkEvent.subject().type().name()))
-                        .setDst(ConnectPoint.newBuilder()
-                                .setDeviceId(linkEvent.subject().dst()
-                                        .deviceId().toString())
-                                .setPortNumber(linkEvent.subject().dst().port()
-                                        .toString()))
-                        .setSrc(ConnectPoint.newBuilder()
-                                .setDeviceId(linkEvent.subject().src()
-                                        .deviceId().toString())
-                                .setPortNumber(linkEvent.subject().src().port()
-                                        .toString())))
+                .setLink(LinkProto.newBuilder()
+                                 .setState(LinkState
+                                                   .valueOf(linkEvent.subject().state().name()))
+                                 .setType(LinkType.valueOf(linkEvent.subject().type().name()))
+                                 .setDst(ConnectPoint.newBuilder()
+                                                 .setDeviceId(linkEvent.subject().dst()
+                                                                      .deviceId().toString())
+                                                 .setPortNumber(linkEvent.subject().dst().port()
+                                                                        .toString()))
+                                 .setSrc(ConnectPoint.newBuilder()
+                                                 .setDeviceId(linkEvent.subject().src()
+                                                                      .deviceId().toString())
+                                                 .setPortNumber(linkEvent.subject().src().port()
+                                                                        .toString())))
                 .build();
 
         return notification;

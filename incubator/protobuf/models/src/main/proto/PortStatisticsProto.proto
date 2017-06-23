@@ -1,0 +1,20 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package Port;
+
+message PortStatistics {
+    int32 port = 1;
+    int64 packets_received = 2;
+    int64 packets_sent = 3;
+    int64 bytes_received = 4;
+    int64 bytes_sent = 5;
+    int64 packets_rx_dropped = 6;
+    int64 packets_tx_dropped = 7;
+    int64 packets_rx_errors = 8;
+    int64 packets_tx_errors = 9;
+    int64 duration_sec = 10;
+    int64 duration_nano = 11;
+    bool is_zero = 12;
+    // TODO add all other fields
+}

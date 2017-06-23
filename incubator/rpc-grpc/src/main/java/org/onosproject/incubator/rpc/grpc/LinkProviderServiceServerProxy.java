@@ -31,7 +31,7 @@ import org.onosproject.grpc.net.link.LinkProviderServiceRpcGrpc.LinkProviderServ
 import org.onosproject.grpc.net.link.LinkService.LinkDetectedMsg;
 import org.onosproject.grpc.net.link.LinkService.LinkVanishedMsg;
 import org.onosproject.grpc.net.link.LinkService.Void;
-import org.onosproject.incubator.protobuf.net.ProtobufUtils;
+import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.onosproject.incubator.protobuf.services.nb;
+
 /**
- * Utilities to handle ProtoBuf version of ONOS network models.
+ * Delete this file.  It is just a placeholder for structure.
  */
-package org.onosproject.incubator.protobuf.net;
+public class DeleteMe {
+    public DeleteMe() {
+        throw new RuntimeException("This is not a class that should be instantiated.");
+    }
+}

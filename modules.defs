@@ -9,7 +9,6 @@ UTILS = [
 API = [
     '//core/api:onos-api',
     '//incubator/api:onos-incubator-api',
-    '//incubator/protobuf:onos-incubator-grpc',
 ]
 
 CORE = UTILS + API + [
@@ -81,6 +80,9 @@ CORE = UTILS + API + [
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
+
+    '//incubator/protobuf/models:onos-incubator-protobuf-models',
+    '//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb',
 ]
 
 ONOS_DRIVERS = [

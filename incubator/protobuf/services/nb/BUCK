@@ -1,0 +1,54 @@
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    ':onos-incubator-protobuf-services-nb-proto',
+    '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
+    '//incubator/protobuf/models:onos-incubator-protobuf-models',
+    '//lib:protobuf-java-3.2.0',
+    '//lib:GRPC_1.3'
+]
+
+GRPC_DEPS = [
+    '//lib:GRPC_1.3',
+    '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
+    '//lib:protobuf-java-3.2.0',
+    '//lib:guava'
+]
+
+BUNDLES = [
+    '//incubator/protobuf/models:onos-incubator-protobuf-models',
+    '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
+    ':onos-incubator-protobuf-services-nb',
+    ':onos-incubator-protobuf-services-nb-proto',
+    '//lib:protobuf-java-3.2.0',
+    '//lib:guava',
+    '//lib:grpc-core-1.3.0',
+    '//lib:grpc-protobuf-1.3.0',
+    '//lib:grpc-stub-1.3.0',
+    '//lib:grpc-netty-1.3.0',
+    '//lib:grpc-auth-1.3.0',
+    '//lib:grpc-context-1.3.0',
+    '//lib:google-truth-0.28',
+    '//core/api:onos-api',
+    '//lib:netty-transport',
+    '//lib:netty-buffer',
+    '//lib:netty-resolver',
+    '//lib:netty-common',
+    '//lib:netty-codec',
+    '//lib:netty-handler',
+    '//lib:netty-codec-http2',
+    '//lib:netty-codec-http',
+    "//lib:google-instrumentation-0.3.0",
+]
+
+grpc_jar(
+    name = 'onos-incubator-protobuf-services-nb-proto',
+    deps = GRPC_DEPS,
+    proto_paths = ["$ONOS_ROOT/incubator/protobuf/services/nb/src/main/proto",
+        "$ONOS_ROOT/incubator/protobuf/models/src/main/proto"]
+)
+
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)

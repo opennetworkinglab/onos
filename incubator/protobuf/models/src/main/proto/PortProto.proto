@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package Port;
+
+import "PortEnums.proto";
+
+// Corresponds to org.onosproject.net.Port.
+message PortProto {
+    string port_number = 1;
+    bool is_enabled = 2;
+    Port.PortType type = 3;
+    int64 port_speed = 4;
+    map<string, string> annotations = 5;
+}
+

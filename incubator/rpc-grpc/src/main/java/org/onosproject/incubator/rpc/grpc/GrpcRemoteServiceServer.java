@@ -18,7 +18,7 @@ package org.onosproject.incubator.rpc.grpc;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.stream.Collectors.toList;
-import static org.onosproject.incubator.protobuf.net.ProtobufUtils.translate;
+import static org.onosproject.incubator.protobuf.models.ProtobufUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ import org.onosproject.grpc.net.device.DeviceService.ReceivedRoleReply;
 import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
-import org.onosproject.incubator.protobuf.net.ProtobufUtils;
+import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
