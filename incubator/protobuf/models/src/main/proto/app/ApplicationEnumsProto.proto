@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.app.models";
+
+package app;
+
+enum ApplicationStateProto {
+    // Indicates that application has been installed, but is not running.
+    INSTALLED = 0;
+    // Indicates that application is active.
+    ACTIVE = 1;
+}
