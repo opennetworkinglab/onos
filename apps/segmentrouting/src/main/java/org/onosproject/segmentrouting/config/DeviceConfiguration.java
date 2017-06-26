@@ -107,7 +107,7 @@ public class DeviceConfiguration implements DeviceProperties {
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.adjacencySids();
             deviceConfigMap.put(info.deviceId, info);
-            log.info("Read device config for device: {}", info.deviceId);
+            log.debug("Read device config for device: {}", info.deviceId);
             /*
              * IPv6 sid is not inserted. this part of the code is not used for now.
              */
