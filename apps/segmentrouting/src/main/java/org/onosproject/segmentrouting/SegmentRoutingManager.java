@@ -36,6 +36,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
@@ -1260,11 +1261,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             if (event.configClass().equals(SegmentRoutingDeviceConfig.class)) {
                 switch (event.type()) {
                     case CONFIG_ADDED:
-                        log.info("Segment Routing Config added.");
+                        log.info("Segment Routing Device Config added for {}", event.subject());
                         configureNetwork();
                         break;
                     case CONFIG_UPDATED:
-                        log.info("Segment Routing Config updated.");
+                        log.info("Segment Routing Config updated for {}", event.subject());
+                        // TODO support dynamic configuration
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event.configClass().equals(InterfaceConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                        log.info("Interface Config added for {}", event.subject());
+                        configureNetwork();
+                        break;
+                    case CONFIG_UPDATED:
+                        log.info("Interface Config updated for {}", event.subject());
                         // TODO support dynamic configuration
                         break;
                     default:
