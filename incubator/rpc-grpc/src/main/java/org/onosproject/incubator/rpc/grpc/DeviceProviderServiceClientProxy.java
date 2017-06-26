@@ -31,6 +31,8 @@ import org.onosproject.grpc.net.device.DeviceService.DeviceProviderServiceMsg;
 import org.onosproject.grpc.net.device.DeviceService.IsReachableRequest;
 import org.onosproject.grpc.net.device.DeviceService.RoleChanged;
 import org.onosproject.grpc.net.device.DeviceService.TriggerProbe;
+import org.onosproject.grpc.net.device.models.PortDescriptionProtoOuterClass.PortDescriptionProto;
+import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.PortStatisticsProto;
 import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -115,7 +117,7 @@ final class DeviceProviderServiceClientProxy
         checkValidity();
 
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
-        List<org.onosproject.grpc.net.Port.PortDescription> portDescs =
+        List<PortDescriptionProto> portDescs =
                 portDescriptions.stream()
                     .map(ProtobufUtils::translate)
                     .collect(toList());
@@ -168,7 +170,7 @@ final class DeviceProviderServiceClientProxy
         checkValidity();
 
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
-        List<org.onosproject.grpc.net.Port.PortStatistics> portStats =
+        List<PortStatisticsProto> portStats =
                 portStatistics.stream()
                     .map(ProtobufUtils::translate)
                     .collect(toList());

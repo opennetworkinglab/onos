@@ -1,9 +1,9 @@
 syntax = "proto3";
-option java_package = "org.onosproject.grpc.net.models";
+option java_package = "org.onosproject.grpc.net.link.models";
 
-package Link;
+package net.link;
 
-enum LinkType {
+enum LinkTypeProto {
     // Signifies that this is a direct single-segment link.
     DIRECT = 0;
 
@@ -27,13 +27,13 @@ enum LinkType {
     VIRTUAL = 5;
 }
 
-enum LinkState {
+enum LinkStateProto {
     ACTIVE = 0;
     INACTIVE = 1;
 }
 
 // Link Event Types
-enum LinkEventType {
+enum LinkEventTypeProto {
     LINK_ADDED = 0;
     LINK_UPDATED = 1;
     LINK_REMOVED = 2;

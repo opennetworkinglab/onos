@@ -15,18 +15,17 @@
  */
 package org.onosproject.kafkaintegration.converter;
 
+import com.google.protobuf.GeneratedMessageV3;
 import org.onosproject.event.Event;
-import org.onosproject.grpc.net.models.ConnectPointProto.ConnectPoint;
+import org.onosproject.grpc.net.link.models.LinkEnumsProto.LinkEventTypeProto;
+import org.onosproject.grpc.net.link.models.LinkEnumsProto.LinkStateProto;
+import org.onosproject.grpc.net.link.models.LinkEnumsProto.LinkTypeProto;
+import org.onosproject.grpc.net.link.models.LinkEventProto.LinkNotificationProto;
+import org.onosproject.grpc.net.models.ConnectPointProtoOuterClass.ConnectPointProto;
 import org.onosproject.grpc.net.models.LinkProtoOuterClass.LinkProto;
-import org.onosproject.grpc.net.models.LinkEnums.LinkState;
-import org.onosproject.grpc.net.models.LinkEnums.LinkType;
-import org.onosproject.grpc.net.models.LinkEnums.LinkEventType;
-import org.onosproject.grpc.net.models.LinkEventProto.LinkNotification;
 import org.onosproject.net.link.LinkEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.protobuf.GeneratedMessageV3;
 
 /**
  * Converts for ONOS Link event message to protobuf format.
@@ -50,8 +49,8 @@ public class LinkEventConverter implements EventConverter {
     }
 
     private boolean linkEventTypeSupported(LinkEvent event) {
-        LinkEventType[] kafkaLinkEvents = LinkEventType.values();
-        for (LinkEventType linkEventType : kafkaLinkEvents) {
+        LinkEventTypeProto[] kafkaLinkEvents = LinkEventTypeProto.values();
+        for (LinkEventTypeProto linkEventType : kafkaLinkEvents) {
             if (linkEventType.name().equals(event.type().name())) {
                 return true;
             }
@@ -59,19 +58,19 @@ public class LinkEventConverter implements EventConverter {
         return false;
     }
 
-    private LinkNotification buildDeviceProtoMessage(LinkEvent linkEvent) {
-        LinkNotification notification = LinkNotification.newBuilder()
+    private LinkNotificationProto buildDeviceProtoMessage(LinkEvent linkEvent) {
+        LinkNotificationProto notification = LinkNotificationProto.newBuilder()
                 .setLinkEventType(getProtoType(linkEvent))
                 .setLink(LinkProto.newBuilder()
-                                 .setState(LinkState
+                                 .setState(LinkStateProto.ACTIVE
                                                    .valueOf(linkEvent.subject().state().name()))
-                                 .setType(LinkType.valueOf(linkEvent.subject().type().name()))
-                                 .setDst(ConnectPoint.newBuilder()
+                                 .setType(LinkTypeProto.valueOf(linkEvent.subject().type().name()))
+                                 .setDst(ConnectPointProto.newBuilder()
                                                  .setDeviceId(linkEvent.subject().dst()
                                                                       .deviceId().toString())
                                                  .setPortNumber(linkEvent.subject().dst().port()
                                                                         .toString()))
-                                 .setSrc(ConnectPoint.newBuilder()
+                                 .setSrc(ConnectPointProto.newBuilder()
                                                  .setDeviceId(linkEvent.subject().src()
                                                                       .deviceId().toString())
                                                  .setPortNumber(linkEvent.subject().src().port()
@@ -88,10 +87,10 @@ public class LinkEventConverter implements EventConverter {
      * @param event ONOS Device Event
      * @return Kafka Device Event Type
      */
-    private LinkEventType getProtoType(LinkEvent event) {
-        LinkEventType generatedEventType = null;
-        LinkEventType[] kafkaEvents = LinkEventType.values();
-        for (LinkEventType linkEventType : kafkaEvents) {
+    private LinkEventTypeProto getProtoType(LinkEvent event) {
+        LinkEventTypeProto generatedEventType = null;
+        LinkEventTypeProto[] kafkaEvents = LinkEventTypeProto.values();
+        for (LinkEventTypeProto linkEventType : kafkaEvents) {
             if (linkEventType.name().equals(event.type().name())) {
                 generatedEventType = linkEventType;
             }

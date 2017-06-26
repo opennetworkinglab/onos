@@ -18,11 +18,11 @@ package org.onosproject.kafkaintegration.converter;
 import com.google.protobuf.GeneratedMessageV3;
 
 import org.onosproject.event.Event;
+import org.onosproject.grpc.net.device.models.DeviceEnumsProto.DeviceEventTypeProto;
+import org.onosproject.grpc.net.device.models.DeviceEnumsProto.DeviceTypeProto;
+import org.onosproject.grpc.net.device.models.DeviceEventProto.DeviceNotificationProto;
+import org.onosproject.grpc.net.device.models.PortEnumsProto;
 import org.onosproject.grpc.net.models.DeviceProtoOuterClass.DeviceProto;
-import org.onosproject.grpc.net.models.DeviceEnums.DeviceType;
-import org.onosproject.grpc.net.models.DeviceEnums.DeviceEventType;
-import org.onosproject.grpc.net.models.DeviceEventProto.DeviceNotification;
-import org.onosproject.grpc.net.models.PortEnums.PortType;
 import org.onosproject.grpc.net.models.PortProtoOuterClass;
 import org.onosproject.net.device.DeviceEvent;
 import org.slf4j.Logger;
@@ -56,8 +56,8 @@ public class DeviceEventConverter implements EventConverter {
      * @return true if there is a match and false otherwise
      */
     private boolean deviceEventTypeSupported(DeviceEvent event) {
-        DeviceEventType[] deviceEvents = DeviceEventType.values();
-        for (DeviceEventType deviceEventType : deviceEvents) {
+        DeviceEventTypeProto[] deviceEvents = DeviceEventTypeProto.values();
+        for (DeviceEventTypeProto deviceEventType : deviceEvents) {
             if (deviceEventType.name().equals(event.type().name())) {
                 return true;
             }
@@ -66,9 +66,9 @@ public class DeviceEventConverter implements EventConverter {
         return false;
     }
 
-    private DeviceNotification buildDeviceProtoMessage(DeviceEvent deviceEvent) {
-        DeviceNotification.Builder notificationBuilder =
-                DeviceNotification.newBuilder();
+    private DeviceNotificationProto buildDeviceProtoMessage(DeviceEvent deviceEvent) {
+        DeviceNotificationProto.Builder notificationBuilder =
+                DeviceNotificationProto.newBuilder();
 
         DeviceProto deviceCore =
                 DeviceProto.newBuilder()
@@ -79,7 +79,7 @@ public class DeviceEventConverter implements EventConverter {
                         .setManufacturer(deviceEvent.subject().manufacturer())
                         .setSerialNumber(deviceEvent.subject().serialNumber())
                         .setSwVersion(deviceEvent.subject().swVersion())
-                        .setType(DeviceType
+                        .setType(DeviceTypeProto
                                          .valueOf(deviceEvent.subject().type().name()))
                         .build();
 
@@ -91,7 +91,7 @@ public class DeviceEventConverter implements EventConverter {
                             .setPortNumber(deviceEvent.port().number()
                                                    .toString())
                             .setPortSpeed(deviceEvent.port().portSpeed())
-                            .setType(PortType
+                            .setType(PortEnumsProto.PortTypeProto
                                              .valueOf(deviceEvent.port().type().name()))
                             .build();
 
@@ -110,10 +110,10 @@ public class DeviceEventConverter implements EventConverter {
      * @param event ONOS Device Event
      * @return generated Device Event Type
      */
-    private DeviceEventType getProtoType(DeviceEvent event) {
-        DeviceEventType protobufEventType = null;
-        DeviceEventType[] deviceEvents = DeviceEventType.values();
-        for (DeviceEventType deviceEventType : deviceEvents) {
+    private DeviceEventTypeProto getProtoType(DeviceEvent event) {
+        DeviceEventTypeProto protobufEventType = null;
+        DeviceEventTypeProto[] deviceEvents = DeviceEventTypeProto.values();
+        for (DeviceEventTypeProto deviceEventType : deviceEvents) {
             if (deviceEventType.name().equals(event.type().name())) {
                 protobufEventType = deviceEventType;
             }

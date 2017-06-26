@@ -1,15 +1,15 @@
 syntax = "proto3";
-option java_package = "org.onosproject.grpc.net.models";
+option java_package = "org.onosproject.grpc.net.device.models";
 
-package Device;
+package net.device;
 
-enum MastershipRole {
+enum MastershipRoleProto {
     NONE = 0;
     MASTER = 1;
     STANDBY = 2;
 }
 
-enum DeviceType {
+enum DeviceTypeProto {
     OTHER = 0;
     SWITCH = 1;
     ROUTER = 2;
@@ -21,12 +21,12 @@ enum DeviceType {
     IPS = 8;
     IDS = 9;
     CONTROLLER = 10;
-    VIRTUAL = 11;
+    VIRTUAL_DEVICE = 11;
     FIBER_SWITCH = 12;
     MICROWAVE = 13;
 }
 
-enum DeviceEventType {
+enum DeviceEventTypeProto {
     DEVICE_ADDED = 0;
     DEVICE_UPDATED = 1;
     DEVICE_REMOVED = 2;

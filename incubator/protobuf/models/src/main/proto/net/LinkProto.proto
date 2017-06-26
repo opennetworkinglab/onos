@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package net;
+
+import "net/link/LinkEnumsProto.proto";
+import "net/ConnectPointProto.proto";
+
+// Corresponds to org.onosproject.net.Link.
+message LinkProto {
+    net.link.LinkStateProto state = 1;
+    net.ConnectPointProto src = 2;
+    net.ConnectPointProto dst = 3;
+    net.link.LinkTypeProto type = 4;
+    map<string, string> annotations = 5;
+}
+
+

@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.device.models";
+
+
+import "net/DeviceProto.proto";
+import "net/device/DeviceEnumsProto.proto";
+import "net/PortProto.proto";
+
+package net.device;
+
+// Corresponds to org.onosproject.net.device.DeviceEvent.
+message DeviceNotificationProto {
+    net.DeviceProto device = 1;
+    net.device.DeviceEventTypeProto device_event_type = 2;
+    net.PortProto port = 3;
+}

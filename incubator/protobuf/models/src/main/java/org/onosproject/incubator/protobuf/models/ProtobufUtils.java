@@ -20,12 +20,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.onlab.packet.ChassisId;
-import org.onosproject.grpc.net.models.DeviceDescriptionProto;
-import org.onosproject.grpc.net.models.DeviceEnums;
-import org.onosproject.grpc.net.models.PortDescriptionProto;
-import org.onosproject.grpc.net.models.PortEnums.PortType;
-import org.onosproject.grpc.net.models.DeviceEnums.DeviceType;
-import org.onosproject.grpc.net.models.PortStatisticsProto;
+import org.onosproject.grpc.net.device.models.DeviceDescriptionProtoOuterClass.DeviceDescriptionProto;
+import org.onosproject.grpc.net.device.models.DeviceEnumsProto.MastershipRoleProto;
+import org.onosproject.grpc.net.device.models.PortDescriptionProtoOuterClass.PortDescriptionProto;
+import org.onosproject.grpc.net.device.models.PortEnumsProto.PortTypeProto;
+import org.onosproject.grpc.net.device.models.DeviceEnumsProto.DeviceTypeProto;
+import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.PortStatisticsProto;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -54,12 +54,12 @@ public final class ProtobufUtils {
     private static final Logger log = LoggerFactory.getLogger(ProtobufUtils.class);
 
     /**
-     * Translates gRPC enum MastershipRole to ONOS enum.
+     * Translates gRPC enum MastershipRoleProto to ONOS enum.
      *
      * @param role mastership role in gRPC enum
      * @return equivalent in ONOS enum
      */
-    public static MastershipRole translate(DeviceEnums.MastershipRole role) {
+    public static MastershipRole translate(MastershipRoleProto role) {
         switch (role) {
             case NONE:
                 return MastershipRole.NONE;
@@ -81,52 +81,52 @@ public final class ProtobufUtils {
      * @param newRole ONOS' mastership role
      * @return equivalent in gRPC message enum
      */
-    public static DeviceEnums.MastershipRole translate(MastershipRole newRole) {
+    public static MastershipRoleProto translate(MastershipRole newRole) {
         switch (newRole) {
             case MASTER:
-                return DeviceEnums.MastershipRole.MASTER;
+                return MastershipRoleProto.MASTER;
             case STANDBY:
-                return DeviceEnums.MastershipRole.STANDBY;
+                return MastershipRoleProto.STANDBY;
             case NONE:
             default:
-                return DeviceEnums.MastershipRole.NONE;
+                return MastershipRoleProto.NONE;
         }
     }
 
 
     /**
-     * Translates gRPC DeviceDescription to {@link DeviceDescription}.
+     * Translates gRPC DeviceDescriptionProto to {@link DeviceDescription}.
      *
-     * @param deviceDescription gRPC message
+     * @param devDescProto device description protobuf message
      * @return {@link DeviceDescription}
      */
     public static DeviceDescription translate(
-            DeviceDescriptionProto.DeviceDescription deviceDescription) {
-        URI uri = URI.create(deviceDescription.getDeviceUri());
-        Device.Type type = translate(deviceDescription.getType());
-        String manufacturer = deviceDescription.getManufacturer();
-        String hwVersion = deviceDescription.getHwVersion();
-        String swVersion = deviceDescription.getSwVersion();
-        String serialNumber = deviceDescription.getSerialNumber();
-        ChassisId chassis = new ChassisId(deviceDescription.getChassisId());
-        boolean defaultAvailable = deviceDescription.getIsDefaultAvailable();
+            DeviceDescriptionProto devDescProto) {
+        URI uri = URI.create(devDescProto.getDeviceUri());
+        Device.Type type = translate(devDescProto.getType());
+        String manufacturer = devDescProto.getManufacturer();
+        String hwVersion = devDescProto.getHwVersion();
+        String swVersion = devDescProto.getSwVersion();
+        String serialNumber = devDescProto.getSerialNumber();
+        ChassisId chassis = new ChassisId(devDescProto.getChassisId());
+        boolean defaultAvailable = devDescProto.getIsDefaultAvailable();
         return new DefaultDeviceDescription(uri, type, manufacturer,
                                             hwVersion, swVersion, serialNumber,
                                             chassis,
                                             defaultAvailable,
-                                            asAnnotations(deviceDescription.getAnnotationsMap()));
+                                            asAnnotations(devDescProto.getAnnotationsMap()));
     }
 
     /**
-     * Translates {@link DeviceDescription} to gRPC DeviceDescription message.
+     * Translates {@link DeviceDescription} to gRPC DeviceDescriptionProto message.
      *
      * @param deviceDescription {@link DeviceDescription}
-     * @return gRPC DeviceDescription message
+     * @return gRPC DeviceDescriptionProto message
      */
-    public static DeviceDescriptionProto.DeviceDescription translate(
+    public static DeviceDescriptionProto translate(
             DeviceDescription deviceDescription) {
 
-        return DeviceDescriptionProto.DeviceDescription.newBuilder()
+        return DeviceDescriptionProto.newBuilder()
                 .setDeviceUri(deviceDescription.deviceUri().toString())
                 .setType(translate(deviceDescription.type()))
                 .setManufacturer(deviceDescription.manufacturer())
@@ -141,12 +141,12 @@ public final class ProtobufUtils {
 
 
     /**
-     * Translates gRPC DeviceType to {@link Device.Type}.
+     * Translates gRPC DeviceTypeProto to {@link Device.Type}.
      *
      * @param type      gRPC message
      * @return  {@link Device.Type}
      */
-    public static Device.Type translate(DeviceType type) {
+    public static Device.Type translate(DeviceTypeProto type) {
         switch (type) {
             case BALANCER:
                 return Device.Type.BALANCER;
@@ -174,7 +174,7 @@ public final class ProtobufUtils {
                 return Device.Type.ROUTER;
             case SWITCH:
                 return Device.Type.SWITCH;
-            case VIRTUAL:
+            case VIRTUAL_DEVICE:
                 return Device.Type.VIRTUAL;
 
             case UNRECOGNIZED:
@@ -185,55 +185,55 @@ public final class ProtobufUtils {
     }
 
     /**
-     * Translates {@link Type} to gRPC DeviceType.
+     * Translates {@link Type} to gRPC DeviceTypeProto.
      *
      * @param type {@link Type}
      * @return  gRPC message
      */
-    public static DeviceType translate(Device.Type type) {
+    public static DeviceTypeProto translate(Device.Type type) {
         switch (type) {
             case BALANCER:
-                return DeviceType.BALANCER;
+                return DeviceTypeProto.BALANCER;
             case CONTROLLER:
-                return DeviceType.CONTROLLER;
+                return DeviceTypeProto.CONTROLLER;
             case FIBER_SWITCH:
-                return DeviceType.FIBER_SWITCH;
+                return DeviceTypeProto.FIBER_SWITCH;
             case FIREWALL:
-                return DeviceType.FIREWALL;
+                return DeviceTypeProto.FIREWALL;
             case IDS:
-                return DeviceType.IDS;
+                return DeviceTypeProto.IDS;
             case IPS:
-                return DeviceType.IPS;
+                return DeviceTypeProto.IPS;
             case MICROWAVE:
-                return DeviceType.MICROWAVE;
+                return DeviceTypeProto.MICROWAVE;
             case OTHER:
-                return DeviceType.OTHER;
+                return DeviceTypeProto.OTHER;
             case OTN:
-                return DeviceType.OTN;
+                return DeviceTypeProto.OTN;
             case ROADM:
-                return DeviceType.ROADM;
+                return DeviceTypeProto.ROADM;
             case ROADM_OTN:
-                return DeviceType.ROADM_OTN;
+                return DeviceTypeProto.ROADM_OTN;
             case ROUTER:
-                return DeviceType.ROUTER;
+                return DeviceTypeProto.ROUTER;
             case SWITCH:
-                return DeviceType.SWITCH;
+                return DeviceTypeProto.SWITCH;
             case VIRTUAL:
-                return DeviceType.VIRTUAL;
+                return DeviceTypeProto.VIRTUAL_DEVICE;
 
             default:
                 log.warn("Unexpected Device.Type: {}", type);
-                return DeviceType.OTHER;
+                return DeviceTypeProto.OTHER;
         }
     }
 
     /**
-     * Translates gRPC PortDescription message to {@link PortDescription}.
+     * Translates gRPC PortDescriptionProto message to {@link PortDescription}.
      *
      * @param portDescription gRPC message
      * @return {@link PortDescription}
      */
-    public static PortDescription translate(PortDescriptionProto.PortDescription portDescription) {
+    public static PortDescription translate(PortDescriptionProto portDescription) {
         PortNumber number = PortNumber.fromString(portDescription.getPortNumber());
         boolean isEnabled = portDescription.getIsEnabled();
         Port.Type type = translate(portDescription.getType());
@@ -243,13 +243,13 @@ public final class ProtobufUtils {
     }
 
     /**
-     * Translates {@link PortDescription} to gRPC PortDescription message.
+     * Translates {@link PortDescription} to gRPC PortDescriptionProto message.
      *
      * @param portDescription {@link PortDescription}
-     * @return gRPC PortDescription message
+     * @return gRPC PortDescriptionProto message
      */
-    public static PortDescriptionProto.PortDescription translate(PortDescription portDescription) {
-        return PortDescriptionProto.PortDescription.newBuilder()
+    public static PortDescriptionProto translate(PortDescription portDescription) {
+        return PortDescriptionProto.newBuilder()
                 .setPortNumber(portDescription.portNumber().toString())
                 .setIsEnabled(portDescription.isEnabled())
                 .setType(translate(portDescription.type()))
@@ -259,12 +259,12 @@ public final class ProtobufUtils {
     }
 
     /**
-     * Translates gRPC PortType to {@link Port.Type}.
+     * Translates gRPC PortTypeProto to {@link Port.Type}.
      *
      * @param type      gRPC message
      * @return  {@link Port.Type}
      */
-    public static Port.Type translate(org.onosproject.grpc.net.models.PortEnums.PortType type) {
+    public static Port.Type translate(PortTypeProto type) {
         switch (type) {
             case COPPER:
                 return Type.COPPER;
@@ -278,7 +278,7 @@ public final class ProtobufUtils {
                 return Type.OMS;
             case PACKET:
                 return Type.PACKET;
-            case VIRTUAL:
+            case VIRTUAL_PORT:
                 return Type.VIRTUAL;
 
             case UNRECOGNIZED:
@@ -294,26 +294,26 @@ public final class ProtobufUtils {
      * @param type      {@link org.onosproject.net.Port.Type}
      * @return  gRPC message
      */
-    public static PortType translate(Port.Type type) {
+    public static PortTypeProto translate(Port.Type type) {
         switch (type) {
             case COPPER:
-                return PortType.COPPER;
+                return PortTypeProto.COPPER;
             case FIBER:
-                return PortType.FIBER;
+                return PortTypeProto.FIBER;
             case OCH:
-                return PortType.OCH;
+                return PortTypeProto.OCH;
             case ODUCLT:
-                return PortType.ODUCLT;
+                return PortTypeProto.ODUCLT;
             case OMS:
-                return PortType.OMS;
+                return PortTypeProto.OMS;
             case PACKET:
-                return PortType.PACKET;
+                return PortTypeProto.PACKET;
             case VIRTUAL:
-                return PortType.VIRTUAL;
+                return PortTypeProto.VIRTUAL_PORT;
 
             default:
                 log.warn("Unexpected Port.Type: {}", type);
-                return PortType.COPPER;
+                return PortTypeProto.COPPER;
         }
     }
 
@@ -323,7 +323,7 @@ public final class ProtobufUtils {
      * @param portStatistics gRPC PortStatistics message
      * @return {@link PortStatistics}
      */
-    public static PortStatistics translate(PortStatisticsProto.PortStatistics portStatistics) {
+    public static PortStatistics translate(PortStatisticsProto portStatistics) {
         // TODO implement adding missing fields
         return DefaultPortStatistics.builder()
                 .setPort(portStatistics.getPort())
@@ -338,9 +338,9 @@ public final class ProtobufUtils {
      * @param portStatistics {@link PortStatistics}
      * @return gRPC PortStatistics message
      */
-    public static PortStatisticsProto.PortStatistics translate(PortStatistics portStatistics) {
+    public static PortStatisticsProto translate(PortStatistics portStatistics) {
         // TODO implement adding missing fields
-        return PortStatisticsProto.PortStatistics.newBuilder()
+        return PortStatisticsProto.newBuilder()
                 .setPort(portStatistics.port())
                 .setPacketsReceived(portStatistics.packetsReceived())
                 .setPacketsSent(portStatistics.packetsSent())

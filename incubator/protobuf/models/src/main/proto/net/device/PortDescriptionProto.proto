@@ -1,0 +1,15 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.device.models";
+
+package net.device;
+
+import "net/device/PortEnumsProto.proto";
+
+message PortDescriptionProto {
+    // PortNumber as String PortNumber#toString
+    string port_number = 1;
+    bool is_enabled = 2;
+    net.device.PortTypeProto type = 3;
+    int64 port_speed = 4;
+    map<string, string> annotations = 8;
+}

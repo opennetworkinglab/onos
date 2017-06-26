@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.device.models";
+
+package net.device;
+
+import "net/device/DeviceEnumsProto.proto";
+
+message DeviceDescriptionProto {
+    string device_uri = 1;
+    net.device.DeviceTypeProto type = 2;
+    string manufacturer = 3;
+    string hw_version = 4;
+    string sw_version = 5;
+    string serial_number = 6;
+    string chassis_id = 7;
+    map<string, string> annotations = 8;
+    bool is_default_available = 9;
+}

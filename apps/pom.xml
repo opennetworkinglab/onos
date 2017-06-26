@@ -48,7 +48,7 @@
         <module>flowspec-api</module>
         <module>test</module>
         <module>segmentrouting</module>
-        <!-- <module>kafka-integration</module> -->
+        <module>kafka-integration</module>
         <module>pcep-api</module>
         <module>iptopology-api</module>
         <module>pce</module>

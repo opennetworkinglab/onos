@@ -1,9 +1,9 @@
 syntax = "proto3";
 option java_package = "org.onosproject.grpc.net.models";
 
-package ConnectPoint;
+package net;
 
-message ConnectPoint {
+message ConnectPointProto {
     oneof element_id {
         // DeviceID as String DeviceId#toString
         string device_id = 1;

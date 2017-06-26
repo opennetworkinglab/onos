@@ -1,9 +1,9 @@
 syntax = "proto3";
-option java_package = "org.onosproject.grpc.net.models";
+option java_package = "org.onosproject.grpc.net.device.models";
 
-package Port;
+package net.device;
 
-enum PortType {
+enum PortTypeProto {
     // Signifies copper-based connectivity.
     COPPER = 0;
     // Signifies optical fiber-based connectivity.
@@ -19,5 +19,5 @@ enum PortType {
     //Optical Multiplexing Section (See ITU G.709).
     OMS = 5;
     // Signifies virtual port.
-    VIRTUAL = 6;
+    VIRTUAL_PORT = 6;
 }
