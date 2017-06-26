@@ -9,3 +9,14 @@ enum ApplicationStateProto {
     // Indicates that application is active.
     ACTIVE = 1;
 }
+
+enum ApplicationRoleProto {
+    // Indicates that an application has an ADMIN role.
+    ADMIN = 0;
+    // Indicates that an application has a USER role.
+    USER = 1;
+    // Indicates that an application role has not been specified.
+    UNSPECIFIED = 2;
+
+    // More useful roles may be defined...
+}
