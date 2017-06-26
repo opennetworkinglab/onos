@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+import "net/ConnectPointProto.proto";
+
+package net;
+
+// Corresponds to org.onosproject.net.HostLocation.
+message HostLocationProto {
+    net.ConnectPointProto connect_point = 1;
+    uint64 time = 2;
+}
