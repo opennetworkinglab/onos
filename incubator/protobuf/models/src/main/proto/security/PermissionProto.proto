@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.security.models";
+
+package security;
+
+// Corresponds to org.onosproject.security.Permission.
+message PermissionProto {
+    string classname = 1;
+    string name = 2;
+    string actions = 3;
+}
