@@ -631,8 +631,8 @@
                     </headerLocation>
                     <failsOnError>false</failsOnError>
                     <logViolationsToConsole>true</logViolationsToConsole>
-                    <includeTestSourceDirectory>true
-                    </includeTestSourceDirectory>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <includeResources>false</includeResources>
                 </configuration>
                 <executions>
                     <execution>
