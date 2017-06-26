@@ -45,7 +45,7 @@ public interface PiPipeconf {
     PiPipelineModel pipelineModel();
 
     /**
-     * Returns all pipeline-specific behaviours defined by this configuration.
+     * Returns all pipeline-specific behaviour interfaces defined by this configuration.
      *
      * @return a collection of behaviours
      */

@@ -13,6 +13,9 @@
           "deviceKeyId": "p4runtime:device:identifier"
         }
       },
+      "piPipeconf":{
+        "piPipeconfId": "pipipeconfTest"
+      },
       "basic": {
         "driver": "bmv2"
       }

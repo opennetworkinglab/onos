@@ -22,6 +22,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A service to manage the configurations of protocol-independent pipelines.
@@ -58,14 +59,16 @@ public interface PiPipeconfService {
     /**
      * Binds the given pipeconf to the given infrastructure device. As a result of this method call,
      * if the given pipeconf exposes any pipeline-specific behaviours, those will be merged to the
-     * device's driver.
+     * device's driver. Returns a completable future to provide async methods with a boolean if the merge
+     * of the drivers succeeded.
      *
      * @param deviceId a device identifier
-     * @param pipeconf a pipeconf identifier
+     * @param pipeconfId a pipeconf identifier
+     * @return a CompletableFuture with a boolean, true if operation succeeded
      */
     // TODO: This service doesn't make any effort in deploying the configuration to the device.
     // Someone else should do that.
-    void bindToDevice(PiPipeconfId pipeconf, DeviceId deviceId);
+    CompletableFuture<Boolean> bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId);
 
     /**
      * Returns the pipeconf identifier currently associated with the given device identifier, if

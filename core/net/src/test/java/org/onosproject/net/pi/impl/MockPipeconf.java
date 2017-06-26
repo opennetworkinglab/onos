@@ -43,7 +43,7 @@ public class MockPipeconf implements PiPipeconf {
 
     private final PiPipeconfId id;
     private final PiPipelineModel pipelineModel;
-    private final Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours;
+    protected final Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours;
 
     public MockPipeconf() throws IOException {
         this.id = new PiPipeconfId(PIPECONF_ID);
@@ -70,7 +70,7 @@ public class MockPipeconf implements PiPipeconf {
 
     @Override
     public Collection<Class<? extends Behaviour>> behaviours() {
-        return behaviours.values();
+        return behaviours.keySet();
     }
 
     @Override
