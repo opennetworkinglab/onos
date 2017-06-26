@@ -1,0 +1,32 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.core.models";
+
+package core;
+
+import "core/ApplicationIdProto.proto";
+import "app/ApplicationEnumsProto.proto";
+import "security/PermissionProto.proto";
+
+// Corresponds to org.onosproject.core.Application.
+message ApplicationProto {
+    core.ApplicationIdProto app_id = 1;
+    string version = 2;
+    string title = 3;
+    string description = 4;
+    string category = 5;
+    string url = 6;
+    string readme = 7;
+
+    // tag id 8 is reserved for app icon
+    reserved 8;
+
+    string origin = 9;
+    app.ApplicationRoleProto role = 10;
+    repeated security.PermissionProto permissions = 11;
+
+    // tag id 12 is reserved for features repo
+    // optional type will be added later
+    reserved 12;
+    repeated string features = 13;
+    repeated string required_apps = 14;
+}
