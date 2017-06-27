@@ -25,14 +25,14 @@ import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
-import org.onosproject.openstacknode.OpenstackNode;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 
 import java.util.Optional;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknode.Constants.*;
-import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
+import static org.onosproject.openstacknode.api.Constants.*;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
  * Checks detailed node init state.
@@ -50,22 +50,17 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNodeService nodeService = AbstractShellCommand.get(OpenstackNodeService.class);
+        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
 
-        OpenstackNode node = nodeService.nodes()
-                .stream()
-                .filter(n -> n.hostname().equals(hostname))
-                .findFirst()
-                .orElse(null);
-
-        if (node == null) {
-            print("Cannot find %s from registered nodes", hostname);
+        OpenstackNode osNode = osNodeService.node(hostname);
+        if (osNode == null) {
+            error("Cannot find %s from registered nodes", hostname);
             return;
         }
 
         print("[Integration Bridge Status]");
-        Device device = deviceService.getDevice(node.intBridge());
+        Device device = deviceService.getDevice(osNode.intgBridge());
         if (device != null) {
             print("%s %s=%s available=%s %s",
                     deviceService.isAvailable(device.id()) ? MSG_OK : MSG_NO,
@@ -73,41 +68,39 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                     device.id(),
                     deviceService.isAvailable(device.id()),
                     device.annotations());
-
-            node.dataIp().ifPresent(ip -> print(getPortState(deviceService, node.intBridge(), DEFAULT_TUNNEL)));
-            node.vlanPort().ifPresent(p -> print(getPortState(deviceService, node.intBridge(), p)));
+            if (osNode.dataIp() != null) {
+                print(getPortState(deviceService, osNode.intgBridge(), DEFAULT_TUNNEL));
+            }
+            if (osNode.vlanIntf() != null) {
+                print(getPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf()));
+            }
         } else {
             print("%s %s=%s is not available",
                     MSG_NO,
                     INTEGRATION_BRIDGE,
-                    node.intBridge());
+                    osNode.intgBridge());
         }
 
-        if (node.type().equals(GATEWAY)) {
-            print(getPortState(deviceService, node.intBridge(), PATCH_INTG_BRIDGE));
+        if (osNode.type() == GATEWAY) {
+            print(getPortState(deviceService, osNode.intgBridge(), PATCH_INTG_BRIDGE));
 
             print("%n[Router Bridge Status]");
-            device = deviceService.getDevice(node.ovsdbId());
+            device = deviceService.getDevice(osNode.ovsdb());
             if (device == null || !device.is(BridgeConfig.class)) {
                 print("%s %s=%s is not available(unable to connect OVSDB)",
                       MSG_NO,
                       ROUTER_BRIDGE,
-                      node.intBridge());
+                      osNode.intgBridge());
             } else {
                 BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
                 boolean available = bridgeConfig.getBridges().stream()
-                        .filter(bridge -> bridge.name().equals(ROUTER_BRIDGE))
-                        .findAny()
-                        .isPresent();
-
+                        .anyMatch(bridge -> bridge.name().equals(ROUTER_BRIDGE));
                 print("%s %s=%s available=%s",
                       available ? MSG_OK : MSG_NO,
                       ROUTER_BRIDGE,
-                      node.routerBridge().get(),
+                      osNode.routerBridge(),
                       available);
-
-                print(getPortStateOvsdb(deviceService, node.ovsdbId(), PATCH_ROUT_BRIDGE));
-                print(getPortStateOvsdb(deviceService, node.ovsdbId(), node.uplink().get()));
+                print(getPortStateOvsdb(deviceService, osNode.ovsdb(), PATCH_ROUT_BRIDGE));
             }
         }
     }

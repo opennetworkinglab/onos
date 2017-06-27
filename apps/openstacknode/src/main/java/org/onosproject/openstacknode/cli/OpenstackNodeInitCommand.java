@@ -19,10 +19,10 @@ package org.onosproject.openstacknode.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.openstacknode.OpenstackNode;
-import org.onosproject.openstacknode.OpenstackNodeService;
-
-import java.util.NoSuchElementException;
+import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 
 /**
  * Initializes nodes for OpenStack node service.
@@ -37,21 +37,19 @@ public class OpenstackNodeInitCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNodeService nodeService = AbstractShellCommand.get(OpenstackNodeService.class);
+        OpenstackNodeService osNodeService =
+                AbstractShellCommand.get(OpenstackNodeService.class);
+        OpenstackNodeAdminService osNodeAdminService =
+                AbstractShellCommand.get(OpenstackNodeAdminService.class);
 
         for (String hostname : hostnames) {
-            OpenstackNode node;
-            try {
-                node = nodeService.nodes()
-                        .stream()
-                        .filter(n -> n.hostname().equals(hostname))
-                        .findFirst().get();
-            } catch (NoSuchElementException e) {
+            OpenstackNode osNode = osNodeService.node(hostname);
+            if (osNode == null) {
                 print("Unable to find %s", hostname);
                 continue;
             }
-
-            nodeService.addOrUpdateNode(node);
+            OpenstackNode updated = osNode.updateState(NodeState.INIT);
+            osNodeAdminService.updateNode(updated);
         }
     }
 }

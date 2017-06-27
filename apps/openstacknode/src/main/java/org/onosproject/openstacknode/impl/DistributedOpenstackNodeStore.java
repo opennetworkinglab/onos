@@ -1,0 +1,200 @@
+/*
+ * Copyright 2017-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.openstacknode.impl;
+
+import com.google.common.collect.ImmutableSet;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeStore;
+import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
+import org.onosproject.store.AbstractStore;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
+
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * Implementation of openstack node store using consistent map.
+ */
+@Service
+@Component(immediate = true)
+public class DistributedOpenstackNodeStore
+        extends AbstractStore<OpenstackNodeEvent, OpenstackNodeStoreDelegate>
+        implements OpenstackNodeStore {
+
+    protected final Logger log = getLogger(getClass());
+
+    private static final String ERR_NOT_FOUND = " does not exist";
+    private static final String ERR_DUPLICATE = " already exists";
+
+    private static final KryoNamespace SERIALIZER_OPENSTACK_NODE = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(OpenstackNode.class)
+            .register(DefaultOpenstackNode.class)
+            .register(OpenstackNode.NodeType.class)
+            .register(NodeState.class)
+            .build();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
+
+    private final MapEventListener<String, OpenstackNode> osNodeMapListener =
+            new OpenstackNodeMapListener();
+    private ConsistentMap<String, OpenstackNode> osNodeStore;
+
+    @Activate
+    protected void activate() {
+        ApplicationId appId = coreService.registerApplication("org.onosproject.openstacknode");
+        osNodeStore = storageService.<String, OpenstackNode>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_OPENSTACK_NODE))
+                .withName("openstack-nodestore")
+                .withApplicationId(appId)
+                .build();
+        osNodeStore.addListener(osNodeMapListener);
+        log.info("Started");
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        osNodeStore.removeListener(osNodeMapListener);
+        eventExecutor.shutdown();
+        log.info("Stopped");
+    }
+
+    @Override
+    public void createNode(OpenstackNode osNode) {
+        osNodeStore.compute(osNode.hostname(), (hostname, existing) -> {
+            final String error = osNode.hostname() + ERR_DUPLICATE;
+            checkArgument(existing == null, error);
+            return osNode;
+        });
+    }
+
+    @Override
+    public void updateNode(OpenstackNode osNode) {
+        osNodeStore.compute(osNode.hostname(), (hostname, existing) -> {
+            final String error = osNode.hostname() + ERR_NOT_FOUND;
+            checkArgument(existing != null, error);
+            return osNode;
+        });
+    }
+
+    @Override
+    public OpenstackNode removeNode(String hostname) {
+        Versioned<OpenstackNode> osNode = osNodeStore.remove(hostname);
+        if (osNode == null) {
+            final String error = hostname + ERR_NOT_FOUND;
+            throw new IllegalArgumentException(error);
+        }
+        return osNode.value();
+    }
+
+    @Override
+    public Set<OpenstackNode> nodes() {
+        Set<OpenstackNode> osNodes = osNodeStore.values().stream()
+                .map(Versioned::value)
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(osNodes);
+    }
+
+    @Override
+    public OpenstackNode node(String hostname) {
+        Versioned<OpenstackNode> osNode = osNodeStore.get(hostname);
+        return osNode == null ? null : osNode.value();
+    }
+
+    private class OpenstackNodeMapListener implements MapEventListener<String, OpenstackNode> {
+
+        @Override
+        public void event(MapEvent<String, OpenstackNode> event) {
+            switch (event.type()) {
+                case INSERT:
+                    log.debug("OpenStack node created {}", event.newValue());
+                    eventExecutor.execute(() -> {
+                        notifyDelegate(new OpenstackNodeEvent(
+                                OPENSTACK_NODE_CREATED,
+                                event.newValue().value()
+                        ));
+                    });
+                    break;
+                case UPDATE:
+                    log.debug("OpenStack node updated {}", event.newValue());
+                    eventExecutor.execute(() -> {
+                        notifyDelegate(new OpenstackNodeEvent(
+                                OPENSTACK_NODE_UPDATED,
+                                event.newValue().value()
+                        ));
+                        if (event.newValue().value().state() == COMPLETE) {
+                            notifyDelegate(new OpenstackNodeEvent(
+                                    OPENSTACK_NODE_COMPLETE,
+                                    event.newValue().value()
+                            ));
+                        } else if (event.newValue().value().state() == INCOMPLETE) {
+                            notifyDelegate(new OpenstackNodeEvent(
+                                    OPENSTACK_NODE_INCOMPLETE,
+                                    event.newValue().value()
+                            ));
+                        }
+                    });
+                    break;
+                case REMOVE:
+                    log.debug("OpenStack node removed {}", event.oldValue());
+                    eventExecutor.execute(() -> {
+                        notifyDelegate(new OpenstackNodeEvent(
+                                OPENSTACK_NODE_REMOVED,
+                                event.oldValue().value()
+                        ));
+                    });
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+    }
+}

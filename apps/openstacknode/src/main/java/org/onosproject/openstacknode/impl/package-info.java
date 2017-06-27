@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode;
-
-import org.onosproject.event.EventListener;
 
 /**
- * Listener for OpenStack node events.
+ * Application for bootstrapping Compute/Gateway Node in OpenStack.
  */
-public interface OpenstackNodeListener extends EventListener<OpenstackNodeEvent> {
-}
+package org.onosproject.openstacknode.impl;

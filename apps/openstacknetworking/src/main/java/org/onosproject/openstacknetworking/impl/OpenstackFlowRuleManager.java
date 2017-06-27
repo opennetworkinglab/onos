@@ -36,10 +36,10 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
-import org.onosproject.openstacknode.OpenstackNode;
-import org.onosproject.openstacknode.OpenstackNodeEvent;
-import org.onosproject.openstacknode.OpenstackNodeListener;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.slf4j.Logger;
 
 import java.util.concurrent.ExecutorService;
@@ -73,7 +73,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
 
     private final ExecutorService deviceEventExecutor =
             Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
-    private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
+    private final OpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
     private ApplicationId appId;
 
@@ -228,25 +228,25 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
             // TODO check leadership of the node and make only the leader process
 
             switch (event.type()) {
-                case COMPLETE:
+                case OPENSTACK_NODE_COMPLETE:
                     deviceEventExecutor.execute(() -> {
                         log.info("COMPLETE node {} is detected", osNode.hostname());
                         processCompleteNode(event.subject());
                     });
                     break;
-                case INCOMPLETE:
-                    log.warn("{} is changed to INCOMPLETE state", osNode);
-                    break;
-                case INIT:
-                case DEVICE_CREATED:
+                case OPENSTACK_NODE_CREATED:
+                case OPENSTACK_NODE_UPDATED:
+                case OPENSTACK_NODE_REMOVED:
+                case OPENSTACK_NODE_INCOMPLETE:
                 default:
+                    // do nothing
                     break;
             }
         }
 
         private void processCompleteNode(OpenstackNode osNode) {
-            if (osNode.type().equals(OpenstackNodeService.NodeType.COMPUTE)) {
-                initializePipeline(osNode.intBridge());
+            if (osNode.type().equals(OpenstackNode.NodeType.COMPUTE)) {
+                initializePipeline(osNode.intgBridge());
             }
         }
     }

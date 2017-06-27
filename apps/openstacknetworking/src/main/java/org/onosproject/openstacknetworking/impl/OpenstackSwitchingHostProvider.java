@@ -47,10 +47,10 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.openstacknode.OpenstackNode;
-import org.onosproject.openstacknode.OpenstackNodeEvent;
-import org.onosproject.openstacknode.OpenstackNodeListener;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,24 +260,25 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
             // TODO check leadership of the node and make only the leader process
 
             switch (event.type()) {
-                case COMPLETE:
+                case OPENSTACK_NODE_COMPLETE:
                     deviceEventExecutor.execute(() -> {
                         log.info("COMPLETE node {} is detected", osNode.hostname());
                         processCompleteNode(event.subject());
                     });
                     break;
-                case INCOMPLETE:
+                case OPENSTACK_NODE_INCOMPLETE:
                     log.warn("{} is changed to INCOMPLETE state", osNode);
                     break;
-                case INIT:
-                case DEVICE_CREATED:
+                case OPENSTACK_NODE_CREATED:
+                case OPENSTACK_NODE_UPDATED:
+                case OPENSTACK_NODE_REMOVED:
                 default:
                     break;
             }
         }
 
         private void processCompleteNode(OpenstackNode osNode) {
-            deviceService.getPorts(osNode.intBridge()).stream()
+            deviceService.getPorts(osNode.intgBridge()).stream()
                     .filter(port -> port.annotations().value(PORT_NAME)
                             .startsWith(PORT_NAME_PREFIX_VM) &&
                             port.isEnabled())

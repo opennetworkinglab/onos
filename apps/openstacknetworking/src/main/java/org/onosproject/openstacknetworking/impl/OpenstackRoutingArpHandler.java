@@ -25,6 +25,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -34,15 +35,19 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.Constants;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -68,7 +73,7 @@ public class OpenstackRoutingArpHandler {
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
-    private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
+    private final PacketProcessor packetProcessor = new InternalPacketProcessor();
 
     @Activate
     protected void activate() {
@@ -123,8 +128,13 @@ public class OpenstackRoutingArpHandler {
         public void process(PacketContext context) {
             if (context.isHandled()) {
                 return;
-            } else if (!osNodeService.gatewayDeviceIds().contains(
-                    context.inPacket().receivedFrom().deviceId())) {
+            }
+
+            Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
+                    .stream().map(OpenstackNode::intgBridge)
+                    .collect(Collectors.toSet());
+
+            if (!gateways.contains(context.inPacket().receivedFrom().deviceId())) {
                 // return if the packet is not from gateway nodes
                 return;
             }

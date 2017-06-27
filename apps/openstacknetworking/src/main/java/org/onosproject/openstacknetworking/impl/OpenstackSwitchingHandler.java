@@ -38,7 +38,8 @@ import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
 import org.slf4j.Logger;
 
@@ -53,7 +54,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHI
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
-import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.COMPUTE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -148,22 +149,27 @@ public final class OpenstackSwitchingHandler {
                 install);
 
         // switching rules for the instPorts in the remote node
-        osNodeService.completeNodes().stream()
-                .filter(osNode -> osNode.type() == COMPUTE)
-                .filter(osNode -> !osNode.intBridge().equals(instPort.deviceId()))
-                .forEach(osNode -> {
+        OpenstackNode localNode = osNodeService.node(instPort.deviceId());
+        if (localNode == null) {
+            final String error = String.format("Cannot find openstack node for %s",
+                    instPort.deviceId());
+            throw new IllegalStateException(error);
+        }
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(remoteNode -> !remoteNode.intgBridge().equals(localNode.intgBridge()))
+                .forEach(remoteNode -> {
                     TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
                             .extension(buildExtension(
                                     deviceService,
-                                    osNode.intBridge(),
-                                    osNodeService.dataIp(instPort.deviceId()).get().getIp4Address()),
-                                    osNode.intBridge())
-                            .setOutput(osNodeService.tunnelPort(osNode.intBridge()).get())
+                                    remoteNode.intgBridge(),
+                                    localNode.dataIp().getIp4Address()),
+                                    remoteNode.intgBridge())
+                            .setOutput(remoteNode.tunnelPortNum())
                             .build();
 
                     osFlowRuleService.setRule(
                             appId,
-                            osNode.intBridge(),
+                            remoteNode.intgBridge(),
                             selector,
                             treatmentToRemote,
                             PRIORITY_SWITCHING_RULE,
@@ -196,25 +202,23 @@ public final class OpenstackSwitchingHandler {
                 install);
 
         // switching rules for the instPorts in the remote node
-        osNodeService.completeNodes().stream()
-                .filter(osNode -> osNode.type() == COMPUTE)
-                .filter(osNode -> !osNode.intBridge().equals(instPort.deviceId()))
-                .filter(osNode -> osNode.vlanPort().isPresent())
-                .forEach(osNode -> {
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(remoteNode -> !remoteNode.intgBridge().equals(instPort.deviceId()) &&
+                        remoteNode.vlanIntf() != null)
+                .forEach(remoteNode -> {
                     TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                                    .setOutput(osNodeService.vlanPort(osNode.intBridge()).get())
+                                    .setOutput(remoteNode.vlanPortNum())
                                     .build();
 
                     osFlowRuleService.setRule(
                             appId,
-                            osNode.intBridge(),
+                            remoteNode.intgBridge(),
                             selector,
                             treatmentToRemote,
                             PRIORITY_SWITCHING_RULE,
                             FORWARDING_TABLE,
                             install);
                 });
-
     }
 
     private void setTunnelTagFlowRules(InstancePort instPort, boolean install) {

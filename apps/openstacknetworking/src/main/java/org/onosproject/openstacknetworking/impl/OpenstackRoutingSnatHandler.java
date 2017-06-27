@@ -47,7 +47,8 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedSet;
@@ -65,15 +66,14 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
-import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -122,7 +122,7 @@ public class OpenstackRoutingSnatHandler {
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
-    private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
+    private final PacketProcessor packetProcessor = new InternalPacketProcessor();
 
     private ConsistentMap<Integer, Long> allocatedPortNumMap;
     private DistributedSet<Integer> unUsedPortNumSet;
@@ -273,7 +273,8 @@ public class OpenstackRoutingSnatHandler {
                 packetIn);
     }
 
-    private void setDownstreamRules(InstancePort srcInstPort, String segmentId, NetworkType networkType,
+    private void setDownstreamRules(InstancePort srcInstPort, String segmentId,
+                                    NetworkType networkType,
                                     IpAddress externalIp, TpPort patPort,
                                     InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();
@@ -282,7 +283,7 @@ public class OpenstackRoutingSnatHandler {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(iPacket.getProtocol())
-                .matchIPDst(IpPrefix.valueOf(externalIp, 32))
+                .matchIPDst(IpPrefix.valueOf(externalIp.getIp4Address(), 32))
                 .matchIPSrc(IpPrefix.valueOf(iPacket.getDestinationAddress(), 32));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
@@ -323,31 +324,30 @@ public class OpenstackRoutingSnatHandler {
                 break;
         }
 
-        osNodeService.gatewayDeviceIds().forEach(deviceId -> {
-            DeviceId srcDeviceId = srcInstPort.deviceId();
+        OpenstackNode srcNode = osNodeService.node(srcInstPort.deviceId());
+        osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
             TrafficTreatment.Builder tmpBuilder =
                     DefaultTrafficTreatment.builder(tBuilder.build());
             switch (networkType) {
                 case VXLAN:
                     tmpBuilder.extension(RulePopulatorUtil.buildExtension(
                             deviceService,
-                            deviceId,
-                            osNodeService.dataIp(srcDeviceId).get().getIp4Address()), deviceId)
-                            .setOutput(osNodeService.tunnelPort(deviceId).get());
+                            gNode.intgBridge(),
+                            srcNode.dataIp().getIp4Address()), gNode.intgBridge())
+                            .setOutput(gNode.tunnelPortNum());
                     break;
                 case VLAN:
-                    tmpBuilder.setOutput(osNodeService.vlanPort(deviceId).get());
+                    tmpBuilder.setOutput(gNode.vlanPortNum());
                     break;
                 default:
-                    final String error = String.format(
-                            ERR_UNSUPPORTED_NET_TYPE + "%s",
+                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
                             networkType.toString());
                     throw new IllegalStateException(error);
             }
 
             osFlowRuleService.setRule(
                     appId,
-                    deviceId,
+                    gNode.intgBridge(),
                     sBuilder.build(),
                     tmpBuilder.build(),
                     PRIORITY_SNAT_RULE,
@@ -356,7 +356,8 @@ public class OpenstackRoutingSnatHandler {
         });
     }
 
-    private void setUpstreamRules(String segmentId, NetworkType networkType, IpAddress externalIp, TpPort patPort,
+    private void setUpstreamRules(String segmentId, NetworkType networkType,
+                                  IpAddress externalIp, TpPort patPort,
                                   InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();
 
@@ -377,8 +378,7 @@ public class OpenstackRoutingSnatHandler {
                 tBuilder.popVlan();
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
                         networkType.toString());
                 throw new IllegalStateException(error);
         }
@@ -397,7 +397,6 @@ public class OpenstackRoutingSnatHandler {
                         .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 tBuilder.setUdpSrc(patPort)
                         .setEthDst(DEFAULT_EXTERNAL_ROUTER_MAC);
-
                 break;
             default:
                 log.debug("Unsupported IPv4 protocol {}");
@@ -405,14 +404,14 @@ public class OpenstackRoutingSnatHandler {
         }
 
         tBuilder.setIpSrc(externalIp);
-        osNodeService.gatewayDeviceIds().forEach(deviceId -> {
+        osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
             TrafficTreatment.Builder tmpBuilder =
                     DefaultTrafficTreatment.builder(tBuilder.build());
-            tmpBuilder.setOutput(osNodeService.externalPort(deviceId).get());
+            tmpBuilder.setOutput(gNode.patchPortNum());
 
             osFlowRuleService.setRule(
                     appId,
-                    deviceId,
+                    gNode.intgBridge(),
                     sBuilder.build(),
                     tmpBuilder.build(),
                     PRIORITY_SNAT_RULE,
@@ -424,7 +423,6 @@ public class OpenstackRoutingSnatHandler {
     private void packetOut(Ethernet ethPacketIn, DeviceId srcDevice, int patPort,
                            IpAddress externalIp) {
         IPv4 iPacket = (IPv4) ethPacketIn.getPayload();
-
         switch (iPacket.getProtocol()) {
             case IPv4.PROTOCOL_TCP:
                 TCP tcpPacket = (TCP) iPacket.getPayload();
@@ -452,9 +450,15 @@ public class OpenstackRoutingSnatHandler {
         ethPacketIn.setPayload(iPacket);
         ethPacketIn.resetChecksum();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(osNodeService.externalPort(srcDevice).get()).build();
+        OpenstackNode srcNode = osNodeService.node(srcDevice);
+        if (srcNode == null) {
+            final String error = String.format("Cannot find openstack node for %s",
+                    srcDevice);
+            throw new IllegalStateException(error);
+        }
 
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(srcNode.patchPortNum()).build();
         packetService.emit(new DefaultOutboundPacket(
                 srcDevice,
                 treatment,
@@ -465,13 +469,11 @@ public class OpenstackRoutingSnatHandler {
         if (unUsedPortNumSet.isEmpty()) {
             clearPortNumMap();
         }
-
         int portNum = findUnusedPortNum();
         if (portNum != 0) {
             unUsedPortNumSet.remove(portNum);
             allocatedPortNumMap.put(portNum, System.currentTimeMillis());
         }
-
         return portNum;
     }
 
@@ -492,10 +494,12 @@ public class OpenstackRoutingSnatHandler {
 
         @Override
         public void process(PacketContext context) {
+            Set<DeviceId> gateways = osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY)
+                    .stream().map(OpenstackNode::intgBridge)
+                    .collect(Collectors.toSet());
             if (context.isHandled()) {
                 return;
-            } else if (!osNodeService.gatewayDeviceIds().contains(
-                    context.inPacket().receivedFrom().deviceId())) {
+            } else if (!gateways.contains(context.inPacket().receivedFrom().deviceId())) {
                 // return if the packet is not from gateway nodes
                 return;
             }

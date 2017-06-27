@@ -1,0 +1,264 @@
+/*
+ * Copyright 2017-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.openstacknode.impl;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.event.ListenerRegistry;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.openstacknode.api.OpenstackNodeConfig;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackNodeStore;
+import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
+import org.slf4j.Logger;
+
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * Service administering the inventory of openstack nodes.
+ */
+@Service
+@Component(immediate = true)
+public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
+        implements OpenstackNodeService, OpenstackNodeAdminService {
+
+    protected final Logger log = getLogger(getClass());
+
+    private static final String MSG_NODE = "OpenStack node %s %s";
+    private static final String MSG_CREATED = "created";
+    private static final String MSG_UPDATED = "updated";
+    private static final String MSG_REMOVED = "removed";
+
+    private static final String ERR_NULL_NODE = "OpenStack node cannot be null";
+    private static final String ERR_NULL_HOSTNAME = "OpenStack node hostname cannot be null";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeStore osNodeStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry configRegistry;
+
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
+
+    private final ConfigFactory configFactory =
+            new ConfigFactory<ApplicationId, OpenstackNodeConfig>(
+                    SubjectFactories.APP_SUBJECT_FACTORY, OpenstackNodeConfig.class, "openstacknode") {
+                @Override
+                public OpenstackNodeConfig createConfig() {
+                    return new OpenstackNodeConfig();
+                }
+            };
+
+    private final NetworkConfigListener configListener = new InternalConfigListener();
+    private final OpenstackNodeStoreDelegate delegate = new InternalNodeStoreDelegate();
+
+    private ApplicationId appId;
+    private NodeId localNode;
+
+    @Activate
+    protected void activate() {
+        appId = coreService.registerApplication(APP_ID);
+        osNodeStore.setDelegate(delegate);
+
+        localNode = clusterService.getLocalNode().id();
+        leadershipService.runForLeadership(appId.name());
+
+        configRegistry.registerConfigFactory(configFactory);
+        configRegistry.addListener(configListener);
+
+        readConfiguration();
+        log.info("Started");
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        osNodeStore.unsetDelegate(delegate);
+        configRegistry.removeListener(configListener);
+        configRegistry.unregisterConfigFactory(configFactory);
+
+        leadershipService.withdraw(appId.name());
+        eventExecutor.shutdown();
+
+        log.info("Stopped");
+    }
+
+    @Override
+    public void createNode(OpenstackNode osNode) {
+        checkNotNull(osNode, ERR_NULL_NODE);
+        osNodeStore.createNode(osNode);
+        log.info(String.format(MSG_NODE, osNode.hostname(), MSG_CREATED));
+    }
+
+    @Override
+    public void updateNode(OpenstackNode osNode) {
+        checkNotNull(osNode, ERR_NULL_NODE);
+        osNodeStore.updateNode(osNode);
+        log.info(String.format(MSG_NODE, osNode.hostname(), MSG_UPDATED));
+    }
+
+    @Override
+    public OpenstackNode removeNode(String hostname) {
+        checkArgument(!Strings.isNullOrEmpty(hostname), ERR_NULL_HOSTNAME);
+        OpenstackNode osNode = osNodeStore.removeNode(hostname);
+        log.info(String.format(MSG_NODE, hostname, MSG_REMOVED));
+        return osNode;
+    }
+
+    @Override
+    public Set<OpenstackNode> nodes() {
+        return osNodeStore.nodes();
+    }
+
+    @Override
+    public Set<OpenstackNode> nodes(OpenstackNode.NodeType type) {
+        Set<OpenstackNode> osNodes = osNodeStore.nodes().stream()
+                .filter(osNode -> Objects.equals(osNode.type(), type))
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(osNodes);
+    }
+
+    @Override
+    public Set<OpenstackNode> completeNodes() {
+        Set<OpenstackNode> osNodes = osNodeStore.nodes().stream()
+                .filter(osNode -> Objects.equals(osNode.state(), COMPLETE))
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(osNodes);
+    }
+
+    @Override
+    public Set<OpenstackNode> completeNodes(OpenstackNode.NodeType type) {
+        Set<OpenstackNode> osNodes = osNodeStore.nodes().stream()
+                .filter(osNode -> osNode.type() == type &&
+                        Objects.equals(osNode.state(), COMPLETE))
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(osNodes);
+    }
+
+    @Override
+    public OpenstackNode node(String hostname) {
+        return osNodeStore.node(hostname);
+    }
+
+    @Override
+    public OpenstackNode node(DeviceId deviceId) {
+        OpenstackNode result = osNodeStore.nodes().stream()
+                .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
+                        Objects.equals(osNode.ovsdb(), deviceId) ||
+                        Objects.equals(osNode.routerBridge(), deviceId))
+                .findFirst().orElse(null);
+        return result;
+    }
+
+    private class InternalNodeStoreDelegate implements OpenstackNodeStoreDelegate {
+
+        @Override
+        public void notify(OpenstackNodeEvent event) {
+            if (event != null) {
+                log.trace("send openstack node event {}", event);
+                process(event);
+            }
+        }
+    }
+
+    private void readConfiguration() {
+        OpenstackNodeConfig config = configRegistry.getConfig(appId, OpenstackNodeConfig.class);
+        if (config == null) {
+            log.debug("No configuration found");
+            return;
+        }
+
+        log.info("Read openstack node configurations...");
+        Set<String> hostnames = config.openstackNodes().stream()
+                .map(OpenstackNode::hostname)
+                .collect(Collectors.toSet());
+        nodes().stream().filter(osNode -> !hostnames.contains(osNode.hostname()))
+                .forEach(osNode -> removeNode(osNode.hostname()));
+
+        config.openstackNodes().forEach(osNode -> {
+            OpenstackNode existing = node(osNode.hostname());
+            if (existing == null) {
+                createNode(osNode);
+            } else if (!existing.equals(osNode)) {
+                updateNode(osNode);
+            }
+        });
+    }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            NodeId leaderNodeId = leadershipService.getLeader(appId.name());
+            if (!Objects.equals(localNode, leaderNodeId)) {
+                // do not allow to proceed without leadership
+                return;
+            }
+
+            if (!event.configClass().equals(OpenstackNodeConfig.class)) {
+                return;
+            }
+
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    eventExecutor.execute(OpenstackNodeManager.this::readConfiguration);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode;
+package org.onosproject.openstacknode.api;
+
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Entity capable of handling a subject connected and disconnected situation.
+ * OpenstackNode store delegate.
  */
-public interface ConnectionHandler<T> {
-    /**
-     * Processes the connected subject.
-     *
-     * @param subject subject
-     */
-    void connected(T subject);
-
-    /**
-     * Processes the disconnected subject.
-     *
-     * @param subject subject.
-     */
-    void disconnected(T subject);
+public interface OpenstackNodeStoreDelegate extends StoreDelegate<OpenstackNodeEvent> {
 }

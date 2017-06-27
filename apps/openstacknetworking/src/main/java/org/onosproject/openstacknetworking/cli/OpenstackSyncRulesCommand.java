@@ -17,7 +17,10 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.openstacknode.OpenstackNodeService;
+import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 
 /**
  * Re-installs flow rules for OpenStack networking.
@@ -30,12 +33,16 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
     protected void execute() {
         // All handlers in this application reacts the node complete event and
         // tries to re-configure flow rules for the complete node.
-        OpenstackNodeService nodeService = AbstractShellCommand.get(OpenstackNodeService.class);
-        if (nodeService == null) {
+        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
+        OpenstackNodeAdminService osNodeAdminService = AbstractShellCommand.get(OpenstackNodeAdminService.class);
+        if (osNodeService == null) {
             error("Failed to re-install flow rules for OpenStack networking.");
             return;
         }
-        nodeService.completeNodes().forEach(nodeService::processCompleteState);
+        osNodeService.completeNodes().forEach(osNode -> {
+            OpenstackNode updated = osNode.updateState(NodeState.INIT);
+            osNodeAdminService.updateNode(updated);
+        });
         print("Successfully requested re-installing flow rules.");
     }
 }

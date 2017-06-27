@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,4 +17,4 @@
 /**
  * Application for bootstrapping Compute/Gateway Node in OpenStack.
  */
-package org.onosproject.openstacknode;
+package org.onosproject.openstacknode.api;
