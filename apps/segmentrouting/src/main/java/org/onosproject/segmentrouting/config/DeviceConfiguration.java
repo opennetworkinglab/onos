@@ -19,9 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
-import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -56,7 +54,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class DeviceConfiguration implements DeviceProperties {
 
-    private static final String ERROR_CONFIG = "Configuration error.";
     private static final String NO_SUBNET = "No subnet configured on {}";
 
     private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
@@ -462,36 +459,6 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the IPv4 subnet configured of given device and port.
-     *
-     * @param deviceId Device ID
-     * @param port Port number
-     * @return The IPv4 subnet configured on given port or null if
-     *         the port is unconfigured, misconfigured or suppressed.
-     */
-    public Ip4Prefix getPortIPv4Subnet(DeviceId deviceId, PortNumber port) {
-        return getPortSubnets(deviceId, port).stream()
-                .filter(IpPrefix::isIp4)
-                .map(IpPrefix::getIp4Prefix)
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns the IPv6 subnet configured of given device and port.
-     *
-     * @param deviceId Device ID
-     * @param port Port number
-     * @return The IPV6 subnet configured on given port or null if
-     *         the port is unconfigured, misconfigured or suppressed.
-     */
-    public Ip6Prefix getPortIPv6Subnet(DeviceId deviceId, PortNumber port) {
-        return getPortSubnets(deviceId, port).stream()
-                .filter(IpPrefix::isIp6)
-                .map(IpPrefix::getIp6Prefix)
-                .findFirst().orElse(null);
-    }
-
-    /**
      * Returns the router ip address of segment router that has the
      * specified ip address in its subnets.
      *
@@ -562,14 +529,14 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Checks if the host is in the subnet defined in the router with the
+     * Checks if the host IP is in any of the subnet defined in the router with the
      * device ID given.
      *
      * @param deviceId device identification of the router
      * @param hostIp   host IP address to check
-     * @return true if the host is within the subnet of the router,
-     * false if no subnet is defined under the router or if the host is not
-     * within the subnet defined in the router
+     * @return true if the given IP is within any of the subnet defined in the router,
+     * false if no subnet is defined in the router or if the host is not
+     * within any subnet defined in the router
      */
     public boolean inSameSubnet(DeviceId deviceId, IpAddress hostIp) {
 
@@ -598,10 +565,8 @@ public class DeviceConfiguration implements DeviceProperties {
      *         there is no subnet configuration on given connect point.
      */
     public boolean inSameSubnet(ConnectPoint connectPoint, IpAddress ip) {
-        Ip4Prefix ipv4Subnet = getPortIPv4Subnet(connectPoint.deviceId(), connectPoint.port());
-        Ip6Prefix ipv6Subnet = getPortIPv6Subnet(connectPoint.deviceId(), connectPoint.port());
-        return (ipv4Subnet != null && ipv4Subnet.contains(ip)) ||
-                (ipv6Subnet != null && ipv6Subnet.contains(ip));
+        return getPortSubnets(connectPoint.deviceId(), connectPoint.port()).stream()
+                .anyMatch(ipPrefix -> ipPrefix.contains(ip));
     }
 
     /**
