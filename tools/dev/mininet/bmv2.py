@@ -23,7 +23,7 @@ class ONOSBmv2Switch(Switch):
     instanceCount = 0
 
     def __init__(self, name, debugger=False, loglevel="warn", elogger=False, persistent=False,
-                 logflush=False, thriftPort=None, grpcPort=None, netcfg=True, **kwargs):
+                 thriftPort=None, grpcPort=None, netcfg=True, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
@@ -37,7 +37,6 @@ class ONOSBmv2Switch(Switch):
         self.logfile = '/tmp/bmv2-%d.log' % self.deviceId
         self.elogger = elogger
         self.persistent = persistent
-        self.logflush = logflush
         self.netcfg = netcfg
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
         if persistent:
@@ -118,9 +117,7 @@ class ONOSBmv2Switch(Switch):
             args.append('--nanolog %s' % nanomsg)
         if self.debugger:
             args.append('--debugger')
-        args.append('--log-file %s -L%s' % (self.logfile, self.loglevel))
-        if self.logflush:
-            args.append('--log-flush')
+        args.append('-L%s' % self.loglevel)
 
         args.append(INIT_BMV2_JSON)
 
@@ -136,9 +133,9 @@ class ONOSBmv2Switch(Switch):
             cmdStr = "(while [ -e {} ]; " \
                      "do {} ; " \
                      "sleep 1; " \
-                     "done;) &".format(self.exectoken, bmv2cmd)
+                     "done;) > {} 2>&1 &".format(self.exectoken, bmv2cmd, self.logfile)
         else:
-            cmdStr = "{} &".format(bmv2cmd)
+            cmdStr = "{} > {} 2>&1 &".format(bmv2cmd, self.logfile)
 
         # Starts the switch.
         out = self.cmd(cmdStr)
@@ -157,8 +154,7 @@ class ONOSBmv2Switch(Switch):
     def stop(self, deleteIntfs=True):
         """Terminate switch."""
         self.cmd("rm -f /tmp/bmv2-%d-*" % self.deviceId)
-        # wildcard end as BMv2 might create log files with .txt extension
-        self.cmd("rm -f /tmp/bmv2-%d.log*" % self.deviceId)
+        self.cmd("rm -f /tmp/bmv2-%d.log" % self.deviceId)
         self.cmd('kill %' + BMV2_TARGET)
         Switch.stop(self, deleteIntfs)
 
