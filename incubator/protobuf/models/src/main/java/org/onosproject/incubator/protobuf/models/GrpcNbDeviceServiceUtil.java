@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.grpc.nb.utils;
+package org.onosproject.incubator.protobuf.models;
 
 import org.onlab.packet.ChassisId;
 import org.onosproject.grpc.net.device.models.DeviceDescriptionProtoOuterClass;

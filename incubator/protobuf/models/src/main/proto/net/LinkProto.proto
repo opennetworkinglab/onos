@@ -5,6 +5,7 @@ package net;
 
 import "net/link/LinkEnumsProto.proto";
 import "net/ConnectPointProto.proto";
+import "net/ProviderIdProto.proto";
 
 // Corresponds to org.onosproject.net.Link.
 message LinkProto {
@@ -13,6 +14,6 @@ message LinkProto {
     net.ConnectPointProto dst = 3;
     net.link.LinkTypeProto type = 4;
     map<string, string> annotations = 5;
+    net.ProviderIdProto provider_id = 6;
+    bool isExpected = 7;
 }
-
-

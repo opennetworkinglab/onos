@@ -1,0 +1,90 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.net.link";
+
+package nb.net.link;
+
+import "net/LinkProto.proto";
+import "net/ConnectPointProto.proto";
+
+message getLinkCountRequest {
+}
+
+message getLinkCountReply {
+    int32 link_count = 1;
+}
+
+message getActiveLinksRequest {
+}
+
+message getActiveLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getDeviceLinksRequest {
+    string device_id = 1;
+}
+
+message getDeviceLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getDeviceEgressLinksRequest {
+    string device_id = 1;
+}
+
+message getDeviceEgressLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getDeviceIngressLinksRequest {
+    string device_id = 1;
+}
+
+message getDeviceIngressLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getLinksRequest {
+    .net.ConnectPointProto connect_point = 1;
+}
+
+message getLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getEgressLinksRequest {
+    .net.ConnectPointProto connect_point = 1;
+}
+
+message getEgressLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getIngressLinksRequest {
+    .net.ConnectPointProto connect_point = 1;
+}
+
+message getIngressLinksReply {
+    repeated .net.LinkProto link = 1;
+}
+
+message getLinkRequest {
+    .net.ConnectPointProto src = 1;
+    .net.ConnectPointProto dst = 2;
+}
+
+message getLinkReply {
+    .net.LinkProto link = 1;
+}
+
+service LinkService {
+    rpc getLinkCount(getLinkCountRequest) returns(getLinkCountReply) {}
+    rpc getLinks(getLinksRequest) returns(getLinksReply) {}
+    rpc getActiveLinks(getActiveLinksRequest) returns(getActiveLinksReply) {}
+    rpc getDeviceLinks(getDeviceLinksRequest) returns(getDeviceLinksReply) {}
+    rpc getDeviceEgressLinks(getDeviceEgressLinksRequest) returns(getDeviceEgressLinksReply) {}
+    rpc getDeviceIngressLinks(getDeviceIngressLinksRequest) returns(getDeviceIngressLinksReply) {}
+    rpc getEgressLinks(getEgressLinksRequest) returns(getEgressLinksReply) {}
+    rpc getIngressLinks(getIngressLinksRequest) returns(getIngressLinksReply) {}
+    rpc getLink(getLinkRequest) returns(getLinkReply) {}
+}

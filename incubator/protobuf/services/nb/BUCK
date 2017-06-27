@@ -5,11 +5,14 @@ COMPILE_DEPS = [
     '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
     '//incubator/protobuf/models:onos-incubator-protobuf-models',
     '//lib:protobuf-java-3.2.0',
-    '//lib:GRPC_1.3'
+    '//lib:GRPC_1.3',
+    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+    '//lib:grpc-protobuf-lite-1.3.0'
 ]
 
 GRPC_DEPS = [
     '//lib:GRPC_1.3',
+    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
     '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
     '//lib:protobuf-java-3.2.0',
     '//lib:guava'
@@ -23,6 +26,7 @@ BUNDLES = [
     '//lib:protobuf-java-3.2.0',
     '//lib:guava',
     '//lib:grpc-core-1.3.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
     '//lib:grpc-protobuf-1.3.0',
     '//lib:grpc-stub-1.3.0',
     '//lib:grpc-netty-1.3.0',

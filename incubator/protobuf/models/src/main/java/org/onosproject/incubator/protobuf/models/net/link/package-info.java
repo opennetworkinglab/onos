@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * gRPC server implementations for northbound services.
+ * Utilities to handle ProtoBuf version of ONOS link models.
  */
-package org.onosproject.grpc.nb.net.device;
+package org.onosproject.incubator.protobuf.models.net.link;

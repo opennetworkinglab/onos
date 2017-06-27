@@ -7,8 +7,8 @@ message ConnectPointProto {
     oneof element_id {
         // DeviceID as String DeviceId#toString
         string device_id = 1;
-
-        // TODO add support to other element_id if required
+        string host_id = 3;
+        string ip_element_id = 4;
     }
     // PortNumber as String PortNumber#toString
     string port_number = 2;

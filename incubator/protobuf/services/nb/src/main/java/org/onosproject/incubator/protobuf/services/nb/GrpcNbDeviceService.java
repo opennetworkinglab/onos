@@ -33,7 +33,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.grpc.nb.utils.GrpcNbDeviceServiceUtil;
+import org.onosproject.incubator.protobuf.models.GrpcNbDeviceServiceUtil;
 
 import static org.onosproject.grpc.nb.net.device.DeviceServiceNb.*;
 

@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * A package contains a set of utilities that are used to convert gRPC model
- * object to ONOS data model object.
+ * gRPC server implementations for northbound services.
  */
-package org.onosproject.grpc.nb.utils;
+package org.onosproject.incubator.protobuf.services.nb;
