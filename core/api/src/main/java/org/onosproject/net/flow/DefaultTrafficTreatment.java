@@ -431,6 +431,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder notWipeDeferred() {
+            clear = false;
+            return this;
+        }
+
+        @Override
         public Builder writeMetadata(long metadata, long metadataMask) {
             return add(Instructions.writeMetadata(metadata, metadataMask));
         }

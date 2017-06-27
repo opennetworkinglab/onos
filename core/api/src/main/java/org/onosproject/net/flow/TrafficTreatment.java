@@ -320,6 +320,12 @@ public interface TrafficTreatment {
         Builder wipeDeferred();
 
         /**
+         * the instruction to clear not wipe the deferred instructions set.
+         * @return a treatment builder
+         */
+        Builder notWipeDeferred();
+
+        /**
          * Writes metadata to associate with a packet.
          * <pre>
          * {@code
