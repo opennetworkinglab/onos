@@ -22,6 +22,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -56,7 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * routers.
  */
 public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
-        implements PortStatisticsDiscovery {
+        implements PortStatisticsDiscovery, DeviceDescriptionDiscovery {
 
     private final Logger log = getLogger(getClass());
 

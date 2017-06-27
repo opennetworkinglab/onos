@@ -16,12 +16,14 @@
 
 package org.onosproject.net.device;
 
+import org.onosproject.net.driver.HandlerBehaviour;
+
 import java.util.Collection;
 
 /**
  * Handler behaviour capable of collecting and updating port statistics.
  */
-public interface PortStatisticsDiscovery extends DeviceDescriptionDiscovery {
+public interface PortStatisticsDiscovery extends HandlerBehaviour {
 
     /**
      * Returns a list of port statistics descriptions appropriately annotated
