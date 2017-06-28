@@ -946,6 +946,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processDeviceAdded(Device device) {
         log.info("** DEVICE ADDED with ID {}", device.id());
+
+        // NOTE: Punt ARP/NDP even when the device is not configured.
+        //       Host learning without network config is required for CORD config generator.
+        routingRulePopulator.populateIpPunts(device.id());
+        routingRulePopulator.populateArpNdpPunts(device.id());
+
         if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
             log.warn("Device configuration uploading. Device {} will be "
                     + "processed after config completes.", device.id());
