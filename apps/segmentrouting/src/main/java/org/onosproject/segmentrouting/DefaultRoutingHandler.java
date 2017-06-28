@@ -878,9 +878,6 @@ public class DefaultRoutingHandler {
      * @param deviceId Switch ID to set the rules
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
-        rulePopulator.populateIpPunts(deviceId);
-        rulePopulator.populateArpNdpPunts(deviceId);
-
         // Although device is added, sometimes device store does not have the
         // ports for this device yet. It results in missing filtering rules in the
         // switch. We will attempt it a few times. If it still does not work,
