@@ -136,7 +136,6 @@ public class CriteriaTest {
     Criterion sameAsMatchUdpPort1 = Criteria.matchUdpSrc(tpPort1);
     Criterion matchUdpPort2 = Criteria.matchUdpDst(tpPort2);
 
-
     int tcpFlags1 =
         Criterion.TcpFlags.NS.getValue() |
         Criterion.TcpFlags.CWR.getValue() |
@@ -340,6 +339,7 @@ public class CriteriaTest {
         assertThatClassIsImmutable(OduSignalIdCriterion.class);
         assertThatClassIsImmutable(OduSignalTypeCriterion.class);
         assertThatClassIsImmutable(PbbIsidCriterion.class);
+        assertThatClassIsImmutable(PiCriterion.class);
     }
 
     // PortCriterion class
