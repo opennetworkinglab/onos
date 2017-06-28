@@ -64,6 +64,9 @@ if [ ! -d $ONOS_DIR -o "$oldMD5" != "$newMD5" -o -d $ONOS_DIR -a -n "$clean" ]; 
     }
 EOF
 
+    # Copy config files
+    find $ONOS_ROOT/tools/package/config -maxdepth 1 -name \*.json -exec cp {} $ONOS_HOME/config/ \;
+
 else
     # Otherwise, run using the previous installation
     echo "Running previous installation..."
