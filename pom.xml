@@ -66,6 +66,8 @@
         <module>incubator</module>
         <module>features</module>
 
+        <module>models/openroadm</module>
+
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
     </modules>

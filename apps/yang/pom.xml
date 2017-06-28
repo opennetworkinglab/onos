@@ -20,15 +20,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>onos-apps-openroadm</artifactId>
         <groupId>org.onosproject</groupId>
+        <artifactId>onos-apps</artifactId>
         <version>1.11.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-apps-openroadm-service</artifactId>
+    <artifactId>onos-apps-yang</artifactId>
     <packaging>bundle</packaging>
-    <description>Open ROADM Service Model</description>
+    <description>YANG Compiler and Runtime</description>
+
+    <properties>
+        <onos.app.name>org.onosproject.yang</onos.app.name>
+    </properties>
 
     <dependencies>
 
@@ -44,9 +47,53 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-openroadm-yangmodel</artifactId>
+            <artifactId>onos-yang-serializers-xml</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-serializers-json</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+        </dependency>
+
     </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
 </project>

@@ -22,20 +22,31 @@
     <parent>
         <artifactId>onos-apps-openroadm</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.11.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-apps-openroadm-network</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Open ROADM Network Model</description>
 
     <dependencies>
+
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yang</artifactId>
-            <version>1.10.0-SNAPSHOT</version>
+            <artifactId>onos-yang-model</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-runtime</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openroadm-yangmodel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 </project>

@@ -399,6 +399,16 @@
                 <artifactId>onos-yang-runtime</artifactId>
                 <version>${onos-yang-tools.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-yang-serializers-xml</artifactId>
+                <version>${onos-yang-tools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-yang-serializers-json</artifactId>
+                <version>${onos-yang-tools.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
