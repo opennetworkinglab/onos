@@ -319,7 +319,7 @@ public class DefaultGroupHandler {
                 .addTreatment(tBuilder.build())
                 .withMeta(metabuilder.build())
                 .fromApp(appId);
-        log.info("{} in device {}: Adding Bucket with Port {} to next object id {}",
+        log.debug("{} in device {}: Adding Bucket with Port {} to next object id {}",
                  (retry) ? "retry-addToHash" : "addToHash",
                          deviceId, outport, nextId);
 
