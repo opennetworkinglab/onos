@@ -22,16 +22,17 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.Device;
-import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
-import java.util.Optional;
-
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.*;
+import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VLAN;
+import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VXLAN;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
@@ -47,15 +48,18 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
     private static final String MSG_OK = "OK";
     private static final String MSG_NO = "NO";
+    private static final String BUCKET_FORMAT =
+            "   bucket=%s, bytes=%s, packets=%s, actions=%s";
 
     @Override
     protected void execute() {
         OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
+        GroupService groupService = AbstractShellCommand.get(GroupService.class);
 
         OpenstackNode osNode = osNodeService.node(hostname);
         if (osNode == null) {
-            error("Cannot find %s from registered nodes", hostname);
+            print("Cannot find %s from registered nodes", hostname);
             return;
         }
 
@@ -69,81 +73,74 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                     deviceService.isAvailable(device.id()),
                     device.annotations());
             if (osNode.dataIp() != null) {
-                print(getPortState(deviceService, osNode.intgBridge(), DEFAULT_TUNNEL));
+                printPortState(deviceService, osNode.intgBridge(), DEFAULT_TUNNEL);
             }
             if (osNode.vlanIntf() != null) {
-                print(getPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf()));
+                printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
             }
+            printGatewayGroupState(osNodeService, groupService, osNode);
         } else {
             print("%s %s=%s is not available",
                     MSG_NO,
                     INTEGRATION_BRIDGE,
                     osNode.intgBridge());
         }
-
-        if (osNode.type() == GATEWAY) {
-            print(getPortState(deviceService, osNode.intgBridge(), PATCH_INTG_BRIDGE));
-
-            print("%n[Router Bridge Status]");
-            device = deviceService.getDevice(osNode.ovsdb());
-            if (device == null || !device.is(BridgeConfig.class)) {
-                print("%s %s=%s is not available(unable to connect OVSDB)",
-                      MSG_NO,
-                      ROUTER_BRIDGE,
-                      osNode.intgBridge());
-            } else {
-                BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
-                boolean available = bridgeConfig.getBridges().stream()
-                        .anyMatch(bridge -> bridge.name().equals(ROUTER_BRIDGE));
-                print("%s %s=%s available=%s",
-                      available ? MSG_OK : MSG_NO,
-                      ROUTER_BRIDGE,
-                      osNode.routerBridge(),
-                      available);
-                print(getPortStateOvsdb(deviceService, osNode.ovsdb(), PATCH_ROUT_BRIDGE));
-            }
-        }
     }
 
-    private String getPortState(DeviceService deviceService, DeviceId deviceId, String portName) {
+    private void printPortState(DeviceService deviceService, DeviceId deviceId, String portName) {
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.annotations().value(PORT_NAME).equals(portName) &&
                         p.isEnabled())
                 .findAny().orElse(null);
 
         if (port != null) {
-            return String.format("%s %s portNum=%s enabled=%s %s",
+            print("%s %s portNum=%s enabled=%s %s",
                     port.isEnabled() ? MSG_OK : MSG_NO,
                     portName,
                     port.number(),
                     port.isEnabled() ? Boolean.TRUE : Boolean.FALSE,
                     port.annotations());
         } else {
-            return String.format("%s %s does not exist", MSG_NO, portName);
+            print("%s %s does not exist", MSG_NO, portName);
         }
     }
 
-    private String getPortStateOvsdb(DeviceService deviceService, DeviceId deviceId, String portName) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device == null || !device.is(BridgeConfig.class)) {
-            return String.format("%s %s does not exist(unable to connect OVSDB)",
-                                 MSG_NO, portName);
+    private void printGatewayGroupState(OpenstackNodeService osNodeService,
+                                        GroupService groupService, OpenstackNode osNode) {
+        if (osNode.type() == GATEWAY) {
+            return;
         }
-
-        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
-        Optional<PortDescription> port = bridgeConfig.getPorts().stream()
-                .filter(p -> p.annotations().value(PORT_NAME).contains(portName))
-                .findAny();
-
-        if (port.isPresent()) {
-            return String.format("%s %s portNum=%s enabled=%s %s",
-                                 port.get().isEnabled() ? MSG_OK : MSG_NO,
-                                 portName,
-                                 port.get().portNumber(),
-                                 port.get().isEnabled() ? Boolean.TRUE : Boolean.FALSE,
-                                 port.get().annotations());
-        } else {
-            return String.format("%s %s does not exist", MSG_NO, portName);
+        if (osNodeService.completeNodes(GATEWAY).isEmpty()) {
+            print("N/A No complete state gateway nodes exist");
+            return;
+        }
+        if (osNode.dataIp() != null) {
+            Group osGroup = groupService.getGroup(osNode.intgBridge(),
+                    osNode.gatewayGroupKey(VXLAN));
+            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED) {
+                print("%s VXLAN gateway group does not exist", MSG_NO);
+            } else {
+                print("%s VXLAN group 0x%s added", MSG_OK, Integer.toHexString(osGroup.id().id()));
+                int i = 0;
+                for (GroupBucket bucket : osGroup.buckets().buckets()) {
+                    print(BUCKET_FORMAT, ++i, bucket.bytes(), bucket.packets(),
+                            bucket.treatment().allInstructions());
+                }
+            }
+        }
+        if (osNode.vlanIntf() != null) {
+            Group osGroup = groupService.getGroup(osNode.intgBridge(),
+                    osNode.gatewayGroupKey(VLAN));
+            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED) {
+                print("\n%s VLAN gateway group does not exist", MSG_NO);
+            } else {
+                print("\n%s VLAN group 0x%s added", MSG_OK, Integer.toHexString(osGroup.id().id()));
+                int i = 0;
+                for (GroupBucket bucket : osGroup.buckets().buckets()) {
+                    print(BUCKET_FORMAT, ++i, bucket.bytes(), bucket.packets(),
+                            bucket.treatment().allInstructions());
+                }
+            }
         }
     }
 }
