@@ -23,3 +23,6 @@
     //protocols/netconf/api:onos-protocols-netconf-api
     //apps/routing-api:onos-apps-routing-api
     //tools/build/conf:onos-build-conf
+    //protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc
+    //protocols/ovsdb/api:onos-protocols-ovsdb-api
+    //protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl
