@@ -23,6 +23,8 @@ BUNDLES = [
 grpc_jar(
     name = 'onos-incubator-protobuf-models-proto',
     deps = GRPC_DEPS,
+    # FIXME should not be manually building absolute path.
+    # Come up with glob(..) equivalent in BUCK which can handle directory.
     proto_paths = ["$ONOS_ROOT/incubator/protobuf/models/src/main/proto"]
 )
 
