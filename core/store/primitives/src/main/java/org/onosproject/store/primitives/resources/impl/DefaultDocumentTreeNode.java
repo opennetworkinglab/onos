@@ -41,9 +41,9 @@ public class DefaultDocumentTreeNode<V> implements DocumentTreeNode<V> {
     private final DocumentTreeNode<V> parent;
 
     public DefaultDocumentTreeNode(DocumentPath key,
-                            V value,
-                            long version,
-                            DocumentTreeNode<V> parent) {
+            V value,
+            long version,
+            DocumentTreeNode<V> parent) {
         this.key = checkNotNull(key);
         this.value = new Versioned<>(value, version);
         this.parent = parent;
@@ -137,9 +137,9 @@ public class DefaultDocumentTreeNode<V> implements DocumentTreeNode<V> {
     public String toString() {
         MoreObjects.ToStringHelper helper =
                 MoreObjects.toStringHelper(getClass())
-                .add("parent", this.parent)
-                .add("key", this.key)
-                .add("value", this.value);
+                        .add("parent", this.parent)
+                        .add("key", this.key)
+                        .add("value", this.value);
         for (DocumentTreeNode<V> child : children.values()) {
             helper = helper.add("child", "\n" + child.path().pathElements()
                     .get(child.path().pathElements().size() - 1) +

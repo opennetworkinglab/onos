@@ -15,146 +15,149 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.AbstractResource;
-import io.atomix.resource.ResourceTypeInfo;
-
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import org.onlab.util.KryoNamespace;
 import org.onlab.util.Match;
 import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Clear;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.ContainsKey;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.ContainsValue;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.EntrySet;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Get;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.GetOrDefault;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.IsEmpty;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.KeySet;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Listen;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Size;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionBegin;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionCommit;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepare;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepareAndCommit;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionRollback;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Unlisten;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.UpdateAndGet;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Values;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ContainsKey;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ContainsValue;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.Get;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GetOrDefault;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionBegin;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionCommit;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionPrepare;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionPrepareAndCommit;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionRollback;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.UpdateAndGet;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapEvents.CHANGE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ADD_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.BEGIN;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.COMMIT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_VALUE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ENTRY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET_OR_DEFAULT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.KEY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE_AND_COMMIT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.REMOVE_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ROLLBACK;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.SIZE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.UPDATE_AND_GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.VALUES;
 
 /**
  * Distributed resource providing the {@link AsyncConsistentMap} primitive.
  */
-@ResourceTypeInfo(id = -151, factory = AtomixConsistentMapFactory.class)
-public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
-    implements AsyncConsistentMap<String, byte[]> {
+public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncConsistentMap<String, byte[]> {
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespace.newBuilder()
+            .register(KryoNamespaces.BASIC)
+            .register(AtomixConsistentMapOperations.NAMESPACE)
+            .register(AtomixConsistentMapEvents.NAMESPACE)
+            .build());
 
-    private final Set<Consumer<Status>> statusChangeListeners = Sets.newCopyOnWriteArraySet();
     private final Map<MapEventListener<String, byte[]>, Executor> mapEventListeners = new ConcurrentHashMap<>();
 
-    public static final String CHANGE_SUBJECT = "changeEvents";
-
-    public AtomixConsistentMap(CopycatClient client, Properties properties) {
-        super(client, properties);
-    }
-
-    @Override
-    public String name() {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<AtomixConsistentMap> open() {
-        return super.open().thenApply(result -> {
-            client.onStateChange(state -> {
-                if (state == CopycatClient.State.CONNECTED && isListening()) {
-                    client.submit(new Listen());
-                }
-            });
-            client.onEvent(CHANGE_SUBJECT, this::handleEvent);
-            return result;
+    public AtomixConsistentMap(RaftProxy proxy) {
+        super(proxy);
+        proxy.addEventListener(CHANGE, SERIALIZER::decode, this::handleEvent);
+        proxy.addStateChangeListener(state -> {
+            if (state == RaftProxy.State.CONNECTED && isListening()) {
+                proxy.invoke(ADD_LISTENER);
+            }
         });
     }
 
     private void handleEvent(List<MapEvent<String, byte[]>> events) {
         events.forEach(event ->
-            mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event))));
+                mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event))));
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return client.submit(new IsEmpty());
+        return proxy.invoke(IS_EMPTY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return client.submit(new Size());
+        return proxy.invoke(SIZE, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return client.submit(new ContainsKey(key));
+        return proxy.invoke(CONTAINS_KEY, SERIALIZER::encode, new ContainsKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(byte[] value) {
-        return client.submit(new ContainsValue(value));
+        return proxy.invoke(CONTAINS_VALUE, SERIALIZER::encode, new ContainsValue(value), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String key) {
-        return client.submit(new Get(key));
+        return proxy.invoke(GET, SERIALIZER::encode, new Get(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> getOrDefault(String key, byte[] defaultValue) {
-        return client.submit(new GetOrDefault(key, defaultValue));
+        return proxy.invoke(
+                GET_OR_DEFAULT,
+                SERIALIZER::encode,
+                new GetOrDefault(key, defaultValue),
+                SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return client.submit(new KeySet());
+        return proxy.invoke(KEY_SET, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Collection<Versioned<byte[]>>> values() {
-        return client.submit(new Values());
+        return proxy.invoke(VALUES, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Set<Entry<String, Versioned<byte[]>>>> entrySet() {
-        return client.submit(new EntrySet());
+        return proxy.invoke(ENTRY_SET, SERIALIZER::decode);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> put(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -162,7 +165,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putAndGet(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.newValue());
     }
@@ -170,14 +177,23 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putIfAbsent(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.NULL, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.NULL, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
+
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> remove(String key) {
-        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -185,7 +201,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -193,7 +213,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, long version) {
-        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -201,7 +225,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> replace(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -209,7 +237,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, byte[] oldValue, byte[] newValue) {
-        return client.submit(new UpdateAndGet(key, newValue, Match.ifValue(oldValue), Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, newValue, Match.ifValue(oldValue), Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -217,14 +249,18 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, long oldVersion, byte[] newValue) {
-        return client.submit(new UpdateAndGet(key, newValue, Match.ANY, Match.ifValue(oldVersion)))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, newValue, Match.ANY, Match.ifValue(oldVersion)),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return client.submit(new Clear())
+        return proxy.<MapEntryUpdateResult.Status>invoke(CLEAR, SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r))
                 .thenApply(v -> null);
     }
@@ -233,7 +269,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> computeIf(String key,
             Predicate<? super byte[]> condition,
-                    BiFunction<? super String, ? super byte[], ? extends byte[]> remappingFunction) {
+            BiFunction<? super String, ? super byte[], ? extends byte[]> remappingFunction) {
         return get(key).thenCompose(r1 -> {
             byte[] existingValue = r1 == null ? null : r1.value();
             // if the condition evaluates to false, return existing value.
@@ -255,27 +291,31 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
             }
             Match<byte[]> valueMatch = r1 == null ? Match.NULL : Match.ANY;
             Match<Long> versionMatch = r1 == null ? Match.ANY : Match.ifValue(r1.version());
-            return client.submit(new UpdateAndGet(key,
-                                                  computedValue.get(),
-                                                  valueMatch,
-                                                  versionMatch))
-                         .whenComplete((r, e) -> throwIfLocked(r.status()))
-                         .thenCompose(r -> {
-                             if (r.status() == MapEntryUpdateResult.Status.PRECONDITION_FAILED ||
-                                     r.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
-                                 return Tools.exceptionalFuture(new ConsistentMapException.ConcurrentModification());
-                             }
-                             return CompletableFuture.completedFuture(r);
-                         })
-                         .thenApply(v -> v.newValue());
+            return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                    UPDATE_AND_GET,
+                    SERIALIZER::encode,
+                    new UpdateAndGet(key,
+                            computedValue.get(),
+                            valueMatch,
+                            versionMatch),
+                    SERIALIZER::decode)
+                    .whenComplete((r, e) -> throwIfLocked(r.status()))
+                    .thenCompose(r -> {
+                        if (r.status() == MapEntryUpdateResult.Status.PRECONDITION_FAILED ||
+                                r.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
+                            return Tools.exceptionalFuture(new ConsistentMapException.ConcurrentModification());
+                        }
+                        return CompletableFuture.completedFuture(r);
+                    })
+                    .thenApply(v -> v.newValue());
         });
     }
 
     @Override
     public synchronized CompletableFuture<Void> addListener(MapEventListener<String, byte[]> listener,
-                                                            Executor executor) {
+            Executor executor) {
         if (mapEventListeners.isEmpty()) {
-            return client.submit(new Listen()).thenRun(() -> mapEventListeners.put(listener, executor));
+            return proxy.invoke(ADD_LISTENER).thenRun(() -> mapEventListeners.put(listener, executor));
         } else {
             mapEventListeners.put(listener, executor);
             return CompletableFuture.completedFuture(null);
@@ -285,7 +325,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     public synchronized CompletableFuture<Void> removeListener(MapEventListener<String, byte[]> listener) {
         if (mapEventListeners.remove(listener) != null && mapEventListeners.isEmpty()) {
-            return client.submit(new Unlisten()).thenApply(v -> null);
+            return proxy.invoke(REMOVE_LISTENER).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -298,46 +338,52 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
 
     @Override
     public CompletableFuture<Version> begin(TransactionId transactionId) {
-        return client.submit(new TransactionBegin(transactionId)).thenApply(Version::new);
+        return proxy.<TransactionBegin, Long>invoke(
+                BEGIN,
+                SERIALIZER::encode,
+                new TransactionBegin(transactionId),
+                SERIALIZER::decode)
+                .thenApply(Version::new);
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(
-            TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
-        return client.submit(new TransactionPrepare(transactionLog))
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+        return proxy.<TransactionPrepare, PrepareResult>invoke(
+                PREPARE,
+                SERIALIZER::encode,
+                new TransactionPrepare(transactionLog),
+                SERIALIZER::decode)
                 .thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
-    public CompletableFuture<Boolean> prepareAndCommit(
-            TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
-        return client.submit(new TransactionPrepareAndCommit(transactionLog))
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+        return proxy.<TransactionPrepareAndCommit, PrepareResult>invoke(
+                PREPARE_AND_COMMIT,
+                SERIALIZER::encode,
+                new TransactionPrepareAndCommit(transactionLog),
+                SERIALIZER::decode)
                 .thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        return client.submit(new TransactionCommit(transactionId)).thenApply(v -> null);
+        return proxy.<TransactionCommit, CommitResult>invoke(
+                COMMIT,
+                SERIALIZER::encode,
+                new TransactionCommit(transactionId),
+                SERIALIZER::decode)
+                .thenApply(v -> null);
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return client.submit(new TransactionRollback(transactionId)).thenApply(v -> null);
-    }
-
-    @Override
-    public void addStatusChangeListener(Consumer<Status> listener) {
-        statusChangeListeners.add(listener);
-    }
-
-    @Override
-    public void removeStatusChangeListener(Consumer<Status> listener) {
-        statusChangeListeners.remove(listener);
-    }
-
-    @Override
-    public Collection<Consumer<Status>> statusChangeListeners() {
-        return ImmutableSet.copyOf(statusChangeListeners);
+        return proxy.invoke(
+                ROLLBACK,
+                SERIALIZER::encode,
+                new TransactionRollback(transactionId),
+                SERIALIZER::decode)
+                .thenApply(v -> null);
     }
 
     private boolean isListening() {

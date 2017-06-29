@@ -32,6 +32,6 @@ public class DefaultAtomicCounterBuilder extends AtomicCounterBuilder {
 
     @Override
     public AsyncAtomicCounter build() {
-        return primitiveCreator.newAsyncCounter(name(), executorSupplier());
+        return primitiveCreator.newAsyncCounter(name());
     }
 }

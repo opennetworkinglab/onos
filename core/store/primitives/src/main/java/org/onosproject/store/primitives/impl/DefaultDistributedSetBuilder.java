@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import org.onosproject.core.ApplicationId;
@@ -50,12 +49,6 @@ public class DefaultDistributedSetBuilder<E> extends DistributedSetBuilder<E> {
     @Override
     public DistributedSetBuilder<E> withApplicationId(ApplicationId id) {
         mapBuilder.withApplicationId(id);
-        return this;
-    }
-
-    @Override
-    public DistributedSetBuilder<E> withExecutorSupplier(Supplier<Executor> executorSupplier) {
-        mapBuilder.withExecutorSupplier(executorSupplier);
         return this;
     }
 

@@ -16,32 +16,12 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import com.google.common.collect.Maps;
-import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.AbstractResource;
-import io.atomix.resource.ResourceTypeInfo;
-import org.onlab.util.Match;
-import org.onosproject.store.primitives.MapUpdate;
-import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FirstKey;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorEntry;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.HigherEntry;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.LastEntry;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.LowerEntry;
-import org.onosproject.store.service.AsyncConsistentTreeMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.TransactionLog;
-import org.onosproject.store.service.Version;
-import org.onosproject.store.service.Versioned;
-
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -49,114 +29,145 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.CeilingEntry;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.CeilingKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Clear;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.ContainsKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.ContainsValue;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.EntrySet;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FirstEntry;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Get;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.GetOrDefault;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.HigherKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.IsEmpty;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.KeySet;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.LastKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Listen;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.LowerKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.PollFirstEntry;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.PollLastEntry;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Size;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Unlisten;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.UpdateAndGet;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Values;
+import com.google.common.collect.Maps;
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import org.onlab.util.KryoNamespace;
+import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FloorEntry;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.HigherEntry;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LowerEntry;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
+import org.onosproject.store.service.Versioned;
+
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapEvents.CHANGE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.ADD_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CEILING_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CEILING_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CONTAINS_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CONTAINS_VALUE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CeilingEntry;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.CeilingKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.ContainsKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.ContainsValue;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.ENTRY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FIRST_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FIRST_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FLOOR_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FLOOR_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.FloorKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.GET_OR_DEFAULT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.GetOrDefault;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.HIGHER_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.HIGHER_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.HigherKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.KEY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LAST_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LAST_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LOWER_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LOWER_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.LowerKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.POLL_FIRST_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.POLL_LAST_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.REMOVE_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.SIZE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.UPDATE_AND_GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.UpdateAndGet;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations.VALUES;
 
 /**
  * Implementation of {@link AsyncConsistentTreeMap}.
  */
-@ResourceTypeInfo(id = -155, factory = AtomixConsistentTreeMapFactory.class)
-public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTreeMap>
-        implements AsyncConsistentTreeMap<byte[]> {
+public class AtomixConsistentTreeMap extends AbstractRaftPrimitive implements AsyncConsistentTreeMap<byte[]> {
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespace.newBuilder()
+            .register(KryoNamespaces.BASIC)
+            .register(AtomixConsistentTreeMapOperations.NAMESPACE)
+            .register(AtomixConsistentTreeMapEvents.NAMESPACE)
+            .build());
 
     private final Map<MapEventListener<String, byte[]>, Executor>
             mapEventListeners = Maps.newConcurrentMap();
 
-    public static final String CHANGE_SUBJECT = "changeEvents";
-
-    public AtomixConsistentTreeMap(CopycatClient client, Properties options) {
-        super(client, options);
-    }
-
-    @Override
-    public String name() {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<AtomixConsistentTreeMap> open() {
-        return super.open().thenApply(result -> {
-            client.onEvent(CHANGE_SUBJECT, this::handleEvent);
-            return result;
-        });
+    public AtomixConsistentTreeMap(RaftProxy proxy) {
+        super(proxy);
+        proxy.addEventListener(CHANGE, SERIALIZER::decode, this::handleEvent);
     }
 
     private void handleEvent(List<MapEvent<String, byte[]>> events) {
         events.forEach(event -> mapEventListeners.
                 forEach((listener, executor) ->
-                                executor.execute(() ->
-                                                     listener.event(event))));
+                        executor.execute(() ->
+                                listener.event(event))));
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return client.submit(new IsEmpty());
+        return proxy.invoke(IS_EMPTY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return client.submit(new Size());
+        return proxy.invoke(SIZE, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return client.submit(new ContainsKey(key));
+        return proxy.invoke(CONTAINS_KEY, SERIALIZER::encode, new ContainsKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(byte[] value) {
-        return client.submit(new ContainsValue(value));
+        return proxy.invoke(CONTAINS_VALUE, SERIALIZER::encode, new ContainsValue(value), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String key) {
-        return client.submit(new Get(key));
+        return proxy.invoke(GET, SERIALIZER::encode, new Get(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<byte[]>> getOrDefault(String key, byte[] defaultValue) {
-        return client.submit(new GetOrDefault(key, defaultValue));
+        return proxy.invoke(
+                GET_OR_DEFAULT,
+                SERIALIZER::encode,
+                new GetOrDefault(key, defaultValue),
+                SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return client.submit(new KeySet());
+        return proxy.invoke(KEY_SET, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Collection<Versioned<byte[]>>> values() {
-        return client.submit(new Values());
+        return proxy.invoke(VALUES, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Set<Map.Entry<String, Versioned<byte[]>>>> entrySet() {
-        return client.submit(new EntrySet());
+        return proxy.invoke(ENTRY_SET, SERIALIZER::decode);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> put(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -164,7 +175,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putAndGet(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.newValue());
     }
@@ -172,7 +187,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putIfAbsent(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.NULL, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.NULL, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -180,7 +199,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> remove(String key) {
-        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ANY, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -188,7 +211,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ifValue(value), Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -196,7 +223,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, long version) {
-        return client.submit(new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, null, Match.ANY, Match.ifValue(version)),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -204,7 +235,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> replace(String key, byte[] value) {
-        return client.submit(new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, value, Match.NOT_NULL, Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.oldValue());
     }
@@ -212,7 +247,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, byte[] oldValue, byte[] newValue) {
-        return client.submit(new UpdateAndGet(key, newValue, Match.ifValue(oldValue), Match.ANY))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, newValue, Match.ifValue(oldValue), Match.ANY),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
@@ -220,14 +259,18 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, long oldVersion, byte[] newValue) {
-        return client.submit(new UpdateAndGet(key, newValue, Match.ANY, Match.ifValue(oldVersion)))
+        return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                UPDATE_AND_GET,
+                SERIALIZER::encode,
+                new UpdateAndGet(key, newValue, Match.ANY, Match.ifValue(oldVersion)),
+                SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r.status()))
                 .thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return client.submit(new Clear())
+        return proxy.<MapEntryUpdateResult.Status>invoke(CLEAR, SERIALIZER::decode)
                 .whenComplete((r, e) -> throwIfLocked(r))
                 .thenApply(v -> null);
     }
@@ -235,10 +278,10 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> computeIf(String key,
-                                                          Predicate<? super byte[]> condition,
-                                                          BiFunction<? super String,
-                                                                  ? super byte[],
-                                                                  ? extends byte[]> remappingFunction) {
+            Predicate<? super byte[]> condition,
+            BiFunction<? super String,
+                    ? super byte[],
+                    ? extends byte[]> remappingFunction) {
         return get(key).thenCompose(r1 -> {
             byte[] existingValue = r1 == null ? null : r1.value();
 
@@ -259,8 +302,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
             }
             Match<byte[]> valueMatch = r1 == null ? Match.NULL : Match.ANY;
             Match<Long> versionMatch = r1 == null ? Match.ANY : Match.ifValue(r1.version());
-            return client.submit(new UpdateAndGet(key, computedValue.get(),
-                                                                      valueMatch, versionMatch))
+            return proxy.<UpdateAndGet, MapEntryUpdateResult<String, byte[]>>invoke(
+                    UPDATE_AND_GET,
+                    SERIALIZER::encode,
+                    new UpdateAndGet(key, computedValue.get(), valueMatch, versionMatch),
+                    SERIALIZER::decode)
                     .whenComplete((r, e) -> throwIfLocked(r.status()))
                     .thenApply(v -> v.newValue());
         });
@@ -270,9 +316,9 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     public CompletableFuture<Void> addListener(
             MapEventListener<String, byte[]> listener, Executor executor) {
         if (mapEventListeners.isEmpty()) {
-            return client.submit(new Listen()).thenRun(() ->
-                                   mapEventListeners.put(listener,
-                                           executor));
+            return proxy.invoke(ADD_LISTENER).thenRun(() ->
+                    mapEventListeners.put(listener,
+                            executor));
         } else {
             mapEventListeners.put(listener, executor);
             return CompletableFuture.completedFuture(null);
@@ -283,7 +329,7 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     public synchronized CompletableFuture<Void> removeListener(MapEventListener<String, byte[]> listener) {
         if (mapEventListeners.remove(listener) != null &&
                 mapEventListeners.isEmpty()) {
-            return client.submit(new Unlisten())
+            return proxy.invoke(REMOVE_LISTENER)
                     .thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
@@ -298,74 +344,74 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
 
     @Override
     public CompletableFuture<String> firstKey() {
-        return client.submit(new FirstKey<String>());
+        return proxy.invoke(FIRST_KEY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<String> lastKey() {
-        return client.submit(new LastKey<String>());
+        return proxy.invoke(LAST_KEY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> ceilingEntry(String key) {
-        return client.submit(new CeilingEntry(key));
+        return proxy.invoke(CEILING_ENTRY, SERIALIZER::encode, new CeilingEntry(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> floorEntry(String key) {
-        return client.submit(new FloorEntry<String, Versioned<byte[]>>(key));
+        return proxy.invoke(FLOOR_ENTRY, SERIALIZER::encode, new FloorEntry(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> higherEntry(
             String key) {
-        return client.submit(new HigherEntry<String, Versioned<byte[]>>(key));
+        return proxy.invoke(HIGHER_ENTRY, SERIALIZER::encode, new HigherEntry(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> lowerEntry(
             String key) {
-        return client.submit(new LowerEntry<>(key));
+        return proxy.invoke(LOWER_ENTRY, SERIALIZER::encode, new LowerEntry(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> firstEntry() {
-        return client.submit(new FirstEntry());
+        return proxy.invoke(FIRST_ENTRY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> lastEntry() {
-        return client.submit(new LastEntry<String, Versioned<byte[]>>());
+        return proxy.invoke(LAST_ENTRY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> pollFirstEntry() {
-        return client.submit(new PollFirstEntry());
+        return proxy.invoke(POLL_FIRST_ENTRY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> pollLastEntry() {
-        return client.submit(new PollLastEntry());
+        return proxy.invoke(POLL_LAST_ENTRY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<String> lowerKey(String key) {
-        return client.submit(new LowerKey(key));
+        return proxy.invoke(LOWER_KEY, SERIALIZER::encode, new LowerKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<String> floorKey(String key) {
-        return client.submit(new FloorKey(key));
+        return proxy.invoke(FLOOR_KEY, SERIALIZER::encode, new FloorKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<String> ceilingKey(String key) {
-        return client.submit(new CeilingKey(key));
+        return proxy.invoke(CEILING_KEY, SERIALIZER::encode, new CeilingKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<String> higherKey(String key) {
-        return client.submit(new HigherKey(key));
+        return proxy.invoke(HIGHER_KEY, SERIALIZER::encode, new HigherKey(key), SERIALIZER::decode);
     }
 
     @Override

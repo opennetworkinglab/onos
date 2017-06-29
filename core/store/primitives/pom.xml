@@ -70,19 +70,9 @@
         <dependency>
             <groupId>io.atomix</groupId>
             <artifactId>atomix</artifactId>
-            <version>1.0.8</version>
+            <version>2.0.0-alpha1</version>
         </dependency>
 
-        <dependency>
-            <groupId>io.atomix.catalyst</groupId>
-            <artifactId>catalyst-netty</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.atomix.catalyst</groupId>
-            <artifactId>catalyst-transport</artifactId>
-            <version>1.2.1</version>
-        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>

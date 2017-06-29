@@ -28,6 +28,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.LeaderElector;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class DistributedPrimitivesTest {
     protected StorageService storageService;
 
     private final Map<String, EventuallyConsistentMap<String, String>> maps = Maps.newConcurrentMap();
+    private final Map<String, LeaderElector> electors = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
@@ -78,5 +80,18 @@ public class DistributedPrimitivesTest {
                 .withSerializer(KryoNamespaces.API)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build());
+    }
+
+    /**
+     * Returns a leader elector session by name.
+     *
+     * @param name the leader elector name
+     * @return the leader elector
+     */
+    public LeaderElector getLeaderElector(String name) {
+        return electors.computeIfAbsent(name, n -> storageService.leaderElectorBuilder()
+                .withName(name)
+                .build()
+                .asLeaderElector());
     }
 }

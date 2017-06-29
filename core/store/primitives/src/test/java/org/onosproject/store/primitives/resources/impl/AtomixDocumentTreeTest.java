@@ -16,22 +16,14 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import io.atomix.AtomixClient;
-import io.atomix.resource.ResourceType;
-
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import com.google.common.base.Throwables;
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
@@ -40,32 +32,34 @@ import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.Versioned;
 
-import com.google.common.base.Throwables;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for {@link AtomixDocumentTree}.
  */
-public class AtomixDocumentTreeTest extends AtomixTestBase {
-    @BeforeClass
-    public static void preTestSetup() throws Throwable {
-        createCopycatServers(3);
+public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
+
+    @Override
+    protected RaftService createService() {
+        return new AtomixDocumentTreeService();
     }
 
-    @AfterClass
-    public static void postTestCleanup() throws Exception {
-        clearTests();
-    }
     @Override
-    protected ResourceType resourceType() {
-        return new ResourceType(AtomixDocumentTree.class);
+    protected AtomixDocumentTree createPrimitive(RaftProxy proxy) {
+        return new AtomixDocumentTree(proxy);
     }
+
     /**
      * Tests queries (get and getChildren).
      */
     @Test
     public void testQueries() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         Versioned<byte[]> root = tree.get(path("root")).join();
         assertEquals(1, root.version());
         assertNull(root.value());
@@ -76,8 +70,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testCreate() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -100,8 +93,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testRecursiveCreate() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.createRecursive(path("root.a.b.c"), "abc".getBytes()).join();
         Versioned<byte[]> a = tree.get(path("root.a")).join();
         assertArrayEquals(null, a.value());
@@ -118,8 +110,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testSet() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -146,8 +137,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testReplaceVersion() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -168,8 +158,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testReplaceValue() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -190,8 +179,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testRemove() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -219,8 +207,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testRemoveFailures() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -252,8 +239,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testCreateFailures() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         try {
             tree.create(path("root.a.c"), "ac".getBytes()).join();
             fail();
@@ -267,8 +253,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testSetFailures() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         try {
             tree.set(path("root.a.c"), "ac".getBytes()).join();
             fail();
@@ -282,8 +267,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testGetChildren() throws Throwable {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -309,8 +293,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testClear() {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         tree.create(path("root.a"), "a".getBytes()).join();
         tree.create(path("root.a.b"), "ab".getBytes()).join();
         tree.create(path("root.a.c"), "ac".getBytes()).join();
@@ -324,8 +307,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
      */
     @Test
     public void testNotifications() throws Exception {
-        AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
-                AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree = newPrimitive(UUID.randomUUID().toString());
         TestEventListener listener = new TestEventListener();
 
         // add listener; create a node in the tree and verify an CREATED event is received.
@@ -359,12 +341,9 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
 
     @Test
     public void testFilteredNotifications() throws Throwable {
-        AtomixClient client1 = createAtomixClient();
-        AtomixClient client2 = createAtomixClient();
-
         String treeName = UUID.randomUUID().toString();
-        AtomixDocumentTree tree1 = client1.getResource(treeName, AtomixDocumentTree.class).join();
-        AtomixDocumentTree tree2 = client2.getResource(treeName, AtomixDocumentTree.class).join();
+        AtomixDocumentTree tree1 = newPrimitive(treeName);
+        AtomixDocumentTree tree2 = newPrimitive(treeName);
 
         TestEventListener listener1a = new TestEventListener(3);
         TestEventListener listener1ab = new TestEventListener(2);

@@ -41,7 +41,7 @@ import com.google.common.collect.Maps;
 public class DefaultDocumentTree<V> implements DocumentTree<V> {
 
     private static final DocumentPath ROOT_PATH = DocumentPath.from("root");
-    private final DefaultDocumentTreeNode<V> root;
+    final DefaultDocumentTreeNode<V> root;
     private final Supplier<Long> versionSupplier;
 
     public DefaultDocumentTree() {
@@ -52,6 +52,11 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
 
     public DefaultDocumentTree(Supplier<Long> versionSupplier) {
         root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), null);
+        this.versionSupplier = versionSupplier;
+    }
+
+    DefaultDocumentTree(Supplier<Long> versionSupplier, DefaultDocumentTreeNode<V> root) {
+        this.root = root;
         this.versionSupplier = versionSupplier;
     }
 

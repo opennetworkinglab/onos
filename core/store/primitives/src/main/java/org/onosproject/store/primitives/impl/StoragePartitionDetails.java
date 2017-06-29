@@ -15,13 +15,12 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import io.atomix.copycat.server.cluster.Member;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.atomix.protocols.raft.cluster.RaftMember;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.service.PartitionInfo;
 
@@ -34,15 +33,15 @@ import com.google.common.collect.ImmutableSet;
 public class StoragePartitionDetails {
 
     private final PartitionId partitionId;
-    private final Set<Member> activeMembers;
-    private final Set<Member> configuredMembers;
-    private final Member leader;
+    private final Set<RaftMember> activeMembers;
+    private final Set<RaftMember> configuredMembers;
+    private final RaftMember leader;
     private final long leaderTerm;
 
     public StoragePartitionDetails(PartitionId partitionId,
-            Collection<Member> activeMembers,
-            Collection<Member> configuredMembers,
-            Member leader,
+            Collection<RaftMember> activeMembers,
+            Collection<RaftMember> configuredMembers,
+            RaftMember leader,
             long leaderTerm) {
         this.partitionId = partitionId;
         this.activeMembers = ImmutableSet.copyOf(activeMembers);
@@ -55,7 +54,7 @@ public class StoragePartitionDetails {
      * Returns the set of active members.
      * @return active members
      */
-    public Set<Member> activeMembers() {
+    public Set<RaftMember> activeMembers() {
         return activeMembers;
     }
 
@@ -63,7 +62,7 @@ public class StoragePartitionDetails {
      * Returns the set of configured members.
      * @return configured members
      */
-    public Set<Member> configuredMembers() {
+    public Set<RaftMember> configuredMembers() {
         return configuredMembers;
     }
 
@@ -71,7 +70,7 @@ public class StoragePartitionDetails {
      * Returns the partition leader.
      * @return leader
      */
-    public Member leader() {
+    public RaftMember leader() {
         return leader;
     }
 
@@ -98,8 +97,8 @@ public class StoragePartitionDetails {
      * @return partition info
      */
     public PartitionInfo toPartitionInfo() {
-        Function<Member, String> memberToString =
-                m -> m == null ? "none" : String.format("%s:%d", m.address().host(), m.address().port());
+        Function<RaftMember, String> memberToString =
+                m -> m == null ? "none" : m.memberId().toString();
         return new PartitionInfo(partitionId.toString(),
                 leaderTerm,
                 activeMembers.stream().map(memberToString).collect(Collectors.toList()),

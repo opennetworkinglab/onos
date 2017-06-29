@@ -17,10 +17,8 @@ package org.onosproject.store.primitives.resources.impl;
 
 import java.util.concurrent.CompletableFuture;
 
-import io.atomix.resource.ResourceType;
-import io.atomix.variables.DistributedLong;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -28,21 +26,16 @@ import static org.junit.Assert.assertEquals;
 /**
  * Unit test for {@code AtomixIdGenerator}.
  */
-public class AtomixIdGeneratorTest extends AtomixTestBase {
+public class AtomixIdGeneratorTest extends AtomixTestBase<AtomixCounter> {
 
-    @BeforeClass
-    public static void preTestSetup() throws Throwable {
-        createCopycatServers(3);
-    }
-
-    @AfterClass
-    public static void postTestCleanup() throws Exception {
-        clearTests();
+    @Override
+    protected RaftService createService() {
+        return new AtomixCounterService();
     }
 
     @Override
-    protected ResourceType resourceType() {
-        return new ResourceType(DistributedLong.class);
+    protected AtomixCounter createPrimitive(RaftProxy proxy) {
+        return new AtomixCounter(proxy);
     }
 
     /**
@@ -50,10 +43,8 @@ public class AtomixIdGeneratorTest extends AtomixTestBase {
      */
     @Test
     public void testNextId() throws Throwable {
-        AtomixIdGenerator idGenerator1 = new AtomixIdGenerator("testNextId",
-                createAtomixClient().getLong("testNextId").join());
-        AtomixIdGenerator idGenerator2 = new AtomixIdGenerator("testNextId",
-                createAtomixClient().getLong("testNextId").join());
+        AtomixIdGenerator idGenerator1 = new AtomixIdGenerator(newPrimitive("testNextId"));
+        AtomixIdGenerator idGenerator2 = new AtomixIdGenerator(newPrimitive("testNextId"));
 
         CompletableFuture<Long> future11 = idGenerator1.nextId();
         CompletableFuture<Long> future12 = idGenerator1.nextId();
@@ -82,10 +73,8 @@ public class AtomixIdGeneratorTest extends AtomixTestBase {
      */
     @Test
     public void testNextIdBatchRollover() throws Throwable {
-        AtomixIdGenerator idGenerator1 = new AtomixIdGenerator("testNextIdBatchRollover",
-                createAtomixClient().getLong("testNextIdBatchRollover").join(), 2);
-        AtomixIdGenerator idGenerator2 = new AtomixIdGenerator("testNextIdBatchRollover",
-                createAtomixClient().getLong("testNextIdBatchRollover").join(), 2);
+        AtomixIdGenerator idGenerator1 = new AtomixIdGenerator(newPrimitive("testNextIdBatchRollover"), 2);
+        AtomixIdGenerator idGenerator2 = new AtomixIdGenerator(newPrimitive("testNextIdBatchRollover"), 2);
 
         CompletableFuture<Long> future11 = idGenerator1.nextId();
         CompletableFuture<Long> future12 = idGenerator1.nextId();

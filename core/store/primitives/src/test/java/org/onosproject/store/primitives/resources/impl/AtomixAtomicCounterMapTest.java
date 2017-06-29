@@ -15,9 +15,8 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import io.atomix.resource.ResourceType;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -26,21 +25,16 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit test for {@code AtomixCounterMap}.
  */
-public class AtomixAtomicCounterMapTest extends AtomixTestBase {
+public class AtomixAtomicCounterMapTest extends AtomixTestBase<AtomixAtomicCounterMap> {
 
-    @BeforeClass
-    public static void preTestSetup() throws Throwable {
-        createCopycatServers(3);
-    }
-
-    @AfterClass
-    public static void postTestCleanup() throws Exception {
-        clearTests();
+    @Override
+    protected RaftService createService() {
+        return new AtomixAtomicCounterMapService();
     }
 
     @Override
-    protected ResourceType resourceType() {
-        return new ResourceType(AtomixAtomicCounterMap.class);
+    protected AtomixAtomicCounterMap createPrimitive(RaftProxy proxy) {
+        return new AtomixAtomicCounterMap(proxy);
     }
 
     /**
@@ -48,8 +42,7 @@ public class AtomixAtomicCounterMapTest extends AtomixTestBase {
      */
     @Test
     public void testBasicCounterMapOperations() throws Throwable {
-        AtomixAtomicCounterMap map = createAtomixClient().getResource("testBasicCounterMapOperationMap",
-                AtomixAtomicCounterMap.class).join();
+        AtomixAtomicCounterMap map = newPrimitive("testBasicCounterMapOperationMap");
 
         map.isEmpty().thenAccept(isEmpty -> {
             assertTrue(isEmpty);

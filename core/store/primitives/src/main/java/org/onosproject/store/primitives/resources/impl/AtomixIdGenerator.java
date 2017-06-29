@@ -18,36 +18,34 @@ package org.onosproject.store.primitives.resources.impl;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
-import io.atomix.variables.DistributedLong;
+import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicIdGenerator;
 
 /**
  * {@code AsyncAtomicIdGenerator} implementation backed by Atomix
- * {@link DistributedLong}.
+ * {@link AsyncAtomicCounter}.
  */
 public class AtomixIdGenerator implements AsyncAtomicIdGenerator {
 
     private static final long DEFAULT_BATCH_SIZE = 1000;
-    private final String name;
-    private final DistributedLong distLong;
+    private final AsyncAtomicCounter counter;
     private final long batchSize;
     private CompletableFuture<Long> reserveFuture;
     private long base;
     private final AtomicLong delta = new AtomicLong();
 
-    public AtomixIdGenerator(String name, DistributedLong distLong) {
-        this(name, distLong, DEFAULT_BATCH_SIZE);
+    public AtomixIdGenerator(AsyncAtomicCounter counter) {
+        this(counter, DEFAULT_BATCH_SIZE);
     }
 
-    AtomixIdGenerator(String name, DistributedLong distLong, long batchSize) {
-        this.name = name;
-        this.distLong = distLong;
+    AtomixIdGenerator(AsyncAtomicCounter counter, long batchSize) {
+        this.counter = counter;
         this.batchSize = batchSize;
     }
 
     @Override
     public String name() {
-        return name;
+        return counter.name();
     }
 
     @Override
@@ -64,9 +62,9 @@ public class AtomixIdGenerator implements AsyncAtomicIdGenerator {
 
     private CompletableFuture<Long> reserve() {
         if (reserveFuture == null || reserveFuture.isDone()) {
-            reserveFuture = distLong.getAndAdd(batchSize);
+            reserveFuture = counter.getAndAdd(batchSize);
         } else {
-            reserveFuture = reserveFuture.thenCompose(v -> distLong.getAndAdd(batchSize));
+            reserveFuture = reserveFuture.thenCompose(v -> counter.getAndAdd(batchSize));
         }
         reserveFuture = reserveFuture.thenApply(base -> {
             this.base = base;

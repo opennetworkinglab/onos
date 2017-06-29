@@ -32,6 +32,6 @@ public class DefaultAtomicIdGeneratorBuilder extends AtomicIdGeneratorBuilder {
 
     @Override
     public AsyncAtomicIdGenerator build() {
-        return primitiveCreator.newAsyncIdGenerator(name(), executorSupplier());
+        return primitiveCreator.newAsyncIdGenerator(name());
     }
 }

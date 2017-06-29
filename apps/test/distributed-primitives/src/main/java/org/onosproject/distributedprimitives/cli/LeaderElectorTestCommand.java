@@ -21,8 +21,8 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.distributedprimitives.DistributedPrimitivesTest;
 import org.onosproject.store.service.LeaderElector;
-import org.onosproject.store.service.StorageService;
 
 import com.google.common.base.Joiner;
 
@@ -49,13 +49,10 @@ public class LeaderElectorTestCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        StorageService storageService = get(StorageService.class);
         ClusterService clusterService = get(ClusterService.class);
+        DistributedPrimitivesTest test = get(DistributedPrimitivesTest.class);
+        leaderElector = test.getLeaderElector(name);
         NodeId localNodeId = clusterService.getLocalNode().id();
-        leaderElector = storageService.leaderElectorBuilder()
-                .withName(name)
-                .build()
-                .asLeaderElector();
         if ("run".equals(operation)) {
             print(leaderElector.run(topic, localNodeId));
         } else if ("withdraw".equals(operation)) {

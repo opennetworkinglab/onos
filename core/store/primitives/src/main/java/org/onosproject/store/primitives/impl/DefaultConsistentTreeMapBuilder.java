@@ -35,7 +35,7 @@ public class DefaultConsistentTreeMapBuilder<V> extends ConsistentTreeMapBuilder
 
     @Override
     public AsyncConsistentTreeMap<V> buildTreeMap() {
-        return primitiveCreator.newAsyncConsistentTreeMap(name(), serializer(), executorSupplier());
+        return primitiveCreator.newAsyncConsistentTreeMap(name(), serializer());
     }
 
     @Override

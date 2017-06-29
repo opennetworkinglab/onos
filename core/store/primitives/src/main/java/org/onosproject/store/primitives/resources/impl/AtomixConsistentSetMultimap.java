@@ -16,43 +16,52 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multiset;
-import io.atomix.copycat.client.CopycatClient;
-import io.atomix.resource.AbstractResource;
-import io.atomix.resource.ResourceTypeInfo;
-import org.onosproject.store.service.AsyncConsistentMultimap;
-import org.onosproject.store.service.MultimapEvent;
-import org.onosproject.store.service.MultimapEventListener;
-import org.onosproject.store.service.Versioned;
-
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Clear;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsEntry;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsKey;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.ContainsValue;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Entries;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Get;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.IsEmpty;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.KeySet;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Keys;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Listen;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.MultiRemove;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Put;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.RemoveAll;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Replace;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Size;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Unlisten;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMultimapCommands.Values;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import io.atomix.protocols.raft.proxy.RaftProxy;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.MultimapEvent;
+import org.onosproject.store.service.MultimapEventListener;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.Versioned;
+
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents.CHANGE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ADD_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_ENTRY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_KEY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_VALUE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ContainsEntry;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ContainsKey;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ContainsValue;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ENTRIES;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEYS;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemove;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Put;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_LISTENER;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REPLACE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.RemoveAll;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Replace;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.SIZE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.VALUES;
 
 
 /**
@@ -60,30 +69,25 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMu
  * <p>
  * Note: this implementation does not allow null entries or duplicate entries.
  */
-@ResourceTypeInfo(id = -153, factory = AtomixConsistentSetMultimapFactory.class)
 public class AtomixConsistentSetMultimap
-        extends AbstractResource<AtomixConsistentSetMultimap>
+        extends AbstractRaftPrimitive
         implements AsyncConsistentMultimap<String, byte[]> {
+
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespace.newBuilder()
+            .register(KryoNamespaces.BASIC)
+            .register(AtomixConsistentSetMultimapOperations.NAMESPACE)
+            .register(AtomixConsistentSetMultimapEvents.NAMESPACE)
+            .build());
 
     private final Map<MultimapEventListener<String, byte[]>, Executor> mapEventListeners = new ConcurrentHashMap<>();
 
-    public static final String CHANGE_SUBJECT = "multimapChangeEvents";
-
-    public AtomixConsistentSetMultimap(CopycatClient client,
-                                       Properties properties) {
-        super(client, properties);
-    }
-
-    @Override
-    public CompletableFuture<AtomixConsistentSetMultimap> open() {
-        return super.open().thenApply(result -> {
-            client.onStateChange(state -> {
-                if (state == CopycatClient.State.CONNECTED && isListening()) {
-                    client.submit(new Listen());
-                }
-            });
-            client.onEvent(CHANGE_SUBJECT, this::handleEvent);
-            return result;
+    public AtomixConsistentSetMultimap(RaftProxy proxy) {
+        super(proxy);
+        proxy.addEventListener(CHANGE, SERIALIZER::decode, this::handleEvent);
+        proxy.addStateChangeListener(state -> {
+            if (state == RaftProxy.State.CONNECTED && isListening()) {
+                proxy.invoke(ADD_LISTENER);
+            }
         });
     }
 
@@ -94,97 +98,109 @@ public class AtomixConsistentSetMultimap
 
     @Override
     public CompletableFuture<Integer> size() {
-        return client.submit(new Size());
+        return proxy.invoke(SIZE, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return client.submit(new IsEmpty());
+        return proxy.invoke(IS_EMPTY, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return client.submit(new ContainsKey(key));
+        return proxy.invoke(CONTAINS_KEY, SERIALIZER::encode, new ContainsKey(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(byte[] value) {
-        return client.submit(new ContainsValue(value));
+        return proxy.invoke(CONTAINS_VALUE, SERIALIZER::encode, new ContainsValue(value), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> containsEntry(String key, byte[] value) {
-        return client.submit(new ContainsEntry(key, value));
+        return proxy.invoke(CONTAINS_ENTRY, SERIALIZER::encode, new ContainsEntry(key, value), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> put(String key, byte[] value) {
-        return client.submit(new Put(key, Lists.newArrayList(value), null));
+        return proxy.invoke(
+                PUT,
+                SERIALIZER::encode,
+                new Put(key, Lists.newArrayList(value), null),
+                SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
-        return client.submit(new MultiRemove(key,
-                                             Lists.newArrayList(value),
-                                             null));
+        return proxy.invoke(REMOVE, SERIALIZER::encode, new MultiRemove(key,
+                Lists.newArrayList(value),
+                null), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> removeAll(String key, Collection<? extends byte[]> values) {
-        return client.submit(new MultiRemove(key, (Collection<byte[]>) values, null));
+        return proxy.invoke(
+                REMOVE,
+                SERIALIZER::encode,
+                new MultiRemove(key, (Collection<byte[]>) values, null),
+                SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends byte[]>>> removeAll(String key) {
-        return client.submit(new RemoveAll(key, null));
+        return proxy.invoke(REMOVE_ALL, SERIALIZER::encode, new RemoveAll(key, null), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> putAll(
             String key, Collection<? extends byte[]> values) {
-        return client.submit(new Put(key, values, null));
+        return proxy.invoke(PUT, SERIALIZER::encode, new Put(key, values, null), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends byte[]>>> replaceValues(
             String key, Collection<byte[]> values) {
-        return client.submit(new Replace(key, values, null));
+        return proxy.invoke(
+                REPLACE,
+                SERIALIZER::encode,
+                new Replace(key, values, null),
+                SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return client.submit(new Clear());
+        return proxy.invoke(CLEAR);
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends byte[]>>> get(String key) {
-        return client.submit(new Get(key));
+        return proxy.invoke(GET, SERIALIZER::encode, new Get(key), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return client.submit(new KeySet());
+        return proxy.invoke(KEY_SET, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Multiset<String>> keys() {
-        return client.submit(new Keys());
+        return proxy.invoke(KEYS, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Multiset<byte[]>> values() {
-        return client.submit(new Values());
+        return proxy.invoke(VALUES, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Collection<Map.Entry<String, byte[]>>> entries() {
-        return client.submit(new Entries());
+        return proxy.invoke(ENTRIES, SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Void> addListener(MultimapEventListener<String, byte[]> listener, Executor executor) {
         if (mapEventListeners.isEmpty()) {
-            return client.submit(new Listen()).thenRun(() -> mapEventListeners.put(listener, executor));
+            return proxy.invoke(ADD_LISTENER).thenRun(() -> mapEventListeners.put(listener, executor));
         } else {
             mapEventListeners.put(listener, executor);
             return CompletableFuture.completedFuture(null);
@@ -194,7 +210,7 @@ public class AtomixConsistentSetMultimap
     @Override
     public CompletableFuture<Void> removeListener(MultimapEventListener<String, byte[]> listener) {
         if (mapEventListeners.remove(listener) != null && mapEventListeners.isEmpty()) {
-            return client.submit(new Unlisten()).thenApply(v -> null);
+            return proxy.invoke(REMOVE_LISTENER).thenApply(v -> null);
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -204,11 +220,6 @@ public class AtomixConsistentSetMultimap
         throw new UnsupportedOperationException("Expensive operation.");
     }
 
-    @Override
-    public String name() {
-        return null;
-    }
-
     /**
      * Helper to check if there was a lock based issue.
      * @param status the status of an update result
@@ -216,8 +227,8 @@ public class AtomixConsistentSetMultimap
     private void throwIfLocked(MapEntryUpdateResult.Status status) {
         if (status == MapEntryUpdateResult.Status.WRITE_LOCK) {
             throw new ConcurrentModificationException("Cannot update map: " +
-                                                      "Another transaction " +
-                                                      "in progress");
+                    "Another transaction " +
+                    "in progress");
         }
     }
 
