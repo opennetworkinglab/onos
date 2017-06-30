@@ -71,4 +71,4 @@ scp -qr ${ONOS_ROOT}/tools/package/config/ $remote:$ONOS_INSTALL_DIR/
 
 # Copy the desired initial network configuration to remote if needed
 [ -n "$ONOS_CFG" -a -f "$ONOS_CFG" -a "${1:-$OCI}" = "$OC1" ] && \
-    scp $ONOS_CFG $remote:$ONOS_INSTALL_DIR/config/network-cfg.json
+    scp $ONOS_CFG $remote:$ONOS_INSTALL_DIR/config/network-cfg.json || true

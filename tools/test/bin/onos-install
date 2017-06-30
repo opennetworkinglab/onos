@@ -103,4 +103,4 @@ ssh -tt $remote "
 onos-config $node
 
 # Unless -n option was given, attempt to ignite the ONOS service.
-[ -z "$nostart" ] && onos-service $node start
+[ -z "$nostart" ] && onos-service $node start || true
