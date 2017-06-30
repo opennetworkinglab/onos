@@ -51,3 +51,6 @@ export ONOS_USER="${ONOS_USER:-sdn}"    # ONOS user on remote system
 export ONOS_GROUP="${ONOS_GROUP:-sdn}"  # ONOS group on remote system
 export ONOS_PWD="rocks"                 # ONOS user password on remote system
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
+
+export ONOS_CLUSTER_KEY_FILE="/tmp/onos.jks"
+export ONOS_CLUSTER_KEY_PASSWORD="changeit"

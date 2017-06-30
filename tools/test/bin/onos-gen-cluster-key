@@ -1,0 +1,23 @@
+#!/bin/bash
+# ------------------------------------------------------------------------
+# This script generates a self-signed certificate and private key pair
+# and stores them in a Java keystore. This keystore can be used as the
+# keystore and trust store for client and server ends of TLS connections
+# for all nodes in the cluster.
+# ------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+[ "$1" = "-f" ] && shift && generate_new_key=true
+
+[ "$generate_new_key" = true ] && rm -f $ONOS_CLUSTER_KEY_FILE
+
+keytool -genkey -keystore $ONOS_CLUSTER_KEY_FILE \
+        -storepass $ONOS_CLUSTER_KEY_PASSWORD \
+        -keyalg RSA \
+        -alias onos \
+        -validity 3600 \
+        -keysize 2048 \
+        -dname CN=onos \
+        -keypass $ONOS_CLUSTER_KEY_PASSWORD

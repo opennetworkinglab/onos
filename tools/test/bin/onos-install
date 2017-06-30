@@ -102,5 +102,8 @@ ssh -tt $remote "
 # Configure the ONOS installation
 onos-config $node
 
+# Upload the shared cluster key if present
+[ -f "$ONOS_CLUSTER_KEY_FILE" ] && onos-push-cluster-key $1
+
 # Unless -n option was given, attempt to ignite the ONOS service.
 [ -z "$nostart" ] && onos-service $node start || true

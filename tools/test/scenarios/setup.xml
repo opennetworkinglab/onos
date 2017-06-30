@@ -30,19 +30,21 @@
         </group>
 
         <group name="Install">
+            <step name="Generate-Cluster-Key" exec="onos-gen-cluster-key -f" />
+
             <group name="Sequential-Install" if="${ONOS_STC_SEQ_START}">
                 <sequential var="${OC#}"
                             starts="Sequential-Install-${#}"
                             ends="Sequential-Install-${#-1}">
                     <step name="Sequential-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Push-Bits-${#},Push-Bits,Cleanup"/>
+                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
                 </sequential>
             </group>
 
             <group name="Parallel-Install" unless="${ONOS_STC_SEQ_START}">
                 <parallel var="${OC#}">
                     <step name="Parallel-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Push-Bits-${#},Push-Bits,Cleanup"/>
+                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
                 </parallel>
             </group>
         </group>

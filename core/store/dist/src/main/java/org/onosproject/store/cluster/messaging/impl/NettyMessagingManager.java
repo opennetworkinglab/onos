@@ -15,12 +15,10 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -69,13 +67,20 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.net.ConnectException;
+import java.security.Key;
 import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.cert.Certificate;
 import java.time.Duration;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -118,6 +123,12 @@ public class NettyMessagingManager implements MessagingService {
     private final ClientConnection localClientConnection = new LocalClientConnection();
     private final ServerConnection localServerConnection = new LocalServerConnection(null);
 
+    //TODO CONFIG_DIR is duplicated from ConfigFileBasedClusterMetadataProvider
+    private static final String CONFIG_DIR = "../config";
+    private static final String KS_FILE_NAME = "onos.jks";
+    private static final File DEFAULT_KS_FILE = new File(CONFIG_DIR, KS_FILE_NAME);
+    private static final String DEFAULT_KS_PASSWORD = "changeit";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HybridLogicalClockService clockService;
 
@@ -148,13 +159,12 @@ public class NettyMessagingManager implements MessagingService {
     private Class<? extends Channel> clientChannelClass;
     private ScheduledExecutorService timeoutExecutor;
 
+    protected static final boolean TLS_ENABLED = true;
     protected static final boolean TLS_DISABLED = false;
-    protected boolean enableNettyTls = TLS_DISABLED;
+    protected boolean enableNettyTls = TLS_ENABLED;
 
-    protected String ksLocation;
-    protected String tsLocation;
-    protected char[] ksPwd;
-    protected char[] tsPwd;
+    protected TrustManagerFactory trustManager;
+    protected KeyManagerFactory keyManager;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterMetadataService clusterMetadataService;
@@ -193,29 +203,76 @@ public class NettyMessagingManager implements MessagingService {
     }
 
     private void getTlsParameters() {
-        String tempString = System.getProperty("enableNettyTLS");
-        enableNettyTls = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
-        log.info("enableNettyTLS = {}", enableNettyTls);
+        // default is TLS enabled unless key stores cannot be loaded
+        enableNettyTls = Boolean.parseBoolean(System.getProperty("enableNettyTLS", Boolean.toString(TLS_ENABLED)));
+
         if (enableNettyTls) {
-            ksLocation = System.getProperty("javax.net.ssl.keyStore");
-            if (Strings.isNullOrEmpty(ksLocation)) {
-                enableNettyTls = TLS_DISABLED;
-                return;
+            enableNettyTls = loadKeyStores();
+        }
+    }
+
+    private boolean loadKeyStores() {
+        // Maintain a local copy of the trust and key managers in case anything goes wrong
+        TrustManagerFactory tmf;
+        KeyManagerFactory kmf;
+        try {
+            String ksLocation = System.getProperty("javax.net.ssl.keyStore", DEFAULT_KS_FILE.toString());
+            String tsLocation = System.getProperty("javax.net.ssl.trustStore", DEFAULT_KS_FILE.toString());
+            char[] ksPwd = System.getProperty("javax.net.ssl.keyStorePassword", DEFAULT_KS_PASSWORD).toCharArray();
+            char[] tsPwd = System.getProperty("javax.net.ssl.trustStorePassword", DEFAULT_KS_PASSWORD).toCharArray();
+
+            tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            KeyStore ts = KeyStore.getInstance("JKS");
+            ts.load(new FileInputStream(tsLocation), tsPwd);
+            tmf.init(ts);
+
+            kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream(ksLocation), ksPwd);
+            kmf.init(ks, ksPwd);
+            if (log.isInfoEnabled()) {
+                logKeyStore(ks, ksLocation, ksPwd);
             }
-            tsLocation = System.getProperty("javax.net.ssl.trustStore");
-            if (Strings.isNullOrEmpty(tsLocation)) {
-                enableNettyTls = TLS_DISABLED;
-                return;
-            }
-            ksPwd = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
-            if (MIN_KS_LENGTH > ksPwd.length) {
-                enableNettyTls = TLS_DISABLED;
-                return;
-            }
-            tsPwd = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
-            if (MIN_KS_LENGTH > tsPwd.length) {
-                enableNettyTls = TLS_DISABLED;
-                return;
+        } catch (FileNotFoundException e) {
+            log.warn("Disabling TLS for intra-cluster messaging; Could not load cluster key store: {}", e.getMessage());
+            return TLS_DISABLED;
+        } catch (Exception e) {
+            //TODO we might want to catch exceptions more specifically
+            log.error("Error loading key store; disabling TLS for intra-cluster messaging", e);
+            return TLS_DISABLED;
+        }
+        this.trustManager = tmf;
+        this.keyManager = kmf;
+        return TLS_ENABLED;
+    }
+
+    private void logKeyStore(KeyStore ks, String ksLocation, char[] ksPwd) {
+        if (log.isInfoEnabled()) {
+            log.info("Loaded cluster key store from: {}", ksLocation);
+            try {
+                for (Enumeration<String> e = ks.aliases(); e.hasMoreElements();) {
+                    String alias = e.nextElement();
+                    Key key = ks.getKey(alias, ksPwd);
+                    Certificate[] certs = ks.getCertificateChain(alias);
+                    log.debug("{} -> {}", alias, certs);
+                    final byte[] encodedKey;
+                    if (certs != null && certs.length > 0) {
+                        encodedKey = certs[0].getEncoded();
+                    } else {
+                        log.info("Could not find cert chain for {}, using fingerprint of key instead...", alias);
+                        encodedKey = key.getEncoded();
+                    }
+                    // Compute the certificate's fingerprint (use the key if certificate cannot be found)
+                    MessageDigest digest = MessageDigest.getInstance("SHA1");
+                    digest.update(encodedKey);
+                    StringJoiner fingerprint = new StringJoiner(":");
+                    for (byte b : digest.digest()) {
+                        fingerprint.add(String.format("%02X", b));
+                    }
+                    log.info("{} -> {}", alias, fingerprint);
+                }
+            } catch (Exception e) {
+                log.warn("Unable to print contents of key store: {}", ksLocation, e);
             }
         }
     }
@@ -449,18 +506,8 @@ public class NettyMessagingManager implements MessagingService {
 
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
-            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            KeyStore ts = KeyStore.getInstance("JKS");
-            ts.load(new FileInputStream(tsLocation), tsPwd);
-            tmFactory.init(ts);
-
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(ksLocation), ksPwd);
-            kmf.init(ks, ksPwd);
-
             SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+            serverContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
 
             SSLEngine serverSslEngine = serverContext.createSSLEngine();
 
@@ -486,18 +533,8 @@ public class NettyMessagingManager implements MessagingService {
 
         @Override
         protected void initChannel(SocketChannel channel) throws Exception {
-            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            KeyStore ts = KeyStore.getInstance("JKS");
-            ts.load(new FileInputStream(tsLocation), tsPwd);
-            tmFactory.init(ts);
-
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(ksLocation), ksPwd);
-            kmf.init(ks, ksPwd);
-
             SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+            clientContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
 
             SSLEngine clientSslEngine = clientContext.createSSLEngine();
 

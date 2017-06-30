@@ -75,6 +75,8 @@ public class CopycatTransportClient implements Client {
                         if (MessagingException.class.isAssignableFrom(rootCause.getClass())) {
                             wrappedError = new TransportException(error);
                         }
+                        // TODO ONOS-6788 we might consider demoting this warning during startup when there is
+                        //      a race between the server registering handlers and the client sending messages
                         log.warn("Connection to {} failed! Reason: {}", address, wrappedError);
                         future.completeExceptionally(wrappedError);
                     } else {
