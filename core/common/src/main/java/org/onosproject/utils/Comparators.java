@@ -118,7 +118,10 @@ public final class Comparators {
             (t1, t2) -> t1.id().compareTo(t2.id());
 
     public static final Comparator<VirtualNetwork> VIRTUAL_NETWORK_COMPARATOR =
-            (v1, v2) -> v1.tenantId().toString().compareTo(v2.tenantId().toString());
+            (v1, v2) -> {
+                int compareId = v1.tenantId().toString().compareTo(v2.tenantId().toString());
+                return (compareId != 0) ? compareId : Long.signum(v1.id().id() - v2.id().id());
+            };
 
     public static final Comparator<VirtualDevice> VIRTUAL_DEVICE_COMPARATOR =
             (v1, v2) -> v1.id().toString().compareTo(v2.id().toString());

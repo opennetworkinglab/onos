@@ -338,7 +338,7 @@ public class ComparatorsTest {
     public void testVirtualNetworkComparator() {
         assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(10, "tenantID"), network(10, "tenantID1")));
         assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(10, "tenantID"), network(15, "tenantID1")));
-        assertEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(15, "tenantID1"), network(10, "tenantID1")));
+        assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(15, "tenantID1"), network(10, "tenantID1")));
         assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(15, "tenantID"), network(10, "tenantID1")));
     }
 
