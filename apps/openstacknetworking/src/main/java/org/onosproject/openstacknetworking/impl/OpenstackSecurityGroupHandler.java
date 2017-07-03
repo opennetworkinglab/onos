@@ -17,6 +17,8 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,7 +40,6 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
@@ -59,6 +60,7 @@ import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -67,7 +69,6 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RULE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -177,6 +178,7 @@ public class OpenstackSecurityGroupHandler {
     }
 
     private void updateSecurityGroupRule(InstancePort instPort, Port port, SecurityGroupRule sgRule, boolean install) {
+
         if (sgRule.getRemoteGroupId() != null && !sgRule.getRemoteGroupId().isEmpty()) {
             getRemoteInstPorts(port.getTenantId(), sgRule.getRemoteGroupId())
                 .forEach(rInstPort -> {
@@ -197,24 +199,21 @@ public class OpenstackSecurityGroupHandler {
 
     private void populateSecurityGroupRule(SecurityGroupRule sgRule, InstancePort instPort,
                                            IpPrefix remoteIp, boolean install) {
-        Ip4Address vmIp = Ip4Address.valueOf(instPort.ipAddress().toInetAddress());
-        if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, 32))) {
-            // do nothing if the remote IP is my IP
+        Set<TrafficSelector> selectors = buildSelectors(sgRule,
+                Ip4Address.valueOf(instPort.ipAddress().toInetAddress()), remoteIp);
+        if (selectors == null || selectors.isEmpty()) {
             return;
         }
 
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        buildMatchs(sBuilder, sgRule, vmIp, remoteIp);
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().transition(JUMP_TABLE).build();
-
-        osFlowRuleService.setRule(appId,
-                instPort.deviceId(),
-                sBuilder.build(),
-                treatment,
-                PRIORITY_ACL_RULE,
-                ACL_TABLE,
-                install);
+        selectors.forEach(selector -> {
+            osFlowRuleService.setRule(appId,
+                    instPort.deviceId(),
+                    selector,
+                    DefaultTrafficTreatment.builder().build(),
+                    PRIORITY_ACL_RULE,
+                    ACL_TABLE,
+                    install);
+        });
     }
 
     /**
@@ -238,14 +237,57 @@ public class OpenstackSecurityGroupHandler {
         return Collections.unmodifiableSet(remoteInstPorts);
     }
 
+    private Set<TrafficSelector> buildSelectors(SecurityGroupRule sgRule,
+                                                Ip4Address vmIp,
+                                                IpPrefix remoteIp) {
+        if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, 32))) {
+            // do nothing if the remote IP is my IP
+            return null;
+        }
+
+        Set<TrafficSelector> selectorSet = Sets.newHashSet();
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        buildMatchs(sBuilder, sgRule, vmIp, remoteIp);
+
+        if (sgRule.getPortRangeMax() != null && sgRule.getPortRangeMin() != null &&
+                sgRule.getPortRangeMin() < sgRule.getPortRangeMax()) {
+            Map<TpPort, TpPort> portRangeMatchMap = buildPortRangeMatches(sgRule.getPortRangeMin(),
+                    sgRule.getPortRangeMax());
+            portRangeMatchMap.entrySet().forEach(entry -> {
+
+                if (sgRule.getProtocol().toUpperCase().equals(PROTO_TCP)) {
+                    if (sgRule.getDirection().toUpperCase().equals(EGRESS)) {
+                        sBuilder.matchTcpSrcMasked(entry.getKey(), entry.getValue());
+                    } else {
+                        sBuilder.matchTcpDstMasked(entry.getKey(), entry.getValue());
+                    }
+                } else if (sgRule.getProtocol().toUpperCase().equals(PROTO_UDP)) {
+                    if (sgRule.getDirection().toUpperCase().equals(EGRESS)) {
+                        sBuilder.matchUdpSrcMasked(entry.getKey(), entry.getValue());
+                    } else {
+                        sBuilder.matchUdpDstMasked(entry.getKey(), entry.getValue());
+                    }
+                }
+
+                selectorSet.add(sBuilder.build());
+                }
+            );
+        } else {
+            selectorSet.add(sBuilder.build());
+        }
+
+        return selectorSet;
+    }
+
     private void buildMatchs(TrafficSelector.Builder sBuilder, SecurityGroupRule sgRule,
                              Ip4Address vmIp, IpPrefix remoteIp) {
         buildMatchEthType(sBuilder, sgRule.getEtherType());
         buildMatchDirection(sBuilder, sgRule.getDirection(), vmIp);
         buildMatchProto(sBuilder, sgRule.getProtocol());
         buildMatchPort(sBuilder, sgRule.getProtocol(), sgRule.getDirection(),
-                sgRule.getPortRangeMax() == null ? 0 : sgRule.getPortRangeMax(),
-                sgRule.getPortRangeMin() == null ? 0 : sgRule.getPortRangeMin());
+                sgRule.getPortRangeMin() == null ? 0 : sgRule.getPortRangeMin(),
+                sgRule.getPortRangeMax() == null ? 0 : sgRule.getPortRangeMax());
         buildMatchRemoteIp(sBuilder, remoteIp, sgRule.getDirection());
         if (sgRule.getRemoteGroupId() != null && sgRule.getRemoteGroupId().isEmpty()) {
             buildMatchRemoteIp(sBuilder, remoteIp, sgRule.getDirection());
@@ -352,6 +394,85 @@ public class OpenstackSecurityGroupHandler {
                     log.debug("Removed security group rule {} from port {}",
                             sgRule.getId(), port.getId());
                 });
+    }
+
+    private int binLower(String binStr, int bits) {
+        String outBin = binStr.substring(0, 16 - bits);
+        for (int i = 0; i < bits; i++) {
+            outBin += "0";
+        }
+
+        return Integer.parseInt(outBin, 2);
+    }
+
+    private int binHigher(String binStr, int bits) {
+        String outBin = binStr.substring(0, 16 - bits);
+        for (int i = 0; i < bits; i++) {
+            outBin += "1";
+        }
+
+        return Integer.parseInt(outBin, 2);
+    }
+
+    private int testMasks(String binStr, int start, int end) {
+        int mask = 0;
+        for (; mask <= 16; mask++) {
+            int maskStart = binLower(binStr, mask);
+            int maskEnd = binHigher(binStr, mask);
+            if (maskStart < start || maskEnd > end) {
+                return mask - 1;
+            }
+        }
+
+        return mask;
+    }
+
+    private String getMask(int bits) {
+        switch (bits) {
+            case 0:  return "ffff";
+            case 1:  return "fffe";
+            case 2:  return "fffc";
+            case 3:  return "fff8";
+            case 4:  return "fff0";
+            case 5:  return "ffe0";
+            case 6:  return "ffc0";
+            case 7:  return "ff80";
+            case 8:  return "ff00";
+            case 9:  return "fe00";
+            case 10: return "fc00";
+            case 11: return "f800";
+            case 12: return "f000";
+            case 13: return "e000";
+            case 14: return "c000";
+            case 15: return "8000";
+            case 16: return "0000";
+            default: return null;
+        }
+    }
+
+    private Map<TpPort, TpPort> buildPortRangeMatches(int portMin, int portMax) {
+
+        boolean processing = true;
+        int start = portMin;
+        Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
+        while (processing) {
+            String minStr = Integer.toBinaryString(start);
+            String binStrMinPadded = "0000000000000000".substring(minStr.length()) + minStr;
+
+            int mask = testMasks(binStrMinPadded, start, portMax);
+            int maskStart = binLower(binStrMinPadded, mask);
+            int maskEnd = binHigher(binStrMinPadded, mask);
+
+            log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
+            portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(Integer.parseInt(getMask(mask), 16)));
+
+            start = maskEnd + 1;
+            if (start > portMax) {
+                processing = false;
+            }
+        }
+
+        return portMaskMap;
     }
 
     private class InternalInstancePortListener implements InstancePortListener {
