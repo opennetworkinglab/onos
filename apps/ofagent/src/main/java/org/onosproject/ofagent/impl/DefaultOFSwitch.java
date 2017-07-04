@@ -17,11 +17,15 @@ package org.onosproject.ofagent.impl;
 
 import com.google.common.collect.ImmutableSet;
 import io.netty.channel.Channel;
+import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
+import org.onosproject.ofagent.api.OFSwitchService;
 import org.projectfloodlight.openflow.protocol.OFBarrierReply;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 import org.projectfloodlight.openflow.protocol.OFEchoReply;
@@ -33,6 +37,9 @@ import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortReason;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
 import org.projectfloodlight.openflow.protocol.OFRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFSetConfig;
@@ -41,10 +48,13 @@ import org.projectfloodlight.openflow.protocol.OFStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,8 +74,12 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     private final Logger log;
 
+    private final OFSwitchService ofSwitchService;
+
     private final DatapathId dpId;
     private final OFSwitchCapabilities capabilities;
+    private final NetworkId networkId;
+    private final DeviceId deviceId;
 
     // miss_send_len field (in OFSetConfig and OFGetConfig messages) indicates the max
     // bytes of a packet that the switch sends to the controller
@@ -77,16 +91,24 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     private int handshakeTransactionIds = -1;
 
-    private DefaultOFSwitch(DatapathId dpid, OFSwitchCapabilities capabilities) {
+    private DefaultOFSwitch(DatapathId dpid, OFSwitchCapabilities capabilities,
+                            NetworkId networkId, DeviceId deviceId,
+                            OFSwitchService ofSwitchService) {
         this.dpId = dpid;
         this.capabilities = capabilities;
+        this.networkId = networkId;
+        this.deviceId = deviceId;
+        this.ofSwitchService = ofSwitchService;
         log = LoggerFactory.getLogger(getClass().getName() + " : " + dpid);
     }
 
-    public static DefaultOFSwitch of(DatapathId dpid, OFSwitchCapabilities capabilities) {
+    public static DefaultOFSwitch of(DatapathId dpid, OFSwitchCapabilities capabilities,
+                                     NetworkId networkId, DeviceId deviceId,
+                                     ServiceDirectory serviceDirectory) {
         checkNotNull(dpid, "DPID cannot be null");
         checkNotNull(capabilities, "OF capabilities cannot be null");
-        return new DefaultOFSwitch(dpid, capabilities);
+        return new DefaultOFSwitch(dpid, capabilities, networkId, deviceId,
+                                   serviceDirectory.get(OFSwitchService.class));
     }
 
     @Override
@@ -142,8 +164,12 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void processPortAdded(Port port) {
-        // TODO generate FEATURES_REPLY message and send it to the controller
-        log.debug("Functionality not yet supported for {}", port);
+        sendPortStatus(port, OFPortReason.ADD);
+    }
+
+    @Override
+    public void processPortRemoved(Port port) {
+        sendPortStatus(port, OFPortReason.DELETE);
     }
 
     @Override
@@ -176,6 +202,32 @@ public final class DefaultOFSwitch implements OFSwitch {
         log.debug("Functionality not yet supported for {}", msg);
     }
 
+    private void sendPortStatus(Port port, OFPortReason ofPortReason) {
+        Set<Channel> channels = controllerChannels();
+        if (channels.isEmpty()) {
+            log.trace("No channels present.  Port status will not be sent.");
+            return;
+        }
+        OFPortDesc ofPortDesc = portDesc(port);
+        OFPortStatus ofPortStatus = FACTORY.buildPortStatus()
+                .setDesc(ofPortDesc)
+                .setReason(ofPortReason)
+                .build();
+        log.trace("Sending port status {}", ofPortStatus);
+        channels.forEach(channel -> {
+            channel.writeAndFlush(Collections.singletonList(ofPortStatus));
+        });
+    }
+
+    private OFPortDesc portDesc(Port port) {
+        OFPort ofPort = OFPort.of((int) port.number().toLong());
+        // TODO handle port state and other port attributes
+        OFPortDesc ofPortDesc = FACTORY.buildPortDesc()
+                .setPortNo(ofPort)
+                .build();
+        return ofPortDesc;
+    }
+
     @Override
     public void processStatsRequest(Channel channel, OFMessage msg) {
         if (msg.getType() != OFType.STATS_REQUEST) {
@@ -187,8 +239,15 @@ public final class DefaultOFSwitch implements OFSwitch {
         OFStatsReply ofStatsReply = null;
         switch (ofStatsRequest.getStatsType()) {
             case PORT_DESC:
+                List<OFPortDesc> portDescs = new ArrayList<>();
+                Set<Port> ports = ofSwitchService.ports(networkId, deviceId);
+                ports.forEach(port -> {
+                    OFPortDesc ofPortDesc = portDesc(port);
+                    portDescs.add(ofPortDesc);
+                });
                 ofStatsReply = FACTORY.buildPortDescStatsReply()
                         .setXid(msg.getXid())
+                        .setEntries(portDescs)
                         //TODO add details
                         .build();
                 break;

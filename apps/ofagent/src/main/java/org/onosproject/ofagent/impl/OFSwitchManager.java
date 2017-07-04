@@ -33,8 +33,10 @@ import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -157,10 +159,19 @@ public class OFSwitchManager implements OFSwitchService {
         return ImmutableSet.copyOf(ofSwitches);
     }
 
+    @Override
+    public Set<Port> ports(NetworkId networkId, DeviceId deviceId) {
+        Set<Port> ports = virtualNetService.getVirtualPorts(networkId, deviceId)
+                .stream()
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(ports);
+    }
+
     private void addOFSwitch(NetworkId networkId, DeviceId deviceId) {
         OFSwitch ofSwitch = DefaultOFSwitch.of(
                 dpidWithDeviceId(deviceId),
-                DEFAULT_CAPABILITIES);
+                DEFAULT_CAPABILITIES, networkId, deviceId,
+                virtualNetService.getServiceDirectory());
         ofSwitchMap.put(deviceId, ofSwitch);
         log.info("Added virtual OF switch for {}", deviceId);
 
@@ -289,6 +300,7 @@ public class OFSwitchManager implements OFSwitchService {
 
         @Override
         public void event(VirtualNetworkEvent event) {
+            log.trace("Vnet event {}", event);
             switch (event.type()) {
                 case VIRTUAL_DEVICE_ADDED:
                     eventExecutor.execute(() -> {
@@ -312,13 +324,45 @@ public class OFSwitchManager implements OFSwitchService {
                 case NETWORK_UPDATED:
                 case NETWORK_REMOVED:
                 case NETWORK_ADDED:
+                    break;
                 case VIRTUAL_PORT_ADDED:
+                    eventExecutor.execute(() -> {
+                        OFSwitch ofSwitch = ofSwitch(event.virtualPort());
+                        if (ofSwitch != null) {
+                            ofSwitch.processPortAdded(event.virtualPort());
+                            log.debug("Virtual port {} added to network {}",
+                                      event.virtualPort(),
+                                      event.subject());
+                        }
+                    });
+                    break;
                 case VIRTUAL_PORT_UPDATED:
+                    break;
                 case VIRTUAL_PORT_REMOVED:
+                    eventExecutor.execute(() -> {
+                        OFSwitch ofSwitch = ofSwitch(event.virtualPort());
+                        if (ofSwitch != null) {
+                            ofSwitch.processPortRemoved(event.virtualPort());
+                            log.debug("Virtual port {} removed from network {}",
+                                      event.virtualPort(),
+                                      event.subject());
+                        }
+                    });
+                    break;
                 default:
                     // do nothing
                     break;
             }
+        }
+
+        private OFSwitch ofSwitch(VirtualPort virtualPort) {
+            OFSwitch ofSwitch = ofSwitchMap.get(virtualPort.element().id());
+            if (ofSwitch == null) {
+                log.warn("Switch does not exist for port {}", virtualPort);
+            } else {
+                log.trace("Switch exists for port {}", virtualPort);
+            }
+            return ofSwitch;
         }
     }
 

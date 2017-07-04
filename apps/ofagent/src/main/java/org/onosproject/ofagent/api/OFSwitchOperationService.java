@@ -28,11 +28,19 @@ public interface OFSwitchOperationService {
 
     /**
      * Processes a new port of the switch.
-     * It sends out FEATURE_REPLY message to the controllers.
+     * It sends out PORT_STATUS asynchronous message to the controllers.
      *
      * @param port virtual port
      */
     void processPortAdded(Port port);
+
+    /**
+     * Processes the removal of a port from the switch.
+     * It sends out PORT_STATUS asynchronous message to the controllers.
+     *
+     * @param port virtual port
+     */
+    void processPortRemoved(Port port);
 
     /**
      * Processes port link down.

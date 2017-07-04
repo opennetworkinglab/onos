@@ -16,6 +16,8 @@
 package org.onosproject.ofagent.api;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 
 import java.util.Set;
 
@@ -38,4 +40,13 @@ public interface OFSwitchService {
      * @return set of openflow switches; empty set if no devices exist on the network
      */
     Set<OFSwitch> ofSwitches(NetworkId networkId);
+
+    /**
+     * Returns all ports of the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return set of ports; empty set if no ports exist for the specified device
+     */
+    Set<Port> ports(NetworkId networkId, DeviceId deviceId);
 }
