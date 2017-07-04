@@ -47,13 +47,14 @@ import static org.onosproject.net.pi.runtime.PiFlowRuleTranslationService.PiFlow
  */
 final class CriterionTranslatorHelper {
 
-    private static final Map<Class<? extends Criterion>, CriterionTranslator> TRANSLATORS = ImmutableMap.of(
+    private static final Map<Class<? extends Criterion>, CriterionTranslator> TRANSLATORS =
             // Add here new CriterionTranslator implementations.
-            PortCriterion.class, new PortCriterionTranslator(),
-            EthCriterion.class, new EthCriterionTranslator(),
-            EthTypeCriterion.class, new EthTypeCriterionTranslator(),
-            IPCriterion.class, new IpCriterionTranslator()
-    );
+            new ImmutableMap.Builder<Class<? extends Criterion>, CriterionTranslator>()
+                    .put(PortCriterion.class, new PortCriterionTranslator())
+                    .put(EthCriterion.class, new EthCriterionTranslator())
+                    .put(EthTypeCriterion.class, new EthTypeCriterionTranslator())
+                    .put(IPCriterion.class, new IpCriterionTranslator())
+                    .build();
 
     private CriterionTranslatorHelper() {
         // Hides constructor.
