@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package net;
+
+import "net/LinkProto.proto";
+
+// Corresponds to org.onosproject.net.Path.
+message PathProto {
+    repeated net.LinkProto links = 1;
+    double weight = 2;
+    map<string, string> annotations = 3;
+}
