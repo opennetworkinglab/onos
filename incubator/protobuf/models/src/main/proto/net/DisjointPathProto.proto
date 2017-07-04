@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package net;
+
+import "net/PathProto.proto";
+
+// Corresponds to org.onosproject.net.DisjointPath.
+message DisjointPathProto {
+    net.PathProto primary = 1;
+    net.PathProto backup  = 2;
+    map<string, string> annotations = 3;
+}
