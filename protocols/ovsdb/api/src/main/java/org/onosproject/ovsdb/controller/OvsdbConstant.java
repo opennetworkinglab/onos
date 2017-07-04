@@ -103,4 +103,7 @@ public final class OvsdbConstant {
 
     /** Ovsdb port. */
     public static final int OVSDBPORT = 6640;
+
+    /** Ovsdb Bridge table, Controller column name. */
+    public static final String BRIDGE_CONTROLLER = "controller";
 }

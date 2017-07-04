@@ -121,6 +121,7 @@ import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUES;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE_EXTERNAL_ID_KEY;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.TYPEVXLAN;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.UUID;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE_CONTROLLER;
 
 /**
  * An representation of an ovsdb client.
@@ -563,14 +564,14 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
 
         removeControllers.forEach(c -> deleteConfig(CONTROLLER, UUID, c.getRow().uuid().value(),
-                                                    BRIDGE, "controller", c.getRow().uuid()));
+                                                    BRIDGE, BRIDGE_CONTROLLER, c.getRow().uuid()));
         newControllers.stream().map(c -> {
             Controller controller = (Controller) TableGenerator
                     .createTable(dbSchema, OvsdbTable.CONTROLLER);
             controller.setTarget(c.target());
             return controller;
         }).forEach(c -> {
-            String uuid = insertConfig(CONTROLLER, UUID, BRIDGE, "controller", bridgeUuid.value(),
+            String uuid = insertConfig(CONTROLLER, UUID, BRIDGE, BRIDGE_CONTROLLER, bridgeUuid.value(),
                                        c.getRow());
             newControllerUuids.add(Uuid.uuid(uuid));
 
