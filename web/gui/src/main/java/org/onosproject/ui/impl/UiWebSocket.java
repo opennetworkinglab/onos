@@ -214,9 +214,12 @@ public class UiWebSocket
 
     @Override
     public synchronized void onClose(int closeCode, String message) {
-        tokenService().revokeToken(sessionToken);
-        log.info("Session token revoked");
-
+        try {
+            tokenService().revokeToken(sessionToken);
+            log.info("Session token revoked");
+        } catch (ServiceNotFoundException e) {
+            log.error("Unable to reference UiTokenService");
+        }
         sessionToken = null;
 
         topoSession.destroy();
@@ -410,11 +413,7 @@ public class UiWebSocket
     }
 
     private UiTokenService tokenService() {
-        UiTokenService service = directory.get(UiTokenService.class);
-        if (service == null) {
-            log.error("Unable to reference UiTokenService");
-        }
-        return service;
+        return directory.get(UiTokenService.class);
     }
 
     // sends the collated localization bundle data up to the client.
