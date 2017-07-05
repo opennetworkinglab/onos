@@ -32,6 +32,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.RoutingConfiguration;
 import org.onosproject.sdnip.config.SdnIpConfig;
 import org.slf4j.Logger;
 
@@ -92,6 +93,8 @@ public class SdnIp {
     protected void activate() {
         appId = coreService.registerApplication(SDN_IP_APP);
 
+        RoutingConfiguration.register(cfgRegistry);
+
         factories.forEach(cfgRegistry::registerConfigFactory);
 
         components.forEach(name -> componentService.activate(appId, name));
@@ -112,6 +115,8 @@ public class SdnIp {
     @Deactivate
     protected void deactivate() {
         components.forEach(name -> componentService.deactivate(appId, name));
+
+        RoutingConfiguration.unregister(cfgRegistry);
 
         factories.forEach(cfgRegistry::unregisterConfigFactory);
 
