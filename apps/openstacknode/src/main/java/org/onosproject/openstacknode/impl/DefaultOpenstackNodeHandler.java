@@ -34,7 +34,6 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -492,7 +491,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 !device.is(BridgeConfig.class)) {
             return false;
         }
-        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
         return bridgeConfig.getBridges().stream()
                 .anyMatch(bridge -> bridge.name().equals(bridgeName));
     }
@@ -742,22 +741,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         public void event(GroupEvent event) {
             switch (event.type()) {
                 case GROUP_ADDED:
-                    log.trace("Group added, ID:{} state:{}", event.subject().id(),
-                            event.subject().state());
                     eventExecutor.execute(() -> {
-                        OpenstackNode osNode = osNodeByGroupId(event.subject().id());
-                        if (osNode != null && osNode.state() == PORT_CREATED) {
-                            setState(osNode, COMPLETE);
-                        }
+                        log.trace("Group added, ID:{} state:{}", event.subject().id(),
+                                event.subject().state());
+                        processGroup(event.subject());
                     });
                     break;
                 case GROUP_UPDATED:
-                    log.trace("Group updated, ID:{} state:{}", event.subject().id(),
-                            event.subject().state());
                     eventExecutor.execute(() -> {
-                        osNodeService.nodes(GATEWAY).stream()
-                                .filter(osNode -> osNode.state() == PORT_CREATED)
-                                .forEach(osNode -> bootstrapNode(osNode));
+                        log.trace("Group updated, ID:{} state:{}", event.subject().id(),
+                                event.subject().state());
+                        processGroup(event.subject());
                     });
                     break;
                 case GROUP_REMOVED:
@@ -768,11 +762,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             }
         }
 
-        private OpenstackNode osNodeByGroupId(GroupId groupId) {
-            return osNodeService.nodes().stream()
-                    .filter(n -> n.gatewayGroupId(VXLAN).equals(groupId) ||
-                            n.gatewayGroupId(VLAN).equals(groupId))
+        private void processGroup(Group group) {
+            OpenstackNode osNode = osNodeService.nodes().stream()
+                    .filter(n -> n.gatewayGroupId(VXLAN).equals(group.id()) ||
+                            n.gatewayGroupId(VLAN).equals(group.id()))
                     .findAny().orElse(null);
+            if (osNode != null && osNode.state() == PORT_CREATED) {
+                bootstrapNode(osNode);
+            }
+            osNodeService.nodes(GATEWAY).stream()
+                    .filter(gNode -> gNode.state() == PORT_CREATED)
+                    .forEach(DefaultOpenstackNodeHandler.this::bootstrapNode);
         }
     }
 

@@ -41,7 +41,7 @@ import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
 /**
  * Representation of a openstack node.
  */
-public final class DefaultOpenstackNode implements OpenstackNode {
+public class DefaultOpenstackNode implements OpenstackNode {
 
     private final String hostname;
     private final NodeType type;
@@ -52,7 +52,7 @@ public final class DefaultOpenstackNode implements OpenstackNode {
     private final String vlanIntf;
     private final NodeState state;
 
-    private DefaultOpenstackNode(String hostname,
+    protected DefaultOpenstackNode(String hostname,
                                  NodeType type,
                                  DeviceId intgBridge,
                                  DeviceId routerBridge,
@@ -254,6 +254,7 @@ public final class DefaultOpenstackNode implements OpenstackNode {
     public static Builder from(OpenstackNode osNode) {
         return new Builder()
                 .hostname(osNode.hostname())
+                .type(osNode.type())
                 .intgBridge(osNode.intgBridge())
                 .routerBridge(osNode.routerBridge())
                 .managementIp(osNode.managementIp())
