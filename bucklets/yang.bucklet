@@ -34,7 +34,7 @@ def yang_model(
 
     yang_library(
       name = yang,
-      srcs = glob(['**/*.yang']),
+      srcs = glob(['**/*.yang'], excludes=['**/target/**']),
     )
 
     genrule(
