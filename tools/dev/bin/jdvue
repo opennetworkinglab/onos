@@ -3,7 +3,7 @@
 #   Java Package Dependency viewer
 #-------------------------------------------------------------------------------
 
-VER=${JDVUE_VERSION:-2.0}
+VER=${JDVUE_VERSION:-2.1}
 JAR=~/.m2/repository/org/onosproject/jdvue/$VER/jdvue-$VER.jar
 
 # Download the jdvue binary if needed
