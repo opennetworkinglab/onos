@@ -612,7 +612,7 @@ public class NetL3VpnManager {
         if (resData != null && resData.dataNodes() != null) {
             List<DataNode> dataNodes = resData.dataNodes();
             for (DataNode node : dataNodes) {
-                configService.createNodeRecursive(resData.resourceId(), node);
+                configService.createNode(resData.resourceId(), node);
             }
         }
     }
@@ -960,7 +960,7 @@ public class NetL3VpnManager {
      */
     private void deleteFromStore(ResourceData resData) {
         if (resData != null) {
-            configService.deleteNodeRecursive(resData.resourceId());
+            configService.deleteNode(resData.resourceId());
         }
     }
 

@@ -20,11 +20,10 @@ import com.google.common.annotations.Beta;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.event.ListenerService;
-import org.onosproject.yang.model.RpcCaller;
-import org.onosproject.yang.model.RpcCommand;
-import org.onosproject.yang.model.RpcHandler;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for storing and distributing dynamic configuration data.
@@ -43,7 +42,7 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the new node could not be created
      */
-    void createNodeRecursive(ResourceId path, DataNode node);
+    void createNode(ResourceId path, DataNode node);
 
     /**
      * Reads the requested node form the dynamic config store.
@@ -61,19 +60,6 @@ public interface DynamicConfigService
     DataNode readNode(ResourceId path, Filter filter);
 
     /**
-     * Returns the number of children under the node at the given path.
-     * This method would throw an exception if the requested node or any parent
-     * nodes in the path were not present.
-     * Failure reason will be the error message in the exception.
-     *
-     * @param path data structure with absolute path to the intended node
-     * @param filter filtering conditions to be applied on the result list of nodes
-     * @return the number of children after applying the filtering conditions if any
-     * @throws FailedException if the request failed
-     */
-    Integer getNumberOfChildren(ResourceId path, Filter filter);
-
-    /**
      * Returns whether the requested node exists in the Dynamic Config store.
      *
      * @param path data structure with absolute path to the intended node
@@ -84,7 +70,7 @@ public interface DynamicConfigService
 
     /**
      * Updates an existing node in the dynamic config store.
-     * Any missing children nodes will be created with this request.
+     * Existing nodes will be updated and missing nodes will be created as needed.
      * This method would throw an exception if the requested node or any of the
      * parent nodes in the path were not present.
      * Failure reason will be the error message in the exception.
@@ -109,11 +95,10 @@ public interface DynamicConfigService
     void replaceNode(ResourceId path, DataNode node);
 
     /**
-     * Removes a leaf node from the dynamic config store.
-     * This method would throw an exception if the requested node or any of the
-     * parent nodes in the path were not present or the specified node is the
-     * root node or has one or more children.
-     * Failure reason will be the error message in the exception.
+     * Removes a node from the dynamic config store.
+     * If the node pointed to a subtree, that will be deleted recursively.
+     * It will throw an exception if the requested node or any of the parent nodes in the
+     * path were not present; Failure reason will be the error message in the exception.
      *
      * @param path data structure with absolute path to the intended node
      * @throws FailedException if the delete request failed
@@ -121,53 +106,12 @@ public interface DynamicConfigService
     void deleteNode(ResourceId path);
 
     /**
-     * Removes a subtree from the dynamic config store.
-     * This method will delete all the children recursively, under the given
-     * node. It will throw an exception if the requested node or any of the
-     * parent nodes in the path were not present.
-     * Failure reason will be the error message in the exception.
-     *
-     * @param path data structure with absolute path to the intended node
-     * @throws FailedException if the delete request failed
-     */
-    void deleteNodeRecursive(ResourceId path);
-
-    /**
-     * Registers an RPC handler.
-     *
-     * @param handler RPC handler
-     * @param command RPC command
-     * @throws FailedException if the handler could not be added
-     */
-    void registerHandler(RpcHandler handler, RpcCommand command);
-
-    /**
-     * Unregisters an RPC receiver.
-     *
-     * @param handler RPC handler
-     * @param command RPC command
-     * @throws FailedException if the handler could not be removed
-     */
-    void unRegisterHandler(RpcHandler handler, RpcCommand command);
-
-    /**
      * Invokes an RPC.
      *
-     * @param caller of the of the RPC
-     * @param msgId RPC message id
-     * @param command RPC command
+     * @param id of RPC node
      * @param input RPC input
+     * @return future that will be completed with RpcOutput
      * @throws FailedException if the RPC could not be invoked
      */
-    void invokeRpc(RpcCaller caller, Integer msgId, RpcCommand command, RpcInput input);
-
-    /**
-     * Provides response to a a previously invoked RPC.
-     *
-     * @param msgId of a previously invoked RPC
-     * @param output data from the RPC execution
-     * @throws FailedException if the RPC response was invalid
-     * (or the msg id was not recognised by the store)
-     */
-    void rpcResponse(Integer msgId, RpcOutput output);
+    CompletableFuture<RpcOutput> invokeRpc(ResourceId id, RpcInput input);
 }

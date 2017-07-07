@@ -23,6 +23,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.StorageService;
 import org.onosproject.config.DynamicConfigEvent;
 import org.onosproject.config.DynamicConfigListener;
 import org.onosproject.config.DynamicConfigService;
@@ -30,25 +33,21 @@ import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.Versioned;
-import org.onosproject.yang.model.RpcCaller;
-import org.onosproject.yang.model.RpcCommand;
 import org.onosproject.yang.model.RpcHandler;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.event.AbstractListenerManager;
-import org.slf4j.Logger;
+//TODO import org.onosproject.yang.model.RpcRegistry;
+//TODO import org.onosproject.yang.model.RpcService;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Demo application to use the DynamicConfig Service and DynamicConfigStore.
+ * Implementation of the Dynamic Config Service.
  *
  */
 @Beta
@@ -61,8 +60,8 @@ public class DynamicConfigManager
     private final DynamicConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigStore store;
-    private ConsistentMap<RpcCommand, RpcHandler> handlerRegistry;
-    private ConsistentMap<Integer, RpcCaller> callerRegistry;
+    //TODO after 14420 is merged
+    //private ConsistentMap<RpcService, RpcHandler> handlerRegistry;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
@@ -75,19 +74,13 @@ public class DynamicConfigManager
                 .register(KryoNamespaces.BASIC)
                 .register(Class.class)
                 .register(RpcHandler.class)
-                .register(RpcCaller.class)
-                .register(RpcCommand.class)
                 .register(ResourceId.class);
-        callerRegistry = storageService.<Integer, RpcCaller>consistentMapBuilder()
+        //TODO after 14420 is merged
+        /*handlerRegistry = storageService.<RpcService, RpcHandler>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-object-store")
                 .withRelaxedReadConsistency()
-                .build();
-        handlerRegistry = storageService.<RpcCommand, RpcHandler>consistentMapBuilder()
-                .withSerializer(Serializer.using(kryoBuilder.build()))
-                .withName("config-object-store")
-                .withRelaxedReadConsistency()
-                .build();
+                .build();*/
         log.info("Started");
     }
 
@@ -98,7 +91,7 @@ public class DynamicConfigManager
         log.info("Stopped");
     }
 
-    public void createNodeRecursive(ResourceId path, DataNode node) {
+    public void createNode(ResourceId path, DataNode node) {
         store.addNode(path, node).join();
     }
 
@@ -111,10 +104,6 @@ public class DynamicConfigManager
     }
 
     public void deleteNode(ResourceId path) {
-        throw new FailedException("Not yet implemented");
-    }
-
-    public void deleteNodeRecursive(ResourceId path) {
         store.deleteNodeRecursive(path).join();
     }
 
@@ -122,15 +111,12 @@ public class DynamicConfigManager
         throw new FailedException("Not yet implemented");
     }
 
-    public Integer getNumberOfChildren(ResourceId path, Filter filter) {
-        throw new FailedException("Not yet implemented");
-    }
-
     public Boolean nodeExist(ResourceId path) {
         return store.nodeExist(path).join();
     }
 
-    public void registerHandler(RpcHandler handler, RpcCommand command) {
+    //TODO after RPC abstractions are merged; else will lead to build failure
+    /*public void registerHandler(RpcHandler handler, RpcCommand command) {
         handlerRegistry.put(command, handler);
     }
 
@@ -140,24 +126,13 @@ public class DynamicConfigManager
             throw new FailedException("No registered handler found, cannot unregister");
         }
         handlerRegistry.remove(command);
+    }*/
+
+    public CompletableFuture<RpcOutput> invokeRpc(ResourceId id, RpcInput input) {
+        //TODO after RPC abstractions are merged; else will lead to build failure
+        throw new FailedException("Not yet implemented");
     }
 
-    public void invokeRpc(RpcCaller caller, Integer msgId, RpcCommand command, RpcInput input) {
-        callerRegistry.put(msgId, caller);
-        Versioned<RpcHandler> hndlr = handlerRegistry.get(command);
-        if ((hndlr == null) || (hndlr.value() == null)) {
-            throw new FailedException("No registered handler found, cannot invoke");
-        }
-        hndlr.value().executeRpc(msgId, command, input);
-    }
-
-    public void rpcResponse(Integer msgId, RpcOutput output) {
-        Versioned<RpcCaller> caller = callerRegistry.get(msgId);
-        if (caller.value() == null) {
-            throw new FailedException("No registered receiver found, cannot relay response");
-        }
-        caller.value().receiveResponse(msgId, output);
-    }
     /**
      * Auxiliary store delegate to receive notification about changes in the store.
      */
