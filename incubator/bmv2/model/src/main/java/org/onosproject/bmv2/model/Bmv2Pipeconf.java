@@ -22,7 +22,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
 
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +37,7 @@ public final class Bmv2Pipeconf implements PiPipeconf {
     private final PiPipeconfId id;
     private final Bmv2PipelineModel pipelineModel;
     private final Set<Class<? extends Behaviour>> behaviours;
-    private final Map<ExtensionType, ByteBuffer> extensions;
+    private final Map<ExtensionType, InputStream> extensions;
 
     /**
      * Builds a new BMv2 pipeline configuration (pipeconf) by given information.
@@ -50,7 +50,7 @@ public final class Bmv2Pipeconf implements PiPipeconf {
     public Bmv2Pipeconf(PiPipeconfId id,
                         Bmv2PipelineModel pipelineModel,
                         Set<Class<? extends Behaviour>> behaviours,
-                        Map<ExtensionType, ByteBuffer> extensions) {
+                        Map<ExtensionType, InputStream> extensions) {
         checkNotNull(id, "Pipeconf Id can't be null");
         checkNotNull(pipelineModel, "Pipeline model can't be null");
 
@@ -89,7 +89,7 @@ public final class Bmv2Pipeconf implements PiPipeconf {
     }
 
     @Override
-    public Optional<ByteBuffer> extension(ExtensionType type) {
+    public Optional<InputStream> extension(ExtensionType type) {
         return Optional.ofNullable(extensions.get(type));
     }
 }

@@ -19,7 +19,7 @@ package org.onosproject.net.pi.model;
 import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.Behaviour;
 
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -68,28 +68,33 @@ public interface PiPipeconf {
     boolean hasBehaviour(Class<? extends Behaviour> behaviourClass);
 
     /**
-     * Returns, if present, an arbitrary sequence of bytes representing a device-specific or control
+     * Returns, if present, an input stream of ad device-specific or control
      * protocol-specific extension of this configuration. For example, if requesting a
      * target-specific P4 binary, this will return the same bytes produced by the P4 compiler.
      *
      * @param type extension type
-     * @return extension bytes
+     * @return extension input stream
      */
     // FIXME: this is a sloppy way of handling extensions.
-    Optional<ByteBuffer> extension(ExtensionType type);
+    Optional<InputStream> extension(ExtensionType type);
 
     /**
      * Type of extension of a protocol-independent pipeline configuration.
      */
     enum ExtensionType {
         /**
-         * The P4Info as returned by the p4c compiler (in binary format).
+         * The P4Info as returned by the p4c compiler in text format.
          */
-        P4_INFO_BINARY,
+        P4_INFO_TEXT,
 
         /**
          * BMv2 JSON configuration.
          */
-        BMV2_JSON
+        BMV2_JSON,
+
+        /**
+         * Barefoot's Tofino configuration binary.
+         */
+        TOFINO_BIN
     }
 }

@@ -27,8 +27,8 @@ import org.onosproject.net.pi.model.PiPipelineModel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -84,7 +84,7 @@ public class MockPipeconf implements PiPipeconf {
     }
 
     @Override
-    public Optional<ByteBuffer> extension(ExtensionType type) {
+    public Optional<InputStream> extension(ExtensionType type) {
         return Optional.empty();
     }
 }

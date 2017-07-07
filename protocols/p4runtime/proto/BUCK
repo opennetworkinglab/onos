@@ -51,5 +51,5 @@ grpc_jar(
 )
 
 project_config(
-    src_target = ':onos-drivers-p4runtime-proto'
+    src_target = ':onos-protocols-p4runtime-proto'
 )
