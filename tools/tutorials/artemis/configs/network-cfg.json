@@ -1,0 +1,84 @@
+{
+    "ports" : {
+        "of:00002a45d713e141/2" : {
+            "interfaces" : [
+                {
+                    "name" : "sw1-1",
+                    "ips"  : [ "150.1.3.2/30" ],
+                    "mac"  : "e2:f5:32:16:9a:46"
+                }
+            ]
+        },
+        "of:00002a45d713e141/3" : {
+            "interfaces" : [
+                {
+                    "name" : "sw1-1",
+                    "ips"  : [ "40.0.0.1/24" ],
+                    "mac"  : "e2:f5:32:16:9a:46"
+                }
+            ]
+        }
+    },
+    "apps" : {
+        "org.onosproject.router" : {
+            "bgp" : {
+                "bgpSpeakers" : [
+                    {
+                        "name" : "speaker1",
+                        "connectPoint" : "of:00002a45d713e141/4",
+                        "peers" : [
+                            "150.1.3.1"
+                        ]
+                    }
+                ]
+            }
+        },
+        "org.onosproject.reactive.routing" : {
+            "reactiveRouting" : {
+                "ip4LocalPrefixes" : [
+                    {
+                        "ipPrefix" : "40.0.0.0/24",
+                        "type" : "PUBLIC",
+                        "gatewayIp" : "40.0.0.1"
+                    },
+                    {
+                        "ipPrefix" : "150.1.3.0/30",
+                        "type" : "PRIVATE",
+                        "gatewayIp" : "150.1.3.2"
+                    }
+                ],
+                "ip6LocalPrefixes" : [
+                ],
+                "virtualGatewayMacAddress" : "e2:f5:32:16:9a:46"
+            }
+        },
+        "org.onosproject.artemis" : {
+            "artemis" : {
+                "prefixes" : [ 
+                    {
+                        "prefix" : "40.0.0.0/8",
+                        "paths" : [ 
+                            {
+                                "origin" : 65004,
+                                "neighbor" : [
+                                    {
+                                        "asn" : 65002,
+                                        "neighbor": [
+                                            65001
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "moas" : [ ]
+                    }
+                ],
+                "frequency" : 3000,
+                "monitors" : {
+                    "ripe" : [ ],
+                    "exabgp": [ "192.168.1.2:5000" ]
+                }
+            }
+        }
+    }
+}

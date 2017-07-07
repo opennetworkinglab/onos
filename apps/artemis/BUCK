@@ -1,0 +1,79 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing/common:onos-apps-routing-common',
+    '//lib:okhttp',
+    '//lib:okio',
+    ':commons-net',
+    ':io.socket-client',
+    ':json',
+    ':engine.io-client'
+ ]
+
+BUNDLES = [
+    '//apps/artemis:onos-apps-artemis',
+    '//apps/routing-api:onos-apps-routing-api',
+    '//apps/routing/common:onos-apps-routing-common',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:okhttp',
+    '//lib:okio',
+    ':commons-net',
+    ':io.socket-client',
+    ':json',
+    ':engine.io-client'
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.artemis',
+    title = 'Artemis',
+    category = 'Monitoring',
+    url = 'http://onosproject.org',
+    description = 'Artemis',
+    included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
+    required_apps = [ 'org.onosproject.sdnip' ],
+)
+
+remote_jar (
+  name = 'commons-net',
+  out = 'commons-net-3.5.jar',
+  url = 'mvn:commons-net:commons-net:jar:3.5',
+  sha1 = '342fc284019f590e1308056990fdb24a08f06318',
+  maven_coords = 'commons-net:commons-net:3.5',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'io.socket-client',
+  out = 'socket.io-client-0.8.3.jar',
+  url = 'mvn:io.socket:socket.io-client:jar:0.8.3',
+  sha1 = 'b30500232ff0668a47c9f91f02e6935457a52fb5',
+  maven_coords = 'io.socket:socket.io-client:jar:NON-OSGI:0.8.3',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'json',
+  out = 'json-20090211.jar',
+  url = 'mvn:org.json:json:jar:20090211',
+  sha1 = 'c183aa3a2a6250293808bba12262c8920ce5a51c',
+  maven_coords = 'org.json:json:jar:NON-OSGI:20090211',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'engine.io-client',
+  out = 'engine.io-client-0.8.3.jar',
+  url = 'mvn:io.socket:engine.io-client:jar:0.8.3',
+  sha1 = '854b49396e1e9f9bb0ab025062ddb49c4ed65ca1',
+  maven_coords = 'io.socket:engine.io-client:jar:NON-OSGI:0.8.3',
+  visibility = [ 'PUBLIC' ],
+)
