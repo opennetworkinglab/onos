@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 /**
@@ -50,6 +51,12 @@ public class DistributedHostStoreTest {
     private static final IpAddress IP2 = IpAddress.valueOf("10.2.0.3");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final ProviderId PID2 = new ProviderId("of", "foo2");
+
+    private static final HostDescription HOST_LEARNT =
+            createHostDesc(HOSTID, Sets.newHashSet(IP1), false);
+    private static final HostDescription HOST_CONFIGURED =
+            createHostDesc(HOSTID, Sets.newHashSet(IP1), true);
 
     @Before
     public void setUp() {
@@ -118,11 +125,37 @@ public class DistributedHostStoreTest {
         assertTrue(hosts.size() == 0);
     }
 
-    private HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips) {
+    @Test
+    public void testHostOverride() {
+        Host hostInStore;
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_LEARNT, false);
+        hostInStore = ecXHostStore.getHost(HOSTID);
+        assertFalse(hostInStore.configured());
+        assertEquals(PID, hostInStore.providerId());
+
+        // Expect: configured host should override learnt host
+        ecXHostStore.createOrUpdateHost(PID2, HOSTID, HOST_CONFIGURED, true);
+        hostInStore = ecXHostStore.getHost(HOSTID);
+        assertTrue(hostInStore.configured());
+        assertEquals(PID2, hostInStore.providerId());
+
+        // Expect: learnt host should not override configured host
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_LEARNT, false);
+        hostInStore = ecXHostStore.getHost(HOSTID);
+        assertTrue(hostInStore.configured());
+        assertEquals(PID2, hostInStore.providerId());
+    }
+
+    private static HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips) {
+        return createHostDesc(hostId, ips, false);
+    }
+
+    private static HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips,
+                                                  boolean configured) {
         return new DefaultHostDescription(hostId.mac(),
                 hostId.vlanId(),
                 HostLocation.NONE,
-                ips);
+                ips,
+                configured);
     }
-
 }
