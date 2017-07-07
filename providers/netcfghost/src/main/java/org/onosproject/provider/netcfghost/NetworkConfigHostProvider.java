@@ -116,7 +116,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
         HostDescription desc = (ips != null) ?
                 new DefaultHostDescription(mac, vlan, locations, ips, true) :
                 new DefaultHostDescription(mac, vlan, locations, Collections.emptySet(), true);
-        providerService.hostDetected(hid, desc, false);
+        providerService.hostDetected(hid, desc, true);
     }
 
     /**
