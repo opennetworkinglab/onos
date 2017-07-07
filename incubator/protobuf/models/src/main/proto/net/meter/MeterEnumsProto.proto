@@ -1,0 +1,66 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.meter.models";
+
+package net.meter;
+
+enum MeterUnitProto {
+    /**
+    * Packets per second.
+    */
+    PKTS_PER_SEC = 0;
+
+    /**
+    * Kilo bits per second.
+    */
+    KB_PER_SEC = 1;
+}
+
+enum MeterStateProto {
+    /**
+    * The meter is in the process of being added.
+    */
+    PENDING_ADD = 0;
+
+    /**
+    * THe meter has been added.
+    */
+    ADDED = 1;
+
+    /**
+    * The meter is in the process of being removed.
+    */
+    PENDING_REMOVE = 2;
+
+    /**
+    * The meter has been removed.
+    */
+    REMOVED = 3;
+}
+
+enum MeterRequestTypeProto {
+    ADD = 0;
+    MODIFY = 1;
+    REMOVE = 2;
+}
+
+enum MeterEventTypeProto {
+     /**
+     * A meter addition was requested.
+     */
+     METER_ADD_REQ = 0;
+
+     /**
+     * A meter removal was requested.
+     */
+     METER_REM_REQ = 1;
+
+     /**
+     * A meter was finally added to device.
+     */
+     METER_ADDED = 2;
+
+     /**
+     * A meter was finally removed from device.
+     */
+      METER_REMOVED = 3;
+}

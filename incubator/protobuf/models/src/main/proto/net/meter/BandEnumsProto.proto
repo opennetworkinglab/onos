@@ -1,0 +1,28 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.meter.models";
+
+package net.meter;
+
+/**
+* Specifies the type of band.
+*/
+enum BandTypeProto {
+    /**
+    * Simple rate limiter which drops packets
+    * when the rate is exceeded.
+    */
+    DROP = 0;
+
+    /**
+    * defines a simple DiffServ policer that remark
+    * the drop precedence of the DSCP field in the
+    * IP header of the packets that exceed the band
+    * rate value.
+    */
+    REMARK = 1;
+
+    /**
+    * defines an experimental meter band.
+    */
+    EXPERIMENTAL = 2;
+}

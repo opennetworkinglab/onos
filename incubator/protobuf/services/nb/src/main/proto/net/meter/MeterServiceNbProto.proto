@@ -1,0 +1,55 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.nb.net.meter";
+
+package nb.net.meter;
+
+import "net/meter/MeterProto.proto";
+import "net/meter/MeterRequestProto.proto";
+
+message submitRequest {
+    .net.meter.MeterRequestProto meter = 1;
+}
+
+message submitReply {
+    .net.meter.MeterProto submit_meter = 1;
+}
+
+message withdrawRequest {
+    .net.meter.MeterRequestProto meter = 1;
+    uint64 meter_id = 2;
+}
+
+message withdrawReply {
+}
+
+message getMeterRequest {
+    string device_id = 1;
+    uint64 meter_id = 2;
+}
+
+message getMeterReply {
+    .net.meter.MeterProto meter = 1;
+}
+
+message getAllMetersRequest {
+}
+
+message getAllMetersReply {
+    repeated .net.meter.MeterProto meters = 1;
+}
+
+message getMetersRequest {
+    string device_id = 1;
+}
+
+message getMetersReply {
+    repeated .net.meter.MeterProto meters = 1;
+}
+
+service MeterService {
+     rpc submit(submitRequest) returns (submitReply) {}
+     rpc withdraw(withdrawRequest) returns (withdrawReply) {}
+     rpc getMeter(getMeterRequest) returns (getMeterReply) {}
+     rpc getAllMeters(getAllMetersRequest) returns (getAllMetersReply) {}
+     rpc getMeters(getMetersRequest) returns (getMetersReply) {}
+}

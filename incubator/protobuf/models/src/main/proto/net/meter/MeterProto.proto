@@ -1,0 +1,22 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.meter.models";
+
+package net.meter;
+
+import "net/meter/BandProto.proto";
+import "net/meter/MeterEnumsProto.proto";
+import "core/ApplicationIdProto.proto";
+
+message MeterProto {
+    string device_id = 1;
+    uint64 meter_id = 2;
+    core.ApplicationIdProto application_id = 3;
+    MeterUnitProto unit = 4;
+    bool is_burst = 5;
+    repeated BandProto bands = 6;
+    MeterStateProto state = 7;
+    uint64 life = 8;
+    uint64 reference_count = 9;
+    uint64 packets_seen = 10;
+    uint64 bytes_seen = 11;
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.meter.models";
+
+package net.meter;
+
+import "net/meter/BandEnumsProto.proto";
+
+// Corresponds to  org.onosproject.net.meter.Band.
+message BandProto {
+    uint64 rate = 1;
+    uint64 burst = 2;
+    uint32 drop_precedence = 3;
+    BandTypeProto type = 4;
+    uint64 packets = 5;
+    uint64 bytes = 6;
+}

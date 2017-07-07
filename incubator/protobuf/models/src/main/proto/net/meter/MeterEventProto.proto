@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.meter.models";
+
+package net.meter;
+
+import "net/meter/MeterEnumsProto.proto";
+import "net/meter/MeterProto.proto";
+
+// Corresponds to org.onosproject.net.meter.MeterEvent.
+message MeterNotificationProto {
+    MeterEventTypeProto type = 1;
+    MeterProto meter = 2;
+}

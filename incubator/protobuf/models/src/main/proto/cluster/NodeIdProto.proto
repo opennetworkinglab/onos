@@ -1,0 +1,8 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.cluster.models";
+
+package cluster;
+
+message NodeIdProto {
+    string node_id = 1;
+}
