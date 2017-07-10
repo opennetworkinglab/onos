@@ -2,16 +2,10 @@ include_defs(
     '//bucklets/grpc.bucklet'
 )
 
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//lib:GRPC_1.3',
-    '//lib:protobuf-java-3.2.0',
-]
-
-P4RT_PROTOC_VER = '3.2.0'
+P4RT_PROTOC_VER = '3.0.2'
 P4RT_GRPC_VER = '1.3.0'
 
-PI_COMMIT = '99aaf492036b1ecb195d40d5e05d48aea881fbc8'
+PI_COMMIT = 'f110570ca0c8ddc5feaf5028b08a0f477ceb4eea'
 PI_BASEURL = 'https://github.com/p4lang/PI.git'
 
 # Wondering which .proto files to build? Check p4runtime's Makefile:
@@ -24,12 +18,20 @@ PROTO_SRCS = [
     '/proto/p4/tmp/p4config.proto',
 ]
 
+COMPILE_DEPS = [
+'//lib:CORE_DEPS',
+'//incubator/grpc-dependencies:grpc-core-repkg-' + P4RT_GRPC_VER,
+'//lib:grpc-stub-' + P4RT_GRPC_VER,
+'//lib:grpc-protobuf-' + P4RT_GRPC_VER,
+'//lib:protobuf-java-' + P4RT_PROTOC_VER,
+]
+
 genrule(
     name = 'p4lang-pi-repo-' + PI_COMMIT,
     bash = 'git clone --quiet ' + PI_BASEURL + ' $OUT > /dev/null && '
-            + 'cd $OUT && '
-            + 'git checkout --quiet -b buck-build ' + PI_COMMIT + ' > /dev/null && '
-            + 'git submodule update --quiet --init --recursive > /dev/null',
+    + 'cd $OUT && '
+    + 'git checkout --quiet -b buck-build ' + PI_COMMIT + ' > /dev/null && '
+    + 'git submodule update --quiet --init --recursive > /dev/null',
     out = 'repo',
 )
 

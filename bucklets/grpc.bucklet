@@ -9,8 +9,10 @@ PROTOC_RELEASE_BASE_URL = "https://github.com/google/protobuf/releases/download"
 GRPC_PLUGIN_BASE_URL = "https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java"
 
 PROTOC_SHA1S = {
+    "protoc-3.0.2-linux-x86_64.zip":"779ed606f524eb2c8c116b0fce7a3bc6507769e7",
+    "protoc-3.0.2-osx-x86_64.zip":"f71d97affca4ffe32747772539c0bcbf76c9dc9b",
     "protoc-3.2.0-linux-x86_64.zip":"f418d246d183a534d9bd749e614f639a55f6829b",
-    "protoc-3.2.0-osx-x86_64.zip":"81f4fac3200ba2cb12a98df0a9ee4d1c584e9210"
+    "protoc-3.2.0-osx-x86_64.zip":"81f4fac3200ba2cb12a98df0a9ee4d1c584e9210",
 }
 
 GRPC_JAVA_SHA1S = {

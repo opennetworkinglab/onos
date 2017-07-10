@@ -13,7 +13,7 @@ if 'ONOS_ROOT' not in os.environ:
 
 BMV2_TARGET = 'simple_switch_grpc'
 ONOS_ROOT = os.environ["ONOS_ROOT"]
-INIT_BMV2_JSON = '%s/tools/test/p4src/p4-16/p4c-out/empty.json' % ONOS_ROOT
+CPU_PORT = 255
 
 
 class ONOSBmv2Switch(Switch):
@@ -118,12 +118,11 @@ class ONOSBmv2Switch(Switch):
         if self.debugger:
             args.append('--debugger')
         args.append('-L%s' % self.loglevel)
-
-        args.append(INIT_BMV2_JSON)
+        args.append('--no-p4')
 
         # gRPC target-specific options.
         args.append('--')
-        args.append('--enable-swap')
+        args.append('--cpu-port %d' % CPU_PORT)
         args.append('--grpc-server-addr 0.0.0.0:%d' % self.grpcPort)
 
         bmv2cmd = " ".join(args)
