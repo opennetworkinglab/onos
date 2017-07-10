@@ -16,7 +16,6 @@
 
 package org.onosproject.net.intent.impl.installer;
 
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,14 +36,14 @@ import org.onosproject.net.intent.ObjectiveTrackerService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onosproject.net.intent.IntentInstaller.Direction.ADD;
 import static org.onosproject.net.intent.IntentInstaller.Direction.REMOVE;
-import static org.onosproject.net.intent.IntentState.INSTALLED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -81,57 +80,76 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
         Optional<IntentData> toUninstall = context.toUninstall();
         Optional<IntentData> toInstall = context.toInstall();
 
-        List<FlowRuleIntent> uninstallIntents = Lists.newArrayList(context.intentsToUninstall());
-        List<FlowRuleIntent> installIntents = Lists.newArrayList(context.intentsToInstall());
-
         if (!toInstall.isPresent() && !toUninstall.isPresent()) {
+            // Nothing to do.
             intentInstallCoordinator.intentInstallSuccess(context);
             return;
-        } else if (!toInstall.isPresent()) {
-            // Uninstall only
+        }
+
+        List<FlowRuleIntent> uninstallIntents = context.intentsToUninstall();
+        List<FlowRuleIntent> installIntents = context.intentsToInstall();
+
+        List<FlowRule> flowRulesToUninstall;
+        List<FlowRule> flowRulesToInstall;
+
+        if (toUninstall.isPresent()) {
+            // Remove tracked resource from both Intent and installable Intents.
             trackIntentResources(toUninstall.get(), uninstallIntents, REMOVE);
-        } else if (!toUninstall.isPresent()) {
-            // Install only
-            trackIntentResources(toInstall.get(), installIntents, ADD);
+
+            // Retrieves all flow rules from all flow rule Intents.
+            flowRulesToUninstall = uninstallIntents.stream()
+                    .map(FlowRuleIntent::flowRules)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
         } else {
-            IntentData uninstall = toUninstall.get();
-            IntentData install = toInstall.get();
-            // Filter out same intents and intents with same flow rules
-            Iterator<FlowRuleIntent> iterator = installIntents.iterator();
-            while (iterator.hasNext()) {
-                FlowRuleIntent installIntent = iterator.next();
-                uninstallIntents.stream().filter(uIntent -> {
-                    if (uIntent.equals(installIntent)) {
-                        return true;
-                    } else {
-                        return !flowRuleIntentChanged(uIntent, installIntent);
-                    }
-                }).findFirst().ifPresent(common -> {
-                    uninstallIntents.remove(common);
-                    if (INSTALLED.equals(uninstall.state())) {
-                        // only remove the install intent if the existing
-                        // intent (i.e. the uninstall one) is already
-                        // installed or installing
-                        iterator.remove();
-                    }
-                });
-            }
-            trackIntentResources(uninstall, uninstallIntents, REMOVE);
-            trackIntentResources(install, installIntents, ADD);
+            // No flow rules to be uninstalled.
+            flowRulesToUninstall = Collections.emptyList();
+        }
+
+        if (toInstall.isPresent()) {
+            // Track resource from both Intent and installable Intents.
+            trackIntentResources(toInstall.get(), installIntents, ADD);
+
+            // Retrieves all flow rules from all flow rule Intents.
+            flowRulesToInstall = installIntents.stream()
+                    .map(FlowRuleIntent::flowRules)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+        } else {
+            // No flow rules to be installed.
+            flowRulesToInstall = Collections.emptyList();
+        }
+
+        List<FlowRule> dontUninstall;
+        List<FlowRule> dontTouch;
+
+        // If both uninstall/install list contained equal (=match conditions are equal) FlowRules,
+        // omit it from remove list, since it will/should be overwritten by install
+        dontUninstall = flowRulesToUninstall.stream()
+                .filter(flowRule -> flowRulesToInstall.stream().anyMatch(flowRule::equals))
+                .collect(Collectors.toList());
+
+        // If both contained exactMatch-ing FlowRules, remove from both list,
+        // since it will result in no-op.
+        dontTouch = flowRulesToInstall.stream()
+                .filter(flowRule -> flowRulesToUninstall.stream().anyMatch(flowRule::exactMatch))
+                .collect(Collectors.toList());
+
+        flowRulesToUninstall.removeAll(dontUninstall);
+        flowRulesToUninstall.removeAll(dontTouch);
+        flowRulesToInstall.removeAll(dontTouch);
+
+        if (flowRulesToInstall.isEmpty() && flowRulesToUninstall.isEmpty()) {
+            // There is no flow rules to install/uninstall
+            intentInstallCoordinator.intentInstallSuccess(context);
+            return;
         }
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
-        builder.newStage();
-
-        toUninstall.ifPresent(intentData -> {
-            uninstallIntents.stream().map(FlowRuleIntent::flowRules)
-                    .flatMap(Collection::stream).forEach(builder::remove);
-        });
-
-        toInstall.ifPresent(intentData -> {
-            installIntents.stream().map(FlowRuleIntent::flowRules)
-                    .flatMap(Collection::stream).forEach(builder::add);
-        });
+        // Add flows
+        flowRulesToInstall.forEach(builder::add);
+        // Remove flows
+        flowRulesToUninstall.forEach(builder::remove);
 
         FlowRuleOperationsContext flowRuleOperationsContext = new FlowRuleOperationsContext() {
             @Override
@@ -170,37 +188,15 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
                                                trackerService.addTrackedResources(intentData.key(),
                                                                                   installable.resources()));
                 break;
-            default:
+            case REMOVE:
                 trackerService.removeTrackedResources(intentData.key(), intentData.intent().resources());
                 intentsToApply.forEach(installable ->
                                                trackerService.removeTrackedResources(intentData.intent().key(),
                                                                                      installable.resources()));
                 break;
+            default:
+                log.warn("Unknown resource tracking direction.");
+                break;
         }
     }
-
-    /**
-     * Determines whether there is any flow rule changed
-     * (i.e., different set of flow rules or different treatments)
-     * between FlowRuleIntents to be uninstalled and to be installed.
-     *
-     * @param uninstallIntent FlowRuleIntent to uninstall
-     * @param installIntent   FlowRuleIntent to install
-     * @return true if flow rules which to be uninstalled contains all flow
-     *         rules which to be installed; false otherwise
-     */
-    private boolean flowRuleIntentChanged(FlowRuleIntent uninstallIntent,
-                                          FlowRuleIntent installIntent) {
-        Collection<FlowRule> flowRulesToUninstall = uninstallIntent.flowRules();
-        Collection<FlowRule> flowRulesToInstall = installIntent.flowRules();
-
-        // Check if any flow rule changed
-        for (FlowRule flowRuleToInstall : flowRulesToInstall) {
-            if (flowRulesToUninstall.stream().noneMatch(flowRuleToInstall::exactMatch)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }
