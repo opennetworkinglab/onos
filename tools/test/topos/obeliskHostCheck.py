@@ -60,7 +60,7 @@ if hosts or "Error" not in hosts:
                 mac = host.get( 'mac' )
                 assert mac, "mac field could not be found for this host object"
 
-                location = host.get( 'location' )
+                location = host.get( 'locations' )[ 0 ]  # Only looking for first interface
                 assert location, "location field could not be found for this host object"
 
                 # Trim the protocol identifier off deviceId

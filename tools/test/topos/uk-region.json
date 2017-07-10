@@ -14,17 +14,17 @@
   },
 
   "hosts": {
-    "00:00:00:00:00:10/-1": { "basic": { "location": "of:0000000000000010/1", "ips": [ "10.0.1.0" ],  "name": "DOVER", "latitude": 51.6295, "longitude":  1.9089 }},
+    "00:00:00:00:00:10/-1": { "basic": { "locations": ["of:0000000000000010/1"], "ips": [ "10.0.1.0" ],  "name": "DOVER", "latitude": 51.6295, "longitude":  1.9089 }},
 
-    "00:00:00:00:00:21/-1": { "basic": { "location": "of:0000000000000021/1", "ips": [ "10.0.2.1" ],  "name": "BRGHTN-A", "latitude": 51.4000, "longitude":  -0.6313 }},
-    "00:00:00:00:00:22/-1": { "basic": { "location": "of:0000000000000022/1", "ips": [ "10.0.2.2" ],  "name": "BRGHTN-B", "latitude": 52.3429, "longitude":  -0.6413 }},
-    "00:00:00:00:00:23/-1": { "basic": { "location": "of:0000000000000023/1", "ips": [ "10.0.2.3" ],  "name": "BRGHTN-C", "latitude": 52.3429, "longitude":  -0.6213 }},
+    "00:00:00:00:00:21/-1": { "basic": { "locations": ["of:0000000000000021/1"], "ips": [ "10.0.2.1" ],  "name": "BRGHTN-A", "latitude": 51.4000, "longitude":  -0.6313 }},
+    "00:00:00:00:00:22/-1": { "basic": { "locations": ["of:0000000000000022/1"], "ips": [ "10.0.2.2" ],  "name": "BRGHTN-B", "latitude": 52.3429, "longitude":  -0.6413 }},
+    "00:00:00:00:00:23/-1": { "basic": { "locations": ["of:0000000000000023/1"], "ips": [ "10.0.2.3" ],  "name": "BRGHTN-C", "latitude": 52.3429, "longitude":  -0.6213 }},
 
-    "00:00:00:00:00:31/-1": { "basic": { "location": "of:0000000000000031/1", "ips": [ "10.0.3.1" ],  "name": "LONDON-A", "latitude": 52.0091, "longitude":  -0.7704 }},
-    "00:00:00:00:00:32/-1": { "basic": { "location": "of:0000000000000032/1", "ips": [ "10.0.3.2" ],  "name": "LONDON-B", "latitude": 52.0091, "longitude":   0.0432 }},
-    "00:00:00:00:00:33/-1": { "basic": { "location": "of:0000000000000033/1", "ips": [ "10.0.3.3" ],  "name": "LONDON-C", "latitude": 51.9513, "longitude":  -0.6058 }},
-    "00:00:00:00:00:34/-1": { "basic": { "location": "of:0000000000000034/1", "ips": [ "10.0.3.4" ],  "name": "LONDON-D", "latitude": 52.0418, "longitude":  -0.6931 }},
-    "00:00:00:00:00:35/-1": { "basic": { "location": "of:0000000000000035/1", "ips": [ "10.0.3.5" ],  "name": "LONDON-E", "latitude": 52.0072, "longitude":  -0.6175 }}
+    "00:00:00:00:00:31/-1": { "basic": { "locations": ["of:0000000000000031/1"], "ips": [ "10.0.3.1" ],  "name": "LONDON-A", "latitude": 52.0091, "longitude":  -0.7704 }},
+    "00:00:00:00:00:32/-1": { "basic": { "locations": ["of:0000000000000032/1"], "ips": [ "10.0.3.2" ],  "name": "LONDON-B", "latitude": 52.0091, "longitude":   0.0432 }},
+    "00:00:00:00:00:33/-1": { "basic": { "locations": ["of:0000000000000033/1"], "ips": [ "10.0.3.3" ],  "name": "LONDON-C", "latitude": 51.9513, "longitude":  -0.6058 }},
+    "00:00:00:00:00:34/-1": { "basic": { "locations": ["of:0000000000000034/1"], "ips": [ "10.0.3.4" ],  "name": "LONDON-D", "latitude": 52.0418, "longitude":  -0.6931 }},
+    "00:00:00:00:00:35/-1": { "basic": { "locations": ["of:0000000000000035/1"], "ips": [ "10.0.3.5" ],  "name": "LONDON-E", "latitude": 52.0072, "longitude":  -0.6175 }}
   },
 
   "regions": {
