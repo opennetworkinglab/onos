@@ -65,6 +65,7 @@ import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
@@ -80,6 +81,7 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -303,6 +305,15 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
+
+        boolean sessionExists =
+                Optional.ofNullable(controller.getDevicesMap().get(deviceId))
+                    .map(NetconfDevice::isActive)
+                    .orElse(false);
+        if (sessionExists) {
+            return true;
+        }
+
         //FIXME this is a workaround util device state is shared
         // between controller instances.
         Device device = deviceService.getDevice(deviceId);
@@ -325,12 +336,16 @@ public class NetconfDeviceProvider extends AbstractProvider
                 port = Integer.parseInt(info[info.length - 1]);
             }
         }
+        // FIXME just opening TCP session probably is not the appropriate
+        // method to test reachability.
         //test connection to device opening a socket to it.
+        log.debug("Testing reachability for {}:{}", ip, port);
         try (Socket socket = new Socket(ip, port)) {
             log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected(), !socket.isClosed());
             return socket.isConnected() && !socket.isClosed();
         } catch (IOException e) {
             log.info("Device {} is not reachable", deviceId);
+            log.debug("  error details", e);
             return false;
         }
     }
