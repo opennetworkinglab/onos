@@ -20,6 +20,8 @@
                    impl="org.onosproject.drivers.bmv2.Bmv2Handshaker"/>
         <behaviour api="org.onosproject.net.packet.PacketProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2PacketProgrammable"/>
+        <behaviour api="org.onosproject.net.pi.model.PiPipelineProgrammable"
+                   impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
     </driver>
 </drivers>
 

@@ -79,8 +79,12 @@ class ONOSBmv2Switch(Switch):
                         "p4runtime": {
                             "ip": srcIP,
                             "port": self.grpcPort,
+                            "deviceId": self.deviceId,
                             "deviceKeyId": "p4runtime:%s" % onosDeviceId
                         }
+                    },
+                    "piPipeconf": {
+                        "piPipeconfId": ""
                     },
                     "basic": {
                         "driver": "bmv2"

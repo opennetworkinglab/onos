@@ -57,7 +57,7 @@ public interface GrpcController {
     Optional<GrpcObserverHandler> getObserverManager(GrpcStreamObserverId observerId);
 
     /**
-     * Tries to connect to a specific gRPC device, if the connection is successful
+     * Tries to connect to a specific gRPC server, if the connection is successful
      * returns the ManagedChannel. This method blocks until the channel is setup or a timeout expires.
      * By default the timeout is 20 seconds. If the timeout expires and thus the channel can't be set up
      * a IOException is thrown.
@@ -82,6 +82,15 @@ public interface GrpcController {
      * @return Map of all the ManagedChannels with their identifier saved in this controller
      */
     Map<GrpcChannelId, ManagedChannel> getChannels();
+
+    /**
+     * Returns true if the channel associated with the given identifier is open, i.e. the server is able to successfully
+     * responds to RPCs.
+     *
+     * @param channelId channel identifier
+     * @return true if channel is open, false otherwise.
+     */
+    boolean isChannelOpen(GrpcChannelId channelId);
 
     /**
      * Returns all ManagedChannels associated to the given device identifier.

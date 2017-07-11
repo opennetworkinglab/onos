@@ -1,0 +1,28 @@
+include_defs(
+    '//bucklets/grpc.bucklet'
+)
+
+PROTOC_VER = '3.0.2'
+GRPC_VER = '1.3.0'
+
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-protobuf-' + GRPC_VER,
+    '//lib:protobuf-java-' + PROTOC_VER,
+]
+
+
+grpc_jar(
+    proto_match_patterns = ["*.proto"],
+    proto_paths = ["$ONOS_ROOT/protocols/grpc/proto/"],
+    protoc_version = PROTOC_VER,
+    plugin_version = GRPC_VER,
+    deps = COMPILE_DEPS,
+)
+
+project_config(
+    src_target = ':onos-protocols-grpc-proto'
+)

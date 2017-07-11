@@ -65,4 +65,14 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
      * @return true if client exists, false otherwise.
      */
     boolean hasClient(DeviceId deviceId);
+
+    /**
+     * Returns true if the P4Runtime server running on the given device is reachable, i.e. the channel is open and the
+     * server is able to respond to RPCs, false otherwise. Reachability can be tested only if a client was previously
+     * created using {@link #createClient(DeviceId, int, ManagedChannelBuilder)}, otherwise this method returns false.
+     *
+     * @param deviceId device identifier.
+     * @return true if a client was created and is able to contact the P4Runtime server, false otherwise.
+     */
+    boolean isReacheable(DeviceId deviceId);
 }

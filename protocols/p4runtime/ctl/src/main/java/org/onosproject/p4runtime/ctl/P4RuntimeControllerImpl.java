@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -62,10 +62,11 @@ public class P4RuntimeControllerImpl
     private final Logger log = getLogger(getClass());
 
     private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
-    private final Map<DeviceId, P4RuntimeClient> clients = Maps.newConcurrentMap();
-    private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newConcurrentMap();
+    private final Map<DeviceId, P4RuntimeClient> clients = Maps.newHashMap();
+    private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
+
     // TODO: should use a cache to delete unused locks.
-    private final Map<DeviceId, Lock> deviceLocks = Maps.newConcurrentMap();
+    private final Map<DeviceId, ReadWriteLock> deviceLocks = Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
@@ -85,8 +86,8 @@ public class P4RuntimeControllerImpl
         checkNotNull(deviceId);
         checkNotNull(channelBuilder);
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantLock());
-        deviceLocks.get(deviceId).lock();
+        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
+        deviceLocks.get(deviceId).writeLock().lock();
 
         log.info("Creating client for {} (with internal device id {})...", deviceId, p4DeviceId);
 
@@ -97,11 +98,12 @@ public class P4RuntimeControllerImpl
                 return doCreateClient(deviceId, p4DeviceId, channelBuilder);
             }
         } finally {
-            deviceLocks.get(deviceId).unlock();
+            deviceLocks.get(deviceId).writeLock().unlock();
         }
     }
 
     private boolean doCreateClient(DeviceId deviceId, int p4DeviceId, ManagedChannelBuilder channelBuilder) {
+
         GrpcChannelId channelId = GrpcChannelId.of(deviceId, "p4runtime");
 
         // Channel defaults.
@@ -127,43 +129,62 @@ public class P4RuntimeControllerImpl
     @Override
     public P4RuntimeClient getClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantLock());
-        deviceLocks.get(deviceId).lock();
+        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
+        deviceLocks.get(deviceId).readLock().lock();
 
         try {
             return clients.get(deviceId);
         } finally {
-            deviceLocks.get(deviceId).unlock();
+            deviceLocks.get(deviceId).readLock().unlock();
         }
     }
 
     @Override
     public void removeClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantLock());
-        deviceLocks.get(deviceId).lock();
+        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
+        deviceLocks.get(deviceId).writeLock().lock();
 
         try {
             if (clients.containsKey(deviceId)) {
                 clients.get(deviceId).shutdown();
                 grpcController.disconnectChannel(channelIds.get(deviceId));
                 clients.remove(deviceId);
+                channelIds.remove(deviceId);
             }
         } finally {
-            deviceLocks.get(deviceId).unlock();
+            deviceLocks.get(deviceId).writeLock().unlock();
         }
     }
 
     @Override
     public boolean hasClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantLock());
-        deviceLocks.get(deviceId).lock();
+        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
+        deviceLocks.get(deviceId).readLock().lock();
 
         try {
             return clients.containsKey(deviceId);
         } finally {
-            deviceLocks.get(deviceId).unlock();
+            deviceLocks.get(deviceId).readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean isReacheable(DeviceId deviceId) {
+
+        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
+        deviceLocks.get(deviceId).readLock().lock();
+
+        try {
+            if (!clients.containsKey(deviceId)) {
+                log.warn("No client for {}, can't check for reachability", deviceId);
+                return false;
+            }
+
+            return grpcController.isChannelOpen(channelIds.get(deviceId));
+        } finally {
+            deviceLocks.get(deviceId).readLock().unlock();
         }
     }
 

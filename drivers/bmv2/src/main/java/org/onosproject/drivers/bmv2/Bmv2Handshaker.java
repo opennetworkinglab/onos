@@ -16,17 +16,14 @@
 
 package org.onosproject.drivers.bmv2;
 
-import org.onosproject.grpc.api.GrpcChannelId;
-import org.onosproject.grpc.api.GrpcController;
-import org.onosproject.grpc.api.GrpcServiceId;
-import org.onosproject.grpc.api.GrpcStreamObserverId;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceHandshaker;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverData;
-import org.onosproject.net.key.DeviceKeyId;
-import org.onosproject.net.key.DeviceKeyService;
+import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
@@ -34,63 +31,71 @@ import java.util.concurrent.CompletableFuture;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of the DeviceHandshaker for the BMv2 softswitch.
+ * Implementation of DeviceHandshaker for BMv2.
  */
-//TODO consider abstract class with empty connect method and
-//the implementation into a protected one for reusability.
-//FIXME fill method bodies, used for testing.
 public class Bmv2Handshaker extends AbstractHandlerBehaviour
         implements DeviceHandshaker {
 
     private final Logger log = getLogger(getClass());
 
+    // TODO: consider abstract class with empty connect method and  implementation into a protected one for reusability.
+
     @Override
     public CompletableFuture<Boolean> connect() {
-        GrpcController controller = handler().get(GrpcController.class);
+        return CompletableFuture.supplyAsync(this::doConnect);
+    }
+
+    private boolean doConnect() {
+
+        P4RuntimeController controller = handler().get(P4RuntimeController.class);
+
         DeviceId deviceId = handler().data().deviceId();
-
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        DeviceKeyService deviceKeyService = handler().get(DeviceKeyService.class);
+        // DeviceKeyService deviceKeyService = handler().get(DeviceKeyService.class);
         DriverData data = data();
-        //Retrieving information from the driver data.
-        log.info("protocol bmv2, ip {}, port {}, key {}", data.value("p4runtime_ip"),
-                data.value("p4runtime_port"),
-                deviceKeyService.getDeviceKey(DeviceKeyId.deviceKeyId(data.value("p4runtime_key")))
-                        .asUsernamePassword().username());
 
-        log.info("protocol gnmi, ip {}, port {}, key {}", data.value("gnmi_ip"), data.value("gnmi_port"),
-                deviceKeyService.getDeviceKey(DeviceKeyId.deviceKeyId(data.value("gnmi_key")))
-                        .asUsernamePassword().username());
-        result.complete(true);
+        String serverAddr = data.value("p4runtime_ip");
+        int serverPort = Integer.valueOf(data.value("p4runtime_port"));
+        int p4DeviceId = Integer.valueOf(data.value("p4runtime_deviceId"));
 
-        //we know we need packet in so we register the observer.
-        GrpcChannelId channelId = GrpcChannelId.of(deviceId, "bmv2");
-        GrpcServiceId serviceId = GrpcServiceId.of(channelId, "p4runtime");
-        GrpcStreamObserverId observerId = GrpcStreamObserverId.of(serviceId,
-                Bmv2PacketProgrammable.class.getSimpleName());
-        controller.addObserver(observerId, new Bmv2PacketInObserverHandler());
-        return result;
+        ManagedChannelBuilder channelBuilder = NettyChannelBuilder
+                .forAddress(serverAddr, serverPort)
+                .usePlaintext(true);
+
+        if (!controller.createClient(deviceId, p4DeviceId, channelBuilder)) {
+            log.warn("Unable to create P4runtime client for {}", deviceId);
+            return false;
+        }
+
+        // TODO: gNMI handling
+
+        return true;
     }
 
     @Override
     public CompletableFuture<Boolean> disconnect() {
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        result.complete(true);
-        return result;
+        return CompletableFuture.supplyAsync(() -> {
+            P4RuntimeController controller = handler().get(P4RuntimeController.class);
+            DeviceId deviceId = handler().data().deviceId();
+            controller.removeClient(deviceId);
+            return true;
+        });
     }
 
     @Override
     public CompletableFuture<Boolean> isReachable() {
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        result.complete(true);
-        return result;
+        return CompletableFuture.supplyAsync(() -> {
+            P4RuntimeController controller = handler().get(P4RuntimeController.class);
+            DeviceId deviceId = handler().data().deviceId();
+            return controller.isReacheable(deviceId);
+        });
     }
 
     @Override
     public CompletableFuture<MastershipRole> roleChanged(MastershipRole newRole) {
         CompletableFuture<MastershipRole> result = new CompletableFuture<>();
+        log.warn("roleChanged not implemented");
         result.complete(MastershipRole.MASTER);
+        // TODO.
         return result;
     }
-
 }

@@ -16,40 +16,32 @@
 
 package org.onosproject.drivers.bmv2;
 
-import io.grpc.stub.StreamObserver;
-import org.onosproject.grpc.api.GrpcChannelId;
-import org.onosproject.grpc.api.GrpcController;
-import org.onosproject.grpc.api.GrpcObserverHandler;
-import org.onosproject.grpc.api.GrpcServiceId;
-import org.onosproject.grpc.api.GrpcStreamObserverId;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketProgrammable;
-
-import java.util.Optional;
 
 /**
  * Packet Programmable behaviour for BMv2 devices.
  */
 public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
+
     @Override
     public void emit(OutboundPacket packet) {
-        DriverHandler handler = handler();
-        GrpcController controller = handler.get(GrpcController.class);
-        DeviceId deviceId = handler.data().deviceId();
-        GrpcChannelId channelId = GrpcChannelId.of(deviceId, "bmv2");
-        GrpcServiceId serviceId = GrpcServiceId.of(channelId, "p4runtime");
-        GrpcStreamObserverId observerId = GrpcStreamObserverId.of(serviceId,
-                this.getClass().getSimpleName());
-        Optional<GrpcObserverHandler> manager = controller.getObserverManager(observerId);
-        if (!manager.isPresent()) {
-            //this is the first time the behaviour is called
-            controller.addObserver(observerId, new Bmv2PacketInObserverHandler());
-        }
-        //other already registered the observer for us.
-        Optional<StreamObserver> observer = manager.get().requestStreamObserver();
-        observer.ifPresent(objectStreamObserver -> objectStreamObserver.onNext(packet));
+        // TODO: implement using P4runtime client.
+        // DriverHandler handler = handler();
+        // GrpcController controller = handler.get(GrpcController.class);
+        // DeviceId deviceId = handler.data().deviceId();
+        // GrpcChannelId channelId = GrpcChannelId.of(deviceId, "bmv2");
+        // GrpcServiceId serviceId = GrpcServiceId.of(channelId, "p4runtime");
+        // GrpcStreamObserverId observerId = GrpcStreamObserverId.of(serviceId,
+        //         this.getClass().getSimpleName());
+        // Optional<GrpcObserverHandler> manager = controller.getObserverManager(observerId);
+        // if (!manager.isPresent()) {
+        //     //this is the first time the behaviour is called
+        //     controller.addObserver(observerId, new Bmv2PacketInObserverHandler());
+        // }
+        // //other already registered the observer for us.
+        // Optional<StreamObserver> observer = manager.get().requestStreamObserver();
+        // observer.ifPresent(objectStreamObserver -> objectStreamObserver.onNext(packet));
     }
 }
