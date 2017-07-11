@@ -538,8 +538,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     .setOutput(cNode.tunnelPortNum())
                     .build();
             GroupBucket bucket = createSelectGroupBucket(treatment);
-            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED ||
-                    !osGroup.buckets().buckets().contains(bucket)) {
+            if (osGroup == null || !osGroup.buckets().buckets().contains(bucket)) {
                 return false;
             }
         }
@@ -551,8 +550,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     .setOutput(cNode.vlanPortNum())
                     .build();
             GroupBucket bucket = createSelectGroupBucket(treatment);
-            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED ||
-                    !osGroup.buckets().buckets().contains(bucket)) {
+            if (osGroup == null || !osGroup.buckets().buckets().contains(bucket)) {
                 return false;
             }
         }
@@ -763,11 +761,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
 
         private void processGroup(Group group) {
-            OpenstackNode osNode = osNodeService.nodes().stream()
-                    .filter(n -> n.gatewayGroupId(VXLAN).equals(group.id()) ||
-                            n.gatewayGroupId(VLAN).equals(group.id()))
+            OpenstackNode osNode = osNodeService.nodes(COMPUTE).stream()
+                    .filter(n -> n.state() == PORT_CREATED &&
+                            (n.gatewayGroupId(VXLAN).equals(group.id()) ||
+                            n.gatewayGroupId(VLAN).equals(group.id())))
                     .findAny().orElse(null);
-            if (osNode != null && osNode.state() == PORT_CREATED) {
+            if (osNode != null) {
                 bootstrapNode(osNode);
             }
             osNodeService.nodes(GATEWAY).stream()
