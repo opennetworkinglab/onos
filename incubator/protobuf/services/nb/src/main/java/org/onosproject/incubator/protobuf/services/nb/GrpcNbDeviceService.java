@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.grpc.nb.net.device;
+package org.onosproject.incubator.protobuf.services.nb;
 
 
 import com.google.common.annotations.Beta;
@@ -84,7 +84,7 @@ public class GrpcNbDeviceService {
         @Override
         public void getDeviceCount(
                 getDeviceCountRequest request,
-                StreamObserver<DeviceServiceNb.getDeviceCountReply> responseObserver) {
+                StreamObserver<getDeviceCountReply> responseObserver) {
             responseObserver
                     .onNext(getDeviceCountReply
                             .newBuilder()
@@ -97,7 +97,7 @@ public class GrpcNbDeviceService {
         //FIXME NOTE: this will be switched to a streaming version.
         @Override
         public void getDevices(getDevicesRequest request,
-                               StreamObserver<DeviceServiceNb.getDevicesReply> responseObserver) {
+                               StreamObserver<getDevicesReply> responseObserver) {
             getDevicesReply.Builder replyBuilder = getDevicesReply.newBuilder();
             deviceService.getDevices().forEach(d -> {
                 replyBuilder.addDevice(
@@ -122,7 +122,7 @@ public class GrpcNbDeviceService {
         @Override
         public void getAvailableDevices(getAvailableDevicesRequest request,
                                         StreamObserver
-                                                <DeviceServiceNb.getAvailableDevicesReply> responseObserver) {
+                                                <getAvailableDevicesReply> responseObserver) {
             getAvailableDevicesReply.Builder replyBuilder = getAvailableDevicesReply.newBuilder();
             deviceService.getAvailableDevices().forEach(d -> {
                 replyBuilder.addDevice(
@@ -144,7 +144,7 @@ public class GrpcNbDeviceService {
 
         @Override
         public void getDevice(getDeviceRequest request,
-                              io.grpc.stub.StreamObserver<DeviceServiceNb.getDeviceReply> responseObserver) {
+                              io.grpc.stub.StreamObserver<getDeviceReply> responseObserver) {
             org.onosproject.net.Device device = deviceService.getDevice(
                     DeviceId.deviceId(request.getDeviceId()));
             responseObserver.onNext(
@@ -166,7 +166,7 @@ public class GrpcNbDeviceService {
 
         @Override
         public void getRole(getRoleRequest request,
-                            StreamObserver<DeviceServiceNb.getRoleReply> responseObserver) {
+                            StreamObserver<getRoleReply> responseObserver) {
             DeviceId deviceId = DeviceId.deviceId(request.getDeviceId());
             MastershipRole role = deviceService.getRole(deviceId);
             DeviceEnumsProto.MastershipRoleProto mastershipRole =

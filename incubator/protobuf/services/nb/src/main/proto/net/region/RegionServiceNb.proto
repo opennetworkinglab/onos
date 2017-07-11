@@ -1,0 +1,53 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.net.region";
+
+package nb.net.region;
+
+import "net/RegionProto.proto";
+
+message getRegionsRequest {
+}
+
+message getRegionsReply {
+    repeated .net.RegionProto region = 1;
+}
+
+message getRegionRequest {
+    string regionId = 1;
+}
+
+message getRegionReply {
+    .net.RegionProto region = 1;
+}
+
+message getRegionForDeviceRequest {
+    string deviceId = 1;
+}
+
+message getRegionForDeviceReply {
+    .net.RegionProto region = 1;
+}
+
+message getRegionDevicesRequest {
+    string regionId = 1;
+}
+
+message getRegionDevicesReply {
+    repeated string deviceId = 1;
+}
+
+message getRegionHostsRequest {
+    string regionId = 1;
+}
+
+message getRegionHostsReply {
+    repeated string hostId = 1;
+}
+
+service RegionService {
+    rpc getRegions(getRegionsRequest) returns (getRegionsReply) {}
+    rpc getRegion(getRegionRequest) returns (getRegionReply) {}
+    rpc getRegionForDevice(getRegionForDeviceRequest) returns (getRegionForDeviceReply) {}
+    rpc getRegionDevices(getRegionDevicesRequest) returns (getRegionDevicesReply) {}
+    rpc getRegionHosts(getRegionHostsRequest) returns (getRegionHostsReply) {}
+}

@@ -1,0 +1,56 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.region.models";
+
+package net.region;
+
+enum RegionTypeProto {
+    /**
+     * Region represents an entire continent.
+     */
+    CONTINENT = 0;
+
+    /**
+     * Region represents an entire country.
+     */
+    COUNTRY = 1;
+
+    /**
+     * Region represents a metropolitan area.
+     */
+    METRO = 2;
+
+    /**
+     * Region represents a campus.
+     */
+    CAMPUS = 3;
+
+    /**
+     * Region represents a building.
+     */
+    BUILDING = 4;
+
+    /**
+     * Region represents a data center.
+     */
+    DATA_CENTER = 5;
+
+    /**
+     * Region represents a building floor.
+     */
+    FLOOR = 6;
+
+    /**
+     * Region represents a room.
+     */
+    ROOM = 7;
+
+    /**
+     * Region represents a rack.
+     */
+    RACK = 8;
+
+    /**
+     * Region represents a logical grouping.
+     */
+    LOGICAL_GROUP = 9;
+}

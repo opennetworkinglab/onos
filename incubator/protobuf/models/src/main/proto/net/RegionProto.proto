@@ -1,0 +1,24 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package net;
+
+import "net/region/RegionEnumsProto.proto";
+
+// Corresponds to org.onosproject.net.Region.
+
+message RegionProto {
+    string region_id = 1;
+    net.region.RegionTypeProto type = 2;
+    string name = 3;
+
+    // List<Set<NodeId>> masters();
+    // Since masters is a list of set of NodeIds,
+    // the following message is required.
+    message NodeIdSet {
+        repeated string node_id = 1;
+    }
+
+    repeated NodeIdSet masters = 4;
+    map<string, string> annotations = 5;
+}
