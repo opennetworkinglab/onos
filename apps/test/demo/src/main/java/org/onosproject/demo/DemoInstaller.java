@@ -66,7 +66,7 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
@@ -725,7 +725,7 @@ public class DemoInstaller implements DemoApi {
         private ObjectNode installForward() {
             ObjectNode node = mapper.createObjectNode();
             long addStartTime = System.currentTimeMillis();
-            int totalFlowObj = (flowObjPerDevice * deviceService.getDeviceCount());
+            int totalFlowObj = (flowObjPerDevice * forwardingObj.keySet().size());
             CountDownLatch installationLatch = new CountDownLatch(totalFlowObj);
             for (DeviceId dId : forwardingObj.keySet()) {
                 Set<ForwardingObjective.Builder> fObjs = forwardingObj.get(dId);
@@ -740,7 +740,7 @@ public class DemoInstaller implements DemoApi {
             }
 
             try {
-                installationLatch.await();
+                installationLatch.await(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 Thread.interrupted();
             }
@@ -769,10 +769,14 @@ public class DemoInstaller implements DemoApi {
             for (int i = 0; i < flowObjPerDevice; i++) {
                 TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
                 tbuilder.add(Instructions.createOutput(PortNumber.portNumber(2)));
+                TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+                sbuilder.matchInPort(PortNumber.portNumber(i + 3));
+                sbuilder.matchEthDst(MacAddress.valueOf("12:00:00:00:00:10"));
 
                 FilteringObjective.Builder fobBuilder = DefaultFilteringObjective.builder();
                 fobBuilder.fromApp(appId)
-                          .addCondition(Criteria.matchEthType(2))
+                          .withKey(sbuilder.build().getCriterion(Criterion.Type.IN_PORT))
+                          .addCondition(sbuilder.build().getCriterion(Criterion.Type.ETH_DST))
                           .withMeta(tbuilder.build())
                           .permit()
                           .withPriority(i + 1)
@@ -790,7 +794,7 @@ public class DemoInstaller implements DemoApi {
         private ObjectNode installFilter() {
             ObjectNode node = mapper.createObjectNode();
             long addStartTime = System.currentTimeMillis();
-            int totalFlowObj = (flowObjPerDevice * deviceService.getDeviceCount());
+            int totalFlowObj = (flowObjPerDevice * filteringObj.keySet().size());
             CountDownLatch installationLatch = new CountDownLatch(totalFlowObj);
             for (DeviceId dId : filteringObj.keySet()) {
                 Set<FilteringObjective.Builder> fObjs = filteringObj.get(dId);
@@ -805,7 +809,7 @@ public class DemoInstaller implements DemoApi {
             }
 
             try {
-                installationLatch.await();
+                installationLatch.await(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 Thread.interrupted();
             }
