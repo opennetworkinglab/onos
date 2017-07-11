@@ -35,7 +35,8 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
 
     @Override
     public boolean isValid() {
-        // Location and IP addresses can be absent, but if present must be valid.
+        // locations is mandatory and must have at least one
+        // ipAddresses can be absent, but if present must be valid
         this.locations();
         this.ipAddresses();
         return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
@@ -56,7 +57,7 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
     /**
      * Returns the location of the host.
      *
-     * @return location of the host or null if not set
+     * @return location of the host
      * @throws IllegalArgumentException if not specified with correct format
      */
     public Set<HostLocation> locations() {
@@ -67,9 +68,11 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
                 ConnectPoint cp = ConnectPoint.deviceConnectPoint((n.asText()));
                 locations.add(new HostLocation(cp, 0));
             });
-            return locations;
         }
-        return null;
+        if (locations.isEmpty()) {
+            throw new IllegalArgumentException("Host should have at least one location");
+        }
+        return locations;
     }
 
     /**
