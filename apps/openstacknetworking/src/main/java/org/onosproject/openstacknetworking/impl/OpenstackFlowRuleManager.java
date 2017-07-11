@@ -83,6 +83,9 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         osNodeService.addListener(internalNodeListener);
 
+        osNodeService.completeNodes(OpenstackNode.NodeType.COMPUTE)
+                .forEach(node -> initializePipeline(node.intgBridge()));
+
         log.info("Started");
     }
 
