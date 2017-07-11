@@ -234,7 +234,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
      * Returns a session for the specified deviceId if this node is its master,
      * returns null otherwise.
      *
-     * @param deviceId the id of node for witch we wish to retrieve a session
+     * @param deviceId the id of node for which we wish to retrieve a session
      * @return a NetconfSession with the specified node or null
      */
     private NetconfSession getNetconfSession(DeviceId deviceId) {

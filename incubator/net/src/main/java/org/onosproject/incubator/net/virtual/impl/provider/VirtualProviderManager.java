@@ -72,7 +72,7 @@ public class VirtualProviderManager
     public synchronized void unregisterProvider(VirtualProvider virtualProvider) {
         checkNotNull(virtualProvider, "Provider cannot be null");
 
-        //TODO: invalidate provider services witch subscribe the provider
+        //TODO: invalidate provider services which subscribe the provider
         providers.remove(virtualProvider.id());
 
         if (!virtualProvider.id().isAncillary()) {
