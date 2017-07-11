@@ -404,7 +404,7 @@
             };
         }])
 
-    .directive("filedrop", function ($parse, $document) {
+    .directive("filedrop", ['$parse', '$document', function ($parse, $document) {
         return {
             restrict: "A",
             link: function (scope, element, attrs) {
@@ -440,7 +440,7 @@
                     });
             }
         };
-    })
+    }])
 
     .directive('applicationDetailsPanel',
         ['$rootScope', '$window', '$timeout', 'KeyService',

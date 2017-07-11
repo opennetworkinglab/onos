@@ -29,7 +29,7 @@ const vendor = [
     'tp/angular-cookies.js',
     'tp/d3.js',
     'tp/topojson.v1.min.js',
-    'tp/Chart.min.js',
+    'tp/Chart.js',
     'tp/lodash.min.js',
 ];
 
