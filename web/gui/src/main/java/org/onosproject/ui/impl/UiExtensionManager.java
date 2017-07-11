@@ -61,6 +61,7 @@ import org.onosproject.ui.UiViewHidden;
 import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.Traffic2Overlay;
+import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.lion.LionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,25 +161,43 @@ public class UiExtensionManager
             Executors.newSingleThreadExecutor(
                     Tools.groupedThreads("onos/ui-ext-manager", "event-handler", log));
 
-    // Creates core UI extension
+    private LionBundle navLion;
+
+
+    private String lionNavText(String id) {
+        return navLion.getValue("nav_item_" + id);
+    }
+
+    private UiView mkView(UiView.Category cat, String id, String iconId) {
+        return new UiView(cat, id, lionNavText(id), iconId);
+    }
+
     private UiExtension createCoreExtension() {
+        List<LionBundle> lionBundles = generateBundles(LION_BASE, LION_TAGS);
+
+        navLion = lionBundles.stream()
+                .filter(f -> f.id().equals("core.fw.Nav")).findFirst().get();
+
         List<UiView> coreViews = of(
-                new UiView(PLATFORM, "app", "Applications", "nav_apps"),
-                new UiView(PLATFORM, "settings", "Settings", "nav_settings"),
-                new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
-                new UiView(PLATFORM, "processor", "Packet Processors", "nav_processors"),
-                new UiView(PLATFORM, "partition", "Partitions", "nav_partitions"),
-                new UiView(NETWORK, "topo", "Topology", "nav_topo"),
-                new UiView(NETWORK, "topo2", "Topology 2", "nav_topo2"),
-                new UiView(NETWORK, "device", "Devices", "nav_devs"),
+                mkView(PLATFORM, "app", "nav_apps"),
+                mkView(PLATFORM, "settings", "nav_settings"),
+                mkView(PLATFORM, "cluster", "nav_cluster"),
+                mkView(PLATFORM, "processor", "nav_processors"),
+                mkView(PLATFORM, "partition", "nav_partitions"),
+
+                mkView(NETWORK, "topo", "nav_topo"),
+                mkView(NETWORK, "topo2", "nav_topo2"),
+                mkView(NETWORK, "device", "nav_devs"),
+
                 new UiViewHidden("flow"),
                 new UiViewHidden("port"),
                 new UiViewHidden("group"),
                 new UiViewHidden("meter"),
-                new UiView(NETWORK, "link", "Links", "nav_links"),
-                new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
-                new UiView(NETWORK, "intent", "Intents", "nav_intents"),
-                new UiView(NETWORK, "tunnel", "Tunnels", "nav_tunnels")
+
+                mkView(NETWORK, "link", "nav_links"),
+                mkView(NETWORK, "host", "nav_hosts"),
+                mkView(NETWORK, "intent", "nav_intents"),
+                mkView(NETWORK, "tunnel", "nav_tunnels")
         );
 
         UiMessageHandlerFactory messageHandlerFactory =
@@ -235,7 +254,7 @@ public class UiExtensionManager
                 );
 
         return new UiExtension.Builder(CL, coreViews)
-                .lionBundles(generateBundles(LION_BASE, LION_TAGS))
+                .lionBundles(lionBundles)
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
                 .topo2OverlayFactory(topo2OverlayFactory)
@@ -314,6 +333,11 @@ public class UiExtensionManager
     public synchronized UiExtension getViewExtension(String viewId) {
         checkPermission(UI_READ);
         return views.get(viewId);
+    }
+
+    @Override
+    public synchronized LionBundle getNavLionBundle() {
+        return navLion;
     }
 
     @Override

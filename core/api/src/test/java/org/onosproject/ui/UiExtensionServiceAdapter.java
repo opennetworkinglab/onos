@@ -15,6 +15,8 @@
  */
 package org.onosproject.ui;
 
+import org.onosproject.ui.lion.LionBundle;
+
 import java.util.List;
 
 /**
@@ -36,6 +38,11 @@ public class UiExtensionServiceAdapter implements UiExtensionService {
 
     @Override
     public UiExtension getViewExtension(String viewId) {
+        return null;
+    }
+
+    @Override
+    public LionBundle getNavLionBundle() {
         return null;
     }
 }

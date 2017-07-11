@@ -31,42 +31,29 @@ public class UiView {
      * Designates the navigation menu category.
      */
     public enum Category {
+        // NOTE: human readable strings for the categories are now applied
+        //       externally, with the appropriate localization bundle.
         /**
          * Represents platform related views.
          */
-        PLATFORM("Platform"),
+        PLATFORM,
 
         /**
          * Represents network-control related views.
          */
-        NETWORK("Network"),
+        NETWORK,
 
         /**
          * Represents miscellaneous views.
          */
-        OTHER("Other"),
+        OTHER,
 
         /**
          * Represents views that do not show in the navigation menu.
          * This category should not be specified directly; rather, use
          * the {@link UiViewHidden} constructor instead of {@link UiView}.
          */
-        HIDDEN("(hidden)");
-
-        private final String label;
-
-        Category(String label) {
-            this.label = label;
-        }
-
-        /**
-         * Returns the display label for the category.
-         *
-         * @return display label
-         */
-        public String label() {
-            return label;
-        }
+        HIDDEN
     }
 
     private final Category category;

@@ -19,6 +19,7 @@ import org.onosproject.rest.AbstractInjectionResource;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiView;
+import org.onosproject.ui.lion.LionBundle;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -81,6 +82,7 @@ public class MainNavResource extends AbstractInjectionResource {
     // Produces an input stream of nav item injections from all extensions.
     private InputStream includeNavItems(UiExtensionService service) {
         List<UiExtension> extensions = service.getExtensions();
+        LionBundle navLion = service.getNavLionBundle();
         StringBuilder sb = new StringBuilder("\n");
 
         for (UiView.Category cat : UiView.Category.values()) {
@@ -90,7 +92,7 @@ public class MainNavResource extends AbstractInjectionResource {
 
             List<UiView> catViews = getViewsForCat(extensions, cat);
             if (!catViews.isEmpty()) {
-                addCatHeader(sb, cat);
+                addCatHeader(sb, cat, navLion);
                 addCatItems(sb, catViews);
             }
         }
@@ -109,8 +111,10 @@ public class MainNavResource extends AbstractInjectionResource {
         return views;
     }
 
-    private void addCatHeader(StringBuilder sb, UiView.Category cat) {
-        sb.append(String.format(HDR_FORMAT, cat.label()));
+    private void addCatHeader(StringBuilder sb, UiView.Category cat,
+                              LionBundle navLion) {
+        String key = "cat_" + cat.name().toLowerCase();
+        sb.append(String.format(HDR_FORMAT, navLion.getValue(key)));
     }
 
     private void addCatItems(StringBuilder sb, List<UiView> catViews) {

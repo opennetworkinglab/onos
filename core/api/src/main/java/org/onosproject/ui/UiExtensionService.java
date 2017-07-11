@@ -15,6 +15,8 @@
  */
 package org.onosproject.ui;
 
+import org.onosproject.ui.lion.LionBundle;
+
 import java.util.List;
 
 /**
@@ -50,4 +52,11 @@ public interface UiExtensionService {
      * @return contributing user interface extension
      */
     UiExtension getViewExtension(String viewId);
+
+    /**
+     * Returns the navigation pane localization bundle.
+     *
+     * @return the navigation localization bundle
+     */
+    LionBundle getNavLionBundle();
 }

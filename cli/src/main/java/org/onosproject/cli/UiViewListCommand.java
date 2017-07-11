@@ -25,10 +25,10 @@ import org.onosproject.ui.UiExtensionService;
 import java.util.List;
 
 /**
- * Lists all UI views.
+ * Lists all registered UI views.
  */
 @Command(scope = "onos", name = "ui-views",
-        description = "Lists all UI views")
+        description = "Lists all registered UI views")
 public class UiViewListCommand extends AbstractShellCommand {
 
     private static final String FMT = "id=%s, category=%s, label=%s, icon=%s";
@@ -40,7 +40,7 @@ public class UiViewListCommand extends AbstractShellCommand {
             print("%s", json(service.getExtensions()));
         } else {
             service.getExtensions().forEach(ext -> ext.views()
-                    .forEach(v -> print(FMT, v.id(), v.category().label(),
+                    .forEach(v -> print(FMT, v.id(), v.category(),
                                         v.label(), v.iconId())));
         }
     }
@@ -51,7 +51,7 @@ public class UiViewListCommand extends AbstractShellCommand {
         extensions.forEach(ext -> ext.views()
                 .forEach(v -> node.add(mapper.createObjectNode()
                                                .put("id", v.id())
-                                               .put("category", v.category().label())
+                                               .put("category", v.category().toString())
                                                .put("label", v.label())
                                                .put("icon", v.iconId()))));
         return node;
