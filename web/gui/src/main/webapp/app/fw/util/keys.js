@@ -21,7 +21,7 @@
     'use strict';
 
     // references to injected services
-    var $log, $timeout, fs, ts, ns, ee, qhs;
+    var $log, $timeout, fs, ts, ns, ee, qhs, ls;
 
     // internal state
     var enabled = true,
@@ -162,13 +162,30 @@
         }
     }
 
+    // functions to obtain localized strings deferred from the setup of the
+    //  global key data structures.
+    function qhlion() {
+        return ls.bundle('core.fw.QuickHelp');
+    }
+    function qhlion_show_hide() {
+        return qhlion()('qh_hint_show_hide_qh');
+    }
+
+    function qhlion_hint_esc() {
+        return qhlion()('qh_hint_esc');
+    }
+
+    function qhlion_hint_t() {
+        return qhlion()('qh_hint_t');
+    }
+
     function setupGlobalKeys() {
         angular.extend(keyHandler, {
             globalKeys: {
-                backSlash: [quickHelp, 'Show / hide Quick Help'],
-                slash: [quickHelp, 'Show / hide Quick Help'],
-                esc: [escapeKey, 'Dismiss dialog or cancel selections'],
-                T: [toggleTheme, "Toggle theme"]
+                backSlash: [quickHelp, qhlion_show_hide],
+                slash: [quickHelp, qhlion_show_hide],
+                esc: [escapeKey, qhlion_hint_esc],
+                T: [toggleTheme, qhlion_hint_t]
             },
             globalFormat: ['backSlash', 'slash', 'esc', 'T'],
 
@@ -302,15 +319,16 @@
     angular.module('onosUtil')
     .factory('KeyService',
         ['$log', '$timeout', 'FnService', 'ThemeService', 'NavService',
-            'EeService',
+            'EeService', 'LionService',
 
-        function (_$log_, _$timeout_, _fs_, _ts_, _ns_, _ee_) {
+        function (_$log_, _$timeout_, _fs_, _ts_, _ns_, _ee_, _ls_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
             ts = _ts_;
             ns = _ns_;
             ee = _ee_;
+            ls = _ls_;
 
             return {
                 bindQhs: function (_qhs_) {

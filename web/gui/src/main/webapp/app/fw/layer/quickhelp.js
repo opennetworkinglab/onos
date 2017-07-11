@@ -23,7 +23,7 @@
     'use strict';
 
     // injected references
-    var $log, fs, sus;
+    var $log, fs, sus, ls;
 
     // configuration
     var defaultSettings = {
@@ -202,11 +202,13 @@
         fmt.forEach(function (k) {
             var v = map.get(k),
                 a = fs.isA(v),
-                d = (a && a[1]);
+                d = (a && a[1]),
+                dfn = fs.isF(d),
+                dval = (dfn && dfn()) || d;
 
             // '-' marks a separator; d is the description
-            if (k === '-' || d) {
-                b.push([mkKeyDisp(k), d]);
+            if (k === '-' || dval) {
+                b.push([mkKeyDisp(k), dval]);
             }
         });
         return b;
@@ -268,6 +270,10 @@
         addRow(mkArrRow(vgest));
     }
 
+    function qhlion_title() {
+        var lion = ls.bundle('core.fw.QuickHelp');
+        return lion('qh_title');
+    }
 
     function popBind(bindings) {
         pane = svg.append('g')
@@ -280,7 +286,7 @@
             .attr('rx', 8);
 
         pane.append('text')
-            .text('Quick Help')
+            .text(qhlion_title())
             .attr({
                 class: 'title',
                 dy: '1.2em',
@@ -342,12 +348,13 @@
 
     angular.module('onosLayer')
     .factory('QuickHelpService',
-        ['$log', 'FnService', 'SvgUtilService',
+        ['$log', 'FnService', 'SvgUtilService', 'LionService',
 
-        function (_$log_, _fs_, _sus_) {
+        function (_$log_, _fs_, _sus_, _ls_) {
             $log = _$log_;
             fs = _fs_;
             sus = _sus_;
+            ls = _ls_;
 
             function initQuickHelp(opts) {
                 settings = angular.extend({}, defaultSettings, fs.isO(opts));

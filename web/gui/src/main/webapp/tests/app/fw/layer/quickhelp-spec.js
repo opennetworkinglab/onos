@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Layer -- Flash Service - Unit Tests
+ ONOS GUI -- Layer -- Quick Help Service - Unit Tests
  */
 describe('factory: fw/layer/quickhelp.js', function () {
     var $log, fs, qhs, d3Elem,
@@ -39,7 +39,7 @@ describe('factory: fw/layer/quickhelp.js', function () {
         'globalKeys', 'globalFormat', 'viewKeys', 'viewGestures'
     ];
 
-    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosLayer', 'onosRemote'));
 
     beforeEach(inject(function (_$log_, FnService, QuickHelpService) {
         $log = _$log_;
@@ -115,11 +115,15 @@ describe('factory: fw/layer/quickhelp.js', function () {
         expect($log.warn).toHaveBeenCalledWith(warning, neededBindings);
     });
 
-    it('should not warn if bindings are provided', function () {
+    it('should not warn if bindings are provided (except lion)', function () {
         spyOn($log, 'warn');
         expect(qhs.showQuickHelp(mockBindings)).toBe(undefined);
-        expect($log.warn).not.toHaveBeenCalled();
+        expect($log.warn).toHaveBeenCalledWith(
+            'No lion bundle registered:', 'core.fw.QuickHelp'
+        );
     });
+
+    // TODO: consider testing localization of text
 
     it('should append an svg', function () {
         var svg = d3Elem.select('svg');
@@ -149,7 +153,8 @@ describe('factory: fw/layer/quickhelp.js', function () {
         expect(rect.attr('rx')).toBe('8');
 
         text = g.select('text');
-        expect(text.text()).toBe('Quick Help');
+        // NOTE: we aren't mocking localization, so should get %...% key tag
+        expect(text.text()).toBe('%qh_title%');
         expect(text.classed('title')).toBe(true);
         expect(text.attr('dy')).toBe('1.2em');
         expect(text.attr('transform')).toBeTruthy();
