@@ -7,10 +7,6 @@ export NODEJS_HOME=${ONOS_INSTALL_LOCATION}/
 export PATH=$NODEJS_HOME/bin:$PATH
 
 cd $ONOS_ROOT/tools/gui
-# Install NPM Global packages
-ONOS_NPM_GLOBAL_DEPENDENCIES="gulp-cli gulp"
-echo "Installing NPM Global dependencies: $ONOS_NPM_GLOBAL_DEPENDENCIES"
-npm install -g ${ONOS_NPM_GLOBAL_DEPENDENCIES} --loglevel=error
 
 # Install Project Dependencies
 echo "Installing project dependencies"
