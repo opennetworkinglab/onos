@@ -156,6 +156,22 @@ public class SimpleDeviceStoreTest {
     }
 
     @Test
+    public final void testGetAvailableDeviceCount() {
+        assertEquals("initialy empty", 0, deviceStore.getAvailableDeviceCount());
+
+        putDevice(DID1, SW1);
+        putDevice(DID2, SW2);
+
+        deviceStore.markOffline(DID1);
+
+        assertEquals("expect 1 available device", 1, deviceStore.getAvailableDeviceCount());
+
+        putDevice(DID1, SW1);
+
+        assertEquals("expect 2 available devices", 2, deviceStore.getAvailableDeviceCount());
+    }
+
+    @Test
     public final void testGetDevices() {
         assertEquals("initialy empty", 0, Iterables.size(deviceStore.getDevices()));
 

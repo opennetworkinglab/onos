@@ -247,6 +247,11 @@ public class ECDeviceStore
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        return availableDevices.size();
+    }
+
+    @Override
     public Device getDevice(DeviceId deviceId) {
         return devices.get(deviceId);
     }

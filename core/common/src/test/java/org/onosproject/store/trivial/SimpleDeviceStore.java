@@ -126,6 +126,11 @@ public class SimpleDeviceStore
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        return availableDevices.size();
+    }
+
+    @Override
     public Iterable<Device> getDevices() {
         return Collections.unmodifiableCollection(devices.values());
     }

@@ -36,6 +36,11 @@ public class DeviceStoreAdapter implements DeviceStore {
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        return 0;
+    }
+
+    @Override
     public Iterable<Device> getDevices() {
         return null;
     }

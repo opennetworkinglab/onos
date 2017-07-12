@@ -39,6 +39,13 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     int getDeviceCount();
 
     /**
+     * Returns the number of currently available devices known to the system.
+     *
+     * @return number of devices
+     */
+    int getAvailableDeviceCount();
+
+    /**
      * Returns an iterable collection of all devices known to the system.
      *
      * @return device collection
