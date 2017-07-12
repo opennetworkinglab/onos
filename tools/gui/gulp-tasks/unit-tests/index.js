@@ -8,11 +8,10 @@ const test = () => {
     new Server({
         configFile: path.join(__dirname, '../../../../../', '/web/gui/src/main/webapp/tests/karma.conf.js'),
         singleRun: true
-    }, () => { console.log('done') }).start();
+    }).start();
 };
 
 const tasks = () => {
-    gulp.task('pre-test', () => preTest());
     gulp.task('test', () => test());
 };
 
