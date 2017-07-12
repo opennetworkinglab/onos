@@ -1,0 +1,16 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.cfg.models";
+
+package cfg;
+
+import "cfg/ConfigPropertyEnumsProto.proto";
+
+// Corresponds to org.onosproject.cfg.ConfigProperty.
+message ConfigPropertyProto {
+    string name = 1;
+    cfg.ConfigPropertyTypeProto type = 2;
+    string value = 3;
+    string default_value = 4;
+    string description = 5;
+    bool is_set = 6;
+}

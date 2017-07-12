@@ -1,0 +1,14 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.cfg.models";
+
+package cfg;
+
+enum ConfigPropertyTypeProto {
+    STRING = 0;
+    BYTE = 1;
+    INTEGER = 2;
+    LONG = 3;
+    FLOAT = 4;
+    DOUBLE = 5;
+    BOOLEAN = 6;
+}
