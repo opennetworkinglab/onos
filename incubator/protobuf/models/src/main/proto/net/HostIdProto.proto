@@ -1,0 +1,10 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+package net;
+
+// Corresponds to org.onosproject.net.HostId.
+message HostIdProto {
+    string mac = 1;
+    uint32 vlan_id = 2;
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.models";
+
+import "net/HostIdProto.proto";
+import "net/HostLocationProto.proto";
+
+package net;
+
+// Corresponds to org.onosproject.net.Host.
+message HostProto {
+    net.HostIdProto host_id = 1;
+    uint32 vlan = 2;
+    net.HostLocationProto location = 3;
+    repeated string ip_addresses = 4;
+    bool configured = 5;
+    map<string, string> annotations = 6;
+}

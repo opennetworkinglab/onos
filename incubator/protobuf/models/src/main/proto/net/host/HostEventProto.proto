@@ -1,0 +1,14 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.host.models";
+
+package net.host;
+
+import "net/HostProto.proto";
+import "net/host/HostEnumsProto.proto";
+
+
+// Corresponds to org.onosproject.net.device.HostEvent.
+message HostNotificationProto {
+    net.HostProto host = 1;
+    net.host.HostEventTypeProto hostEventType = 2;
+}

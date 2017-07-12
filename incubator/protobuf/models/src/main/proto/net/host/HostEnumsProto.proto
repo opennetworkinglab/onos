@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.host.models";
+
+package net.host;
+
+enum HostEventTypeProto {
+    HOST_ADDED = 0;
+    HOST_REMOVED = 1;
+    HOST_UPDATED = 2;
+    HOST_MOVED = 3;
+}
