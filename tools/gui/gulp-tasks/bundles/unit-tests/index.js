@@ -1,5 +1,4 @@
 import gulp from 'gulp';
-import istanbul from 'gulp-istanbul';
 import path from 'path';
 import { Server } from 'karma';
 
