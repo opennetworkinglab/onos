@@ -26,6 +26,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -159,6 +160,16 @@ public final class DecodeConstraintCodecHelper {
     }
 
     /**
+     * Decodes a domain constraint.
+     *
+     * @return domain constraint object.
+     */
+    private Constraint decodeDomainConstraint() {
+        return DomainConstraint.domain();
+    }
+
+
+    /**
      * Decodes a bandwidth constraint.
      *
      * @return bandwidth constraint object.
@@ -195,6 +206,8 @@ public final class DecodeConstraintCodecHelper {
             return decodeWaypointConstraint();
         } else if (type.equals(AsymmetricPathConstraint.class.getSimpleName())) {
             return decodeAsymmetricPathConstraint();
+        } else if (type.equals(DomainConstraint.class.getSimpleName())) {
+            return decodeDomainConstraint();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");

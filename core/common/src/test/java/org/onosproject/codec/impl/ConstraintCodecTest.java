@@ -28,6 +28,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
@@ -185,5 +186,14 @@ public class ConstraintCodecTest {
     public void asymmetricPathConstraint() {
         Constraint constraint = getConstraint("AsymmetricPathConstraint.json");
         assertThat(constraint, instanceOf(AsymmetricPathConstraint.class));
+    }
+
+    /**
+     * Tests domain constraint.
+     */
+    @Test
+    public void domainConstraint() {
+        Constraint constraint = getConstraint("DomainConstraint.json");
+        assertThat(constraint, instanceOf(DomainConstraint.class));
     }
 }
