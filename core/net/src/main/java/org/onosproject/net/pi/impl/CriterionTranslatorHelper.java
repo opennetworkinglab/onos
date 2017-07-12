@@ -55,6 +55,8 @@ import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.criteria.ArpHaCriterion;
 import org.onosproject.net.flow.criteria.ArpOpCriterion;
 import org.onosproject.net.flow.criteria.ArpPaCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.MetadataCriterion;
 
 import org.onosproject.net.pi.impl.CriterionTranslators.EthCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.EthTypeCriterionTranslator;
@@ -91,6 +93,8 @@ import org.onosproject.net.pi.impl.CriterionTranslators.VlanPcpCriterionTranslat
 import org.onosproject.net.pi.impl.CriterionTranslators.ArpHaCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.ArpOpCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.ArpPaCriterionTranslator;
+import org.onosproject.net.pi.impl.CriterionTranslators.IPEcnCriterionTranslator;
+import org.onosproject.net.pi.impl.CriterionTranslators.MetadataCriterionTranslator;
 
 import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
@@ -148,6 +152,8 @@ final class CriterionTranslatorHelper {
                     .put(ArpHaCriterion.class, new ArpHaCriterionTranslator())
                     .put(ArpOpCriterion.class, new ArpOpCriterionTranslator())
                     .put(ArpPaCriterion.class, new ArpPaCriterionTranslator())
+                    .put(IPEcnCriterion.class, new IPEcnCriterionTranslator())
+                    .put(MetadataCriterion.class, new MetadataCriterionTranslator())
                     .build();
 
     private CriterionTranslatorHelper() {

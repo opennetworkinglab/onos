@@ -54,6 +54,7 @@ import org.onosproject.net.flow.criteria.ArpOpCriterion;
 import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
 import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
 
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
@@ -487,7 +488,14 @@ final class CriterionTranslators {
         }
     }
 
-
-
-
+    /**
+     * Translator of IPEcnCriterion.
+     */
+    static final class IPEcnCriterionTranslator extends AbstractCriterionTranslator {
+        @Override
+        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
+            IPEcnCriterion c = (IPEcnCriterion) criterion;
+            initAsExactMatch(copyFrom(c.ipEcn()), bitWidth);
+        }
+    }
 }
