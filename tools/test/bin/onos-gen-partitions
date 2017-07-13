@@ -42,11 +42,23 @@ def get_OC_vars():
       vars.append(var)
   return sorted(vars, key=alphanum_key)
 
-def get_nodes(ips=None, port=9876):
-  node = lambda k: { 'id': k, 'ip': k, 'port': port }
-  if not ips:
-    ips = [ environ[v] for v in get_OC_vars() ]
-  return [ node(v) for v in ips ]
+def get_nodes(ips=None, default_port=9876):
+    node = lambda id, ip, port : { 'id': id, 'ip': ip, 'port': port }
+    result = []
+    if not ips:
+        ips = [ environ[v] for v in get_OC_vars() ]
+    for ip_string in ips:
+        address_tuple = ip_string.split(":")
+        if len(address_tuple) == 3:
+            id=address_tuple[0]
+            ip=address_tuple[1]
+            port=int(address_tuple[2])
+        else:
+            id=ip_string
+            ip=ip_string
+            port=default_port
+        result.append(node(id, ip, port))
+    return result
 
 def generate_partitions(nodes, k, n):
   l = deque(nodes)
