@@ -1,0 +1,24 @@
+# =======================================================================
+# | Plea to Translators:                                                |
+# | --------------------                                                |
+# |   I know you are all keen to add your own language localization     |
+# |   bundles for these files as soon as they appear in Gerrit reviews, |
+# |   but please refrain from doing so immediately, until given the     |
+# |   "green light"...                                                  |
+# |                                                                     |
+# |   The reason is, sometimes localization keys need to be renamed, or |
+# |   strings moved to other bundles, while we work out how to localize |
+# |   each UI component. If there are multiple files while a bundle is  |
+# |   "in flux", it means modifications need to be done in 4-or-more    |
+# |   places instead of just 1.                                         |
+# |                                                                     |
+# |   I promise I will mark a bundle as "ready for translation" as      |
+# |   soon as the localization work has been completed for the default  |
+# |   bundle, and the "dust has settled".                               |
+# |                                                                     |
+# |   Thank you in advance for your patience and restraint  :)          |
+# =======================================================================
+
+# ==========================================
+# |  WIP -- Not Yet Ready For Translation  |
+# ==========================================
