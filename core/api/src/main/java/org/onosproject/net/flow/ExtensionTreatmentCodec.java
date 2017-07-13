@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.codec;
+package org.onosproject.net.flow;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.net.driver.HandlerBehaviour;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 
 /**
- * Interface for encode and decode extension selector.
- * @deprecated 1.11.0 Loon use interface under core/api/net/flow.
+ * Interface for encode and decode extension treatment.
  */
-@Deprecated
-public interface ExtensionSelectorCodec extends HandlerBehaviour {
+public interface ExtensionTreatmentCodec extends HandlerBehaviour {
 
     /**
-     * Encodes an extension selector to an JSON object.
+     * Encodes an extension treatment to an JSON object.
      *
-     * @param extensionSelector extension selector
+     * @param extensionTreatment extension treatment
      * @param  context encoding context
      * @return JSON object
      */
-    default ObjectNode encode(ExtensionSelector extensionSelector, CodecContext context) {
+    default ObjectNode encode(ExtensionTreatment extensionTreatment, CodecContext context) {
         return null;
     }
 
     /**
-     * Decodes an JSON object to an extension selector.
+     * Decodes an JSON object to an extension treatment.
      *
      * @param objectNode JSON object
      * @param  context decoding context
-     * @return extension selector
+     * @return extension treatment
      */
-    default ExtensionSelector decode(ObjectNode objectNode, CodecContext context) {
+    default ExtensionTreatment decode(ObjectNode objectNode, CodecContext context) {
         return null;
     }
 }

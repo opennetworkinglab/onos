@@ -20,7 +20,7 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;

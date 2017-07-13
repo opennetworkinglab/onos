@@ -17,7 +17,7 @@
 package org.onosproject.openflow.controller;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.projectfloodlight.openflow.protocol.OFFactory;

@@ -30,13 +30,13 @@
                    impl="org.onosproject.driver.extensions.NiciraExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
                    impl="org.onosproject.driver.extensions.NiciraExtensionTreatmentInterpreter" />
-        <behaviour api="org.onosproject.codec.ExtensionTreatmentCodec"
+        <behaviour api="org.onosproject.net.flow.ExtensionTreatmentCodec"
                    impl="org.onosproject.driver.extensions.NiciraExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
                    impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
-        <behaviour api="org.onosproject.codec.ExtensionSelectorCodec"
+        <behaviour api="org.onosproject.net.flow.ExtensionSelectorCodec"
                    impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.VlanQuery"
                    impl="org.onosproject.driver.query.FullVlanAvailable" />

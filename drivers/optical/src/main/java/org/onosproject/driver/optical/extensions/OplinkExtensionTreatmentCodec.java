@@ -20,7 +20,7 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.CodecService;
-import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.driver.extensions.OplinkAttenuation;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;

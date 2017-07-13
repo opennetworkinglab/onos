@@ -17,7 +17,7 @@
 package org.onosproject.openflow.controller;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.codec.ExtensionSelectorCodec;
+import org.onosproject.net.flow.ExtensionSelectorCodec;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.projectfloodlight.openflow.protocol.OFFactory;

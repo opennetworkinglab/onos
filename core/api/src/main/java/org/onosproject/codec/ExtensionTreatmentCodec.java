@@ -21,7 +21,9 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 
 /**
  * Interface for encode and decode extension treatment.
+ * @deprecated 1.11.0 Loon use interface under core/api/net/flow.
  */
+@Deprecated
 public interface ExtensionTreatmentCodec extends HandlerBehaviour {
 
     /**

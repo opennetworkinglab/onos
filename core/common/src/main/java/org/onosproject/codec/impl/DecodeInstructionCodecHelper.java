@@ -27,7 +27,7 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.ExtensionTreatmentCodec;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.Device;
