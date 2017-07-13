@@ -17,18 +17,20 @@
 package org.onosproject.net.pi.impl;
 
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.flow.criteria.ArpHaCriterion;
+import org.onosproject.net.flow.criteria.ArpOpCriterion;
+import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.PortCriterion;
-import org.onosproject.net.flow.criteria.VlanIdCriterion;
-import org.onosproject.net.flow.criteria.UdpPortCriterion;
-import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
 import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
+import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
 import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
@@ -38,23 +40,15 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.MplsTcCriterion;
-import org.onosproject.net.flow.criteria.OchSignalCriterion;
-import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
-import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
-import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PbbIsidCriterion;
-import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpFlagsCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-import org.onosproject.net.flow.criteria.ArpHaCriterion;
-import org.onosproject.net.flow.criteria.ArpOpCriterion;
-import org.onosproject.net.flow.criteria.ArpPaCriterion;
-import org.onosproject.net.flow.criteria.IPv6NDLinkLayerAddressCriterion;
-import org.onosproject.net.flow.criteria.IPv6NDTargetAddressCriterion;
-import org.onosproject.net.flow.criteria.IPEcnCriterion;
 
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
@@ -139,17 +133,6 @@ final class CriterionTranslators {
                 ImmutableByteSequence mask = copyFrom(c.mask().toInt());
                 initAsTernaryMatch(value, mask, bitWidth);
             }
-        }
-    }
-
-    /**
-     * Translator of ExtensionCriterion.
-     */
-    static final class ExtensionCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            ExtensionCriterion c = (ExtensionCriterion) criterion;
-            initAsExactMatch(copyFrom(c.extensionSelector().type().toInt()), bitWidth);
         }
     }
 
@@ -293,8 +276,7 @@ final class CriterionTranslators {
         @Override
         public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
             MplsBosCriterion c = (MplsBosCriterion) criterion;
-            int iMplsBos = c.mplsBos() ? 0 : 1;
-            initAsExactMatch(copyFrom(iMplsBos), bitWidth);
+            initAsExactMatch(copyFrom(c.mplsBos() ? 0 : 1), bitWidth);
         }
     }
 
@@ -321,51 +303,6 @@ final class CriterionTranslators {
     }
 
     /**
-     * Translator of OchSignalCriterion.
-     */
-    static final class OchSignalCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            OchSignalCriterion c = (OchSignalCriterion) criterion;
-            initAsExactMatch(copyFrom(c.lambda().slotGranularity()), bitWidth);
-        }
-    }
-
-    /**
-     * Translator of OchSignalTypeCriterion.
-     */
-    static final class OchSignalTypeCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            OchSignalTypeCriterion c = (OchSignalTypeCriterion) criterion;
-            initAsExactMatch(copyFrom(c.signalType().ordinal()), bitWidth);
-        }
-    }
-
-    /**
-     * Translator of OduSignalIdCriterion.
-     */
-    static final class OduSignalIdCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            OduSignalIdCriterion c = (OduSignalIdCriterion) criterion;
-            initAsExactMatch(copyFrom(c.oduSignalId().tributaryPortNumber()), bitWidth);
-        }
-    }
-
-
-    /**
-     * Translator of OduSignalTypeCriterion.
-     */
-    static final class OduSignalTypeCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            OduSignalTypeCriterion c = (OduSignalTypeCriterion) criterion;
-            initAsExactMatch(copyFrom(c.signalType().bitRate()), bitWidth);
-        }
-    }
-
-    /**
      * Translator of PbbIsidCriterion.
      */
     static final class PbbIsidCriterionTranslator extends AbstractCriterionTranslator {
@@ -373,17 +310,6 @@ final class CriterionTranslators {
         public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
             PbbIsidCriterion c = (PbbIsidCriterion) criterion;
             initAsExactMatch(copyFrom(c.pbbIsid()), bitWidth);
-        }
-    }
-
-    /**
-     * Translator of PiCriterion.
-     */
-    static final class PiCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            PiCriterion c = (PiCriterion) criterion;
-            initAsExactMatch(copyFrom(c.fieldMatches().size()), bitWidth);
         }
     }
 
