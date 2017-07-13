@@ -22,7 +22,7 @@ package org.onosproject.core;
 public interface ApplicationId {
 
     /**
-     * Returns the application id.
+     * Returns the application id. This must be non-negative.
      * @return a short value
      */
     short id();
