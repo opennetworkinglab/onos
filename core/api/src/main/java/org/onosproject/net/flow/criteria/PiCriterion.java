@@ -18,6 +18,7 @@ package org.onosproject.net.flow.criteria;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
@@ -29,25 +30,26 @@ import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
 /**
- * Protocol-indepedent criterion.
+ * Protocol-independent criterion.
  */
 @Beta
 public final class PiCriterion implements Criterion {
 
-    private final Collection<PiFieldMatch> fieldMatches;
+    private final Set<PiFieldMatch> fieldMatches;
 
     /**
      * Creates a new protocol-independent criterion for the given match fields.
      *
      * @param fieldMatches fields to match
      */
-    private PiCriterion(Collection<PiFieldMatch> fieldMatches) {
+    private PiCriterion(Set<PiFieldMatch> fieldMatches) {
         this.fieldMatches = fieldMatches;
     }
 
@@ -104,6 +106,7 @@ public final class PiCriterion implements Criterion {
     @Beta
     public static final class Builder {
 
+        // Use map to guarantee that there's only one field match per field id.
         private final Map<PiHeaderFieldId, PiFieldMatch> piFieldMatches = Maps.newHashMap();
 
         private Builder() {
@@ -331,7 +334,7 @@ public final class PiCriterion implements Criterion {
          */
         public Criterion build() {
             checkArgument(piFieldMatches.size() > 0);
-            return new PiCriterion(piFieldMatches.values());
+            return new PiCriterion(ImmutableSet.copyOf(piFieldMatches.values()));
         }
     }
 }

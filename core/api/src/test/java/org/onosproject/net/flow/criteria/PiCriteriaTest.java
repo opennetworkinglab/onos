@@ -488,7 +488,7 @@ public class PiCriteriaTest {
     @Test
     public void testPiExactCriterionEquals() {
         new EqualsTester()
-                .addEqualityGroup(matchPiExactByte1)
+                .addEqualityGroup(matchPiExactByte1, sameAsMatchPiExactByte1)
                 .addEqualityGroup(matchPiExactByte2)
                 .testEquals();
 
