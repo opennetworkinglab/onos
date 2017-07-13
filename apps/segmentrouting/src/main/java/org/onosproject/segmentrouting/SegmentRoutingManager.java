@@ -1138,7 +1138,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                               tunnelHandler, policyStore);
 
             for (Device device : deviceService.getDevices()) {
-                processDeviceAddedInternal(device.id());
+                processDeviceAdded(device);
             }
 
             defaultRoutingHandler.startPopulationProcess();
