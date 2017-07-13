@@ -134,7 +134,7 @@ public class DistributedDhcpRelayStoreTest {
         assertEquals(record.ip6Status(), removedRecord.ip6Status());
         assertEquals(record.directlyConnected(), removedRecord.directlyConnected());
         event = recordComplete.join();
-        assertEquals(null, event.subject());
+        assertEquals(record, event.subject());
         assertEquals(DhcpRelayStoreEvent.Type.REMOVED, event.type());
         recordInStore = store.getDhcpRecord(HOST_ID).orElse(null);
         assertNull(recordInStore);

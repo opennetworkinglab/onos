@@ -89,4 +89,5 @@ public interface PiPipeconfService {
      * @return an optional pipeconf identifier
      */
     Optional<PiPipeconfId> ofDevice(DeviceId deviceId);
+
 }

@@ -103,7 +103,7 @@ public final class TestEventuallyConsistentMap<K, V> extends EventuallyConsisten
         if (result != null) {
             EventuallyConsistentMapEvent<K, V> removeEvent =
                     new EventuallyConsistentMapEvent<>(mapName, REMOVE,
-                            key, map.get(key));
+                            key, result);
             notifyListeners(removeEvent);
         }
         return result;
