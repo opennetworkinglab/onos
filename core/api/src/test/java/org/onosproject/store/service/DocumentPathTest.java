@@ -22,7 +22,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests for {@link DocumentPath}.
@@ -34,10 +36,13 @@ public class DocumentPathTest {
         DocumentPath path = path("root.a.b");
         assertEquals(path.pathElements(), Arrays.asList("root", "a", "b"));
         assertEquals(path("root.a"), path.parent());
+        assertEquals(path("b"), path.childPath());
     }
 
     @Test
     public void testAncestry() {
+        DocumentPath path = path("root");
+        assertEquals(path.childPath(), null);
         DocumentPath path1 = path("root.a.b");
         DocumentPath path2 = path("root.a.d");
         DocumentPath path3 = path("root.a.b.c");
@@ -48,6 +53,32 @@ public class DocumentPathTest {
         assertTrue(path3.isDescendentOf(path3));
         assertTrue(path3.isDescendentOf(path1));
         assertFalse(path3.isDescendentOf(path2));
+    }
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void testExceptions() {
+        DocumentPath parentPath = path("root.a.b");
+        DocumentPath path2 = exceptions("nodeName", parentPath);
+        exception.expect(IllegalDocumentNameException.class);
+        DocumentPath path1 = exceptions("node|name", parentPath);
+    }
+
+    @Test
+    public void comparePaths() {
+        DocumentPath one = path("root");
+        DocumentPath four = path("root.a.b.c.d");
+        DocumentPath difFour = path("root.e.c.b.a");
+        assertEquals(-1, one.compareTo(four));
+        assertEquals(1, four.compareTo(one));
+        assertEquals(4, difFour.compareTo(four));
+        assertEquals(0, difFour.compareTo(difFour));
+    }
+
+    private static DocumentPath exceptions(String nodeName, DocumentPath path) {
+        return new DocumentPath(nodeName, path);
     }
 
     private static DocumentPath path(String path) {

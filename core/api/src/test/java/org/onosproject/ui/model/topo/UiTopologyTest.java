@@ -16,24 +16,51 @@
 
 package org.onosproject.ui.model.topo;
 
+
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultEdgeLink;
+import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DefaultLink;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EdgeLink;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.region.DefaultRegion;
+import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.AbstractUiModelTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
+
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
 
 /**
  * Unit tests for {@link UiTopology}.
@@ -69,6 +96,26 @@ public class UiTopologyTest extends AbstractUiModelTest {
     private static final String REG_LINK_CLASS = "UiRegionLink";
     private static final String REG_DEV_LINK_CLASS = "UiRegionDeviceLink";
 
+    private Host host;
+    private UiHost uiHost;
+    private UiDeviceLink deviceLink;
+    private EdgeLink edgeLink;
+    private UiEdgeLink uiEdgeLink;
+    private UiClusterMember mem1;
+    private UiRegion region1;
+    private UiDevice dev1;
+    private UiLinkId linkId;
+
+    private static final ProviderId PID = new ProviderId("of", "bar");
+    private static final VlanId VID = VlanId.vlanId((short) 20);
+    private static final MacAddress MAC_ADDRESS = MacAddress.valueOf("00:11:00:00:00:01");
+    private static final HostId HID = HostId.hostId(MAC_ADDRESS, VID);
+    private static final DeviceId DID = deviceId("of:foo");
+    private static final HostLocation LOC = new HostLocation(DID, PortNumber.portNumber(8), 123L);
+    private static final ConnectPoint CP = new ConnectPoint(DEV_X, PortNumber.portNumber(8));
+    private static final Set<IpAddress> IPSET = Sets.newHashSet(IpAddress.valueOf("10.0.0.1"),
+            IpAddress.valueOf("10.0.0.2"));
+    private static final String MID = "id1";
 
     private UiTopology topo;
     private UiDeviceLink devLink;
@@ -177,4 +224,61 @@ public class UiTopologyTest extends AbstractUiModelTest {
         yBranch = branch(ROOT, R3);
         verifySynth(R3, REG_DEV_LINK_CLASS, R1.id(), DEV_Y_ID);
     }
+
+    @Test
+    public void mockTopology() {
+        host = new DefaultHost(PID, HID, MAC_ADDRESS, VID, LOC, IPSET);
+        uiHost = new UiHost(topo, host);
+        deviceLink = new UiDeviceLink(topo, DX1_DY2);
+        edgeLink = DefaultEdgeLink.createEdgeLink(CP, true);
+        linkId = UiLinkId.uiLinkId(edgeLink);
+        uiEdgeLink = new UiEdgeLink(topo, linkId);
+        mem1 = clusterMember(MID, 001);
+        region1 = region();
+        dev1 = device();
+        Set<DeviceId> deviceIds = new HashSet<>();
+        Set<HostId> hostIds = new HashSet<>();
+
+        topo.add(uiHost);
+        topo.add(mem1);
+        topo.add(region1);
+        topo.add(dev1);
+        topo.add(deviceLink);
+        topo.add(uiEdgeLink);
+
+
+        assertTrue(topo.allRegions().contains(region1));
+        assertTrue(topo.allClusterMembers().contains(mem1));
+        assertTrue(topo.findClusterMember(NodeId.nodeId("id1")).equals(mem1));
+        assertTrue(topo.findRegion(R1).equals(region1));
+        assertTrue(topo.findDevice(DID).equals(dev1));
+        assertTrue(topo.findHost(HID).equals(uiHost));
+        assertTrue(topo.findDeviceLink(DX1_DY2).equals(deviceLink));
+
+        deviceIds.add(DID);
+        assertTrue(topo.deviceSet(deviceIds).contains(dev1));
+        hostIds.add(HID);
+        assertTrue(topo.hostSet(hostIds).contains(uiHost));
+
+        topo.clear();
+        assertThat(topo.allClusterMembers(), is(empty()));
+        assertThat(topo.allDeviceLinks(), is(empty()));
+        assertThat(topo.allDevices(), is(empty()));
+        assertThat(topo.allHosts(), is(empty()));
+        assertThat(topo.allRegions(), is(empty()));
+    }
+    private UiClusterMember clusterMember(String nodeId, int ipAddress) {
+        return new UiClusterMember(topo, new DefaultControllerNode(NodeId.nodeId(nodeId),
+                IpAddress.valueOf(ipAddress)));
+    }
+    private UiRegion region() {
+        return new UiRegion(topo, (new DefaultRegion(R1, "reg1", Region.Type.METRO, DefaultAnnotations.EMPTY,
+                null)));
+    }
+    private UiDevice device() {
+        return new UiDevice(topo, new DefaultDevice(PID, DID, Device.Type.SWITCH, "whitebox",
+                "1.1.x", "3.9.1", "43331", new ChassisId()));
+    }
+
+
 }
