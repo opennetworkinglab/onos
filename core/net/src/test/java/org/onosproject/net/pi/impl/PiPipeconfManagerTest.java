@@ -63,9 +63,9 @@ import static org.junit.Assert.assertTrue;
 
 
 /**
- * Unit Test Class for PiPipeconfServiceImpl.
+ * Unit Test Class for PiPipeconfManager.
  */
-public class PiPipeconfServiceImplTest {
+public class PiPipeconfManagerTest {
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("test:test");
     private static final String BASE_DRIVER = "baseDriver";
@@ -84,20 +84,20 @@ public class PiPipeconfServiceImplTest {
     private final Set<DriverProvider> providers = new HashSet<>();
 
     private final PiPipeconfConfig piPipeconfConfig = new PiPipeconfConfig();
-    private final InputStream jsonStream = PiPipeconfServiceImplTest.class
+    private final InputStream jsonStream = PiPipeconfManagerTest.class
             .getResourceAsStream("/org/onosproject/net/pi/impl/piPipeconfId.json");
     private final BasicDeviceConfig basicDeviceConfig = new BasicDeviceConfig();
-    private final InputStream jsonStreamBasic = PiPipeconfServiceImplTest.class
+    private final InputStream jsonStreamBasic = PiPipeconfManagerTest.class
             .getResourceAsStream("/org/onosproject/net/pi/impl/basic.json");
 
 
     //Services
-    private PiPipeconfServiceImpl piPipeconfService;
+    private PiPipeconfManager piPipeconfService;
     private MockPipeconf piPipeconf;
 
     @Before
     public void setUp() throws IOException {
-        piPipeconfService = new PiPipeconfServiceImpl();
+        piPipeconfService = new PiPipeconfManager();
         piPipeconf = new MockPipeconf();
         completeDriverName = BASE_DRIVER + ":" + piPipeconf.id();
         piPipeconf.behaviours.put(Pipeliner.class, PipelinerAdapter.class);

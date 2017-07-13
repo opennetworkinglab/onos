@@ -19,6 +19,7 @@ package org.onosproject.net.pi.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -64,7 +65,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class PiPipeconfServiceImpl implements PiPipeconfService {
+@Beta
+public class PiPipeconfManager implements PiPipeconfService {
 
     private final Logger log = getLogger(getClass());
 
@@ -132,7 +134,7 @@ public class PiPipeconfServiceImpl implements PiPipeconfService {
 
     @Override
     public Iterable<PiPipeconf> getPipeconfs() {
-        throw new UnsupportedOperationException("Currently unsupported");
+        return piPipeconfs.values();
     }
 
     @Override
