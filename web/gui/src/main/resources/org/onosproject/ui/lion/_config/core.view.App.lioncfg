@@ -27,4 +27,5 @@ from cf.QuickHelp import qh_hint_close_detail
 
 from cc.Props import icon, title, app_id, version, category, origin, state, role
 from cc.Action import activate, deactivate, uninstall
-from cc.Ui import click, scroll_down
+from cc.Ui import click_row, scroll_down, tt_ctl_auto_refresh
+from cc.State import total

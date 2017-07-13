@@ -22,7 +22,7 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, wss, fs, ks, ps, is;
+    var $log, $scope, wss, fs, ks, ps, is, ls;
 
     // internal state
     var detailsPanel,
@@ -55,11 +55,26 @@
         strongWarning = {
             'org.onosproject.drivers': true
         },
-        discouragement = 'Deactivating or uninstalling this component can' +
-        ' have serious negative consequences! <br> = DO SO AT YOUR OWN RISK =',
-        propOrder = ['id', 'state', 'category', 'version', 'origin', 'role'],
-        friendlyProps = ['App ID', 'State', 'Category', 'Version', 'Origin', 'Role'];
+        propOrder = ['id', 'state', 'category', 'version', 'origin', 'role'];
         // note: url is handled separately
+
+    // deferred localization strings
+    var warn_deactivate,
+        warn_own_risk,
+        friendlyProps,
+        lion;
+
+    function doLion() {
+        lion = ls.bundle('core.view.App');
+
+        warn_deactivate = lion('dlg_warn_deactivate');
+        warn_own_risk = lion('dlg_warn_own_risk');
+
+        friendlyProps = [
+            lion('app_id'), lion('state'), lion('category'), lion('version'),
+            lion('origin'), lion('role')
+        ];
+    }
 
     function createDetailsPane() {
         detailsPanel = ps.createPanel(pName, {
@@ -130,9 +145,9 @@
             bottom.append('div').classed(cls, true).append('table');
         }
 
-        nTable('Features', 'features');
-        nTable('Required Apps', 'required-apps');
-        nTable('Permissions', 'permissions');
+        nTable(lion('dp_features'), 'features');
+        nTable(lion('dp_required_apps'), 'required-apps');
+        nTable(lion('dp_permissions'), 'permissions');
     }
 
     function addProp(tbody, index, value) {
@@ -212,9 +227,10 @@
         ['$log', '$scope', '$http', '$timeout',
          'WebSocketService', 'FnService', 'KeyService', 'PanelService',
          'IconService', 'UrlFnService', 'DialogService', 'TableBuilderService',
+         'LionService',
 
     function (_$log_, _$scope_, $http, $timeout, _wss_, _fs_, _ks_, _ps_, _is_,
-              ufs, ds, tbs) {
+              ufs, ds, tbs, _ls_) {
         $log = _$log_;
         $scope = _$scope_;
         wss = _wss_;
@@ -222,12 +238,19 @@
         ks = _ks_;
         ps = _ps_;
         is = _is_;
+        ls = _ls_;
+
+        doLion();
+
+        $scope.lion = lion;
+
         $scope.panelData = {};
         $scope.ctrlBtnState = {};
-        $scope.uploadTip = 'Upload an application (.oar file)';
-        $scope.activateTip = 'Activate selected application';
-        $scope.deactivateTip = 'Deactivate selected application';
-        $scope.uninstallTip = 'Uninstall selected application';
+        $scope.uploadTip = lion('tt_ctl_upload');
+        $scope.activateTip = lion('tt_ctl_activate');
+        $scope.deactivateTip = lion('tt_ctl_deactivate');
+        $scope.uninstallTip = lion('tt_ctl_uninstall');
+
 
         var handlers = {};
 
@@ -273,25 +296,28 @@
                 firstDir: 'desc',
                 secondCol: 'title',
                 secondDir: 'asc'
-            }
+            },
+            lion_toggle_auto_refresh: lion('tt_ctl_auto_refresh')
         });
 
-        // TODO: reexamine where keybindings should be - directive or controller?
         ks.keyBindings({
-            esc: [$scope.selectCallback, 'Deselect application'],
+            esc: [$scope.selectCallback, lion('qh_hint_esc')],
             _helpFormat: ['esc']
         });
         ks.gestureNotes([
-            ['click row', 'Select / deselect application'],
-            ['scroll down', 'See more applications']
+            [lion('click_row'), lion('qh_hint_click_row')],
+            [lion('scroll_down'), lion('qh_hint_scroll_down')]
         ]);
 
         function createConfirmationText(action, itemId) {
             var content = ds.createDiv();
-            content.append('p').text(fs.cap(action) + ' ' + itemId);
+            content.append('p').text(lion(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
-                content.append('p').html(fs.sanitize(discouragement))
-                    .classed('strong', true);
+                content.append('p').html(
+                    fs.sanitize(warn_deactivate) +
+                    '<br>' +
+                    fs.sanitize(warn_own_risk)
+                ).classed('strong', true);
             }
             return content;
         }
@@ -308,7 +334,7 @@
                     sortCol: spar.sortCol,
                     sortDir: spar.sortDir
                 });
-                if (action == 'uninstall') {
+                if (action === 'uninstall') {
                     detailsPanel.hide();
                 } else {
                     wss.sendEvent(detailsReq, {id: itemId});
@@ -320,7 +346,7 @@
             }
 
             ds.openDialog(dialogId, dialogOpts)
-                .setTitle('Confirm Action')
+                .setTitle(lion('dlg_confirm_action'))
                 .addContent(createConfirmationText(action, itemId))
                 .addOk(dOk)
                 .addCancel(dCancel)
@@ -470,12 +496,14 @@
                 }
                 // create key bindings to handle panel
                 ks.keyBindings({
-                    esc: [closePanel, 'Close the details panel'],
+                    esc: [closePanel, lion('qh_hint_close_detail')],
                     _helpFormat: ['esc']
                 });
+
+                // TODO: Review - why are we doing this in the detail panel...?
                 ks.gestureNotes([
-                    ['click', 'Select a row to show application details'],
-                    ['scroll down', 'See more applications']
+                    [lion('click_row'), lion('qh_hint_click_row')],
+                    [lion('scroll_down'), lion('qh_hint_scroll_down')]
                 ]);
 
                 // if the panelData changes

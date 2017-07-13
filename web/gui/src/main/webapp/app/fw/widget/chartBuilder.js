@@ -51,7 +51,7 @@
         o.scope.changedData = [];
         o.scope.reqParams = o.reqParams || {};
         o.scope.autoRefresh = true;
-        o.scope.autoRefreshTip = 'Toggle auto refresh';
+        o.scope.autoRefreshTip = o.lion_toggle_auto_refresh || 'Toggle auto refresh';
 
         // === websocket functions ===
         // response
