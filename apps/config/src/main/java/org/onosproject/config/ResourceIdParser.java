@@ -26,17 +26,40 @@ import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 
+// FIXME add non-trivial examples
 /**
  * Utilities to work on the ResourceId.
+ * <p>
+ * Examples:
+ * <dl>
+ *  <dt>root node</dt>
+ *   <dd>root</dd>
+ * </dl>
+ *
  */
 //FIXME add javadocs
 public final class ResourceIdParser {
 
+    /**
+     * root node name.
+     */
     public static final String ROOT = "root";
+
+    /**
+     * Separator between SchemaId components and value part.
+     */
     public static final String NM_SEP = "#";
+    // TODO not used in #parseResId(ResourceId)??
     public static final String VAL_SEP = "@";
+    /**
+     * Separator between ListKey schemaId and keyLeafs.
+     */
     public static final String KEY_SEP = "$";
+    /**
+     * Separator between {@code NodeKey}s (~=tree nodes).
+     */
     public static final String EL_SEP = "|";
+
     public static final String VAL_CHK = "\\@";
     public static final String KEY_CHK = "\\$";
     public static final String NM_CHK = "\\#";
@@ -149,6 +172,22 @@ public final class ResourceIdParser {
         return bldr.toString();
     }
 
+    /**
+     * Gets String representation of ResourceId.
+     * <p>
+     * <pre>
+     *   ResourceId := 'root' ('|' element)*
+     *   element := LeafListKey | ListKey | NodeKey
+     *   SchemaId := [string SchemaId#name] '#' [string SchemaId#namespace]
+     *   LeafListKey := SchemaId '#' [string representation of LeafListKey#value]
+     *   ListKey := SchemaId (KeyLeaf)*
+     *   KeyLeaf := '$' SchemaId '#' [string representation of KeyLeaf#leafValue]
+     *   NodeKey := SchemaId
+     * </pre>
+     *
+     * @param path to convert
+     * @return String representation
+     */
     public static String parseResId(ResourceId path) {
         StringBuilder bldr = new StringBuilder();
         bldr.append(ROOT);
