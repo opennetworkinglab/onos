@@ -60,12 +60,12 @@
             <select ng-model="queryBy">
                 <option value="" disabled>Search By</option>
                 <option value="$">All Fields</option>
-                <option value="id">Flow ID</option>
-                <option value="appId">App ID</option>
-                <option value="groupId">Group ID</option>
-                <option value="tableId">Table ID</option>
+                <!--<option value="id">Flow ID</option>-->
                 <option value="priority">Priority</option>
-                <option value="timeout">Timeout</option>
+                <option value="tableId">Table ID</option>
+                <option value="selector">Selector</option>
+                <option value="treatment">Treatment</option>
+                <option value="appId">App ID</option>
             </select>
         </div>
 
@@ -75,16 +75,16 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="id" col-width="180px" sortable>Flow ID </td>
-                    <td colId="appId" sortable>App ID </td>
-                    <td colId="groupId" sortable>Group ID </td>
-                    <td colId="tableId" sortable>Table ID </td>
-                    <td colId="priority" sortable>Priority </td>
-                    <td colId="timeout" sortable>Timeout </td>
-                    <td colId="permanent" sortable>Permanent </td>
-                    <td colId="state" sortable>State </td>
-                    <td class="right" colId="packets" sortable>Packets </td>
-                    <td class="right" colId="bytes" sortable>Bytes </td>
+                    <!--<td colId="id" col-width="180px" sortable>Flow ID </td>-->
+                    <td colId="state" col-width="100px" sortable>State </td>
+                    <!--<td class="right" colId="bytes" col-width="90px" sortable> Bytes </td>-->
+                    <td class="right" colId="packets" col-width="90px" sortable> Packets </td>
+                    <td class="right" colId="duration" col-width="90px" sortable> Duration </td>
+                    <td colId="priority" col-width="80px" sortable> Priority </td>
+                    <td colId="tableId" col-width="80px" sortable> Table ID </td>
+                    <td colId="selector" sortable> Selector </td>
+                    <td colId="treatment" sortable> Treatment </td>
+                    <td colId="appId" sortable> App ID </td>
                 </tr>
             </table>
         </div>
@@ -101,26 +101,27 @@
                     ng-click="selectCallback($event, flow)"
                     ng-class="{selected: flow.id === selId}"
                     ng-repeat-complete row-id="{{flow.id}}">
-                    <td>{{flow.id}}</td>
-                    <td>{{flow.appId}}</td>
-                    <td>{{flow.groupId}}</td>
-                    <td>{{flow.tableId}}</td>
-                    <td>{{flow.priority}}</td>
-                    <td>{{flow.timeout}}</td>
-                    <td>{{flow.permanent}}</td>
+
+                    <!--<td>{{flow.id}}</td>-->
                     <td>{{flow.state}}</td>
+                    <!--<td class="right">{{flow.bytes}}</td>-->
                     <td class="right">{{flow.packets}}</td>
-                    <td class="right">{{flow.bytes}}</td>
+                    <td class="right">{{flow.duration}}</td>
+                    <td>{{flow.priority}}</td>
+                    <td>{{flow.tableId}}</td>
+                    <td>{{flow.selector_c}}</td>
+                    <td>{{flow.treatment_c}}</td>
+                    <td>{{flow.appId}}</td>
                 </tr>
                 <tr ng-click="selectCallback($event, flow)"
                     ng-class="{selected: flow.id === selId}"
                     row-id="{{flow.id}}" ng-hide="brief">
-                    <td class="selector" colspan="10" >{{flow.selector}} </td>
+                    <td class="selector" colspan="8" >{{flow.selector}} </td>
                 </tr>
                 <tr ng-click="selectCallback($event, flow)"
                     ng-class="{selected: flow.id === selId}"
                     row-id="{{flow.id}}" ng-hide="brief" ng-repeat-end>
-                    <td class="treatment" colspan="10">{{flow.treatment}}</td>
+                    <td class="treatment" colspan="8">{{flow.treatment}}</td>
                 </tr>
             </table>
         </div>

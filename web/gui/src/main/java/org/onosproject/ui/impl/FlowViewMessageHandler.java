@@ -34,7 +34,6 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
-import org.onosproject.ui.table.cell.HexFormatter;
 import org.onosproject.ui.table.cell.HexLongFormatter;
 import org.onosproject.ui.table.cell.NumberFormatter;
 
@@ -63,12 +62,15 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String GROUP_ID = "groupId";
     private static final String TABLE_ID = "tableId";
     private static final String PRIORITY = "priority";
+    private static final String SELECTOR_C = "selector_c"; // for table column
     private static final String SELECTOR = "selector";
+    private static final String TREATMENT_C = "treatment_c"; // for table column
     private static final String TREATMENT = "treatment";
     private static final String TIMEOUT = "timeout";
     private static final String PERMANENT = "permanent";
     private static final String STATE = "state";
     private static final String PACKETS = "packets";
+    private static final String DURATION = "duration";
     private static final String BYTES = "bytes";
 
     private static final String COMMA = ", ";
@@ -76,8 +78,23 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String EMPTY = "";
 
     private static final String[] COL_IDS = {
-            ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
-            TREATMENT, TIMEOUT, PERMANENT, STATE, PACKETS, BYTES
+            ID,
+            STATE,
+            BYTES,
+            PACKETS,
+            DURATION,
+            PRIORITY,
+            TABLE_ID,
+            APP_ID,
+
+            GROUP_ID,
+            TIMEOUT,
+            PERMANENT,
+
+            SELECTOR_C,
+            SELECTOR,
+            TREATMENT_C,
+            TREATMENT,
     };
 
     @Override
@@ -117,11 +134,14 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
             tm.setFormatter(ID, HexLongFormatter.INSTANCE);
-            tm.setFormatter(GROUP_ID, HexFormatter.INSTANCE);
             tm.setFormatter(STATE, EnumFormatter.INSTANCE);
-            tm.setFormatter(PACKETS, NumberFormatter.INTEGER);
             tm.setFormatter(BYTES, NumberFormatter.INTEGER);
+            tm.setFormatter(PACKETS, NumberFormatter.INTEGER);
+            tm.setFormatter(DURATION, NumberFormatter.INTEGER);
+
+            tm.setFormatter(SELECTOR_C, new SelectorShortFormatter());
             tm.setFormatter(SELECTOR, new SelectorFormatter());
+            tm.setFormatter(TREATMENT_C, new TreatmentShortFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
             return tm;
         }
@@ -140,20 +160,32 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
         private void populateRow(TableModel.Row row, FlowEntry flow) {
             row.cell(ID, flow.id().value())
-                    .cell(APP_ID, flow.appId())
-                    .cell(GROUP_ID, flow.groupId().id())
-                    .cell(TABLE_ID, flow.tableId())
+                    .cell(STATE, flow.state())
+                    .cell(BYTES, flow.bytes())
+                    .cell(PACKETS, flow.packets())
+                    .cell(DURATION, flow.life())
                     .cell(PRIORITY, flow.priority())
+                    .cell(TABLE_ID, flow.tableId())
+                    .cell(APP_ID, flow.appId())
+
+                    .cell(GROUP_ID, flow.groupId().id())
                     .cell(TIMEOUT, flow.timeout())
                     .cell(PERMANENT, flow.isPermanent())
-                    .cell(STATE, flow.state())
-                    .cell(PACKETS, flow.packets())
-                    .cell(BYTES, flow.bytes())
+
+                    .cell(SELECTOR_C, flow)
                     .cell(SELECTOR, flow)
+                    .cell(TREATMENT_C, flow)
                     .cell(TREATMENT, flow);
         }
 
-        private final class SelectorFormatter implements CellFormatter {
+
+        private class InternalSelectorFormatter implements CellFormatter {
+            private final boolean shortFormat;
+
+            InternalSelectorFormatter(boolean shortFormat) {
+                this.shortFormat = shortFormat;
+            }
+
             @Override
             public String format(Object value) {
                 FlowEntry flow = (FlowEntry) value;
@@ -162,7 +194,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 if (criteria.isEmpty()) {
                     return "(No traffic selector criteria for this flow)";
                 }
-                StringBuilder sb = new StringBuilder("Criteria: ");
+
+                StringBuilder sb = new StringBuilder();
+                if (!shortFormat) {
+                    sb.append("Criteria: ");
+                }
+
                 for (Criterion c : criteria) {
                     sb.append(c).append(COMMA);
                 }
@@ -172,7 +209,25 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             }
         }
 
-        private final class TreatmentFormatter implements CellFormatter {
+        private final class SelectorShortFormatter extends InternalSelectorFormatter {
+            SelectorShortFormatter() {
+                super(true);
+            }
+        }
+
+        private final class SelectorFormatter extends InternalSelectorFormatter {
+            SelectorFormatter() {
+                super(false);
+            }
+        }
+
+        private class InternalTreatmentFormatter implements CellFormatter {
+            private final boolean shortFormat;
+
+            InternalTreatmentFormatter(boolean shortFormat) {
+                this.shortFormat = shortFormat;
+            }
+
             @Override
             public String format(Object value) {
                 FlowEntry flow = (FlowEntry) value;
@@ -186,7 +241,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                     return "(No traffic treatment instructions for this flow)";
                 }
 
-                StringBuilder sb = new StringBuilder("Treatment Instructions: ");
+                StringBuilder sb = new StringBuilder();
+
+                if (!shortFormat) {
+                    sb.append("Treatment Instructions: ");
+                }
+
                 formatInstructs(sb, imm, "immediate:");
                 formatInstructs(sb, def, "deferred:");
 
@@ -211,6 +271,18 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 sb.append("cleared:").append(treatment.clearedDeferred());
 
                 return sb.toString();
+            }
+        }
+
+        private final class TreatmentShortFormatter extends InternalTreatmentFormatter {
+            TreatmentShortFormatter() {
+                super(true);
+            }
+        }
+
+        private final class TreatmentFormatter extends InternalTreatmentFormatter {
+            TreatmentFormatter() {
+                super(false);
             }
         }
 
@@ -287,23 +359,29 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
             String flowId = string(payload, FLOW_ID);
             String appId = string(payload, APP_ID);
-            FlowRule flow = findFlowById(appId, flowId);
+
+            FlowEntry flow = findFlowById(appId, flowId);
             if (flow != null) {
                 ObjectNode data = objectNode();
 
-
                 data.put(FLOW_ID, decorateFlowId(flow));
+
+                // TODO: use formatters for these values..
+                data.put(STATE, flow.state().toString());
+                data.put(BYTES, flow.bytes());
+                data.put(PACKETS, flow.packets());
+                data.put(DURATION, flow.life());
+
                 data.put(FLOW_PRIORITY, flow.priority());
-                data.put(GROUP_ID, decorateGroupId(flow));
-                data.put(APP_ID, flow.appId());
                 data.put(TABLE_ID, flow.tableId());
+                data.put(APP_ID, flow.appId());
+
+                data.put(GROUP_ID, decorateGroupId(flow));
                 data.put(TIMEOUT, flow.hardTimeout());
                 data.put(PERMANENT, Boolean.toString(flow.isPermanent()));
+
                 data.put(SELECTOR, getCriteriaString(flow));
                 data.put(TREATMENT, getTreatmentString(flow));
-
-
-                //TODO put more detail info to data
 
                 ObjectNode rootNode = objectNode();
                 rootNode.set(DETAILS, data);

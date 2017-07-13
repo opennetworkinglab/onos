@@ -53,12 +53,36 @@
         detailsResp = 'flowDetailsResponse',
 
         propOrder = [
-            'flowId', 'priority', 'groupId', 'appId', 'tableId',
-            'timeout', 'permanent'
+            'flowId',
+            'state',
+
+            'bytes',
+            'packets',
+            'duration',
+
+            'priority',
+            'tableId',
+            'appId',
+
+            'groupId',
+            'timeout',
+            'permanent'
         ],
         friendlyProps = [
-            'Flow ID', 'Flow Priority', 'Group ID', 'Application ID',
-            'Table ID', 'Timeout', 'Permanent'
+            'Flow ID',
+            'State',
+
+            'Bytes',
+            'Packets',
+            'Duration',
+
+            'Flow Priority',
+            'Table ID',
+            'App ID',
+
+            'Group ID',
+            'Timeout',
+            'Permanent'
         ];
 
     function closePanel() {
@@ -85,25 +109,26 @@
 
         container = detailsPanel.append('div').classed('container', true);
         top = container.append('div').classed('top', true);
-        trmtDiv = container.append('div').classed('top', true);
         selDiv = container.append('div').classed('top', true);
+        trmtDiv = container.append('div').classed('top', true);
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
         topTable = top.append('div').classed('top-content', true)
             .append('table');
+
         top.append('hr');
-        trmtDiv.append('h2').text('Treatment');
-        topTrmtTable = trmtDiv.append('div').classed('top-content', true)
-            .append('table');
-        trmtDiv.append('hr');
+
         selDiv.append('h2').text('Selector');
         topSelTable = selDiv.append('div').classed('top-content', true)
             .append('table');
 
+        selDiv.append('hr');
 
-        //ToDo add more details
+        trmtDiv.append('h2').text('Treatment');
+        topTrmtTable = trmtDiv.append('div').classed('top-content', true)
+            .append('table');
     }
 
     function addProp(tbody, index, value) {
