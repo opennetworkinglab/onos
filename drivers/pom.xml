@@ -49,7 +49,7 @@
         <module>flowspec</module>
         <module>microsemi</module>
         <module>oplink</module>
-        <module>bmv2</module>
+        <!-- <module>bmv2</module> -->
         <module>hp</module>
     </modules>
 
