@@ -43,7 +43,7 @@
         panelPadding = 64,
         panelSpacing = 20,
         panelOpts = {
-            width: 260          // summary and detail panel width
+            width: 260, // summary and detail panel width
         };
 
     function getInstance(_summaryPanel_) {
@@ -54,7 +54,7 @@
         summaryPanel = _summaryPanel_;
 
         var options = angular.extend({}, panelOpts, {
-            class: className
+            class: className,
         });
 
         Panel = Panel.extend({
@@ -84,7 +84,7 @@
                 detailsPanel.el.el()
                     .style('top', panelPadding + position + 'px');
                 detailsPanel.el.show();
-            }
+            },
         });
 
         detailsPanel = new Panel(id, options);
@@ -94,7 +94,6 @@
     }
 
 
-
     angular.module('ovTopo2')
     .factory('Topo2DetailsPanelService', [
         'Topo2PanelService',
@@ -102,6 +101,6 @@
             Panel = _ps_;
 
             return getInstance;
-        }
+        },
     ]);
 })();

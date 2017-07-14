@@ -24,7 +24,7 @@
 
     // key to button mapping data
     var k2b = {
-        O: { id: 'topo2-summary-tog', gid: 'm_summary', isel: true},
+        O: { id: 'topo2-summary-tog', gid: 'm_summary', isel: true },
         I: { id: 'topo2-instance-tog', gid: 'm_uiAttached', isel: true },
         // D: { id: 'details-tog', gid: 'm_details', isel: true },
         // H: { id: 'hosts-tog', gid: 'm_endstation', isel: false },
@@ -37,7 +37,7 @@
         L: { id: 'topo2-cycleLabels-btn', gid: 'm_cycleLabels' },
         R: { id: 'topo2-resetZoom-btn', gid: 'm_resetZoom' },
 
-        E: { id: 'topo2-eqMaster-btn', gid: 'm_eqMaster' }
+        E: { id: 'topo2-eqMaster-btn', gid: 'm_eqMaster' },
     };
 
     angular.module('ovTopo2')
@@ -63,11 +63,13 @@
                         this.el.hide();
                     },
                     initKeyData: function () {
-                        _.each(k2b, function(value, key) {
+                        _.each(k2b, function (value, key) {
                             var data = t2kcs.getActionEntry(key);
                             if (data) {
-                                value.cb = data[0];                     // on-click callback
-                                value.tt = data[1] + ' (' + key + ')';  // tooltip
+                                // on-click callback
+                                value.cb = data[0];
+                                // tooltip
+                                value.tt = data[1] + ' (' + key + ')';
                             }
                         });
                     },
@@ -82,11 +84,11 @@
                         }
                     },
                     addButton: function (key) {
-                        var v =  this.getKey(key);
+                        var v = this.getKey(key);
                         v.btn = this.el.addButton(v.id, v.gid, v.cb, v.tt);
                     },
                     addToggle: function (key, suppressIfMobile) {
-                        var v =  this.getKey(key);
+                        var v = this.getKey(key);
                         if (suppressIfMobile && fs.isMobile()) { return; }
                         v.tog = this.el.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
                     },
@@ -107,7 +109,7 @@
                         this.addToggle('B');
                     },
                     addSecondRow: function () {
-                        //addToggle('X');
+                        // addToggle('X');
                         // this.addToggle('Z');
                         // this.addButton('N');
                         this.addButton('L');
@@ -120,10 +122,10 @@
                         // TODO: Should the tbs remove button id's in the destroyToolbar method?
                         // If you go topo2 -> topo -> topo2 there's a button id conflict
                         tbs.destroyToolbar(this.className);
-                    }
+                    },
                 };
 
                 return instance || new Toolbar();
-            }
+            },
         ]);
 }());

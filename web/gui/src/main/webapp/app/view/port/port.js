@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs, wss, ns, ps;
+    var $log, $scope, $location, tbs, ns, ps;
 
     var nz = 'nzFilter',
         del = 'showDelta';
@@ -32,8 +32,8 @@
         showDelta = false;
 
     var defaultPortPrefsState = {
-        nzFilter :  1,
-        showDelta : 0,
+        nzFilter: 1,
+        showDelta: 0,
     };
 
     var prefsState = {};
@@ -72,88 +72,85 @@
     }
 
     angular.module('ovPort', [])
-    .controller('OvPortCtrl',
-        ['$log', '$scope', '$location',
-            'FnService', 'TableBuilderService', 'WebSocketService', 'NavService',
-            'PrefsService',
+        .controller('OvPortCtrl', [
+            '$log', '$scope', '$location',
+            'TableBuilderService', 'NavService', 'PrefsService',
 
-        function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _wss_, _ns_, _ps_) {
-            var params;
-            var tableApi;
-            $log = _$log_;
-            $scope = _$scope_;
-            $location = _$location_;
-            fs = _fs_;
-            tbs = _tbs_;
-            wss = _wss_;
-            ns = _ns_;
-            ps = _ps_;
+            function (_$log_, _$scope_, _$location_, _tbs_, _ns_, _ps_) {
+                var params;
+                var tableApi;
+                $log = _$log_;
+                $scope = _$scope_;
+                $location = _$location_;
+                tbs = _tbs_;
+                ns = _ns_;
+                ps = _ps_;
 
-            $scope.deviceTip = 'Show device table';
-            $scope.flowTip = 'Show flow view for this device';
-            $scope.groupTip = 'Show group view for this device';
-            $scope.meterTip = 'Show meter view for selected device';
-            $scope.toggleDeltaTip = 'Toggle port delta statistics';
-            $scope.toggleNZTip = 'Toggle non zero port statistics';
+                $scope.deviceTip = 'Show device table';
+                $scope.flowTip = 'Show flow view for this device';
+                $scope.groupTip = 'Show group view for this device';
+                $scope.meterTip = 'Show meter view for selected device';
+                $scope.toggleDeltaTip = 'Toggle port delta statistics';
+                $scope.toggleNZTip = 'Toggle non zero port statistics';
 
-            params = $location.search();
-            if (params.hasOwnProperty('devId')) {
-                $scope.devId = params['devId'];
-            }
-
-            $scope.payloadParams = {
-                nzFilter: nzFilter,
-                showDelta: showDelta
-            };
-
-            tableApi = tbs.buildTable({
-                scope: $scope,
-                tag: 'port',
-                query: params
-            });
-
-            function filterToggleState() {
-                return {
-                    nzFilter: nzFilter,
-                    showDelta: showDelta
-                };
-            }
-
-            $scope.nav = function (path) {
-                if ($scope.devId) {
-                    ns.navTo(path, { devId: $scope.devId });
+                params = $location.search();
+                if (params.hasOwnProperty('devId')) {
+                    $scope.devId = params['devId'];
                 }
-            };
 
-            $scope.toggleNZ = function () {
-                toggleNZState();
-                $scope.payloadParams = filterToggleState();
-                tableApi.forceRefesh();
-            };
+                $scope.payloadParams = {
+                    nzFilter: nzFilter,
+                    showDelta: showDelta,
+                };
 
-            $scope.toggleDelta = function () {
-                toggleDeltaState();
-                $scope.payloadParams = filterToggleState();
-                tableApi.forceRefesh();
-            };
+                tableApi = tbs.buildTable({
+                    scope: $scope,
+                    tag: 'port',
+                    query: params,
+                });
 
-            $scope.isDelta = function() {
-                return showDelta;
-            };
+                function filterToggleState() {
+                    return {
+                        nzFilter: nzFilter,
+                        showDelta: showDelta,
+                    };
+                }
 
-            $scope.isNZ = function() {
-                return nzFilter;
-            };
+                $scope.nav = function (path) {
+                    if ($scope.devId) {
+                        ns.navTo(path, { devId: $scope.devId });
+                    }
+                };
 
-             Object.defineProperty($scope, "queryFilter", {
-                 get: function() {
-                     var out = {};
-                     out[$scope.queryBy || "$"] = $scope.query;
-                     return out;
-                 }
-             });
+                $scope.toggleNZ = function () {
+                    toggleNZState();
+                    $scope.payloadParams = filterToggleState();
+                    tableApi.forceRefesh();
+                };
 
-            restoreConfigFromPrefs();
-            $log.log('OvPortCtrl has been created');
-        }]);
+                $scope.toggleDelta = function () {
+                    toggleDeltaState();
+                    $scope.payloadParams = filterToggleState();
+                    tableApi.forceRefesh();
+                };
+
+                $scope.isDelta = function () {
+                    return showDelta;
+                };
+
+                $scope.isNZ = function () {
+                    return nzFilter;
+                };
+
+                Object.defineProperty($scope, 'queryFilter', {
+                    get: function () {
+                        var out = {};
+                        out[$scope.queryBy || '$'] = $scope.query;
+                        return out;
+                    },
+                });
+
+                restoreConfigFromPrefs();
+                $log.log('OvPortCtrl has been created');
+            }]);
 }());

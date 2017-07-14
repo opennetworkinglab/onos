@@ -41,8 +41,8 @@
                 '-': '',
                 'MAC': data.get('id'),
                 'IP': data.get('ips')[0],
-                'VLAN': 'None' // TODO: VLAN is not currently in the data received from backend
-            }
+                'VLAN': 'None', // TODO: VLAN is not currently in the data received from backend
+            },
         };
 
         if (data.get('location')) {
@@ -120,9 +120,9 @@
                 hide: hide,
                 toggle: toggle,
                 destroy: destroy,
-                isVisible: function () { return hostPanel.isVisible(); }
+                isVisible: function () { return hostPanel.isVisible(); },
             };
-        }
+        },
     ]);
 
 })();

@@ -21,7 +21,7 @@
     'use strict';
 
     // references to injected services
-    var $log, $timeout, fs, ts, ns, ee, qhs, ls;
+    var $log, fs, ts, ns, ee, qhs, ls;
 
     // internal state
     var enabled = true,
@@ -32,7 +32,7 @@
             dialogKeys: {},
             viewKeys: {},
             viewFn: null,
-            viewGestures: []
+            viewGestures: [],
         },
         seq = {},
         matching = false,
@@ -96,7 +96,7 @@
 
     var textFieldDoesNotBlock = {
         enter: 1,
-        esc: 1
+        esc: 1,
     };
 
     function textFieldInput() {
@@ -134,7 +134,7 @@
             vk = kh.viewKeys[key],
             kl = fs.isF(kh.viewKeys._keyListener),
             vcb = fs.isF(vk) || (fs.isA(vk) && fs.isF(vk[0])) || fs.isF(kh.viewFn),
-            token = 'keyev';    // indicate this was a key-pressed event
+            token = 'keyev'; // indicate this was a key-pressed event
 
         event.stopPropagation();
 
@@ -185,7 +185,7 @@
                 backSlash: [quickHelp, qhlion_show_hide],
                 slash: [quickHelp, qhlion_show_hide],
                 esc: [escapeKey, qhlion_hint_esc],
-                T: [toggleTheme, qhlion_hint_t]
+                T: [toggleTheme, qhlion_hint_t],
             },
             globalFormat: ['backSlash', 'slash', 'esc', 'T'],
 
@@ -194,8 +194,8 @@
             maskedKeys: {
                 slash: 1,
                 backSlash: 1,
-                T: 1
-            }
+                T: 1,
+            },
         });
     }
 
@@ -244,7 +244,7 @@
     }
 
     function unexParam(fname, x) {
-        $log.warn(fname, ": unexpected parameter-- ", x);
+        $log.warn(fname, ': unexpected parameter-- ', x);
     }
 
     function setKeyBindings(keyArg) {
@@ -273,7 +273,7 @@
             globalKeys: gkeys,
             maskedKeys: masked,
             viewKeys: vkeys,
-            viewFunction: vfn
+            viewFunction: vfn,
         };
     }
 
@@ -318,12 +318,11 @@
 
     angular.module('onosUtil')
     .factory('KeyService',
-        ['$log', '$timeout', 'FnService', 'ThemeService', 'NavService',
+        ['$log', 'FnService', 'ThemeService', 'NavService',
             'EeService', 'LionService',
 
-        function (_$log_, _$timeout_, _fs_, _ts_, _ns_, _ee_, _ls_) {
+        function (_$log_, _fs_, _ts_, _ns_, _ee_, _ls_) {
             $log = _$log_;
-            $timeout = _$timeout_;
             fs = _fs_;
             ts = _ts_;
             ns = _ns_;
@@ -372,7 +371,7 @@
                 enableGlobalKeys: function (b) {
                     globalEnabled = b;
                 },
-                checkNotGlobal: checkNotGlobal
+                checkNotGlobal: checkNotGlobal,
             };
     }]);
 

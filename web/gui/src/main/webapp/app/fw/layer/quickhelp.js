@@ -27,7 +27,7 @@
 
     // configuration
     var defaultSettings = {
-            fade: 500
+            fade: 500,
         },
         w = '100%',
         h = '80%',
@@ -56,12 +56,12 @@
         leftArrow: 'L-arrow',
         upArrow: 'U-arrow',
         rightArrow: 'R-arrow',
-        downArrow: 'D-arrow'
+        downArrow: 'D-arrow',
     };
 
     // list of needed bindings to use in aggregateData
     var neededBindings = [
-        'globalKeys', 'globalFormat', 'viewKeys', 'viewGestures'
+        'globalKeys', 'globalFormat', 'viewKeys', 'viewGestures',
     ];
 
     // ===========================================
@@ -88,7 +88,7 @@
                 aggKey = el.append('g').attr('visibility', 'hidden'),
                 gcol = el.append('g').attr({
                     'class': cls,
-                    transform: sus.translate(xCount, 0)
+                    transform: sus.translate(xCount, 0),
                 });
 
             c.forEach(function (j) {
@@ -101,12 +101,12 @@
                     gcol.append('text').text(k)
                         .attr({
                             'class': 'key',
-                            y: oy
+                            y: oy,
                         });
                     gcol.append('text').text(v)
                         .attr({
                             'class': 'desc',
-                            y: oy
+                            y: oy,
                         });
                 }
 
@@ -140,7 +140,7 @@
         var entering = rows.enter()
             .append('g')
             .attr({
-                'class': 'qhrow'
+                'class': 'qhrow',
             });
 
         entering.each(function (r, i) {
@@ -169,7 +169,7 @@
         rect.attr({
             width: paneW,
             height: paneH,
-            transform: sus.translate(-paneW/2-pad, 0)
+            transform: sus.translate(-paneW/2-pad, 0),
         });
 
     }
@@ -279,7 +279,7 @@
         pane = svg.append('g')
             .attr({
                 class: 'help',
-                opacity: 0
+                opacity: 0,
             });
 
         rect = pane.append('rect')
@@ -290,7 +290,7 @@
             .attr({
                 class: 'title',
                 dy: '1.2em',
-                transform: sus.translate(-pad,0)
+                transform: sus.translate(-pad, 0),
             });
 
         items = pane.append('g');
@@ -316,7 +316,7 @@
             .attr({
                 width: w,
                 height: h,
-                viewBox: vbox
+                viewBox: vbox,
             });
     }
 
@@ -338,7 +338,7 @@
                 'needed bindings for help panel not provided:',
                 neededBindings
             );
-            return false
+            return false;
         }
         return true;
     }
@@ -387,7 +387,7 @@
             return {
                 initQuickHelp: initQuickHelp,
                 showQuickHelp: showQuickHelp,
-                hideQuickHelp: hideQuickHelp
+                hideQuickHelp: hideQuickHelp,
             };
         }]);
 

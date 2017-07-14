@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $rootScope, fs;
+    var $rootScope, fs;
 
     // constants
     var hoverHeight = 35,
@@ -45,7 +45,7 @@
             style = {
                 display: 'inline-block',
                 left: 'auto',
-                right: 'auto'
+                right: 'auto',
             };
 
         if (mouseX <= (winWidth / 2)) {
@@ -108,7 +108,7 @@
             tooltip.transition()
                 .delay(exitDelay)
                 .style({
-                    display: 'none'
+                    display: 'none',
                 })
                 .text('');
         }
@@ -127,13 +127,12 @@
                     restrict: 'A',
                     link: function (scope, elem, attrs) {
                         addTooltip(d3.select(elem[0]), scope[attrs.ttMsg]);
-                    }
+                    },
                 };
         }])
 
-        .factory('TooltipService', ['$log', '$rootScope', 'FnService',
-            function (_$log_, _$rootScope_, _fs_) {
-                $log = _$log_;
+        .factory('TooltipService', ['$rootScope', 'FnService',
+            function (_$rootScope_, _fs_) {
                 $rootScope = _$rootScope_;
                 fs = _fs_;
 
@@ -142,7 +141,7 @@
                 return {
                     addTooltip: addTooltip,
                     showTooltip: showTooltip,
-                    cancelTooltip: cancelTooltip
+                    cancelTooltip: cancelTooltip,
                 };
             }]);
 }());

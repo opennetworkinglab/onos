@@ -34,20 +34,20 @@
             device: -8000,
             host: -20000,
             region: -8000,
-            _def_: -12000
+            _def_: -12000,
         },
         linkDistance: {
             // note: key is link.type
             direct: 100,
             optical: 120,
             UiEdgeLink: 100,
-            _def_: 50
+            _def_: 50,
         },
         linkStrength: {
             // note: key is link.type
             // range: {0.0 ... 1.0}
-            _def_: 1.0
-        }
+            _def_: 1.0,
+        },
     };
 
     // configuration
@@ -55,20 +55,20 @@
         light: {
             baseColor: '#939598',
             inColor: '#66f',
-            outColor: '#f00'
+            outColor: '#f00',
         },
         dark: {
             // TODO : theme
             baseColor: '#939598',
             inColor: '#66f',
-            outColor: '#f00'
+            outColor: '#f00',
         },
         inWidth: 12,
-        outWidth: 10
+        outWidth: 10,
     };
 
     // internal state
-    var nodeLock = false;       // whether nodes can be dragged or not (locked)
+    var nodeLock = false; // whether nodes can be dragged or not (locked)
 
     // predicate that indicates when clicking is active
     function clickEnabled() {
@@ -117,7 +117,7 @@
                             linkLabelG: this.addElement(this.forceG, 'topo2-linkLabels'),
                             numLinksLabels: this.addElement(this.forceG, 'topo2-numLinkLabels'),
                             nodeG: this.addElement(this.forceG, 'topo2-nodes'),
-                            portLabels: this.addElement(this.forceG, 'topo2-portLabels')
+                            portLabels: this.addElement(this.forceG, 'topo2-portLabels'),
                         };
                     },
                     addElement: function (parent, className) {
@@ -138,7 +138,7 @@
                             .linkStrength(this.settingOrDefault.bind(this, 'linkStrength'))
                             .nodes([])
                             .links([])
-                            .on("tick", this.tick.bind(this))
+                            .on('tick', this.tick.bind(this))
                             .start();
 
                         this.drag = sus.createDragBehavior(this.force,
@@ -173,15 +173,15 @@
                                     var dx = isNaN(d.x) ? 0 : d.x,
                                         dy = isNaN(d.y) ? 0 : d.y;
                                     return sus.translate(dx, dy);
-                                }
+                                },
                             });
 
                         this.link
                             .each(this.setLinkPosition)
-                            .attr("x1", function (d) { return d.get('position').x1; })
-                            .attr("y1", function (d) { return d.get('position').y1; })
-                            .attr("x2", function (d) { return d.get('position').x2; })
-                            .attr("y2", function (d) { return d.get('position').y2; });
+                            .attr('x1', function (d) { return d.get('position').x1; })
+                            .attr('y1', function (d) { return d.get('position').y1; })
+                            .attr('x2', function (d) { return d.get('position').x2; })
+                            .attr('y2', function (d) { return d.get('position').y2; });
                     },
 
                     start: function () {
@@ -215,13 +215,13 @@
                                     // Need to guard against NaN here ??
                                     return sus.translate(d.node.x, d.node.y);
                                 },
-                                opacity: 0
+                                opacity: 0,
                             })
                             .call(this.drag)
                             .transition()
                             .attr('opacity', 1);
 
-                        entering.each(function (d) { d.onEnter(this, d) });
+                        entering.each(function (d) { d.onEnter(this, d); });
 
                         this.force.nodes(regionNodes);
                     },
@@ -242,10 +242,10 @@
                                 x2: function (d) { return d.get('position').x2; },
                                 y2: function (d) { return d.get('position').y2; },
                                 stroke: linkConfig.light.inColor,
-                                'stroke-width': linkConfig.inWidth
+                                'stroke-width': linkConfig.inWidth,
                             });
 
-                        entering.each(function (d) { d.onEnter(this, d) });
+                        entering.each(function (d) { d.onEnter(this, d); });
 
                         // operate on exiting links:
                         this.link.exit()
@@ -280,15 +280,15 @@
                                 y: d.y,
                                 equivLoc: {
                                     lng: ll[0],
-                                    lat: ll[1]
-                                }
+                                    lat: ll[1],
+                                },
                             };
                         }
                         d.metaUi = metaUi;
                         wss.sendEvent('updateMeta2', {
                             id: d.get('id'),
                             class: d.get('class'),
-                            memento: metaUi
+                            memento: metaUi,
                         });
                     },
                     setDimensions: function () {
@@ -341,12 +341,12 @@
                             .style('opacity', 1)
                             .each('end', function () {
                                 t2rns.navigateToRegionComplete();
-                            });;
+                            }); ;
                     },
                     navigateToRegionHandler: function () {
                         this.createForceElements();
                         this.transitionDownRegion();
-                    }
+                    },
                 });
 
                 function getInstance(svg, forceG, uplink, dim, zoomer, opts) {
@@ -354,7 +354,7 @@
                 }
 
                 return getInstance();
-            }
+            },
         ]
     );
 })();

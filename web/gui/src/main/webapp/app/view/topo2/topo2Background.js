@@ -116,10 +116,10 @@
                     resetZoom: function () {
                         var pan = zoomPan(this.zoomData, true);
                         t2zs.panAndZoom(pan, zoomScale(this.zoomData, true), 1000);
-                    }
+                    },
                 });
 
                 return instance || new BackgroundView();
-            }
+            },
         ]);
 })();

@@ -30,14 +30,14 @@
                 scope: {
                     offsetHeight: '@',
                     offsetWidth: '@',
-                    notifier: '&'
+                    notifier: '&',
                 },
                 link: function (scope, element) {
                     var elem = d3.select(element[0]);
                     scope.$watchCollection(function () {
                         return {
                             h: $window.innerHeight,
-                            w: $window.innerWidth
+                            w: $window.innerWidth,
                         };
                     }, function () {
                         var offH = scope.offsetHeight || 0,
@@ -46,7 +46,7 @@
 
                         elem.style({
                             height: wsz.height + 'px',
-                            width: wsz.width + 'px'
+                            width: wsz.width + 'px',
                         });
 
                         if (fs.isF(scope.notifier)) {
@@ -57,7 +57,7 @@
                     angular.element($window).bind('resize', function () {
                         scope.$apply();
                     });
-                }
+                },
             };
         }])
 

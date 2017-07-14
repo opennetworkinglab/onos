@@ -31,8 +31,7 @@
         top,
         iconDiv,
         wSize,
-        editingName = false,
-        host;
+        editingName = false;
 
     // constants
     var topPdg = 28,
@@ -43,11 +42,11 @@
         nameChangeResp = 'hostNameChangeResponse';
 
     var propOrder = [
-            'id', 'ip', 'mac', 'vlan', 'configured', 'location'
+            'id', 'ip', 'mac', 'vlan', 'configured', 'location',
         ],
         friendlyProps = [
             'Host ID', 'IP Address', 'MAC Address', 'VLAN',
-            'Configured', 'Location'
+            'Configured', 'Location',
         ];
 
     function closePanel() {
@@ -165,7 +164,6 @@
 
     function respDetailsCb(data) {
         $scope.panelData = data.details;
-        host = data.host;
         $scope.$apply();
     }
 
@@ -180,11 +178,11 @@
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
             margin: 0,
-            hideMargin: 0
+            hideMargin: 0,
         });
         detailsPanel.el().style({
             position: 'absolute',
-            top: pStartY + 'px'
+            top: pStartY + 'px',
         });
         $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
@@ -246,7 +244,7 @@
             tbs.buildTable({
                 scope: $scope,
                 tag: 'host',
-                selCb: selCb
+                selCb: selCb,
             });
 
             $scope.nav = function (path) {
@@ -291,11 +289,11 @@
             ks.keyBindings({
                 enter: editNameSave,
                 esc: [handleEscape, 'Close the details panel'],
-                _helpFormat: ['esc']
+                _helpFormat: ['esc'],
             });
             ks.gestureNotes([
                 ['click', 'Select a row to show device details'],
-                ['scroll down', 'See more devices']
+                ['scroll down', 'See more devices'],
             ]);
 
             // if the panelData changes
@@ -311,7 +309,7 @@
                 function () {
                     return {
                         h: $window.innerHeight,
-                        w: $window.innerWidth
+                        w: $window.innerWidth,
                     };
                 }, function () {
                     if (!fs.isEmptyObject(scope.panelData)) {

@@ -94,7 +94,7 @@
         s: {
             first: null,
             second: null,
-            touched: null
+            touched: null,
         },
 
         reset: function () {
@@ -132,7 +132,7 @@
                 s2 = s.second;
             api[s1.dir](s1.adiv);
             s2 && api.none(s2.adiv);
-        }
+        },
     };
 
     // Functions for sorting table rows by header
@@ -157,12 +157,12 @@
             firstCol: s1.id,
             firstDir: s1.dir,
             secondCol: id2,
-            secondDir: dir2
+            secondDir: dir2,
         };
     }
 
     angular.module('onosWidget')
-    .directive('onosTableResize', ['$log','$window', 'FnService', 'MastService',
+    .directive('onosTableResize', ['$log', '$window', 'FnService', 'MastService',
 
         function (_$log_, _$window_, _fs_, _mast_) {
         return function (scope, element) {
@@ -175,7 +175,7 @@
                 tableElems = {
                     table: table,
                     thead: table.select('.table-header').select('table'),
-                    tbody: table.select('.table-body').select('table')
+                    tbody: table.select('.table-body').select('table'),
                 },
                 wsz;
 
@@ -185,7 +185,7 @@
             scope.$watchCollection(function () {
                 return {
                     h: $window.innerHeight,
-                    w: $window.innerWidth
+                    w: $window.innerWidth,
                 };
             }, function () {
                 wsz = fs.windowSize(0, 30);

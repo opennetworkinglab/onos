@@ -28,13 +28,13 @@
         function ($log, $scope, $sce, fs, tbs) {
             tbs.buildTable({
                 scope: $scope,
-                tag: 'tunnel'
+                tag: 'tunnel',
             });
 
             $scope.$watch('tableData', function () {
                 if (!fs.isEmptyObject($scope.tableData)) {
                     $scope.tableData.forEach(function (tunnel) {
-                        //tunnel.direction = $sce.trustAsHtml(tunnel.direction);
+                        // tunnel.direction = $sce.trustAsHtml(tunnel.direction);
                     });
                 }
             });

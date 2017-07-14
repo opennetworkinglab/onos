@@ -25,14 +25,14 @@
     var Collection, Model;
 
     var remappedDeviceTypes = {
-        virtual: 'cord'
+        virtual: 'cord',
     };
 
     function createCollection(data, region) {
 
         var PeerRegionCollection = Collection.extend({
             model: Model,
-            region: region
+            region: region,
         });
 
         return new PeerRegionCollection(data);
@@ -52,7 +52,7 @@
                     nodeType: 'peer-region',
                     events: {
                         'dblclick': 'navigateToRegion',
-                        'click': 'onClick'
+                        'click': 'onClick',
                     },
 
                     initialize: function () {
@@ -76,13 +76,13 @@
                         if (d3.event.defaultPrevented) return;
                         t2rns.navigateToRegion(this.get('id'));
                         t2srp.hide();
-                    }
+                    },
                 });
 
                 return {
-                    createCollection: createCollection
+                    createCollection: createCollection,
                 };
-            }
+            },
         ]);
 
 })();

@@ -25,13 +25,13 @@
         'ngCookies',
         'onosUtil',
         'onosSvg',
-        'onosRemote'
+        'onosRemote',
     ];
 
     // references to injected services
-    var $scope, $log, $loc, $timeout, $cookies,
+    var $scope, $log, $loc, $timeout,
         fs, ks, zs, gs, ms, sus, flash, wss, ps, th, tds, t3s, tes, tfs, tps,
-        tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
+        tis, tms, tss, tls, tos, fltr, ttbs, tspr, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -39,7 +39,7 @@
     // Internal state
     var zoomer,
         actionMap,
-        topoLion = function (x) { return '#' + x + '#'}; // func replaced later
+        topoLion = function (x) { return '#' + x + '#'; }; // func replaced later
 
     // --- Short Cut Keys ------------------------------------------------
 
@@ -48,41 +48,41 @@
         // thus, deferred to here...
 
         // we need functions that can be invoked after LION bundle loaded
-        function togInst() {return topoLion('tbtt_tog_instances')}
-        function togSumm() {return topoLion('tbtt_tog_summary')}
-        function togUseDet() {return topoLion('tbtt_tog_use_detail')}
+        function togInst() { return topoLion('tbtt_tog_instances'); }
+        function togSumm() { return topoLion('tbtt_tog_summary'); }
+        function togUseDet() { return topoLion('tbtt_tog_use_detail'); }
 
-        function togHost() {return topoLion('tbtt_tog_host')}
-        function togOff() {return topoLion('tbtt_tog_offline')}
-        function togPortHi() {return topoLion('tbtt_tog_porthi')}
+        function togHost() { return topoLion('tbtt_tog_host'); }
+        function togOff() { return topoLion('tbtt_tog_offline'); }
+        function togPortHi() { return topoLion('tbtt_tog_porthi'); }
 
-        function showBad() {return topoLion('tbtt_bad_links')}
-        function togMap() {return topoLion('tbtt_tog_map')}
-        function selMap() {return topoLion('tbtt_sel_map')}
-        function togSpr() {return topoLion('tbtt_tog_sprite')}
+        function showBad() { return topoLion('tbtt_bad_links'); }
+        function togMap() { return topoLion('tbtt_tog_map'); }
+        function selMap() { return topoLion('tbtt_sel_map'); }
+        function togSpr() { return topoLion('tbtt_tog_sprite'); }
 
-        function rstLoc() {return topoLion('tbtt_reset_loc')}
-        function togOb() {return topoLion('tbtt_tog_oblique')}
-        function cycLayer() {return topoLion('tbtt_cyc_layers')}
-        function cycDev() {return topoLion('tbtt_cyc_dev_labs')}
-        function cycHost() {return topoLion('tbtt_cyc_host_labs')}
+        function rstLoc() { return topoLion('tbtt_reset_loc'); }
+        function togOb() { return topoLion('tbtt_tog_oblique'); }
+        function cycLayer() { return topoLion('tbtt_cyc_layers'); }
+        function cycDev() { return topoLion('tbtt_cyc_dev_labs'); }
+        function cycHost() { return topoLion('tbtt_cyc_host_labs'); }
 
-        function unpin() {return topoLion('tbtt_unpin_node')}
-        function rzoom() {return topoLion('tbtt_reset_zoom')}
-        function togtb() {return topoLion('tbtt_tog_toolbar')}
-        function eqmaster() {return topoLion('tbtt_eq_master')}
+        function unpin() { return topoLion('tbtt_unpin_node'); }
+        function rzoom() { return topoLion('tbtt_reset_zoom'); }
+        function togtb() { return topoLion('tbtt_tog_toolbar'); }
+        function eqmaster() { return topoLion('tbtt_eq_master'); }
 
-        function uiClick() {return topoLion('click')}
-        function uiShClick() {return topoLion('shift_click')}
-        function uiDrag() {return topoLion('drag')}
-        function uiCmdScr() {return topoLion('cmd_scroll')}
-        function uiCmdDrag() {return topoLion('cmd_drag')}
+        function uiClick() { return topoLion('click'); }
+        function uiShClick() { return topoLion('shift_click'); }
+        function uiDrag() { return topoLion('drag'); }
+        function uiCmdScr() { return topoLion('cmd_scroll'); }
+        function uiCmdDrag() { return topoLion('cmd_drag'); }
 
-        function uiClickTxt() {return topoLion('qh_gest_click')}
-        function uiShClickTxt() {return topoLion('qh_gest_shift_click')}
-        function uiDragTxt() {return topoLion('qh_gest_drag')}
-        function uiCmdScrTxt() {return topoLion('qh_gest_cmd_scroll')}
-        function uiCmdDragTxt() {return topoLion('qh_gest_cmd_drag')}
+        function uiClickTxt() { return topoLion('qh_gest_click'); }
+        function uiShClickTxt() { return topoLion('qh_gest_shift_click'); }
+        function uiDragTxt() { return topoLion('qh_gest_drag'); }
+        function uiCmdScrTxt() { return topoLion('qh_gest_cmd_scroll'); }
+        function uiCmdDragTxt() { return topoLion('qh_gest_cmd_drag'); }
 
         actionMap = {
             I: [toggleInstances, togInst],
@@ -109,7 +109,7 @@
             dot: [ttbs.toggleToolbar, togtb],
             E: [equalizeMasters, eqmaster],
 
-            //-- instance color palette debug
+            // -- instance color palette debug
             // 9: function () { sus.cat7().testCard(svg); },
 
             // topology overlay selections
@@ -124,10 +124,10 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S' ],
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S'],
                 ['X', 'Z', 'N', 'L', 'shift-L', 'U', 'R', '-', 'E', '-', 'dot'],
-                []   // this column reserved for overlay actions
-            ]
+                [], // this column reserved for overlay actions
+            ],
         };
 
         if (fs.isO(overlayKeys)) {
@@ -141,7 +141,7 @@
             [uiShClick, uiShClickTxt],
             [uiDrag, uiDragTxt],
             [uiCmdScr, uiCmdScrTxt],
-            [uiCmdDrag, uiCmdDragTxt]
+            [uiCmdDrag, uiCmdDragTxt],
         ]);
     }
 
@@ -224,7 +224,7 @@
     function handleEscape() {
         if (tis.showMaster()) {
             // if an instance is selected, cancel the affinity mapping
-            tis.cancelAffinity()
+            tis.cancelAffinity();
 
         } else if (tov.hooks.escape()) {
             // else if the overlay consumed the ESC event...
@@ -275,7 +275,7 @@
     function setUpToolbar() {
         ttbs.init({
             getActionEntry: getActionEntry,
-            setUpKeys: setUpKeys
+            setUpKeys: setUpKeys,
         });
         ttbs.createToolbar();
     }
@@ -300,7 +300,7 @@
         var sc = zoomer.scale(),
             tr = zoomer.translate();
 
-        ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
+        ps.setPrefs('topo_zoom', { tx: tr[0], ty: tr[1], sc: sc });
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
@@ -314,7 +314,7 @@
             svg: svg,
             zoomLayer: zoomLayer,
             zoomEnabled: zoomEnabled,
-            zoomCallback: zoomCallback
+            zoomCallback: zoomCallback,
         });
     }
 
@@ -330,7 +330,7 @@
         var g, box;
         noDevsLayer = svg.append('g').attr({
             id: 'topo-noDevsLayer',
-            transform: sus.translate(500,500)
+            transform: sus.translate(500, 500),
         });
         // Note, SVG viewbox is '0 0 1000 1000', defined in topo.html.
         // We are translating this layer to have its origin at the center
@@ -338,7 +338,7 @@
         g = noDevsLayer.append('g');
         gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
         g.append('text').text('No devices are connected')
-            .attr({ x: 120, y: 80});
+            .attr({ x: 120, y: 80 });
 
         box = g.node().getBBox();
         box.x -= box.width/2;
@@ -389,7 +389,7 @@
 
         australia: function (c) {
             return c.properties.adm0_a3 === 'AUS';
-        }
+        },
     };
 
     var tintOn = 0,
@@ -398,19 +398,19 @@
         light: {
             sea: 'aliceblue',
             land: 'white',
-            outline: '#ddd'
+            outline: '#ddd',
         },
         dark: {
             sea: '#001830',
             land: '#232331',
-            outline: '#3a3a3a'
-        }
+            outline: '#3a3a3a',
+        },
     };
 
     function shading() {
         return tintOn ? {
             palette: shadePalette[th.theme()],
-            flip: shadeFlip
+            flip: shadeFlip,
         } : '';
     }
 
@@ -427,7 +427,7 @@
                 mapid: 'usa',
                 mapscale: 1,
                 mapfilepath: '*continental_us',
-                tint: 'off'
+                tint: 'off',
             },
             $loc.search()
         );
@@ -451,7 +451,7 @@
         if (mapG.empty()) {
             mapG = zoomLayer.append('g').attr('id', 'topo-map');
         } else {
-            mapG.each(function(d,i) {
+            mapG.each(function (d, i) {
                 d3.selectAll(this.childNodes).remove();
             });
         }
@@ -463,13 +463,13 @@
             promise = ms.loadMapRegionInto(mapG, {
                 countryFilter: cfilter,
                 adjustScale: mapScale,
-                shading: shading()
+                shading: shading(),
             });
         } else {
 
             promise = ms.loadMapInto(mapG, mapFilePath, mapId, {
                 adjustScale: mapScale,
-                shading: shading()
+                shading: shading(),
             });
         }
 
@@ -478,7 +478,7 @@
     }
 
     function mapReshader() {
-        $log.debug('... Re-shading map ...')
+        $log.debug('... Re-shading map ...');
         ms.reshade(shading());
     }
 
@@ -501,7 +501,7 @@
         var prefs = ps.getPrefs('topo_sprites', { sprites: '' }, $loc.search()),
             sprId = prefs.sprites;
 
-        spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
+        spriteG = zoomLayer.append('g').attr('id', 'topo-sprites');
         if (sprId) {
             ps.setPrefs('topo_sprites', prefs);
             tspr.loadSprites(spriteG, defs, sprId);
@@ -610,14 +610,13 @@
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; },
                     opacifyMap: opacifyMap,
-                    topoStartDone: topoStartDone
+                    topoStartDone: topoStartDone,
                 };
 
             $scope = _$scope_;
             $log = _$log_;
             $loc = _$loc_;
             $timeout = _$timeout_;
-            $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
             zs = _zs_;
@@ -638,20 +637,18 @@
             tps = _tps_;
             tis = _tis_;
             tms = _tms_;
-            tss = _tss_;
             tls = _tls_;
-            tts = _tts_;
             tos = _tos_;
             fltr = _fltr_;
             ttbs = _ttbs_;
             tspr = _tspr_;
-            ttip = _ttip_;
             tov = _tov_;
+            tss = _tss_;
 
             tms.start({
                 toggleMap: toggleMap,
                 currentMap: currentMap,
-                setMap: setMap
+                setMap: setMap,
             });
 
             // pull intent data from the query string...
@@ -660,7 +657,7 @@
                     key: params.key,
                     appId: params.appId,
                     appName: params.appName,
-                    intentType: params.intentType
+                    intentType: params.intentType,
                 };
             }
 
@@ -696,7 +693,7 @@
             setUpNoDevs();
             setUpMap().then(
                 function (proj) {
-                    var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
+                    var z = ps.getPrefs('topo_zoom', { tx: 0, ty: 0, sc: 1 });
                     zoomer.panZoom([z.tx, z.ty], z.sc);
                     $log.debug('** Zoom restored:', z);
 

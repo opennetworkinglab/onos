@@ -31,42 +31,42 @@
         light: {
             baseColor: '#939598',
             inColor: '#66f',
-            outColor: '#f00'
+            outColor: '#f00',
         },
         dark: {
             // TODO : theme
             baseColor: '#939598',
             inColor: '#66f',
-            outColor: '#f00'
+            outColor: '#f00',
         },
         inWidth: 12,
-        outWidth: 10
+        outWidth: 10,
     };
 
     // internal state
-    var settings,   // merged default settings and options
-        force,      // force layout object
-        drag,       // drag behavior handler
+    var settings, // merged default settings and options
+        force, // force layout object
+        drag, // drag behavior handler
         network = {
             nodes: [],
             links: [],
             linksByDevice: {},
             lookup: {},
-            revLinkToKey: {}
+            revLinkToKey: {},
         },
-        lu,                     // shorthand for lookup
-        rlk,                    // shorthand for revLinktoKey
-        showHosts = false,      // whether hosts are displayed
-        showOffline = true,     // whether offline devices are displayed
-        nodeLock = false,       // whether nodes can be dragged or not (locked)
-        fTimer,                 // timer for delayed force layout
-        fNodesTimer,            // timer for delayed nodes update
-        fLinksTimer,            // timer for delayed links update
-        dim,                    // the dimensions of the force layout [w,h]
-        linkNums = [],          // array of link number labels
-        devIconDim = 36,        // node target dimension
-        devIconDimMin = 20,     // node minimum dimension when zoomed out
-        devIconDimMax = 40,     // node maximum dimension when zoomed in
+        lu, // shorthand for lookup
+        rlk, // shorthand for revLinktoKey
+        showHosts = false, // whether hosts are displayed
+        showOffline = true, // whether offline devices are displayed
+        nodeLock = false, // whether nodes can be dragged or not (locked)
+        fTimer, // timer for delayed force layout
+        fNodesTimer, // timer for delayed nodes update
+        fLinksTimer, // timer for delayed links update
+        dim, // the dimensions of the force layout [w,h]
+        linkNums = [], // array of link number labels
+        devIconDim = 36, // node target dimension
+        devIconDimMin = 20, // node minimum dimension when zoomed out
+        devIconDimMax = 40, // node maximum dimension when zoomed in
         portLabelDim = 30;
 
     // SVG elements;
@@ -83,23 +83,23 @@
             // note: key is node.class
             device: -8000,
             host: -5000,
-            _def_: -12000
+            _def_: -12000,
         },
         linkDistance: {
             // note: key is link.type
             direct: 100,
             optical: 120,
             hostLink: 3,
-            _def_: 50
+            _def_: 50,
         },
         linkStrength: {
             // note: key is link.type
             // range: {0.0 ... 1.0}
-            //direct: 1.0,
-            //optical: 1.0,
-            //hostLink: 1.0,
-            _def_: 1.0
-        }
+            // direct: 1.0,
+            // optical: 1.0,
+            // hostLink: 1.0,
+            _def_: 1.0,
+        },
     };
 
 
@@ -171,7 +171,7 @@
 
         lnk = tms.createHostLink(data);
         if (lnk) {
-            d.linkData = lnk;    // cache ref on its host
+            d.linkData = lnk; // cache ref on its host
             network.links.push(lnk);
             lu[d.ingress] = lnk;
             lu[d.egress] = lnk;
@@ -308,7 +308,7 @@
             network.linksByDevice[found].push(ldata);
             ldata.devicePair = found;
         } else {
-            network.linksByDevice[key] = [ ldata ];
+            network.linksByDevice[key] = [ldata];
             ldata.devicePair = key;
         }
     }
@@ -318,7 +318,7 @@
         ldata.fromTarget = link;
         rlk[link.id] = ldata.key;
         // possible solution to el being undefined in restyleLinkElement:
-        //_updateLinks();
+        // _updateLinks();
         restyleLinkElement(ldata);
     }
 
@@ -468,15 +468,15 @@
                 y: d.y,
                 equivLoc: {
                     lng: ll[0],
-                    lat: ll[1]
-                }
+                    lat: ll[1],
+                },
             };
         }
         d.metaUi = metaUi;
         wss.sendEvent('updateMeta', {
             id: d.id,
             class: d.class,
-            memento: metaUi
+            memento: metaUi,
         });
     }
 
@@ -557,7 +557,7 @@
     }
 
     function supAmt(less) {
-        return less ? "suppressed" : "suppressedmax";
+        return less ? 'suppressed' : 'suppressedmax';
     }
 
     function suppressLayers(b, less) {
@@ -665,8 +665,6 @@
     // IMPLEMENTATION NOTE: _updateNodes() should NOT stop, start, or resume
     //  the force layout; that needs to be determined and implemented elsewhere
     function _updateNodes() {
-
-        var scale = uplink.zoomer().scale();
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -685,7 +683,7 @@
                     // Need to guard against NaN here ??
                     return sus.translate(d.x, d.y);
                 },
-                opacity: 0
+                opacity: 0,
             })
             .call(drag)
             .on('mouseover', tss.nodeMouseOver)
@@ -721,7 +719,7 @@
             x1: link.source.x,
             y1: link.source.y,
             x2: link.target.x,
-            y2: link.target.y
+            y2: link.target.y,
         };
     }
 
@@ -742,7 +740,7 @@
             x1: pos.x1 + (mult * dy / length),
             y1: pos.y1 + (mult * -dx / length),
             x2: pos.x2 + (mult * dy / length),
-            y2: pos.y2 + (mult * -dx / length)
+            y2: pos.y2 + (mult * -dx / length),
         };
     }
 
@@ -785,7 +783,7 @@
                 linkNums.push({
                     id: key,
                     num: numLinks,
-                    linkCoords: linkArr[0].position
+                    linkCoords: linkArr[0].position,
                 });
             } else {
                 linkSrcId = null;
@@ -834,14 +832,14 @@
                 x2: function (d) { return d.position.x2; },
                 y2: function (d) { return d.position.y2; },
                 stroke: linkConfig[th].inColor,
-                'stroke-width': linkConfig.inWidth
+                'stroke-width': linkConfig.inWidth,
             });
 
         // augment links
         entering.each(td3.linkEntering);
 
         // operate on both existing and new links:
-        //link.each(...)
+        // link.each(...)
 
         // add labels for how many links are in a thick line
         td3.applyNumLinkLabels(linkNums, numLinkLblsG);
@@ -858,7 +856,7 @@
             .duration(1500)
             .attr({
                 'stroke-dasharray': '3 12',
-                'stroke-width': linkConfig.outWidth
+                'stroke-width': linkConfig.outWidth,
             })
             .style('opacity', 0.0)
             .remove();
@@ -880,7 +878,7 @@
                 $timeout.cancel(fTimer);
             }
             fTimer = $timeout(function () {
-                $log.debug("Starting force-layout");
+                $log.debug('Starting force-layout');
                 force.start();
             }, 200);
         }
@@ -892,13 +890,13 @@
                 var dx = isNaN(d.x) ? 0 : d.x,
                     dy = isNaN(d.y) ? 0 : d.y;
                 return sus.translate(dx, dy);
-            }
+            },
         },
         linkAttr: {
             x1: function (d) { return d.position.x1; },
             y1: function (d) { return d.position.y1; },
             x2: function (d) { return d.position.x2; },
-            y2: function (d) { return d.position.y2; }
+            y2: function (d) { return d.position.y2; },
         },
         linkLabelAttr: {
             transform: function (d) {
@@ -906,8 +904,8 @@
                 if (lnk) {
                     return td3.transformLabel(lnk.position, d.key);
                 }
-            }
-        }
+            },
+        },
     };
 
     function tick() {
@@ -991,7 +989,7 @@
                     id: 'lab-' + d.key,
                     key: d.key,
                     label: d.label,
-                    ldata: d
+                    ldata: d,
                 });
             }
         });
@@ -1008,7 +1006,7 @@
             projection: uplink.projection,
             network: network,
             restyleLinkElement: restyleLinkElement,
-            removeLinkElement: removeLinkElement
+            removeLinkElement: removeLinkElement,
         };
     }
 
@@ -1024,7 +1022,7 @@
             updateLinkLabelModel: updateLinkLabelModel,
             linkConfig: function () { return linkConfig; },
             deviceScale: deviceScale,
-            linkWidthScale: linkWidthScale
+            linkWidthScale: linkWidthScale,
         };
     }
 
@@ -1033,7 +1031,7 @@
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
             updateDeviceColors: td3.updateDeviceColors,
-            deselectAllLinks: tls.deselectAllLinks
+            deselectAllLinks: tls.deselectAllLinks,
         };
     }
 
@@ -1041,7 +1039,7 @@
         return {
             hovered: tss.hovered,
             somethingSelected: tss.somethingSelected,
-            selectOrder: tss.selectOrder
+            selectOrder: tss.selectOrder,
         };
     }
 
@@ -1057,15 +1055,15 @@
             updateNodes: updateNodes,
             supLayers: suppressLayers,
             unsupNode: unsuppressNode,
-            unsupLink: unsuppressLink
+            unsupLink: unsuppressLink,
         };
     }
 
     function mkObliqueApi(uplink, fltr) {
         return {
-            force: function() { return force; },
+            force: function () { return force; },
             zoomLayer: uplink.zoomLayer,
-            nodeGBBox: function() { return nodeG.node().getBBox(); },
+            nodeGBBox: function () { return nodeG.node().getBBox(); },
             node: function () { return node; },
             link: function () { return link; },
             linkLabel: function () { return linkLabel; },
@@ -1081,14 +1079,14 @@
             calcLinkPos: calcPosition,
             applyNumLinkLabels: function () {
                 td3.applyNumLinkLabels(linkNums, numLinkLblsG);
-            }
+            },
         };
     }
 
     function mkFilterApi() {
         return {
             node: function () { return node; },
-            link: function () { return link; }
+            link: function () { return link; },
         };
     }
 
@@ -1098,7 +1096,7 @@
             zoomer: uplink.zoomer(),
             network: network,
             portLabelG: function () { return portLabelG; },
-            showHosts: function () { return showHosts; }
+            showHosts: function () { return showHosts; },
         };
     }
 
@@ -1264,7 +1262,7 @@
                 addLink: addLink,
                 updateLink: updateLink,
                 removeLink: removeLink,
-                topoStartDone: topoStartDone
+                topoStartDone: topoStartDone,
             };
         }]);
 }());

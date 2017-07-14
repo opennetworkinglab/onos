@@ -29,8 +29,8 @@
 
     // constants
     var msgGS = 'GlyphService.',
-        rg = "registerGlyphs(): ",
-        rgs = "registerGlyphSet(): ";
+        rg = 'registerGlyphs(): ',
+        rgs = 'registerGlyphSet(): ';
 
     // ----------------------------------------------------------------------
 
@@ -42,7 +42,7 @@
         if (!overwrite && glyphs.get(key)) {
             dups.push(key);
         } else {
-            glyphs.set(key, {id: key, vb: vbox, d: value});
+            glyphs.set(key, { id: key, vb: vbox, d: value });
         }
     }
 
@@ -166,7 +166,7 @@
                 width: sz,
                 height: sz,
                 'class': 'glyph',
-                'xlink:href': '#' + glyphId
+                'xlink:href': '#' + glyphId,
             };
 
         if (xns) {
@@ -196,7 +196,7 @@
                 glyph: glyph,
                 glyphDefined: glyphDefined,
                 loadDefs: loadDefs,
-                addGlyph: addGlyph
+                addGlyph: addGlyph,
             };
             return api;
         }]

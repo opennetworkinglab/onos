@@ -41,8 +41,8 @@
                 'Id': data.get('id'),
                 'Type': data.get('nodeType'),
                 'Number of Devices': data.get('nDevs'),
-                'Number of Hosts': data.get('nHosts')
-            }
+                'Number of Hosts': data.get('nHosts'),
+            },
         };
     }
 
@@ -103,9 +103,9 @@
                 hide: hide,
                 toggle: toggle,
                 destroy: destroy,
-                isVisible: function () { return subRegionPanel.isVisible(); }
+                isVisible: function () { return subRegionPanel.isVisible(); },
             };
-        }
+        },
     ]);
 
 })();

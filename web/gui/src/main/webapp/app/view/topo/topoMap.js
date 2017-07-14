@@ -23,13 +23,13 @@
     'use strict';
 
     // injected refs
-    var $log, $loc, fs, flash, wss, tds, delegate;
+    var $log, wss, tds, delegate;
 
     // constants
     var mapRequest = 'mapSelectorRequest';
 
     // internal state
-    var order, maps, map, mapItems, tintCheck, msgHandlers;
+    var order, maps, map, mapItems, msgHandlers;
 
     // === ---------------------------
     // === Helper functions
@@ -60,7 +60,7 @@
             mapid: map.id,
             mapscale: map.scale,
             mapfilepath: map.filePath,
-            tint: 'off'
+            tint: 'off',
             // tint: tintCheck.property('checked') ? 'on' : 'off'
         };
         setMap(p);
@@ -98,7 +98,7 @@
         }
         p.append('span').text('Enable map tint');
 */
-        
+
         return content;
     }
 
@@ -131,19 +131,15 @@
 
     angular.module('ovTopo')
     .factory('TopoMapService',
-        ['$log', '$location', 'FnService', 'FlashService', 'WebSocketService',
-            'TopoDialogService',
+        ['$log', 'WebSocketService', 'TopoDialogService',
 
-        function (_$log_, _$loc_, _fs_, _flash_, _wss_, _tds_) {
+        function (_$log_, _wss_, _tds_) {
             $log = _$log_;
-            $loc = _$loc_;
-            fs = _fs_;
-            flash = _flash_;
             wss = _wss_;
             tds = _tds_;
 
             msgHandlers = {
-                mapSelectorResponse: handleMapResponse
+                mapSelectorResponse: handleMapResponse,
             };
 
             return {
@@ -154,7 +150,7 @@
                 openMapSelection: openMapSelection,
                 closeMapSelection: closeMapSelection,
                 start: start,
-                stop: stop
+                stop: stop,
             };
         }]);
 

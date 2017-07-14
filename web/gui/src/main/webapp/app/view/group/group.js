@@ -52,7 +52,7 @@
             tbs.buildTable({
                 scope: $scope,
                 tag: 'group',
-                query: params
+                query: params,
             });
 
             $scope.$watch('tableData', function () {
@@ -72,12 +72,12 @@
                 $scope.brief = !$scope.brief;
             };
 
-            Object.defineProperty($scope, "queryFilter", {
-                get: function() {
+            Object.defineProperty($scope, 'queryFilter', {
+                get: function () {
                     var out = {};
-                    out[$scope.queryBy || "$"] = $scope.query;
+                    out[$scope.queryBy || '$'] = $scope.query;
                     return out;
-                }
+                },
             });
 
 

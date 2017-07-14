@@ -21,10 +21,10 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss;
+    var fs, wss;
 
     // internal state
-    var cache = {}, 
+    var cache = {},
         listeners = [];
 
     // returns the preference settings for the specified key
@@ -98,26 +98,25 @@
     }
 
     function removeListener(listener) {
-        listeners = listeners.filter(function(obj) { return obj === listener; });
+        listeners = listeners.filter(function (obj) { return obj === listener; });
     }
 
     angular.module('onosUtil')
-    .factory('PrefsService', ['$log', 'FnService', 'WebSocketService',
-        function (_$log_, _fs_, _wss_) {
-            $log = _$log_;
+    .factory('PrefsService', ['FnService', 'WebSocketService',
+        function (_fs_, _wss_) {
             fs = _fs_;
             wss = _wss_;
 
             try {
                 cache = angular.isDefined(userPrefs) ? userPrefs : {};
             }
-            catch(e){
+            catch (e) {
                 // browser throws error for non-existing globals
-                cache = {}
+                cache = {};
             }
 
             wss.bindHandlers({
-                updatePrefs: updatePrefs
+                updatePrefs: updatePrefs,
             });
 
             return {
@@ -126,7 +125,7 @@
                 setPrefs: setPrefs,
                 mergePrefs: mergePrefs,
                 addListener: addListener,
-                removeListener: removeListener
+                removeListener: removeListener,
             };
         }]);
 

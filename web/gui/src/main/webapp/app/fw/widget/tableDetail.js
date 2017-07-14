@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, $timeout, fs, wss;
+    var $log, fs;
 
     // constants
     // var refreshInterval = 2000;
@@ -50,17 +50,14 @@
     // TODO: add ref to PanelService
     angular.module('onosWidget')
     .factory('TableDetailService',
-    ['$log', '$interval', '$timeout', 'FnService', 'WebSocketService',
+    ['$log', 'FnService',
 
-    function (_$log_, _$interval_, _$timeout_, _fs_, _wss_) {
+    function (_$log_, _fs_) {
         $log = _$log_;
-        $interval = _$interval_;
-        $timeout = _$timeout_;
         fs = _fs_;
-        wss = _wss_;
 
         return {
-            buildBasePanel: buildBasePanel
+            buildBasePanel: buildBasePanel,
         };
     }]);
 }());
