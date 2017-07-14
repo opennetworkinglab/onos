@@ -65,7 +65,7 @@
                 <option value="tableId">Table ID</option>
                 <option value="selector">Selector</option>
                 <option value="treatment">Treatment</option>
-                <option value="appId">App ID</option>
+                <option value="appName">App Name</option>
             </select>
         </div>
 
@@ -84,7 +84,7 @@
                     <td colId="tableId" col-width="80px" sortable> Table ID </td>
                     <td colId="selector" sortable> Selector </td>
                     <td colId="treatment" sortable> Treatment </td>
-                    <td colId="appId" sortable> App ID </td>
+                    <td colId="appName" sortable> App Name </td>
                 </tr>
             </table>
         </div>
@@ -111,7 +111,7 @@
                     <td>{{flow.tableId}}</td>
                     <td>{{flow.selector_c}}</td>
                     <td>{{flow.treatment_c}}</td>
-                    <td>{{flow.appId}}</td>
+                    <td>{{flow.appName}}</td>
                 </tr>
                 <tr ng-click="selectCallback($event, flow)"
                     ng-class="{selected: flow.id === selId}"

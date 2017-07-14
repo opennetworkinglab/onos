@@ -19,6 +19,8 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.app.ApplicationService;
+import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
@@ -39,7 +41,9 @@ import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -59,6 +63,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String ID = "id";
     private static final String FLOW_ID = "flowId";
     private static final String APP_ID = "appId";
+    private static final String APP_NAME = "appName";
     private static final String GROUP_ID = "groupId";
     private static final String TABLE_ID = "tableId";
     private static final String PRIORITY = "priority";
@@ -77,6 +82,9 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String OX = "0x";
     private static final String EMPTY = "";
 
+    private static final String ONOS_PREFIX = "org.onosproject.";
+    private static final String ONOS_MARKER = "*";
+
     private static final String[] COL_IDS = {
             ID,
             STATE,
@@ -86,6 +94,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             PRIORITY,
             TABLE_ID,
             APP_ID,
+            APP_NAME,
 
             GROUP_ID,
             TIMEOUT,
@@ -109,6 +118,27 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         int pos = sb.lastIndexOf(COMMA);
         sb.delete(pos, sb.length());
         return sb;
+    }
+
+    // Generate a map of shorts->application IDs
+    // (working around deficiency(?) in Application Service API)
+    private Map<Short, ApplicationId> appShortMap() {
+        Set<Application> apps =
+                get(ApplicationService.class).getApplications();
+
+        return apps.stream()
+                .collect(Collectors.toMap(a -> a.id().id(), Application::id));
+    }
+
+    // Return an application name, based on a lookup of the internal short ID
+    private String makeAppName(short id, Map<Short, ApplicationId> lookup) {
+        ApplicationId appId = lookup.get(id);
+        if (appId == null) {
+            return "Unknown <" + id + ">";
+        }
+        String appName = appId.name();
+        return appName.startsWith(ONOS_PREFIX)
+                ? appName.replaceFirst(ONOS_PREFIX, ONOS_MARKER) : appName;
     }
 
     // handler for flow table requests
@@ -151,14 +181,17 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             String uri = string(payload, "devId");
             if (!Strings.isNullOrEmpty(uri)) {
                 DeviceId deviceId = DeviceId.deviceId(uri);
+                Map<Short, ApplicationId> lookup = appShortMap();
                 FlowRuleService frs = get(FlowRuleService.class);
+
                 for (FlowEntry flow : frs.getFlowEntries(deviceId)) {
-                    populateRow(tm.addRow(), flow);
+                    populateRow(tm.addRow(), flow, lookup);
                 }
             }
         }
 
-        private void populateRow(TableModel.Row row, FlowEntry flow) {
+        private void populateRow(TableModel.Row row, FlowEntry flow,
+                                 Map<Short, ApplicationId> lookup) {
             row.cell(ID, flow.id().value())
                     .cell(STATE, flow.state())
                     .cell(BYTES, flow.bytes())
@@ -167,6 +200,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                     .cell(PRIORITY, flow.priority())
                     .cell(TABLE_ID, flow.tableId())
                     .cell(APP_ID, flow.appId())
+                    .cell(APP_NAME, makeAppName(flow.appId(), lookup))
 
                     .cell(GROUP_ID, flow.groupId().id())
                     .cell(TIMEOUT, flow.timeout())
@@ -177,7 +211,6 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                     .cell(TREATMENT_C, flow)
                     .cell(TREATMENT, flow);
         }
-
 
         private class InternalSelectorFormatter implements CellFormatter {
             private final boolean shortFormat;
@@ -375,6 +408,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 data.put(FLOW_PRIORITY, flow.priority());
                 data.put(TABLE_ID, flow.tableId());
                 data.put(APP_ID, flow.appId());
+                // NOTE: horribly inefficient... make a map and retrieve a single value...
+                data.put(APP_NAME, makeAppName(flow.appId(), appShortMap()));
 
                 data.put(GROUP_ID, decorateGroupId(flow));
                 data.put(TIMEOUT, flow.hardTimeout());

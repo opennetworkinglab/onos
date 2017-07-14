@@ -62,6 +62,7 @@
 
             'priority',
             'tableId',
+            'appName',
             'appId',
 
             'groupId',
@@ -78,6 +79,7 @@
 
             'Flow Priority',
             'Table ID',
+            'App Name',
             'App ID',
 
             'Group ID',
