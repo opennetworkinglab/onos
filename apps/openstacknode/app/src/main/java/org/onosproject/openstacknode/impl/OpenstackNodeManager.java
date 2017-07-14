@@ -30,12 +30,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.openstacknode.api.OpenstackNodeConfig;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -87,22 +81,9 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry configRegistry;
-
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
-    private final ConfigFactory configFactory =
-            new ConfigFactory<ApplicationId, OpenstackNodeConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY, OpenstackNodeConfig.class, "openstacknode") {
-                @Override
-                public OpenstackNodeConfig createConfig() {
-                    return new OpenstackNodeConfig();
-                }
-            };
-
-    private final NetworkConfigListener configListener = new InternalConfigListener();
     private final OpenstackNodeStoreDelegate delegate = new InternalNodeStoreDelegate();
 
     private ApplicationId appId;
@@ -116,18 +97,12 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
         localNode = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
 
-        configRegistry.registerConfigFactory(configFactory);
-        configRegistry.addListener(configListener);
-
-        readConfiguration();
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         osNodeStore.unsetDelegate(delegate);
-        configRegistry.removeListener(configListener);
-        configRegistry.unregisterConfigFactory(configFactory);
 
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
@@ -209,55 +184,6 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
             if (event != null) {
                 log.trace("send openstack node event {}", event);
                 process(event);
-            }
-        }
-    }
-
-    private void readConfiguration() {
-        OpenstackNodeConfig config = configRegistry.getConfig(appId, OpenstackNodeConfig.class);
-        if (config == null) {
-            log.debug("No configuration found");
-            return;
-        }
-
-        log.info("Read openstack node configurations...");
-        Set<String> hostnames = config.openstackNodes().stream()
-                .map(OpenstackNode::hostname)
-                .collect(Collectors.toSet());
-        nodes().stream().filter(osNode -> !hostnames.contains(osNode.hostname()))
-                .forEach(osNode -> removeNode(osNode.hostname()));
-
-        config.openstackNodes().forEach(osNode -> {
-            OpenstackNode existing = node(osNode.hostname());
-            if (existing == null) {
-                createNode(osNode);
-            } else if (!existing.equals(osNode)) {
-                updateNode(osNode);
-            }
-        });
-    }
-
-    private class InternalConfigListener implements NetworkConfigListener {
-
-        @Override
-        public void event(NetworkConfigEvent event) {
-            NodeId leaderNodeId = leadershipService.getLeader(appId.name());
-            if (!Objects.equals(localNode, leaderNodeId)) {
-                // do not allow to proceed without leadership
-                return;
-            }
-
-            if (!event.configClass().equals(OpenstackNodeConfig.class)) {
-                return;
-            }
-
-            switch (event.type()) {
-                case CONFIG_ADDED:
-                case CONFIG_UPDATED:
-                    eventExecutor.execute(OpenstackNodeManager.this::readConfiguration);
-                    break;
-                default:
-                    break;
             }
         }
     }

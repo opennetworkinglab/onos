@@ -5,7 +5,7 @@ COMPILE_DEPS = [
   '//lib:javax.ws.rs-api',
   '//utils/rest:onlab-rest',
   '//cli:onos-cli',
-  '//apps/openstacknode:onos-apps-openstacknode',
+  '//apps/openstacknode/api:onos-apps-openstacknode-api',
   '//lib:openstack4j-core',
 ]
 

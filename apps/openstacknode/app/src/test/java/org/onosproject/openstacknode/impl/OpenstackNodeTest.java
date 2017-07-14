@@ -46,7 +46,7 @@ abstract class OpenstackNodeTest {
     protected static OpenstackNode createNode(String hostname, NodeType type,
                                               Device intgBridge, IpAddress ipAddr,
                                               NodeState state) {
-        return DefaultOpenstackNode.builder()
+        return org.onosproject.openstacknode.impl.DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
@@ -59,7 +59,7 @@ abstract class OpenstackNodeTest {
     protected static OpenstackNode createNode(String hostname, NodeType type,
                                               Device intgBridge, Device routerBridge,
                                               IpAddress ipAddr, NodeState state) {
-        return DefaultOpenstackNode.builder()
+        return org.onosproject.openstacknode.impl.DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())

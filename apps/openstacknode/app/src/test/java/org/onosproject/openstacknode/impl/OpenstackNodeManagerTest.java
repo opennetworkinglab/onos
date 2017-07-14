@@ -29,7 +29,6 @@ import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
 import org.onosproject.net.Device;
-import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -43,7 +42,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
-import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.*;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_COMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_CREATED;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_INCOMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_REMOVED;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_UPDATED;
 
 /**
  * Unit tests for OpenStack node manager.
@@ -114,11 +117,10 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
         osNodeStore.createNode(COMPUTE_3);
         osNodeStore.createNode(GATEWAY_1);
 
-        target = new OpenstackNodeManager();
+        target = new org.onosproject.openstacknode.impl.OpenstackNodeManager();
         target.coreService = new TestCoreService();
         target.clusterService = new TestClusterService();
         target.leadershipService = new TestLeadershipService();
-        target.configRegistry = new TestConfigService();
         target.osNodeStore = osNodeStore;
         target.addListener(testListener);
         target.activate();
@@ -315,10 +317,6 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
         public ApplicationId registerApplication(String name) {
             return TEST_APP_ID;
         }
-    }
-
-    private class TestConfigService extends NetworkConfigRegistryAdapter {
-
     }
 
     private class TestClusterService extends ClusterServiceAdapter {
