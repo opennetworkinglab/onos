@@ -26,7 +26,7 @@ public enum MeterState {
     PENDING_ADD,
 
     /**
-     * THe meter has been added.
+     * The meter has been added.
      */
     ADDED,
 
