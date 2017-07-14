@@ -79,7 +79,7 @@
 
                 self.hideNav = hideNav;
                 $log.log('NavCtrl has been created');
-            }
+            },
         ])
         .factory('NavService',
             ['$log', '$location', '$window', 'FnService',
@@ -95,7 +95,7 @@
                     hideNav: hideNav,
                     toggleNav: toggleNav,
                     hideIfShown: hideIfShown,
-                    navTo: navTo
+                    navTo: navTo,
                 };
         }]);
 

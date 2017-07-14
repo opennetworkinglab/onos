@@ -27,7 +27,7 @@
     var instance,
         consumeClick,
         zoomer,
-        previousNearestLink;    // previous link to mouse position
+        previousNearestLink; // previous link to mouse position
 
     function mouseClickHandler() {
         if (d3.event.defaultPrevented) return;
@@ -162,11 +162,11 @@
         },
         updateDetails: function () {
 
-            var nodeCount =  this.selectedNodes.length;
+            var nodeCount = this.selectedNodes.length;
 
             if (nodeCount === 1) {
                 this.selectedNodes[0].showDetails();
-            } else if (nodeCount > 1)  {
+            } else if (nodeCount > 1) {
                 t2ddp.showMulti(this.selectedNodes);
             } else {
                 t2ddp.hide();
@@ -211,7 +211,7 @@
             var cc = consumeClick;
             consumeClick = Boolean(x);
             return cc;
-        }
+        },
     };
 
     angular.module('ovTopo2')
@@ -221,7 +221,7 @@
             t2zs = _t2zs_;
             t2ddp = _t2ddp_;
             return instance || new SelectionService();
-        }
+        },
     ]);
 
 })();

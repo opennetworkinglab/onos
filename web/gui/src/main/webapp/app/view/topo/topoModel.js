@@ -38,7 +38,7 @@
     // shorthand
     var lu, rlk, nodes, links, linksByDevice;
 
-    var dim;    // dimensions of layout [w,h]
+    var dim; // dimensions of layout [w,h]
 
     // configuration 'constants'
     var defaultLinkType = 'direct',
@@ -90,14 +90,14 @@
         function rand() {
             return {
                 x: rnd.randDim(dim[0]),
-                y: rnd.randDim(dim[1])
+                y: rnd.randDim(dim[1]),
             };
         }
 
         function near(node) {
             return {
                 x: node.x + nearDist + rnd.spread(nearDist),
-                y: node.y + nearDist + rnd.spread(nearDist)
+                y: node.y + nearDist + rnd.spread(nearDist),
             };
         }
 
@@ -181,7 +181,7 @@
                 // hostlink target is edge switch
                 return lnk.target.online;
             },
-            linkWidth: function () { return 1; }
+            linkWidth: function () { return 1; },
         });
         return lnk;
     }
@@ -203,7 +203,7 @@
                 x1: 0,
                 y1: 0,
                 x2: 0,
-                y2: 0
+                y2: 0,
             },
 
             // functions to aggregate dual link state
@@ -230,7 +230,7 @@
                     wt = (t && t.linkWidth) || 0;
                 return lnk.position.multiLink ? 5 : Math.max(ws, wt);
             },
-            extra: link.extra
+            extra: link.extra,
         });
         return lnk;
     }
@@ -244,13 +244,13 @@
 
         if (sMiss || dMiss) {
             $log.error('Node(s) not on map for link:' + sMiss + dMiss);
-            //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
+            // logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
             return null;
         }
 
         return {
             source: srcNode,
-            target: dstNode
+            target: dstNode,
         };
     }
 
@@ -306,7 +306,7 @@
                 result.updateWith = function (data) {
                     angular.extend(rawLink, data);
                     api.restyleLinkElement(ldata);
-                }
+                };
             }
         } else if (op === 'remove') {
             if (!ldata) {
@@ -349,7 +349,7 @@
                         } else {
                             api.removeLinkElement(ldata);
                         }
-                    }
+                    };
                 }
             }
         }
@@ -466,7 +466,7 @@
                 findHosts: findHosts,
                 findAttachedHosts: findAttachedHosts,
                 findAttachedLinks: findAttachedLinks,
-                findBadLinks: findBadLinks
-            }
+                findBadLinks: findBadLinks,
+            };
         }]);
 }());

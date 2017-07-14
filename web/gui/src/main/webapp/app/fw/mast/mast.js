@@ -24,7 +24,7 @@
     var mastHeight = 48,
         padMobile = 16,
         dialogOpts = {
-            edge: 'left'
+            edge: 'left',
         };
 
     var ls;
@@ -83,8 +83,8 @@
             }
 
             wss.bindHandlers({
-                'guiAdded': function () { triggerRefresh('add') },
-                'guiRemoved': function () { triggerRefresh('rem') }
+                'guiAdded': function () { triggerRefresh('add'); },
+                'guiRemoved': function () { triggerRefresh('rem'); },
             });
 
             // delegate to NavService
@@ -120,8 +120,8 @@
             return {
                 mastHeight: function () {
                     return fs.isMobile() ? mastHeight + padMobile : mastHeight;
-                }
-            }
+                },
+            };
         }]);
 
 }());

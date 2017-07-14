@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, ps;
+    var $log, ps;
 
     // configuration
     var themes = ['light', 'dark'],
@@ -36,33 +36,33 @@
         gray1: {
             fill: {
                 light: '#eeeeee',
-                dark: '#222222'
+                dark: '#222222',
             },
             stroke: {
                 light: '#cccccc',
-                dark: '#333333'
-            }
+                dark: '#333333',
+            },
         },
         gold1: {
             fill: {
                 light: '#eeddaa',
-                dark: '#544714'
+                dark: '#544714',
             },
             stroke: {
                 light: '#ffddaa',
-                dark: '#645724'
-            }
+                dark: '#645724',
+            },
         },
         blue1: {
             fill: {
                 light: '#a2b9ee',
-                dark: '#273059'
+                dark: '#273059',
             },
             stroke: {
                 light: '#92a9de',
-                dark: '#273a63'
-            }
-        }
+                dark: '#273a63',
+            },
+        },
     };
 
     function init() {
@@ -109,8 +109,8 @@
             m = 'Theme-Change-(' + w + '): ' + t;
         $log.debug(m);
 
-        listeners.forEach(function (lsnr) { 
-            lsnr({event: 'themeChange', value: t}); 
+        listeners.forEach(function (lsnr) {
+            lsnr({ event: 'themeChange', value: t });
         });
     }
 
@@ -119,7 +119,7 @@
     }
 
     function removeListener(lsnr) {
-        listeners = listeners.filter(function(obj) { return obj !== lsnr; });
+        listeners = listeners.filter(function (obj) { return obj !== lsnr; });
     }
 
     // color = logical color name
@@ -133,10 +133,9 @@
     }
 
     angular.module('onosUtil')
-        .factory('ThemeService', ['$log', 'FnService', 'PrefsService',
-        function (_$log_, _fs_, _ps_) {
+        .factory('ThemeService', ['$log', 'PrefsService',
+        function (_$log_, _ps_) {
             $log = _$log_;
-            fs = _fs_;
             ps = _ps_;
 
             ps.addListener(applyTheme);
@@ -153,7 +152,7 @@
                 toggleTheme: toggleTheme,
                 addListener: addListener,
                 removeListener: removeListener,
-                spriteColor: spriteColor
+                spriteColor: spriteColor,
             };
     }]);
 

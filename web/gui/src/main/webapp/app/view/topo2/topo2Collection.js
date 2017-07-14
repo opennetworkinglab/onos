@@ -116,7 +116,7 @@
             return this.models.map(function (model) {
                 return model.toJSON(options);
             });
-        }
+        },
     };
 
     angular.module('ovTopo2')
@@ -126,7 +126,7 @@
                 Collection.extend = fn.extend;
                 Model = _Model_;
                 return Collection;
-            }
+            },
         ]);
 
 })();

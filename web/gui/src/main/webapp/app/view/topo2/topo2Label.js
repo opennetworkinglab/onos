@@ -25,20 +25,20 @@
     var defaultStyles = {
         label: {
             text: {
-                fill: '#000000'
+                fill: '#000000',
             },
             rect: {
-                fill: '#ffffff'
-            }
+                fill: '#ffffff',
+            },
         },
         icon: {
             glyph: {
-                fill: '#000000'
+                fill: '#000000',
             },
             rect: {
-                fill: '#ffffff'
-            }
-        }
+                fill: '#ffffff',
+            },
+        },
     };
 
     angular.module('ovTopo2')
@@ -69,9 +69,9 @@
                             this._labelG.text.text(this.get('label'));
                             this._labelG.rect.attr({
                                 width: width,
-                                height: height
+                                height: height,
                             }).style({
-                                transform: sus.translate(-(width/2) + 'px', -(height/2) + 'px')
+                                transform: sus.translate(-(width/2) + 'px', -(height/2) + 'px'),
                             });
                         }
                     },
@@ -108,9 +108,9 @@
 
                         this._labelG.rect.attr({
                             width: this._labelG.text.node().getBBox().width + 20,
-                            height: this._labelG.text.node().getBBox().height + 10
+                            height: this._labelG.text.node().getBBox().height + 10,
                         }).style({
-                            transform: sus.translate('-50%', '-50%')
+                            transform: sus.translate('-50%', '-50%'),
                         });
                     },
                     renderIcon: function () {
@@ -123,7 +123,7 @@
                         this._iconG.rect = this._iconG.el.append('rect')
                             .attr({
                                 width: this.iconSize,
-                                height: this.iconSize
+                                height: this.iconSize,
                             });
 
                         this._iconG.glyph = is.addDeviceIcon(this._iconG.el,
@@ -131,9 +131,9 @@
 
 
                         var iconX = (-bbox.width / 2) - this.iconSize + 'px',
-                            iconY = -this.iconSize /2  + 'px';
+                            iconY = -this.iconSize /2 + 'px';
                         this._iconG.el.style({
-                            transform: sus.translate(iconX, iconY)
+                            transform: sus.translate(iconX, iconY),
                         });
                     },
                     beforeRender: function () {},
@@ -141,7 +141,7 @@
                         this.el = this.parent.append('g')
                             .attr('class', 'topo2-label')
                             .style({
-                                transform: 'translate(300px, 300px)'
+                                transform: 'translate(300px, 300px)',
                             });
 
                         this.content = this.el.append('g')
@@ -160,8 +160,8 @@
                     afterRender: function () {},
                     remove: function () {
                         this.el.remove();
-                    }
+                    },
                 });
-            }
+            },
         ]);
 })();

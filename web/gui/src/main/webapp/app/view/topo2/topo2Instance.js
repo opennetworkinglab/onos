@@ -4,15 +4,12 @@
     // injected refs
     var $log, ps, sus, gs, flash, ts, t2mss;
 
-    // api from topo
-    var api;
-
     // configuration
     var showLogicErrors = true,
         idIns = 'topo2-p-instance',
         instOpts = {
             edge: 'left',
-            width: 20
+            width: 20,
         };
 
     // internal state
@@ -97,24 +94,24 @@
             instSvg = {
                 width: 170,
                 height: 85,
-                viewBox: '0 0 170 85'
+                viewBox: '0 0 170 85',
             },
             headRect = {
                 x: rox,
                 y: roy,
                 width: rw,
-                height: rhh
+                height: rhh,
             },
             bodyRect = {
                 x: rox,
                 y: roy + rhh,
                 width: rw,
-                height: rbh
+                height: rbh,
             },
             titleAttr = {
                 class: 'instTitle',
                 x: tx,
-                y: 27
+                y: 27,
             };
 
         var onoses = oiBox.el().selectAll('.onosInst')
@@ -180,7 +177,7 @@
                 svg.append('text').attr({
                     class: 'instLabel ' + id,
                     x: tx,
-                    y: ty
+                    y: ty,
                 }).text(label);
                 ty += 18;
             }
@@ -215,8 +212,7 @@
         }
     }
 
-    function initInst(_api_) {
-        api = _api_;
+    function initInst() {
         oiBox = ps.createPanel(idIns, instOpts);
         oiBox.show();
 
@@ -286,9 +282,9 @@
                     allInstances: allInstances,
                     destroy: destroy,
                     toggle: toggle,
-                    isVisible: function () { return oiBox.isVisible(); }
+                    isVisible: function () { return oiBox.isVisible(); },
                 };
-            }
+            },
         ]);
 
 })();

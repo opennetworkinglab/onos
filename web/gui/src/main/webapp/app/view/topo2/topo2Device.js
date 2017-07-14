@@ -26,13 +26,13 @@
 
     var remappedDeviceTypes = {
         switch: 'm_switch',
-        virtual: 'cord'
+        virtual: 'cord',
     };
 
     function createDeviceCollection(data) {
 
         var DeviceCollection = Collection.extend({
-            model: Model
+            model: Model,
         });
 
         var devices = [];
@@ -58,7 +58,7 @@
                     nodeType: 'device',
                     multiSelectEnabled: true,
                     events: {
-                        'click': 'onClick'
+                        'click': 'onClick',
                     },
 
                     initialize: function () {
@@ -88,7 +88,7 @@
                         var id = this.mastershipService.mastership(),
                             suppress = id ? this.get('master') !== id : false;
 
-                        this.set({mastership: suppress});
+                        this.set({ mastership: suppress });
                     },
                     setOfflineVisibility: function () {
                         var showOffline = ps.getPrefs('topo2_prefs')['offline_devices'],
@@ -107,13 +107,13 @@
                             .style('stroke-fill', '#555')
                             .style('fill', '#888')
                             .style('opacity', 0.5);
-                    }
+                    },
                 });
 
                 return {
-                    createDeviceCollection: createDeviceCollection
+                    createDeviceCollection: createDeviceCollection,
                 };
-            }
+            },
         ]);
 
 })();

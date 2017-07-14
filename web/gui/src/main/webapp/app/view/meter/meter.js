@@ -49,7 +49,7 @@
             tbs.buildTable({
                 scope: $scope,
                 tag: 'meter',
-                query: params
+                query: params,
             });
 
             $scope.$watch('tableData', function () {
@@ -66,12 +66,12 @@
                 }
             };
 
-            Object.defineProperty($scope, "queryFilter", {
-                get: function() {
+            Object.defineProperty($scope, 'queryFilter', {
+                get: function () {
                     var out = {};
-                    out[$scope.queryBy || "$"] = $scope.query;
+                    out[$scope.queryBy || '$'] = $scope.query;
                     return out;
-                }
+                },
             });
 
 

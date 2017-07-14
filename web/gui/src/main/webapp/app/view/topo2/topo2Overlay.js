@@ -22,12 +22,11 @@
     var t2os = 'Topo2OverlayService: ';
 
     // injected refs
-    var $log, $timeout, fs, gs, wss, t2kcs, t2rs, t2lc, api, LinkLabel;
+    var $log, fs, t2kcs, t2rs, t2lc, LinkLabel;
 
     // internal state
     var overlays = {},
-        current = null,
-        reset = true;
+        current = null;
 
     function error(fn, msg) {
         $log.error(t2os + fn + '(): ' + msg);
@@ -119,10 +118,6 @@
     // === -----------------------------------------------------
     //  Event Handlers (events from server)
 
-    function setApi(_api_) {
-        api = _api_;
-    }
-
     function setOverlay(ovid) {
         var ov = overlays[ovid];
         if (!ov) {
@@ -143,7 +138,7 @@
                 nodeLink = t2rs.getLink(id);
                 if (nodeLink) {
                     t2lc.addLabel(LinkLabel, link, linkLabelsDOM, {
-                        link: nodeLink
+                        link: nodeLink,
                     });
                 }
         });
@@ -153,17 +148,13 @@
 
     angular.module('ovTopo2')
     .factory('Topo2OverlayService', [
-        '$log', '$timeout', 'FnService', 'GlyphService', 'WebSocketService',
-        'Topo2KeyCommandService', 'Topo2RegionService', 'Topo2LabelCollection',
-        'Topo2LinkLabel',
+        '$log', 'FnService', 'Topo2KeyCommandService',
+        'Topo2RegionService', 'Topo2LabelCollection', 'Topo2LinkLabel',
 
-        function (_$log_, _$timeout_, _fs_, _gs_, _wss_, _t2kcs_, _t2rs_,
+        function (_$log_, _fs_, _t2kcs_, _t2rs_,
             _t2lc_, _t2ll_) {
             $log = _$log_;
-            $timeout = _$timeout_;
             fs = _fs_;
-            gs = _gs_;
-            wss = _wss_;
             t2kcs = _t2kcs_;
             t2rs = _t2rs_;
             t2lc = _t2lc_;
@@ -171,7 +162,6 @@
 
             return {
                 register: register,
-                setApi: setApi,
                 setOverlay: setOverlay,
 
                 hooks: {
@@ -180,11 +170,10 @@
                     singleSelect: singleSelectHook,
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
-                    mouseOut: mouseOutHook
+                    mouseOut: mouseOutHook,
                 },
-                showHighlights: showHighlights
-            }
-        }
+                showHighlights: showHighlights,
+            };
+        },
     ]);
-
 }());

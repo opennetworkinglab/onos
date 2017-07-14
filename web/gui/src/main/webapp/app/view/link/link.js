@@ -28,7 +28,7 @@
         function ($log, $scope, $sce, fs, tbs) {
             tbs.buildTable({
                 scope: $scope,
-                tag: 'link'
+                tag: 'link',
             });
 
             $scope.$watch('tableData', function () {

@@ -23,14 +23,13 @@
     'use strict';
 
     // Injected Services
-    var $log, $loc, ps, ms, flash, sus, t2zs, countryFilters;
+    var t2zs, countryFilters, ms;
 
     // internal state
-    var instance, mapG, zoomLayer, zoomer, currentMap;
+    var instance, zoomer, currentMap;
 
     function init() {
         this.appendElement('#topo2-background', 'g');
-        zoomLayer = d3.select('#topo2-zoomlayer');
         zoomer = t2zs.getZoomer();
         currentMap = null;
     }
@@ -38,7 +37,7 @@
     function setUpMap(mapId, mapFilePath, mapScale) {
 
         if (currentMap === mapId) {
-            return new Promise(function(resolve) {
+            return new Promise(function (resolve) {
                 resolve();
             });
         }
@@ -48,7 +47,7 @@
         var loadMap = ms.loadMapInto,
             promise, cfilter;
 
-        this.node().selectAll("*").remove();
+        this.node().selectAll('*').remove();
 
         if (mapFilePath === '*countries') {
             cfilter = countryFilters[mapId] || countryFilters.uk;
@@ -58,7 +57,7 @@
         promise = loadMap(this.node(), mapFilePath, mapId, {
             countryFilters: cfilter,
             adjustScale: mapScale || 1,
-            shading: ''
+            shading: '',
         });
 
         return promise;
@@ -80,19 +79,11 @@
 
     angular.module('ovTopo2')
     .factory('Topo2MapService', [
-        '$log', '$location', 'Topo2ViewController', 'PrefsService',
-        'MapService', 'FlashService', 'SvgUtilService', 'Topo2ZoomService',
+        'Topo2ZoomService', 'MapService', 'Topo2ViewController',
 
-        function (_$log_, _$loc_, ViewController, _ps_,
-                  _ms_, _flash_, _sus_, _t2zs_) {
-
-            $log = _$log_;
-            $loc = _$loc_;
-            ps = _ps_;
-            ms = _ms_;
-            flash = _flash_;
-            sus = _sus_;
+        function (_t2zs_, _ms_, ViewController) {
             t2zs = _t2zs_;
+            ms = _ms_;
 
             var MapLayer = ViewController.extend({
 
@@ -103,10 +94,10 @@
                 setUpMap: setUpMap,
                 resetZoom: resetZoom,
                 zoomCallback: zoomCallback,
-                getCurrentMap: getCurrentMap
+                getCurrentMap: getCurrentMap,
             });
 
             return instance || new MapLayer();
-        }
+        },
     ]);
 })();

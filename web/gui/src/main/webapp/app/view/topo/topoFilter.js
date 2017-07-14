@@ -24,7 +24,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, tps, tts;
+    var flash;
 
     // api to topoForce
     var api;
@@ -39,40 +39,40 @@
     var layerLookup = {
             host: {
                 endstation: 'pkt', // default, if host event does not define type
-                router:     'pkt',
-                bgpSpeaker: 'pkt'
+                router: 'pkt',
+                bgpSpeaker: 'pkt',
             },
             device: {
                 switch: 'pkt',
                 router: 'pkt',
                 roadm: 'opt',
-                otn: 'opt'
+                otn: 'opt',
             },
             link: {
                 hostLink: 'pkt',
                 direct: 'pkt',
                 indirect: '',
                 tunnel: '',
-                optical: 'opt'
-            }
+                optical: 'opt',
+            },
         },
         // order of layer cycling in button
         dispatch = [
             {
                 type: 'all',
                 action: function () { suppressLayers(false); },
-                msg: 'All Layers Shown'
+                msg: 'All Layers Shown',
             },
             {
                 type: 'pkt',
                 action: function () { showLayer('pkt'); },
-                msg: 'Packet Layer Shown'
+                msg: 'Packet Layer Shown',
             },
             {
                 type: 'opt',
                 action: function () { showLayer('opt'); },
-                msg: 'Optical Layer Shown'
-            }
+                msg: 'Optical Layer Shown',
+            },
         ],
         layer = 0;
 
@@ -123,18 +123,9 @@
     // === MODULE DEFINITION ===
 
     angular.module('ovTopo')
-        .factory('TopoFilterService',
-        ['$log', 'FnService',
-            'FlashService',
-            'TopoPanelService',
-            'TopoTrafficService',
-
-            function (_$log_, _fs_, _flash_, _tps_, _tts_) {
-                $log = _$log_;
-                fs = _fs_;
+        .factory('TopoFilterService', ['FlashService',
+            function (_flash_) {
                 flash = _flash_;
-                tps = _tps_;
-                tts = _tts_;
 
                 function initFilter(_api_) {
                     api = _api_;
@@ -145,7 +136,8 @@
 
                     clickAction: clickAction,
                     selected: selected,
-                    inLayer: inLayer
+                    inLayer: inLayer,
                 };
-            }]);
+            },
+        ]);
 }());

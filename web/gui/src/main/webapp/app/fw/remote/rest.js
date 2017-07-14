@@ -66,7 +66,7 @@
 
             return {
                 get: get,
-                post: post
+                post: post,
             };
         }]);
 }());

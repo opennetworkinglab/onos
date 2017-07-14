@@ -25,7 +25,7 @@
         zoomMin: 0.05,
         zoomMax: 50,
         zoomEnabled: function (ev) { return true; },
-        zoomCallback: function () {}
+        zoomCallback: function () {},
     };
 
     // injected references to services
@@ -95,7 +95,7 @@
 
                     settings.zoomLayer.transition()
                         .duration(transition || 0)
-                        .attr("transform",
+                        .attr('transform',
                             'translate(' + translate + ')scale(' + scale + ')');
 
                     settings.zoomCallback(translate, scale);
@@ -109,7 +109,7 @@
                     },
 
                     reset: function () {
-                        zoomer.panZoom([0,0], 1);
+                        zoomer.panZoom([0, 0], 1);
                     },
 
                     translate: function () {
@@ -122,7 +122,7 @@
 
                     scaleExtent: function () {
                         return zoom.scaleExtent();
-                    }
+                    },
                 };
 
                 // apply the zoom behavior to the SVG element
@@ -130,12 +130,12 @@
 
                 // Remove zoom on double click (prevents a
                 // false zoom navigating regions)
-                settings.svg.on("dblclick.zoom", null);
+                settings.svg.on('dblclick.zoom', null);
                 return zoomer;
             }
 
             return {
-                createZoomer: createZoomer
+                createZoomer: createZoomer,
             };
         }]);
 

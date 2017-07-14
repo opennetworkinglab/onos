@@ -24,7 +24,7 @@
     // constants and configuration
     var dialogId = 'remove-intent-dialog',
         dialogOpts = {
-            edge: 'right'
+            edge: 'right',
         };
 
     // DOM elements
@@ -61,7 +61,7 @@
                 appId: id,
                 appName: name,
                 key: row.key,
-                intentType: row.type
+                intentType: row.type,
             } : null;
 
         $scope.intentState = row.state;
@@ -84,7 +84,7 @@
         dropdown.style('display', b ? 'block' : 'none');
     }
 
-    function showIntent () {
+    function showIntent() {
         var d = $scope.intentData,
             handlers,
             nh;
@@ -163,7 +163,7 @@
             // set up scope function references...
             $scope.showIntent = showIntent;
 
-            $scope.canShowIntent = function() {
+            $scope.canShowIntent = function () {
                 var d = $scope.intentData;
                 return d && tov.overlaysAcceptingIntents(d.intentType).length > 0;
             };
@@ -174,7 +174,7 @@
                 tag: 'intent',
                 selCb: selCb,
                 respCb: respCb,
-                idKey: 'key'
+                idKey: 'key',
             });
 
 
@@ -200,7 +200,6 @@
 
             function executeAction(action) {
                 var content = ds.createDiv(),
-                    txt,
                     bPurge = action === 'purge';
 
                 $scope.intentData.intentPurge = bPurge;
@@ -231,10 +230,10 @@
             }
 
             function executeActions(action) {
-                 var content = ds.createDiv(),
-                     txt='purgeIntents';
-                     content.append('p').
-                     text('Are you sure you want to purge all the withdrawn intents?');
+                 var content = ds.createDiv();
+
+                 content.append('p')
+                    .text('Are you sure you want to purge all the withdrawn intents?');
 
                  function dOk() {
                      tts.removeIntents();
@@ -255,15 +254,15 @@
             }
 
             $scope.deactivateIntent = function () {
-                executeAction("withdraw");
+                executeAction('withdraw');
             };
 
             $scope.resubmitIntent = function () {
-                executeAction("resubmit");
+                executeAction('resubmit');
             };
 
             $scope.purgeIntent = function () {
-                executeAction("purge");
+                executeAction('purge');
             };
 
             $scope.briefToggle = function () {
@@ -276,8 +275,9 @@
             });
 
             $scope.purgeIntents = function () {
-                executeActions("purgeIntents");
+                executeActions('purgeIntents');
             };
+
             $log.debug('OvIntentCtrl has been created');
         }]);
 }());

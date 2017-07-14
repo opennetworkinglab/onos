@@ -42,7 +42,7 @@
 
     // key to button mapping data
     var k2b = {
-        O: { id: 'summary-tog', gid: 'm_summary', isel: true},
+        O: { id: 'summary-tog', gid: 'm_summary', isel: true },
         I: { id: 'instance-tog', gid: 'm_uiAttached', isel: true },
         D: { id: 'details-tog', gid: 'm_details', isel: true },
         H: { id: 'hosts-tog', gid: 'm_endstation', isel: false },
@@ -57,12 +57,12 @@
         L: { id: 'cycleLabels-btn', gid: 'm_cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'm_resetZoom' },
 
-        E: { id: 'eqMaster-btn', gid: 'm_eqMaster' }
+        E: { id: 'eqMaster-btn', gid: 'm_eqMaster' },
     };
 
     var prohibited = [
         'T', 'backSlash', 'slash',
-        'X' // needed until we re-instate X above.
+        'X', // needed until we re-instate X above.
     ];
     prohibited = prohibited.concat(d3.map(k2b).keys());
 
@@ -79,8 +79,8 @@
             porthl: 1,
             bg: 0,
             spr: 0,
-            ovid: 'traffic',   // default to traffic overlay
-            toolbar: 0
+            ovid: 'traffic', // default to traffic overlay
+            toolbar: 0,
         },
         prefsMap = {
             summary: 'O',
@@ -90,7 +90,7 @@
             offdev: 'M',
             porthl: 'P',
             bg: 'B',
-            spr: 'S'
+            spr: 'S',
             // NOTE: toolbar state is handled separately
         };
 
@@ -125,10 +125,10 @@
     function initKeyData() {
         // TODO: use angular forEach instead of d3.map
         keyData = d3.map(k2b);
-        keyData.forEach(function(key, value) {
+        keyData.forEach(function (key, value) {
             var data = api.getActionEntry(key);
-            value.cb = data[0];                     // on-click callback
-            value.tt = data[1] + ' (' + key + ')';  // tooltip
+            value.cb = data[0]; // on-click callback
+            value.tt = data[1] + ' (' + key + ')'; // tooltip
         });
     }
 
@@ -158,7 +158,7 @@
     }
 
     function addSecondRow() {
-        //addToggle('X');
+        // addToggle('X');
         addToggle('Z');
         addButton('N');
         addButton('L');
@@ -176,7 +176,7 @@
                 tooltip: 'No Overlay',
                 cb: function () {
                     tov.tbSelection(null, switchOverlayActions);
-                }
+                },
             }];
         ovIndex = tov.augmentRbset(rset, switchOverlayActions);
         ovRset = toolbar.addRadioSet('topo-overlays', rset);
@@ -317,7 +317,7 @@
                 toggleToolbar: toggleToolbar,
                 selectOverlay: selectOverlay,
                 defaultPrefs: defaultPrefsState,
-                fnkey: fnkey
+                fnkey: fnkey,
             };
         }]);
 }());

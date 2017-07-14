@@ -68,7 +68,7 @@
 
             return {
                 rsUrl: rsUrl,
-                wsUrl: wsUrl
+                wsUrl: wsUrl,
             };
         }]);
 

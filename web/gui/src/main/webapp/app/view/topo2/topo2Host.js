@@ -32,7 +32,7 @@
     function createHostCollection(data, region) {
 
         var HostCollection = Collection.extend({
-            model: Model
+            model: Model,
         });
 
         var hosts = [];
@@ -57,7 +57,7 @@
 
                 nodeType: 'host',
                 events: {
-                    'click': 'onClick'
+                    'click': 'onClick',
                 },
                 initialize: function () {
                     this.super = this.constructor.__super__;
@@ -69,7 +69,7 @@
                         this.el.attr('class', this.svgClassName());
                     }
                 },
-                showDetails: function() {
+                showDetails: function () {
                     t2hds.displayPanel(this);
                 },
                 icon: function () {
@@ -118,7 +118,7 @@
                         width: glyphSize,
                         height: glyphSize,
                         x: -glyphSize / 2,
-                        y: -glyphSize / 2
+                        y: -glyphSize / 2,
                     });
 
                     var labelText = this.label();
@@ -132,13 +132,13 @@
                     this.setScale();
                     this.setUpEvents();
                     this.setVisibility();
-                }
+                },
             });
 
             return {
-                createHostCollection: createHostCollection
+                createHostCollection: createHostCollection,
             };
-        }
+        },
     ]);
 
 })();

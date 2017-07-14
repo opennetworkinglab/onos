@@ -46,21 +46,15 @@
         detailsResp = 'deviceDetailsResponse',
         nameChangeReq = 'deviceNameChangeRequest',
         nameChangeResp = 'deviceNameChangeResponse',
-
-        propSplit = 4,
-        propOrder = [
-            'id', 'type', 'masterid', 'chassisid',
-            'mfr', 'hw', 'sw', 'protocol', 'serial'
-        ],
         friendlyProps = [
             'URI', 'Type', 'Master ID', 'Chassis ID',
-            'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #'
+            'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #',
         ],
         portCols = [
-            'enabled', 'id', 'speed', 'type', 'elinks_dest', 'name'
+            'enabled', 'id', 'speed', 'type', 'elinks_dest', 'name',
         ],
         friendlyPortCols = [
-            'Enabled', 'ID', 'Speed', 'Type', 'Egress Links', 'Name'
+            'Enabled', 'ID', 'Speed', 'Type', 'Egress Links', 'Name',
         ];
 
     function closePanel() {
@@ -175,20 +169,15 @@
         top.select('h2').text(details.name);
 
         // === demonstrate use of JsonCodec object see ONOS-5976
-        addProp(leftTbl,  0, device.id);
-        addProp(leftTbl,  1, device.type);
-        addProp(leftTbl,  2, details['masterid']);
-        addProp(leftTbl,  3, details['chassid']);
+        addProp(leftTbl, 0, device.id);
+        addProp(leftTbl, 1, device.type);
+        addProp(leftTbl, 2, details['masterid']);
+        addProp(leftTbl, 3, details['chassid']);
         addProp(rightTbl, 4, device.mfr);
         addProp(rightTbl, 5, device.hw);
         addProp(rightTbl, 6, device.sw);
         addProp(rightTbl, 7, details['protocol']);
         addProp(rightTbl, 8, device.serial);
-
-        // propOrder.forEach(function (prop, i) {
-        //     // properties are split into two tables
-        //     addProp(i < propSplit ? leftTbl : rightTbl, i, details[prop]);
-        // });
     }
 
     function addPortRow(tbody, port) {
@@ -223,7 +212,7 @@
             height: tbHeight + 'px',
             width: tbWidth + 'px',
             overflow: 'auto',
-            display: 'block'
+            display: 'block',
         });
 
         detailsPanel.width(tbWidth + ctnrPdg);
@@ -261,11 +250,11 @@
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
             margin: 0,
-            hideMargin: 0
+            hideMargin: 0,
         });
         detailsPanel.el().style({
             position: 'absolute',
-            top: pStartY + 'px'
+            top: pStartY + 'px',
         });
         $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
@@ -339,7 +328,7 @@
             tbs.buildTable({
                 scope: $scope,
                 tag: 'device',
-                selCb: selCb
+                selCb: selCb,
             });
 
 
@@ -347,7 +336,7 @@
             // TODO: more than just an example
             tds.buildBasePanel({
                 popTop: popTop,
-                popMid: popMid
+                popMid: popMid,
             });
             // ==================== for testing for now ===============
 
@@ -394,11 +383,11 @@
             ks.keyBindings({
                 enter: editNameSave,
                 esc: [handleEscape, 'Close the details panel'],
-                _helpFormat: ['esc']
+                _helpFormat: ['esc'],
             });
             ks.gestureNotes([
                 ['click', 'Select a row to show device details'],
-                ['scroll down', 'See more devices']
+                ['scroll down', 'See more devices'],
             ]);
 
             // if the panelData changes
@@ -414,7 +403,7 @@
                 function () {
                     return {
                         h: $window.innerHeight,
-                        w: $window.innerWidth
+                        w: $window.innerWidth,
                     };
                 }, function () {
                     if (!fs.isEmptyObject(scope.panelData)) {

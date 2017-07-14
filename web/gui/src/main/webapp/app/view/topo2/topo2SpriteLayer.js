@@ -19,11 +19,10 @@
  Defines behavior for loading sprites into the sprite layer.
  */
 
- (function() {
+ (function () {
     'use strict';
 
-    var instance,
-        renderer;
+    var instance;
 
     function vbox(w, h) {
       return '0 0 ' + w + ' ' + h;
@@ -41,14 +40,14 @@
                     id: 'topo2-sprites',
                     displayName: 'Sprite Layer',
 
-                    init: function() {
+                    init: function () {
                         this.svg = d3.select('#topo2');
                         this.createSpriteDefs();
                         this.container = this.appendElement('#topo2-background', 'g');
                     },
                     loadLayout: function (id) {
                         var _this = this;
-                        this.container.selectAll("*").remove();
+                        this.container.selectAll('*').remove();
                         this.layout = ss.layout(id);
 
                         if (this.layout) {
@@ -65,7 +64,7 @@
                         }
 
                         // Returns a promise for consistency with Topo2MapService
-                        return new Promise(function(resolve) {
+                        return new Promise(function (resolve) {
                             resolve(_this);
                         });
                     },
@@ -132,7 +131,7 @@
 
                             layout
                                 .append('g')
-                                .append("use")
+                                .append('use')
                                 .attr('xlink:href', '#rack')
                                 .attr('width', 20)
                                 .attr('height', 25)
@@ -164,7 +163,7 @@
                                 .attr('y', i * gridSpacing)
                                 .attr('x', 0);
                         }
-                    }
+                    },
                 });
 
                 function getInstance() {
@@ -172,6 +171,6 @@
                 }
 
                 return getInstance();
-            }
-        ])
+            },
+        ]);
  })();

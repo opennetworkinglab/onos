@@ -23,12 +23,11 @@
 
     'use strict';
 
-    var $log, $loc, wss, t2rns;
+    var t2rns;
 
     // Internal
     var breadcrumbContainer,
-        breadcrumbs,
-        layout;
+        breadcrumbs;
 
     function init() {
         breadcrumbs = [];
@@ -96,27 +95,21 @@
             });
     }
 
-    function addLayout(_layout_) {
-        layout = _layout_;
-    }
+    // TODO: Remove references
+    function addLayout(_layout_) {}
 
     angular.module('ovTopo2')
     .factory('Topo2BreadcrumbService', [
-        '$log', '$location', 'WebSocketService',
         'Topo2RegionNavigationService',
-        function (_$log_, _$loc_, _wss_, _t2rns_) {
-
-            $log = _$log_;
-            $loc = _$loc_;
-            wss = _wss_;
+        function (_t2rns_) {
             t2rns = _t2rns_;
 
             return {
                 init: init,
                 addBreadcrumb: addBreadcrumb,
                 addLayout: addLayout,
-                hide: hide
+                hide: hide,
             };
-        }
+        },
     ]);
 })();

@@ -19,18 +19,18 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, wss, api;
+    var $log, flash, wss;
 
     // configuration
     var allTrafficTypes = [
             'flowStatsBytes',
             'portStatsBitSec',
-            'portStatsPktSec'
+            'portStatsPktSec',
         ],
         allTrafficMsgs = [
             'Flow Stats (bytes)',
             'Port Stats (bits / second)',
-            'Port Stats (packets / second)'
+            'Port Stats (packets / second)',
         ];
 
     // internal state
@@ -57,7 +57,7 @@
 
         mode = 'allFlowPort';
         wss.sendEvent('topo2RequestAllTraffic', {
-            trafficType: allTrafficTypes[allIndex]
+            trafficType: allTrafficTypes[allIndex],
         });
         flash.flash(allTrafficMsgs[allIndex]);
         currentIndex = allIndex;
@@ -72,23 +72,23 @@
 
     angular.module('ovTopo2')
         .factory('Topo2TrafficService', [
-            '$log', 'FnService', 'FlashService', 'WebSocketService',
+            '$log', 'FlashService', 'WebSocketService',
 
-            function (_$log_, _fs_, _flash_, _wss_) {
+            function (_$log_, _flash_, _wss_) {
                 $log = _$log_;
-                fs = _fs_;
                 flash = _flash_;
                 wss = _wss_;
 
                 return {
-                    initTraffic: function (_api_) { api = _api_; },
+                    // TODO: Remove References
+                    initTraffic: function (_api_) {},
                     destroyTraffic: function () {},
 
                     // invoked from toolbar overlay buttons or keystrokes
                     cancelTraffic: cancelTraffic,
                     showAllTraffic: showAllTraffic,
-                    selectedTrafficOverlay: selectedTrafficOverlay
-                }
-            }
+                    selectedTrafficOverlay: selectedTrafficOverlay,
+                };
+            },
         ]);
 }());

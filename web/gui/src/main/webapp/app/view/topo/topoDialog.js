@@ -25,7 +25,7 @@
     // constants
     var idDialog = 'topo-p-dialog',
         opts = {
-            cssCls: 'topo-p'
+            cssCls: 'topo-p',
         };
 
     // ==========================
@@ -38,7 +38,7 @@
             return {
                 openDialog: function () { return ds.openDialog(idDialog, opts); },
                 closeDialog: ds.closeDialog,
-                createDiv: ds.createDiv
+                createDiv: ds.createDiv,
             };
         }]);
 }());

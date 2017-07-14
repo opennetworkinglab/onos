@@ -23,12 +23,12 @@
     'use strict';
 
     // injected refs
-    var $log, $window, fs, ps, bns, ks;
+    var $log, fs, ps, ks;
 
     // configuration
     var defaultSettings = {
             width: 300,
-            edge: 'left'
+            edge: 'left',
         };
 
     // internal state
@@ -92,7 +92,7 @@
             appendHeader: hAppend,
             appendBody: bAppend,
             appendFooter: fAppend,
-            destroy: destroy
+            destroy: destroy,
         };
     }
 
@@ -141,7 +141,7 @@
     function _addOk(cb, text, chained) {
         return addButton(cb, text || 'OK', 'enter', chained);
     }
-    
+
     function addOk(cb, text) {
         return _addOk(cb, text, false);
     }
@@ -178,7 +178,7 @@
             addCancel: addCancel,
             bindKeys: function () {
                 ks.dialogKeys(keyBindings);
-            }
+            },
         };
         return dApi;
     }
@@ -207,25 +207,21 @@
 
     angular.module('onosLayer')
     .factory('DialogService',
-        ['$log', '$window', 'FnService', 'PanelService', 'ButtonService',
-            'KeyService',
+        ['$log', 'FnService', 'PanelService', 'KeyService',
 
-        // TODO: for now, $window is not used, but we should provide an option
-            // to center the dialog on the window.
+        // TODO: use $window to provide an option to center the 
+        // dialog on the window.
 
-        function (_$log_, _$window_, _fs_, _ps_, _bns_, _ks_) {
+        function (_$log_, _fs_, _ps_, _ks_) {
             $log = _$log_;
-            $window = _$window_;
             fs = _fs_;
             ps = _ps_;
-            bns = _bns_;
             ks = _ks_;
 
             return {
                 openDialog: openDialog,
                 closeDialog: closeDialog,
-                createDiv: createDiv
+                createDiv: createDiv,
             };
         }]);
-
 }());

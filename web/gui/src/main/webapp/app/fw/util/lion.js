@@ -22,11 +22,11 @@
     'use strict';
 
     // injected services
-    var $log, fs, wss;
+    var $log, wss;
 
     // private state
     var handlers = {
-            uberlion: uberlion
+            uberlion: uberlion,
         },
         ubercache = {};
 
@@ -65,16 +65,15 @@
     }
 
     angular.module('onosUtil')
-        .factory('LionService', ['$log', 'FnService', 'WebSocketService',
+        .factory('LionService', ['$log', 'WebSocketService',
 
-        function (_$log_, _fs_, _wss_) {
+        function (_$log_, _wss_) {
             $log = _$log_;
-            fs = _fs_;
             wss = _wss_;
 
             return {
                 init: init,
-                bundle: bundle
+                bundle: bundle,
             };
         }]);
 }());

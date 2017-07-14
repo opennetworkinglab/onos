@@ -45,8 +45,13 @@ function bundle(files, exportName) {
 }
 
 const tasks = function () {
-    gulp.task('bundle-vendor', () => bundle(vendor, 'vendor.js'));
+    // gulp.task('bundle-vendor', () => bundle(vendor, 'vendor.js'));
     gulp.task('bundle-js', () => bundle(bundleFiles, 'onos.js'));
+    gulp.task('watch-js', () => {
+        gulp.watch([GUI_BASE + '**/*.js', `!${GUI_BASE}/dist/**/*`], ['bundle-js']);
+    }).on('change', (event) => {
+        console.log('File ' + event.path + ' was ' + event.type + ', running tasks...');
+    });
 };
 
 export default tasks();

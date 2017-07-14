@@ -20,8 +20,6 @@
 (function () {
     'use strict';
 
-    var $log, fs;
-
     var halfRoot2 = 0.7071;
 
     // given some value, s, returns an integer between -s/2 and s/2
@@ -39,13 +37,10 @@
     angular.module('onosUtil')
         .factory('RandomService', ['$log', 'FnService',
 
-        function (_$log_, _fs_) {
-            $log = _$log_;
-            fs = _fs_;
-
+        function () {
             return {
                 spread: spread,
-                randDim: randDim
+                randDim: randDim,
             };
         }]);
 }());

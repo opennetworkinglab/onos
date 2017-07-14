@@ -53,7 +53,7 @@
 
                     var RegionModel = Model.extend({
                         findNodeById: this.findNodeById,
-                        nodes: this.regionNodes.bind(this)
+                        nodes: this.regionNodes.bind(this),
                     });
 
                     this.model = new RegionModel();
@@ -67,7 +67,7 @@
                     this.model.set({ peerRegions: t2pr.createCollection([], this) });
                     this.model.set({ links: t2ls.createLinkCollection([], this) });
                 },
-                isLoadComplete: function() {
+                isLoadComplete: function () {
                     return this.bgRendered && this.regionData && this.peers;
                 },
                 loaded: function (key, value) {
@@ -80,7 +80,7 @@
 
                     this.model.set({
                         id: this.regionData.id,
-                        layerOrder: this.regionData.layerOrder
+                        layerOrder: this.regionData.layerOrder,
                     });
 
                     this.sortMultiLinks();
@@ -117,7 +117,7 @@
                             if (peer.id === id) {
                                 peer.location = location;
                             }
-                        })
+                        });
                     });
                 },
                 sortMultiLinks: function () {
@@ -147,12 +147,11 @@
                             _.each(collection, function (link, index) {
                                 link.multiline = {
                                     deviceLinks: collection.length,
-                                    index: index
-                                }
+                                    index: index,
+                                };
                             });
                         }
-                    })
-
+                    });
                 },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
@@ -248,17 +247,17 @@
                 },
                 update: function (event) {
 
-                    if (!this.isLoadComplete()){
+                    if (!this.isLoadComplete()) {
                         this.layout.createForceLayout();
                     }
 
                     if (this[event.type]) {
                         this[event.type](event);
                     } else {
-                        $log.error("Unhanded topology update", event);
+                        $log.error('Unhanded topology update', event);
                     }
 
-                    this.layout.update()
+                    this.layout.update();
                     this.displayNoDevs();
                 },
                 displayNoDevs: function () {
@@ -272,11 +271,10 @@
                 // Topology update event handlers
                 LINK_ADDED_OR_UPDATED: function (event) {
 
-                    var regionLinks = this.model.get('links'),
-                        device;
+                    var regionLinks = this.model.get('links');
 
                     if (!regionLinks) {
-                        this.model.set({ links: t2ls.createLinkCollection([], this) })
+                        this.model.set({ links: t2ls.createLinkCollection([], this) });
                     }
 
                     if (event.memo === 'added') {
@@ -296,7 +294,7 @@
                         device;
 
                     if (!regionDevices) {
-                        this.model.set({ devices: t2ds.createDeviceCollection([], this) })
+                        this.model.set({ devices: t2ds.createDeviceCollection([], this) });
                     }
 
                     if (event.memo === 'added') {
@@ -315,7 +313,7 @@
                         host;
 
                     if (!regionHosts) {
-                        this.model.set({ hosts: t2hs.createHostCollection([], this) })
+                        this.model.set({ hosts: t2hs.createHostCollection([], this) });
                     }
 
                     if (event.memo === 'added') {
@@ -328,14 +326,14 @@
                         region;
 
                     if (!regionSubRegions) {
-                        this.model.set({ subregions: t2sr.createSubRegionCollection([], this) })
+                        this.model.set({ subregions: t2sr.createSubRegionCollection([], this) });
                     }
 
                     if (event.memo === 'added') {
                         region = this.model.get('subregions').add(event.data);
                         $log.debug('Added region', region);
                     }
-                }
+                },
             });
 
             function getInstance() {
