@@ -320,9 +320,11 @@ public class MeterManager
                     break;
                 case METER_ADDED:
                     log.info("Meter added {}", event.subject());
+                    post(new MeterEvent(MeterEvent.Type.METER_ADDED, event.subject()));
                     break;
                 case METER_REMOVED:
                     log.info("Meter removed {}", event.subject());
+                    post(new MeterEvent(MeterEvent.Type.METER_REMOVED, event.subject()));
                     break;
                 default:
                     log.warn("Unknown meter event {}", event.type());
