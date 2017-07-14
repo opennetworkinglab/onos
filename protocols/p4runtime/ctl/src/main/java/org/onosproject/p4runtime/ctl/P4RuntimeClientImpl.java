@@ -27,13 +27,14 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.slf4j.Logger;
 import p4.P4RuntimeGrpc;
-import p4.config.P4InfoOuterClass;
 import p4.tmp.P4Config;
 
 import java.io.IOException;
@@ -46,8 +47,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.*;
+import static p4.P4RuntimeOuterClass.ForwardingPipelineConfig;
+import static p4.P4RuntimeOuterClass.MasterArbitrationUpdate;
+import static p4.P4RuntimeOuterClass.PacketIn;
+import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
 import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
+import static p4.P4RuntimeOuterClass.StreamMessageRequest;
+import static p4.P4RuntimeOuterClass.StreamMessageResponse;
+import static p4.config.P4InfoOuterClass.P4Info;
 
 /**
  * Implementation of a P4Runtime client.
@@ -112,9 +119,9 @@ public class P4RuntimeClientImpl implements P4RuntimeClient {
             StreamMessageRequest initRequest = StreamMessageRequest
                     .newBuilder()
                     .setArbitration(MasterArbitrationUpdate
-                                            .newBuilder()
-                                            .setDeviceId(p4DeviceId)
-                                            .build())
+                            .newBuilder()
+                            .setDeviceId(p4DeviceId)
+                            .build())
                     .build();
             streamRequestObserver.onNext(initRequest);
             return true;
@@ -133,12 +140,12 @@ public class P4RuntimeClientImpl implements P4RuntimeClient {
 
         log.debug("Setting pipeline config for {}", deviceId);
 
-        P4InfoOuterClass.P4Info.Builder p4iInfoBuilder = P4InfoOuterClass.P4Info.newBuilder();
+        P4Info.Builder p4iInfoBuilder = P4Info.newBuilder();
 
         try {
             TextFormat.getParser().merge(new InputStreamReader(p4info),
-                                         ExtensionRegistry.getEmptyRegistry(),
-                                         p4iInfoBuilder);
+                    ExtensionRegistry.getEmptyRegistry(),
+                    p4iInfoBuilder);
         } catch (IOException ex) {
             log.warn("Unable to load p4info for {}: {}", deviceId, ex.getMessage());
             return false;
@@ -161,11 +168,11 @@ public class P4RuntimeClientImpl implements P4RuntimeClient {
                 .newBuilder()
                 .setAction(VERIFY_AND_COMMIT)
                 .addConfigs(ForwardingPipelineConfig
-                                    .newBuilder()
-                                    .setDeviceId(p4DeviceId)
-                                    .setP4Info(p4iInfoBuilder.build())
-                                    .setP4DeviceConfig(deviceIdConfig.toByteString())
-                                    .build())
+                        .newBuilder()
+                        .setDeviceId(p4DeviceId)
+                        .setP4Info(p4iInfoBuilder.build())
+                        .setP4DeviceConfig(deviceIdConfig.toByteString())
+                        .build())
                 .build();
         try {
             this.blockingStub.setForwardingPipelineConfig(request);
@@ -187,6 +194,37 @@ public class P4RuntimeClientImpl implements P4RuntimeClient {
     public CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId tableId) {
 
         throw new UnsupportedOperationException("dumpTable not implemented.");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> packetOut(PiPacketOperation packet, PiPipeconf pipeconf) {
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+//        P4InfoBrowser browser = null; //PipeconfHelper.getP4InfoBrowser(pipeconf);
+//        try {
+//            ControllerPacketMetadata controllerPacketMetadata =
+//                    browser.controllerPacketMetadatas().getByName("packet_out");
+//            PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
+//            packetOutBuilder.addAllMetadata(packet.metadatas().stream().map(metadata -> {
+//                //FIXME we are assuming that there is no more than one metadata per name.
+//                int metadataId = controllerPacketMetadata.getMetadataList().stream().filter(metadataInfo -> {
+//                   return  metadataInfo.getName().equals(metadata.id().name());
+//                }).findFirst().get().getId();
+//                return PacketMetadata.newBuilder()
+//                        .setMetadataId(metadataId)
+//                        .setValue(ByteString.copyFrom(metadata.value().asReadOnlyBuffer()))
+//                        .build();
+//            }).filter(Objects::nonNull).collect(Collectors.toList()));
+//            packetOutBuilder.setPayload(ByteString.copyFrom(packet.data().asReadOnlyBuffer()));
+//            PacketOut packetOut = packetOutBuilder.build();
+//            StreamMessageRequest packetOutRequest = StreamMessageRequest
+//                    .newBuilder().setPacket(packetOut).build();
+//            streamRequestObserver.onNext(packetOutRequest);
+//            result.complete(true);
+//        } catch (P4InfoBrowser.NotFoundException e) {
+//            log.error("Cant find metadata with name \"packet_out\" in p4Info file.");
+//            result.complete(false);
+//        }
+        return result;
     }
 
     @Override

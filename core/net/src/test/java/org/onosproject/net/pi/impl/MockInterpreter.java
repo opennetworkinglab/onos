@@ -23,6 +23,7 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -30,9 +31,11 @@ import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.onosproject.net.PortNumber.CONTROLLER;
@@ -96,6 +99,12 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
             default:
                 throw new PiInterpreterException("Instruction type not supported: " + instruction.type().name());
         }
+    }
+
+    @Override
+    public Collection<PiPacketMetadata> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+            throws PiInterpreterException {
+        return null;
     }
 
     /**

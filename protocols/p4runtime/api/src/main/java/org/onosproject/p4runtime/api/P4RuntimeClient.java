@@ -17,6 +17,8 @@
 package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 
@@ -73,6 +75,16 @@ public interface P4RuntimeClient {
      * @return completable future of a collection of table entries
      */
     CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId tableId);
+
+    /**
+     * Executes a packet-out operation.
+     *
+     * @param packet   packet-out operation to be performed by the device
+     * @param pipeconf pipeconf currently deployed on the device
+     * @return a completable future of a boolean, true if the operations was successful, false otherwise.
+     */
+    CompletableFuture<Boolean> packetOut(PiPacketOperation packet, PiPipeconf pipeconf);
+
 
     /**
      * Shutdown the client by terminating any active RPC such as the stream channel.
