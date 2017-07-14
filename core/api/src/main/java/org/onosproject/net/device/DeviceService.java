@@ -39,6 +39,15 @@ public interface DeviceService
     int getDeviceCount();
 
     /**
+     * Returns the number of currently available devices known to the system.
+     *
+     * @return number of available devices
+     */
+    default int getAvailableDeviceCount() {
+        return getDeviceCount();
+    }
+
+    /**
      * Returns a collection of the currently known infrastructure
      * devices.
      *

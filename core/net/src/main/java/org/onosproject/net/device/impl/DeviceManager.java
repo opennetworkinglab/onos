@@ -209,6 +209,12 @@ public class DeviceManager
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        checkPermission(DEVICE_READ);
+        return store.getAvailableDeviceCount();
+    }
+
+    @Override
     public Iterable<Device> getDevices() {
         checkPermission(DEVICE_READ);
         return store.getDevices();

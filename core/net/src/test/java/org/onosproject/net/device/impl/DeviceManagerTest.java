@@ -144,6 +144,7 @@ public class DeviceManagerTest {
         assertNotNull("one device expected", it.next());
         assertFalse("only one device expected", it.hasNext());
         assertEquals("incorrect device count", 1, service.getDeviceCount());
+        assertEquals("incorrect available device count", 1, service.getAvailableDeviceCount());
         assertTrue("device should be available", service.isAvailable(DID1));
     }
 
@@ -165,6 +166,7 @@ public class DeviceManagerTest {
         validateEvents(DEVICE_AVAILABILITY_CHANGED);
 
         assertEquals("incorrect device count", 2, service.getDeviceCount());
+        assertEquals("incorrect available device count", 2, service.getAvailableDeviceCount());
     }
 
     @Test
@@ -225,8 +227,8 @@ public class DeviceManagerTest {
         assertEquals("wrong port count", 2, service.getPorts(DID1).size());
 
         Port port = service.getPort(DID1, P1);
-        assertEquals("incorrect port", P1, service.getPort(DID1, P1).number());
-        assertEquals("incorrect state", true, service.getPort(DID1, P1).isEnabled());
+        assertEquals("incorrect port", P1, port.number());
+        assertEquals("incorrect state", true, port.isEnabled());
     }
 
     @Test
@@ -234,10 +236,12 @@ public class DeviceManagerTest {
         connectDevice(DID1, SW1);
         connectDevice(DID2, SW2);
         assertEquals("incorrect device count", 2, service.getDeviceCount());
+        assertEquals("incorrect available device count", 2, service.getAvailableDeviceCount());
         admin.removeDevice(DID1);
         assertNull("device should not be found", service.getDevice(DID1));
         assertNotNull("device should be found", service.getDevice(DID2));
         assertEquals("incorrect device count", 1, service.getDeviceCount());
+        assertEquals("incorrect available device count", 1, service.getAvailableDeviceCount());
 
     }
 

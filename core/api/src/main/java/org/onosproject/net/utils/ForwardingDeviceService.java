@@ -63,6 +63,11 @@ public abstract class ForwardingDeviceService implements DeviceService {
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        return delegate.getAvailableDeviceCount();
+    }
+
+    @Override
     public Iterable<Device> getDevices() {
         return delegate.getDevices();
     }

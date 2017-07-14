@@ -56,6 +56,11 @@ public class DeviceServiceAdapter implements DeviceService {
     }
 
     @Override
+    public int getAvailableDeviceCount() {
+        return 0;
+    }
+
+    @Override
     public Iterable<Device> getDevices() {
         return Collections.emptyList();
     }
