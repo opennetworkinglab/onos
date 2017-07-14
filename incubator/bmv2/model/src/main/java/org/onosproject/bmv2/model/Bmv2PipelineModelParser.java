@@ -15,6 +15,7 @@
  */
 package org.onosproject.bmv2.model;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -25,6 +26,10 @@ import com.google.common.collect.Sets;
 import org.onosproject.net.pi.model.PiMatchType;
 import org.slf4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +39,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * BMv2 pipeline model parser.
  *
- * @see <a href="https://github.com/p4lang/behavioral-model/blob/master/docs/JSON_format.md">
- * BMv2 JSON specification</a>
+ * @see <a href="https://github.com/p4lang/behavioral-model/blob/master/docs/JSON_format.md"> BMv2 JSON
+ * specification</a>
  */
 @Beta
 public final class Bmv2PipelineModelParser {
@@ -51,10 +56,10 @@ public final class Bmv2PipelineModelParser {
     }
 
     /**
-     * Translate BMv2 json config to Bmv2PipelineModel object.
+     * Parse the given JSON object representing a BMv2 configuration, to a Bmv2PipelineModel object.
      *
      * @param jsonObject the BMv2 json config
-     * @return Bmv2PipelineModel object for the json config
+     * @return Bmv2PipelineModel BMv2 pipeline model object
      */
     public static Bmv2PipelineModel parse(JsonObject jsonObject) {
         List<Bmv2HeaderTypeModel> headerTypeModels = HeaderTypesParser.parse(jsonObject);
@@ -65,6 +70,21 @@ public final class Bmv2PipelineModelParser {
 
         return new Bmv2PipelineModel(headerTypeModels, headerModels,
                                      actionModels, tableModels);
+    }
+
+    /**
+     * Parse the input stream pointing to a BMv2 JSON configuration, to a Bmv2PipelineModel object.
+     *
+     * @param jsonInputStream input stream pointing to a BMv2 JSON configuration
+     * @return Bmv2PipelineModel BMv2 pipeline model object
+     */
+    public static Bmv2PipelineModel parse(InputStream jsonInputStream) {
+        try {
+            return parse(Json.parse(new BufferedReader(
+                    new InputStreamReader(jsonInputStream))).asObject());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -80,7 +100,7 @@ public final class Bmv2PipelineModelParser {
 
         private static List<Bmv2HeaderTypeModel> parse(JsonObject jsonObject) {
             List<Bmv2HeaderTypeModel> headerTypeModels = Lists.newArrayList();
-            jsonObject.get(HEADER_TYPES).asArray().forEach(jsonValue ->  {
+            jsonObject.get(HEADER_TYPES).asArray().forEach(jsonValue -> {
                 JsonObject headerFieldType = jsonValue.asObject();
                 String name = headerFieldType.getString(NAME, null);
                 int id = headerFieldType.getInt(ID, NO_ID);

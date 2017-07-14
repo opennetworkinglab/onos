@@ -39,7 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class Bmv2PipelineProgrammable extends AbstractHandlerBehaviour implements PiPipelineProgrammable {
 
-    private static final PiPipeconf DEFAULT_PIPECONF = new Bmv2DefaultPipeconf();
+    private static final PiPipeconf DEFAULT_PIPECONF = Bmv2DefaultPipeconfFactory.get();
 
     private final Logger log = getLogger(getClass());
 

@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerAdapter;
@@ -45,6 +46,8 @@ import org.onosproject.net.driver.DriverAdminServiceAdapter;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.driver.DriverServiceAdapter;
+import org.onosproject.net.pi.model.DefaultPiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiPipeconfConfig;
@@ -57,15 +60,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 /**
  * Unit Test Class for PiPipeconfManager.
  */
 public class PiPipeconfManagerTest {
+
+    private static final String PIPECONF_ID = "org.project.pipeconf.default";
+    private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
+
+    private final InputStream bmv2JsonConfigStream = this.getClass().getResourceAsStream(BMV2_JSON_PATH);
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("test:test");
     private static final String BASE_DRIVER = "baseDriver";
@@ -93,14 +99,17 @@ public class PiPipeconfManagerTest {
 
     //Services
     private PiPipeconfManager piPipeconfService;
-    private MockPipeconf piPipeconf;
+    private PiPipeconf piPipeconf;
 
     @Before
     public void setUp() throws IOException {
         piPipeconfService = new PiPipeconfManager();
-        piPipeconf = new MockPipeconf();
+        piPipeconf = DefaultPiPipeconf.builder()
+                .withId(new PiPipeconfId(PIPECONF_ID))
+                .withPipelineModel(Bmv2PipelineModelParser.parse(bmv2JsonConfigStream))
+                .addBehaviour(Pipeliner.class, PipelinerAdapter.class)
+                .build();
         completeDriverName = BASE_DRIVER + ":" + piPipeconf.id();
-        piPipeconf.behaviours.put(Pipeliner.class, PipelinerAdapter.class);
         piPipeconfService.cfgService = cfgService;
         piPipeconfService.driverService = driverService;
         piPipeconfService.driverAdminService = driverAdminService;
@@ -132,7 +141,7 @@ public class PiPipeconfManagerTest {
         assertEquals("Incorrect configuration service", null, piPipeconfService.cfgService);
         assertFalse("Config factory should be unregistered", cfgFactories.contains(piPipeconfService.factory));
         assertFalse("Network configuration listener should be unregistered",
-                netCfgListeners.contains(piPipeconfService.cfgListener));
+                    netCfgListeners.contains(piPipeconfService.cfgListener));
     }
 
     @Test
@@ -145,7 +154,7 @@ public class PiPipeconfManagerTest {
     public void getPipeconf() {
         piPipeconfService.register(piPipeconf);
         assertEquals("Returned PiPipeconf is not correct", piPipeconf,
-                piPipeconfService.getPipeconf(piPipeconf.id()).get());
+                     piPipeconfService.getPipeconf(piPipeconf.id()).get());
     }
 
 
@@ -159,7 +168,7 @@ public class PiPipeconfManagerTest {
 
         piPipeconfService.register(piPipeconf);
         assertEquals("Returned PiPipeconf is not correct", piPipeconf,
-                piPipeconfService.getPipeconf(piPipeconf.id()).get());
+                     piPipeconfService.getPipeconf(piPipeconf.id()).get());
 
         piPipeconfService.bindToDevice(piPipeconfId, DEVICE_ID).whenComplete((booleanResult, ex) -> {
 

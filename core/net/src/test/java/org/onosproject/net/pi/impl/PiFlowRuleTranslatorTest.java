@@ -20,6 +20,7 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
+import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
@@ -30,7 +31,10 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -48,12 +52,18 @@ import static org.onosproject.net.pi.impl.MockInterpreter.*;
 @SuppressWarnings("ConstantConditions")
 public class PiFlowRuleTranslatorTest {
 
+    private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
+
     private Random random = new Random();
     private PiPipeconf pipeconf;
 
     @Before
     public void setUp() throws Exception {
-        pipeconf = new MockPipeconf();
+        pipeconf = DefaultPiPipeconf.builder()
+                .withId(new PiPipeconfId("mock-pipeconf"))
+                .withPipelineModel(Bmv2PipelineModelParser.parse(this.getClass().getResourceAsStream(BMV2_JSON_PATH)))
+                .addBehaviour(PiPipelineInterpreter.class, MockInterpreter.class)
+                .build();
     }
 
     @Test
