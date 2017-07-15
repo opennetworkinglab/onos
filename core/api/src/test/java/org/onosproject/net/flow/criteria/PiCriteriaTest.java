@@ -16,9 +16,7 @@
 
 package org.onosproject.net.flow.criteria;
 
-import com.google.common.collect.Maps;
 import com.google.common.testing.EqualsTester;
-import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
@@ -27,8 +25,6 @@ import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
-
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -252,49 +248,29 @@ public class PiCriteriaTest {
     @Test
     public void testExactMatchPiMethod() {
 
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesExactBytes = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesExactShort = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesExactInt = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesExactLong = Maps.newHashMap();
-
         Criterion matchPiBytes = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactBytes1).build();
-        PiCriterion piCriterionBytes =
-                checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesExactBytes.put(piEthHeaderFieldId, new PiExactFieldMatch(piEthHeaderFieldId,
-                copyFrom(matchExactBytes1)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionBytes.fieldMatches(), fieldMatchesExactBytes.values()));
-        assertThat(piCriterionBytes.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactBytes1));
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
         Criterion matchPiShort = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactShort1).build();
-        PiCriterion piCriterionShort =
-                checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesExactShort.put(piEthHeaderFieldId, new PiExactFieldMatch(piEthHeaderFieldId,
-                copyFrom(matchExactShort1)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionShort.fieldMatches(), fieldMatchesExactShort.values()));
-        assertThat(piCriterionShort.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactShort1));
+        assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
         Criterion matchPiInt = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactInt1).build();
-        PiCriterion piCriterionInt =
-                checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesExactInt.put(piEthHeaderFieldId, new PiExactFieldMatch(piEthHeaderFieldId,
-                copyFrom(matchExactInt1)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionInt.fieldMatches(), fieldMatchesExactInt.values()));
-        assertThat(piCriterionInt.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactInt1));
+        assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
         Criterion matchPiLong = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactLong1).build();
-        PiCriterion piCriterionLong =
-                checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesExactLong.put(piEthHeaderFieldId, new PiExactFieldMatch(piEthHeaderFieldId,
-                copyFrom(matchExactLong1)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionLong.fieldMatches(), fieldMatchesExactLong.values()));
-        assertThat(piCriterionLong.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactLong1));
+        assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
     /**
@@ -303,49 +279,29 @@ public class PiCriteriaTest {
     @Test
     public void testLpmMatchPiMethod() {
 
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesLpmBytes = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesLpmShort = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesLpmInt = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesLpmLong = Maps.newHashMap();
-
         Criterion matchPiBytes = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmBytes1, mask).build();
-        PiCriterion piCriterionBytes =
-                checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesLpmBytes.put(piIpv4HeaderFieldId, new PiLpmFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchLpmBytes1), mask));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionBytes.fieldMatches(), fieldMatchesLpmBytes.values()));
-        assertThat(piCriterionBytes.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmBytes1), mask);
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
         Criterion matchPiShort = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmShort1, mask).build();
-        PiCriterion piCriterionShort =
-                checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesLpmShort.put(piIpv4HeaderFieldId, new PiLpmFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchLpmShort1), mask));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionShort.fieldMatches(), fieldMatchesLpmShort.values()));
-        assertThat(piCriterionShort.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmShort1), mask);
+        assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
         Criterion matchPiInt = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmInt1, mask).build();
-        PiCriterion piCriterionInt =
-                checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesLpmInt.put(piIpv4HeaderFieldId, new PiLpmFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchLpmInt1), mask));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionInt.fieldMatches(), fieldMatchesLpmInt.values()));
-        assertThat(piCriterionInt.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
-
+        PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmInt1), mask);
+        assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
         Criterion matchPiLong = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmLong1, mask).build();
-        PiCriterion piCriterionLong =
-                checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesLpmLong.put(piIpv4HeaderFieldId, new PiLpmFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchLpmLong1), mask));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionLong.fieldMatches(), fieldMatchesLpmLong.values()));
-        assertThat(piCriterionLong.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmLong1), mask);
+        assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
     /**
@@ -353,58 +309,42 @@ public class PiCriteriaTest {
      */
     @Test
     public void testTernaryMatchPiMethod() {
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesTernaryBytes = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesTernaryShort = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesTernaryInt = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesTernaryLong = Maps.newHashMap();
 
         Criterion matchPiBytes = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryBytes1,
                 matchTernaryMaskBytes)
                 .build();
-        PiCriterion piCriterionBytes =
-                checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesTernaryBytes.put(piIpv4HeaderFieldId, new PiTernaryFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchTernaryBytes1),
-                copyFrom(matchTernaryMaskBytes)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionBytes.fieldMatches(), fieldMatchesTernaryBytes.values()));
-        assertThat(piCriterionBytes.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryBytes1),
+                copyFrom(matchTernaryMaskBytes));
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
         Criterion matchPiShort = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryShort1,
                 matchTernaryMaskShort)
                 .build();
-        PiCriterion piCriterionShort =
-                checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesTernaryShort.put(piIpv4HeaderFieldId, new PiTernaryFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchTernaryShort1),
-                copyFrom(matchTernaryMaskShort)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionShort.fieldMatches(), fieldMatchesTernaryShort.values()));
-        assertThat(piCriterionShort.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryShort1),
+                copyFrom(matchTernaryMaskShort));
+        assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
         Criterion matchPiInt = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryInt1,
                 matchTernaryMaskInt)
                 .build();
-        PiCriterion piCriterionInt =
-                checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesTernaryInt.put(piIpv4HeaderFieldId, new PiTernaryFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchTernaryInt1),
-                copyFrom(matchTernaryMaskInt)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionInt.fieldMatches(), fieldMatchesTernaryInt.values()));
-        assertThat(piCriterionInt.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryInt1),
+                copyFrom(matchTernaryMaskInt));
+        assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
         Criterion matchPiLong = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryLong1,
                 matchTernaryMaskLong)
                 .build();
-        PiCriterion piCriterionLong =
-                checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesTernaryLong.put(piIpv4HeaderFieldId, new PiTernaryFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchTernaryLong1),
-                copyFrom(matchTernaryMaskLong)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionLong.fieldMatches(), fieldMatchesTernaryLong.values()));
-        assertThat(piCriterionLong.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryLong1),
+                copyFrom(matchTernaryMaskLong));
+        assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
     /**
@@ -412,15 +352,12 @@ public class PiCriteriaTest {
      */
     @Test
     public void testValidMatchPiMethod() {
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesValid = Maps.newHashMap();
+
         Criterion matchPiBytes = PiCriterion.builder().matchValid(piIpv4HeaderFieldId, true).build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
                 PiCriterion.class);
-        fieldMatchesValid.put(piIpv4HeaderFieldId, new PiValidFieldMatch(piIpv4HeaderFieldId, true));
-
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionBytes.fieldMatches(), fieldMatchesValid.values()));
-        assertThat(piCriterionBytes.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiFieldMatch expectedMatch = new PiValidFieldMatch(piIpv4HeaderFieldId, true);
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatch));
     }
 
     /**
@@ -428,58 +365,42 @@ public class PiCriteriaTest {
      */
     @Test
     public void testRangeMatchPiMethod() {
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesRangeBytes = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesRangeShort = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesRangeInt = Maps.newHashMap();
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatchesRangeLong = Maps.newHashMap();
 
         Criterion matchPiBytes = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeBytes1,
                 matchRangeHighBytes)
                 .build();
-        PiCriterion piCriterionBytes =
-                checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesRangeBytes.put(piIpv4HeaderFieldId, new PiRangeFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchRangeBytes1),
-                copyFrom(matchRangeHighBytes)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionBytes.fieldMatches(), fieldMatchesRangeBytes.values()));
-        assertThat(piCriterionBytes.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeBytes1),
+                copyFrom(matchRangeHighBytes));
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
         Criterion matchPiShort = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeShort1,
                 matchRangeHighShort)
                 .build();
-        PiCriterion piCriterionShort =
-                checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesRangeShort.put(piIpv4HeaderFieldId, new PiRangeFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchRangeShort1),
-                copyFrom(matchRangeHighShort)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionShort.fieldMatches(), fieldMatchesRangeShort.values()));
-        assertThat(piCriterionShort.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeShort1),
+                copyFrom(matchRangeHighShort));
+        assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
         Criterion matchPiInt = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeInt1,
                 matchRangeHighInt)
                 .build();
-        PiCriterion piCriterionInt =
-                checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesRangeInt.put(piIpv4HeaderFieldId, new PiRangeFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchRangeInt1),
-                copyFrom(matchRangeHighInt)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionInt.fieldMatches(), fieldMatchesRangeInt.values()));
-        assertThat(piCriterionInt.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeInt1),
+                copyFrom(matchRangeHighInt));
+        assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
         Criterion matchPiLong = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeLong1,
                 matchRangeHighLong)
                 .build();
-        PiCriterion piCriterionLong =
-                checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT, PiCriterion.class);
-        fieldMatchesRangeLong.put(piIpv4HeaderFieldId, new PiRangeFieldMatch(piIpv4HeaderFieldId,
-                copyFrom(matchRangeLong1),
-                copyFrom(matchRangeHighLong)));
-        assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piCriterionLong.fieldMatches(), fieldMatchesRangeLong.values()));
-        assertThat(piCriterionLong.type(), is(equalTo(Criterion.Type.PROTOCOL_INDEPENDENT)));
+        PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
+                PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeLong1),
+                copyFrom(matchRangeHighLong));
+        assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
     /**
@@ -493,17 +414,17 @@ public class PiCriteriaTest {
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiExactShort1)
+                .addEqualityGroup(matchPiExactShort1, sameAsMatchPiExactShort1)
                 .addEqualityGroup(matchPiExactShort2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiExactInt1)
+                .addEqualityGroup(matchPiExactInt1, sameAsMatchPiExactInt1)
                 .addEqualityGroup(matchPiExactInt2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiExactLong1)
+                .addEqualityGroup(matchPiExactLong1, sameAsMatchPiExactLong1)
                 .addEqualityGroup(matchPiExactLong2)
                 .testEquals();
     }
@@ -514,22 +435,22 @@ public class PiCriteriaTest {
     @Test
     public void testPiLpmCriterionEquals() {
         new EqualsTester()
-                .addEqualityGroup(matchPiLpmByte1)
+                .addEqualityGroup(matchPiLpmByte1, sameAsMatchPiLpmByte1)
                 .addEqualityGroup(matchPiLpmByte2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiLpmShort1)
+                .addEqualityGroup(matchPiLpmShort1, sameAsMatchPiLpmShort1)
                 .addEqualityGroup(matchPiLpmShort2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiLpmInt1)
+                .addEqualityGroup(matchPiLpmInt1, sameAsMatchPiLpmInt1)
                 .addEqualityGroup(matchPiLpmInt2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiLpmLong1)
+                .addEqualityGroup(matchPiLpmLong1, sameAsMatchPiLpmLong1)
                 .addEqualityGroup(matchPiLpmLong2)
                 .testEquals();
     }
@@ -540,22 +461,22 @@ public class PiCriteriaTest {
     @Test
     public void testPiTernaryCriterionEquals() {
         new EqualsTester()
-                .addEqualityGroup(matchPiTernaryByte1)
+                .addEqualityGroup(matchPiTernaryByte1, sameAsMatchPiTernaryByte1)
                 .addEqualityGroup(matchPiTernaryByte2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiTernaryShort1)
+                .addEqualityGroup(matchPiTernaryShort1, sameAsMatchPiTernaryShort1)
                 .addEqualityGroup(matchPiTernaryShort2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiTernaryInt1)
+                .addEqualityGroup(matchPiTernaryInt1, sameAsMatchPiTernaryInt1)
                 .addEqualityGroup(matchPiTernaryInt2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiTernaryLong1)
+                .addEqualityGroup(matchPiTernaryLong1, sameAsMatchPiTernaryLong1)
                 .addEqualityGroup(matchPiTernaryLong2)
                 .testEquals();
     }
@@ -566,7 +487,7 @@ public class PiCriteriaTest {
     @Test
     public void testPiValidCriterionEquals() {
         new EqualsTester()
-                .addEqualityGroup(matchPiValid1)
+                .addEqualityGroup(matchPiValid1, sameAsMatchPiValid1)
                 .addEqualityGroup(matchPiValid2)
                 .testEquals();
     }
@@ -577,22 +498,22 @@ public class PiCriteriaTest {
     @Test
     public void testPiRangeCriterionEquals() {
         new EqualsTester()
-                .addEqualityGroup(matchPiRangeByte1)
+                .addEqualityGroup(matchPiRangeByte1, sameAsMatchPiRangeByte1)
                 .addEqualityGroup(matchPiRangeByte2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiRangeShort1)
+                .addEqualityGroup(matchPiRangeShort1, sameAsMatchPiRangeShort1)
                 .addEqualityGroup(matchPiRangeShort2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiRangeInt1)
+                .addEqualityGroup(matchPiRangeInt1, sameAsMatchPiRangeInt1)
                 .addEqualityGroup(matchPiRangeInt2)
                 .testEquals();
 
         new EqualsTester()
-                .addEqualityGroup(matchPiRangeLong1)
+                .addEqualityGroup(matchPiRangeLong1, sameAsMatchPiRangeLong1)
                 .addEqualityGroup(matchPiRangeLong2)
                 .testEquals();
     }
