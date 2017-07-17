@@ -38,11 +38,17 @@ final class Bmv2DefaultPipeconfFactory {
     private static final String JSON_PATH = "/default.json";
     private static final String P4INFO_PATH = "/default.p4info";
 
+    private static final PiPipeconf PIPECONF = buildPipeconf();
+
     private Bmv2DefaultPipeconfFactory() {
         // Hides constructor.
     }
 
     static PiPipeconf get() {
+        return PIPECONF;
+    }
+
+    private static PiPipeconf buildPipeconf() {
 
         final URL jsonUrl = Bmv2DefaultPipeconfFactory.class.getResource(JSON_PATH);
         final URL p4InfoUrl = Bmv2DefaultPipeconfFactory.class.getResource(P4INFO_PATH);

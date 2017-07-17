@@ -17,7 +17,10 @@
 package org.onosproject.drivers.bmv2;
 
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.pi.runtime.PiPipeconfService;
 
 /**
  * Loader for P4Runtime device drivers.
@@ -25,7 +28,16 @@ import org.onosproject.net.driver.AbstractDriverLoader;
 @Component(immediate = true)
 public class Bmv2DriversLoader extends AbstractDriverLoader {
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PiPipeconfService pipeconfService;
+
     public Bmv2DriversLoader() {
         super("/bmv2-drivers.xml");
+    }
+
+    @Override
+    public void activate() {
+        pipeconfService.register(Bmv2DefaultPipeconfFactory.get());
+        super.activate();
     }
 }

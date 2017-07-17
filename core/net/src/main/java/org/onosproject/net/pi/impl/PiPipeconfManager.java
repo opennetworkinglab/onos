@@ -56,6 +56,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.String.format;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -89,7 +90,7 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/pipipeconfservice",
-                    "pipeline-to-device-%d", log));
+                                                           "pipeline-to-device-%d", log));
 
     protected final ConfigFactory factory =
             new ConfigFactory<DeviceId, PiPipeconfConfig>(
@@ -129,7 +130,11 @@ public class PiPipeconfManager implements PiPipeconfService {
     @Override
     public void register(PiPipeconf pipeconf) throws IllegalStateException {
         log.warn("Currently using local maps, needs to be moved to a distributed store");
+        if (piPipeconfs.containsKey(pipeconf.id())) {
+            throw new IllegalStateException(format("Pipeconf %s is already registered", pipeconf.id()));
+        }
         piPipeconfs.put(pipeconf.id(), pipeconf);
+        log.info("New pipeconf registered: {}", pipeconf.id());
     }
 
     @Override
@@ -165,7 +170,7 @@ public class PiPipeconfManager implements PiPipeconfService {
                 } catch (ItemNotFoundException e) {
 
                     log.debug("First time pipeconf {} is used with base driver {}, merging the two",
-                            pipeconfId, baseDriver);
+                              pipeconfId, baseDriver);
                     //extract the behaviours from the pipipeconf.
                     Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours = new HashMap<>();
                     piPipeconf.behaviours().forEach(b -> {
@@ -173,8 +178,8 @@ public class PiPipeconfManager implements PiPipeconfService {
                     });
 
                     Driver piPipeconfDriver = new DefaultDriver(completeDriverName, baseDriver.parents(),
-                            baseDriver.manufacturer(), baseDriver.hwVersion(), baseDriver.swVersion(),
-                            behaviours, new HashMap<>());
+                                                                baseDriver.manufacturer(), baseDriver.hwVersion(),
+                                                                baseDriver.swVersion(), behaviours, new HashMap<>());
                     //we take the base driver created with the behaviours of the PiPeconf and
                     // merge it with the base driver that was assigned to the device
                     Driver completeDriver = piPipeconfDriver.merge(baseDriver);

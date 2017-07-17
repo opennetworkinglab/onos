@@ -391,11 +391,6 @@ public class GeneralDeviceProvider extends AbstractProvider
             if (pipelineProg.getDefaultPipeconf().isPresent()) {
                 PiPipeconf defaultPipeconf = pipelineProg.getDefaultPipeconf().get();
                 log.info("Using default pipeconf {} for {}", defaultPipeconf.id(), deviceId);
-                // Register default one if it is not.
-                // TODO: this should be performed at driver loading.
-                if (!piPipeconfService.getPipeconf(defaultPipeconf.id()).isPresent()) {
-                    piPipeconfService.register(defaultPipeconf);
-                }
                 return defaultPipeconf.id();
             } else {
                 return null;
