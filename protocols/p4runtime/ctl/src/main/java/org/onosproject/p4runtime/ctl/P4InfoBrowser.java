@@ -31,8 +31,11 @@ import p4.config.P4InfoOuterClass.P4Info;
 import p4.config.P4InfoOuterClass.Preamble;
 import p4.config.P4InfoOuterClass.Table;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 /**
@@ -70,7 +73,10 @@ final class P4InfoBrowser {
                     String tableName = entity.getPreamble().getName();
                     EntityBrowser<MatchField> matchFieldBrowser = new EntityBrowser<>(format(
                             "match field for table '%s'", tableName));
-                    entity.getMatchFieldsList().forEach(m -> matchFieldBrowser.add(m.getName(), m.getId(), m));
+                    entity.getMatchFieldsList().forEach(m -> {
+                        String alias = extractMatchFieldSimpleName(m.getName());
+                        matchFieldBrowser.add(m.getName(), alias, m.getId(), m);
+                    });
                     matchFields.put(tableId, matchFieldBrowser);
                 });
 
@@ -82,7 +88,7 @@ final class P4InfoBrowser {
                     String actionName = entity.getPreamble().getName();
                     EntityBrowser<Action.Param> paramBrowser = new EntityBrowser<>(format(
                             "param for action '%s'", actionName));
-                    entity.getParamsList().forEach(p -> paramBrowser.add(p.getName(), p.getId(), p));
+                    entity.getParamsList().forEach(p -> paramBrowser.add(p.getName(), null, p.getId(), p));
                     actionParams.put(actionId, paramBrowser);
                 });
 
@@ -103,6 +109,19 @@ final class P4InfoBrowser {
 
         p4info.getControllerPacketMetadataList().forEach(
                 entity -> ctrlPktMetadatas.addWithPreamble(entity.getPreamble(), entity));
+    }
+
+    private String extractMatchFieldSimpleName(String name) {
+        // Removes the leading "hdr." or other scope identifier.
+        // E.g.: "hdr.ethernet.etherType" becomes "ethernet.etherType"
+        String[] pieces = name.split("\\.");
+        if (pieces.length == 3) {
+            return pieces[1] + "." + pieces[2];
+        } else if (pieces.length == 2) {
+            return name;
+        } else {
+            throw new UnsupportedOperationException("Invalid match field name: " + name);
+        }
     }
 
     /**
@@ -220,15 +239,22 @@ final class P4InfoBrowser {
         }
 
         /**
-         * Adds the given entity identified by the given name and id.
+         * Adds the given entity identified by the given name, alias and id.
          *
          * @param name   entity name
+         * @param alias  entity alias
          * @param id     entity id
          * @param entity entity message
          */
-        void add(String name, int id, T entity) {
+        void add(String name, @Nullable String alias, int id, T entity) {
+            checkNotNull(name);
+            checkArgument(!name.isEmpty(), "Name cannot be empty");
+            checkNotNull(entity);
             names.put(name, entity);
             ids.put(id, entity);
+            if (alias != null && !alias.isEmpty()) {
+                aliases.put(alias, entity);
+            }
         }
 
         /**
@@ -238,9 +264,8 @@ final class P4InfoBrowser {
          * @param entity   entity message
          */
         void addWithPreamble(Preamble preamble, T entity) {
-            names.put(preamble.getName(), entity);
-            aliases.put(preamble.getName(), entity);
-            ids.put(preamble.getId(), entity);
+            checkNotNull(preamble);
+            add(preamble.getName(), preamble.getAlias(), preamble.getId(), entity);
         }
 
         /**
@@ -265,6 +290,23 @@ final class P4InfoBrowser {
                 throw new NotFoundException(entityName, name);
             }
             return names.get(name);
+        }
+
+        /**
+         * Returns the entity identified by the given name or alias, if present, otherwise, throws an exception.
+         *
+         * @param name entity name or alias
+         * @return entity message
+         * @throws NotFoundException if the entity cannot be found
+         */
+        T getByNameOrAlias(String name) throws NotFoundException {
+            if (hasName(name)) {
+                return names.get(name);
+            } else if (hasAlias(name)) {
+                return aliases.get(name);
+            } else {
+                throw new NotFoundException(entityName, name);
+            }
         }
 
         /**
@@ -319,7 +361,7 @@ final class P4InfoBrowser {
     /**
      * Signals tha an entity cannot be found in the P4Info.
      */
-    public static class NotFoundException extends Exception {
+    public static final class NotFoundException extends Exception {
 
         NotFoundException(String entityName, String key) {
             super(format("No such %s in P4Info with name/alias '%s'", entityName, key));

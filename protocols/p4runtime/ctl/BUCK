@@ -31,6 +31,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
+    '//incubator/bmv2/model:onos-incubator-bmv2-model',
 ]
 
 BUNDLES = [

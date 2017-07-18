@@ -22,7 +22,6 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,18 +37,20 @@ public interface P4RuntimeClient {
     enum WriteOperationType {
         UNSPECIFIED,
         INSERT,
-        UPDATE,
+        MODIFY,
         DELETE
     }
 
     /**
-     * Sets the pipeline configuration. This method should be called before any other method of this client.
+     * Sets the pipeline configuration defined by the given pipeconf for the given target-specific configuration
+     * extension type (e.g. {@link PiPipeconf.ExtensionType#BMV2_JSON}, or {@link PiPipeconf.ExtensionType#TOFINO_BIN}).
+     * This method should be called before any other method of this client.
      *
-     * @param p4Info       input stream of a P4Info message in text format
-     * @param targetConfig input stream of the target-specific configuration (e.g. BMv2 JSON)
+     * @param pipeconf            pipeconf
+     * @param targetConfigExtType extension type of the target-specific configuration
      * @return a completable future of a boolean, true if the operations was successful, false otherwise.
      */
-    CompletableFuture<Boolean> setPipelineConfig(InputStream p4Info, InputStream targetConfig);
+    CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, PiPipeconf.ExtensionType targetConfigExtType);
 
     /**
      * Initializes the stream channel, after which all messages received from the device will be notified using the
@@ -60,21 +61,24 @@ public interface P4RuntimeClient {
     CompletableFuture<Boolean> initStreamChannel();
 
     /**
-     * Performs the given write operation for the given table entries.
+     * Performs the given write operation for the given table entries and pipeconf.
      *
-     * @param entries table entries
-     * @param opType  operation type.
+     * @param entries  table entries
+     * @param opType   operation type
+     * @param pipeconf pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise.
      */
-    boolean writeTableEntries(Collection<PiTableEntry> entries, WriteOperationType opType);
+    CompletableFuture<Boolean> writeTableEntries(Collection<PiTableEntry> entries, WriteOperationType opType,
+                                                 PiPipeconf pipeconf);
 
     /**
      * Dumps all entries currently installed in the given table.
      *
-     * @param tableId table identifier
+     * @param tableId  table identifier
+     * @param pipeconf pipeconf currently deployed on the device
      * @return completable future of a collection of table entries
      */
-    CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId tableId);
+    CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId tableId, PiPipeconf pipeconf);
 
     /**
      * Executes a packet-out operation.
@@ -84,7 +88,6 @@ public interface P4RuntimeClient {
      * @return a completable future of a boolean, true if the operations was successful, false otherwise.
      */
     CompletableFuture<Boolean> packetOut(PiPacketOperation packet, PiPipeconf pipeconf);
-
 
     /**
      * Shutdown the client by terminating any active RPC such as the stream channel.

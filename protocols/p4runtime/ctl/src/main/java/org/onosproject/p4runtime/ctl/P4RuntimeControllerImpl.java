@@ -44,7 +44,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -56,17 +55,15 @@ public class P4RuntimeControllerImpl
         extends AbstractListenerManager<P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected GrpcController grpcController;
-
     private final Logger log = getLogger(getClass());
-
     private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
     private final Map<DeviceId, P4RuntimeClient> clients = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
-
     // TODO: should use a cache to delete unused locks.
     private final Map<DeviceId, ReadWriteLock> deviceLocks = Maps.newConcurrentMap();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GrpcController grpcController;
 
     @Activate
     public void activate() {
@@ -117,8 +114,7 @@ public class P4RuntimeControllerImpl
             return false;
         }
 
-        P4RuntimeClient client = new P4RuntimeClientImpl(deviceId, p4DeviceId, channel, this,
-                                                         newSingleThreadExecutor());
+        P4RuntimeClient client = new P4RuntimeClientImpl(deviceId, p4DeviceId, channel, this);
 
         channelIds.put(deviceId, channelId);
         clients.put(deviceId, client);

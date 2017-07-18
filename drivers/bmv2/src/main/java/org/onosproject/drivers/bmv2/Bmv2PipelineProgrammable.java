@@ -25,13 +25,11 @@ import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 
-import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
-import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -67,21 +65,8 @@ public class Bmv2PipelineProgrammable extends AbstractHandlerBehaviour implement
 
         P4RuntimeClient client = controller.getClient(deviceId);
 
-        if (!pipeconf.extension(BMV2_JSON).isPresent()) {
-            log.warn("Missing BMv2 JSON config in pipeconf {}, aborting pipeconf deploy", pipeconf.id());
-            return false;
-        }
-
-        if (!pipeconf.extension(P4_INFO_TEXT).isPresent()) {
-            log.warn("Missing P4Info in pipeconf {}, aborting pipeconf deploy", pipeconf.id());
-            return false;
-        }
-
-        InputStream p4InfoStream = pipeconf.extension(P4_INFO_TEXT).get();
-        InputStream jsonStream = pipeconf.extension(BMV2_JSON).get();
-
         try {
-            if (!client.setPipelineConfig(p4InfoStream, jsonStream).get()) {
+            if (!client.setPipelineConfig(pipeconf, BMV2_JSON).get()) {
                 log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
                 return false;
             }
