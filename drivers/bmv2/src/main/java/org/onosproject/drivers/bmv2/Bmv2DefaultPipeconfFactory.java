@@ -17,12 +17,14 @@
 package org.onosproject.drivers.bmv2;
 
 import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
+import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
+import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 
-import java.io.InputStream;
+import java.net.URL;
 
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
@@ -42,16 +44,16 @@ final class Bmv2DefaultPipeconfFactory {
 
     static PiPipeconf get() {
 
-        final InputStream jsonConfigStream = Bmv2DefaultPipeconfFactory.class.getResourceAsStream(JSON_PATH);
-        final InputStream p4InfoStream = Bmv2DefaultPipeconfFactory.class.getResourceAsStream(P4INFO_PATH);
+        final URL jsonUrl = Bmv2DefaultPipeconfFactory.class.getResource(JSON_PATH);
+        final URL p4InfoUrl = Bmv2DefaultPipeconfFactory.class.getResource(P4INFO_PATH);
 
         return DefaultPiPipeconf.builder()
                 .withId(new PiPipeconfId(PIPECONF_ID))
-                .withPipelineModel(Bmv2PipelineModelParser.parse(jsonConfigStream))
-                // TODO: reuse default single table pipeliner.
+                .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
                 .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
-                .addExtension(P4_INFO_TEXT, p4InfoStream)
-                .addExtension(BMV2_JSON, jsonConfigStream)
+                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addExtension(P4_INFO_TEXT, p4InfoUrl)
+                .addExtension(BMV2_JSON, jsonUrl)
                 .build();
     }
 }

@@ -27,6 +27,7 @@ COMPILE_DEPS = [
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
     '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
     '//lib:grpc-netty-1.3.0',
+    '//drivers/default:onos-drivers-default',
 ]
 
 TEST_DEPS = [
@@ -43,6 +44,7 @@ BUNDLES = [
     '//protocols/grpc/ctl:onos-protocols-grpc-ctl',
     '//protocols/grpc/proto:onos-protocols-grpc-proto',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//drivers/default:onos-drivers-default',
 ] + GRPC_DEPS
 
 osgi_jar_with_tests(

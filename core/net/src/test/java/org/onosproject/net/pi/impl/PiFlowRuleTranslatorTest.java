@@ -61,7 +61,7 @@ public class PiFlowRuleTranslatorTest {
     public void setUp() throws Exception {
         pipeconf = DefaultPiPipeconf.builder()
                 .withId(new PiPipeconfId("mock-pipeconf"))
-                .withPipelineModel(Bmv2PipelineModelParser.parse(this.getClass().getResourceAsStream(BMV2_JSON_PATH)))
+                .withPipelineModel(Bmv2PipelineModelParser.parse(this.getClass().getResource(BMV2_JSON_PATH)))
                 .addBehaviour(PiPipelineInterpreter.class, MockInterpreter.class)
                 .build();
     }

@@ -19,12 +19,16 @@ package org.onosproject.net.pi.model;
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.net.driver.Behaviour;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 /**
  * Default pipeconf implementation.
@@ -34,11 +38,11 @@ public final class DefaultPiPipeconf implements PiPipeconf {
     private final PiPipeconfId id;
     private final PiPipelineModel pipelineModel;
     private final Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours;
-    private final Map<ExtensionType, InputStream> extensions;
+    private final Map<ExtensionType, URL> extensions;
 
     private DefaultPiPipeconf(PiPipeconfId id, PiPipelineModel pipelineModel,
                               Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
-                              Map<ExtensionType, InputStream> extensions) {
+                              Map<ExtensionType, URL> extensions) {
         this.id = id;
         this.pipelineModel = pipelineModel;
         this.behaviours = behaviours;
@@ -72,7 +76,15 @@ public final class DefaultPiPipeconf implements PiPipeconf {
 
     @Override
     public Optional<InputStream> extension(ExtensionType type) {
-        return Optional.ofNullable(extensions.get(type));
+        if (extensions.containsKey(type)) {
+            try {
+                return Optional.of(extensions.get(type).openStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -93,7 +105,7 @@ public final class DefaultPiPipeconf implements PiPipeconf {
         private PiPipelineModel pipelineModel;
         private ImmutableMap.Builder<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviourMapBuilder
                 = ImmutableMap.builder();
-        private ImmutableMap.Builder<ExtensionType, InputStream> extensionMapBuilder = ImmutableMap.builder();
+        private ImmutableMap.Builder<ExtensionType, URL> extensionMapBuilder = ImmutableMap.builder();
 
         /**
          * Sets the identifier of this pipeconf.
@@ -134,15 +146,25 @@ public final class DefaultPiPipeconf implements PiPipeconf {
         /**
          * Adds an extension to this pipeconf.
          *
-         * @param type        extension type
-         * @param inputStream input stream pointing at the extension
+         * @param type extension type
+         * @param url  url pointing at the extension file
          * @return this
          */
-        public Builder addExtension(ExtensionType type, InputStream inputStream) {
+        public Builder addExtension(ExtensionType type, URL url) {
             checkNotNull(type);
-            checkNotNull(inputStream);
-            extensionMapBuilder.put(type, inputStream);
+            checkNotNull(url);
+            checkArgument(checkUrl(url), format("Extension url %s seems to be empty/non existent", url.toString()));
+            extensionMapBuilder.put(type, url);
             return this;
+        }
+
+        private boolean checkUrl(URL url) {
+            try {
+                int byteCount = url.openStream().available();
+                return byteCount > 0;
+            } catch (IOException e) {
+                return false;
+            }
         }
 
         /**

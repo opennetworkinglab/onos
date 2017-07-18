@@ -54,6 +54,7 @@ import org.onosproject.net.pi.runtime.PiPipeconfConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -71,7 +72,7 @@ public class PiPipeconfManagerTest {
     private static final String PIPECONF_ID = "org.project.pipeconf.default";
     private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
 
-    private final InputStream bmv2JsonConfigStream = this.getClass().getResourceAsStream(BMV2_JSON_PATH);
+    private final URL bmv2JsonConfigUrl = this.getClass().getResource(BMV2_JSON_PATH);
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("test:test");
     private static final String BASE_DRIVER = "baseDriver";
@@ -106,7 +107,7 @@ public class PiPipeconfManagerTest {
         piPipeconfService = new PiPipeconfManager();
         piPipeconf = DefaultPiPipeconf.builder()
                 .withId(new PiPipeconfId(PIPECONF_ID))
-                .withPipelineModel(Bmv2PipelineModelParser.parse(bmv2JsonConfigStream))
+                .withPipelineModel(Bmv2PipelineModelParser.parse(bmv2JsonConfigUrl))
                 .addBehaviour(Pipeliner.class, PipelinerAdapter.class)
                 .build();
         completeDriverName = BASE_DRIVER + ":" + piPipeconf.id();

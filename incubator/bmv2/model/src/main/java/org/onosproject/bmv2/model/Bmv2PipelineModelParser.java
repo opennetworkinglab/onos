@@ -30,10 +30,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -75,13 +78,16 @@ public final class Bmv2PipelineModelParser {
     /**
      * Parse the input stream pointing to a BMv2 JSON configuration, to a Bmv2PipelineModel object.
      *
-     * @param jsonInputStream input stream pointing to a BMv2 JSON configuration
+     * @param url URL pointing to a BMv2 JSON configuration
      * @return Bmv2PipelineModel BMv2 pipeline model object
      */
-    public static Bmv2PipelineModel parse(InputStream jsonInputStream) {
+    public static Bmv2PipelineModel parse(URL url) {
+        checkNotNull(url, "Url cannot be null");
         try {
+            InputStream inputStream = url.openStream();
+            checkArgument(inputStream.available() > 0, "Empty or non-existent JSON at " + url.toString());
             return parse(Json.parse(new BufferedReader(
-                    new InputStreamReader(jsonInputStream))).asObject());
+                    new InputStreamReader(inputStream))).asObject());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

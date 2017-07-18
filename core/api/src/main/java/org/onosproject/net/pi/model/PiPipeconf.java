@@ -68,9 +68,9 @@ public interface PiPipeconf {
     boolean hasBehaviour(Class<? extends Behaviour> behaviourClass);
 
     /**
-     * Returns, if present, an input stream of ad device-specific or control
-     * protocol-specific extension of this configuration. For example, if requesting a
-     * target-specific P4 binary, this will return the same bytes produced by the P4 compiler.
+     * Returns, if present, an input stream pointing at the beginning of a file representing a device-specific or
+     * control protocol-specific extension of this configuration. For example, if requesting a target-specific P4
+     * binary, this will return the same bytes produced by the P4 compiler.
      *
      * @param type extension type
      * @return extension input stream
