@@ -33,7 +33,6 @@ import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-import org.onosproject.yang.model.RpcHandler;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.model.DataNode;
@@ -73,7 +72,6 @@ public class DynamicConfigManager
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.BASIC)
                 .register(Class.class)
-                .register(RpcHandler.class)
                 .register(ResourceId.class);
         //TODO after 14420 is merged
         /*handlerRegistry = storageService.<RpcService, RpcHandler>consistentMapBuilder()
