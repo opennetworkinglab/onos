@@ -16,4 +16,4 @@
 /**
  * gRPC server implementations for northbound services.
  */
-package org.onosproject.incubator.protobuf.services.nb;
+package org.onosproject.grpc.nb.net.device;

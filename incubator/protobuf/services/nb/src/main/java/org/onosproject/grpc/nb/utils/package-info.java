@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.protobuf.services.nb;
-
 /**
- * Delete this file.  It is just a placeholder for structure.
+ * A package contains a set of utilities that are used to convert gRPC model
+ * object to ONOS data model object.
  */
-public class DeleteMe {
-    public DeleteMe() {
-        throw new RuntimeException("This is not a class that should be instantiated.");
-    }
-}
+package org.onosproject.grpc.nb.utils;
