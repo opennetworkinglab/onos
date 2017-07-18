@@ -23,7 +23,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
@@ -79,15 +79,15 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
             throws PiInterpreterException;
 
     /**
-     * Returns a collection of metadatas for a packet-out operation that are equivalent to
-     * the traffic treatment of the given OutboundPacket, for the given pipeline configuration.
+     * Returns a collection of packet operations equivalent to the given OutboundPacket, for the given
+     * pipeline configuration.
      *
      * @param packet   a ONOS outbound packet
      * @param pipeconf a pipeline configuration
-     * @return a collection of packet metadata
+     * @return a collection of packet operations
      * @throws PiInterpreterException if the packet treatments cannot be mapped to any metadata
      */
-    Collection<PiPacketMetadata> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+    Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
             throws PiInterpreterException;
 
     /**

@@ -32,6 +32,7 @@ import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.slf4j.Logger;
 import p4.P4RuntimeOuterClass.Action;
 import p4.P4RuntimeOuterClass.TableEntry;
 
@@ -48,8 +49,14 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
+import static org.slf4j.LoggerFactory.getLogger;
+
+//import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
+//import org.onosproject.drivers.bmv2.Bmv2DefaultInterpreter;
 
 public class TableEntryEncoderTest {
+
+    private final Logger log = getLogger(getClass());
 
     private static final String TABLE_0 = "table0";
     private static final String SET_EGRESS_PORT = "set_egress_port";
@@ -68,6 +75,7 @@ public class TableEntryEncoderTest {
     private final PiPipeconf defaultPipeconf = DefaultPiPipeconf.builder()
             .withId(new PiPipeconfId("mock"))
             .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
+//            .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
             .addExtension(P4_INFO_TEXT, p4InfoUrl)
             .addExtension(BMV2_JSON, jsonUrl)
             .build();
@@ -91,10 +99,10 @@ public class TableEntryEncoderTest {
             .withFieldMatch(new PiTernaryFieldMatch(inPortFieldId, portValue, ImmutableByteSequence.ofOnes(2)))
             .withFieldMatch(new PiTernaryFieldMatch(ethTypeFieldId, portValue, ImmutableByteSequence.ofOnes(2)))
             .withAction(PiAction
-                                .builder()
-                                .withId(outActionId)
-                                .withParameter(new PiActionParam(portParamId, portValue))
-                                .build())
+                    .builder()
+                    .withId(outActionId)
+                    .withParameter(new PiActionParam(portParamId, portValue))
+                    .build())
             .withPriority(1)
             .withCookie(2)
             .build();
@@ -165,19 +173,20 @@ public class TableEntryEncoderTest {
     }
 
 //    @Test
-//    public void testRuntime() throws ExecutionException, InterruptedException {
+//    public void testRuntime() throws ExecutionException, InterruptedException,
+//            PiPipelineInterpreter.PiInterpreterException, IllegalAccessException, InstantiationException {
 //
 //        // FIXME: remove me.
 //
 //        P4RuntimeControllerImpl controller = new P4RuntimeControllerImpl();
 //        GrpcControllerImpl grpcController = new GrpcControllerImpl();
 //        controller.grpcController = grpcController;
-//        GrpcControllerImpl.ENABLE_MESSAGE_LOG = true;
+//        GrpcControllerImpl.enableMessageLog = true;
 //        grpcController.activate();
 //        DeviceId deviceId = DeviceId.deviceId("dummy:1");
 //
 //        ManagedChannelBuilder channelBuilder = NettyChannelBuilder
-//                .forAddress("192.168.56.102", 55044)
+//                .forAddress("192.168.56.102", 59975)
 //                .usePlaintext(true);
 //
 //        assert (controller.createClient(deviceId, 1, channelBuilder));
@@ -188,10 +197,37 @@ public class TableEntryEncoderTest {
 //
 //        assert(client.initStreamChannel().get());
 //
-//        assert(client.dumpTable(PiTableId.of(TABLE_0), defaultPipeconf).get().size() == 0);
+//        log.info("++++++++++++++++++++++++++++");
 //
-//        assert(client.writeTableEntries(Lists.newArrayList(piTableEntry), INSERT, defaultPipeconf).get());
+//        PiPipelineInterpreter interpreter = (PiPipelineInterpreter) defaultPipeconf
+//                .implementation(PiPipelineInterpreter.class)
+//                .orElse(null)
+//                .newInstance();
 //
-//        assert(client.dumpTable(PiTableId.of(TABLE_0), defaultPipeconf).get().size() == 1);
+//        TrafficTreatment t = DefaultTrafficTreatment.builder()
+//                .setOutput(PortNumber.portNumber(830L)).build();
+//        byte[] payload = new byte[1000];
+////        payload[0] = 1;
+//        Arrays.fill( payload, (byte) 1 );
+//
+//        OutboundPacket packet = new DefaultOutboundPacket(
+//                deviceId, t, ByteBuffer.wrap(payload));
+//
+//
+//        Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet,defaultPipeconf);
+//        log.info("{}", operations);
+//        operations.forEach(piPacketOperation -> {
+//            try {
+//                client.packetOut(piPacketOperation, defaultPipeconf).get();
+//            } catch (InterruptedException | ExecutionException e) {
+//               log.error("{}",e);
+//            }
+//        });
+//
+////        assert(client.dumpTable(PiTableId.of(TABLE_0), defaultPipeconf).get().size() == 0);
+//
+////        assert(client.writeTableEntries(Lists.newArrayList(piTableEntry), INSERT, defaultPipeconf).get());
+//
+////        assert(client.dumpTable(PiTableId.of(TABLE_0), defaultPipeconf).get().size() == 1);
 //    }
 }

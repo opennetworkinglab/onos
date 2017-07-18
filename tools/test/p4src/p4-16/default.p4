@@ -39,4 +39,16 @@ control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t
     }
 }
 
+@controller_header("packet_in")
+header packet_in_header_t {
+    bit<9> ingress_port;
+    bit<32> other1;
+}
+
+@controller_header("packet_out")
+header packet_out_header_t {
+    bit<9> egress_port;
+    bit<32> other2;
+}
+
 V1Switch(ParserImpl(), verifyChecksum(), ingress(), egress(), computeChecksum(), DeparserImpl()) main;

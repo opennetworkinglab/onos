@@ -47,6 +47,7 @@ import p4.P4RuntimeOuterClass.TableEntry;
 import p4.P4RuntimeOuterClass.Uint128;
 import p4.P4RuntimeOuterClass.Update;
 import p4.P4RuntimeOuterClass.WriteRequest;
+import p4.config.P4InfoOuterClass.P4Info;
 import p4.tmp.P4Config;
 
 import java.io.IOException;
@@ -72,8 +73,8 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
+import static p4.P4RuntimeOuterClass.PacketOut;
 import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
-import static p4.config.P4InfoOuterClass.P4Info;
 
 /**
  * Implementation of a P4Runtime client.
@@ -162,33 +163,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> packetOut(PiPacketOperation packet, PiPipeconf pipeconf) {
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-//        P4InfoBrowser browser = null; //PipeconfHelper.getP4InfoBrowser(pipeconf);
-//        try {
-//            ControllerPacketMetadata controllerPacketMetadata =
-//                    browser.controllerPacketMetadatas().getByName("packet_out");
-//            PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
-//            packetOutBuilder.addAllMetadata(packet.metadatas().stream().map(metadata -> {
-//                //FIXME we are assuming that there is no more than one metadata per name.
-//                int metadataId = controllerPacketMetadata.getMetadataList().stream().filter(metadataInfo -> {
-//                   return  metadataInfo.getName().equals(metadata.id().name());
-//                }).findFirst().get().getId();
-//                return PacketMetadata.newBuilder()
-//                        .setMetadataId(metadataId)
-//                        .setValue(ByteString.copyFrom(metadata.value().asReadOnlyBuffer()))
-//                        .build();
-//            }).filter(Objects::nonNull).collect(Collectors.toList()));
-//            packetOutBuilder.setPayload(ByteString.copyFrom(packet.data().asReadOnlyBuffer()));
-//            PacketOut packetOut = packetOutBuilder.build();
-//            StreamMessageRequest packetOutRequest = StreamMessageRequest
-//                    .newBuilder().setPacket(packetOut).build();
-//            streamRequestObserver.onNext(packetOutRequest);
-//            result.complete(true);
-//        } catch (P4InfoBrowser.NotFoundException e) {
-//            log.error("Cant find metadata with name \"packet_out\" in p4Info file.");
-//            result.complete(false);
-//        }
-        return result;
+        return supplyInContext(() -> doPacketOut(packet, pipeconf));
     }
 
     /* Blocking method implementations below */
@@ -353,6 +328,27 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         return TableEntryEncoder.decode(tableEntryMsgs, pipeconf);
     }
+
+    private boolean doPacketOut(PiPacketOperation packet, PiPipeconf pipeconf) {
+        try {
+            //encode the PiPacketOperation into a PacketOut
+            PacketOut packetOut = PacketIOCodec.encodePacketOut(packet, pipeconf);
+
+            //Build the request
+            StreamMessageRequest packetOutRequest = StreamMessageRequest
+                    .newBuilder().setPacket(packetOut).build();
+
+            //Send the request
+            streamRequestObserver.onNext(packetOutRequest);
+
+        } catch (P4InfoBrowser.NotFoundException e) {
+            log.error("Cant find expected metadata in p4Info file. {}", e.getMessage());
+            log.debug("Exception", e);
+            return false;
+        }
+        return true;
+    }
+
 
     @Override
     public void shutdown() {

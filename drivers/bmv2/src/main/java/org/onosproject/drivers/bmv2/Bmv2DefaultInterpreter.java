@@ -17,8 +17,11 @@
 package org.onosproject.drivers.bmv2;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -33,13 +36,21 @@ import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiPacketMetadataId;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
+import static java.util.stream.Collectors.toList;
 import static org.onosproject.net.PortNumber.CONTROLLER;
+import static org.onosproject.net.PortNumber.FLOOD;
+import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
+import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
 
 /**
  * Interpreter implementation for the default pipeconf.
@@ -50,6 +61,8 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     private static final String PORT = "port";
     private static final String DROP = "_drop_0";
     private static final String SET_EGRESS_PORT = "set_egress_port_0";
+    private static final String EGRESS_PORT = "egress_port";
+    private static final int PORT_NUMBER_BIT_WIDTH = 9;
 
     private static final PiHeaderFieldId IN_PORT_ID = PiHeaderFieldId.of("standard_metadata", "ingress_port");
     private static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet_t", "dstAddr");
@@ -66,6 +79,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
             0, PiTableId.of(TABLE0));
+
 
     @Override
     public PiTableAction mapTreatment(TrafficTreatment treatment, PiPipeconf pipeconf) throws PiInterpreterException {
@@ -88,7 +102,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
                     PiAction.builder()
                             .withId(PiActionId.of(SET_EGRESS_PORT))
                             .withParameter(new PiActionParam(PiActionParamId.of(PORT),
-                                                             ImmutableByteSequence.copyFrom(port.toLong())))
+                                    ImmutableByteSequence.copyFrom(port.toLong())))
                             .build();
                 } else if (port.equals(CONTROLLER)) {
                     return actionWithName(SEND_TO_CPU);
@@ -103,9 +117,65 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     }
 
     @Override
-    public Collection<PiPacketMetadata> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
             throws PiInterpreterException {
-        throw new UnsupportedOperationException("Currently unsupported");
+        TrafficTreatment treatment = packet.treatment();
+
+        // default.p4 supports only OUTPUT instructions.
+        List<Instructions.OutputInstruction> outInstructions = treatment.allInstructions()
+                .stream()
+                .filter(i -> i.type().equals(OUTPUT))
+                .map(i -> (Instructions.OutputInstruction) i)
+                .collect(toList());
+
+        if (treatment.allInstructions().size() != outInstructions.size()) {
+            // There are other instructions that are not of type OUTPUT
+            throw new PiInterpreterException("Treatment not supported: " + treatment);
+        }
+
+        ImmutableList.Builder<PiPacketOperation> builder = ImmutableList.builder();
+        for (Instructions.OutputInstruction outInst : outInstructions) {
+            if (outInst.port().isLogical() && !outInst.port().equals(FLOOD)) {
+                throw new PiInterpreterException("Logical port not supported: " +
+                        outInst.port());
+            } else if (outInst.port().equals(FLOOD)) {
+                //Since default.p4 does not support flood for each port of the device
+                // create a packet operation to send the packet out of that specific port
+                for (Port port : handler().get(DeviceService.class).getPorts(packet.sendThrough())) {
+                    builder.add(createPiPacketOperation(packet.data(), port.number().toLong()));
+                }
+            } else {
+                builder.add(createPiPacketOperation(packet.data(), outInst.port().toLong()));
+            }
+        }
+        return builder.build();
+    }
+
+    private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber) throws PiInterpreterException {
+        //create the metadata
+        PiPacketMetadata metadata = createPacketMetadata(portNumber);
+
+        //Create the Packet operation
+        return PiPacketOperation.builder()
+                .withType(PACKET_OUT)
+                .withData(ImmutableByteSequence.copyFrom(data))
+                .withMetadatas(ImmutableList.of(metadata))
+                .build();
+    }
+
+    private PiPacketMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
+        ImmutableByteSequence portValue = ImmutableByteSequence.copyFrom(portNumber);
+        //FIXME remove hardcoded bitWidth and retrieve it from pipelineModel
+        try {
+            portValue = ImmutableByteSequence.fit(portValue, PORT_NUMBER_BIT_WIDTH);
+        } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+            throw new PiInterpreterException("Port number too big: {}" +
+                    portNumber + " causes " + e.getMessage());
+        }
+        return PiPacketMetadata.builder()
+                .withId(PiPacketMetadataId.of(EGRESS_PORT))
+                .withValue(portValue)
+                .build();
     }
 
     /**

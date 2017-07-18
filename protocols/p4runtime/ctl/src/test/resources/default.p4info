@@ -111,3 +111,37 @@ direct_counters {
   }
   direct_table_id: 33617813
 }
+controller_packet_metadata {
+  preamble {
+    id: 2868941301
+    name: "packet_in"
+    annotations: "@controller_header(\"packet_in\")"
+  }
+  metadata {
+    id: 1
+    name: "ingress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "other1"
+    bitwidth: 32
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 2868916615
+    name: "packet_out"
+    annotations: "@controller_header(\"packet_out\")"
+  }
+  metadata {
+    id: 1
+    name: "egress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "other2"
+    bitwidth: 32
+  }
+}

@@ -53,6 +53,8 @@ final class P4InfoBrowser {
             new EntityBrowser<>("controller packet metadata");
     private final Map<Integer, EntityBrowser<Action.Param>> actionParams = Maps.newHashMap();
     private final Map<Integer, EntityBrowser<MatchField>> matchFields = Maps.newHashMap();
+    private final Map<Integer, EntityBrowser<ControllerPacketMetadata.Metadata>> ctrlPktMetadatasMetadata =
+            Maps.newHashMap();
 
     /**
      * Creates a new browser for the given P4Info.
@@ -107,7 +109,16 @@ final class P4InfoBrowser {
                 entity -> directMeters.addWithPreamble(entity.getPreamble(), entity));
 
         p4info.getControllerPacketMetadataList().forEach(
-                entity -> ctrlPktMetadatas.addWithPreamble(entity.getPreamble(), entity));
+                entity -> {
+                    ctrlPktMetadatas.addWithPreamble(entity.getPreamble(), entity);
+                    // Index control packet metadata metadata.
+                    int ctrlPktMetadataId = entity.getPreamble().getId();
+                    String ctrlPktMetadataName = entity.getPreamble().getName();
+                    EntityBrowser<ControllerPacketMetadata.Metadata> metadataBrowser = new EntityBrowser<>(format(
+                            "metadata field for controller packet metadata '%s'", ctrlPktMetadataName));
+                    entity.getMetadataList().forEach(m -> metadataBrowser.add(m.getName(), null, m.getId(), m));
+                    ctrlPktMetadatasMetadata.put(ctrlPktMetadataId, metadataBrowser);
+                });
     }
 
     private String extractMatchFieldSimpleName(String name) {
@@ -212,13 +223,27 @@ final class P4InfoBrowser {
      * Returns a browser for match fields of the given table.
      *
      * @param tableId table identifier
-     * @return controller packet metadata browser
+     * @return match field browser
      * @throws NotFoundException if the table cannot be found
      */
     EntityBrowser<MatchField> matchFields(int tableId) throws NotFoundException {
         // Throws exception if action id is not found.
         tables.getById(tableId);
         return matchFields.get(tableId);
+    }
+
+    /**
+     * Returns a browser for metadata fields of the controller packet metadata.
+     *
+     * @param controllerPacketMetadataId controller packet metadata identifier
+     * @return metadata browser
+     * @throws NotFoundException controller packet metadata cannot be foudn
+     */
+    EntityBrowser<ControllerPacketMetadata.Metadata> packetMetadatas(int controllerPacketMetadataId)
+            throws NotFoundException {
+        // Throws exception if controller packet metadata id is not found.
+        ctrlPktMetadatas.getById(controllerPacketMetadataId);
+        return ctrlPktMetadatasMetadata.get(controllerPacketMetadataId);
     }
 
     /**

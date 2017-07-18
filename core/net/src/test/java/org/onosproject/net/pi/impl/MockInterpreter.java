@@ -17,6 +17,7 @@
 package org.onosproject.net.pi.impl;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -31,7 +32,7 @@ import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
@@ -102,9 +103,9 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
     }
 
     @Override
-    public Collection<PiPacketMetadata> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
             throws PiInterpreterException {
-        return null;
+        return ImmutableList.of();
     }
 
     /**

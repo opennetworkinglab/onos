@@ -16,7 +16,6 @@
 
 package org.onosproject.drivers.bmv2;
 
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -32,7 +31,7 @@ import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
+import java.util.Collection;
 
 /**
  * Packet Programmable behaviour for BMv2 devices.
@@ -72,16 +71,13 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
         }
 
         try {
-            PiPacketOperation piPacketOperation = PiPacketOperation
-                    .builder()
-                    .withType(PACKET_OUT)
-                    .withData(ImmutableByteSequence.copyFrom(packet.data()))
-                    .withMetadatas(interpreter.mapOutboundPacket(packet, pipeconf))
-                    .build();
-            client.packetOut(piPacketOperation, pipeconf);
+            Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet, pipeconf);
+            operations.forEach(piPacketOperation -> {
+                client.packetOut(piPacketOperation, pipeconf);
+            });
         } catch (PiPipelineInterpreter.PiInterpreterException e) {
             log.error("Interpreter of pipeconf {} was unable to translate outbound packet: {}",
-                      pipeconf.id(), e.getMessage());
+                    pipeconf.id(), e.getMessage());
         }
     }
 }
