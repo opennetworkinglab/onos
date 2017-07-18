@@ -16,32 +16,72 @@
 
 package org.onosproject.drivers.bmv2;
 
+import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketProgrammable;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.p4runtime.api.P4RuntimeClient;
+import org.onosproject.p4runtime.api.P4RuntimeController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
 
 /**
  * Packet Programmable behaviour for BMv2 devices.
  */
 public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public void emit(OutboundPacket packet) {
-        // TODO: implement using P4runtime client.
-        // DriverHandler handler = handler();
-        // GrpcController controller = handler.get(GrpcController.class);
-        // DeviceId deviceId = handler.data().deviceId();
-        // GrpcChannelId channelId = GrpcChannelId.of(deviceId, "bmv2");
-        // GrpcServiceId serviceId = GrpcServiceId.of(channelId, "p4runtime");
-        // GrpcStreamObserverId observerId = GrpcStreamObserverId.of(serviceId,
-        //         this.getClass().getSimpleName());
-        // Optional<GrpcObserverHandler> manager = controller.getObserverManager(observerId);
-        // if (!manager.isPresent()) {
-        //     //this is the first time the behaviour is called
-        //     controller.addObserver(observerId, new Bmv2PacketInObserverHandler());
-        // }
-        // //other already registered the observer for us.
-        // Optional<StreamObserver> observer = manager.get().requestStreamObserver();
-        // observer.ifPresent(objectStreamObserver -> objectStreamObserver.onNext(packet));
+
+        DeviceId deviceId = handler().data().deviceId();
+        P4RuntimeController controller = handler().get(P4RuntimeController.class);
+        if (!controller.hasClient(deviceId)) {
+            log.warn("Unable to find client for {}, aborting the sending packet", deviceId);
+            return;
+        }
+
+        P4RuntimeClient client = controller.getClient(deviceId);
+        PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
+
+        final PiPipeconf pipeconf;
+        if (piPipeconfService.ofDevice(deviceId).isPresent() &&
+                piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
+            pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
+        } else {
+            log.warn("Unable to get the pipeconf of the {}", deviceId);
+            return;
+        }
+
+        DeviceService deviceService = handler().get(DeviceService.class);
+        Device device = deviceService.getDevice(deviceId);
+        final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
+                ? device.as(PiPipelineInterpreter.class) : null;
+        if (interpreter == null) {
+            log.warn("Device {} unable to instantiate interpreter of pipeconf {}", deviceId, pipeconf.id());
+            return;
+        }
+
+        try {
+            PiPacketOperation piPacketOperation = PiPacketOperation
+                    .builder()
+                    .withType(PACKET_OUT)
+                    .withData(ImmutableByteSequence.copyFrom(packet.data()))
+                    .withMetadatas(interpreter.mapOutboundPacket(packet, pipeconf))
+                    .build();
+            client.packetOut(piPacketOperation, pipeconf);
+        } catch (PiPipelineInterpreter.PiInterpreterException e) {
+            log.error("Interpreter of pipeconf {} was unable to translate outbound packet: {}",
+                      pipeconf.id(), e.getMessage());
+        }
     }
 }

@@ -35,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class PiPacketOperation {
 
-    enum Type {
+    public enum Type {
         /**
          * Represents a packet out.
          */
