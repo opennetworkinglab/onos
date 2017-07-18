@@ -23,6 +23,7 @@ mv /tmp/BUCK $ONOS_ROOT/lib/BUCK
 for yl in $(egrep "onos-yang-.*$BVER" $ONOS_ROOT/lib/deps.json); do
     n=$(echo $yl | cut -d\" -f2)
     m=$(echo $yl | cut -d\" -f4)
+    m=${m/$BVER/$SVER}
     j=$(find $YANG_TOOLS_ROOT -name $n-$SVER.jar)
     s=yang/$(basename $j)
     cp $j $ONOS_ROOT/lib/$s
