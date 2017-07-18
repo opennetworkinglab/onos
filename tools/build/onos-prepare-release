@@ -35,6 +35,9 @@ git tag -l | grep -q "$ONOS_VERSION\$" &&
 cp $ONOS_ROOT/.buckconfig.local $DIR/
 
 export ONOS_ROOT=$DIR
+# This is a hack to remove symlinks from the ONOS_ROOT path. To be removed when
+# the protobuf buck rules can handle symlinks
+ONOS_ROOT=$(pushd $ONOS_ROOT >/dev/null && pwd -P && popd >/dev/null)
 . $ONOS_ROOT/tools/build/envDefaults
 exec bash $COMMAND
 
