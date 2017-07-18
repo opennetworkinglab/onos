@@ -16,14 +16,45 @@
 
 package org.onlab.packet.dhcp;
 
+import com.google.common.base.MoreObjects.ToStringHelper;
+import org.onlab.packet.BasePacket;
+import org.onlab.packet.Data;
+import org.onlab.packet.DeserializationException;
+import org.onlab.packet.Deserializer;
+import org.onlab.packet.IPacket;
+
+import java.nio.ByteBuffer;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Representation of an DHCPv6 Option.
  * Base on RFC-3315.
  */
-public class Dhcp6Option {
+public class Dhcp6Option extends BasePacket {
+    public static final int DEFAULT_LEN = 4;
     private short code;
     private short length;
-    private byte[] data;
+    // XXX: use "payload" from BasePacket for option data.
+
+    /**
+     * Default constructor.
+     */
+    public Dhcp6Option() {
+    }
+
+    /**
+     * Constructs a DHCPv6 option based on information from other DHCPv6 option.
+     *
+     * @param dhcp6Option other DHCPv6 option
+     */
+    public Dhcp6Option(Dhcp6Option dhcp6Option) {
+        this.code = (short) (0xffff & dhcp6Option.code);
+        this.length = (short) (0xffff & dhcp6Option.length);
+        this.payload = dhcp6Option.payload;
+        this.payload.setParent(this);
+    }
 
     /**
      * Sets the code of this option.
@@ -35,12 +66,16 @@ public class Dhcp6Option {
     }
 
     /**
-     * Sets the data and length of this option.
+     * Sets the data of this option.
      *
      * @param data the data to set
      */
     public void setData(byte[] data) {
-        this.data = data;
+        try {
+            this.payload = Data.deserializer().deserialize(data, 0, data.length);
+        } catch (DeserializationException e) {
+            throw new RuntimeException("Invalid data");
+        }
     }
 
     /**
@@ -76,6 +111,80 @@ public class Dhcp6Option {
      * @return the data of this option
      */
     public byte[] getData() {
-        return data;
+        return payload.serialize();
+    }
+
+    /**
+     * Gets deserializer of DHCPv6 option.
+     *
+     * @return the deserializer of DHCPv6 option
+     */
+    public static Deserializer<Dhcp6Option> deserializer() {
+        return (data, offset, len) -> {
+            Dhcp6Option dhcp6Option = new Dhcp6Option();
+            if (len < DEFAULT_LEN) {
+                throw new DeserializationException("DHCPv6 option code length" +
+                                                           "should be at least 4 bytes");
+            }
+            ByteBuffer bb = ByteBuffer.wrap(data, offset, len);
+            dhcp6Option.code = (short) (0xff & bb.getShort());
+            dhcp6Option.length = (short) (0xff & bb.getShort());
+            byte[] optData = new byte[dhcp6Option.length];
+            bb.get(optData);
+            dhcp6Option.setData(optData);
+            return dhcp6Option;
+        };
+    }
+
+    @Override
+    public byte[] serialize() {
+        ByteBuffer bb = ByteBuffer.allocate(DEFAULT_LEN + getLength());
+        bb.putShort(getCode());
+        bb.putShort(getLength());
+        bb.put(payload.serialize());
+        return bb.array();
+    }
+
+    @Override
+    public IPacket deserialize(byte[] data, int offset, int length) {
+        try {
+            return deserializer().deserialize(data, offset, length);
+        } catch (DeserializationException e) {
+            throw new RuntimeException("Can't deserialize data for DHCPv6 option.", e);
+        }
+    }
+
+    protected ToStringHelper getToStringHelper() {
+        return toStringHelper(Dhcp6Option.class)
+                .add("code", code)
+                .add("length", length);
+    }
+
+    @Override
+    public String toString() {
+        return getToStringHelper()
+                .add("data", payload.toString())
+                .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * super.hashCode() + Objects.hash(code, length);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        final Dhcp6Option other = (Dhcp6Option) obj;
+        return Objects.equals(this.code, other.code)
+                && Objects.equals(this.length, other.length);
     }
 }
