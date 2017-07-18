@@ -40,6 +40,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
     private final Logger log = getLogger(getClass());
 
     private static final int MAX_ENTRIES_PER_LOG_SEGMENT = 32768;
+    private static final int MAX_SEGMENT_SIZE = 1024 * 1024 * 64;
     private final MemberId localMemberId;
     private final StoragePartition partition;
     private final Supplier<RaftServerProtocol> protocol;
@@ -102,6 +103,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                         .withSerializer(new AtomixSerializerAdapter(Serializer.using(StorageNamespaces.RAFT_STORAGE)))
                         .withDirectory(dataFolder)
                         .withMaxEntriesPerSegment(MAX_ENTRIES_PER_LOG_SEGMENT)
+                        .withMaxSegmentSize(MAX_SEGMENT_SIZE)
                         .build());
         StoragePartition.RAFT_SERVICES.forEach(builder::addService);
         return builder.build();

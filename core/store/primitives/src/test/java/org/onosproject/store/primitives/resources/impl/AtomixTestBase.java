@@ -169,7 +169,6 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
             .register(MemberId.class)
             .register(SessionId.class)
             .register(RaftMember.Type.class)
-            .register(RaftMember.Status.class)
             .register(Instant.class)
             .register(Configuration.class)
             .register(AtomixAtomicCounterMapOperations.class)
@@ -212,7 +211,6 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
             .register(DefaultRaftMember.class)
             .register(MemberId.class)
             .register(RaftMember.Type.class)
-            .register(RaftMember.Status.class)
             .register(Instant.class)
             .register(Configuration.class)
             .register(byte[].class)
@@ -457,25 +455,9 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
         }
 
         @Override
-        public Status getStatus() {
-            return Status.AVAILABLE;
-        }
-
-        @Override
         public Instant getLastUpdated() {
             return Instant.now();
         }
-
-        @Override
-        public void addStatusChangeListener(Consumer<Status> listener) {
-
-        }
-
-        @Override
-        public void removeStatusChangeListener(Consumer<Status> listener) {
-
-        }
-
         @Override
         public CompletableFuture<Void> promote() {
             return null;

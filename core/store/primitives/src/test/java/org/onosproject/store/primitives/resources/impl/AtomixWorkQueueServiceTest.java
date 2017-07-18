@@ -17,10 +17,11 @@ package org.onosproject.store.primitives.resources.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.ScheduledExecutorService;
 
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.cluster.MemberId;
-import io.atomix.protocols.raft.impl.RaftServerContext;
+import io.atomix.protocols.raft.impl.RaftContext;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.service.ServiceId;
 import io.atomix.protocols.raft.service.ServiceType;
@@ -67,7 +68,7 @@ public class AtomixWorkQueueServiceTest {
         expect(context.serviceId()).andReturn(ServiceId.from(1)).anyTimes();
         expect(context.executor()).andReturn(mock(ThreadContext.class)).anyTimes();
 
-        RaftServerContext server = mock(RaftServerContext.class);
+        RaftContext server = mock(RaftContext.class);
         expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class));
 
         replay(context, server);
@@ -80,7 +81,8 @@ public class AtomixWorkQueueServiceTest {
                 ReadConsistency.LINEARIZABLE,
                 5000,
                 context,
-                server);
+                server,
+                mock(ScheduledExecutorService.class));
 
         AtomixWorkQueueService service = new AtomixWorkQueueService();
         service.init(context);
