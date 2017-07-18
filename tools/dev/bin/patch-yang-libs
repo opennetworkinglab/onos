@@ -40,3 +40,7 @@ prebuilt_jar (
 
 EOF
 done
+
+# Patch the YANG BUCK plugin
+cp $YANG_TOOLS_ROOT/compiler/plugin/buck/target/onos-yang-compiler-buck-plugin-$SVER.jar \
+        $ONOS_ROOT/bin/plugins/yang.jar
