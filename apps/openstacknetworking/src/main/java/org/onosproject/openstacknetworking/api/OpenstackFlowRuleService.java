@@ -44,4 +44,21 @@ public interface OpenstackFlowRuleService {
               int priority,
               int tableType,
               boolean install);
+
+    /**
+     * Install table miss entry (drop rule) in the table.
+     *
+     * @param deviceId device ID
+     * @param table table number
+     */
+    void setUpTableMissEntry(DeviceId deviceId, int table);
+
+    /**
+     * Install a flor rule for transition from table A to table B.
+     *
+     * @param deviceId device Id
+     * @param fromTable table number of table A
+     * @param toTable table number of table B
+     */
+    void connectTables(DeviceId deviceId, int fromTable, int toTable);
 }

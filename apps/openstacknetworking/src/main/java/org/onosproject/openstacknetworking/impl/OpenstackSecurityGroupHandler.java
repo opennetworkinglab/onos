@@ -51,6 +51,8 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupListener;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.model.network.SecurityGroupRule;
@@ -69,6 +71,7 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RULE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -107,6 +110,9 @@ public class OpenstackSecurityGroupHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeService osNodeService;
 
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackNetworkListener portListener = new InternalOpenstackPortListener();
@@ -209,7 +215,7 @@ public class OpenstackSecurityGroupHandler {
             osFlowRuleService.setRule(appId,
                     instPort.deviceId(),
                     selector,
-                    DefaultTrafficTreatment.builder().build(),
+                    DefaultTrafficTreatment.builder().transition(JUMP_TABLE).build(),
                     PRIORITY_ACL_RULE,
                     ACL_TABLE,
                     install);
@@ -362,9 +368,13 @@ public class OpenstackSecurityGroupHandler {
     private void resetSecurityGroupRules() {
 
         if (useSecurityGroup) {
+            osNodeService.completeNodes(OpenstackNode.NodeType.COMPUTE)
+                    .forEach(node -> osFlowRuleService.setUpTableMissEntry(node.intgBridge(), ACL_TABLE));
             securityGroupService.securityGroups().forEach(securityGroup ->
                     securityGroup.getRules().forEach(this::securityGroupRuleAdded));
         } else {
+            osNodeService.completeNodes(OpenstackNode.NodeType.COMPUTE)
+                    .forEach(node -> osFlowRuleService.connectTables(node.intgBridge(), ACL_TABLE, JUMP_TABLE));
             securityGroupService.securityGroups().forEach(securityGroup ->
                     securityGroup.getRules().forEach(this::securityGroupRuleRemoved));
         }
