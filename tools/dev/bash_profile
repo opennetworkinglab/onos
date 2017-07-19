@@ -173,6 +173,7 @@ function setPrimaryInstance {
 
 # ON.Lab shared test cell warden address
 export CELL_WARDEN="10.254.1.19"
+export CELL_SLAVES="$CELL_WARDEN 10.254.1.18 10.254.1.17"
 
 # Clears cell environment
 function clearCell {
