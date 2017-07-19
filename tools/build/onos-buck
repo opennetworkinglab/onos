@@ -5,8 +5,8 @@
 
 set -e
 
-BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2017.05.25.01.zip"
-BUCK_SHA="3803bc4ee74504e8c590dac5943c9abaf6ba6157"
+BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2017.07.18.02.zip"
+BUCK_SHA="147ca3ec72af966f9be5eaaa409fca76377ba718"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
@@ -16,7 +16,7 @@ mkdir -p $ROOT_DIR/bin
 pushd $ROOT_DIR/bin > /dev/null
 
 if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$BUCK_SHA" != "$(cat .buck_sha)" ]; then
-    echo "Updating Buck..."
+    echo "Updating Buck..." >&2
     rm -fr .buck_version .buck_sha buck plugins
     mkdir -p cache
     BUCK_FILE=$(basename $BUCK_URL)
