@@ -265,6 +265,11 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
 
     private FlowEntry virtualize(FlowEntry flowEntry) {
         FlowRule vRule = virtualizeFlowRule(flowEntry);
+
+        if (vRule == null) {
+            return null;
+        }
+
         FlowEntry vEntry = new DefaultFlowEntry(vRule, flowEntry.state(),
                                                 flowEntry.life(),
                                                 flowEntry.packets(),
@@ -610,6 +615,11 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
                 if (frm.isVirtualIngressRule(event.subject())) {
                     NetworkId networkId = frm.getVirtualNetworkId(event.subject());
                     FlowEntry vEntry = getVirtualFlowEntry(event.subject());
+
+                    if (vEntry == null) {
+                        return;
+                    }
+
                     frm.addOrUpdateFlowEntry(networkId, vEntry.deviceId(), vEntry);
 
                     VirtualFlowRuleProviderService providerService =
@@ -627,6 +637,10 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
                     //FIXME confirm all physical rules are removed
                     NetworkId networkId = frm.getVirtualNetworkId(event.subject());
                     FlowEntry vEntry = getVirtualFlowEntry(event.subject());
+
+                    if (vEntry == null) {
+                        return;
+                    }
 
                     frm.removeFlowEntry(networkId, vEntry.deviceId(), vEntry);
                     frm.removeFlowRule(networkId, vEntry.deviceId(), vEntry);
