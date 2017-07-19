@@ -31,7 +31,6 @@ import p4.config.P4InfoOuterClass.P4Info;
 import p4.config.P4InfoOuterClass.Preamble;
 import p4.config.P4InfoOuterClass.Table;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -239,14 +238,14 @@ final class P4InfoBrowser {
         }
 
         /**
-         * Adds the given entity identified by the given name, alias and id.
+         * Adds the given entity identified by the given name, alias (nullable) and id.
          *
          * @param name   entity name
-         * @param alias  entity alias
+         * @param alias  entity alias or null
          * @param id     entity id
          * @param entity entity message
          */
-        void add(String name, @Nullable String alias, int id, T entity) {
+        void add(String name, String alias, int id, T entity) {
             checkNotNull(name);
             checkArgument(!name.isEmpty(), "Name cannot be empty");
             checkNotNull(entity);

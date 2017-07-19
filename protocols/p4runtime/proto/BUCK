@@ -18,20 +18,20 @@ PROTO_SRCS = [
     '/proto/p4/tmp/p4config.proto',
 ]
 
-COMPILE_DEPS = [
-'//lib:CORE_DEPS',
-'//incubator/grpc-dependencies:grpc-core-repkg-' + P4RT_GRPC_VER,
-'//lib:grpc-stub-' + P4RT_GRPC_VER,
-'//lib:grpc-protobuf-' + P4RT_GRPC_VER,
-'//lib:protobuf-java-' + P4RT_PROTOC_VER,
+COMPILE_DEPS =[
+    '//lib:CORE_DEPS',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + P4RT_GRPC_VER,
+    '//lib:grpc-stub-' + P4RT_GRPC_VER,
+    '//lib:grpc-protobuf-' + P4RT_GRPC_VER,
+    '//lib:protobuf-java-' + P4RT_PROTOC_VER,
 ]
 
 genrule(
     name = 'p4lang-pi-repo-' + PI_COMMIT,
     bash = 'git clone --quiet ' + PI_BASEURL + ' $OUT > /dev/null && '
-    + 'cd $OUT && '
-    + 'git checkout --quiet -b buck-build ' + PI_COMMIT + ' > /dev/null && '
-    + 'git submodule update --quiet --init --recursive > /dev/null',
+            + 'cd $OUT && '
+            + 'git checkout --quiet -b buck-build ' + PI_COMMIT + ' > /dev/null && '
+            + 'git submodule update --quiet --init --recursive > /dev/null',
     out = 'repo',
 )
 

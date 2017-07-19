@@ -1,6 +1,8 @@
+GRPC_VER = '1.3.0'
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
 ]
 
 TEST_DEPS = [
