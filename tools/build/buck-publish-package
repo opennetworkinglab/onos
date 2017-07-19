@@ -44,9 +44,11 @@ pushd $ZIP_STAGE
 zip -r ../$BUCK_ZIP buck .buck_version plugins
 popd #$ZIP_STAGE
 
-# publish zip
-#FIXME check for s3 credentials
-uploadToS3.py --dest third-party/ $BUCK_ZIP
+if [ "$1" -ne "--dry-run" ]; then
+    # publish zip
+    #FIXME check for s3 credentials
+    uploadToS3.py --dest third-party/ $BUCK_ZIP
+fi
 
 # update version in onos-buck
 URL="$DOWNLOAD_BASE/$BUCK_ZIP"
