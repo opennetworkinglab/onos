@@ -24,7 +24,6 @@ import java.io.UncheckedIOException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.drivers.microsemi.yang.impl.MseaCfmManager;
@@ -40,7 +39,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenanc
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.NameCharacterString;
 import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.Identifier45;
 
-@Ignore("temporary until dual registration of YANG models is fixed")
 public class MseaCfmManagerTest {
 
     MseaCfmManager mseaCfmService;

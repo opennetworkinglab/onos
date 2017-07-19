@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.IpPrefix;
@@ -57,7 +56,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-@Ignore("temporary until dual registration of YANG models is fixed")
 public class EA1000FlowRuleProgrammableTest {
     EA1000FlowRuleProgrammable frProgramable;
 
