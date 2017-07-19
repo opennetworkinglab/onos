@@ -46,7 +46,7 @@ public abstract class AbstractYangModelRegistrator {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected YangModelRegistry modelRegistry;
     private Map<YangModuleId, AppModuleInfo> appInfo;
-    private YangModel model;
+    protected YangModel model;
     private ModelRegistrationParam registrationParam;
 
     /**
@@ -84,7 +84,7 @@ public abstract class AbstractYangModelRegistrator {
         log.info("Started");
     }
 
-    private ModelRegistrationParam.Builder getAppInfo(Builder b) {
+    protected ModelRegistrationParam.Builder getAppInfo(Builder b) {
         if (appInfo != null) {
             appInfo.entrySet().stream().filter(
                     entry -> model.getYangModule(entry.getKey()) != null).forEach(
