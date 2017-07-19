@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -30,6 +31,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.CellFormatter;
@@ -60,6 +62,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String DETAILS = "details";
     private static final String FLOW_PRIORITY = "priority";
 
+    private static final String DEV_ID = "devId";
+
     private static final String ID = "id";
     private static final String FLOW_ID = "flowId";
     private static final String APP_ID = "appId";
@@ -81,9 +85,33 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String COMMA = ", ";
     private static final String OX = "0x";
     private static final String EMPTY = "";
+    private static final String SPACE = " ";
+    private static final String COLON = ":";
+    private static final String ANGLE_O = "<";
+    private static final String ANGLE_C = ">";
+    private static final String SQUARE_O = "[";
+    private static final String SQUARE_C = "]";
 
     private static final String ONOS_PREFIX = "org.onosproject.";
     private static final String ONOS_MARKER = "*";
+
+    // TODO: replace the use of the following constants with localized text
+    private static final String MSG_NO_SELECTOR =
+            "(No traffic selector criteria for this flow)";
+    private static final String MSG_NO_TREATMENT =
+            "(No traffic treatment instructions for this flow)";
+    private static final String NO_ROWS_NO_FLOWS = "No flows found";
+
+    private static final String CRITERIA = "Criteria";
+    private static final String TREATMENT_INSTRUCTIONS = "Treatment Instructions";
+    private static final String IMM = "imm";
+    private static final String DEF = "def";
+    private static final String METERED = "metered";
+    private static final String TRANSITION = "transition";
+    private static final String METADATA = "metadata";
+    private static final String CLEARED = "cleared";
+    private static final String UNKNOWN = "Unknown";
+
 
     private static final String[] COL_IDS = {
             ID,
@@ -114,10 +142,9 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         );
     }
 
-    private StringBuilder removeTrailingComma(StringBuilder sb) {
+    private void removeTrailingComma(StringBuilder sb) {
         int pos = sb.lastIndexOf(COMMA);
         sb.delete(pos, sb.length());
-        return sb;
     }
 
     // Generate a map of shorts->application IDs
@@ -134,7 +161,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private String makeAppName(short id, Map<Short, ApplicationId> lookup) {
         ApplicationId appId = lookup.get(id);
         if (appId == null) {
-            return "Unknown <" + id + ">";
+            return UNKNOWN + SPACE + ANGLE_O + id + ANGLE_C;
         }
         String appName = appId.name();
         return appName.startsWith(ONOS_PREFIX)
@@ -143,8 +170,6 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
     // handler for flow table requests
     private final class FlowDataRequest extends TableRequestHandler {
-
-        private static final String NO_ROWS_MESSAGE = "No flows found";
 
         private FlowDataRequest() {
             super(FLOW_DATA_REQ, FLOW_DATA_RESP, FLOWS);
@@ -157,7 +182,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
         @Override
         protected String noRowsMessage(ObjectNode payload) {
-            return NO_ROWS_MESSAGE;
+            return NO_ROWS_NO_FLOWS;
         }
 
         @Override
@@ -178,7 +203,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
-            String uri = string(payload, "devId");
+            String uri = string(payload, DEV_ID);
             if (!Strings.isNullOrEmpty(uri)) {
                 DeviceId deviceId = DeviceId.deviceId(uri);
                 Map<Short, ApplicationId> lookup = appShortMap();
@@ -225,12 +250,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 Set<Criterion> criteria = flow.selector().criteria();
 
                 if (criteria.isEmpty()) {
-                    return "(No traffic selector criteria for this flow)";
+                    return MSG_NO_SELECTOR;
                 }
 
                 StringBuilder sb = new StringBuilder();
                 if (!shortFormat) {
-                    sb.append("Criteria: ");
+                    sb.append(CRITERIA).append(COLON).append(SPACE);
                 }
 
                 for (Criterion c : criteria) {
@@ -270,40 +295,34 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 if (imm.isEmpty() &&
                         def.isEmpty() &&
                         treatment.metered() == null &&
-                        treatment.tableTransition() == null) {
-                    return "(No traffic treatment instructions for this flow)";
+                        treatment.tableTransition() == null &&
+                        treatment.writeMetadata() == null) {
+                    return MSG_NO_TREATMENT;
                 }
 
                 StringBuilder sb = new StringBuilder();
 
                 if (!shortFormat) {
-                    sb.append("Treatment Instructions: ");
+                    sb.append(TREATMENT_INSTRUCTIONS).append(COLON).append(SPACE);
                 }
 
-                formatInstructs(sb, imm, "immediate:");
-                formatInstructs(sb, def, "deferred:");
+                formatInstructs(sb, imm, IMM);
+                formatInstructs(sb, def, DEF);
 
-                if (treatment.metered() != null) {
-                    sb.append("metered:")
-                            .append(treatment.metered())
-                            .append(COMMA);
-                }
+                addLabVal(sb, METERED, treatment.metered());
+                addLabVal(sb, TRANSITION, treatment.tableTransition());
+                addLabVal(sb, METADATA, treatment.writeMetadata());
 
-                if (treatment.tableTransition() != null) {
-                    sb.append("transition:")
-                            .append(treatment.tableTransition())
-                            .append(COMMA);
-                }
-
-                if (treatment.writeMetadata() != null) {
-                    sb.append("metadata:")
-                            .append(treatment.writeMetadata())
-                            .append(COMMA);
-                }
-
-                sb.append("cleared:").append(treatment.clearedDeferred());
+                sb.append(CLEARED).append(COLON)
+                        .append(treatment.clearedDeferred());
 
                 return sb.toString();
+            }
+
+            private void addLabVal(StringBuilder sb, String label, Instruction value) {
+                if (value != null) {
+                    sb.append(label).append(COLON).append(value).append(COMMA);
+                }
             }
         }
 
@@ -323,10 +342,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                                      List<Instruction> instructs,
                                      String type) {
             if (!instructs.isEmpty()) {
-                sb.append(type);
+                sb.append(type).append(SQUARE_O);
                 for (Instruction i : instructs) {
                     sb.append(i).append(COMMA);
                 }
+                removeTrailingComma(sb);
+                sb.append(SQUARE_C).append(COMMA);
             }
         }
     }
@@ -360,33 +381,6 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             return OX + flow.groupId().id();
         }
 
-        private String getCriteriaString(FlowRule flow) {
-            Set<Criterion> criteria = flow.selector().criteria();
-            StringBuilder sb = new StringBuilder();
-            for (Criterion c : criteria) {
-                sb.append(c).append(COMMA);
-            }
-            removeTrailingComma(sb);
-            return sb.toString();
-        }
-
-        private String getTreatmentString(FlowRule flow) {
-            List<Instruction> instructions = flow.treatment().allInstructions();
-            StringBuilder sb = new StringBuilder();
-            for (Instruction inst : instructions) {
-                sb.append(inst).append(COMMA);
-            }
-            if (flow.treatment().metered() != null) {
-                sb.append(flow.treatment().metered()).append(COMMA);
-            }
-            if (flow.treatment().tableTransition() != null) {
-                sb.append(flow.treatment().tableTransition()).append(COMMA);
-            }
-
-            removeTrailingComma(sb);
-            return sb.toString();
-        }
-
         @Override
         public void process(ObjectNode payload) {
 
@@ -399,11 +393,10 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
                 data.put(FLOW_ID, decorateFlowId(flow));
 
-                // TODO: use formatters for these values..
-                data.put(STATE, flow.state().toString());
-                data.put(BYTES, flow.bytes());
-                data.put(PACKETS, flow.packets());
-                data.put(DURATION, flow.life());
+                data.put(STATE, EnumFormatter.INSTANCE.format(flow.state()));
+                data.put(BYTES, NumberFormatter.INTEGER.format(flow.bytes()));
+                data.put(PACKETS, NumberFormatter.INTEGER.format(flow.packets()));
+                data.put(DURATION, NumberFormatter.INTEGER.format(flow.life()));
 
                 data.put(FLOW_PRIORITY, flow.priority());
                 data.put(TABLE_ID, flow.tableId());
@@ -413,15 +406,67 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
                 data.put(GROUP_ID, decorateGroupId(flow));
                 data.put(TIMEOUT, flow.hardTimeout());
-                data.put(PERMANENT, Boolean.toString(flow.isPermanent()));
+                data.put(PERMANENT, flow.isPermanent());
 
-                data.put(SELECTOR, getCriteriaString(flow));
-                data.put(TREATMENT, getTreatmentString(flow));
+                data.set(SELECTOR, jsonCriteria(flow));
+                data.set(TREATMENT, jsonTreatment(flow));
 
                 ObjectNode rootNode = objectNode();
                 rootNode.set(DETAILS, data);
                 sendMessage(FLOW_DETAILS_RESP, rootNode);
             }
         }
+
+        private ArrayNode jsonCriteria(FlowEntry flow) {
+            ArrayNode crits = arrayNode();
+            for (Criterion c : flow.selector().criteria()) {
+                crits.add(c.toString());
+            }
+            return crits;
+        }
+
+        private ObjectNode jsonTreatment(FlowEntry flow) {
+            ObjectNode treat = objectNode();
+            TrafficTreatment treatment = flow.treatment();
+            List<Instruction> imm = treatment.immediate();
+            List<Instruction> def = treatment.deferred();
+            Instructions.MeterInstruction meter = treatment.metered();
+            Instructions.TableTypeTransition table = treatment.tableTransition();
+            Instructions.MetadataInstruction meta = treatment.writeMetadata();
+
+            if (!imm.isEmpty()) {
+                treat.set(IMMED, jsonInstrList(imm));
+            }
+            if (!def.isEmpty()) {
+                treat.set(DEFER, jsonInstrList(def));
+            }
+            if (meter != null) {
+                treat.put(METER, meter.toString());
+            }
+            if (table != null) {
+                treat.put(TABLE, table.toString());
+            }
+            if (meta != null) {
+                treat.put(META, meta.toString());
+            }
+            treat.put(CLEARDEF, treatment.clearedDeferred());
+            return treat;
+        }
+
+        private ArrayNode jsonInstrList(List<Instruction> instructions) {
+            ArrayNode array = arrayNode();
+            for (Instruction i : instructions) {
+                array.add(i.toString());
+            }
+            return array;
+        }
     }
+
+    // json structure keys
+    private static final String IMMED = "immed";
+    private static final String DEFER = "defer";
+    private static final String METER = "meter";
+    private static final String TABLE = "table";
+    private static final String META = "meta";
+    private static final String CLEARDEF = "clearDef";
 }

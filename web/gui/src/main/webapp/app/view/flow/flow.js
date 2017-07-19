@@ -30,10 +30,10 @@
         pHeight,
         top,
         topTable,
-        trmtDiv,
+        trtDiv,
         selDiv,
         topSelTable,
-        topTrmtTable,
+        topTrtTable,
         bottom,
         iconDiv,
         nameDiv,
@@ -108,42 +108,30 @@
     function setUpPanel() {
         var container, closeBtn, tblDiv;
         detailsPanel.empty();
-
         container = detailsPanel.append('div').classed('container', true);
+
         top = container.append('div').classed('top', true);
-        selDiv = container.append('div').classed('top', true);
-        trmtDiv = container.append('div').classed('top', true);
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
         topTable = top.append('div').classed('top-content', true)
             .append('table');
-
         top.append('hr');
 
+        selDiv = container.append('div').classed('top', true);
         selDiv.append('h2').text('Selector');
         topSelTable = selDiv.append('div').classed('top-content', true)
             .append('table');
-
         selDiv.append('hr');
 
-        trmtDiv.append('h2').text('Treatment');
-        topTrmtTable = trmtDiv.append('div').classed('top-content', true)
+        trtDiv = container.append('div').classed('top', true);
+        trtDiv.append('h2').text('Treatment');
+        topTrtTable = trtDiv.append('div').classed('top-content', true)
             .append('table');
     }
 
-    function addProp(tbody, index, value) {
-        var tr = tbody.append('tr');
-
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).text(txt);
-        }
-        addCell('label', friendlyProps[index] + ' :');
-        addCell('value', value);
-    }
-
-    function populateTable(tbody, label, value) {
+    function addProp(tbody, label, value) {
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
@@ -153,34 +141,61 @@
         addCell('value', value);
     }
 
+    // deferred fetching of user-visible strings, so that lion context is set
+    function getLionProps() {
+        // TODO: Localization... (see cluster.js for the pattern)
+        // var l = $scope.lion;
+        // return [
+        //     l('flow_id'),
+        //     ...
+        // ];
+        return friendlyProps;
+    }
+
+    function getLionClearDeferred() {
+        // TODO: Localization...
+        return 'Clear deferred';
+    }
+
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'flowTable', 40);
         top.select('h2').text(details.flowId);
 
-        var tbody = topTable.append('tbody');
+        var tbody = topTable.append('tbody'),
+            tbodySel = topSelTable.append('tbody'),
+            tbodyTrt = topTrtTable.append('tbody'),
+            selArray = details.selector,
+            treat = details.treatment,
+            propLabels = getLionProps();
 
-        var topSelTablebody = topSelTable.append('tbody');
-        var selectorString = details['selector'];
-        var selectors = selectorString.split(',');
+        function addLabVal(tbody, lv) {
+            var bits = lv.match(/^([^:]*):(.*)/);
+            addProp(tbody, bits[1], bits[2]);
+        }
 
-        var topTrmtTablebody = topTrmtTable.append('tbody');
-        var treatmentString = details['treatment'];
-        var treatment = treatmentString.split(',');
+        function popInstrList(items, tag) {
+            items.forEach(function (item) {
+                addLabVal(tbodyTrt, tag + item);
+            });
+        }
 
+        // basic flow properties
         propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, details[prop]);
+            addProp(tbody, propLabels[i], details[prop]);
         });
 
-        selectors.forEach(function (sel) {
-            var selArray = sel.match(/^([^:]*):([\s\S]*)/);
-            populateTable(topSelTablebody, selArray[1], selArray[2]);
+        // selection criteria
+        selArray.forEach(function (lv) {
+            addLabVal(tbodySel, lv);
         });
 
-        treatment.forEach(function (sel) {
-            var selArray = sel.match(/^([^:]*):([\s\S]*)/);
-            populateTable(topTrmtTable, selArray[1], selArray[2]);
-        });
-
+        // traffic treatment
+        treat.immed && popInstrList(treat.immed, '[imm]');
+        treat.defer && popInstrList(treat.defer, '[def]');
+        treat.meter && addLabVal(tbodyTrt, treat.meter);
+        treat.table && addLabVal(tbodyTrt, treat.table);
+        treat.meta && addLabVal(tbodyTrt, treat.meta);
+        addProp(tbodyTrt, getLionClearDeferred(), treat.clearDef);
     }
 
     function createDetailsPane() {
