@@ -56,11 +56,13 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     private static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet_t", "srcAddr");
     private static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet_t", "etherType");
 
-    private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP = ImmutableBiMap.of(
-            Criterion.Type.IN_PORT, IN_PORT_ID,
-            Criterion.Type.ETH_DST, ETH_DST_ID,
-            Criterion.Type.ETH_SRC, ETH_SRC_ID,
-            Criterion.Type.ETH_TYPE, ETH_TYPE_ID);
+    private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP =
+            new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()
+                    .put(Criterion.Type.IN_PORT, IN_PORT_ID)
+                    .put(Criterion.Type.ETH_DST, ETH_DST_ID)
+                    .put(Criterion.Type.ETH_SRC, ETH_SRC_ID)
+                    .put(Criterion.Type.ETH_TYPE, ETH_TYPE_ID)
+                    .build();
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
             0, PiTableId.of(TABLE0));
