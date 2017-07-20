@@ -1,39 +1,18 @@
 GRPC_VER = '1.3.0'
 PROTOBUF_VER = '3.0.2'
 
-GRPC_DEPS = [
-    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
-    '//lib:grpc-protobuf-' + GRPC_VER,
-    '//lib:grpc-protobuf-lite-' + GRPC_VER,
-    '//lib:grpc-stub-' + GRPC_VER,
-    '//lib:grpc-netty-' + GRPC_VER,
-    '//lib:grpc-auth-' + GRPC_VER,
-    '//lib:google-instrumentation-0.3.0',
-    '//lib:protobuf-java-' + PROTOBUF_VER,
-    # Lazily adding all netty-related packages.
-    # Some of them might not be necessary.
-    '//lib:netty',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-codec-http',
-    '//lib:netty-codec-http2',
-    '//lib:netty-common',
-    '//lib:netty-handler',
-    '//lib:netty-transport',
-    '//lib:netty-transport-native-epoll',
-    '//lib:netty-resolver',
-]
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/grpc/api:onos-protocols-grpc-api',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
-    '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto'
-] + GRPC_DEPS
+    '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:protobuf-java-' + PROTOBUF_VER,
+]
 
 TEST_DEPS = [
     '//lib:TEST',
-    '//core/api:onos-api-tests',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
 ]
 

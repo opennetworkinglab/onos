@@ -1,0 +1,38 @@
+PROTOBUF_VER = '3.0.2'
+GRPC_VER = '1.3.0'
+
+BUNDLES = [
+    '//protocols/grpc/proto:onos-protocols-grpc-proto',
+    '//protocols/grpc/api:onos-protocols-grpc-api',
+    '//protocols/grpc/ctl:onos-protocols-grpc-ctl',
+    # gRPC dependencies
+    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+    '//lib:grpc-protobuf-1.3.0',
+    '//lib:grpc-protobuf-lite-1.3.0',
+    '//lib:grpc-stub-1.3.0',
+    '//lib:grpc-netty-1.3.0',
+    '//lib:grpc-auth-1.3.0',
+    '//lib:google-instrumentation-0.3.0',
+    '//lib:protobuf-java-3.0.2',
+    # Lazily adding all netty-related packages.
+    # Some of them might not be necessary.
+    '//lib:netty',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:netty-codec-http',
+    '//lib:netty-codec-http2',
+    '//lib:netty-common',
+    '//lib:netty-handler',
+    '//lib:netty-transport',
+    '//lib:netty-transport-native-epoll',
+    '//lib:netty-resolver',
+]
+
+onos_app (
+    app_name = 'org.onosproject.protocols.grpc',
+    title = 'gRPC Protocol Subsystem',
+    category = 'Protocols',
+    url = 'http://onosproject.org',
+    description = 'ONOS gRPC protocol subsystem',
+    included_bundles = BUNDLES,
+)

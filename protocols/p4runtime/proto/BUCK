@@ -2,8 +2,8 @@ include_defs(
     '//bucklets/grpc.bucklet'
 )
 
-P4RT_PROTOC_VER = '3.0.2'
-P4RT_GRPC_VER = '1.3.0'
+PROTOBUF_VER = '3.0.2'
+GRPC_VER = '1.3.0'
 
 PI_COMMIT = '8051d54c9c3415ca800db232a226189fd17ad60a'
 PI_BASEURL = 'https://github.com/p4lang/PI.git'
@@ -20,10 +20,10 @@ PROTO_SRCS = [
 
 COMPILE_DEPS =[
     '//lib:CORE_DEPS',
-    '//incubator/grpc-dependencies:grpc-core-repkg-' + P4RT_GRPC_VER,
-    '//lib:grpc-stub-' + P4RT_GRPC_VER,
-    '//lib:grpc-protobuf-' + P4RT_GRPC_VER,
-    '//lib:protobuf-java-' + P4RT_PROTOC_VER,
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-protobuf-' + GRPC_VER,
+    '//lib:protobuf-java-' + PROTOBUF_VER,
 ]
 
 genrule(
@@ -44,8 +44,8 @@ grpc_jar(
     proto_paths = [
         '$(location :p4lang-pi-repo-' + PI_COMMIT + ')/proto',
     ],
-    protoc_version = P4RT_PROTOC_VER,
-    plugin_version = P4RT_GRPC_VER,
+    protoc_version = PROTOBUF_VER,
+    plugin_version = GRPC_VER,
     deps = COMPILE_DEPS,
     include_std_lib = True,
 )

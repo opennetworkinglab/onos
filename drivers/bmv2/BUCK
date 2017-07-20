@@ -1,57 +1,22 @@
-GRPC_DEPS = [
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
-    '//lib:grpc-protobuf-1.3.0',
-    '//lib:grpc-protobuf-lite-1.3.0',
-    '//lib:grpc-stub-1.3.0',
-    '//lib:grpc-netty-1.3.0',
-    '//lib:grpc-auth-1.3.0',
-    '//lib:google-instrumentation-0.3.0',
-    '//lib:protobuf-java-3.0.2',
-    # Lazily adding all netty-related packages.
-    # Some of them might not be necessary.
-    '//lib:netty',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-codec-http',
-    '//lib:netty-codec-http2',
-    '//lib:netty-common',
-    '//lib:netty-handler',
-    '//lib:netty-transport',
-    '//lib:netty-transport-native-epoll',
-    '//lib:netty-resolver',
-]
+GRPC_VER = '1.3.0'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
-    '//lib:grpc-netty-1.3.0',
     '//drivers/default:onos-drivers-default',
-]
-
-TEST_DEPS = [
-    '//lib:TEST_ADAPTERS',
-    '//core/api:onos-api-tests',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
 ]
 
 BUNDLES = [
     ':onos-drivers-bmv2',
-    '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
-    '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
-    '//protocols/p4runtime/ctl:onos-protocols-p4runtime-ctl',
-    '//protocols/grpc/api:onos-protocols-grpc-api',
-    '//protocols/grpc/ctl:onos-protocols-grpc-ctl',
-    '//protocols/grpc/proto:onos-protocols-grpc-proto',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
     '//drivers/default:onos-drivers-default',
-] + GRPC_DEPS
+]
 
-osgi_jar_with_tests(
+osgi_jar(
     deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS,
-    resources_root = 'src/main/resources',
-    resources = glob(['src/main/resources/**']),
 )
 
 onos_app (
@@ -59,9 +24,10 @@ onos_app (
     title = 'BMv2 Device Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS BMv2 Device Drivers application.',
+    description = 'ONOS BMv2 device drivers application.',
     included_bundles = BUNDLES,
     required_apps = [
-        'org.onosproject.generaldeviceprovider'
+        'org.onosproject.generaldeviceprovider',
+        'org.onosproject.protocols.p4runtime'
     ],
 )
