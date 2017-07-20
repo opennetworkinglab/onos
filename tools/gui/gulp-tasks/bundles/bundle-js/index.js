@@ -38,6 +38,7 @@ function bundle(files, exportName) {
         .pipe(sourceMaps.init())
         .pipe(strip())
         .pipe(uglyfy())
+        .on('error', (e, file, line) => console.error(e))
         .pipe(concat(exportName))
         .pipe(sourceMaps.write('source-map'))
         .pipe(gulp.dest(GUI_BASE + '/dist/'));
