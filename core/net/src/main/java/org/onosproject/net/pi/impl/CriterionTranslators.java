@@ -35,7 +35,6 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
@@ -248,17 +247,6 @@ final class CriterionTranslators {
     }
 
     /**
-     * Translator of LambdaCriterion.
-     */
-    static final class LambdaCriterionTranslator extends AbstractCriterionTranslator {
-        @Override
-        public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
-            LambdaCriterion c = (LambdaCriterion) criterion;
-            initAsExactMatch(copyFrom(c.lambda()), bitWidth);
-        }
-    }
-
-    /**
      * Translator of MetadataCriterion.
      */
     static final class MetadataCriterionTranslator extends AbstractCriterionTranslator {
@@ -276,7 +264,7 @@ final class CriterionTranslators {
         @Override
         public void init(Criterion criterion, int bitWidth) throws ByteSequenceTrimException {
             MplsBosCriterion c = (MplsBosCriterion) criterion;
-            initAsExactMatch(copyFrom(c.mplsBos() ? 0 : 1), bitWidth);
+            initAsExactMatch(copyFrom(c.mplsBos() ? 1 : 0), bitWidth);
         }
     }
 
@@ -355,7 +343,6 @@ final class CriterionTranslators {
                 ImmutableByteSequence mask = copyFrom(c.mask().toInt());
                 initAsTernaryMatch(value, mask, bitWidth);
             }
-
         }
     }
 
@@ -382,7 +369,7 @@ final class CriterionTranslators {
     }
 
     /**
-     * Translator of  ArpHaCriterion.
+     * Translator of ArpHaCriterion.
      */
     static final class ArpHaCriterionTranslator extends AbstractCriterionTranslator {
         @Override
@@ -424,4 +411,5 @@ final class CriterionTranslators {
             initAsExactMatch(copyFrom(c.ipEcn()), bitWidth);
         }
     }
+
 }

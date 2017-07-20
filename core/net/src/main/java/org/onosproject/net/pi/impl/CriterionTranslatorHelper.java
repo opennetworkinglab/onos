@@ -37,7 +37,6 @@ import org.onosproject.net.flow.criteria.IcmpCodeCriterion;
 import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
-import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
@@ -68,7 +67,6 @@ import org.onosproject.net.pi.impl.CriterionTranslators.IcmpTypeCriterionTransla
 import org.onosproject.net.pi.impl.CriterionTranslators.Icmpv6CodeCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.Icmpv6TypeCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.IpCriterionTranslator;
-import org.onosproject.net.pi.impl.CriterionTranslators.LambdaCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.MetadataCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.MplsBosCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.MplsCriterionTranslator;
@@ -119,7 +117,6 @@ final class CriterionTranslatorHelper {
                     .put(IcmpTypeCriterion.class, new IcmpTypeCriterionTranslator())
                     .put(Icmpv6CodeCriterion.class, new Icmpv6CodeCriterionTranslator())
                     .put(Icmpv6TypeCriterion.class, new Icmpv6TypeCriterionTranslator())
-                    .put(LambdaCriterion.class, new LambdaCriterionTranslator())
                     .put(MplsBosCriterion.class, new MplsBosCriterionTranslator())
                     .put(MplsCriterion.class, new MplsCriterionTranslator())
                     .put(MplsTcCriterion.class, new MplsTcCriterionTranslator())
