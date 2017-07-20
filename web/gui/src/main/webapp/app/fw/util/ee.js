@@ -37,7 +37,7 @@
         'ias',
         'jweeidkpizn',
         'fmfv',
-        'hwdoc',
+        'hwdoc'
         // Add more beans...
     ];
 
@@ -54,7 +54,7 @@
             i;
 
         for (i = 0; i<n; i+=2)
-            { w.push(fcc(Number(d.slice(i, i+2)))); }
+            w.push(fcc(Number(d.slice(i, i+2))));
 
         return fs.eecode(h, w.join(''));
     }
@@ -96,7 +96,7 @@
 
             return {
                 genMap: genMap,
-                cluck: cluck,
-            };
+                cluck: cluck
+            }
         }]);
 }());

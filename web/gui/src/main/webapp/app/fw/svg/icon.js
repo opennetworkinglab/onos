@@ -20,7 +20,7 @@
 (function () {
     'use strict';
 
-    var $log, gs, sus;
+    var $log, fs, gs, sus;
 
     var vboxSize = 50,
         cornerSize = vboxSize / 10,
@@ -36,7 +36,7 @@
         minus: 'minus',
         play: 'play',
         stop: 'stop',
-
+        
         close: 'xClose',
 
         topo: 'topo',
@@ -76,8 +76,8 @@
         nav_links: 'ports',
         nav_hosts: 'endstation',
         nav_intents: 'relatedIntents',
-        nav_tunnels: 'ports', // TODO: use tunnel glyph, when available
-        nav_yang: 'yang',
+        nav_tunnels: 'ports',  // TODO: use tunnel glyph, when available
+        nav_yang: 'yang'
     };
 
     function ensureIconLibDefs() {
@@ -112,24 +112,24 @@
             'class': svgCls,
             width: dim,
             height: dim,
-            viewBox: viewBox,
+            viewBox: viewBox
         });
 
         g = svg.append('g').attr({
-            'class': 'icon',
+            'class': 'icon'
         });
 
         g.append('rect').attr({
             width: vboxSize,
             height: vboxSize,
-            rx: cornerSize,
+            rx: cornerSize
         });
 
         g.append('use').attr({
             width: vboxSize,
             height: vboxSize,
             'class': 'glyph',
-            'xlink:href': '#' + gid,
+            'xlink:href': '#' + gid
         });
     }
 
@@ -148,7 +148,7 @@
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIconByClass(div, iconCls, size, true);
     }
-
+    
     // Adds a device glyph to the specified element.
     // Returns the D3 selection of the glyph (use) element.
     function addDeviceIcon(elem, glyphId, iconDim) {
@@ -156,7 +156,7 @@
         return elem.append('use').attr({
             'xlink:href': '#' + gid,
             width: iconDim,
-            height: iconDim,
+            height: iconDim
         });
     }
 
@@ -172,7 +172,7 @@
             'xlink:href': '#' + glyphId,
             width: dim,
             height: dim,
-            transform: sus.translate(xlate, xlate),
+            transform: sus.translate(xlate,xlate)
         });
         return g;
     }
@@ -187,7 +187,7 @@
         return {
             asc: function (div) { _s(div, 'upArrow'); },
             desc: function (div) { _s(div, 'downArrow'); },
-            none: function (div) { div.remove(); },
+            none: function (div) { div.remove(); }
         };
     }
 
@@ -215,15 +215,16 @@
                         div.selectAll('*').remove();
                         is.loadEmbeddedIcon(div, attrs.iconId, attrs.iconSize);
                     });
-                },
+                }
             };
         }])
 
-        .factory('IconService', ['$log', 'GlyphService',
+        .factory('IconService', ['$log', 'FnService', 'GlyphService',
             'SvgUtilService',
 
-        function (_$log_, _gs_, _sus_) {
+        function (_$log_, _fs_, _gs_, _sus_) {
             $log = _$log_;
+            fs = _fs_;
             gs = _gs_;
             sus = _sus_;
 
@@ -234,7 +235,7 @@
                 addDeviceIcon: addDeviceIcon,
                 addHostIcon: addHostIcon,
                 sortIcons: sortIcons,
-                registerIconMapping: registerIconMapping,
+                registerIconMapping: registerIconMapping
             };
         }]);
 

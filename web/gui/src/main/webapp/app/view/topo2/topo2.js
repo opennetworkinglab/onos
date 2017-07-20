@@ -22,10 +22,10 @@
 
 (function () {
     'use strict';
-
+    
     // references to injected services
     var $scope, $log, fs, mast, ks, wss,
-        gs, sus, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2zs;
+        gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2mcs, t2zs;
 
     // DOM elements
     var ovtopo2, svg, defs, zoomLayer, forceG;
@@ -59,11 +59,11 @@
         var sc = zoomer.scale(),
             tr = zoomer.translate(),
             metaUi = isNaN(sc) ? {
-                useCfg: 1,
+                useCfg: 1
             } : {
                 scale: sc,
                 offsetX: tr[0],
-                offsetY: tr[1],
+                offsetY: tr[1]
             };
 
         // Allow map service to react to change in zoom parameters
@@ -74,7 +74,7 @@
 
         wss.sendEvent('updateMeta2', {
             id: 'layoutZoom',
-            memento: metaUi,
+            memento: metaUi
         });
     }
 
@@ -85,7 +85,7 @@
             svg: svg,
             zoomLayer: zoomLayer,
             zoomEnabled: zoomEnabled,
-            zoomCallback: zoomCallback,
+            zoomCallback: zoomCallback
         });
     }
 
@@ -95,20 +95,22 @@
     .controller('OvTopo2Ctrl', [
         '$scope', '$log', '$location',
         'FnService', 'MastService', 'KeyService', 'GlyphService', 'MapService',
-        'SvgUtilService', 'FlashService', 'WebSocketService', 'ThemeService',
+        'SvgUtilService', 'FlashService', 'WebSocketService',
+        'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
-        'Topo2ZoomService', 'Topo2SpriteLayerService',
+        'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2SpriteLayerService',
         'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ToolbarService',
         'Topo2NoDevicesConnectedService', 'Topo2OverlayService',
 
         function (
             _$scope_, _$log_, _$loc_,
             _fs_, _mast_, _ks_, _gs_, _ms_,
-            _sus_, _flash_, _wss_, _th_,
+            _sus_, _flash_, _wss_,
+            _ps_, _th_,
             _t2es_, _t2fs_, _t2is_,
             _t2bcs_, _t2kcs_, _t2ms_,
-            _t2zs_, t2sls,
+            _t2mcs_, _t2zs_, t2sls,
             summaryPanel, detailsPanel, t2tbs, t2ndcs, t2os
         ) {
             var params = _$loc_.search(),
@@ -116,7 +118,7 @@
                 wh,
                 uplink = {
                     zoomLayer: function () { return zoomLayer; },
-                    zoomer: function () { return zoomer; },
+                    zoomer: function () { return zoomer; }
                 };
 
             $scope = _$scope_;
@@ -128,6 +130,7 @@
             wss = _wss_;
             gs = _gs_;
             sus = _sus_;
+            ps = _ps_;
 
             t2es = _t2es_;
             t2fs = _t2fs_;
@@ -135,6 +138,7 @@
             t2bcs = _t2bcs_;
             t2kcs = _t2kcs_;
             t2ms = _t2ms_;
+            t2mcs = _t2mcs_;
             t2zs = _t2zs_;
 
             // capture selected intent parameters (if they are set in the
@@ -148,7 +152,7 @@
                     key: params.intentKey,
                     appId: params.intentAppId,
                     appName: params.intentAppName,
-                    intentType: params.intentType,
+                    intentType: params.intentType
                 };
             }
 

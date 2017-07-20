@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var flash, wss;
+    var $log, fs, flash, wss, api;
 
     // internal state
     var showingProtectedIntent = null;
@@ -54,20 +54,21 @@
 
     angular.module('ovTopo')
     .factory('TopoProtectedIntentsService',
-        ['FlashService', 'WebSocketService',
+        ['$log', 'FnService', 'FlashService', 'WebSocketService',
 
-        function (_flash_, _wss_) {
+        function (_$log_, _fs_, _flash_, _wss_) {
+            $log = _$log_;
+            fs = _fs_;
             flash = _flash_;
             wss = _wss_;
 
             return {
-                // TODO: Remove references
-                initProtectedIntents: function (_api_) {},
+                initProtectedIntents: function (_api_) { api = _api_; },
                 destroyProtectedIntents: function () { },
 
                 // invoked from toolbar overlay buttons or keystrokes
                 cancelHighlights: cancelHighlights,
-                showProtectedIntent: showProtectedIntent,
+                showProtectedIntent: showProtectedIntent
             };
         }]);
 }());

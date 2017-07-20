@@ -18,7 +18,7 @@
 
     // Injected Services
     var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs,
-        t2fs, t2tbs;
+        t2fs, t2sls, t2tbs;
 
     // Commmands
     function actionMap() {
@@ -38,8 +38,8 @@
 
             esc: handleEscape,
 
-            _keyListener: t2tbs.keyListener.bind(t2tbs),
-        };
+            _keyListener: t2tbs.keyListener.bind(t2tbs)
+        }
     }
 
     function init(_t2fs_, _t2tbs_) {
@@ -74,7 +74,7 @@
             ['shift-click', 'Toggle selection state'],
             ['drag', 'Reposition (and pin) device / host'],
             ['cmd-scroll', 'Zoom in / out'],
-            ['cmd-drag', 'Pan'],
+            ['cmd-drag', 'Pan']
         ]);
     }
 
@@ -170,12 +170,12 @@
 
     function toggleHosts() {
         var on = t2rs.toggleHosts();
-        actionedFlashed(on ? 'Show': 'Hide', 'Hosts');
+        actionedFlashed(on ? 'Show': 'Hide', 'Hosts')
     }
 
     function toggleOfflineDevices() {
         var on = t2rs.toggleOfflineDevices();
-        actionedFlashed(on ? 'Show': 'Hide', 'offline devices');
+        actionedFlashed(on ? 'Show': 'Hide', 'offline devices')
     }
 
     function notValid(what) {
@@ -204,10 +204,10 @@
         '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService',
         'Topo2PrefsService', 'Topo2BackgroundService', 'PrefsService',
         'Topo2InstanceService', 'Topo2SummaryPanelService', 'Topo2ViewService',
-        'Topo2RegionService',
+        'Topo2RegionService', 'Topo2SpriteLayerService',
 
         function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_,
-                  _t2is_, _t2sp_, _t2vs_, _t2rs_) {
+                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2sls_) {
 
             $log = _$log_;
             fs = _fs_;
@@ -221,12 +221,13 @@
             t2sp = _t2sp_;
             t2vs = _t2vs_;
             t2rs = _t2rs_;
+            t2sls = _t2sls_;
 
             return {
                 init: init,
                 bindCommands: bindCommands,
-                getActionEntry: getActionEntry,
+                getActionEntry: getActionEntry
             };
-        },
+        }
     ]);
 })();

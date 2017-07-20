@@ -35,18 +35,18 @@
     var dColTheme = {
             light: {
                 online: '#444444',
-                offline: '#cccccc',
+                offline: '#cccccc'
             },
             dark: {
                 // TODO: theme
                 online: '#444444',
-                offline: '#cccccc',
-            },
+                offline: '#cccccc'
+            }
         },
         // and here are the stroke colors of the glyph, per theme
         dUseTheme = {
             light: 'white',
-            dark: 'black',
+            dark: 'black'
         };
 
     angular.module('ovTopo2')
@@ -72,7 +72,7 @@
                     this.mastershipService = t2mss;
                     this._events = {
                         'mouseover': 'mouseoverHandler',
-                        'mouseout': 'mouseoutHandler',
+                        'mouseout': 'mouseoutHandler'
                     };
                 },
                 select: function () {
@@ -162,7 +162,7 @@
                         x: -dim / 2 - labelPad,
                         y: -dim / 2 - labelPad,
                         width: dim + labelWidth + (labelPad * 2) + _textPad,
-                        height: dim + (labelPad * 2),
+                        height: dim + (labelPad * 2)
                     };
                 },
                 iconBox: function (dim, labelWidth) {
@@ -170,7 +170,7 @@
                         x: -dim / 2,
                         y: -dim / 2,
                         width: dim + labelWidth,
-                        height: dim,
+                        height: dim
                     };
                 },
                 svgClassName: function () {
@@ -182,7 +182,7 @@
                             selected: this.get('selected'),
                             hovered: this.get('hovered'),
                             fixed: this.get('fixed'),
-                            suppressedmax: this.get('mastership'),
+                            suppressedmax: this.get('mastership')
                         }
                     );
                 },
@@ -194,7 +194,7 @@
                     t2nps.setLongLat(this);
                 },
                 displayMastership: function () {
-                    this.set({ mastership: t2mss.mastership() !== null });
+                    this.set({ mastership: t2mss.mastership() !== null});
                 },
                 update: function () {
                     this.updateLabel();
@@ -247,7 +247,7 @@
 
                     return {
                         rect: rect,
-                        text: text,
+                        text: text
                     };
                 },
                 addIconElements: function (el) {
@@ -256,7 +256,7 @@
                         glyph;
 
                     var iconG = el.append('g')
-                        .attr('class', 'icon');
+                        .attr('class', 'icon')
 
                     iconG.append('rect')
                         .attr('class', 'icon-rect')

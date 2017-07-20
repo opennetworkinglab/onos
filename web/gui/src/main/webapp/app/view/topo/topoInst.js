@@ -36,7 +36,7 @@
         idIns = 'topo-p-instance',
         instOpts = {
             edge: 'left',
-            width: 20,
+            width: 20
         };
 
     // internal state
@@ -141,24 +141,24 @@
             instSvg = {
                 width: 170,
                 height: 85,
-                viewBox: '0 0 170 85',
+                viewBox: '0 0 170 85'
             },
             headRect = {
                 x: rox,
                 y: roy,
                 width: rw,
-                height: rhh,
+                height: rhh
             },
             bodyRect = {
                 x: rox,
                 y: roy + rhh,
                 width: rw,
-                height: rbh,
+                height: rbh
             },
             titleAttr = {
                 class: 'instTitle',
                 x: tx,
-                y: 27,
+                y: 27
             };
 
         var onoses = oiBox.el().selectAll('.onosInst')
@@ -225,7 +225,7 @@
                 svg.append('text').attr({
                     class: 'instLabel ' + id,
                     x: tx,
-                    y: ty,
+                    y: ty
                 }).text(label);
                 ty += 18;
             }
@@ -342,7 +342,7 @@
                 show: showInsts,
                 hide: hideInsts,
                 toggle: toggleInsts,
-                showMaster: function () { return oiShowMaster; },
+                showMaster: function () { return oiShowMaster; }
             };
         }]);
 }());

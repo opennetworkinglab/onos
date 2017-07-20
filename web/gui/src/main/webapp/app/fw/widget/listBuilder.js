@@ -56,7 +56,7 @@
     .factory('ListService', [
         function () {
             return {
-                listProps: listProps,
+                listProps: listProps
             };
         }]);
 }());

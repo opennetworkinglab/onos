@@ -47,12 +47,12 @@
                     // TODO: Unbind Events
                     this.empty();
                     return this;
-                },
+                }
             });
 
             View.extend = fn.extend;
             return View;
-        },
+        }
     ]);
 
 })();

@@ -25,13 +25,13 @@
         'ngCookies',
         'onosUtil',
         'onosSvg',
-        'onosRemote',
+        'onosRemote'
     ];
 
     // references to injected services
-    var $scope, $log, $loc, $timeout,
+    var $scope, $log, $loc, $timeout, $cookies,
         fs, ks, zs, gs, ms, sus, flash, wss, ps, th, tds, t3s, tes, tfs, tps,
-        tis, tms, tss, tls, tos, fltr, ttbs, tspr, tov;
+        tis, tms, tss, tls, tts, tos, fltr, ttbs, tspr, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -68,7 +68,7 @@
 
             E: [equalizeMasters, 'Equalize mastership roles'],
 
-            // -- instance color palette debug
+            //-- instance color palette debug
             // 9: function () { sus.cat7().testCard(svg); },
 
             // topology overlay selections
@@ -83,10 +83,10 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S'],
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'G', 'S' ],
                 ['X', 'Z', 'N', 'L', 'shift-L', 'U', 'R', '-', 'E', '-', 'dot'],
-                [], // this column reserved for overlay actions
-            ],
+                []   // this column reserved for overlay actions
+            ]
         };
 
         if (fs.isO(overlayKeys)) {
@@ -100,7 +100,7 @@
             ['shift-click', 'Toggle selection state'],
             ['drag', 'Reposition (and pin) device / host'],
             ['cmd-scroll', 'Zoom in / out'],
-            ['cmd-drag', 'Pan'],
+            ['cmd-drag', 'Pan']
         ]);
     }
 
@@ -183,7 +183,7 @@
     function handleEscape() {
         if (tis.showMaster()) {
             // if an instance is selected, cancel the affinity mapping
-            tis.cancelAffinity();
+            tis.cancelAffinity()
 
         } else if (tov.hooks.escape()) {
             // else if the overlay consumed the ESC event...
@@ -234,7 +234,7 @@
     function setUpToolbar() {
         ttbs.init({
             getActionEntry: getActionEntry,
-            setUpKeys: setUpKeys,
+            setUpKeys: setUpKeys
         });
         ttbs.createToolbar();
     }
@@ -259,7 +259,7 @@
         var sc = zoomer.scale(),
             tr = zoomer.translate();
 
-        ps.setPrefs('topo_zoom', { tx: tr[0], ty: tr[1], sc: sc });
+        ps.setPrefs('topo_zoom', {tx:tr[0], ty:tr[1], sc:sc});
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
@@ -273,7 +273,7 @@
             svg: svg,
             zoomLayer: zoomLayer,
             zoomEnabled: zoomEnabled,
-            zoomCallback: zoomCallback,
+            zoomCallback: zoomCallback
         });
     }
 
@@ -289,7 +289,7 @@
         var g, box;
         noDevsLayer = svg.append('g').attr({
             id: 'topo-noDevsLayer',
-            transform: sus.translate(500, 500),
+            transform: sus.translate(500,500)
         });
         // Note, SVG viewbox is '0 0 1000 1000', defined in topo.html.
         // We are translating this layer to have its origin at the center
@@ -297,7 +297,7 @@
         g = noDevsLayer.append('g');
         gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
         g.append('text').text('No devices are connected')
-            .attr({ x: 120, y: 80 });
+            .attr({ x: 120, y: 80});
 
         box = g.node().getBBox();
         box.x -= box.width/2;
@@ -348,7 +348,7 @@
 
         australia: function (c) {
             return c.properties.adm0_a3 === 'AUS';
-        },
+        }
     };
 
     var tintOn = 0,
@@ -357,19 +357,19 @@
         light: {
             sea: 'aliceblue',
             land: 'white',
-            outline: '#ddd',
+            outline: '#ddd'
         },
         dark: {
             sea: '#001830',
             land: '#232331',
-            outline: '#3a3a3a',
-        },
+            outline: '#3a3a3a'
+        }
     };
 
     function shading() {
         return tintOn ? {
             palette: shadePalette[th.theme()],
-            flip: shadeFlip,
+            flip: shadeFlip
         } : '';
     }
 
@@ -386,7 +386,7 @@
                 mapid: 'usa',
                 mapscale: 1,
                 mapfilepath: '*continental_us',
-                tint: 'off',
+                tint: 'off'
             },
             $loc.search()
         );
@@ -410,7 +410,7 @@
         if (mapG.empty()) {
             mapG = zoomLayer.append('g').attr('id', 'topo-map');
         } else {
-            mapG.each(function (d, i) {
+            mapG.each(function(d,i) {
                 d3.selectAll(this.childNodes).remove();
             });
         }
@@ -422,13 +422,13 @@
             promise = ms.loadMapRegionInto(mapG, {
                 countryFilter: cfilter,
                 adjustScale: mapScale,
-                shading: shading(),
+                shading: shading()
             });
         } else {
 
             promise = ms.loadMapInto(mapG, mapFilePath, mapId, {
                 adjustScale: mapScale,
-                shading: shading(),
+                shading: shading()
             });
         }
 
@@ -437,7 +437,7 @@
     }
 
     function mapReshader() {
-        $log.debug('... Re-shading map ...');
+        $log.debug('... Re-shading map ...')
         ms.reshade(shading());
     }
 
@@ -460,7 +460,7 @@
         var prefs = ps.getPrefs('topo_sprites', { sprites: '' }, $loc.search()),
             sprId = prefs.sprites;
 
-        spriteG = zoomLayer.append('g').attr('id', 'topo-sprites');
+        spriteG = zoomLayer.append ('g').attr('id', 'topo-sprites');
         if (sprId) {
             ps.setPrefs('topo_sprites', prefs);
             tspr.loadSprites(spriteG, defs, sprId);
@@ -536,21 +536,21 @@
 
     angular.module('ovTopo', moduleDependencies)
         .controller('OvTopoCtrl', ['$scope', '$log', '$location', '$timeout',
-            'FnService', 'MastService', 'KeyService', 'ZoomService',
+            '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService', 'PrefsService', 'ThemeService',
             'TopoDialogService', 'TopoD3Service',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
-            'TopoObliqueService', 'TopoFilterService',
+            'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
             'TopoToolbarService', 'TopoMapService', 'TopoSpriteService',
-            'TopoOverlayService',
+            'TooltipService', 'TopoOverlayService',
 
-        function (_$scope_, _$log_, _$loc_, _$timeout_, _fs_, mast, _ks_,
+        function (_$scope_, _$log_, _$loc_, _$timeout_, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
                   _tds_, _t3s_, _tes_,
-                  _tfs_, _tps_, _tis_, _tss_, _tls_, _tos_, _fltr_,
-                  _ttbs_, _tms_, _tspr_, _tov_) {
+                  _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
+                  _ttbs_, _tms_, _tspr_, _ttip_, _tov_) {
 
             var params = _$loc_.search(),
                 selOverlay = params.overlayId,
@@ -563,13 +563,14 @@
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; },
                     opacifyMap: opacifyMap,
-                    topoStartDone: topoStartDone,
+                    topoStartDone: topoStartDone
                 };
 
             $scope = _$scope_;
             $log = _$log_;
             $loc = _$loc_;
             $timeout = _$timeout_;
+            $cookies = _$cookies_;
             fs = _fs_;
             ks = _ks_;
             zs = _zs_;
@@ -590,18 +591,20 @@
             tps = _tps_;
             tis = _tis_;
             tms = _tms_;
+            tss = _tss_;
             tls = _tls_;
+            tts = _tts_;
             tos = _tos_;
             fltr = _fltr_;
             ttbs = _ttbs_;
             tspr = _tspr_;
+            ttip = _ttip_;
             tov = _tov_;
-            tss = _tss_;
 
             tms.start({
                 toggleMap: toggleMap,
                 currentMap: currentMap,
-                setMap: setMap,
+                setMap: setMap
             });
 
             // pull intent data from the query string...
@@ -610,7 +613,7 @@
                     key: params.key,
                     appId: params.appId,
                     appName: params.appName,
-                    intentType: params.intentType,
+                    intentType: params.intentType
                 };
             }
 
@@ -646,7 +649,7 @@
             setUpNoDevs();
             setUpMap().then(
                 function (proj) {
-                    var z = ps.getPrefs('topo_zoom', { tx: 0, ty: 0, sc: 1 });
+                    var z = ps.getPrefs('topo_zoom', { tx:0, ty:0, sc:1 });
                     zoomer.panZoom([z.tx, z.ty], z.sc);
                     $log.debug('** Zoom restored:', z);
 

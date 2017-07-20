@@ -27,7 +27,7 @@
     'use strict';
 
     // injected refs
-    var $log, wss, tps, tis, tfs, tss, tov, tspr;
+    var $log, $interval, wss, tps, tis, tfs, tss, tov, tspr;
 
     // internal state
     var handlerMap,
@@ -61,7 +61,7 @@
             topoStartDone: tfs,
 
             spriteListResponse: tspr,
-            spriteDataResponse: tspr,
+            spriteDataResponse: tspr
         };
     }
 
@@ -74,13 +74,14 @@
 
     angular.module('ovTopo')
     .factory('TopoEventService',
-        ['$log', 'WebSocketService',
+        ['$log', '$interval', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
             'TopoSelectService', 'TopoOverlayService', 'TopoSpriteService',
 
-        function (_$log_, _wss_,
+        function (_$log_,  _$interval_, _wss_,
                   _tps_, _tis_, _tfs_, _tss_, _tov_, _tspr_) {
             $log = _$log_;
+            $interval = _$interval_;
             wss = _wss_;
             tps = _tps_;
             tis = _tis_;
@@ -114,7 +115,7 @@
             return {
                 bindHandlers: bindHandlers,
                 start: start,
-                stop: stop,
+                stop: stop
             };
         }]);
 }());

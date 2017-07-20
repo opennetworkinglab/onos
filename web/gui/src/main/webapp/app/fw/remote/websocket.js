@@ -24,19 +24,19 @@
     var $log, $loc, fs, ufs, wsock, vs, ls;
 
     // internal state
-    var webSockOpts, // web socket options
-        ws = null, // web socket reference
-        wsUp = false, // web socket is good to go
-        handlers = {}, // event handler bindings
-        pendingEvents = [], // events TX'd while socket not up
-        host, // web socket host
-        url, // web socket URL
-        clusterNodes = [], // ONOS instances data for failover
-        clusterIndex = -1, // the instance to which we are connected
-        connectRetries = 0, // limit our attempts at reconnecting
-        openListeners = {}, // registered listeners for websocket open()
-        nextListenerId = 1, // internal ID for open listeners
-        loggedInUser = null; // name of logged-in user
+    var webSockOpts,            // web socket options
+        ws = null,              // web socket reference
+        wsUp = false,           // web socket is good to go
+        handlers = {},          // event handler bindings
+        pendingEvents = [],     // events TX'd while socket not up
+        host,                   // web socket host
+        url,                    // web socket URL
+        clusterNodes = [],      // ONOS instances data for failover
+        clusterIndex = -1,      // the instance to which we are connected
+        connectRetries = 0,     // limit our attempts at reconnecting
+        openListeners = {},     // registered listeners for websocket open()
+        nextListenerId = 1,     // internal ID for open listeners
+        loggedInUser = null;    // name of logged-in user
 
     // built-in handlers
     var builtinHandlers = {
@@ -62,9 +62,9 @@
             vs && vs.show([
                 'Oops!',
                 'Server reports error...',
-                m,
+                m
             ]);
-        },
+        }
     };
 
 
@@ -129,7 +129,7 @@
             vs && vs.show([
                 'Oops!',
                 'Web-socket connection to server closed...',
-                'Try refreshing the page.',
+                'Try refreshing the page.'
             ]);
         }
     }
@@ -210,7 +210,7 @@
             ws.onmessage = handleMessage;
             ws.onclose = handleClose;
 
-            sendEvent('authentication', { token: onosAuth });
+            sendEvent('authentication', {token: onosAuth});
         }
         // Note: Wsock logs an error if the new WebSocket call fails
         return url;
@@ -299,7 +299,7 @@
     function sendEvent(evType, payload) {
         var ev = {
                 event: evType,
-                payload: payload || {},
+                payload: payload || {}
             };
 
         if (wsUp) {
@@ -347,9 +347,9 @@
                 loggedInUser: function () { return loggedInUser || '(no-one)'; },
 
                 _setVeilDelegate: setVeilDelegate,
-                _setLoadingDelegate: setLoadingDelegate,
+                _setLoadingDelegate: setLoadingDelegate
             };
-        },
+        }
     ]);
 
 }());

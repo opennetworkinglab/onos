@@ -67,7 +67,7 @@
 
             'groupId',
             'timeout',
-            'permanent',
+            'permanent'
         ],
         friendlyProps = [
             'Flow ID',
@@ -84,7 +84,7 @@
 
             'Group ID',
             'Timeout',
-            'Permanent',
+            'Permanent'
         ];
 
     function closePanel() {
@@ -202,11 +202,11 @@
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
             margin: 0,
-            hideMargin: 0,
+            hideMargin: 0
         });
         detailsPanel.el().style({
             position: 'absolute',
-            top: pStartY + 'px',
+            top: pStartY + 'px'
         });
         $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
@@ -216,157 +216,157 @@
         setUpPanel();
         populateTop(details);
 
-        // ToDo add more details
+        //ToDo add more details
         detailsPanel.height(pHeight);
         detailsPanel.width(wtPdg);
     }
 
     function respDetailsCb(data) {
-        $log.debug('Got response from server :', data);
+        $log.debug("Got response from server :", data);
         $scope.panelData = data.details;
         $scope.$apply();
     }
 
     angular.module('ovFlow', [])
-        .controller('OvFlowCtrl',
-            ['$log', '$scope', '$location',
-                'FnService', 'TableBuilderService', 'NavService',
-                'MastService', 'PanelService', 'KeyService', 'IconService',
-                'WebSocketService',
+    .controller('OvFlowCtrl',
+        ['$log', '$scope', '$location',
+            'FnService', 'TableBuilderService', 'NavService',
+            'MastService', 'PanelService', 'KeyService', 'IconService',
+            'WebSocketService',
 
-                function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _ns_,
-                          _mast_, _ps_, _ks_, _is_, _wss_) {
-                    var params,
-                        handlers = {};
+        function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _ns_,
+                    _mast_, _ps_, _ks_, _is_, _wss_) {
+            var params,
+                handlers = {};
 
-                    $log = _$log_;
-                    $scope = _$scope_;
-                    $location = _$location_;
-                    fs = _fs_;
-                    tbs = _tbs_;
-                    ns = _ns_;
-                    is = _is_;
-                    wss = _wss_;
-                    mast = _mast_;
-                    ps = _ps_;
-                    $scope.deviceTip = 'Show device table';
-                    $scope.portTip = 'Show port view for this device';
-                    $scope.groupTip = 'Show group view for this device';
-                    $scope.meterTip = 'Show meter view for selected device';
-                    $scope.briefTip = 'Switch to brief view';
-                    $scope.detailTip = 'Switch to detailed view';
-                    $scope.brief = true;
-                    params = $location.search();
-                    if (params.hasOwnProperty('devId')) {
-                        $scope.devId = params['devId'];
+            $log = _$log_;
+            $scope = _$scope_;
+            $location = _$location_;
+            fs = _fs_;
+            tbs = _tbs_;
+            ns = _ns_;
+            is = _is_;
+            wss = _wss_;
+            mast = _mast_;
+            ps = _ps_;
+            $scope.deviceTip = 'Show device table';
+            $scope.portTip = 'Show port view for this device';
+            $scope.groupTip = 'Show group view for this device';
+            $scope.meterTip = 'Show meter view for selected device';
+            $scope.briefTip = 'Switch to brief view';
+            $scope.detailTip = 'Switch to detailed view';
+            $scope.brief = true;
+            params = $location.search();
+            if (params.hasOwnProperty('devId')) {
+                $scope.devId = params['devId'];
+            }
+
+            tbs.buildTable({
+                scope: $scope,
+                tag: 'flow',
+                selCb: selCb,
+                query: params
+            });
+
+            $scope.nav = function (path) {
+                if ($scope.devId) {
+                    ns.navTo(path, { devId: $scope.devId });
+                }
+            };
+
+            // details panel handlers
+            handlers[detailsResp] = respDetailsCb;
+            wss.bindHandlers(handlers);
+
+            function selCb($event, row) {
+                if ($scope.selId) {
+                    wss.sendEvent(detailsReq, {flowId: row.id, appId: row.appId});
+                } else {
+                    $scope.hidePanel();
+                }
+                $log.debug('Got a click on:', row);
+            }
+
+             $scope.$on('$destroy', function () {
+                 wss.unbindHandlers(handlers);
+             });
+
+            $scope.briefToggle = function () {
+                $scope.brief = !$scope.brief;
+            };
+
+            Object.defineProperty($scope, "queryFilter", {
+               get: function() {
+                   var out = {};
+                   out[$scope.queryBy || "$"] = $scope.queryTxt;
+                   return out;
+               }
+            });
+
+            $log.log('OvFlowCtrl has been created');
+        }])
+
+    .directive('flowDetailsPanel',
+    ['$rootScope', '$window', '$timeout', 'KeyService',
+    function ($rootScope, $window, $timeout, ks) {
+        return function (scope) {
+            var unbindWatch;
+
+            function heightCalc() {
+                pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                        + mast.mastHeight() + topPdg;
+                wSize = fs.windowSize(pStartY);
+                pHeight = wSize.height;
+            }
+
+            function initPanel() {
+                heightCalc();
+                createDetailsPane();
+            }
+
+            // Safari has a bug where it renders the fixed-layout table wrong
+            // if you ask for the window's size too early
+            if (scope.onos.browser === 'safari') {
+                $timeout(initPanel);
+            } else {
+                initPanel();
+            }
+            // create key bindings to handle panel
+            ks.keyBindings({
+                esc: [handleEscape, 'Close the details panel'],
+                _helpFormat: ['esc']
+            });
+            ks.gestureNotes([
+                ['click', 'Select a row to show cluster node details'],
+                ['scroll down', 'See available cluster nodes']
+            ]);
+            // if the panelData changes
+            scope.$watch('panelData', function () {
+                if (!fs.isEmptyObject(scope.panelData)) {
+                    populateDetails(scope.panelData);
+                    detailsPanel.show();
+                }
+            });
+            // if the window size changes
+            unbindWatch = $rootScope.$watchCollection(
+                function () {
+                    return {
+                        h: $window.innerHeight,
+                        w: $window.innerWidth
+                    };
+                }, function () {
+                    if (!fs.isEmptyObject(scope.panelData)) {
+                        heightCalc();
+                        populateDetails(scope.panelData);
                     }
+                }
+            );
 
-                    tbs.buildTable({
-                        scope: $scope,
-                        tag: 'flow',
-                        selCb: selCb,
-                        query: params,
-                    });
-
-                    $scope.nav = function (path) {
-                        if ($scope.devId) {
-                            ns.navTo(path, { devId: $scope.devId });
-                        }
-                    };
-
-                    // details panel handlers
-                    handlers[detailsResp] = respDetailsCb;
-                    wss.bindHandlers(handlers);
-
-                    function selCb($event, row) {
-                        if ($scope.selId) {
-                            wss.sendEvent(detailsReq, { flowId: row.id, appId: row.appId });
-                        } else {
-                            $scope.hidePanel();
-                        }
-                        $log.debug('Got a click on:', row);
-                    }
-
-                    $scope.$on('$destroy', function () {
-                        wss.unbindHandlers(handlers);
-                    });
-
-                    $scope.briefToggle = function () {
-                        $scope.brief = !$scope.brief;
-                    };
-
-                    Object.defineProperty($scope, 'queryFilter', {
-                        get: function () {
-                            var out = {};
-                            out[$scope.queryBy || '$'] = $scope.queryTxt;
-                            return out;
-                        },
-                    });
-
-                    $log.log('OvFlowCtrl has been created');
-                }])
-
-        .directive('flowDetailsPanel',
-            ['$rootScope', '$window', '$timeout', 'KeyService',
-                function ($rootScope, $window, $timeout, ks) {
-                    return function (scope) {
-                        var unbindWatch;
-
-                        function heightCalc() {
-                            pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
-                                + mast.mastHeight() + topPdg;
-                            wSize = fs.windowSize(pStartY);
-                            pHeight = wSize.height;
-                        }
-
-                        function initPanel() {
-                            heightCalc();
-                            createDetailsPane();
-                        }
-
-                        // Safari has a bug where it renders the fixed-layout table wrong
-                        // if you ask for the window's size too early
-                        if (scope.onos.browser === 'safari') {
-                            $timeout(initPanel);
-                        } else {
-                            initPanel();
-                        }
-                        // create key bindings to handle panel
-                        ks.keyBindings({
-                            esc: [handleEscape, 'Close the details panel'],
-                            _helpFormat: ['esc'],
-                        });
-                        ks.gestureNotes([
-                            ['click', 'Select a row to show cluster node details'],
-                            ['scroll down', 'See available cluster nodes'],
-                        ]);
-                        // if the panelData changes
-                        scope.$watch('panelData', function () {
-                            if (!fs.isEmptyObject(scope.panelData)) {
-                                populateDetails(scope.panelData);
-                                detailsPanel.show();
-                            }
-                        });
-                        // if the window size changes
-                        unbindWatch = $rootScope.$watchCollection(
-                            function () {
-                                return {
-                                    h: $window.innerHeight,
-                                    w: $window.innerWidth,
-                                };
-                            }, function () {
-                                if (!fs.isEmptyObject(scope.panelData)) {
-                                    heightCalc();
-                                    populateDetails(scope.panelData);
-                                }
-                            }
-                        );
-
-                        scope.$on('$destroy', function () {
-                            unbindWatch();
-                            ps.destroyPanel(pName);
-                        });
-                    };
-                }]);
+            scope.$on('$destroy', function () {
+                unbindWatch();
+                ps.destroyPanel(pName);
+            });
+        };
+    }]);
 
 }());

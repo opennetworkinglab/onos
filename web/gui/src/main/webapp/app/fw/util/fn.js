@@ -31,7 +31,7 @@
         cca = String.prototype.charCodeAt;
 
     function _parseDebugFlags(dbgstr) {
-        var bits = dbgstr ? dbgstr.split(',') : [];
+        var bits = dbgstr ? dbgstr.split(",") : [];
         bits.forEach(function (key) {
             debugFlags[key] = true;
         });
@@ -114,7 +114,7 @@
             ow = offW || 0;
         return {
             height: $window.innerHeight - oh,
-            width: $window.innerWidth - ow,
+            width: $window.innerWidth - ow
         };
     }
 
@@ -129,10 +129,10 @@
     function isChrome() {
         var isChromium = $window.chrome,
             vendorName = $window.navigator.vendor,
-            isOpera = $window.navigator.userAgent.indexOf('OPR') > -1;
+            isOpera = $window.navigator.userAgent.indexOf("OPR") > -1;
         return (isChromium !== null &&
         isChromium !== undefined &&
-        vendorName === 'Google Inc.' &&
+        vendorName === "Google Inc." &&
         isOpera == false);
     }
 
@@ -247,7 +247,7 @@
         return {
             o: w,
             d: o.join(''),
-            e: fcc.apply(o, o),
+            e: fcc.apply(o, o)
         };
     }
 
@@ -301,7 +301,7 @@
                 np = c.p[q];
                 x = 1;
             }
-            return { p: np, s: c.s };
+            return { p: np, s: c.s }
         }
 
         function probe(c) {
@@ -309,12 +309,12 @@
                 k = Object.keys(c.p).length,
                 np = c.p[q];
 
-            t.push({ q: q, k: k, p: c.p });
+            t.push({ q:q, k:k, p:c.p });
             if (!np) {
                 t = [];
                 return { s: [] };
             }
-            return { p: np, s: c.s };
+            return { p: np, s: c.s }
         }
 
         function insert() {
@@ -382,7 +382,7 @@
 
     var hasOwn = {}.hasOwnProperty;
 
-    function classNames() {
+    function classNames () {
         var classes = [];
 
         for (var i = 0; i < arguments.length; i++) {
@@ -453,7 +453,7 @@
         while ((match = matcher.exec(html)) !== null) {
             matches.push({
                 full: match[0],
-                name: match[1],
+                name: match[1]
                 // NOTE: ignoring attributes {match[2].split(' ')} for now
             });
         }
@@ -527,7 +527,7 @@
                 trieLookup: trieLookup,
                 classNames: classNames,
                 extend: extend,
-                sanitize: sanitize,
+                sanitize: sanitize
             };
     }]);
 

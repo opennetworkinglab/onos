@@ -82,8 +82,8 @@
         }
 
         drag = d3.behavior.drag()
-            .origin(function (d) { return d; })
-            .on('dragstart', function (d) {
+            .origin(function(d) { return d; })
+            .on('dragstart', function(d) {
                 if (clickEnabled() || dragEnabled()) {
                     d.oldX = d.x;
                     d.oldY = d.y;
@@ -92,7 +92,7 @@
                     d.dragStarted = true;
                 }
             })
-            .on('drag', function (d) {
+            .on('drag', function(d) {
                 if (dragEnabled()) {
                     d.px = d3.event.x;
                     d.py = d3.event.y;
@@ -103,7 +103,7 @@
                     }
                 }
             })
-            .on('dragend', function (d) {
+            .on('dragend', function(d) {
                 d3.event.sourceEvent.stopPropagation();
 
                 if (d.dragStarted) {
@@ -170,22 +170,22 @@
 
     // Colors per Mojo-Design's color palette.. (version two)
     //               blue       lt blue    red        green      brown      teal       lime
-    var lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'],
-        lightMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'],
+    var lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00' ],
+        lightMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d' ],
 
-        darkNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'],
-        darkMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'];
+        darkNorm  = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00' ],
+        darkMute  = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d' ];
 
 
     var colors= {
         light: {
             norm: d3.scale.ordinal().range(lightNorm),
-            mute: d3.scale.ordinal().range(lightMute),
+            mute: d3.scale.ordinal().range(lightMute)
         },
         dark: {
             norm: d3.scale.ordinal().range(darkNorm),
-            mute: d3.scale.ordinal().range(darkMute),
-        },
+            mute: d3.scale.ordinal().range(darkMute)
+        }
     };
 
     function cat7() {
@@ -231,7 +231,7 @@
                             cx: x,
                             cy: y,
                             r: 5,
-                            fill: f,
+                            fill: f
                         });
                     });
                     g.append('rect').attr({
@@ -240,13 +240,13 @@
                         width: 32,
                         height: 10,
                         rx: 2,
-                        fill: '#888',
+                        fill: '#888'
                     });
                     g.append('text').text(theme + what)
                         .attr({
                             x: 142,
                             y: k * 20 + 2,
-                            fill: 'white',
+                            fill: 'white'
                         })
                         .style('font-size', '4pt');
                 }
@@ -255,7 +255,7 @@
 
         return {
             testCard: testCard,
-            getColor: getColor,
+            getColor: getColor
         };
     }
 
@@ -279,7 +279,7 @@
     }
 
     function stripPx(s) {
-        return s.replace(/px$/, '');
+        return s.replace(/px$/,'');
     }
 
     function safeId(s) {
@@ -318,7 +318,7 @@
                 rotate: rotate,
                 stripPx: stripPx,
                 safeId: safeId,
-                visible: visible,
+                visible: visible
             };
         }]);
 }());

@@ -38,12 +38,12 @@
         tooltip: 'Protected Intents Overlay',
 
         activate: function () {
-            $log.debug('Protected Intent overlay ACTIVATED');
+            $log.debug("Protected Intent overlay ACTIVATED");
         },
 
         deactivate: function () {
             tpis.cancelHighlights();
-            $log.debug('Protected Intent DEACTIVATED');
+            $log.debug("Protected Intent DEACTIVATED");
         },
 
         hooks: {
@@ -60,8 +60,8 @@
             showIntent: function (info) {
                 $log.debug('^^ topoProtectedIntentsOverlay.showintent() ^^', info);
                 tpis.showProtectedIntent(info);
-            },
-        },
+            }
+        }
     };
 
     // invoke code to register with the overlay service

@@ -32,35 +32,35 @@
     var id = 'topo2-p-detail',
         devicePath = 'device',
         handlerMap = {
-            'showDetails': showDetails,
+            'showDetails': showDetails
         };
 
     var coreButtons = {
         showDeviceView: {
             gid: 'switch',
             tt: 'Show Device View',
-            path: 'device',
+            path: 'device'
         },
         showFlowView: {
             gid: 'flowTable',
             tt: 'Show Flow View for this Device',
-            path: 'flow',
+            path: 'flow'
         },
         showPortView: {
             gid: 'portTable',
             tt: 'Show Port View for this Device',
-            path: 'port',
+            path: 'port'
         },
         showGroupView: {
             gid: 'groupTable',
             tt: 'Show Group View for this Device',
-            path: 'group',
+            path: 'group'
         },
         showMeterView: {
             gid: 'meterTable',
             tt: 'Show Meter View for this Device',
-            path: 'meter',
-        },
+            path: 'meter'
+        }
     };
 
     function init(summaryPanel) {
@@ -94,7 +94,7 @@
                     id: 'core-' + id,
                     gid: gid,
                     tt: tt,
-                    cb: function () { ns.navTo(path, { devId: devId }); },
+                    cb: function () { ns.navTo(path, { devId: devId }); }
                 });
             }
         });
@@ -168,7 +168,7 @@
     function updateDetails(id, nodeType) {
         wss.sendEvent('requestDetails', {
             id: id,
-            class: nodeType,
+            class: nodeType
         });
     }
 
@@ -223,8 +223,8 @@
                 hide: hide,
                 destroy: destroy,
                 isVisible: function () { return detailsPanel.isVisible(); },
-                getInstance: function () { return detailsPanel; },
+                getInstance: function () { return detailsPanel; }
             };
-        },
+        }
     ]);
 })();

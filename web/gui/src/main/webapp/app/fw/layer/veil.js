@@ -41,7 +41,7 @@
 
         svg = veil.select('svg').attr({
             width: ww,
-            height: wh,
+            height: wh
         }).style('opacity', 0.2);
 
         gs.addGlyph(svg, 'bird', birdDim, false, [birdCenter, shrink/2]);
@@ -71,7 +71,7 @@
     function lostServer(ctrlName, msg) {
         if ($route.current.$$route.controller === ctrlName) {
             $log.debug('VEIL-service: ', ctrlName);
-            show(msg);
+            show(msg)
         } else {
             $log.debug('VEIL-service: IGNORING ', ctrlName);
         }
@@ -92,7 +92,7 @@
                 init: init,
                 show: show,
                 hide: hide,
-                lostServer: lostServer,
+                lostServer: lostServer
             };
             wss._setVeilDelegate(self);
             return self;

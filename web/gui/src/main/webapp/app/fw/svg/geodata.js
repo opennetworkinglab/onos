@@ -93,7 +93,7 @@
             promise.meta = {
                 id: id,
                 url: url,
-                wasCached: false,
+                wasCached: false
             };
 
             promise.then(function (response) {
@@ -118,7 +118,7 @@
         objectTag: 'states',
         projection: d3.geo.mercator(),
         logicalSize: 1000,
-        mapFillScale: .95,
+        mapFillScale: .95
     };
 
     // converts given TopoJSON-format data into corresponding GeoJSON
@@ -138,7 +138,7 @@
         return {
             geodata: geoData,
             pathgen: path,
-            settings: settings,
+            settings: settings
         };
     }
 
@@ -181,7 +181,7 @@
                 clearCache: clearCache,
                 fetchTopoData: fetchTopoData,
                 createPathGenerator: createPathGenerator,
-                rescaleProjection: rescaleProjection,
+                rescaleProjection: rescaleProjection
             };
         }]);
 }());

@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, fs, mast, ps, is, wss;
+    var $log, $scope, fs, ns, mast, ps, is, wss;
 
     // internal state
     var detailsPanel,
@@ -44,11 +44,11 @@
         detailsReq = 'clusterDetailsRequest',
         detailsResp = 'clusterDetailsResponse',
         propOrder = [
-            'id', 'ip',
+            'id', 'ip'
         ],
         deviceCols = [
             'id', 'type', 'chassisid', 'mfr',
-            'hw', 'sw', 'protocol', 'serial',
+            'hw', 'sw', 'protocol', 'serial'
         ];
 
     // deferred fetching of user-visible strings, so that lion context is set
@@ -56,7 +56,7 @@
         var l = $scope.lion;
         return [
             l('node_id'),
-            l('ip_address'),
+            l('ip_address')
         ];
     }
 
@@ -70,7 +70,7 @@
             l('hw_version'),
             l('sw_version'),
             l('protocol'),
-            l('serial_number'),
+            l('serial_number')
         ];
     }
 
@@ -110,7 +110,7 @@
         bottom = container.append('div').classed('bottom', true);
         bottom.append('h2').classed('devices-title', true).text('Devices');
         bottom.append('table');
-        // TODO: add more details
+        //TODO: add more details
     }
 
     function addProp(tbody, label, value) {
@@ -169,7 +169,7 @@
             height: tbHeight + 'px',
             width: tbWidth + 'px',
             overflow: 'auto',
-            display: 'block',
+            display: 'block'
         });
 
         detailsPanel.width(tbWidth + ctnrPdg);
@@ -179,11 +179,11 @@
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
             margin: 0,
-            hideMargin: 0,
+            hideMargin: 0
         });
         detailsPanel.el().style({
             position: 'absolute',
-            top: pStartY + 'px',
+            top: pStartY + 'px'
         });
         $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
@@ -205,16 +205,17 @@
 
     angular.module('ovCluster', [])
         .controller('OvClusterCtrl',
-        ['$log', '$scope', 'FnService', 'MastService',
-        'PanelService', 'IconService', 'WebSocketService',
+        ['$log', '$scope', 'FnService', 'NavService', 'MastService',
+        'PanelService', 'IconService','WebSocketService',
         'LionService', 'TableBuilderService',
 
-    function (_$log_, _$scope_, _fs_, _mast_, _ps_, _is_, _wss_, lion, tbs) {
+    function (_$log_, _$scope_, _fs_, _ns_, _mast_, _ps_, _is_, _wss_, lion, tbs) {
             var handlers = {};
 
             $log = _$log_;
             $scope = _$scope_;
             fs = _fs_;
+            ns = _ns_;
             mast = _mast_;
             ps = _ps_;
             is = _is_;
@@ -226,7 +227,7 @@
             tbs.buildTable({
                 scope: $scope,
                 selCb: selCb,
-                tag: 'cluster',
+                tag: 'cluster'
             });
 
         // details panel handlers
@@ -235,7 +236,7 @@
 
         function selCb($event, row) {
             if ($scope.selId) {
-                wss.sendEvent(detailsReq, { id: row.id });
+                wss.sendEvent(detailsReq, {id: row.id});
             } else {
                 $scope.hidePanel();
             }
@@ -278,11 +279,11 @@
             // create key bindings to handle panel
             ks.keyBindings({
                 esc: [handleEscape, lion('qh_hint_close_detail')],
-                _helpFormat: ['esc'],
+                _helpFormat: ['esc']
             });
             ks.gestureNotes([
                 [lion('click'), lion('qh_hint_click')],
-                [lion('scroll_down'), lion('qh_hint_scroll_down')],
+                [lion('scroll_down'), lion('qh_hint_scroll_down')]
             ]);
             // if the panelData changes
             scope.$watch('panelData', function () {
@@ -297,7 +298,7 @@
                 function () {
                     return {
                         h: $window.innerHeight,
-                        w: $window.innerWidth,
+                        w: $window.innerWidth
                     };
                 }, function () {
                     if (!fs.isEmptyObject(scope.panelData)) {

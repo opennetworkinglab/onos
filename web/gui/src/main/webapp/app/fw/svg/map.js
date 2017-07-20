@@ -35,7 +35,7 @@
     'use strict';
 
     // injected references
-    var $log, $q, gds;
+    var $log, $q, fs, gds;
 
     // NOTE: This method assumes the datafile has exactly the map data
     //       that you want to load; for example id="*continental_us"
@@ -87,7 +87,7 @@
     //     });
 
     function loadMapRegionInto(mapLayer, opts) {
-        var promise = gds.fetchTopoData('*countries'),
+        var promise = gds.fetchTopoData("*countries"),
             deferredProjection = $q.defer();
 
         if (!promise) {
@@ -105,7 +105,7 @@
                 country = features.filter(opts.countryFilter),
                 countryFeature = {
                     type: 'FeatureCollection',
-                    features: country,
+                    features: country
                 },
                 path = d3.geo.path().projection(proj);
 
@@ -137,7 +137,7 @@
             svg.style('background-color', bg);
             paths.attr({
                 stroke: stroke,
-                fill: fill,
+                fill: fill
             });
         } else {
             svg.style('background-color', null);
@@ -145,16 +145,17 @@
     }
 
     angular.module('onosSvg')
-        .factory('MapService', ['$log', '$q', 'GeoDataService',
-        function (_$log_, _$q_, _gds_) {
+        .factory('MapService', ['$log', '$q', 'FnService', 'GeoDataService',
+        function (_$log_, _$q_, _fs_, _gds_) {
             $log = _$log_;
             $q = _$q_;
+            fs = _fs_;
             gds = _gds_;
 
             return {
                 loadMapRegionInto: loadMapRegionInto,
                 loadMapInto: loadMapInto,
-                reshade: reshade,
+                reshade: reshade
             };
         }]);
 

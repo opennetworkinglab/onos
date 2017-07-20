@@ -69,8 +69,8 @@
 
         return {
             id: id,
-            width: buttonWidth,
-        };
+            width: buttonWidth
+        }
     }
 
 
@@ -111,8 +111,8 @@
             width: buttonWidth,
             selected: function () { return sel; },
             toggle: _toggle,
-            toggleNoCb: toggleNoCb,
-        };
+            toggleNoCb: toggleNoCb
+        }
     }
 
 
@@ -186,7 +186,7 @@
                 el: rbdiv,
                 id: rid,
                 cb: fs.isF(btn.cb) || noop,
-                index: index,
+                index: index
             });
 
             if (btn.key) {
@@ -241,8 +241,8 @@
             width: rsetWidth,
             selected: selected,
             selectedIndex: selectedIndex,
-            size: function () { return rads.length; },
-        };
+            size: function () { return rads.length; }
+        }
     }
 
 
@@ -259,7 +259,7 @@
             return {
                 button: button,
                 toggle: toggle,
-                radioSet: radioSet,
+                radioSet: radioSet
             };
         }]);
 

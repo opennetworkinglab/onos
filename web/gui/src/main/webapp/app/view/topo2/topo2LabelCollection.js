@@ -36,13 +36,13 @@
                         if (this._byId[label.id]) {
                             this.get(label.id).set(label);
                         } else {
-                            var lab = new Model(label, targetNode, options);
+                            var lab = new Model(label, targetNode, options)
                             this.add(lab);
                         }
-                    },
+                    }
                 });
 
                 return instance || new LabelCollection();
-            },
+            }
         ]);
 })();

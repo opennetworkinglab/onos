@@ -23,7 +23,7 @@
     'use strict';
 
     // injected references
-    var $timeout, ts, fs;
+    var $log, $timeout, ts, fs;
 
     // constants
     var id = 'loading-anim',
@@ -122,9 +122,10 @@
 
     angular.module('onosLayer')
         .factory('LoadingService',
-        ['$timeout', 'ThemeService', 'FnService', 'WebSocketService',
+        ['$log', '$timeout', 'ThemeService', 'FnService', 'WebSocketService',
 
-            function (_$timeout_, _ts_, _fs_, wss) {
+            function (_$log_, _$timeout_, _ts_, _fs_, wss) {
+            $log = _$log_;
             $timeout = _$timeout_;
             ts = _ts_;
             fs = _fs_;
@@ -134,7 +135,7 @@
             var self = {
                 start: start,
                 stop: stop,
-                waiting: waiting,
+                waiting: waiting
             };
             wss._setLoadingDelegate(self);
             return self;

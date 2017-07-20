@@ -23,11 +23,11 @@
     'use strict';
 
     // injected refs
-    var $log, fs, gs, sus, wss;
+    var $log, $http, fs, gs, sus, wss;
 
     // constants
     var tssid = 'TopoSpriteService: ',
-        fontsize = 20; // default font size 20pt.
+        fontsize = 20;  // default font size 20pt.
 
     // internal state
     var spriteLayer, defsElement;
@@ -76,9 +76,9 @@
     function doSprite(spr, def, pathmeta) {
         var pmeta = pathmeta[def.path],
             c = spr.class || 'gray1',
-            p = spr.pos || [0, 0],
+            p = spr.pos || [0,0],
             lab = spr.label,
-            dim = def.dim || [40, 40],
+            dim = def.dim || [40,40],
             w = dim[0],
             h = dim[1],
             dy = def.labelyoff || 1,
@@ -97,7 +97,7 @@
         attr = {
             width: w,
             height: h,
-            'xlink:href': '#' + pmeta.u,
+            'xlink:href': '#' + pmeta.u
         };
 
         use = g.append('use').attr(attr);
@@ -113,7 +113,7 @@
                     width: w,
                     height: h,
                     'xlink:href': '#' + pmeta.u,
-                    transform: sus.translate(v.pos),
+                    transform: sus.translate(v.pos)
                 };
                 use = g.append('use').attr(attr);
                 applyStrokeStyle(pmeta.s, use);
@@ -130,10 +130,9 @@
 
     function doLabel(label) {
         var c = label.class || 'gray1',
-            p = label.pos || [0, 0],
-            sz = label.size || 1.0;
-
-            spriteLayer.append('g')
+            p = label.pos || [0,0],
+            sz = label.size || 1.0,
+            g = spriteLayer.append('g')
                 .classed(c, true)
                 .attr('transform', sus.translate(p))
                 .append('text')
@@ -175,7 +174,7 @@
         load = data.load;
         pfx = tssid + '[' + name + ']: ';
 
-        $log.debug('Loading sprites...[' + name + ']', desc);
+        $log.debug("Loading sprites...[" + name + "]", desc);
 
         function no(what) {
             warn.push(pfx + 'No ' + what + ' property defined');
@@ -196,7 +195,7 @@
         paths.forEach(function (p) {
             pathmeta[p.tag] = {
                 s: p.stroke,
-                u: p.glyph || 'spr_' + p.tag,
+                u: p.glyph || 'spr_' + p.tag
             };
         });
 
@@ -234,7 +233,7 @@
         $log.info(tssid + 'Requesting sprite definition ['+name+']...');
 
         wss.sendEvent('spriteListRequest');
-        wss.sendEvent('spriteDataRequest', { name: name });
+        wss.sendEvent('spriteDataRequest', {name: name});
     }
 
     // === -----------------------------------------------------
@@ -242,11 +241,12 @@
 
     angular.module('ovTopo')
     .factory('TopoSpriteService',
-        ['$log', 'FnService', 'GlyphService',
+        ['$log', '$http', 'FnService', 'GlyphService',
             'SvgUtilService', 'WebSocketService',
 
-        function (_$log_, _fs_, _gs_, _sus_, _wss_) {
+        function (_$log_, _$http_, _fs_, _gs_, _sus_, _wss_) {
             $log = _$log_;
+            $http = _$http_;
             fs = _fs_;
             gs = _gs_;
             sus = _sus_;
@@ -255,7 +255,7 @@
             return {
                 loadSprites: loadSprites,
                 spriteListResponse: inList,
-                spriteDataResponse: inData,
+                spriteDataResponse: inData
             };
         }]);
 

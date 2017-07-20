@@ -50,7 +50,7 @@
         navigateToRegion: function (id) {
             $loc.search('regionId', id);
             wss.sendEvent('topo2navRegion', {
-                rid: id,
+                rid: id
             });
             this.notifyListeners('region:navigation-start', id);
         },
@@ -60,7 +60,7 @@
 
         destory: function () {
             this.listeners = {};
-        },
+        }
     };
 
     angular.module('ovTopo2')
@@ -72,6 +72,6 @@
                 wss = _wss_;
 
                 return instance || new RegionNavigationService();
-            },
+            }
         ]);
 })();

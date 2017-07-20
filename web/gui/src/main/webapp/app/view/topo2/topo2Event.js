@@ -98,7 +98,7 @@
             return {
                 bindHandlers: bindHandlers,
                 start: start,
-                stop: stop,
+                stop: stop
             };
         }]);
 })();

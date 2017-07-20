@@ -126,7 +126,7 @@
             if (sicb && aicb && aicb(intentType)) {
                 result.push({
                     id: ovid,
-                    tt: ov.tooltip || '%' + ovid + '%',
+                    tt: ov.tooltip || '%' + ovid + '%'
                 });
             }
         });
@@ -145,7 +145,7 @@
                 tooltip: (ov.tooltip || '(no tooltip)'),
                 cb: function () {
                     tbSelection(ov.overlayId, switchFn);
-                },
+                }
             });
             map[ov.overlayId] = idx++;
         });
@@ -185,28 +185,28 @@
         showDeviceView: {
             gid: 'switch',
             tt: 'Show Device View',
-            path: 'device',
+            path: 'device'
         },
         showFlowView: {
             gid: 'flowTable',
             tt: 'Show Flow View for this Device',
-            path: 'flow',
+            path: 'flow'
         },
         showPortView: {
             gid: 'portTable',
             tt: 'Show Port View for this Device',
-            path: 'port',
+            path: 'port'
         },
         showGroupView: {
             gid: 'groupTable',
             tt: 'Show Group View for this Device',
-            path: 'group',
+            path: 'group'
         },
         showMeterView: {
             gid: 'meterTable',
             tt: 'Show Meter View for this Device',
-            path: 'meter',
-        },
+            path: 'meter'
+        }
     };
 
     // retrieves a button definition from the current overlay and generates
@@ -221,7 +221,7 @@
             id: current.mkId(id),
             gid: current.mkGid(b.gid),
             tt: b.tt,
-            cb: f,
+            cb: f
         } : null;
     }
 
@@ -238,7 +238,7 @@
                     id: 'core-' + id,
                     gid: gid,
                     tt: tt,
-                    cb: function () { ns.navTo(path, { devId: devId }); },
+                    cb: function () { ns.navTo(path, {devId: devId }); }
                 });
             } else if (btn = _getButtonDef(id, data)) {
                 tps.addAction(btn);
@@ -253,7 +253,7 @@
                 id: current.mkId(id),
                 gid: current.mkGid(b.gid),
                 cb: b.cb,
-                tt: b.tt,
+                tt: b.tt
             });
         }
     }
@@ -318,7 +318,7 @@
         tss = _tss_;
     }
 
-    // process highlight event with optional delay
+    //process highlight event with optional delay
     function showHighlights(data) {
         function doHighlight() {
             _showHighlights(data);
@@ -446,11 +446,11 @@
                     mouseOver: mouseOverHook,
                     mouseOut: mouseOutHook,
                     modifyLinkData: modifyLinkDataHook,
-                    showIntent: showIntentHook,
+                    showIntent: showIntentHook
                 },
 
-                showHighlights: showHighlights,
-            };
+                showHighlights: showHighlights
+            }
         }]);
 
 }());

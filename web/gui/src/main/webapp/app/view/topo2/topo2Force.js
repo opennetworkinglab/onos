@@ -26,7 +26,10 @@
     var $log, $loc, wss;
 
     var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs, t2tbs, t2mss;
-    var svg, uplink, dim, opts, zoomer;
+    var svg, forceG, uplink, dim, opts, zoomer;
+
+    // D3 Selections
+    var node;
 
     // ========================== Helper Functions
 
@@ -60,7 +63,7 @@
         $log.debug('navToBookmarkedRegion:', regionId);
         if (regionId) {
             wss.sendEvent('topo2navRegion', {
-                rid: regionId,
+                rid: regionId
             });
 
             t2ls.createForceElements();
@@ -220,7 +223,7 @@
                 updateNodes: updateNodes,
                 updateLinks: updateLinks,
                 resetNodeLocation: resetNodeLocation,
-                unpin: unpin,
+                unpin: unpin
             };
         }]);
 })();

@@ -49,10 +49,10 @@
                     setMastership: function (id) {
                         this.currentMastership = id;
                         this.displayMastership();
-                    },
-                };
+                    }
+                }
 
                 return instance || new MastershipController();
-            },
+            }
         ]);
 })();

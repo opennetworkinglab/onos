@@ -28,7 +28,7 @@
         margin: 20,
         hideMargin: 20,
         xtnTime: 750,
-        fade: true,
+        fade: true
     };
 
     var panels,
@@ -71,7 +71,7 @@
                 id: id,
                 settings: settings,
                 on: false,
-                el: null,
+                el: null
             },
             api = {
                 show: showPanel,
@@ -84,7 +84,7 @@
                 bbox: panelBBox,
                 isVisible: panelIsVisible,
                 classed: classed,
-                el: panelEl,
+                el: panelEl
             };
 
         p.el = panelLayer.append('div')
@@ -215,7 +215,7 @@
             return {
                 init: init,
                 createPanel: createPanel,
-                destroyPanel: destroyPanel,
+                destroyPanel: destroyPanel
             };
         }]);
 }());

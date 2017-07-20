@@ -28,7 +28,7 @@
     // Internal State
     var dimensions,
         viewOptions = {
-            linkPortHighlighting: true,
+            linkPortHighlighting: true
         };
 
     function newDim(_dimensions) {
@@ -65,9 +65,9 @@
                     getDimensions: getDimensions,
 
                     togglePortHighlights: togglePortHighlights,
-                    getPortHighlighting: getPortHighlighting,
+                    getPortHighlighting: getPortHighlighting
                 };
-            },
+            }
         ]
     );
 })();

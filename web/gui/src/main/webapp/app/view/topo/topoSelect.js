@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var fs, wss, tov, tps, tts, sus;
+    var $log, fs, wss, tov, tps, tts, ns, sus, tpis;
 
     // api to topoForce
     var api;
@@ -37,11 +37,11 @@
     // internal state
     var hovered, selections, selectOrder, consumeClick;
 
-    function setInitialState() {
-        hovered = null; // the node over which the mouse is hovering
-        selections = {}; // currently selected nodes (by id)
-        selectOrder = []; // the order in which we made selections
-        consumeClick = false; // used to coordinate with SVG click handler
+    function setInitialState () {
+        hovered = null;         // the node over which the mouse is hovering
+        selections = {};        // currently selected nodes (by id)
+        selectOrder = [];       // the order in which we made selections
+        consumeClick = false;   // used to coordinate with SVG click handler
     }
 
     // ==========================
@@ -70,7 +70,7 @@
                 tov.hooks.mouseOver({
                     id: m.id,
                     class: m.class,
-                    type: m.type,
+                    type: m.type
                 });
             }
         }
@@ -185,7 +185,7 @@
     function requestDetails(data) {
         wss.sendEvent('requestDetails', {
             id: data.id,
-            class: data.class,
+            class: data.class
         });
     }
 
@@ -210,7 +210,7 @@
     function singleSelect() {
         var data = getSel(0).obj;
 
-        // the link details are already taken care of in topoLink.js
+        //the link details are already taken care of in topoLink.js
         if (data.class === 'link') {
             return;
         }
@@ -235,14 +235,14 @@
                     id: 'host-flow-btn',
                     gid: 'endstation',
                     cb: tts.addHostIntent,
-                    tt: 'Create Host-to-Host Flow',
+                    tt: 'Create Host-to-Host Flow'
                 });
             } else if (nSel() >= 2) {
                 tps.addAction({
                     id: 'mult-src-flow-btn',
                     gid: 'flows',
                     cb: tts.addMultiSourceIntent,
-                    tt: 'Create Multi-Source Flow',
+                    tt: 'Create Multi-Source Flow'
                 });
             }
         }
@@ -295,7 +295,7 @@
         return {
             devices: devices,
             hosts: hosts,
-            types: types,
+            types: types
         };
     }
 
@@ -304,16 +304,20 @@
 
     angular.module('ovTopo')
     .factory('TopoSelectService',
-        ['FnService', 'WebSocketService', 'TopoOverlayService',
-        'TopoPanelService', 'TopoTrafficService', 'SvgUtilService',
+        ['$log', 'FnService', 'WebSocketService', 'TopoOverlayService',
+            'TopoPanelService', 'TopoTrafficService', 'NavService',
+            'SvgUtilService', 'TopoProtectedIntentsService',
 
-        function (_fs_, _wss_, _tov_, _tps_, _tts_, _sus_) {
+        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_, _sus_, _tpis_) {
+            $log = _$log_;
             fs = _fs_;
             wss = _wss_;
             tov = _tov_;
             tps = _tps_;
             tts = _tts_;
+            ns = _ns_;
             sus = _sus_;
+            tpis= _tpis_;
 
             function initSelect(_api_) {
                 api = _api_;
@@ -343,7 +347,7 @@
 
                 clickConsumed: clickConsumed,
                 selectionContext: selectionContext,
-                reselect: reselect,
+                reselect: reselect
             };
         }]);
 }());

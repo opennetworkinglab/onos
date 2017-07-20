@@ -28,7 +28,7 @@
                 function ($log, $scope, $sce, fs, tbs) {
                     tbs.buildTable({
                         scope: $scope,
-                        tag: 'partition',
+                        tag: 'partition'
                     });
 
                     $log.log('OvPartitionCtrl has been created');

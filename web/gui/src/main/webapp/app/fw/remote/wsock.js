@@ -36,7 +36,7 @@
             }
 
             return {
-                newWebSocket: newWebSocket,
+                newWebSocket: newWebSocket
             };
         }]);
 }());

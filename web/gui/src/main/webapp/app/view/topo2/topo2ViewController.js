@@ -34,10 +34,10 @@
         displayName: 'View',
 
         initialize: function () {
-            this.name = this.displayName.toLowerCase().replace(/ /g, '_');
+            this.name = this.displayName.toLowerCase().replace(/ /g,"_");
             this.prefs = {
-                visible: this.name + '_visible',
-            };
+                visible: this.name + '_visible'
+            }
         },
         appendElement: function (parent, node) {
             var el = d3.select('#' + this.id);
@@ -46,7 +46,7 @@
             }
             return el;
         },
-        node: function () {
+        node: function() {
             return d3.select('#' + this.id);
         },
         enabled: function () {
@@ -64,7 +64,7 @@
                     .duration(400)
                     .style('opacity', 0)
                     .each('end', function () {
-                        node.style('visibility', 'hidden');
+                        node.style('visibility', 'hidden')
                     });
             }
         },
@@ -76,7 +76,7 @@
                     .style('visibility', 'visible')
                     .transition()
                     .duration(400)
-                    .style('opacity', 1);
+                    .style('opacity', 1)
             }
         },
         toggle: function () {
@@ -95,7 +95,7 @@
             var state = ps.getPrefs('topo2_prefs');
             state[key] = value ? 1 : 0;
             ps.setPrefs('topo2_prefs', state);
-        },
+        }
     };
 
     angular.module('ovTopo2')
@@ -108,6 +108,6 @@
 
                 ViewController.extend = fn.extend;
                 return ViewController;
-            },
+            }
         ]);
 })();

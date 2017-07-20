@@ -22,17 +22,19 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, tbs, ns;
+    var $log, $scope, $location, fs, tbs, ns;
 
     angular.module('ovPort', [])
     .controller('OvPortCtrl',
-        ['$log', '$scope', '$location', 'TableBuilderService', 'NavService',
+        ['$log', '$scope', '$location',
+            'FnService', 'TableBuilderService', 'NavService',
 
-        function (_$log_, _$scope_, _$location_, _tbs_, _ns_) {
+        function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _ns_) {
             var params;
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
+            fs = _fs_;
             tbs = _tbs_;
             ns = _ns_;
             $scope.deviceTip = 'Show device table';
@@ -48,7 +50,7 @@
             tbs.buildTable({
                 scope: $scope,
                 tag: 'port',
-                query: params,
+                query: params
             });
 
             $scope.nav = function (path) {
@@ -57,12 +59,12 @@
                 }
             };
 
-             Object.defineProperty($scope, 'queryFilter', {
-                 get: function () {
+             Object.defineProperty($scope, "queryFilter", {
+                 get: function() {
                      var out = {};
-                     out[$scope.queryBy || '$'] = $scope.query;
+                     out[$scope.queryBy || "$"] = $scope.query;
                      return out;
-                 },
+                 }
              });
 
             $log.log('OvPortCtrl has been created');

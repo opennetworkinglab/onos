@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, flash, wss, api;
+    var $log, fs, flash, wss, api;
 
     /*
        API to topoForce
@@ -35,18 +35,19 @@
     var allTrafficTypes = [
             'flowStatsBytes',
             'portStatsBitSec',
-            'portStatsPktSec',
+            'portStatsPktSec'
         ],
         allTrafficMsgs = [
             'Flow Stats (bytes)',
             'Port Stats (bits / second)',
-            'Port Stats (packets / second)',
+            'Port Stats (packets / second)'
         ];
 
     // internal state
     var trafficMode = null,
         hoverMode = null,
         allTrafficIndex = 0;
+
 
 
     // === -----------------------------------------------------
@@ -77,7 +78,7 @@
         if (api.somethingSelected()) {
             wss.sendEvent('requestDeviceLinkFlows', {
                 ids: api.selectOrder(),
-                hover: hoverValid() ? hov.id : '',
+                hover: hoverValid() ? hov.id : ''
             });
         }
     }
@@ -96,7 +97,7 @@
         if (api.somethingSelected()) {
             wss.sendEvent('requestRelatedIntents', {
                 ids: api.selectOrder(),
-                hover: hoverValid() ? hov.id : '',
+                hover: hoverValid() ? hov.id : ''
             });
         }
     }
@@ -120,19 +121,19 @@
         trafficMode = 'allFlowPort';
         hoverMode = null;
         wss.sendEvent('requestAllTraffic', {
-            trafficType: allTrafficTypes[allTrafficIndex],
+            trafficType: allTrafficTypes[allTrafficIndex]
         });
         flash.flash(allTrafficMsgs[allTrafficIndex]);
         allTrafficIndex = (allTrafficIndex + 1) % 3;
     }
 
-    function showDeviceLinkFlows() {
+    function showDeviceLinkFlows () {
         trafficMode = hoverMode = 'flows';
         requestDeviceLinkFlows();
         flash.flash('Device Flows');
     }
 
-    function showRelatedIntents() {
+    function showRelatedIntents () {
         trafficMode = hoverMode = 'intents';
         requestRelatedIntents();
         flash.flash('Related Paths');
@@ -174,25 +175,25 @@
     // === ------------------------------------------------------
     // action buttons on detail panel (multiple selection)
 
-    function addHostIntent() {
+    function addHostIntent () {
         var so = api.selectOrder();
         wss.sendEvent('addHostIntent', {
             one: so[0],
             two: so[1],
-            ids: so,
+            ids: so
         });
         trafficMode = 'intents';
         hoverMode = null;
         flash.flash('Host-to-Host flow added');
     }
 
-    function removeIntent(d) {
+    function removeIntent (d) {
         $log.debug('Entering removeIntent');
         wss.sendEvent('removeIntent', {
             appId: d.appId,
             appName: d.appName,
             key: d.key,
-            purge: d.intentPurge,
+            purge: d.intentPurge
         });
         trafficMode = 'intents';
         hoverMode = null;
@@ -200,32 +201,32 @@
         flash.flash('Intent ' + txt);
     }
 
-    function resubmitIntent(d) {
+    function resubmitIntent (d) {
         $log.debug('Entering resubmitIntent');
         wss.sendEvent('resubmitIntent', {
             appId: d.appId,
             appName: d.appName,
             key: d.key,
-            purge: d.intentPurge,
+            purge: d.intentPurge
         });
         trafficMode = 'intents';
         hoverMode = null;
         flash.flash('Intent resubmitted');
     }
 
-    function addMultiSourceIntent() {
+    function addMultiSourceIntent () {
         var so = api.selectOrder();
         wss.sendEvent('addMultiSourceIntent', {
             src: so.slice(0, so.length - 1),
             dst: so[so.length - 1],
-            ids: so,
+            ids: so
         });
         trafficMode = 'intents';
         hoverMode = null;
         flash.flash('Multi-Source flow added');
     }
 
-    function removeIntents() {
+    function removeIntents () {
         $log.debug('Entering removeIntents');
         wss.sendEvent('removeIntents', {});
         trafficMode = 'intents';
@@ -239,10 +240,11 @@
 
     angular.module('ovTopo')
     .factory('TopoTrafficService',
-        ['$log', 'FnService', 'WebSocketService',
+        ['$log', 'FnService', 'FlashService', 'WebSocketService',
 
-        function (_$log_, _flash_, _wss_) {
+        function (_$log_, _fs_, _flash_, _wss_) {
             $log = _$log_;
+            fs = _fs_;
             flash = _flash_;
             wss = _wss_;
 
@@ -269,7 +271,7 @@
                 addMultiSourceIntent: addMultiSourceIntent,
                 removeIntent: removeIntent,
                 resubmitIntent: resubmitIntent,
-                removeIntents: removeIntents,
+                removeIntents: removeIntents
             };
         }]);
 }());

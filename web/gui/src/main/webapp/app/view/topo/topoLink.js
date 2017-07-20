@@ -23,15 +23,15 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, tss, tps, tov;
+    var $log, fs, sus, ts, flash, tss, tps, tov;
 
     // internal state
     var api,
         td3,
         network,
-        showPorts = true, // enable port highlighting by default
-        enhancedLink = null, // the link over which the mouse is hovering
-        selectedLinks = {}; // the links which are already selected
+        showPorts = true,       // enable port highlighting by default
+        enhancedLink = null,    // the link over which the mouse is hovering
+        selectedLinks = {};     // the links which are already selected
 
     // SVG elements;
     var svg;
@@ -45,7 +45,7 @@
             tr = api.zoomer.translate(),
             mx = (m[0] - tr[0]) / sc,
             my = (m[1] - tr[1]) / sc;
-        return { x: mx, y: my };
+        return {x: mx, y: my};
     }
 
 
@@ -74,7 +74,7 @@
                     return; // skip hidden hosts
                 }
 
-                dist = mdist({ x: d.x, y: d.y }, mouse);
+                dist = mdist({x: d.x, y: d.y}, mouse);
                 if (dist < minDist && dist < proximity) {
                     minDist = dist;
                     nearest = d;
@@ -101,7 +101,7 @@
                     (sq(y2-y1) + sq(x2-x1)),
                 x4 = x3 - k * (y2-y1),
                 y4 = y3 + k * (x2-x1);
-            return { x: x4, y: y4 };
+            return {x:x4, y:y4};
         }
 
         function lineHit(line, p, m) {
@@ -179,7 +179,7 @@
         point = locatePortLabel(d);
         angular.extend(point, {
             id: 'topo-port-tgt',
-            num: d.tgtPort,
+            num: d.tgtPort
         });
         data.push(point);
 
@@ -187,7 +187,7 @@
             point = locatePortLabel(d, 1);
             angular.extend(point, {
                 id: 'topo-port-src',
-                num: d.srcPort,
+                num: d.srcPort
             });
             data.push(point);
         }
@@ -209,7 +209,7 @@
             dy = farY - nearY,
             k = offset / dist(dx, dy);
 
-        return { x: k * dx + nearX, y: k * dy + nearY };
+        return {x: k * dx + nearX, y: k * dy + nearY};
     }
 
     function selectLink(ldata) {
@@ -248,7 +248,7 @@
         if (!d.el) return;
 
         d.el.classed('selected', true);
-        selectedLinks[d.key] = { key: d };
+        selectedLinks[d.key] = {key : d};
 
         tps.displayLink(d, tov.hooks.modifyLinkData);
         tps.displaySomething();
@@ -317,12 +317,14 @@
 
     angular.module('ovTopo')
         .factory('TopoLinkService',
-        ['$log', 'FnService', 'FlashService', 'TopoSelectService',
-        'TopoPanelService', 'TopoOverlayService',
+        ['$log', 'FnService', 'SvgUtilService', 'ThemeService', 'FlashService',
+            'TopoSelectService', 'TopoPanelService', 'TopoOverlayService',
 
-        function (_$log_, _fs_, _flash_, _tss_, _tps_, _tov_) {
+        function (_$log_, _fs_, _sus_, _ts_, _flash_, _tss_, _tps_, _tov_) {
             $log = _$log_;
             fs = _fs_;
+            sus = _sus_;
+            ts = _ts_;
             flash = _flash_;
             tss = _tss_;
             tps = _tps_;
@@ -349,7 +351,7 @@
                 initLink: initLink,
                 destroyLink: destroyLink,
                 togglePorts: togglePorts,
-                deselectAllLinks: deselectAllLinks,
+                deselectAllLinks: deselectAllLinks
             };
         }]);
 }());

@@ -41,12 +41,12 @@
         // NOTE: Traffic glyphs already installed as part of the base ONOS set.
 
         activate: function () {
-            $log.debug('Traffic overlay ACTIVATED');
+            $log.debug("Traffic overlay ACTIVATED");
         },
 
         deactivate: function () {
             tts.cancelTraffic(true);
-            $log.debug('Traffic overlay DEACTIVATED');
+            $log.debug("Traffic overlay DEACTIVATED");
         },
 
         // detail panel button definitions
@@ -55,14 +55,14 @@
             showDeviceFlows: {
                 gid: 'm_flows',
                 tt: 'Show Device Flows',
-                cb: function (data) { tts.showDeviceLinkFlows(); },
+                cb: function (data) { tts.showDeviceLinkFlows(); }
             },
 
             showRelatedTraffic: {
                 gid: 'm_relatedIntents',
                 tt: 'Show Related Traffic',
-                cb: function (data) { tts.showRelatedIntents(); },
-            },
+                cb: function (data) { tts.showRelatedIntents(); }
+            }
         },
 
         // key bindings for traffic overlay toolbar buttons
@@ -71,43 +71,43 @@
             0: {
                 cb: function () { tts.cancelTraffic(true); },
                 tt: 'Cancel traffic monitoring',
-                gid: 'm_xMark',
+                gid: 'm_xMark'
             },
 
             A: {
                 cb: function () { tts.showAllTraffic(); },
                 tt: 'Monitor all traffic',
-                gid: 'm_allTraffic',
+                gid: 'm_allTraffic'
             },
             F: {
                 cb: function () { tts.showDeviceLinkFlows(); },
                 tt: 'Show device link flows',
-                gid: 'm_flows',
+                gid: 'm_flows'
             },
             V: {
                 cb: function () { tts.showRelatedIntents(); },
                 tt: 'Show all related intents',
-                gid: 'm_relatedIntents',
+                gid: 'm_relatedIntents'
             },
             leftArrow: {
                 cb: function () { tts.showPrevIntent(); },
                 tt: 'Show previous related intent',
-                gid: 'm_prev',
+                gid: 'm_prev'
             },
             rightArrow: {
                 cb: function () { tts.showNextIntent(); },
                 tt: 'Show next related intent',
-                gid: 'm_next',
+                gid: 'm_next'
             },
             W: {
                 cb: function () { tts.showSelectedIntentTraffic(); },
                 tt: 'Monitor traffic of selected intent',
-                gid: 'm_intentTraffic',
+                gid: 'm_intentTraffic'
             },
 
             _keyOrder: [
-                '0', 'A', 'F', 'V', 'leftArrow', 'rightArrow', 'W',
-            ],
+                '0', 'A', 'F', 'V', 'leftArrow', 'rightArrow', 'W'
+            ]
         },
 
         hooks: {
@@ -146,8 +146,8 @@
             showIntent: function (info) {
                 $log.debug('^^ trafficOverlay.showintent() ^^', info);
                 tts.selectIntent(info);
-            },
-        },
+            }
+        }
     };
 
     // invoke code to register with the overlay service

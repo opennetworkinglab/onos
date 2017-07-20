@@ -30,8 +30,8 @@
         porthl: 1,
         bg: 0,
         spr: 0,
-        ovid: 'traffic', // default to traffic overlay
-        toolbar: 0,
+        ovid: 'traffic',   // default to traffic overlay
+        toolbar: 0
     };
 
     function topo2Prefs() {
@@ -59,8 +59,8 @@
 
             return {
                 get: get,
-                set: set,
+                set: set
             };
-        },
+        }
     ]);
 })();

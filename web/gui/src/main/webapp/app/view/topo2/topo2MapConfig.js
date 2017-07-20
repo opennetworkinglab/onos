@@ -31,7 +31,7 @@
     function projection(x) {
         if (x) {
             proj = x;
-            $log.debug('Set the projection');
+            $log.debug("Set the projection");
         }
         return proj;
     }
@@ -44,9 +44,9 @@
                 $log = _$log_;
 
                 return {
-                    projection: projection,
+                    projection: projection
                 };
-            },
+            }
         ]
     );
 })();

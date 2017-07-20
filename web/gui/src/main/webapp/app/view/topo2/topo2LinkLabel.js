@@ -47,7 +47,7 @@
                         var link = this.link;
                         this.set({
                             x: (link.source.x + link.target.x) / 2,
-                            y: (link.source.y + link.target.y) / 2,
+                            y: (link.source.y + link.target.y) / 2
                         });
                     },
                     setScale: function () {
@@ -61,8 +61,8 @@
                         this.link.linkLabel = null;
                         this.link.onChange();
                         this.constructor.__super__.remove.apply(this, arguments);
-                    },
+                    }
                 });
-            },
+            }
         ]);
 })();

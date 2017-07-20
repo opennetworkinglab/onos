@@ -30,17 +30,17 @@
         idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
         panelOpts = {
-            width: 260, // summary and detail panel width
+            width: 260          // summary and detail panel width
         },
-        sumMax = 226, // summary panel max height
-        padTop = 16, // summary panel padding below masthead
-        padding = 16, // panel internal padding
+        sumMax = 226,           // summary panel max height
+        padTop = 16,            // summary panel padding below masthead
+        padding = 16,           // panel internal padding
         padFudge = padTop + 2 * padding;
 
     // internal state
-    var useDetails = true, // should we show details if we have 'em?
-        haveDetails = false, // do we have details that we could show?
-        sumFromTop, // summary panel distance from top of screen
+    var useDetails = true,      // should we show details if we have 'em?
+        haveDetails = false,    // do we have details that we could show?
+        sumFromTop,             // summary panel distance from top of screen
         unbindWatch;
 
     // panels
@@ -140,7 +140,7 @@
             appendHeader: hAppend,
             appendBody: bAppend,
             appendFooter: fAppend,
-            adjustHeight: adjustHeight,
+            adjustHeight: adjustHeight
         };
     }
 
@@ -195,7 +195,7 @@
             function () {
                 return {
                     h: $window.innerHeight,
-                    w: $window.innerWidth,
+                    w: $window.innerWidth
                 };
             }, function () {
                 var h = summary.adjustHeight(sumFromTop, sumMax),
@@ -220,7 +220,7 @@
             table = summary.appendBody('table'),
             tbody = table.append('tbody');
 
-        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        gs.addGlyph(svg, 'bird', 24, 0, [1,1]);
 
         title.text(data.title);
         listProps(tbody, data);
@@ -231,7 +231,7 @@
 
     var navPathIdKey = {
         device: 'devId',
-        host: 'hostId',
+        host: 'hostId'
     };
 
     function displaySingle(data) {
@@ -291,7 +291,7 @@
 
     var friendlyIndex = {
         device: 1,
-        host: 0,
+        host: 0
     };
 
     function friendly(d) {
@@ -306,7 +306,7 @@
 
     // provided to change presentation of internal type name
     var linkTypePres = {
-        hostLink: 'edge link',
+        hostLink: 'edge link'
     };
 
     function linkType(d) {
@@ -320,12 +320,12 @@
     var coreOrder = [
             'Type', 'Expected', '-',
             'A_type', 'A_id', 'A_label', 'A_port', '-',
-            'B_type', 'B_id', 'B_label', 'B_port',
+            'B_type', 'B_id', 'B_label', 'B_port'
         ],
         edgeOrder = [
             'Type', '-',
             'A_type', 'A_id', 'A_label', '-',
-            'B_type', 'B_id', 'B_label', 'B_port',
+            'B_type', 'B_id', 'B_label', 'B_port'
         ];
 
     function displayLink(data, modifyCb) {
@@ -344,7 +344,7 @@
         title.text('Link');
 
         var linkData = {
-            propOrder: order.slice(0), // makes a copy of the array
+            propOrder: order.slice(0),      // makes a copy of the array
             props: {
                 Type: linkType(data),
                 Expected: linkExpected(data),
@@ -357,8 +357,8 @@
                 B_type: data.target.class,
                 B_id: data.target.id,
                 B_label: friendly(data.target),
-                B_port: data.tgtPort,
-            },
+                B_port: data.tgtPort
+            }
         };
         listProps(tbody, modifyCb(linkData, data.extra));
 
@@ -422,7 +422,7 @@
 
     function hideSummaryPanel() {
         // instruct server to stop sending summary data
-        wss.sendEvent('cancelSummary');
+        wss.sendEvent("cancelSummary");
         summary.panel().hide(detail.up);
     }
 
@@ -443,7 +443,7 @@
     function augmentDetailPanel() {
         var d = detail,
             downPos = sumFromTop + sumMax + padFudge;
-        d.ypos = { up: sumFromTop, down: downPos, current: downPos };
+        d.ypos = { up: sumFromTop, down: downPos, current: downPos};
 
         d._move = function (y, cb) {
             var yp = d.ypos,
@@ -453,11 +453,11 @@
                 endCb = function () {
                     cb();
                     d.adjustHeight(d.ypos.current);
-                };
+                }
             } else {
                 endCb = function () {
                     d.adjustHeight(d.ypos.current);
-                };
+                }
             }
             if (yp.current !== y) {
                 yp.current = y;
@@ -552,7 +552,7 @@
                 addAction: addAction,
 
                 detailVisible: function () { return detail.panel().isVisible(); },
-                summaryVisible: function () { return summary.panel().isVisible(); },
+                summaryVisible: function () { return summary.panel().isVisible(); }
             };
         }]);
 }());

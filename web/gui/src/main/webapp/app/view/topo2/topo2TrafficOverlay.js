@@ -30,12 +30,12 @@
         tooltip: 'Traffic Overlay',
 
         activate: function () {
-            $log.debug('Traffic-2 overlay ACTIVATED');
+            $log.debug("Traffic-2 overlay ACTIVATED");
         },
 
         deactivate: function () {
             t2ts.cancelTraffic(true);
-            $log.debug('Traffic-2 overlay DEACTIVATED');
+            $log.debug("Traffic-2 overlay DEACTIVATED");
         },
 
         // key bindings for toolbar buttons
@@ -44,18 +44,18 @@
             0: {
                 cb: function () { t2ts.cancelTraffic(true); },
                 tt: 'Cancel traffic monitoring',
-                gid: 'm_xMark',
+                gid: 'm_xMark'
             },
 
             A: {
                 cb: function () { t2ts.showAllTraffic(); },
                 tt: 'Monitor all traffic',
-                gid: 'm_allTraffic',
+                gid: 'm_allTraffic'
             },
 
             _keyOrder: [
-                '0', 'A',
-            ],
+                '0', 'A'
+            ]
         },
 
         hooks: {
@@ -63,10 +63,10 @@
             escape: function () {
                 // Must return true to consume ESC, false otherwise.
                 return t2ts.cancelTraffic(true);
-            },
+            }
             // TODO : add node selection events etc.
             // NOTE : see topoTrafficNew.js
-        },
+        }
     };
 
     // invoke code to register with the overlay service

@@ -117,7 +117,7 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
             if (this.collection) {
                 this.collection.remove(this);
             }
-        },
+        }
     };
 
     angular.module('ovTopo2')
@@ -127,6 +127,6 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
             Model.extend = fn.extend;
 
             return Model;
-        },
+        }
     ]);
 })();
