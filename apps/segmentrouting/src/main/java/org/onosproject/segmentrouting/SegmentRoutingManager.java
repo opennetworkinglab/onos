@@ -352,6 +352,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "greedyLearningIpv6", "true");
         compCfgService.preSetProperty("org.onosproject.routing.cpr.ControlPlaneRedirectManager",
                                       "forceUnprovision", "true");
+        compCfgService.preSetProperty("org.onosproject.incubator.store.routing.impl.RouteStoreImpl",
+                                      "distributed", "true");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
