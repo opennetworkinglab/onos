@@ -1,0 +1,21 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
+]
+
+BUNDLES = [
+    ':onos-providers-p4runtime-packet',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.provider.p4runtime.packet',
+    title = 'P4Runtime Packet Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    description = 'ONOS P4Runtime packet provider.',
+    included_bundles = BUNDLES,
+)
