@@ -15,7 +15,7 @@ COMPILE_DEPS = [
 
 grpc_jar(
     proto_match_patterns = ["*.proto"],
-    proto_paths = ["$ONOS_ROOT/protocols/grpc/proto/"],
+    proto_paths = ["$ONOS_ROOT/protocols/grpc/proto/", "$ONOS_ROOT"], #FIXME should not have to include ONOS_ROOT top level here
     protoc_version = PROTOC_VER,
     plugin_version = GRPC_VER,
     deps = COMPILE_DEPS,

@@ -18,10 +18,14 @@ ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 COPY . /src/onos/
 
 # Build ONOS
+# FIXME - dependence on ONOS_ROOT and git at build time is a hack to work around
+# build problems
 WORKDIR /src
 RUN     apt-get update && \
-        apt-get install -y python less zip curl oracle-java8-installer oracle-java8-set-default ssh && \
+        apt-get install -y python less zip curl oracle-java8-installer oracle-java8-set-default ssh git && \
         cd onos && \
+        ONOS_ROOT=/src/onos && \
+        export ONOS_ROOT && \
         tools/build/onos-buck build onos && \
         cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
         cd .. && \
