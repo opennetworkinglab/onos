@@ -6,8 +6,10 @@
 #include "include/port_counters.p4"
 #include "include/checksums.p4"
 #include "include/actions.p4"
+#include "include/packet_io.p4"
 
-control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
+
     direct_counter(CounterType.packets) table0_counter;
 
     table table0 {
@@ -25,30 +27,26 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
         }
         counters = table0_counter;
     }
+
+    PacketIoIngressControl() packet_io_ingress_control;
     PortCountersControl() port_counters_control;
+
     apply {
-        table0.apply();
+        packet_io_ingress_control.apply(hdr, standard_metadata);
+        if (!hdr.packet_out.isValid()) {
+            table0.apply();
+        }
         port_counters_control.apply(hdr, meta, standard_metadata);
     }
 
 }
 
-control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control egress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
+
+    PacketIoEgressControl() packet_io_egress_control;
     apply {
-        // Nothing to do
+        packet_io_egress_control.apply(hdr, standard_metadata);
     }
-}
-
-@controller_header("packet_in")
-header packet_in_header_t {
-    bit<9> ingress_port;
-    bit<32> other1;
-}
-
-@controller_header("packet_out")
-header packet_out_header_t {
-    bit<9> egress_port;
-    bit<32> other2;
 }
 
 V1Switch(ParserImpl(), verifyChecksum(), ingress(), egress(), computeChecksum(), DeparserImpl()) main;

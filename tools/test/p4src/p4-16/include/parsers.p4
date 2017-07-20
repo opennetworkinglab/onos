@@ -3,11 +3,14 @@
 #include "headers.p4"
 #include "metadata.p4"
 
-#define ETH_TYPE_IPV4 16w0x0800
-#define IP_TYPE_TCP 8w6
-#define IP_TYPE_UDP 8w17
+parser ParserImpl(packet_in packet, out headers_t hdr, inout metadata_t meta,
+                    inout standard_metadata_t standard_metadata) {
 
-parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+    state parse_packet_out {
+        packet.extract(hdr.packet_out);
+        transition parse_ethernet;
+    }
+
     state parse_ethernet {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
@@ -36,12 +39,16 @@ parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout 
     }
 
     state start {
-        transition parse_ethernet;
+        transition select(standard_metadata.ingress_port) {
+            CPU_PORT: parse_packet_out;
+            default: parse_ethernet;
+        }
     }
 }
 
-control DeparserImpl(packet_out packet, in headers hdr) {
+control DeparserImpl(packet_out packet, in headers_t hdr) {
     apply {
+        packet.emit(hdr.packet_in);
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.udp);

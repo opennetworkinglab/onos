@@ -5,20 +5,20 @@ struct dummy_t {
     bit<8> dummyField;
 }
 
-struct metadata {
+struct metadata_t {
     dummy_t dummy_metadata;
 }
 
-struct headers {
+struct headers_t {
 }
 
-parser ParserImpl(packet_in packet, out headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+parser ParserImpl(packet_in packet, out headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
     state start {
         transition accept;
     }
 }
 
-control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
     action dummy_action() {
         meta.dummy_metadata.dummyField = 8w1;
     }
@@ -35,25 +35,25 @@ control ingress(inout headers hdr, inout metadata meta, inout standard_metadata_
     }
 }
 
-control egress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control egress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
     apply {
         // Nothing to do
     }
 }
 
-control DeparserImpl(packet_out packet, in headers hdr) {
+control DeparserImpl(packet_out packet, in headers_t hdr) {
     apply {
         // Nothing to do
     }
 }
 
-control verifyChecksum(in headers hdr, inout metadata meta) {
+control verifyChecksum(in headers_t hdr, inout metadata_t meta) {
     apply {
         // Nothing to do
     }
 }
 
-control computeChecksum(inout headers hdr, inout metadata meta) {
+control computeChecksum(inout headers_t hdr, inout metadata_t meta) {
     apply {
         // Nothing to do
     }

@@ -2,7 +2,7 @@
 #define PORT_COUNTERS
 #include "defines.p4"
 
-control PortCountersControl(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
+control PortCountersControl(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
     counter(MAX_PORTS, CounterType.packets) egress_port_counter;
     counter(MAX_PORTS, CounterType.packets) ingress_port_counter;
 

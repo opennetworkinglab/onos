@@ -1,5 +1,16 @@
 #ifndef HEADERS
 #define HEADERS
+
+@controller_header("packet_in")
+header packet_in_header_t {
+    bit<9> ingress_port;
+}
+
+@controller_header("packet_out")
+header packet_out_header_t {
+    bit<9> egress_port;
+}
+
 struct intrinsic_metadata_t {
     bit<32> ingress_global_timestamp;
     bit<32> lf_field_list;
@@ -49,10 +60,12 @@ header udp_t {
     bit<16> checksum;
 }
 
-struct headers {
+struct headers_t {
     ethernet_t ethernet;
     ipv4_t ipv4;
     tcp_t tcp;
     udp_t udp;
+    packet_out_header_t packet_out;
+    packet_in_header_t packet_in;
 }
 #endif

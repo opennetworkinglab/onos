@@ -1,17 +1,18 @@
-#ifndef CHECK_SUMS
-#define CHECK_SUMS
+#ifndef CHECKSUMS
+#define CHECKSUMS
 #include "headers.p4"
 #include "metadata.p4"
 
-control verifyChecksum(in headers hdr, inout metadata meta) {
+control verifyChecksum(in headers_t hdr, inout metadata_t meta) {
     apply {
         // Nothing to do
     }
 }
 
-control computeChecksum(inout headers hdr, inout metadata meta) {
+control computeChecksum(inout headers_t hdr, inout metadata_t meta) {
     apply {
         // Nothing to do
     }
 }
+
 #endif
