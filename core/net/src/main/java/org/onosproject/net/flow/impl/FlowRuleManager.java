@@ -483,7 +483,7 @@ public class FlowRuleManager
                 }
             }
 
-            if (storedRule.packets() != swRule.packets()) {
+            if (storedRule.packets() != swRule.packets() || storedRule.bytes() != swRule.bytes()) {
                 lastSeen.put(storedRule, currentTime);
                 return true;
             }
