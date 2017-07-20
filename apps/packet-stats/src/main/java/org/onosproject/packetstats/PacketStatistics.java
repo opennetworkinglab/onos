@@ -10,9 +10,10 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for  the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.packetstats;
 import com.codahale.metrics.Counter;
 import org.apache.felix.scr.annotations.Activate;
@@ -43,7 +44,7 @@ import org.onlab.metrics.MetricsService;
  * Application for Packet Statistics.
  */
 @Component(immediate = true)
-public class PacketStatistics {
+public class  PacketStatistics {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -125,30 +126,30 @@ public class PacketStatistics {
         this.unknownFeature =
                 packetStatisticsComponent.registerFeature("unknownFeature");
         this.arpCounter =
-                metricService.createCounter(packetStatisticsComponent, arpFeature, "ARP Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, arpFeature, "arpPC");
         this.dhcpCounter =
-                metricService.createCounter(packetStatisticsComponent, dhcpFeature, "DHCP Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, dhcpFeature, "dhcpPC");
         this.lldpCounter =
-                metricService.createCounter(packetStatisticsComponent, lldpFeature, "LLDP Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, lldpFeature, "lldpPC");
         this.vlanCounter =
-                metricService.createCounter(packetStatisticsComponent, vlanFeature, "VLAN Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, vlanFeature, "vlanPC");
         this.icmpCounter =
-                metricService.createCounter(packetStatisticsComponent, icmpFeature, "ICMP Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, icmpFeature, "icmpPC");
         this.igmpCounter =
-                metricService.createCounter(packetStatisticsComponent, igmpFeature, "IGMP Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, igmpFeature, "igmpPC");
         this.pimCounter =
-                metricService.createCounter(packetStatisticsComponent, pimFeature, "PIM Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, pimFeature, "pimPC");
         this.bsnCounter =
-                metricService.createCounter(packetStatisticsComponent, bsnFeature, "BSN Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, bsnFeature, "bsnPC");
         this.mplsCounter =
-                metricService.createCounter(packetStatisticsComponent, bsnFeature, "MPLS Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, mplsFeature, "mplsPC");
         this.unknownCounter =
-                metricService.createCounter(packetStatisticsComponent, bsnFeature, "Unknown Packet Counter");
+                metricService.createCounter(packetStatisticsComponent, unknownFeature, "unknownPC");
 
 
         appId = coreService.registerApplication("org.onosproject.packet-stats");
 
-        packetService.addProcessor(processor, PacketProcessor.director(2));
+        packetService.addProcessor(processor, PacketProcessor.director(0));
         log.info("Started", appId.id());
 
 
