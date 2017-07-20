@@ -56,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -125,11 +124,6 @@ public class DistributedDynamicConfigStore
     public CompletableFuture<Boolean>
     addNode(ResourceId complete, DataNode node) {
         CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
-        List<NodeKey> nodeKeyList = complete.nodeKeys();
-        NodeKey f = nodeKeyList.get(0);
-        if (f.schemaId().name().compareTo("/") == 0) {
-            nodeKeyList.remove(0);
-        }
         String spath = ResourceIdParser.parseResId(complete);
         if (spath == null) {
             throw new FailedException("Invalid RsourceId, cannot create Node");
@@ -211,11 +205,6 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<DataNode> readNode(ResourceId path, Filter filter) {
         CompletableFuture<DataNode> eventFuture = CompletableFuture.completedFuture(null);
-        List<NodeKey> nodeKeyList = path.nodeKeys();
-        NodeKey f = nodeKeyList.get(0);
-        if (f.schemaId().name().compareTo("/") == 0) {
-            nodeKeyList.remove(0);
-        }
         String spath = ResourceIdParser.parseResId(path);
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
@@ -339,11 +328,6 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<Boolean> updateNode(ResourceId complete, DataNode node) {
         CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
-        List<NodeKey> nodeKeyList = complete.nodeKeys();
-        NodeKey f = nodeKeyList.get(0);
-        if (f.schemaId().name().compareTo("/") == 0) {
-            nodeKeyList.remove(0);
-        }
         String spath = ResourceIdParser.parseResId(complete);
         if (spath == null) {
             throw new FailedException("Invalid RsourceId, cannot update Node");
@@ -361,11 +345,6 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<Boolean> nodeExist(ResourceId complete) {
         Boolean stat = true;
-        List<NodeKey> nodeKeyList = complete.nodeKeys();
-        NodeKey f = nodeKeyList.get(0);
-        if (f.schemaId().name().compareTo("/") == 0) {
-            nodeKeyList.remove(0);
-        }
         String spath = ResourceIdParser.parseResId(complete);
         if (spath == null) {
             stat = false;
@@ -423,14 +402,9 @@ public class DistributedDynamicConfigStore
 
     @Override
     public CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path) {
-        List<NodeKey> nodeKeyList = path.nodeKeys();
-        NodeKey f = nodeKeyList.get(0);
-        if (f.schemaId().name().compareTo("/") == 0) {
-            nodeKeyList.remove(0);
-        }
         String spath = ResourceIdParser.parseResId(path);
         if (spath == null) {
-            throw new FailedException("Invalid RsourceId, cannot create Node");
+            throw new FailedException("Invalid RsourceId, cannot delete Node");
         }
         if (spath.compareTo(ResourceIdParser.ROOT) == 0) {
             throw new FailedException("Cannot delete Root");

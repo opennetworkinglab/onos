@@ -17,6 +17,7 @@ package org.onosproject.config;
 
 import java.util.Iterator;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.onosproject.yang.model.KeyLeaf;
@@ -44,12 +45,6 @@ public final class ResourceIdParser {
 
     private ResourceIdParser() {
 
-    }
-
-    public static ResourceId getParent(ResourceId path) {
-        int last = path.nodeKeys().size();
-        path.nodeKeys().remove(last - 1);
-        return path;
     }
 
     public static NodeKey getInstanceKey(ResourceId path) {
@@ -91,7 +86,6 @@ public final class ResourceIdParser {
         }
         return ret;
     }
-
 
     public static String appendMultiInstKey(String path, String leaf) {
         return (path + leaf.substring(leaf.indexOf(KEY_SEP)));
@@ -161,7 +155,14 @@ public final class ResourceIdParser {
         if (path == null) {
             return bldr.toString();
         }
-        List<NodeKey> nodeKeyList = path.nodeKeys();
+        List<NodeKey> nodeKeyList = new LinkedList<>();
+        Iterator<NodeKey> itr = path.nodeKeys().iterator();
+        while (itr.hasNext()) {
+            nodeKeyList.add(itr.next());
+        }
+        if (nodeKeyList.get(0).schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
         for (NodeKey key : nodeKeyList) {
             bldr.append(EL_SEP);
             if (key instanceof LeafListKey) {
