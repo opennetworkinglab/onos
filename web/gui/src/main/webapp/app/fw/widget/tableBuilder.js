@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Widget -- Table Service
+ ONOS GUI -- Widget -- Table Builder Service
  */
 (function () {
     'use strict';
@@ -39,6 +39,13 @@
     //          Note: query is always an object (empty or containing properties)
     //                 it comes from $location.search()
 
+    // Additional Notes:
+    //   When sending a request for table data, the $scope will be checked
+    //   for a .payloadParams object which, if it exists, will be merged into
+    //   the event payload. By modifying this object (via toggle buttons, or
+    //   other user interaction) additional parameters / state can be passed
+    //   to the server in the data request.
+
     function buildTable(o) {
         var handlers = {},
             root = o.tag + 's',
@@ -57,8 +64,9 @@
         o.scope.autoRefreshTip = o.lion_toggle_auto_refresh || 'Toggle auto refresh';
 
         // === websocket functions --------------------
-        // response
-        function respCb(data) {
+
+        // === Table Data Response
+        function tableDataResponseCb(data) {
             ls.stop();
             o.scope.tableData = data[root];
             o.scope.annots = data.annots;
@@ -79,35 +87,42 @@
             }
             o.scope.$apply();
         }
-        handlers[resp] = respCb;
+        handlers[resp] = tableDataResponseCb;
         wss.bindHandlers(handlers);
 
-        // request
-        function sortCb(params) {
-            var p = angular.extend({}, params, o.query);
+        // === Table Data Request
+        function requestTableData() {
+            var sortParams = o.scope.sortParams,
+                pp = fs.isO(o.scope.payloadParams),
+                payloadParams = pp || {},
+                p = angular.extend({}, sortParams, payloadParams, o.query);
+
             if (wss.isConnected()) {
+                if (fs.debugOn('table')) {
+                    $log.debug('Table data REQUEST:', req, p);
+                }
                 wss.sendEvent(req, p);
                 ls.start();
             }
         }
-        o.scope.sortCallback = sortCb;
+        o.scope.sortCallback = requestTableData;
 
 
-        // === selecting a row functions ----------------
-        function selCb($event, selRow) {
+        // === Row Selected
+        function rowSelectionCb($event, selRow) {
             var selId = selRow[idKey];
             o.scope.selId = (o.scope.selId === selId) ? null : selId;
             onSel && onSel($event, selRow);
         }
-        o.scope.selectCallback = selCb;
+        o.scope.selectCallback = rowSelectionCb;
 
-        // === autoRefresh functions ------------------
+        // === autoRefresh functions
         function fetchDataIfNotWaiting() {
             if (!ls.waiting()) {
                 if (fs.debugOn('widget')) {
                     $log.debug('Refreshing ' + root + ' page');
                 }
-                sortCb(o.scope.sortParams);
+                requestTableData();
             }
         }
 
@@ -128,14 +143,14 @@
         }
         o.scope.toggleRefresh = toggleRefresh;
 
-        // === Cleanup on destroyed scope -----------------
+        // === Cleanup on destroyed scope
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();
             ls.stop();
         });
 
-        sortCb(o.scope.sortParams);
+        requestTableData();
         startRefresh();
     }
 

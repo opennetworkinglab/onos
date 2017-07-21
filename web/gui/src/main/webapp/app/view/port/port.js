@@ -24,6 +24,14 @@
     // injected references
     var $log, $scope, $location, fs, tbs, ns;
 
+    // internal state
+    var nzFilter = true,
+        showDelta = false;
+
+    // TODO: (1) init nzFilter and showDelta from user preferences service
+    // TODO: (2) track nzFilter and showDelta state from toggle buttons
+    //             (also setting new state in user preference service)
+
     angular.module('ovPort', [])
     .controller('OvPortCtrl',
         ['$log', '$scope', '$location',
@@ -46,6 +54,11 @@
             if (params.hasOwnProperty('devId')) {
                 $scope.devId = params['devId'];
             }
+
+            $scope.payloadParams = {
+                nzFilter: nzFilter,
+                showDelta: showDelta
+            };
 
             tbs.buildTable({
                 scope: $scope,
