@@ -40,4 +40,10 @@ public class Bmv2DriversLoader extends AbstractDriverLoader {
         pipeconfService.register(Bmv2DefaultPipeconfFactory.get());
         super.activate();
     }
+
+    @Override
+    public void deactivate() {
+        pipeconfService.remove(Bmv2DefaultPipeconfFactory.get().id());
+        super.activate();
+    }
 }

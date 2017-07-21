@@ -90,7 +90,7 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/pipipeconfservice",
-                                                           "pipeline-to-device-%d", log));
+                    "pipeline-to-device-%d", log));
 
     protected final ConfigFactory factory =
             new ConfigFactory<DeviceId, PiPipeconfConfig>(
@@ -138,6 +138,16 @@ public class PiPipeconfManager implements PiPipeconfService {
     }
 
     @Override
+    public void remove(PiPipeconfId pipeconfId) throws IllegalStateException {
+        //TODO move to the distributed mechanism
+        //TODO add mechanism to remove from device.
+        if (!piPipeconfs.containsKey(pipeconfId)) {
+            throw new IllegalStateException(format("Pipeconf %s is not registered", pipeconfId));
+        }
+        piPipeconfs.remove(pipeconfId);
+    }
+
+    @Override
     public Iterable<PiPipeconf> getPipeconfs() {
         return piPipeconfs.values();
     }
@@ -170,7 +180,7 @@ public class PiPipeconfManager implements PiPipeconfService {
                 } catch (ItemNotFoundException e) {
 
                     log.debug("First time pipeconf {} is used with base driver {}, merging the two",
-                              pipeconfId, baseDriver);
+                            pipeconfId, baseDriver);
                     //extract the behaviours from the pipipeconf.
                     Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours = new HashMap<>();
                     piPipeconf.behaviours().forEach(b -> {
@@ -178,8 +188,8 @@ public class PiPipeconfManager implements PiPipeconfService {
                     });
 
                     Driver piPipeconfDriver = new DefaultDriver(completeDriverName, baseDriver.parents(),
-                                                                baseDriver.manufacturer(), baseDriver.hwVersion(),
-                                                                baseDriver.swVersion(), behaviours, new HashMap<>());
+                            baseDriver.manufacturer(), baseDriver.hwVersion(),
+                            baseDriver.swVersion(), behaviours, new HashMap<>());
                     //we take the base driver created with the behaviours of the PiPeconf and
                     // merge it with the base driver that was assigned to the device
                     Driver completeDriver = piPipeconfDriver.merge(baseDriver);

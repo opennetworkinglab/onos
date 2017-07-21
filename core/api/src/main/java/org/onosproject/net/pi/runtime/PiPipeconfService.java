@@ -41,6 +41,17 @@ public interface PiPipeconfService {
     void register(PiPipeconf pipeconf) throws IllegalStateException;
 
     /**
+     * Unregisters the Pipeconf identified by the given PiPipeconfId.
+     * Unregistering a Pipeconf removes it from the ONOS controller, thus making it un-capable
+     * of controlling (e.g installing flow rules) the devices that have the pipeconf's p4 program deployed.
+     * For now this method DOES NOT remove the p4 program from the devices.
+     *
+     * @param pipeconfId a pipeconfId
+     * @throws IllegalStateException if the same pipeconf identifier is already registered.
+     */
+    void remove(PiPipeconfId pipeconfId) throws IllegalStateException;
+
+    /**
      * Returns all pipeconfs registered.
      *
      * @return a collection of pipeconfs
@@ -62,7 +73,7 @@ public interface PiPipeconfService {
      * device's driver. Returns a completable future to provide async methods with a boolean if the merge
      * of the drivers succeeded.
      *
-     * @param deviceId a device identifier
+     * @param deviceId   a device identifier
      * @param pipeconfId a pipeconf identifier
      * @return a CompletableFuture with a boolean, true if operation succeeded
      */
