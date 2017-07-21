@@ -152,6 +152,10 @@
 
         requestTableData();
         startRefresh();
+
+        return {
+            forceRefesh : requestTableData
+        };
     }
 
     angular.module('onosWidget')

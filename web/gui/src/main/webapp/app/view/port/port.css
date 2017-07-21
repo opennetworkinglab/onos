@@ -28,8 +28,18 @@
 #ov-port td {
     text-align: center;
 }
+
 #ov-port td.right {
     text-align: right;
+}
+
+#ov-port td.delta {
+    text-align: right;
+    font-weight: bold;
+}
+
+#ov-port td.delta:before {
+    content: "+";
 }
 
 #ov-port tr.no-data td {

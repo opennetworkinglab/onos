@@ -29,6 +29,7 @@ import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -39,6 +40,8 @@ public class PortViewMessageHandler extends UiMessageHandler {
     private static final String PORT_DATA_REQ = "portDataRequest";
     private static final String PORT_DATA_RESP = "portDataResponse";
     private static final String PORTS = "ports";
+    private static final String DELTA = "showDelta";
+    private static final String NZ = "nzFilter";
 
     private static final String ID = "id";
     private static final String PKT_RX = "pkt_rx";
@@ -93,10 +96,18 @@ public class PortViewMessageHandler extends UiMessageHandler {
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             String uri = string(payload, "devId");
+            boolean nz = bool(payload, NZ);
+            boolean delta = bool(payload, DELTA);
             if (!Strings.isNullOrEmpty(uri)) {
                 DeviceId deviceId = DeviceId.deviceId(uri);
                 DeviceService ds = get(DeviceService.class);
-                for (PortStatistics stat : ds.getPortStatistics(deviceId)) {
+                List<PortStatistics> stats = delta ?
+                        ds.getPortDeltaStatistics(deviceId) :
+                        ds.getPortStatistics(deviceId);
+                for (PortStatistics stat : stats) {
+                    if (nz && stat.isZero()) {
+                        continue;
+                    }
                     populateRow(tm.addRow(), stat);
                 }
             }

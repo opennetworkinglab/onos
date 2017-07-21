@@ -14,6 +14,18 @@
 
             <div class="separator"></div>
 
+            <div class="refresh" ng-class="{active: isNZ()}"
+                 icon icon-size="42" icon-id="plus"
+                 tooltip tt-msg="toggleNZTip"
+                 ng-click="toggleNZ()"></div>
+
+            <div class="refresh" ng-class="{active: isDelta()}"
+                 icon icon-size="42" icon-id="triangleUp"
+                 tooltip tt-msg="toggleDeltaTip"
+                 ng-click="toggleDelta()"></div>
+
+            <div class="separator"></div>
+
             <div class="active"
                  icon icon-id="deviceTable" icon-size="42"
                  tooltip tt-msg="deviceTip"
@@ -82,13 +94,13 @@
                 <tr ng-repeat="port in tableData | filter:queryFilter track by $index"
                     ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
-                    <td class="right">{{port.pkt_rx}}</td>
-                    <td class="right">{{port.pkt_tx}}</td>
-                    <td class="right">{{port.bytes_rx}}</td>
-                    <td class="right">{{port.bytes_tx}}</td>
-                    <td class="right">{{port.pkt_rx_drp}}</td>
-                    <td class="right">{{port.pkt_tx_drp}}</td>
-                    <td class="right">{{port.duration}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_rx}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_tx}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.bytes_rx}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.bytes_tx}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_rx_drp}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_tx_drp}}</td>
+                    <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.duration}}</td>
                 </tr>
             </table>
         </div>
