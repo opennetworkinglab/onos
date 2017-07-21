@@ -57,7 +57,7 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
                 piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
             pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
         } else {
-            log.warn("Unable to get the pipeconf of the {}", deviceId);
+            log.warn("Unable to get the pipeconf of {}", deviceId);
             return;
         }
 
@@ -65,7 +65,7 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
         Device device = deviceService.getDevice(deviceId);
         final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
                 ? device.as(PiPipelineInterpreter.class) : null;
-        if (interpreter == null) {
+        if (device.is(PiPipelineInterpreter.class)) {
             log.warn("Device {} unable to instantiate interpreter of pipeconf {}", deviceId, pipeconf.id());
             return;
         }
