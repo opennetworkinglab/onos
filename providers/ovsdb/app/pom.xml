@@ -43,7 +43,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-ovsdb-api</artifactId>
+            <artifactId>onos-protocols-ovsdb-api</artifactId>
         </dependency>
     </dependencies>
 </project>

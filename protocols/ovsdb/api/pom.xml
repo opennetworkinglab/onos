@@ -23,7 +23,7 @@
         <artifactId>onos-ovsdb</artifactId>
         <version>1.11.0-SNAPSHOT</version>
     </parent>
-    <artifactId>onos-ovsdb-api</artifactId>
+    <artifactId>onos-protocols-ovsdb-api</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS OVSDB plugin API</description>
