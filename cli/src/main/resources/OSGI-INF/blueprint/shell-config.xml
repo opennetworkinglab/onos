@@ -573,6 +573,9 @@
         <command>
             <action class="org.onosproject.cli.net.RouteRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.RouteStoreCommand"/>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.GlobalLabelCommand"/>

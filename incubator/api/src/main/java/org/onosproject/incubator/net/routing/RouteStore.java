@@ -77,4 +77,12 @@ public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate
     @Beta
     RouteSet getRoutes(IpPrefix prefix);
 
+    /**
+     * Returns the name of this route store.
+     *
+     * @return the name of this route store
+     */
+    default String name() {
+        return getClass().getName();
+    }
 }

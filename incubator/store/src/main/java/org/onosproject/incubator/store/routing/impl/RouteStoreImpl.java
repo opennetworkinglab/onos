@@ -160,4 +160,9 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     public RouteSet getRoutes(IpPrefix prefix) {
         return currentRouteStore.getRoutes(prefix);
     }
+
+    @Override
+    public String name() {
+        return currentRouteStore.name();
+    }
 }
