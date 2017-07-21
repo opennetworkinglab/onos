@@ -69,6 +69,12 @@ public class IntentConfigurableRegistrator {
             label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
     private String labelSelection = DEFAULT_LABEL_SELECTION;
 
+    private static final String DEFAULT_OPT_LABEL_SELECTION = "NONE";
+    @Property(name = "optLabelSelection",
+            value = DEFAULT_OPT_LABEL_SELECTION,
+            label = "Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP")
+    private String optLabelSelection = DEFAULT_OPT_LABEL_SELECTION;
+
     private static final boolean DEFAULT_FLOW_OPTIMIZATION = false;
     @Property(name = "optimizeInstructions",
             boolValue = DEFAULT_FLOW_OPTIMIZATION,
@@ -117,6 +123,7 @@ public class IntentConfigurableRegistrator {
             log.info("Settings: labelSelection={}", labelSelection);
             log.info("Settings: useFlowOptimization={}", optimizeInstructions);
             log.info("Settings: useCopyTtl={}", useCopyTtl);
+            log.info("Settings: optLabelSelection={}", optLabelSelection);
 
             // FIXME: temporary code for switching old compiler to new compiler
             log.info("Settings: defaultFlowObjectiveCompiler={}", defaultFlowObjectiveCompiler);
@@ -160,10 +167,26 @@ public class IntentConfigurableRegistrator {
             newLabelSelection = labelSelection;
         }
 
-        if (!labelSelection.equals(newLabelSelection) && LabelAllocator.isInEnum(newLabelSelection)) {
+        if (!labelSelection.equals(newLabelSelection) && LabelAllocator.isInSelEnum(newLabelSelection)) {
             labelSelection = newLabelSelection;
             changeLabelSelections();
             log.info("Settings: labelSelection={}", labelSelection);
+        }
+
+        String newOptLabelSelection;
+        try {
+            // The optimization behavior provided by the user
+            String optLabelSelected = Tools.get(context.getProperties(), "optLabelSelection");
+            // Parse the content of the string
+            newOptLabelSelection = isNullOrEmpty(optLabelSelected) ? optLabelSelection : optLabelSelected.trim();
+        } catch (ClassCastException e) {
+            newOptLabelSelection = optLabelSelection;
+        }
+
+        if (!optLabelSelection.equals(newOptLabelSelection) && LabelAllocator.isInOptEnum(newOptLabelSelection)) {
+            optLabelSelection = newOptLabelSelection;
+            changeOptLabelSelections();
+            log.info("Settings: optLabelSelection={}", optLabelSelection);
         }
 
         boolean newFlowOptimization;
@@ -263,6 +286,10 @@ public class IntentConfigurableRegistrator {
 
     private void changeLabelSelections() {
         LinkCollectionCompiler.labelAllocator.setLabelSelection(labelSelection);
+    }
+
+    private void changeOptLabelSelections() {
+        LinkCollectionCompiler.labelAllocator.setOptLabelSelection(optLabelSelection);
     }
 
     private void changeFlowOptimization() {
