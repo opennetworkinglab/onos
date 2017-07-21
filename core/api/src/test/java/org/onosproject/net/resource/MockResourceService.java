@@ -40,6 +40,7 @@ public class MockResourceService implements ResourceService {
     private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
     public Set<Short> availableVlanLabels = new HashSet<>();
     public Set<Integer> availableMplsLabels = new HashSet<>();
+    public boolean filterAssignment = false;
 
     public MockResourceService(){}
 
@@ -169,7 +170,11 @@ public class MockResourceService implements ResourceService {
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(6)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(7)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(8)));
-        return ImmutableSet.copyOf(resources);
+        return filterAssignment ? ImmutableSet.copyOf(
+                resources.stream().filter(
+                        resource -> assignment.get(resource) == null
+                ).collect(Collectors.toSet())
+        ) : ImmutableSet.copyOf(resources);
     }
 
     @Override
