@@ -16,7 +16,6 @@
 
 package org.onosproject.netconf.ctl.impl;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
@@ -30,7 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +55,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     private static final String MESSAGE_ID = "message-id=";
     private static final Pattern MSGID_PATTERN = Pattern.compile(MESSAGE_ID + "\"(\\d+)\"");
 
-    private PrintWriter outputStream;
+    private OutputStreamWriter outputStream;
     private final InputStream err;
     private final InputStream in;
     private NetconfDeviceInfo netconfDeviceInfo;
@@ -72,7 +72,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                Map<Integer, CompletableFuture<String>> replies) {
         this.in = in;
         this.err = err;
-        outputStream = new PrintWriter(out);
+        outputStream = new OutputStreamWriter(out, StandardCharsets.UTF_8);
         netconfDeviceInfo = deviceInfo;
         state = NetconfMessageState.NO_MATCHING_PATTERN;
         sessionDelegate = delegate;
@@ -94,8 +94,13 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
         replies.put(messageId, cf);
 
         synchronized (outputStream) {
-            outputStream.print(request);
-            outputStream.flush();
+            try {
+                outputStream.write(request);
+                outputStream.flush();
+            } catch (IOException e) {
+                log.error("Writing to {} failed", netconfDeviceInfo, e);
+                cf.completeExceptionally(e);
+            }
         }
 
         return cf;
@@ -251,9 +256,11 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     protected static Optional<Integer> getMsgId(String reply) {
         Matcher matcher = MSGID_PATTERN.matcher(reply);
         if (matcher.find()) {
-            Integer messageId = Integer.parseInt(matcher.group(1));
-            Preconditions.checkNotNull(messageId, "Error in retrieving the message id");
-            return Optional.of(messageId);
+            try {
+                return Optional.of(Integer.valueOf(matcher.group(1)));
+            } catch (NumberFormatException e) {
+                log.warn("Failed to parse message-id from {}", matcher.group(), e);
+            }
         }
         if (reply.contains(HELLO)) {
             return Optional.of(-1);

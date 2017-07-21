@@ -385,8 +385,27 @@ public class NetconfSessionImpl implements NetconfSession {
         try {
             rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
             replies.remove(messageId);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new NetconfException("No matching reply for request " + request, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new NetconfException("Interrupted waiting for reply for request" + request, e);
+        } catch (TimeoutException e) {
+            throw new NetconfException("Timed out waiting for reply for request " + request, e);
+        } catch (ExecutionException e) {
+            log.warn("Closing session {} for {} due to unexpected Error", sessionID, deviceInfo, e);
+
+            netconfConnection.close(); //Closes the socket which should interrupt NetconfStreamThread
+            sshSession.close();
+
+            NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
+                    NetconfDeviceOutputEvent.Type.SESSION_CLOSED,
+                    null, "Closed due to unexpected error " + e.getCause(),
+                    Optional.of(-1), deviceInfo);
+            publishEvent(event);
+            replies.clear();
+            errorReplies.clear();
+
+            throw new NetconfException("Closing session " + sessionID + " for " + deviceInfo +
+                    " for request " + request, e);
         }
         log.debug("Result {} from request {} to device {}", rp, request, deviceInfo);
         return rp.trim();
@@ -724,6 +743,14 @@ public class NetconfSessionImpl implements NetconfSession {
         return false;
     }
 
+    protected void publishEvent(NetconfDeviceOutputEvent event) {
+        primaryListeners.forEach(lsnr -> {
+            if (lsnr.isRelevant(event)) {
+                lsnr.event(event);
+            }
+        });
+    }
+
     static class NotificationSession extends NetconfSessionImpl {
 
         private String notificationFilter;
@@ -767,11 +794,7 @@ public class NetconfSessionImpl implements NetconfSession {
 
         @Override
         public void event(NetconfDeviceOutputEvent event) {
-            primaryListeners.forEach(lsnr -> {
-                if (lsnr.isRelevant(event)) {
-                    lsnr.event(event);
-                }
-            });
+            publishEvent(event);
         }
     }
 

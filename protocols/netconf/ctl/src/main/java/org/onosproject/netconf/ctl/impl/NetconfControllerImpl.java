@@ -80,10 +80,16 @@ public class NetconfControllerImpl implements NetconfController {
             label = "Time (in seconds) waiting for a NetConf reply")
     protected static int netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
 
+    private static final String PROP_NETCONF_IDLE_TIMEOUT = "netconfIdleTimeout";
+    private static final int DEFAULT_IDLE_TIMEOUT_SECONDS = 300;
+    @Property(name = PROP_NETCONF_IDLE_TIMEOUT, intValue = DEFAULT_IDLE_TIMEOUT_SECONDS,
+            label = "Time (in seconds) SSH session will close if no traffic seen")
+    protected static int netconfIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS;
+
     private static final String SSH_LIBRARY = "sshLibrary";
     private static final String APACHE_MINA = "apache_mina";
     @Property(name = SSH_LIBRARY, value = APACHE_MINA,
-            label = "Ssh Llbrary instead of Apache Mina (i.e. ethz-ssh2")
+            label = "Ssh Library instead of apache_mina (i.e. ethz-ssh2")
     protected static String sshLibrary = APACHE_MINA;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -142,6 +148,7 @@ public class NetconfControllerImpl implements NetconfController {
 
         int newNetconfReplyTimeout;
         int newNetconfConnectTimeout;
+        int newNetconfIdleTimeout;
         String newSshLibrary;
         try {
             String s = get(properties, PROP_NETCONF_REPLY_TIMEOUT);
@@ -151,6 +158,10 @@ public class NetconfControllerImpl implements NetconfController {
             s = get(properties, PROP_NETCONF_CONNECT_TIMEOUT);
             newNetconfConnectTimeout = isNullOrEmpty(s) ?
                     netconfConnectTimeout : Integer.parseInt(s.trim());
+
+            s = get(properties, PROP_NETCONF_IDLE_TIMEOUT);
+            newNetconfIdleTimeout = isNullOrEmpty(s) ?
+                    netconfIdleTimeout : Integer.parseInt(s.trim());
 
             newSshLibrary = get(properties, SSH_LIBRARY);
 
@@ -165,14 +176,19 @@ public class NetconfControllerImpl implements NetconfController {
         } else if (newNetconfReplyTimeout <= 0) {
             log.warn("netconfReplyTimeout is invalid - 0 or less.");
             return;
+        } else if (newNetconfIdleTimeout <= 0) {
+            log.warn("netconfIdleTimeout is invalid - 0 or less.");
+            return;
         }
 
         netconfReplyTimeout = newNetconfReplyTimeout;
         netconfConnectTimeout = newNetconfConnectTimeout;
+        netconfIdleTimeout = newNetconfIdleTimeout;
         sshLibrary = newSshLibrary;
         log.info("Settings: {} = {}, {} = {}, {} = {}",
                  PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout,
                  PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout,
+                 PROP_NETCONF_IDLE_TIMEOUT, netconfIdleTimeout,
                  SSH_LIBRARY, sshLibrary);
     }
 
