@@ -17,6 +17,7 @@ package org.onosproject.store.primitives.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -40,7 +41,9 @@ import static org.onosproject.store.service.DistributedPrimitive.Status.SUSPENDE
  * The cache entries are automatically invalidated when updates are detected either locally or
  * remotely.
  * <p> This implementation only attempts to serve cached entries for {@link AsyncConsistentMap#get get}
- * calls. All other calls skip the cache and directly go the backing map.
+ * {@link AsyncConsistentMap#getOrDefault(Object, Object) getOrDefault}, and
+ * {@link AsyncConsistentMap#containsKey(Object) containsKey} calls. All other calls skip the cache
+ * and directly go the backing map.
  *
  * @param <K> key type
  * @param <V> value type
@@ -149,9 +152,25 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
+        return super.putIfAbsent(key, value)
+                .whenComplete((r, e) -> cache.invalidate(key));
+    }
+
+    @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
         return super.remove(key)
                 .whenComplete((r, e) -> cache.invalidate(key));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> containsKey(K key) {
+        return cache.getUnchecked(key).thenApply(Objects::nonNull)
+                .whenComplete((r, e) -> {
+                    if (e != null) {
+                        cache.invalidate(key);
+                    }
+                });
     }
 
     @Override
