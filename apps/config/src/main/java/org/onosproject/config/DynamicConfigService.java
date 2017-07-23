@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 @Beta
 public interface DynamicConfigService
         extends ListenerService<DynamicConfigEvent, DynamicConfigListener> {
+
     /**
      * Creates a new node in the dynamic config store.
      * This method would throw an exception if there is a node with the same
