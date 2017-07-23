@@ -64,6 +64,18 @@ public interface FlowRuleService
         return Iterables.filter(getFlowEntries(deviceId), fe -> fe.liveType() == liveType);
     }
 
+    /**
+     * Returns a list of rules filtered by device id and flow state.
+     *
+     * @param deviceId the device id to lookup
+     * @param flowState the flow state to lookup
+     * @return collection of flow entries
+     */
+    default Iterable<FlowEntry> getFlowEntriesByState(DeviceId deviceId,
+                                                 FlowEntry.FlowEntryState flowState) {
+        return Iterables.filter(getFlowEntries(deviceId), fe -> fe.state() == flowState);
+    }
+
     // TODO: add createFlowRule factory method and execute operations method
 
     /**
