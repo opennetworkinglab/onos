@@ -28,6 +28,14 @@ function print_usage {
     echo "                        Examples:"
     echo "                            $command_name 10.127.10.111 crash"
     echo
+    echo "             recover    Recovers the given host"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name <host> recover"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name 10.127.10.111 recover"
+    echo
     echo "           partition    Partitions the given host from a list of source host or all ONOS hosts if no sources are specified"
     echo
     echo "                        Syntax:"
@@ -49,10 +57,10 @@ function print_usage {
     echo "    partition-bridge    Creates a bridge partition where the cluster is partitioned into two halves and the target host is connected to both halves"
     echo
     echo "                        Syntax:"
-    echo "                            $command_name <HOST> bridge"
+    echo "                            $command_name <HOST> partition-bridge"
     echo
     echo "                        Examples:"
-    echo "                            $command_name 10.127.10.111 bridge"
+    echo "                            $command_name 10.127.10.111 partition-bridge"
     echo
     echo "                heal    Heals a partition on the given host"
     echo
@@ -274,6 +282,12 @@ heal)
     # Kills a node.
     crash)
         onos-kill "${host}"
+        ;;
+
+    # Recovers a crashed node
+    recover)
+        onos-service "${host}" start
+        onos-wait-for-start "${host}"
         ;;
 
     # Creates a partition between the source node and a set of destination nodes.
