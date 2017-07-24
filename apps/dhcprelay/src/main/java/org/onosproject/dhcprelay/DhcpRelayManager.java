@@ -772,26 +772,30 @@ public class DhcpRelayManager implements DhcpRelayService {
         private void writeResponseDhcpRecord(Ethernet ethernet,
                                              DHCP dhcpPayload) {
             Optional<Interface> outInterface = getOutputInterface(ethernet, dhcpPayload);
-            outInterface.ifPresent(outIface -> {
-                ConnectPoint location = outIface.connectPoint();
-                VlanId vlanId = outIface.vlan();
-                MacAddress macAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
-                HostId hostId = HostId.hostId(macAddress, vlanId);
-                DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
-                if (record == null) {
-                    record = new DhcpRecord(HostId.hostId(macAddress, vlanId));
-                } else {
-                    record = record.clone();
-                }
-                record.addLocation(new HostLocation(location, System.currentTimeMillis()));
-                if (dhcpPayload.getPacketType() == DHCP.MsgType.DHCPACK) {
-                    record.ip4Address(Ip4Address.valueOf(dhcpPayload.getYourIPAddress()));
-                }
-                record.ip4Status(dhcpPayload.getPacketType());
-                record.setDirectlyConnected(directlyConnected(dhcpPayload));
-                record.updateLastSeen();
-                dhcpRelayStore.updateDhcpRecord(HostId.hostId(macAddress, vlanId), record);
-            });
+            if (!outInterface.isPresent()) {
+                log.warn("Failed to determine where to send {}", dhcpPayload.getPacketType());
+                return;
+            }
+
+            Interface outIface = outInterface.get();
+            ConnectPoint location = outIface.connectPoint();
+            VlanId vlanId = outIface.vlan();
+            MacAddress macAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
+            HostId hostId = HostId.hostId(macAddress, vlanId);
+            DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
+            if (record == null) {
+                record = new DhcpRecord(HostId.hostId(macAddress, vlanId));
+            } else {
+                record = record.clone();
+            }
+            record.addLocation(new HostLocation(location, System.currentTimeMillis()));
+            if (dhcpPayload.getPacketType() == DHCP.MsgType.DHCPACK) {
+                record.ip4Address(Ip4Address.valueOf(dhcpPayload.getYourIPAddress()));
+            }
+            record.ip4Status(dhcpPayload.getPacketType());
+            record.setDirectlyConnected(directlyConnected(dhcpPayload));
+            record.updateLastSeen();
+            dhcpRelayStore.updateDhcpRecord(HostId.hostId(macAddress, vlanId), record);
         }
 
         //build the DHCP discover/request packet with gatewayip(unicast packet)
@@ -903,6 +907,7 @@ public class DhcpRelayManager implements DhcpRelayService {
                 return null;
             }
 
+            etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
             etherReply.setVlanID(outInterface.vlan().toShort());
             // we leave the srcMac from the original packet
 
