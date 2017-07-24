@@ -65,6 +65,16 @@ public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
         this.monitor = new MeteringAgent(COMPONENT_NAME, name, true);
     }
 
+    //Bypass osgi error with 'activated' MeteringAgent parameter set to false
+    DefaultAsyncAtomicValue(String name, Serializer serializer, AsyncConsistentMap<String, byte[]> backingMap,
+                             MeteringAgent meteringAgent) {
+        this.name = checkNotNull(name, "name must not be null");
+        this.serializer = checkNotNull(serializer, "serializer must not be null");
+        this.backingMap = checkNotNull(backingMap, "backingMap must not be null");
+        this.monitor = meteringAgent;
+
+    }
+
     @Override
     public String name() {
         return name;
