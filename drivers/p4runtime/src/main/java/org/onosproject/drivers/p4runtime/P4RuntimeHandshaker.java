@@ -66,7 +66,7 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
         client = controller.getClient(deviceId);
         if (client == null || !controller.isReacheable(deviceId)) {
-            result.complete(MastershipRole.STANDBY);
+            result.complete(MastershipRole.NONE);
             return result;
         }
         if (newRole.equals(MastershipRole.MASTER)) {
