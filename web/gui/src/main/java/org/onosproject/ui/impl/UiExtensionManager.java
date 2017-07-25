@@ -348,17 +348,22 @@ public class UiExtensionManager
     }
 
     @Override
-    public Map<String, ObjectNode> getPreferences(String userName) {
+    public Map<String, ObjectNode> getPreferences(String username) {
         ImmutableMap.Builder<String, ObjectNode> builder = ImmutableMap.builder();
         prefs.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(userName + SLASH))
+                .filter(e -> e.getKey().startsWith(username + SLASH))
                 .forEach(e -> builder.put(keyName(e.getKey()), e.getValue()));
         return builder.build();
     }
 
     @Override
-    public void setPreference(String userName, String preference, ObjectNode value) {
-        prefs.put(key(userName, preference), value);
+    public ObjectNode getPreference(String username, String key) {
+        return prefs.get(key(username, key));
+    }
+
+    @Override
+    public void setPreference(String username, String key, ObjectNode value) {
+        prefs.put(key(username, key), value);
     }
 
     // =====================================================================

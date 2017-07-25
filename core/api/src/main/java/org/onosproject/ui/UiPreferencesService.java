@@ -42,12 +42,22 @@ public interface UiPreferencesService {
     Map<String, ObjectNode> getPreferences(String userName);
 
     /**
+     * Returns the named preference for the specified user.
+     * If no such preferences exist, null will be returned.
+     *
+     * @param username user name
+     * @param key      preference key
+     * @return named preference
+     */
+    ObjectNode getPreference(String username, String key);
+
+    /**
      * Sets the named preference for the specified user.
      *
-     * @param userName   user name
-     * @param preference name of the user preference
-     * @param value      preference value
+     * @param username user name
+     * @param key      preference key
+     * @param value    preference value
      */
-    void setPreference(String userName, String preference, ObjectNode value);
+    void setPreference(String username, String key, ObjectNode value);
 
 }
