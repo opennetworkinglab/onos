@@ -53,7 +53,7 @@ class ConsistentDiscreteResourceSubStore implements ConsistentResourceSubStore
                 .withSerializer(SERIALIZER)
                 .build();
 
-        childMap.put(Resource.ROOT.id(), DiscreteResources.empty());
+        childMap.putIfAbsent(Resource.ROOT.id(), DiscreteResources.empty());
     }
 
     @Override

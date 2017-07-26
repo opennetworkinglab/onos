@@ -55,7 +55,7 @@ class ConsistentContinuousResourceSubStore implements ConsistentResourceSubStore
                 .withSerializer(SERIALIZER)
                 .build();
 
-        childMap.put(Resource.ROOT.id(), new LinkedHashSet<>());
+        childMap.putIfAbsent(Resource.ROOT.id(), new LinkedHashSet<>());
     }
 
     @Override
