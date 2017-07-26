@@ -230,7 +230,6 @@ APP_JARS = [
     '//apps/dhcprelay:onos-apps-dhcprelay',
     '//apps/fwd:onos-apps-fwd',
     '//apps/iptopology-api:onos-apps-iptopology-api',
-    '//apps/openstacknode:onos-apps-openstacknode',
     '//apps/routing/common:onos-apps-routing-common',
     '//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc',
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
