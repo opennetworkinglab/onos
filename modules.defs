@@ -133,7 +133,7 @@ ONOS_PROVIDERS = [
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
     '//providers/general:onos-providers-general-oar',
-    '//providers/p4runtime/packet:onos-providers-p4runtime-packet-oar',
+    '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
 ]
 
