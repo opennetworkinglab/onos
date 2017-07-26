@@ -10,5 +10,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'Application to create and manage TE tunnels.',
     included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.tetopology' ],
 )
-
