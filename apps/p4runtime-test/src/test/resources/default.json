@@ -1,0 +1,2697 @@
+{
+  "program" : "default.p4",
+  "__meta__" : {
+    "version" : [2, 7],
+    "compiler" : "https://github.com/p4lang/p4c"
+  },
+  "header_types" : [
+    {
+      "name" : "scalars_0",
+      "id" : 0,
+      "fields" : [
+        ["tmp", 32, false],
+        ["tmp_0", 32, false]
+      ]
+    },
+    {
+      "name" : "standard_metadata",
+      "id" : 1,
+      "fields" : [
+        ["ingress_port", 9, false],
+        ["egress_spec", 9, false],
+        ["egress_port", 9, false],
+        ["clone_spec", 32, false],
+        ["instance_type", 32, false],
+        ["drop", 1, false],
+        ["recirculate_port", 16, false],
+        ["packet_length", 32, false],
+        ["enq_timestamp", 32, false],
+        ["enq_qdepth", 19, false],
+        ["deq_timedelta", 32, false],
+        ["deq_qdepth", 19, false],
+        ["ingress_global_timestamp", 48, false],
+        ["lf_field_list", 32, false],
+        ["mcast_grp", 16, false],
+        ["resubmit_flag", 1, false],
+        ["egress_rid", 16, false],
+        ["_padding", 5, false]
+      ]
+    },
+    {
+      "name" : "ethernet_t",
+      "id" : 2,
+      "fields" : [
+        ["dstAddr", 48, false],
+        ["srcAddr", 48, false],
+        ["etherType", 16, false]
+      ]
+    },
+    {
+      "name" : "ipv4_t",
+      "id" : 3,
+      "fields" : [
+        ["version", 4, false],
+        ["ihl", 4, false],
+        ["diffserv", 8, false],
+        ["totalLen", 16, false],
+        ["identification", 16, false],
+        ["flags", 3, false],
+        ["fragOffset", 13, false],
+        ["ttl", 8, false],
+        ["protocol", 8, false],
+        ["hdrChecksum", 16, false],
+        ["srcAddr", 32, false],
+        ["dstAddr", 32, false]
+      ]
+    },
+    {
+      "name" : "tcp_t",
+      "id" : 4,
+      "fields" : [
+        ["srcPort", 16, false],
+        ["dstPort", 16, false],
+        ["seqNo", 32, false],
+        ["ackNo", 32, false],
+        ["dataOffset", 4, false],
+        ["res", 3, false],
+        ["ecn", 3, false],
+        ["ctrl", 6, false],
+        ["window", 16, false],
+        ["checksum", 16, false],
+        ["urgentPtr", 16, false]
+      ]
+    },
+    {
+      "name" : "udp_t",
+      "id" : 5,
+      "fields" : [
+        ["srcPort", 16, false],
+        ["dstPort", 16, false],
+        ["length_", 16, false],
+        ["checksum", 16, false]
+      ]
+    },
+    {
+      "name" : "ecmp_metadata_t",
+      "id" : 6,
+      "fields" : [
+        ["groupId", 16, false],
+        ["selector", 16, false]
+      ]
+    },
+    {
+      "name" : "wcmp_meta_t",
+      "id" : 7,
+      "fields" : [
+        ["groupId", 16, false],
+        ["numBits", 8, false],
+        ["selector", 64, false]
+      ]
+    },
+    {
+      "name" : "intrinsic_metadata_t",
+      "id" : 8,
+      "fields" : [
+        ["ingress_global_timestamp", 32, false],
+        ["lf_field_list", 32, false],
+        ["mcast_grp", 16, false],
+        ["egress_rid", 16, false]
+      ]
+    }
+  ],
+  "headers" : [
+    {
+      "name" : "standard_metadata_3",
+      "id" : 0,
+      "header_type" : "standard_metadata",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "standard_metadata_4",
+      "id" : 1,
+      "header_type" : "standard_metadata",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "standard_metadata_5",
+      "id" : 2,
+      "header_type" : "standard_metadata",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "scalars",
+      "id" : 3,
+      "header_type" : "scalars_0",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "standard_metadata",
+      "id" : 4,
+      "header_type" : "standard_metadata",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ethernet",
+      "id" : 5,
+      "header_type" : "ethernet_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ipv4",
+      "id" : 6,
+      "header_type" : "ipv4_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "tcp",
+      "id" : 7,
+      "header_type" : "tcp_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "udp",
+      "id" : 8,
+      "header_type" : "udp_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ecmp_metadata",
+      "id" : 9,
+      "header_type" : "ecmp_metadata_t",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "wcmp_meta",
+      "id" : 10,
+      "header_type" : "wcmp_meta_t",
+      "metadata" : true,
+      "pi_omit" : true
+    },
+    {
+      "name" : "intrinsic_metadata",
+      "id" : 11,
+      "header_type" : "intrinsic_metadata_t",
+      "metadata" : true,
+      "pi_omit" : true
+    }
+  ],
+  "header_stacks" : [],
+  "header_union_types" : [],
+  "header_unions" : [],
+  "header_union_stacks" : [],
+  "field_lists" : [],
+  "errors" : [
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
+  ],
+  "enums" : [],
+  "parsers" : [
+    {
+      "name" : "parser",
+      "id" : 0,
+      "init_state" : "start",
+      "parse_states" : [
+        {
+          "name" : "parse_ipv4",
+          "id" : 0,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ipv4"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "value" : "0x06",
+              "mask" : null,
+              "next_state" : "parse_tcp"
+            },
+            {
+              "value" : "0x11",
+              "mask" : null,
+              "next_state" : "parse_udp"
+            },
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "protocol"]
+            }
+          ]
+        },
+        {
+          "name" : "parse_tcp",
+          "id" : 1,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "tcp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "parse_udp",
+          "id" : 2,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "udp"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : []
+        },
+        {
+          "name" : "start",
+          "id" : 3,
+          "parser_ops" : [
+            {
+              "parameters" : [
+                {
+                  "type" : "regular",
+                  "value" : "ethernet"
+                }
+              ],
+              "op" : "extract"
+            }
+          ],
+          "transitions" : [
+            {
+              "value" : "0x0800",
+              "mask" : null,
+              "next_state" : "parse_ipv4"
+            },
+            {
+              "value" : "default",
+              "mask" : null,
+              "next_state" : null
+            }
+          ],
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "etherType"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "deparsers" : [
+    {
+      "name" : "deparser",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "include/parsers.p4",
+        "line" : 43,
+        "column" : 8,
+        "source_fragment" : "DeparserImpl"
+      },
+      "order" : ["ethernet", "ipv4", "udp", "tcp"]
+    }
+  ],
+  "meter_arrays" : [],
+  "counter_arrays" : [
+    {
+      "name" : "table0_counter",
+      "id" : 0,
+      "is_direct" : true,
+      "binding" : "table0"
+    },
+    {
+      "name" : "port_counters_control.egress_port_counter",
+      "id" : 1,
+      "source_info" : {
+        "filename" : "include/port_counters.p4",
+        "line" : 6,
+        "column" : 38,
+        "source_fragment" : "egress_port_counter"
+      },
+      "size" : 254,
+      "is_direct" : false
+    },
+    {
+      "name" : "port_counters_control.ingress_port_counter",
+      "id" : 2,
+      "source_info" : {
+        "filename" : "include/port_counters.p4",
+        "line" : 7,
+        "column" : 38,
+        "source_fragment" : "ingress_port_counter"
+      },
+      "size" : 254,
+      "is_direct" : false
+    }
+  ],
+  "register_arrays" : [],
+  "calculations" : [],
+  "learn_lists" : [],
+  "actions" : [
+    {
+      "name" : "set_egress_port",
+      "id" : 0,
+      "runtime_data" : [
+        {
+          "name" : "port",
+          "bitwidth" : 9
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 9,
+            "column" : 4,
+            "source_fragment" : "standard_metadata.egress_spec = port"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_3", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 8,
+            "column" : 49,
+            "source_fragment" : "standard_metadata, Port port) { ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "send_to_cpu",
+      "id" : 1,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_spec"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00ff"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 5,
+            "column" : 4,
+            "source_fragment" : "standard_metadata.egress_spec = 9w255"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_4", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 4,
+            "column" : 45,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "drop",
+      "id" : 2,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_spec"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01ff"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 13,
+            "column" : 4,
+            "source_fragment" : "standard_metadata.egress_spec = 9w511"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "ingress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "clone_spec"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "clone_spec"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "instance_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "instance_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "drop"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "drop"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "recirculate_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "recirculate_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "packet_length"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "packet_length"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "enq_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "enq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "enq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_timedelta"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "deq_timedelta"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "deq_qdepth"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "deq_qdepth"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "ingress_global_timestamp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "ingress_global_timestamp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "lf_field_list"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "lf_field_list"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "mcast_grp"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "mcast_grp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "resubmit_flag"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "resubmit_flag"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_rid"]
+            },
+            {
+              "type" : "field",
+              "value" : ["standard_metadata_5", "egress_rid"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/actions.p4",
+            "line" : 12,
+            "column" : 38,
+            "source_fragment" : "standard_metadata) { ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "NoAction",
+      "id" : 3,
+      "runtime_data" : [],
+      "primitives" : []
+    },
+    {
+      "name" : "act",
+      "id" : 4,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "ingress_port"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffff"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "op" : "count",
+          "parameters" : [
+            {
+              "type" : "counter_array",
+              "value" : "port_counters_control.ingress_port_counter"
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 11,
+            "column" : 12,
+            "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_0"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "egress_spec"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffff"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "op" : "count",
+          "parameters" : [
+            {
+              "type" : "counter_array",
+              "value" : "port_counters_control.egress_port_counter"
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_0"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 12,
+            "column" : 12,
+            "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
+          }
+        }
+      ]
+    }
+  ],
+  "pipelines" : [
+    {
+      "name" : "ingress",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "default.p4",
+        "line" : 10,
+        "column" : 8,
+        "source_fragment" : "ingress"
+      },
+      "init_table" : "table0",
+      "tables" : [
+        {
+          "name" : "table0",
+          "id" : 0,
+          "source_info" : {
+            "filename" : "default.p4",
+            "line" : 13,
+            "column" : 10,
+            "source_fragment" : "table0"
+          },
+          "key" : [
+            {
+              "match_type" : "ternary",
+              "target" : ["standard_metadata", "ingress_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
+              "target" : ["ethernet", "dstAddr"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
+              "target" : ["ethernet", "srcAddr"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
+              "target" : ["ethernet", "etherType"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "ternary",
+          "type" : "simple",
+          "max_size" : 1024,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [0, 1, 2, 3],
+          "actions" : ["set_egress_port", "send_to_cpu", "drop", "NoAction"],
+          "base_default_next" : "node_3",
+          "next_tables" : {
+            "set_egress_port" : "node_3",
+            "send_to_cpu" : "node_3",
+            "drop" : "node_3",
+            "NoAction" : "node_3"
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_act",
+          "id" : 1,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [4],
+          "actions" : ["act"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "act" : null
+          },
+          "default_entry" : {
+            "action_id" : 4,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        }
+      ],
+      "action_profiles" : [],
+      "conditionals" : [
+        {
+          "name" : "node_3",
+          "id" : 0,
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 10,
+            "column" : 12,
+            "source_fragment" : "standard_metadata.egress_spec < 254"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "<",
+              "left" : {
+                "type" : "field",
+                "value" : ["standard_metadata", "egress_spec"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x00fe"
+              }
+            }
+          },
+          "false_next" : null,
+          "true_next" : "tbl_act"
+        }
+      ]
+    },
+    {
+      "name" : "egress",
+      "id" : 1,
+      "source_info" : {
+        "filename" : "default.p4",
+        "line" : 36,
+        "column" : 8,
+        "source_fragment" : "egress"
+      },
+      "init_table" : null,
+      "tables" : [],
+      "action_profiles" : [],
+      "conditionals" : []
+    }
+  ],
+  "checksums" : [],
+  "force_arith" : [],
+  "extern_instances" : [],
+  "field_aliases" : [
+    [
+      "queueing_metadata.enq_timestamp",
+      ["standard_metadata", "enq_timestamp"]
+    ],
+    [
+      "queueing_metadata.enq_qdepth",
+      ["standard_metadata", "enq_qdepth"]
+    ],
+    [
+      "queueing_metadata.deq_timedelta",
+      ["standard_metadata", "deq_timedelta"]
+    ],
+    [
+      "queueing_metadata.deq_qdepth",
+      ["standard_metadata", "deq_qdepth"]
+    ],
+    [
+      "intrinsic_metadata.ingress_global_timestamp",
+      ["standard_metadata", "ingress_global_timestamp"]
+    ],
+    [
+      "intrinsic_metadata.lf_field_list",
+      ["standard_metadata", "lf_field_list"]
+    ],
+    [
+      "intrinsic_metadata.mcast_grp",
+      ["standard_metadata", "mcast_grp"]
+    ],
+    [
+      "intrinsic_metadata.resubmit_flag",
+      ["standard_metadata", "resubmit_flag"]
+    ],
+    [
+      "intrinsic_metadata.egress_rid",
+      ["standard_metadata", "egress_rid"]
+    ]
+  ]
+}

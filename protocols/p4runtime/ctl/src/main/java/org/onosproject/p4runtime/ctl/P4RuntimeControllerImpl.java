@@ -63,7 +63,7 @@ public class P4RuntimeControllerImpl
     private final Map<DeviceId, ReadWriteLock> deviceLocks = Maps.newConcurrentMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected GrpcController grpcController;
+    public GrpcController grpcController;
 
     @Activate
     public void activate() {
