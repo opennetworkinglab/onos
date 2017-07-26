@@ -136,6 +136,8 @@ public class NetconfSessionImpl implements NetconfSession {
     private final Collection<NetconfSession> children =
             new CopyOnWriteArrayList<>();
 
+    private int connectTimeout;
+    private int replyTimeout;
 
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
@@ -144,6 +146,7 @@ public class NetconfSessionImpl implements NetconfSession {
         connectionActive = false;
         replies = new ConcurrentHashMap<>();
         errorReplies = new ArrayList<>();
+
         startConnection();
     }
 
@@ -160,9 +163,15 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     private void startConnection() throws NetconfException {
+        connectTimeout = deviceInfo.getConnectTimeoutSec().orElse(
+                                    NetconfControllerImpl.netconfConnectTimeout);
+        replyTimeout = deviceInfo.getReplyTimeoutSec().orElse(
+                                    NetconfControllerImpl.netconfReplyTimeout);
+        log.debug("Connecting to {} with timeouts C:{}, R:{}. I:connect-timeout", deviceInfo,
+                connectTimeout, replyTimeout);
+
         if (!connectionActive) {
             netconfConnection = new Connection(deviceInfo.ip().toString(), deviceInfo.port());
-            int connectTimeout = NetconfControllerImpl.netconfConnectTimeout;
 
             try {
                 netconfConnection.connect(null, 1000 * connectTimeout, 1000 * connectTimeout);
@@ -431,16 +440,18 @@ public class NetconfSessionImpl implements NetconfSession {
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
         CompletableFuture<String> futureReply = request(request, messageId);
-        int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
         try {
+            log.debug("Sending request to NETCONF with timeout {} for {}",
+                    replyTimeout, deviceInfo.name());
             rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
             replies.remove(messageId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new NetconfException("Interrupted waiting for reply for request" + request, e);
         } catch (TimeoutException e) {
-            throw new NetconfException("Timed out waiting for reply for request " + request, e);
+            throw new NetconfException("Timed out waiting for reply for request " +
+                    request + " after " + replyTimeout + " sec.", e);
         } catch (ExecutionException e) {
             log.warn("Closing session {} for {} due to unexpected Error", sessionID, deviceInfo, e);
 
@@ -790,11 +801,28 @@ public class NetconfSessionImpl implements NetconfSession {
         onosCapabilities = capabilities;
     }
 
-
     @Override
     public void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) {
         streamHandler.addDeviceEventListener(listener);
         primaryListeners.add(listener);
+    }
+
+    @Override
+    public int timeoutConnectSec() {
+        return connectTimeout;
+    }
+
+    @Override
+    public int timeoutReplySec() {
+        return replyTimeout;
+    }
+
+    /**
+     * Idle timeout is not settable on ETZ_SSH - the valuse used is the connect timeout.
+     */
+    @Override
+    public int timeoutIdleSec() {
+        return connectTimeout;
     }
 
     @Override

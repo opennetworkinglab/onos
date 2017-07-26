@@ -104,6 +104,9 @@ public class NetconfSessionImpl implements NetconfSession {
     private boolean subscriptionConnected = false;
     private String notificationFilterSchema = null;
 
+    private int connectTimeout;
+    private int replyTimeout;
+
 
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
@@ -112,13 +115,18 @@ public class NetconfSessionImpl implements NetconfSession {
         connectionActive = false;
         replies = new ConcurrentHashMap<>();
         errorReplies = new ArrayList<>();
+        connectTimeout = deviceInfo.getConnectTimeoutSec().orElse(
+                                    NetconfControllerImpl.netconfConnectTimeout);
+        replyTimeout = deviceInfo.getReplyTimeoutSec().orElse(
+                                    NetconfControllerImpl.netconfReplyTimeout);
+        log.info("Connecting to {} with timeouts C:{}, R:{}. idle=connect", deviceInfo,
+                connectTimeout, replyTimeout);
         startConnection();
     }
 
     private void startConnection() throws NetconfException {
         if (!connectionActive) {
             netconfConnection = new Connection(deviceInfo.ip().toString(), deviceInfo.port());
-            int connectTimeout = NetconfControllerImpl.netconfConnectTimeout;
 
             try {
                 netconfConnection.connect(null, 1000 * connectTimeout, 1000 * connectTimeout);
@@ -312,7 +320,6 @@ public class NetconfSessionImpl implements NetconfSession {
         request = formatRequestMessageId(request, messageId);
         request = formatXmlHeader(request);
         CompletableFuture<String> futureReply = request(request, messageId);
-        int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
         try {
             rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
@@ -619,6 +626,24 @@ public class NetconfSessionImpl implements NetconfSession {
     @Override
     public void setDeviceCapabilities(List<String> capabilities) {
         deviceCapabilities = capabilities;
+    }
+
+    @Override
+    public int timeoutConnectSec() {
+        return connectTimeout;
+    }
+
+    @Override
+    public int timeoutReplySec() {
+        return replyTimeout;
+    }
+
+    /**
+     * Idle timeout is not settable on ETZ_SSH - the valuse used is the connect timeout.
+     */
+    @Override
+    public int timeoutIdleSec() {
+        return connectTimeout;
     }
 
     @Override

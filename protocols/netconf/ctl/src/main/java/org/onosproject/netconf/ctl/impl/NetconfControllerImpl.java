@@ -29,6 +29,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyId;
@@ -42,6 +43,8 @@ import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
+import org.onosproject.netconf.config.NetconfDeviceConfig;
+import org.onosproject.netconf.config.NetconfSshClientLib;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +58,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.getIntegerProperty;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
@@ -87,10 +90,10 @@ public class NetconfControllerImpl implements NetconfController {
     protected static int netconfIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS;
 
     private static final String SSH_LIBRARY = "sshLibrary";
-    private static final String APACHE_MINA = "apache_mina";
-    @Property(name = SSH_LIBRARY, value = APACHE_MINA,
+    private static final String APACHE_MINA_STR = "apache-mina";
+    @Property(name = SSH_LIBRARY, value = APACHE_MINA_STR,
             label = "Ssh Library instead of apache_mina (i.e. ethz-ssh2")
-    protected static String sshLibrary = APACHE_MINA;
+    protected static NetconfSshClientLib sshLibrary = NetconfSshClientLib.APACHE_MINA;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
@@ -100,6 +103,9 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceKeyService deviceKeyService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netCfgService;
 
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
@@ -139,36 +145,24 @@ public class NetconfControllerImpl implements NetconfController {
         if (context == null) {
             netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
             netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
-            sshLibrary = APACHE_MINA;
+            netconfIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS;
+            sshLibrary = NetconfSshClientLib.APACHE_MINA;
             log.info("No component configuration");
             return;
         }
 
         Dictionary<?, ?> properties = context.getProperties();
 
-        int newNetconfReplyTimeout;
-        int newNetconfConnectTimeout;
-        int newNetconfIdleTimeout;
         String newSshLibrary;
-        try {
-            String s = get(properties, PROP_NETCONF_REPLY_TIMEOUT);
-            newNetconfReplyTimeout = isNullOrEmpty(s) ?
-                    netconfReplyTimeout : Integer.parseInt(s.trim());
 
-            s = get(properties, PROP_NETCONF_CONNECT_TIMEOUT);
-            newNetconfConnectTimeout = isNullOrEmpty(s) ?
-                    netconfConnectTimeout : Integer.parseInt(s.trim());
+        int newNetconfReplyTimeout = getIntegerProperty(
+                properties, PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout);
+        int newNetconfConnectTimeout = getIntegerProperty(
+                properties, PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout);
+        int newNetconfIdleTimeout = getIntegerProperty(
+                properties, PROP_NETCONF_IDLE_TIMEOUT, netconfIdleTimeout);
 
-            s = get(properties, PROP_NETCONF_IDLE_TIMEOUT);
-            newNetconfIdleTimeout = isNullOrEmpty(s) ?
-                    netconfIdleTimeout : Integer.parseInt(s.trim());
-
-            newSshLibrary = get(properties, SSH_LIBRARY);
-
-        } catch (NumberFormatException e) {
-            log.warn("Component configuration had invalid value", e);
-            return;
-        }
+        newSshLibrary = get(properties, SSH_LIBRARY);
 
         if (newNetconfConnectTimeout < 0) {
             log.warn("netconfConnectTimeout is invalid - less than 0");
@@ -184,8 +178,10 @@ public class NetconfControllerImpl implements NetconfController {
         netconfReplyTimeout = newNetconfReplyTimeout;
         netconfConnectTimeout = newNetconfConnectTimeout;
         netconfIdleTimeout = newNetconfIdleTimeout;
-        sshLibrary = newSshLibrary;
-        log.info("Settings: {} = {}, {} = {}, {} = {}",
+        if (newSshLibrary != null) {
+            sshLibrary = NetconfSshClientLib.getEnum(newSshLibrary);
+        }
+        log.info("Settings: {} = {}, {} = {}, {} = {}, {} = {}",
                  PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout,
                  PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout,
                  PROP_NETCONF_IDLE_TIMEOUT, netconfIdleTimeout,
@@ -221,9 +217,17 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Override
     public NetconfDevice connectDevice(DeviceId deviceId) throws NetconfException {
+        NetconfDeviceConfig netCfg  = netCfgService.getConfig(
+                deviceId, NetconfDeviceConfig.class);
+        NetconfDeviceInfo deviceInfo = null;
+
         if (netconfDeviceMap.containsKey(deviceId)) {
             log.debug("Device {} is already present", deviceId);
             return netconfDeviceMap.get(deviceId);
+        } else if (netCfg != null) {
+            log.debug("Device {} is present in NetworkConfig", deviceId);
+            deviceInfo = new NetconfDeviceInfo(netCfg);
+
         } else {
             log.debug("Creating NETCONF device {}", deviceId);
             Device device = deviceService.getDevice(deviceId);
@@ -249,7 +253,6 @@ public class NetconfControllerImpl implements NetconfController {
             try {
                 DeviceKey deviceKey = deviceKeyService.getDeviceKey(
                         DeviceKeyId.deviceKeyId(deviceId.toString()));
-                NetconfDeviceInfo deviceInfo = null;
                 if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
                     UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
 
@@ -271,13 +274,13 @@ public class NetconfControllerImpl implements NetconfController {
                 } else {
                     log.error("Unknown device key for device {}", deviceId);
                 }
-                NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
-                netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
-                return netconfDevicedevice;
             } catch (NullPointerException e) {
                 throw new NetconfException("No Device Key for device " + deviceId, e);
             }
         }
+        NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
+        netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
+        return netconfDevicedevice;
     }
 
     @Override
@@ -341,10 +344,15 @@ public class NetconfControllerImpl implements NetconfController {
         @Override
         public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
                 throws NetconfException {
-            if (sshLibrary.equals(ETHZ_SSH2)) {
+            if (NetconfSshClientLib.ETHZ_SSH2.equals(netconfDeviceInfo.sshClientLib()) ||
+                    NetconfSshClientLib.ETHZ_SSH2.equals(sshLibrary)) {
+                log.info("Creating NETCONF session to {} with {}",
+                            netconfDeviceInfo.name(), NetconfSshClientLib.ETHZ_SSH2);
                 return new DefaultNetconfDevice(netconfDeviceInfo,
-                                                new NetconfSessionImpl.SshNetconfSessionFactory());
+                            new NetconfSessionImpl.SshNetconfSessionFactory());
             }
+            log.info("Creating NETCONF session to {} with {}",
+                    netconfDeviceInfo.getDeviceId(), NetconfSshClientLib.APACHE_MINA);
             return new DefaultNetconfDevice(netconfDeviceInfo);
         }
     }
@@ -372,8 +380,8 @@ public class NetconfControllerImpl implements NetconfController {
 
                     } catch (NetconfException e) {
                         log.error("The SSH connection with device {} couldn't be " +
-                                          "reestablished due to {}. " +
-                                          "Marking the device as unreachable", e.getMessage());
+                                "reestablished due to {}. " +
+                                "Marking the device as unreachable", e.getMessage());
                         log.debug("Complete exception: ", e);
                         removeDevice(did);
                     }

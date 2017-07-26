@@ -15,6 +15,8 @@
  */
 package org.onosproject.netconf.ctl.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +26,12 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.key.DeviceKeyService;
 import org.onosproject.netconf.NetconfDevice;
@@ -34,8 +42,12 @@ import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.onosproject.netconf.config.NetconfDeviceConfig;
+import org.onosproject.netconf.config.NetconfSshClientLib;
 import org.osgi.service.component.ComponentContext;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -51,6 +63,9 @@ import static org.junit.Assert.*;
  * Unit tests for the Netconf controller implementation test.
  */
 public class NetconfControllerImplTest {
+    private final Set<ConfigFactory> cfgFactories = new HashSet<>();
+    private final Set<NetworkConfigListener> netCfgListeners = new HashSet<>();
+    private boolean available = false;
 
     NetconfControllerImpl ctrl;
 
@@ -59,6 +74,9 @@ public class NetconfControllerImplTest {
     NetconfDeviceInfo deviceInfo2;
     NetconfDeviceInfo badDeviceInfo3;
     NetconfDeviceInfo deviceInfoIpV6;
+
+    NetconfDeviceConfig deviceConfig10;
+    DeviceId deviceConfig10Id;
 
     //Devices & DeviceId
     NetconfDevice device1;
@@ -77,16 +95,25 @@ public class NetconfControllerImplTest {
     private static final String DEVICE_1_IP = "10.10.10.11";
     private static final String DEVICE_2_IP = "10.10.10.12";
     private static final String BAD_DEVICE_IP = "10.10.10.13";
+    private static final String DEVICE_10_IP = "10.10.10.10";
     private static final String DEVICE_IPV6 = "2001:db8::1";
 
     private static final int DEVICE_1_PORT = 11;
     private static final int DEVICE_2_PORT = 12;
     private static final int BAD_DEVICE_PORT = 13;
     private static final int IPV6_DEVICE_PORT = 14;
+    private static final int DEVICE_10_PORT = 10;
+
+    private static final String DEVICE_10_USERNAME = "device10";
+    private static final String DEVICE_10_PASSWORD = "010";
+    private static final int DEVICE_10_CONNECT_TIMEOUT = 10;
+    private static final int DEVICE_10_REPLY_TIMEOUT = 11;
+    private static final int DEVICE_10_IDLE_TIMEOUT = 12;
 
     private static ComponentConfigService cfgService = new ComponentConfigAdapter();
     private static DeviceService deviceService = new NetconfDeviceServiceMock();
     private static DeviceKeyService deviceKeyService = new NetconfDeviceKeyServiceMock();
+    private final NetworkConfigRegistry netCfgService = new MockNetworkConfigRegistry();
 
     private final ComponentContext context = new MockComponentContext();
 
@@ -97,12 +124,34 @@ public class NetconfControllerImplTest {
         ctrl.cfgService = cfgService;
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
+        ctrl.netCfgService = netCfgService;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
         deviceInfo2 = new NetconfDeviceInfo("device2", "002", IpAddress.valueOf(DEVICE_2_IP), DEVICE_2_PORT);
+        deviceInfo2.setSshClientLib(Optional.of(NetconfSshClientLib.ETHZ_SSH2));
         badDeviceInfo3 = new NetconfDeviceInfo("device3", "003", IpAddress.valueOf(BAD_DEVICE_IP), BAD_DEVICE_PORT);
         deviceInfoIpV6 = new NetconfDeviceInfo("deviceIpv6", "004", IpAddress.valueOf(DEVICE_IPV6), IPV6_DEVICE_PORT);
+
+        deviceConfig10Id = DeviceId.deviceId("netconf:" + DEVICE_10_IP + ":" + DEVICE_10_PORT);
+        //Create a JSON entry just like Network Config accepts
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonMessage = "{\n" +
+                "  \"ip\":\"" + DEVICE_10_IP + "\",\n" +
+                "  \"port\":" + DEVICE_10_PORT + ",\n" +
+                "  \"username\":\"" + DEVICE_10_USERNAME + "\",\n" +
+                "  \"password\":\"" + DEVICE_10_PASSWORD + "\",\n" +
+                "  \"" + NetconfDeviceConfig.CONNECT_TIMEOUT + "\":" + DEVICE_10_CONNECT_TIMEOUT + ",\n" +
+                "  \"" + NetconfDeviceConfig.REPLY_TIMEOUT + "\":" + DEVICE_10_REPLY_TIMEOUT + ",\n" +
+                "  \"" + NetconfDeviceConfig.IDLE_TIMEOUT + "\":" + DEVICE_10_IDLE_TIMEOUT + ",\n" +
+                "  \"" + NetconfDeviceConfig.SSHCLIENT + "\":\"" + NetconfSshClientLib.ETHZ_SSH2.toString() + "\"\n" +
+                "}";
+        InputStream jsonStream = new ByteArrayInputStream(jsonMessage.getBytes());
+        JsonNode jsonNode = mapper.readTree(jsonStream);
+        jsonStream.close();
+        ConfigApplyDelegate delegate = new MockDelegate();
+        deviceConfig10 = new NetconfDeviceConfig();
+        deviceConfig10.init(deviceConfig10Id, "netconf", jsonNode, mapper, delegate);
 
         device1 = new TestNetconfDevice(deviceInfo1);
         deviceId1 = deviceInfo1.getDeviceId();
@@ -162,7 +211,7 @@ public class NetconfControllerImplTest {
                      2, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf session timeout",
                      1, ctrl.netconfReplyTimeout);
-        assertEquals("ethz-ssh2", ctrl.sshLibrary);
+        assertEquals("ethz-ssh2", ctrl.sshLibrary.toString());
     }
 
     /**
@@ -228,13 +277,41 @@ public class NetconfControllerImplTest {
     }
 
     /**
+     * Check for connection by netconfDeviceConfig.
+     */
+    @Test
+    public void testConnectDeviceNetConfig10() throws Exception {
+        NetconfDevice fetchedDevice10 = ctrl.connectDevice(deviceConfig10Id);
+        assertEquals("Incorrect device fetched - ip",
+                fetchedDevice10.getDeviceInfo().ip().toString(), DEVICE_10_IP);
+        assertEquals("Incorrect device fetched - port",
+                fetchedDevice10.getDeviceInfo().port(), DEVICE_10_PORT);
+        assertEquals("Incorrect device fetched - username",
+                fetchedDevice10.getDeviceInfo().name(), DEVICE_10_USERNAME);
+        assertEquals("Incorrect device fetched - password",
+                fetchedDevice10.getDeviceInfo().password(), DEVICE_10_PASSWORD);
+        assertEquals("Incorrect device fetched - connectTimeout",
+                fetchedDevice10.getDeviceInfo().getConnectTimeoutSec().getAsInt(),
+                DEVICE_10_CONNECT_TIMEOUT);
+        assertEquals("Incorrect device fetched - replyTimeout",
+                fetchedDevice10.getDeviceInfo().getReplyTimeoutSec().getAsInt(),
+                DEVICE_10_REPLY_TIMEOUT);
+        assertEquals("Incorrect device fetched - idleTimeout",
+                fetchedDevice10.getDeviceInfo().getIdleTimeoutSec().getAsInt(),
+                DEVICE_10_IDLE_TIMEOUT);
+        assertEquals("Incorrect device fetched - sshClient",
+                fetchedDevice10.getDeviceInfo().sshClientLib().get(),
+                NetconfSshClientLib.ETHZ_SSH2);
+    }
+
+    /**
      * Check for correct device connection. In this case the device map get modified.
      */
     @Test
     public void testConnectCorrectDevice() throws Exception {
         reflectedDeviceMap.clear();
-        ctrl.connectDevice(deviceInfo1.getDeviceId());
-        ctrl.connectDevice(deviceInfo2.getDeviceId());
+        NetconfDevice device1 = ctrl.connectDevice(deviceInfo1.getDeviceId());
+        NetconfDevice device2 = ctrl.connectDevice(deviceInfo2.getDeviceId());
         assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId1));
         assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId2));
         assertEquals("Incorrect device connection", 2, ctrl.getDevicesMap().size());
@@ -414,6 +491,48 @@ public class NetconfControllerImplTest {
         @Override
         public Object remove(Object key) {
             return null;
+        }
+    }
+
+    private class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
+        NetconfDeviceConfig cfg = null;
+
+        @Override
+        public void registerConfigFactory(ConfigFactory configFactory) {
+            cfgFactories.add(configFactory);
+        }
+
+        @Override
+        public void unregisterConfigFactory(ConfigFactory configFactory) {
+            cfgFactories.remove(configFactory);
+        }
+
+        @Override
+        public void addListener(NetworkConfigListener listener) {
+            netCfgListeners.add(listener);
+        }
+
+        @Override
+        public void removeListener(NetworkConfigListener listener) {
+            netCfgListeners.remove(listener);
+        }
+
+
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            DeviceId did = (DeviceId) subject;
+            if (configClass.equals(NetconfDeviceConfig.class)
+                    && did.equals(deviceConfig10Id)) {
+                return (C) deviceConfig10;
+            }
+            return null;
+        }
+
+    }
+
+    private class MockDelegate implements ConfigApplyDelegate {
+        @Override
+        public void onApply(Config configFile) {
         }
     }
 }

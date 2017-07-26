@@ -593,4 +593,28 @@ public interface NetconfSession {
      */
     void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener);
 
+    /**
+     * Read the connect timeout that this session was created with.
+     * @return timeout in seconds
+     */
+    default int timeoutConnectSec() {
+        return 0;
+    };
+
+    /**
+     * Read the reply timeout that this session was created with.
+     * @return timeout in seconds
+     */
+    default int timeoutReplySec() {
+        return 0;
+    };
+
+    /**
+     * Read the idle timeout that this session was created with.
+     * @return timeout in seconds
+     */
+    default int timeoutIdleSec() {
+        return 0;
+    };
+
 }

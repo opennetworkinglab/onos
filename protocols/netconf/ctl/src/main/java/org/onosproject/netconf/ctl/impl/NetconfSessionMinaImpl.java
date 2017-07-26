@@ -143,6 +143,10 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private final Collection<NetconfSession> children =
             new CopyOnWriteArrayList<>();
 
+    private int connectTimeout;
+    private int replyTimeout;
+    private int idleTimeout;
+
 
     private ClientChannel channel = null;
     private ClientSession session = null;
@@ -153,6 +157,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         this.deviceInfo = deviceInfo;
         replies = new ConcurrentHashMap<>();
         errorReplies = new ArrayList<>();
+
         startConnection();
     }
 
@@ -165,6 +170,15 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     }
 
     private void startConnection() throws NetconfException {
+        connectTimeout = deviceInfo.getConnectTimeoutSec().orElse(
+                                NetconfControllerImpl.netconfConnectTimeout);
+        replyTimeout = deviceInfo.getReplyTimeoutSec().orElse(
+                                NetconfControllerImpl.netconfReplyTimeout);
+        idleTimeout = deviceInfo.getIdleTimeoutSec().orElse(
+                                NetconfControllerImpl.netconfIdleTimeout);
+        log.info("Connecting to {} with timeouts C:{}, R:{}, I:{}", deviceInfo,
+                connectTimeout, replyTimeout, idleTimeout);
+
         try {
             startClient();
         } catch (IOException e) {
@@ -174,11 +188,10 @@ public class NetconfSessionMinaImpl implements NetconfSession {
 
     private void startClient() throws IOException {
         client = SshClient.setUpDefaultClient();
-        int replyTimeoutSec = NetconfControllerImpl.netconfIdleTimeout;
         client.getProperties().putIfAbsent(FactoryManager.IDLE_TIMEOUT,
-                TimeUnit.SECONDS.toMillis(replyTimeoutSec));
+                TimeUnit.SECONDS.toMillis(idleTimeout));
         client.getProperties().putIfAbsent(FactoryManager.NIO2_READ_TIMEOUT,
-                TimeUnit.SECONDS.toMillis(replyTimeoutSec + 15L));
+                TimeUnit.SECONDS.toMillis(idleTimeout + 15L));
         client.start();
         client.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         startSession();
@@ -189,7 +202,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         connectFuture = client.connect(deviceInfo.name(),
                 deviceInfo.ip().toString(),
                 deviceInfo.port())
-                .verify(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS);
+                .verify(connectTimeout, TimeUnit.SECONDS);
         session = connectFuture.getSession();
         //Using the device ssh key if possible
         if (deviceInfo.getKey() != null) {
@@ -213,7 +226,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         } else {
             session.addPasswordIdentity(deviceInfo.password());
         }
-        session.auth().verify(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS);
+        session.auth().verify(connectTimeout, TimeUnit.SECONDS);
         Set<ClientSession.ClientSessionEvent> event = session.waitFor(
                 ImmutableSet.of(ClientSession.ClientSessionEvent.WAIT_AUTH,
                         ClientSession.ClientSessionEvent.CLOSED,
@@ -239,7 +252,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private void openChannel() throws IOException {
         channel = session.createSubsystemChannel("netconf");
         OpenFuture channelFuture = channel.open();
-        if (channelFuture.await(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS)) {
+        if (channelFuture.await(connectTimeout, TimeUnit.SECONDS)) {
             if (channelFuture.isOpened()) {
                 streamHandler = new NetconfStreamThread(channel.getInvertedOut(), channel.getInvertedIn(),
                         channel.getInvertedErr(), deviceInfo,
@@ -456,6 +469,21 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         return streamHandler.sendMessage(request);
     }
 
+    @Override
+    public int timeoutConnectSec() {
+        return connectTimeout;
+    }
+
+    @Override
+    public int timeoutReplySec() {
+        return replyTimeout;
+    }
+
+    @Override
+    public int timeoutIdleSec() {
+        return idleTimeout;
+    }
+
     private CompletableFuture<String> request(String request, int messageId) {
         return streamHandler.sendMessage(request, messageId);
     }
@@ -474,16 +502,18 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
         CompletableFuture<String> futureReply = request(request, messageId);
-        int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
         try {
+            log.debug("Sending request to NETCONF with timeout {} for {}",
+                    replyTimeout, deviceInfo.name());
             rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
             replies.remove(messageId); // Why here???
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new NetconfException("Interrupted waiting for reply for request" + request, e);
         } catch (TimeoutException e) {
-            throw new NetconfException("Timed out waiting for reply for request " + request, e);
+            throw new NetconfException("Timed out waiting for reply for request " +
+                    request + " after " + replyTimeout + " sec.", e);
         } catch (ExecutionException e) {
             log.warn("Closing session {} for {} due to unexpected Error", sessionID, deviceInfo, e);
             try {

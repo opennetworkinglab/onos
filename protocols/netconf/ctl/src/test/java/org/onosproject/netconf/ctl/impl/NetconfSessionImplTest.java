@@ -16,6 +16,7 @@
 package org.onosproject.netconf.ctl.impl;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +29,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,10 +48,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.netconf.DatastoreId;
+import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.DatastoreId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,28 +119,36 @@ public class NetconfSessionImplTest {
         sshServerNetconf.open();
         log.info("SSH Server opened on port {}", PORT_NUMBER);
 
-        NetconfDeviceInfo deviceInfo = new NetconfDeviceInfo(
+        NetconfController netconfCtl = new NetconfControllerImpl();
+
+        NetconfDeviceInfo deviceInfo1 = new NetconfDeviceInfo(
                 TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
 
-        session1 = new NetconfSessionImpl(deviceInfo, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
+        session1 = new NetconfSessionImpl(deviceInfo1, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("0"));
         assertThat(session1.getDeviceCapabilitiesSet(), containsInAnyOrder(
                 NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES.toArray()));
-        session2 = new NetconfSessionImpl(deviceInfo, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
+
+        NetconfDeviceInfo deviceInfo2 = new NetconfDeviceInfo(
+                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
+        deviceInfo2.setConnectTimeoutSec(OptionalInt.of(11));
+        deviceInfo2.setReplyTimeoutSec(OptionalInt.of(10));
+        deviceInfo2.setIdleTimeoutSec(OptionalInt.of(12));
+        session2 = new NetconfSessionMinaImpl(deviceInfo2, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session2.getSessionId());
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("0"));
         assertThat(session2.getDeviceCapabilitiesSet(), containsInAnyOrder(
                 NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES.toArray()));
-        session3 = new NetconfSessionImpl(deviceInfo);
+        session3 = new NetconfSessionImpl(deviceInfo1);
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session3.getSessionId());
         assertTrue("Incorrect sessionId", !session3.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session3.getSessionId().equalsIgnoreCase("0"));
         assertThat(session3.getDeviceCapabilitiesSet(), containsInAnyOrder(
                 NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES_1_1.toArray()));
-        session4 = new NetconfSessionImpl(deviceInfo);
+        session4 = new NetconfSessionImpl(deviceInfo1);
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session4.getSessionId());
         assertTrue("Incorrect sessionId", !session4.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session4.getSessionId().equalsIgnoreCase("0"));
@@ -572,6 +583,18 @@ public class NetconfSessionImplTest {
         fail("NETCONF test failed to complete.");
     }
 
+    @Test
+    public void testSessionTimeouts() {
+        assertTrue("SSH Client wrong", session1 instanceof NetconfSessionImpl);
+        assertEquals("Timeout wrong", 5, session1.timeoutConnectSec());
+        assertEquals("Timeout wrong", 5, session1.timeoutReplySec());
+        assertEquals("Timeout wrong", 5, session1.timeoutIdleSec());
+
+        assertTrue("SSH Client wrong", session2 instanceof NetconfSessionMinaImpl);
+        assertEquals("Timeout wrong", 11, session2.timeoutConnectSec());
+        assertEquals("Timeout wrong", 10, session2.timeoutReplySec());
+        assertEquals("Timeout wrong", 12, session2.timeoutIdleSec());
+    }
 
     public static String getTestHelloReply(Optional<Long> sessionId, boolean useChunkedFraming) {
         if (useChunkedFraming) {

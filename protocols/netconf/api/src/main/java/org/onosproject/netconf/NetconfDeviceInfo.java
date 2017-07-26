@@ -19,6 +19,8 @@ package org.onosproject.netconf;
 import com.google.common.base.Preconditions;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.netconf.config.NetconfDeviceConfig;
+import org.onosproject.netconf.config.NetconfSshClientLib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +28,8 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * Represents a Netconf device information.
@@ -43,6 +47,10 @@ public class NetconfDeviceInfo {
     //File keyFile @deprecated 1.9.0
     @Deprecated
     private File keyFile;
+    private Optional<NetconfSshClientLib> sshClientLib;
+    private OptionalInt connectTimeoutSec;
+    private OptionalInt replyTimeoutSec;
+    private OptionalInt idleTimeoutSec;
     private DeviceId deviceId;
 
 
@@ -63,6 +71,10 @@ public class NetconfDeviceInfo {
         this.password = password;
         this.ipAddress = ipAddress;
         this.port = port;
+        this.sshClientLib = Optional.empty();
+        this.connectTimeoutSec = OptionalInt.empty();
+        this.replyTimeoutSec = OptionalInt.empty();
+        this.idleTimeoutSec = OptionalInt.empty();
     }
 
     /**
@@ -90,6 +102,73 @@ public class NetconfDeviceInfo {
         this.port = port;
         this.key = keyString.toCharArray();
         this.keyFile = new File(keyString);
+        this.sshClientLib = Optional.empty();
+        this.connectTimeoutSec = OptionalInt.empty();
+        this.replyTimeoutSec = OptionalInt.empty();
+        this.idleTimeoutSec = OptionalInt.empty();
+    }
+
+    /**
+     * Convenieince constructor that converts all known fields from NetCfg data.
+     * @param netconfConfig NetCf configuration
+     */
+    public NetconfDeviceInfo(NetconfDeviceConfig netconfConfig) {
+        Preconditions.checkArgument(!netconfConfig.username().isEmpty(), "Empty device name");
+        Preconditions.checkNotNull(netconfConfig.port() > 0, "Negative port");
+        Preconditions.checkNotNull(netconfConfig.ip(), "Null ip address");
+
+        this.name = netconfConfig.username();
+        this.password = netconfConfig.password();
+        this.ipAddress = netconfConfig.ip();
+        this.port = netconfConfig.port();
+        if (netconfConfig.sshKey() != null && !netconfConfig.sshKey().isEmpty()) {
+            this.key = netconfConfig.sshKey().toCharArray();
+        }
+        this.keyFile = new File(netconfConfig.sshKey());
+        if (netconfConfig.sshClient().isPresent()) {
+            this.sshClientLib = Optional.of(NetconfSshClientLib.getEnum(netconfConfig.sshClient().get()));
+        } else {
+            this.sshClientLib = Optional.empty();
+        }
+        this.connectTimeoutSec = netconfConfig.connectTimeout();
+        this.replyTimeoutSec = netconfConfig.replyTimeout();
+        this.idleTimeoutSec = netconfConfig.idleTimeout();
+    }
+
+    /**
+     * Allows the NETCONF SSH Client library to be set.
+     *
+     * @param sshClientLib An enumerated value
+     */
+    public void setSshClientLib(Optional<NetconfSshClientLib> sshClientLib) {
+        this.sshClientLib = sshClientLib;
+    }
+
+    /**
+     * Allows the NETCONF SSH session initial connect timeout to be set.
+     *
+     * @param connectTimeoutSec value in seconds
+     */
+    public void setConnectTimeoutSec(OptionalInt connectTimeoutSec) {
+        this.connectTimeoutSec = connectTimeoutSec;
+    }
+
+    /**
+     * Allows the NETCONF SSH session replies timeout to be set.
+     *
+     * @param replyTimeoutSec value in seconds
+     */
+    public void setReplyTimeoutSec(OptionalInt replyTimeoutSec) {
+        this.replyTimeoutSec = replyTimeoutSec;
+    }
+
+    /**
+     * Allows the NETCONF SSH session idle timeout to be set.
+     *
+     * @param idleTimeoutSec value in seconds
+     */
+    public void setIdleTimeoutSec(OptionalInt idleTimeoutSec) {
+        this.idleTimeoutSec = idleTimeoutSec;
     }
 
     /**
@@ -150,6 +229,42 @@ public class NetconfDeviceInfo {
     @Deprecated
     public File getKeyFile() {
         return keyFile;
+    }
+
+    /**
+     * Exposes the Client library implementation.
+     *
+     * @return Enumerated value
+     */
+    public Optional<NetconfSshClientLib> sshClientLib() {
+        return sshClientLib;
+    }
+
+    /**
+     * Exposes the device specific connect timeout.
+     *
+     * @return The timeout value in seconds
+     */
+    public OptionalInt getConnectTimeoutSec() {
+        return connectTimeoutSec;
+    }
+
+    /**
+     * Exposes the device specific reply timeout.
+     *
+     * @return The timeout value in seconds
+     */
+    public OptionalInt getReplyTimeoutSec() {
+        return replyTimeoutSec;
+    }
+
+    /**
+     * Exposes the device specific idle timeout.
+     *
+     * @return The timeout value in seconds
+     */
+    public OptionalInt getIdleTimeoutSec() {
+        return idleTimeoutSec;
     }
 
     /**
