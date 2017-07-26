@@ -23,17 +23,25 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
+import org.onlab.packet.BasePacket;
 import org.onlab.packet.DHCP;
+import org.onlab.packet.DHCP6;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
+import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
+import org.onlab.packet.dhcp.Dhcp6IaNaOption;
+import org.onlab.packet.dhcp.Dhcp6IaTaOption;
+import org.onlab.packet.dhcp.Dhcp6RelayOption;
 import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
@@ -144,6 +152,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             label = "Use DHCP for neighbor discovery by the " +
                     "Host Location Provider; default is false")
     private boolean useDhcp = false;
+
+    @Property(name = "useDhcp6", boolValue = false,
+            label = "Use DHCPv6 for neighbor discovery by the " +
+                    "Host Location Provider; default is false")
+    private boolean useDhcp6 = false;
 
     @Property(name = "requestInterceptsEnabled", boolValue = true,
             label = "Enable requesting packet intercepts")
@@ -509,10 +522,18 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                         pkt.getPayload() instanceof IExtensionHeader) {
                     pkt = pkt.getPayload();
                 }
-
-                // Neighbor Discovery Protocol
                 pkt = pkt.getPayload();
+
+                // DHCPv6 protocol
+                DHCP6 dhcp6 = findDhcp6(pkt).orElse(null);
+                if (dhcp6 != null && useDhcp6) {
+                    createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+                    handleDhcp6(dhcp6, vlan);
+                    return;
+                }
+
                 if (pkt != null && pkt instanceof ICMP6) {
+                    // Neighbor Discovery Protocol
                     pkt = pkt.getPayload();
                     // RouterSolicitation, RouterAdvertisement
                     if (pkt != null && (pkt instanceof RouterAdvertisement ||
@@ -541,6 +562,88 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
         }
 
+        /**
+         * Handles DHCPv6 packet, if message type is ACK, update IP address
+         * according to DHCPv6 payload (IA Address option).
+         *
+         * @param dhcp6 the DHCPv6 payload
+         * @param vlanId the vlan of this packet
+         */
+        private void handleDhcp6(DHCP6 dhcp6, VlanId vlanId) {
+            // extract the relay message if exist
+            while (dhcp6 != null && DHCP6.RELAY_MSG_TYPES.contains(dhcp6.getMsgType())) {
+                dhcp6 = dhcp6.getOptions().stream()
+                        .filter(opt -> opt instanceof Dhcp6RelayOption)
+                        .map(BasePacket::getPayload)
+                        .map(pld -> (DHCP6) pld)
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            if (dhcp6 == null) {
+                // Can't find dhcp payload
+                log.warn("Can't find dhcp payload from relay message");
+                return;
+            }
+
+            if (dhcp6.getMsgType() != DHCP6.MsgType.REPLY.value()) {
+                // Update IP address only when we received REPLY message
+                return;
+            }
+            Optional<Dhcp6ClientIdOption> clientIdOption = dhcp6.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
+                    .map(opt -> (Dhcp6ClientIdOption) opt)
+                    .findFirst();
+
+            if (!clientIdOption.isPresent()) {
+                // invalid DHCPv6 option
+                log.warn("Can't find client ID from DHCPv6 {}", dhcp6);
+                return;
+            }
+
+            byte[] linkLayerAddr = clientIdOption.get().getDuid().getLinkLayerAddress();
+            if (linkLayerAddr == null || linkLayerAddr.length != 6) {
+                // No any mac address found
+                log.warn("Can't find client mac from option {}", clientIdOption);
+                return;
+            }
+            MacAddress clientMac = MacAddress.valueOf(linkLayerAddr);
+
+            // Extract IPv6 address from IA NA ot IA TA option
+            Optional<Dhcp6IaNaOption> iaNaOption = dhcp6.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6IaNaOption)
+                    .map(opt -> (Dhcp6IaNaOption) opt)
+                    .findFirst();
+            Optional<Dhcp6IaTaOption> iaTaOption = dhcp6.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6IaTaOption)
+                    .map(opt -> (Dhcp6IaTaOption) opt)
+                    .findFirst();
+            Optional<Dhcp6IaAddressOption> iaAddressOption;
+            if (iaNaOption.isPresent()) {
+                iaAddressOption = iaNaOption.get().getOptions().stream()
+                        .filter(opt -> opt instanceof Dhcp6IaAddressOption)
+                        .map(opt -> (Dhcp6IaAddressOption) opt)
+                        .findFirst();
+            } else if (iaTaOption.isPresent()) {
+                iaAddressOption = iaTaOption.get().getOptions().stream()
+                        .filter(opt -> opt instanceof Dhcp6IaAddressOption)
+                        .map(opt -> (Dhcp6IaAddressOption) opt)
+                        .findFirst();
+            } else {
+                iaAddressOption = Optional.empty();
+            }
+            if (iaAddressOption.isPresent()) {
+                Ip6Address ip = iaAddressOption.get().getIp6Address();
+                HostId hostId = HostId.hostId(clientMac, vlanId);
+                updateHostIp(hostId, ip);
+            } else {
+                log.warn("Can't find IPv6 address from DHCPv6 {}", dhcp6);
+            }
+        }
+
         private Optional<DHCP> findDhcp(Ethernet eth) {
             IPacket pkt = eth.getPayload();
             return Stream.of(pkt)
@@ -553,6 +656,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     .filter(Objects::nonNull)
                     .filter(p -> p instanceof DHCP)
                     .map(p -> (DHCP) p)
+                    .findFirst();
+        }
+
+        private Optional<DHCP6> findDhcp6(IPacket pkt) {
+            return Stream.of(pkt)
+                    .filter(Objects::nonNull)
+                    .filter(p -> p instanceof UDP)
+                    .map(IPacket::getPayload)
+                    .filter(Objects::nonNull)
+                    .filter(p -> p instanceof DHCP6)
+                    .map(p -> (DHCP6) p)
                     .findFirst();
         }
     }

@@ -27,7 +27,12 @@ import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ARP;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.dhcp.CircuitId;
+import org.onlab.packet.DHCP6;
+import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
+import org.onlab.packet.dhcp.Dhcp6Duid;
+import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
+import org.onlab.packet.dhcp.Dhcp6IaNaOption;
+import org.onlab.packet.dhcp.Dhcp6Option;
 import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
@@ -38,7 +43,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
-import org.onlab.packet.dhcp.DhcpRelayAgentOption;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.RouterAdvertisement;
@@ -153,13 +157,17 @@ public class HostLocationProviderTest {
     private static final byte[] IP3 = new byte[]{10, 0, 0, 2};
     private static final IpAddress IP_ADDRESS3 =
             IpAddress.valueOf(IpAddress.Version.INET, IP3);
-
     private static final HostLocation LOCATION3 =
             new HostLocation(deviceId(DEV1), portNumber(INPORT2), 0L);
     private static final DefaultHost HOST3 =
             new DefaultHost(PROVIDER_ID, hostId(MAC3), MAC3,
                     VLAN, LOCATION3,
                     ImmutableSet.of(IP_ADDRESS3));
+
+    // DHCP6 Server
+    private static final MacAddress DHCP6_SERVER_MAC = MacAddress.valueOf("00:00:44:00:00:04");
+    private static final IpAddress DHCP6_SERVER_IP =
+            IpAddress.valueOf("2000::1:1000");
 
     // Gateway information for relay agent
     private static final InterfaceIpAddress GW_IFACE_ADDR = InterfaceIpAddress.valueOf("10.0.1.1/32");
@@ -369,7 +377,7 @@ public class HostLocationProviderTest {
         assertThat(descr.vlan(), is(VLAN));
 
         // DHCP Ack
-        testProcessor.process(new TestDhcpAckPacketContext(DEV1, false));
+        testProcessor.process(new TestDhcpAckPacketContext(DEV1));
         assertThat("receiveDhcpAck. Two additional host descriptions expected",
                 providerService.descriptions.size(), is(3));
 
@@ -387,6 +395,46 @@ public class HostLocationProviderTest {
         assertThat(descr3.ipAddress().size(), is(1));
         IpAddress ip = descr3.ipAddress().iterator().next();
         assertThat(ip, is(IP_ADDRESS.getIp4Address()));
+        assertThat(descr3.vlan(), is(VLAN));
+    }
+
+    /**
+     * When receiving DHCPv6 REQUEST, update MAC, location of client.
+     * When receiving DHCPv6 ACK, update MAC, location of server and IP of client.
+     */
+    @Test
+    public void receiveDhcp6() {
+        TestUtils.setField(provider, "useDhcp6", true);
+        // DHCP Request
+        testProcessor.process(new TestDhcp6RequestPacketContext(DEV4, VLAN));
+        assertThat("receiveDhcpRequest. One host description expected",
+                   providerService.descriptions.size(), is(1));
+        // Should learn the MAC and location of DHCP client
+        HostDescription descr = providerService.descriptions.get(0);
+        assertThat(descr.location(), is(LOCATION2));
+        assertThat(descr.hwAddress(), is(MAC2));
+        assertThat(descr.ipAddress().size(), is(0));
+        assertThat(descr.vlan(), is(VLAN));
+
+        // DHCP Ack
+        testProcessor.process(new TestDhcp6AckPacketContext(DEV1));
+        assertThat("receiveDhcpAck. Two additional host descriptions expected",
+                   providerService.descriptions.size(), is(3));
+
+        // Should also learn the MAC, location of DHCP server
+        HostDescription descr2 = providerService.descriptions.get(1);
+        assertThat(descr2.location(), is(LOCATION3));
+        assertThat(descr2.hwAddress(), is(DHCP6_SERVER_MAC));
+        assertThat(descr2.ipAddress().size(), is(0));
+        assertThat(descr2.vlan(), is(VLAN));
+
+        // Should update the IP address of the DHCP client.
+        HostDescription descr3 = providerService.descriptions.get(2);
+        assertThat(descr3.location(), is(LOCATION2));
+        assertThat(descr3.hwAddress(), is(MAC2));
+        assertThat(descr3.ipAddress().size(), is(1));
+        IpAddress ip = descr3.ipAddress().iterator().next();
+        assertThat(ip, is(IP_ADDRESS2.getIp6Address()));
         assertThat(descr3.vlan(), is(VLAN));
     }
 
@@ -635,6 +683,7 @@ public class HostLocationProviderTest {
                                             ByteBuffer.wrap(eth.serialize()));
         }
     }
+
     /**
      * Generates DHCP REQUEST packet.
      */
@@ -686,12 +735,10 @@ public class HostLocationProviderTest {
      */
     private class TestDhcpAckPacketContext extends PacketContextAdapter {
         private final String deviceId;
-        private final boolean withRelayinfo;
 
-        public TestDhcpAckPacketContext(String deviceId, boolean withRelayInfo) {
+        public TestDhcpAckPacketContext(String deviceId) {
             super(0, null, null, false);
             this.deviceId = deviceId;
-            this.withRelayinfo = withRelayInfo;
         }
 
         @Override
@@ -705,23 +752,7 @@ public class HostLocationProviderTest {
             dhcpOption.setLength((byte) 1);
 
             DHCP dhcp = new DHCP();
-
-            if (withRelayinfo) {
-                CircuitId cid = new CircuitId(LOCATION.toString(), VLAN_100);
-                byte[] circuitId = cid.serialize();
-                DhcpOption circuitIdSubOption = new DhcpOption();
-                circuitIdSubOption.setCode(DhcpRelayAgentOption.RelayAgentInfoOptions.CIRCUIT_ID.getValue());
-                circuitIdSubOption.setData(circuitId);
-                circuitIdSubOption.setLength((byte) circuitId.length);
-
-                DhcpRelayAgentOption relayInfoOption = new DhcpRelayAgentOption();
-                relayInfoOption.setCode(DHCP.DHCPOptionCode.OptionCode_CircuitID.getValue());
-                relayInfoOption.addSubOption(circuitIdSubOption);
-                dhcp.setOptions(ImmutableList.of(dhcpOption, relayInfoOption));
-                dhcp.setGatewayIPAddress(GW_IFACE_ADDR.ipAddress().getIp4Address().toInt());
-            } else {
-                dhcp.setOptions(ImmutableList.of(dhcpOption));
-            }
+            dhcp.setOptions(ImmutableList.of(dhcpOption));
 
             dhcp.setClientHardwareAddress(MAC.toBytes());
             dhcp.setYourIPAddress(IP_ADDRESS.getIp4Address().toInt());
@@ -744,6 +775,118 @@ public class HostLocationProviderTest {
                     portNumber(INPORT2));
             return new DefaultInboundPacket(receivedFrom, eth,
                     ByteBuffer.wrap(eth.serialize()));
+        }
+    }
+
+    /**
+     * Generates DHCPv6 REQUEST packet.
+     */
+    private class TestDhcp6RequestPacketContext extends PacketContextAdapter {
+        private final String deviceId;
+        private final VlanId vlanId;
+
+        public TestDhcp6RequestPacketContext(String deviceId, VlanId vlanId) {
+            super(0, null, null, false);
+            this.deviceId = deviceId;
+            this.vlanId = vlanId;
+        }
+
+        @Override
+        public InboundPacket inPacket() {
+
+            DHCP6 dhcp6 = new DHCP6();
+            dhcp6.setMsgType(DHCP6.MsgType.REQUEST.value());
+            List<Dhcp6Option> options = Lists.newArrayList();
+
+            // IA address
+            Dhcp6IaAddressOption iaAddressOption = new Dhcp6IaAddressOption();
+            iaAddressOption.setIp6Address(IP_ADDRESS2.getIp6Address());
+
+            // IA NA
+            Dhcp6IaNaOption iaNaOption = new Dhcp6IaNaOption();
+            iaNaOption.setOptions(ImmutableList.of(iaAddressOption));
+            options.add(iaNaOption);
+
+            dhcp6.setOptions(options);
+
+            UDP udp = new UDP();
+            udp.setPayload(dhcp6);
+            udp.setSourcePort(UDP.DHCP_V6_CLIENT_PORT);
+            udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+            IPv6 ipv6 = new IPv6();
+            ipv6.setPayload(udp);
+            ipv6.setDestinationAddress(Ip6Address.ZERO.toOctets());
+            ipv6.setSourceAddress(Ip6Address.ZERO.toOctets());
+            ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+            Ethernet eth = new Ethernet();
+            eth.setEtherType(Ethernet.TYPE_IPV6)
+                    .setVlanID(this.vlanId.toShort())
+                    .setSourceMACAddress(MAC2)
+                    .setDestinationMACAddress(DHCP6_SERVER_MAC)
+                    .setPayload(ipv6);
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId(deviceId),
+                                                         portNumber(INPORT));
+            return new DefaultInboundPacket(receivedFrom, eth,
+                                            ByteBuffer.wrap(eth.serialize()));
+        }
+    }
+
+    /**
+     * Generates DHCPv6 ACK packet.
+     */
+    private class TestDhcp6AckPacketContext extends PacketContextAdapter {
+        private final String deviceId;
+
+        public TestDhcp6AckPacketContext(String deviceId) {
+            super(0, null, null, false);
+            this.deviceId = deviceId;
+        }
+
+        @Override
+        public InboundPacket inPacket() {
+            DHCP6 dhcp6 = new DHCP6();
+            dhcp6.setMsgType(DHCP6.MsgType.REPLY.value());
+            List<Dhcp6Option> options = Lists.newArrayList();
+
+            // IA address
+            Dhcp6IaAddressOption iaAddressOption = new Dhcp6IaAddressOption();
+            iaAddressOption.setIp6Address(IP_ADDRESS2.getIp6Address());
+
+            // IA NA
+            Dhcp6IaNaOption iaNaOption = new Dhcp6IaNaOption();
+            iaNaOption.setOptions(ImmutableList.of(iaAddressOption));
+            options.add(iaNaOption);
+
+            // Client ID
+            Dhcp6Duid duid = new Dhcp6Duid();
+            duid.setDuidType(Dhcp6Duid.DuidType.DUID_LLT);
+            duid.setHardwareType((short) 1);
+            duid.setDuidTime(0);
+            duid.setLinkLayerAddress(MAC2.toBytes());
+            Dhcp6ClientIdOption clientIdOption = new Dhcp6ClientIdOption();
+            clientIdOption.setDuid(duid);
+            options.add(clientIdOption);
+            dhcp6.setOptions(options);
+
+            UDP udp = new UDP();
+            udp.setPayload(dhcp6);
+            udp.setSourcePort(UDP.DHCP_V6_CLIENT_PORT);
+            udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+            IPv6 ipv6 = new IPv6();
+            ipv6.setPayload(udp);
+            ipv6.setDestinationAddress(Ip6Address.ZERO.toOctets());
+            ipv6.setSourceAddress(Ip6Address.ZERO.toOctets());
+            ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+            Ethernet eth = new Ethernet();
+            eth.setEtherType(Ethernet.TYPE_IPV6)
+                    .setVlanID(VLAN.toShort())
+                    .setSourceMACAddress(DHCP6_SERVER_MAC)
+                    .setDestinationMACAddress(MAC2)
+                    .setPayload(ipv6);
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId(deviceId),
+                                                         portNumber(INPORT2));
+            return new DefaultInboundPacket(receivedFrom, eth,
+                                            ByteBuffer.wrap(eth.serialize()));
         }
     }
 
