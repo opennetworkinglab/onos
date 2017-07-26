@@ -48,6 +48,14 @@ public class IpPrefix {
      * An IpPrefix that contains all IPv6 multicast addresses.
      */
     public static final IpPrefix IPV6_MULTICAST_PREFIX = IpPrefix.valueOf("ff00::/8");
+    /**
+     * An IpPrefix that contains all IPv4 link local addresses.
+     */
+    public static final IpPrefix IPV4_LINK_LOCAL_PREFIX = IpPrefix.valueOf("169.254.0.0/16");
+    /**
+     * An IpPrefix that contains all IPv6 link local addresses.
+     */
+    public static final IpPrefix IPV6_LINK_LOCAL_PREFIX = IpPrefix.valueOf("fe80::/64");
 
     private final IpAddress address;
     private final short prefixLength;

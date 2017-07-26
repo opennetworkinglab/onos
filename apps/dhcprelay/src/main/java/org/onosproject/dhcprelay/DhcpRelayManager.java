@@ -358,6 +358,11 @@ public class DhcpRelayManager implements DhcpRelayService {
         return dhcpRelayStore.getDhcpRecords();
     }
 
+    @Override
+    public Optional<MacAddress> getDhcpServerMacAddress() {
+        return Optional.ofNullable(dhcpConnectMac);
+    }
+
     /**
      * Gets output interface of a dhcp packet.
      * If option 82 exists in the dhcp packet and the option was sent by

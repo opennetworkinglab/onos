@@ -21,6 +21,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -34,11 +35,8 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.host.HostService;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Prints DHCP server and DHCP relay status.
@@ -47,17 +45,15 @@ import java.util.Optional;
 public class DhcpRelayCommand extends AbstractShellCommand {
     private static final String HEADER = "DHCP relay records ([D]: Directly connected):";
     private static final String NO_RECORDS = "No DHCP relay record found";
-    private static final String BASIC_HOST_D = "%s/%s: %s[D], %s";
-    private static final String BASIC_HOST = "%s/%s: %s, %s";
-    private static final String NO_IP4 = "\tIPv4: N/A";
-    private static final String IP4_INFO_D = "\tIPv4: %s: %s";
-    private static final String IP4_INFO = "\tIPv4: %s via %s: %s";
-    private static final String NO_IP6 = "\tIPv6: N/A";
-    private static final String IP6_INFO_D = "\tIPv6: %s: %s";
-    private static final String IP6_INFO = "\tIPv6: %s via %s: %s";
-    private static final String DHCP_SERVER_GW = "DHCP Server: %s, %s via %s";
-    private static final String DHCP_SERVER = "DHCP Server: %s, %s";
+    private static final String HOST = "id=%s/%s, locations=%s%s, last-seen=%s, IPv4=%s, IPv6=%s";
+    private static final String DHCP_SERVER_GW = "DHCP Server: %s, %s via %s (Mac: %s)";
+    private static final String DHCP_SERVER = "DHCP Server: %s, %s (Mac: %s)";
     private static final String MISSING_SERVER_CFG = "DHCP Server info not available";
+    private static final String DIRECTLY = "[D]";
+    private static final String EMPTY = "";
+    private static final String NA = "N/A";
+    private static final String STATUS_FMT = "[%s, %s]";
+    private static final String STATUS_FMT_NH = "[%s via %s, %s]";
 
     private static final DhcpRelayService DHCP_RELAY_SERVICE = get(DhcpRelayService.class);
     private static final NetworkConfigRegistry CFG_SERVICE = get(NetworkConfigRegistry.class);
@@ -65,6 +61,7 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     private static final CoreService CORE_SERVICE = get(CoreService.class);
     private static final ApplicationId APP_ID =
             CORE_SERVICE.getAppId(DhcpRelayManager.DHCP_RELAY_APP);
+
 
     @Override
     protected void execute() {
@@ -78,10 +75,12 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         ConnectPoint connectPoint = cfg.getDhcpServerConnectPoint();
         Ip4Address gatewayAddress = cfg.getDhcpGatewayIp();
         Ip4Address serverIp = cfg.getDhcpServerIp();
+        String serverMac = DHCP_RELAY_SERVICE.getDhcpServerMacAddress()
+                .map(MacAddress::toString).orElse(NA);
         if (gatewayAddress != null) {
-            print(DHCP_SERVER_GW, connectPoint, serverIp, gatewayAddress);
+            print(DHCP_SERVER_GW, connectPoint, serverIp, gatewayAddress, serverMac);
         } else {
-            print(DHCP_SERVER, connectPoint, serverIp);
+            print(DHCP_SERVER, connectPoint, serverIp, serverMac);
         }
 
         // DHCP records
@@ -91,58 +90,59 @@ public class DhcpRelayCommand extends AbstractShellCommand {
             return;
         }
         print(HEADER);
-        records.forEach(record -> {
-            DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
-            String lastSeen = df.format(new Date(record.lastSeen()));
-
-            if (record.directlyConnected()) {
-                print(BASIC_HOST_D, record.macAddress(), record.vlanId(),
-                      record.locations(), lastSeen);
-            } else {
-                print(BASIC_HOST, record.macAddress(), record.vlanId(),
-                      record.locations(), lastSeen);
-            }
-
-            if (record.ip4Status().isPresent()) {
-                if (record.directlyConnected()) {
-                    print(IP4_INFO_D,
-                          record.ip4Address().orElse(null),
-                          record.ip4Status().orElse(null));
-                } else {
-                    IpAddress gatewayIp = record.nextHop()
-                            .flatMap(mac -> findGatewayIp(mac, record.vlanId()))
-                            .orElse(null);
-                    print(IP4_INFO,
-                          record.ip4Address().orElse(null),
-                          gatewayIp,
-                          record.ip4Status().orElse(null));
-                }
-            } else {
-                print(NO_IP4);
-            }
-
-            if (record.ip6Status().isPresent()) {
-                if (record.directlyConnected()) {
-                    print(IP6_INFO_D,
-                          record.ip6Address().orElse(null),
-                          record.ip6Status().orElse(null));
-                } else {
-                    IpAddress gatewayIp = record.nextHop()
-                            .flatMap(mac -> findGatewayIp(mac, record.vlanId()))
-                            .orElse(null);
-                    print(IP6_INFO,
-                          record.ip6Address().orElse(null),
-                          gatewayIp,
-                          record.ip6Status().orElse(null));
-                }
-            } else {
-                print(NO_IP6);
-            }
-        });
+        records.forEach(record -> print(HOST,
+                                        record.macAddress(),
+                                        record.vlanId(),
+                                        record.locations(),
+                                        record.directlyConnected() ? DIRECTLY : EMPTY,
+                                        Tools.timeAgo(record.lastSeen()),
+                                        ip4State(record),
+                                        ip6State(record)));
     }
 
-    private Optional<IpAddress> findGatewayIp(MacAddress macAddress, VlanId vlanId) {
-        Host host = HOST_SERVICE.getHost(HostId.hostId(macAddress, vlanId));
-        return host.ipAddresses().stream().findFirst();
+    private String ip4State(DhcpRecord record) {
+        String nextHopIp = findNextHopIp(IpAddress::isIp4,
+                                         record.nextHop().orElse(null),
+                                         record.vlanId());
+        return ipState(record.ip4Address().map(Object::toString).orElse(NA),
+                       record.ip4Status().map(Object::toString).orElse(NA),
+                       record.directlyConnected(),
+                       nextHopIp);
+    }
+
+    private String ip6State(DhcpRecord record) {
+        String nextHopIp = findNextHopIp(IpAddress::isIp6,
+                                         record.nextHop().orElse(null),
+                                         record.vlanId());
+        return ipState(record.ip6Address().map(Object::toString).orElse(NA),
+                       record.ip6Status().map(Object::toString).orElse(NA),
+                       record.directlyConnected(),
+                       nextHopIp);
+    }
+
+    private String ipState(String ipAddress, String status,
+                           boolean directlyConnected,
+                           String nextHopIp) {
+        if (directlyConnected) {
+            return String.format(STATUS_FMT, ipAddress, status);
+        } else {
+            return String.format(STATUS_FMT_NH, ipAddress, nextHopIp, status);
+        }
+    }
+
+    private String findNextHopIp(Predicate<IpAddress> ipFilter, MacAddress nextHopMac, VlanId vlanId) {
+        if (ipFilter == null || nextHopMac == null || vlanId == null) {
+            return NA;
+        }
+        Host host = HOST_SERVICE.getHost(HostId.hostId(nextHopMac, vlanId));
+        if (host == null) {
+            return NA;
+        }
+        return host.ipAddresses().stream()
+                .filter(ipFilter)
+                .filter(ip -> !ip.isLinkLocal())
+                .map(Object::toString)
+                .findFirst()
+                .orElse(NA);
     }
 }

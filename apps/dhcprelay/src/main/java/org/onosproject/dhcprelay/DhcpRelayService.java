@@ -16,6 +16,7 @@
 
 package org.onosproject.dhcprelay;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.net.HostId;
 
@@ -37,4 +38,11 @@ public interface DhcpRelayService {
      * @return all DHCP records from store
      */
     Collection<DhcpRecord> getDhcpRecords();
+
+    /**
+     * Gets mac address of DHCP server.
+     *
+     * @return the mac address of DHCP server; empty if not exist
+     */
+    Optional<MacAddress> getDhcpServerMacAddress();
 }
