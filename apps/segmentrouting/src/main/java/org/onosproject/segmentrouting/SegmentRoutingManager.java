@@ -88,7 +88,6 @@ import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
@@ -406,7 +405,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .register(KryoNamespaces.API)
                 .register(DestinationSetNextObjectiveStoreKey.class,
                         VlanNextObjectiveStoreKey.class,
-                        SubnetAssignedVidStoreKey.class,
                         DestinationSet.class,
                         NextNeighbors.class,
                         Tunnel.class,
@@ -492,12 +490,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public void rerouteNetwork() {
         cfgListener.configureNetwork();
-        for (Device device : deviceService.getDevices()) {
-            if (mastershipService.isLocalMaster(device.id())) {
-                defaultRoutingHandler.populatePortAddressingRules(device.id());
-            }
-        }
-        defaultRoutingHandler.startPopulationProcess();
     }
 
     @Override
