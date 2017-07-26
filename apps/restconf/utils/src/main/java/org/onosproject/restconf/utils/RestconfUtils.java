@@ -21,23 +21,35 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.restconf.api.RestconfException;
+import org.onosproject.restconf.api.RestconfRpcOutput;
 import org.onosproject.restconf.utils.exceptions.RestconfUtilsException;
 import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultCompositeData;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
-import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.RuntimeContext;
 import org.onosproject.yang.runtime.YangRuntimeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.REQUEST_TIMEOUT;
 
 /**
  * Utilities used by the RESTCONF app.
@@ -53,9 +65,12 @@ public final class RestconfUtils {
      * Data format required by YangRuntime Service.
      */
     private static final String JSON_FORMAT = "JSON";
+    private static final String SLASH = "/";
 
     private static final YangRuntimeService YANG_RUNTIME =
             DefaultServiceDirectory.getService(YangRuntimeService.class);
+
+    private static final Logger log = LoggerFactory.getLogger(RestconfUtils.class);
 
     /**
      * Converts an input stream to JSON objectNode.
@@ -97,7 +112,7 @@ public final class RestconfUtils {
      * @param uri URI of the data resource
      * @return resource identifier
      */
-    public static ResourceId convertUriToRid(String uri) {
+    public static ResourceId convertUriToRid(URI uri) {
         ResourceData resourceData = convertJsonToDataNode(uri, null);
         return resourceData.resourceId();
     }
@@ -109,20 +124,42 @@ public final class RestconfUtils {
      * @param rootNode JSON representation of the data resource
      * @return represents type of node in data store
      */
-    public static ResourceData convertJsonToDataNode(String uri,
+    public static ResourceData convertJsonToDataNode(URI uri,
                                                      ObjectNode rootNode) {
         RuntimeContext.Builder runtimeContextBuilder = new DefaultRuntimeContext.Builder();
         runtimeContextBuilder.setDataFormat(JSON_FORMAT);
         RuntimeContext context = runtimeContextBuilder.build();
+        ResourceData resourceData = null;
         InputStream jsonData = null;
-        if (rootNode != null) {
-            jsonData = convertObjectNodeToInputStream(rootNode);
+        try {
+            if (rootNode != null) {
+                jsonData = convertObjectNodeToInputStream(rootNode);
+            }
+            String uriString = getRawUriPath(uri);
+
+            CompositeStream compositeStream = new DefaultCompositeStream(uriString, jsonData);
+            // CompositeStream --- YangRuntimeService ---> CompositeData.
+            CompositeData compositeData = YANG_RUNTIME.decode(compositeStream, context);
+            resourceData = compositeData.resourceData();
+        } catch (Exception ex) {
+            log.error("convertJsonToDataNode failure: {}", ex.getMessage());
+            log.debug("convertJsonToDataNode failure", ex);
         }
-        CompositeStream compositeStream = new DefaultCompositeStream(uri, jsonData);
-        // CompositeStream --- YangRuntimeService ---> CompositeData.
-        CompositeData compositeData = YANG_RUNTIME.decode(compositeStream, context);
-        ResourceData resourceData = compositeData.resourceData();
+        if (resourceData == null) {
+            throw new RestconfException("ERROR: JSON cannot be converted to DataNode",
+                                        INTERNAL_SERVER_ERROR);
+        }
         return resourceData;
+    }
+
+    private static String getRawUriPath(URI uri) {
+        String path = uri.getRawPath();
+        if (path.equals("/restconf/data")) {
+            return null;
+        }
+
+
+        return path.replaceAll("^/restconf/data/", "").replaceAll("^/restconf/operations/", "");
     }
 
     /**
@@ -143,14 +180,84 @@ public final class RestconfUtils {
         DefaultCompositeData.Builder compositeDataBuilder = DefaultCompositeData.builder();
         compositeDataBuilder.resourceData(resourceData);
         CompositeData compositeData = compositeDataBuilder.build();
-        // CompositeData --- YangRuntimeService ---> CompositeStream.
-        CompositeStream compositeStream = YANG_RUNTIME.encode(compositeData, context);
-        InputStream inputStream = compositeStream.resourceData();
-        ObjectNode rootNode = convertInputStreamToObjectNode(inputStream);
+        ObjectNode rootNode = null;
+        try {
+            // CompositeData --- YangRuntimeService ---> CompositeStream.
+            CompositeStream compositeStream = YANG_RUNTIME.encode(compositeData, context);
+            InputStream inputStream = compositeStream.resourceData();
+            rootNode = convertInputStreamToObjectNode(inputStream);
+        } catch (Exception ex) {
+            log.error("convertInputStreamToObjectNode failure: {}", ex.getMessage());
+            log.debug("convertInputStreamToObjectNode failure", ex);
+        }
         if (rootNode == null) {
             throw new RestconfException("ERROR: InputStream can not be convert to ObjectNode",
                                         INTERNAL_SERVER_ERROR);
         }
         return rootNode;
+    }
+
+    /**
+     * Removes the last path segment from the given URI. That is, returns
+     * the parent of the given URI.
+     *
+     * @param uri given URI
+     * @return parent URI
+     */
+    public static URI rmLastPathSegment(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+
+        UriBuilder builder = UriBuilder.fromUri(uri);
+        String newPath = rmLastPathSegmentStr(uri.getRawPath());
+        builder.replacePath(newPath);
+
+        return builder.build();
+    }
+
+    private static String rmLastPathSegmentStr(String rawPath) {
+        if (rawPath == null) {
+            return null;
+        }
+        int pos = rawPath.lastIndexOf(SLASH);
+        if (pos <= 0) {
+            return null;
+        }
+
+        return rawPath.substring(0, pos);
+    }
+
+    /**
+     * Creates a RESTCONF RPC output object from a given YANG RPC output object.
+     *
+     * @param cmdId     resource ID of the RPC
+     * @param rpcOutput given RPC output in YANG format
+     * @return RPC output in RESTCONF format
+     */
+    public static RestconfRpcOutput convertRpcOutput(ResourceId cmdId, RpcOutput rpcOutput) {
+        RestconfRpcOutput restconfRpcOutput = new RestconfRpcOutput();
+
+        restconfRpcOutput.status(convertResponseStatus(rpcOutput.status()));
+        if (rpcOutput.data() != null) {
+            restconfRpcOutput.output(convertDataNodeToJson(cmdId, rpcOutput.data()));
+        }
+
+        return restconfRpcOutput;
+    }
+
+    private static Response.Status convertResponseStatus(RpcOutput.Status status) {
+        switch (status) {
+            case RPC_SUCCESS:
+                return OK;
+            case RPC_FAILURE:
+                return EXPECTATION_FAILED;
+            case RPC_NODATA:
+                return NO_CONTENT;
+            case RPC_TIMEOUT:
+                return REQUEST_TIMEOUT;
+            default:
+                return BAD_REQUEST;
+        }
     }
 }

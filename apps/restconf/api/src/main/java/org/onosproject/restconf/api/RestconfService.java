@@ -18,6 +18,9 @@ package org.onosproject.restconf.api;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ChunkedOutput;
 
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Abstraction of RESTCONF Server functionality according to the
  * RESTCONF RFC (no official RFC number yet).
@@ -37,7 +40,7 @@ public interface RestconfService {
      * @return JSON representation of the data resource
      * @throws RestconfException if the GET operation cannot be fulfilled
      */
-    ObjectNode runGetOperationOnDataResource(String uri)
+    ObjectNode runGetOperationOnDataResource(URI uri)
             throws RestconfException;
 
     /**
@@ -53,7 +56,7 @@ public interface RestconfService {
      * @param rootNode JSON representation of the data resource
      * @throws RestconfException if the POST operation cannot be fulfilled
      */
-    void runPostOperationOnDataResource(String uri, ObjectNode rootNode)
+    void runPostOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException;
 
     /**
@@ -69,7 +72,7 @@ public interface RestconfService {
      * @param rootNode JSON representation of the data resource
      * @throws RestconfException if the PUT operation cannot be fulfilled
      */
-    void runPutOperationOnDataResource(String uri, ObjectNode rootNode)
+    void runPutOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException;
 
     /**
@@ -82,7 +85,7 @@ public interface RestconfService {
      * @param uri URI of the data resource to be deleted
      * @throws RestconfException if the DELETE operation cannot be fulfilled
      */
-    void runDeleteOperationOnDataResource(String uri) throws RestconfException;
+    void runDeleteOperationOnDataResource(URI uri) throws RestconfException;
 
     /**
      * Processes a PATCH operation on a data resource. The target data
@@ -97,7 +100,7 @@ public interface RestconfService {
      * @param rootNode JSON representation of the data resource
      * @throws RestconfException if the PATCH operation cannot be fulfilled
      */
-    void runPatchOperationOnDataResource(String uri, ObjectNode rootNode)
+    void runPatchOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException;
 
     /**
@@ -121,10 +124,26 @@ public interface RestconfService {
      * exception, so that the caller may return it to the RESTCONF client
      * to display.
      *
-     * @param streamId ID of the RESTCONF stream to subscribe
-     * @param output   A string data stream
+     * @param streamId     ID of the RESTCONF stream to subscribe
+     * @param clientIpAddr IP address of the RESTCONF client sending the request
+     * @param output       A string data stream
      * @throws RestconfException if the Event Stream cannot be subscribed
      */
-    void subscribeEventStream(String streamId, ChunkedOutput<String> output)
+    void subscribeEventStream(String streamId,
+                              String clientIpAddr,
+                              ChunkedOutput<String> output)
             throws RestconfException;
+
+    /**
+     * Handles a RESTCONF RPC request. This function executes the RPC in
+     * the target application's context and returns the results as a Future.
+     *
+     * @param uri          URI corresponding to the Name of the RPC
+     * @param rpcInput     Input parameters
+     * @param clientIpAddr IP address of the RESTCONF client calling the RPC
+     * @return RPC output
+     */
+    CompletableFuture<RestconfRpcOutput> runRpc(URI uri,
+                                                ObjectNode rpcInput,
+                                                String clientIpAddr);
 }
