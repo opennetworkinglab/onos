@@ -28,7 +28,7 @@ import java.util.Optional;
 
 /**
  * Abstraction of a gRPC controller. Serves as a one stop shop for obtaining
- * gRCP ManagedChannels to interact with devices and (un)register observers on event streams from the device.
+ * gRPC ManagedChannels to interact with devices and (un)register observers on event streams from the device.
  */
 @Beta
 public interface GrpcController {
