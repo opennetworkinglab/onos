@@ -371,7 +371,7 @@ public class HostLocationProviderTest {
         // DHCP Ack
         testProcessor.process(new TestDhcpAckPacketContext(DEV1, false));
         assertThat("receiveDhcpAck. Two additional host descriptions expected",
-                providerService.descriptions.size(), is(2));
+                providerService.descriptions.size(), is(3));
 
         // Should also learn the MAC, location of DHCP server
         HostDescription descr2 = providerService.descriptions.get(1);
@@ -380,7 +380,14 @@ public class HostLocationProviderTest {
         assertThat(descr2.ipAddress().size(), is(0));
         assertThat(descr2.vlan(), is(VLAN));
 
-        // Should not update the IP address of the host.
+        // Should update the IP address of the client.
+        HostDescription descr3 = providerService.descriptions.get(2);
+        assertThat(descr3.location(), is(LOCATION));
+        assertThat(descr3.hwAddress(), is(MAC));
+        assertThat(descr3.ipAddress().size(), is(1));
+        IpAddress ip = descr3.ipAddress().iterator().next();
+        assertThat(ip, is(IP_ADDRESS.getIp4Address()));
+        assertThat(descr3.vlan(), is(VLAN));
     }
 
     /**

@@ -475,9 +475,22 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
             // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                // DHCP ACK: additionally update IP of DHCP client
-                Optional<DHCP> dhcp = findDhcp(eth);
-                if (useDhcp || !dhcp.isPresent()) {
+                DHCP dhcp = findDhcp(eth).orElse(null);
+                if (dhcp != null) {
+                    if (useDhcp) {
+                        // learn host (server or client) MAC address
+                        createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+
+                        // DHCP ACK: additionally update IP of DHCP client
+                        if (dhcp.getPacketType().equals(DHCP.MsgType.DHCPACK)) {
+                            MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
+                            VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
+                            HostId hostId = HostId.hostId(hostMac, hostVlan);
+                            updateHostIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
+                        }
+                    }
+                } else {
+                    // learn host MAC address
                     createOrUpdateHost(hid, srcMac, vlan, hloc, null);
                 }
             //
