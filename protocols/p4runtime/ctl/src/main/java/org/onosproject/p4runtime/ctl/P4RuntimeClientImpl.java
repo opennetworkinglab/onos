@@ -349,6 +349,24 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         return true;
     }
 
+    /**
+     * Returns the internal P4 device ID associated with this client.
+     *
+     * @return P4 device ID
+     */
+    public int p4DeviceId() {
+        return p4DeviceId;
+    }
+
+    /**
+     * For testing purpose only. TODO: remove before release.
+     *
+     * @return blocking stub
+     */
+    public P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub() {
+        return this.blockingStub;
+    }
+
 
     @Override
     public void shutdown() {

@@ -41,6 +41,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  implementation_id: 285227860
   direct_resource_ids: 301990488
   size: 1024
   with_entry_timeout: true
@@ -77,6 +78,16 @@ actions {
     name: "NoAction"
     alias: "NoAction"
   }
+}
+action_profiles {
+  preamble {
+    id: 285227860
+    name: "ecmp_selector"
+    alias: "ecmp_selector"
+  }
+  table_ids: 33617813
+  with_selector: true
+  size: 64
 }
 counters {
   preamble {
@@ -122,11 +133,6 @@ controller_packet_metadata {
     name: "ingress_port"
     bitwidth: 9
   }
-  metadata {
-    id: 2
-    name: "other1"
-    bitwidth: 32
-  }
 }
 controller_packet_metadata {
   preamble {
@@ -138,10 +144,5 @@ controller_packet_metadata {
     id: 1
     name: "egress_port"
     bitwidth: 9
-  }
-  metadata {
-    id: 2
-    name: "other2"
-    bitwidth: 32
   }
 }
