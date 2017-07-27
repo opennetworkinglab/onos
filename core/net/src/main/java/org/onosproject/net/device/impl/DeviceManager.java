@@ -29,6 +29,7 @@ import org.joda.time.DateTime;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.incubator.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -451,6 +452,7 @@ public class DeviceManager
                 log.warn("Device {} is not allowed", deviceId);
                 return;
             }
+            PortDescriptionsConfig portConfig = networkConfigService.getConfig(deviceId, PortDescriptionsConfig.class);
             // Generate updated description and establish my Role
             deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
@@ -461,11 +463,23 @@ public class DeviceManager
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                                                            deviceDescription);
+            if (portConfig != null) {
+                //updating the ports if configration exists
+                List<PortDescription> complete = store.getPortDescriptions(provider().id(), deviceId)
+                        .collect(Collectors.toList());
+                complete.addAll(portConfig.portDescriptions());
+                List<PortDescription> portDescriptions = complete.stream()
+                        .map(e -> applyAllPortOps(deviceId, e))
+                        .collect(Collectors.toList());
+                store.updatePorts(provider().id(), deviceId, portDescriptions);
+            }
+
             if (deviceDescription.isDefaultAvailable()) {
                 log.info("Device {} connected", deviceId);
             } else {
                 log.info("Device {} registered", deviceId);
             }
+
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
@@ -547,6 +561,11 @@ public class DeviceManager
                 // any update will be ignored.
                 log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
                 return;
+            }
+            PortDescriptionsConfig portConfig = networkConfigService.getConfig(deviceId, PortDescriptionsConfig.class);
+            if (portConfig != null) {
+                //updating the ports if configration exists
+                portDescriptions.addAll(portConfig.portDescriptions());
             }
             portDescriptions = portDescriptions.stream()
                     .map(e -> applyAllPortOps(deviceId, e))
@@ -898,16 +917,17 @@ public class DeviceManager
             return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
                     && (event.configClass().equals(BasicDeviceConfig.class)
-                    || portOpsIndex.containsKey(event.configClass()));
+                    || portOpsIndex.containsKey(event.configClass())
+                    || event.configClass().equals(PortDescriptionsConfig.class));
         }
 
         @Override
         public void event(NetworkConfigEvent event) {
             DeviceEvent de = null;
+            DeviceId did = (DeviceId) event.subject();
+            DeviceProvider dp = getProvider(did);
             if (event.configClass().equals(BasicDeviceConfig.class)) {
                 log.debug("Detected device network config event {}", event.type());
-                DeviceId did = (DeviceId) event.subject();
-                DeviceProvider dp = getProvider(did);
                 BasicDeviceConfig cfg =
                         networkConfigService.getConfig(did, BasicDeviceConfig.class);
 
@@ -923,10 +943,17 @@ public class DeviceManager
                     }
                 }
             }
+            if (event.configClass().equals(PortDescriptionsConfig.class) && event.config().isPresent()
+                    && getDevice(did) != null && dp != null) {
+                PortDescriptionsConfig portConfig = (PortDescriptionsConfig) event.config().get();
+                    //updating the ports if configration exists
+                    List<PortDescription> complete = store.getPortDescriptions(dp.id(), did)
+                            .collect(Collectors.toList());
+                    complete.addAll(portConfig.portDescriptions());
+                    store.updatePorts(dp.id(), did, complete);
+            }
             if (portOpsIndex.containsKey(event.configClass())) {
                 ConnectPoint cpt = (ConnectPoint) event.subject();
-                DeviceId did = cpt.deviceId();
-                DeviceProvider dp = getProvider(did);
 
                 // Note: assuming PortOperator can modify existing port,
                 //       but cannot add new port purely from Config.

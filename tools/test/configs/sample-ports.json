@@ -1,0 +1,31 @@
+{
+  "devices": {
+    "null:0000000000000001": {
+      "basic": {
+        "allowed": true,
+        "owner": "Luigi"
+      },
+      "ports": {
+          "1":{
+            "number": 1,
+            "name": "test",
+            "enabled": true,
+            "removed": false,
+            "type": "copper",
+            "speed": 40000
+          },
+          "2":{
+            "number": 2,
+            "name": "test2",
+            "enabled": true,
+            "removed": false,
+            "type": "copper",
+            "speed": 40000,
+            "annotations":{
+              "testann": "testann"
+            }
+         }
+      }
+    }
+  }
+}

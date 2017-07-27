@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
+import org.onosproject.incubator.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -61,6 +62,7 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
 
     private static final String BASIC = "basic";
     private static final String INTERFACES = "interfaces";
+    private static final String PORTS = "ports";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -121,7 +123,16 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
                 public PortAnnotationConfig createConfig() {
                     return new PortAnnotationConfig();
                 }
+            },
+            new ConfigFactory<DeviceId, PortDescriptionsConfig>(DEVICE_SUBJECT_FACTORY,
+                    PortDescriptionsConfig.class,
+                    PORTS) {
+                @Override
+                public PortDescriptionsConfig createConfig() {
+                    return new PortDescriptionsConfig();
+                }
             }
+
     );
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
