@@ -102,6 +102,7 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String UNKNOWN = "unknown";
     private static final int REST_TIMEOUT_SEC = 5;
     private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
+    private static final int EXECUTOR_THREAD_POOL_SIZE = 8;
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -158,7 +159,9 @@ public class RestDeviceProvider extends AbstractProvider
         appId = coreService.registerApplication(APP_NAME);
         providerService = providerRegistry.register(this);
         factories.forEach(cfgService::registerConfigFactory);
-        executor = Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
+        executor = Executors.newFixedThreadPool(
+            EXECUTOR_THREAD_POOL_SIZE, groupedThreads("onos/restsbprovider", "device-installer-%d", log)
+        );
         cfgService.addListener(configListener);
         executor.execute(RestDeviceProvider.this::createAndConnectDevices);
         executor.execute(RestDeviceProvider.this::createDevices);
