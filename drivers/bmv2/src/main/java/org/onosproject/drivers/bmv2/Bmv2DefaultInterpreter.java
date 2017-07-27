@@ -28,7 +28,6 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
@@ -38,7 +37,6 @@ import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
-import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.nio.ByteBuffer;
@@ -82,7 +80,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
 
 
     @Override
-    public PiTableAction mapTreatment(TrafficTreatment treatment, PiPipeconf pipeconf) throws PiInterpreterException {
+    public PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId) throws PiInterpreterException {
 
         if (treatment.allInstructions().size() == 0) {
             // No instructions means drop for us.
@@ -117,7 +115,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     }
 
     @Override
-    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet)
             throws PiInterpreterException {
         TrafficTreatment treatment = packet.treatment();
 

@@ -123,7 +123,7 @@ final class PiFlowRuleTranslator {
         Collection<PiFieldMatch> fieldMatches = buildFieldMatches(interpreter, rule.selector(), table);
 
         /* Translate treatment */
-        PiAction piAction = buildAction(rule.treatment(), interpreter, pipeconf);
+        PiAction piAction = buildAction(rule.treatment(), interpreter, piTableId);
         piAction = typeCheckAction(piAction, table);
 
         PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
@@ -155,7 +155,7 @@ final class PiFlowRuleTranslator {
      * Builds a PI action out of the given treatment, optionally using the given interpreter.
      */
     private static PiAction buildAction(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
-                                        PiPipeconf pipeconf)
+                                        PiTableId tableId)
             throws PiFlowRuleTranslationException {
 
         PiTableAction piTableAction = null;
@@ -176,7 +176,7 @@ final class PiFlowRuleTranslator {
         if (piTableAction == null && interpreter != null) {
             // No PiInstruction, use interpreter to build action.
             try {
-                piTableAction = interpreter.mapTreatment(treatment, pipeconf);
+                piTableAction = interpreter.mapTreatment(treatment, tableId);
             } catch (PiPipelineInterpreter.PiInterpreterException e) {
                 throw new PiFlowRuleTranslationException(
                         "Interpreter was unable to translate treatment. " + e.getMessage());

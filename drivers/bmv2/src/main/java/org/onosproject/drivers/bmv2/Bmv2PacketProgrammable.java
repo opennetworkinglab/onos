@@ -71,7 +71,7 @@ public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements 
         }
 
         try {
-            Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet, pipeconf);
+            Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet);
             operations.forEach(piPacketOperation -> {
                 client.packetOut(piPacketOperation, pipeconf);
             });

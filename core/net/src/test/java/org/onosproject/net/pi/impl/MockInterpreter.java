@@ -25,7 +25,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
@@ -33,7 +32,6 @@ import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
-import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.util.Collection;
@@ -68,7 +66,7 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
             0, PiTableId.of(TABLE0));
 
     @Override
-    public PiTableAction mapTreatment(TrafficTreatment treatment, PiPipeconf pipeconf) throws PiInterpreterException {
+    public PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId) throws PiInterpreterException {
 
         if (treatment.allInstructions().size() == 0) {
             // No instructions means drop for us.
@@ -103,7 +101,7 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
     }
 
     @Override
-    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet, PiPipeconf pipeconf)
+    public Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet)
             throws PiInterpreterException {
         return ImmutableList.of();
     }
