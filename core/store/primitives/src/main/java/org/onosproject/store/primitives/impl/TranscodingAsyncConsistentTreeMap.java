@@ -400,6 +400,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
         @Override
         public void event(MapEvent<String, V2> event) {
             listener.event(new MapEvent<String, V1>(
+                    event.type(),
                     event.name(),
                     event.key(),
                     event.newValue() != null ?

@@ -79,7 +79,6 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapEvents
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapEvents;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations;
 import org.onosproject.store.primitives.resources.impl.AtomixCounterOperations;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeEvents;
@@ -165,7 +164,6 @@ public final class StorageNamespaces {
             .register(AtomixConsistentMapOperations.class)
             .register(AtomixConsistentSetMultimapOperations.class)
             .register(AtomixConsistentSetMultimapEvents.class)
-            .register(AtomixConsistentTreeMapEvents.class)
             .register(AtomixConsistentTreeMapOperations.class)
             .register(AtomixCounterOperations.class)
             .register(AtomixDocumentTreeEvents.class)

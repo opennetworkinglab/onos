@@ -180,7 +180,6 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
             map.putAndGet(key, allValues.get(allKeys.indexOf(key))).thenAccept(secondResult -> {
                 assertArrayEquals(allValues.get(allKeys.indexOf(key)), firstResult.value());
                 assertArrayEquals(allValues.get(allKeys.indexOf(key)), secondResult.value());
-                assertTrue((firstResult.version() + 1) == secondResult.version());
             });
         }).join());
 

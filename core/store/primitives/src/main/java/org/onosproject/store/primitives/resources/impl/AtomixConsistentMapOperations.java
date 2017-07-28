@@ -15,9 +15,9 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import com.google.common.base.MoreObjects;
 import io.atomix.protocols.raft.operation.OperationId;
 import io.atomix.protocols.raft.operation.OperationType;
+import io.atomix.utils.ArraySizeHashPrinter;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Match;
 import org.onosproject.store.primitives.MapUpdate;
@@ -26,6 +26,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -41,7 +42,15 @@ public enum AtomixConsistentMapOperations implements OperationId {
     KEY_SET("keySet", OperationType.QUERY),
     VALUES("values", OperationType.QUERY),
     ENTRY_SET("entrySet", OperationType.QUERY),
-    UPDATE_AND_GET("updateAndGet", OperationType.COMMAND),
+    PUT("put", OperationType.COMMAND),
+    PUT_IF_ABSENT("putIfAbsent", OperationType.COMMAND),
+    PUT_AND_GET("putAndGet", OperationType.COMMAND),
+    REMOVE("remove", OperationType.COMMAND),
+    REMOVE_VALUE("removeValue", OperationType.COMMAND),
+    REMOVE_VERSION("removeVersion", OperationType.COMMAND),
+    REPLACE("replace", OperationType.COMMAND),
+    REPLACE_VALUE("replaceValue", OperationType.COMMAND),
+    REPLACE_VERSION("replaceVersion", OperationType.COMMAND),
     CLEAR("clear", OperationType.COMMAND),
     ADD_LISTENER("addListener", OperationType.COMMAND),
     REMOVE_LISTENER("removeListener", OperationType.COMMAND),
@@ -76,7 +85,13 @@ public enum AtomixConsistentMapOperations implements OperationId {
             .register(ContainsValue.class)
             .register(Get.class)
             .register(GetOrDefault.class)
-            .register(UpdateAndGet.class)
+            .register(Put.class)
+            .register(Remove.class)
+            .register(RemoveValue.class)
+            .register(RemoveVersion.class)
+            .register(Replace.class)
+            .register(ReplaceValue.class)
+            .register(ReplaceVersion.class)
             .register(TransactionBegin.class)
             .register(TransactionPrepare.class)
             .register(TransactionPrepareAndCommit.class)
@@ -103,7 +118,7 @@ public enum AtomixConsistentMapOperations implements OperationId {
     public abstract static class MapOperation {
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .toString();
         }
     }
@@ -132,7 +147,7 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .add("key", key)
                     .toString();
         }
@@ -162,8 +177,72 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .add("value", value)
+                    .toString();
+        }
+    }
+
+    /**
+     * Abstract key/value operation.
+     */
+    @SuppressWarnings("serial")
+    public abstract static class KeyValueOperation extends KeyOperation {
+        protected byte[] value;
+
+        public KeyValueOperation() {
+        }
+
+        public KeyValueOperation(String key, byte[] value) {
+            super(key);
+            this.value = value;
+        }
+
+        /**
+         * Returns the value.
+         * @return value
+         */
+        public byte[] value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(getClass())
+                    .add("key", key)
+                    .add("value", ArraySizeHashPrinter.of(value))
+                    .toString();
+        }
+    }
+
+    /**
+     * Abstract key/version operation.
+     */
+    @SuppressWarnings("serial")
+    public abstract static class KeyVersionOperation extends KeyOperation {
+        protected long version;
+
+        public KeyVersionOperation() {
+        }
+
+        public KeyVersionOperation(String key, long version) {
+            super(key);
+            this.version = version;
+        }
+
+        /**
+         * Returns the version.
+         * @return version
+         */
+        public long version() {
+            return version;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(getClass())
+                    .add("key", key)
+                    .add("version", version)
                     .toString();
         }
     }
@@ -191,6 +270,134 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         public ContainsValue(byte[] value) {
             super(value);
+        }
+    }
+
+    /**
+     * Map put operation.
+     */
+    public static class Put extends KeyValueOperation {
+        public Put() {
+        }
+
+        public Put(String key, byte[] value) {
+            super(key, value);
+        }
+    }
+
+    /**
+     * Remove operation.
+     */
+    public static class Remove extends KeyOperation {
+        public Remove() {
+        }
+
+        public Remove(String key) {
+            super(key);
+        }
+    }
+
+    /**
+     * Remove if value match operation.
+     */
+    public static class RemoveValue extends KeyValueOperation {
+        public RemoveValue() {
+        }
+
+        public RemoveValue(String key, byte[] value) {
+            super(key, value);
+        }
+    }
+
+    /**
+     * Remove if version match operation.
+     */
+    public static class RemoveVersion extends KeyVersionOperation {
+        public RemoveVersion() {
+        }
+
+        public RemoveVersion(String key, long version) {
+            super(key, version);
+        }
+    }
+
+    /**
+     * Replace operation.
+     */
+    public static class Replace extends KeyValueOperation {
+        public Replace() {
+        }
+
+        public Replace(String key, byte[] value) {
+            super(key, value);
+        }
+    }
+
+    /**
+     * Replace by value operation.
+     */
+    public static class ReplaceValue extends KeyOperation {
+        private byte[] oldValue;
+        private byte[] newValue;
+
+        public ReplaceValue() {
+        }
+
+        public ReplaceValue(String key, byte[] oldValue, byte[] newValue) {
+            super(key);
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        public byte[] oldValue() {
+            return oldValue;
+        }
+
+        public byte[] newValue() {
+            return newValue;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                    .add("key", key)
+                    .add("oldValue", ArraySizeHashPrinter.of(oldValue))
+                    .add("newValue", ArraySizeHashPrinter.of(newValue))
+                    .toString();
+        }
+    }
+
+    /**
+     * Replace by version operation.
+     */
+    public static class ReplaceVersion extends KeyOperation {
+        private long oldVersion;
+        private byte[] newValue;
+
+        public ReplaceVersion() {
+        }
+
+        public ReplaceVersion(String key, long oldVersion, byte[] newValue) {
+            super(key);
+            this.oldVersion = oldVersion;
+            this.newValue = newValue;
+        }
+
+        public long oldVersion() {
+            return oldVersion;
+        }
+
+        public byte[] newValue() {
+            return newValue;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                    .add("key", key)
+                    .add("oldVersion", oldVersion)
+                    .add("newValue", ArraySizeHashPrinter.of(newValue))
+                    .toString();
         }
     }
 
@@ -232,7 +439,7 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .add("transactionLog", transactionLog)
                     .toString();
         }
@@ -275,7 +482,7 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .add("transactionId", transactionId)
                     .toString();
         }
@@ -305,74 +512,8 @@ public enum AtomixConsistentMapOperations implements OperationId {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(getClass())
+            return toStringHelper(getClass())
                     .add("transactionId", transactionId)
-                    .toString();
-        }
-    }
-
-    /**
-     * Map update command.
-     */
-    @SuppressWarnings("serial")
-    public static class UpdateAndGet extends MapOperation {
-        private String key;
-        private byte[] value;
-        private Match<byte[]> valueMatch;
-        private Match<Long> versionMatch;
-
-        public UpdateAndGet() {
-        }
-
-        public UpdateAndGet(String key,
-                        byte[] value,
-                        Match<byte[]> valueMatch,
-                        Match<Long> versionMatch) {
-            this.key = key;
-            this.value = value;
-            this.valueMatch = valueMatch;
-            this.versionMatch = versionMatch;
-        }
-
-        /**
-         * Returns the key.
-         * @return key
-         */
-        public String key() {
-            return this.key;
-        }
-
-        /**
-         * Returns the value.
-         * @return value
-         */
-        public byte[] value() {
-            return this.value;
-        }
-
-        /**
-         * Returns the value match.
-         * @return value match
-         */
-        public Match<byte[]> valueMatch() {
-            return this.valueMatch;
-        }
-
-        /**
-         * Returns the version match.
-         * @return version match
-         */
-        public Match<Long> versionMatch() {
-            return this.versionMatch;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(getClass())
-                    .add("key", key)
-                    .add("value", value)
-                    .add("valueMatch", valueMatch)
-                    .add("versionMatch", versionMatch)
                     .toString();
         }
     }
@@ -412,6 +553,14 @@ public enum AtomixConsistentMapOperations implements OperationId {
          */
         public byte[] defaultValue() {
             return defaultValue;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                    .add("key", key)
+                    .add("defaultValue", ArraySizeHashPrinter.of(defaultValue))
+                    .toString();
         }
     }
 }

@@ -34,15 +34,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * state machine operations.
  */
 public enum AtomixConsistentTreeMapOperations implements OperationId {
-    CONTAINS_KEY("containsKey", OperationType.QUERY),
-    CONTAINS_VALUE("containsValue", OperationType.QUERY),
-    ENTRY_SET("entrySet", OperationType.QUERY),
-    GET("get", OperationType.QUERY),
-    GET_OR_DEFAULT("getOrDefault", OperationType.QUERY),
-    IS_EMPTY("isEmpty", OperationType.QUERY),
-    KEY_SET("keySet", OperationType.QUERY),
-    SIZE("size", OperationType.QUERY),
-    VALUES("values", OperationType.QUERY),
     SUB_MAP("subMap", OperationType.QUERY),
     FIRST_KEY("firstKey", OperationType.QUERY),
     LAST_KEY("lastKey", OperationType.QUERY),
@@ -57,11 +48,7 @@ public enum AtomixConsistentTreeMapOperations implements OperationId {
     CEILING_ENTRY("ceilingEntry", OperationType.QUERY),
     CEILING_KEY("ceilingKey", OperationType.QUERY),
     HIGHER_ENTRY("higherEntry", OperationType.QUERY),
-    HIGHER_KEY("higherKey", OperationType.QUERY),
-    UPDATE_AND_GET("updateAndGet", OperationType.COMMAND),
-    CLEAR("clear", OperationType.COMMAND),
-    ADD_LISTENER("addListener", OperationType.COMMAND),
-    REMOVE_LISTENER("removeListener", OperationType.COMMAND);
+    HIGHER_KEY("higherKey", OperationType.QUERY);
 
     private final String id;
     private final OperationType type;
@@ -83,11 +70,7 @@ public enum AtomixConsistentTreeMapOperations implements OperationId {
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()
             .register(KryoNamespaces.BASIC)
-            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-            .register(ContainsKey.class)
-            .register(ContainsValue.class)
-            .register(Get.class)
-            .register(GetOrDefault.class)
+            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
             .register(LowerKey.class)
             .register(LowerEntry.class)
             .register(HigherKey.class)
@@ -96,11 +79,7 @@ public enum AtomixConsistentTreeMapOperations implements OperationId {
             .register(FloorEntry.class)
             .register(CeilingKey.class)
             .register(CeilingEntry.class)
-            .register(UpdateAndGet.class)
-            .register(Match.class)
             .register(Versioned.class)
-            .register(MapEntryUpdateResult.class)
-            .register(MapEntryUpdateResult.Status.class)
             .register(AbstractMap.SimpleImmutableEntry.class)
             .register(Maps.immutableEntry("", "").getClass())
             .build("AtomixConsistentTreeMapOperations");

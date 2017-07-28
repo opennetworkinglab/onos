@@ -30,11 +30,14 @@ public class MapEventTest {
     private final Versioned<Integer> vStatsNew = new Versioned<>(2, 2);
     private final Versioned<Integer> vStatsOld = new Versioned<>(1, 1);
 
-    private final MapEvent<String, Integer> stats1 = new MapEvent<>("a", "1", vStatsNew, null);
+    private final MapEvent<String, Integer> stats1 =
+            new MapEvent<>(MapEvent.Type.INSERT, "a", "1", vStatsNew, null);
 
-    private final MapEvent<String, Integer> stats2 = new MapEvent<>("a", "1", null, vStatsOld);
+    private final MapEvent<String, Integer> stats2 =
+            new MapEvent<>(MapEvent.Type.REMOVE, "a", "1", null, vStatsOld);
 
-    private final MapEvent<String, Integer> stats3 = new MapEvent<>("a", "1", vStatsNew, vStatsOld);
+    private final MapEvent<String, Integer> stats3 =
+            new MapEvent<>(MapEvent.Type.UPDATE, "a", "1", vStatsNew, vStatsOld);
 
     /**
      * Tests the creation of the MapEvent object.

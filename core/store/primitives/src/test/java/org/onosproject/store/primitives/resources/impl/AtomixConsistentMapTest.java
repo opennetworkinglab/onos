@@ -255,7 +255,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase<AtomixConsistentMap>
 
         map.computeIfPresent("bar", (k, v) -> value2).thenAccept(result -> {
             assertNull(result);
-        });
+        }).join();
 
         map.computeIfPresent("foo", (k, v) -> value3).thenAccept(result -> {
             assertTrue(Arrays.equals(Versioned.valueOrElse(result, null), value3));

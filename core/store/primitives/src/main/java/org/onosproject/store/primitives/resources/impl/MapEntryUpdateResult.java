@@ -15,12 +15,8 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.function.Function;
-
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.Versioned;
-
 import com.google.common.base.MoreObjects;
+import org.onosproject.store.service.Versioned;
 
 /**
  * Result of a map entry update operation.
@@ -57,18 +53,16 @@ public class MapEntryUpdateResult<K, V> {
         PRECONDITION_FAILED
     }
 
-    private final String mapName;
-    private Status status;
+    private final Status status;
+    private final long version;
     private final K key;
-    private final Versioned<V> oldValue;
-    private final Versioned<V> newValue;
+    private final Versioned<V> result;
 
-    public MapEntryUpdateResult(Status status, String mapName, K key, Versioned<V> oldValue, Versioned<V> newValue) {
+    public MapEntryUpdateResult(Status status, long version, K key, Versioned<V> result) {
         this.status = status;
-        this.mapName = mapName;
+        this.version = version;
         this.key = key;
-        this.oldValue = oldValue;
-        this.newValue = newValue;
+        this.result = result;
     }
 
     /**
@@ -80,14 +74,6 @@ public class MapEntryUpdateResult<K, V> {
     }
 
     /**
-     * Returns the map name.
-     * @return map name
-     */
-    public String mapName() {
-        return mapName;
-    }
-
-    /**
      * Returns the update status.
      * @return update status
      */
@@ -96,65 +82,27 @@ public class MapEntryUpdateResult<K, V> {
     }
 
     /**
-     * Returns the map key.
-     * @return key
+     * Returns the result version.
+     * @return result version
      */
-    public K key() {
-        return key;
+    public long version() {
+        return version;
     }
 
     /**
-     * Returns the old value.
-     * @return the previous value associated with key if updated was successful, otherwise current value
+     * Returns the value.
+     * @return the value associated with key if updated was successful, otherwise current value
      */
-    public Versioned<V> oldValue() {
-        return oldValue;
-    }
-
-    /**
-     * Returns the new value after update.
-     * @return if updated was unsuccessful, this is same as old value
-     */
-    public Versioned<V> newValue() {
-        return newValue;
-    }
-
-    /**
-     * Maps to another instance with different key and value types.
-     * @param keyTransform transformer to use for transcoding keys
-     * @param valueMapper mapper to use for transcoding values
-     * @return new instance
-     * @param <K1> key type of returned {@code MapEntryUpdateResult}
-     * @param <V1> value type of returned {@code MapEntryUpdateResult}
-     */
-    public <K1, V1> MapEntryUpdateResult<K1, V1> map(Function<K, K1> keyTransform, Function<V, V1> valueMapper) {
-        return new MapEntryUpdateResult<>(status,
-                mapName,
-                keyTransform.apply(key),
-                oldValue == null ? null : oldValue.map(valueMapper),
-                newValue == null ? null : newValue.map(valueMapper));
-    }
-
-    /**
-     * Return the map event that will be generated as a result of this update.
-     * @return map event. if update was unsuccessful, this returns {@code null}
-     */
-    public MapEvent<K, V> toMapEvent() {
-        if (!updated()) {
-            return null;
-        } else {
-            return new MapEvent<>(mapName(), key(), newValue, oldValue);
-        }
+    public Versioned<V> result() {
+        return result;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(MapEntryUpdateResult.class)
-                .add("mapName", mapName)
                 .add("status", status)
                 .add("key", key)
-                .add("oldValue", oldValue)
-                .add("newValue", newValue)
+                .add("result", result)
                 .toString();
     }
 }

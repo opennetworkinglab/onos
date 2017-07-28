@@ -176,7 +176,6 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
             .register(AtomixConsistentMapOperations.class)
             .register(AtomixConsistentSetMultimapOperations.class)
             .register(AtomixConsistentSetMultimapEvents.class)
-            .register(AtomixConsistentTreeMapEvents.class)
             .register(AtomixConsistentTreeMapOperations.class)
             .register(AtomixCounterOperations.class)
             .register(AtomixDocumentTreeEvents.class)

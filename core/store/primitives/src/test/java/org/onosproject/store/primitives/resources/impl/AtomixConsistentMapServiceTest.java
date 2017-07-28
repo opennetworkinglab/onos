@@ -26,14 +26,14 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.StorageLevel;
 import io.atomix.time.WallClockTimestamp;
 import org.junit.Test;
-import org.onlab.util.Match;
 import org.onosproject.store.service.Versioned;
 
 import static org.easymock.EasyMock.mock;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.UPDATE_AND_GET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PUT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.Put;
 
 /**
  * Consistent map service test.
@@ -49,10 +49,10 @@ public class AtomixConsistentMapServiceTest {
         Snapshot snapshot = store.newSnapshot(ServiceId.from(1), 2, new WallClockTimestamp());
 
         AtomixConsistentMapService service = new AtomixConsistentMapService();
-        service.updateAndGet(new DefaultCommit<>(
+        service.put(new DefaultCommit<>(
                 2,
-                UPDATE_AND_GET,
-                new AtomixConsistentMapOperations.UpdateAndGet("foo", "Hello world!".getBytes(), Match.ANY, Match.ANY),
+                PUT,
+                new Put("foo", "Hello world!".getBytes()),
                 mock(RaftSessionContext.class),
                 System.currentTimeMillis()));
 
