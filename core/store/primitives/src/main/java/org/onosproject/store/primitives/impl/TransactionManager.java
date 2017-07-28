@@ -49,7 +49,7 @@ public class TransactionManager {
     private final List<PartitionId> sortedPartitions;
     private final AsyncConsistentMap<TransactionId, Transaction.State> transactions;
     private final int cacheSize;
-    private final Map<PartitionId, Cache<String, AsyncConsistentMap>> partitionCache = Maps.newConcurrentMap();
+    private final Map<PartitionId, Cache<String, CachedMap>> partitionCache = Maps.newConcurrentMap();
 
     public TransactionManager(StorageService storageService, PartitionService partitionService) {
         this(storageService, partitionService, DEFAULT_CACHE_SIZE);
@@ -113,18 +113,17 @@ public class TransactionManager {
             PartitionId partitionId,
             Serializer serializer,
             TransactionCoordinator transactionCoordinator) {
-        Cache<String, AsyncConsistentMap> mapCache = partitionCache.computeIfAbsent(partitionId, p ->
+        Cache<String, CachedMap> mapCache = partitionCache.computeIfAbsent(partitionId, p ->
                 CacheBuilder.newBuilder().maximumSize(cacheSize / partitionService.getNumberOfPartitions()).build());
         try {
-            AsyncConsistentMap<K, V> baseMap = partitionService.getDistributedPrimitiveCreator(partitionId)
-                            .newAsyncConsistentMap(mapName, serializer);
-            AsyncConsistentMap<K, V> asyncMap = mapCache.get(mapName, () ->
-                    DistributedPrimitives.newCachingMap(baseMap));
+            CachedMap<K, V> cachedMap = mapCache.get(mapName,
+                    () -> new CachedMap<>(partitionService.getDistributedPrimitiveCreator(partitionId)
+                            .newAsyncConsistentMap(mapName, serializer)));
 
             Transaction<MapUpdate<K, V>> transaction = new Transaction<>(
                     transactionCoordinator.transactionId,
-                    baseMap);
-            return new DefaultTransactionalMapParticipant<>(asyncMap.asConsistentMap(), transaction);
+                    cachedMap.baseMap);
+            return new DefaultTransactionalMapParticipant<>(cachedMap.cachedMap.asConsistentMap(), transaction);
         } catch (ExecutionException e) {
             throw new TransactionException(e);
         }
@@ -149,5 +148,15 @@ public class TransactionManager {
      */
     CompletableFuture<Void> remove(TransactionId transactionId) {
         return transactions.remove(transactionId).thenApply(v -> null);
+    }
+
+    private static class CachedMap<K, V> {
+        private final AsyncConsistentMap<K, V> baseMap;
+        private final AsyncConsistentMap<K, V> cachedMap;
+
+        public CachedMap(AsyncConsistentMap<K, V> baseMap) {
+            this.baseMap = baseMap;
+            this.cachedMap = DistributedPrimitives.newCachingMap(baseMap);
+        }
     }
 }
