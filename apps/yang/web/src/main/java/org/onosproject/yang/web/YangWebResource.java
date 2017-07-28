@@ -25,6 +25,7 @@ import org.onosproject.yang.compiler.api.YangCompilationParam;
 import org.onosproject.yang.compiler.api.YangCompilerService;
 import org.onosproject.yang.compiler.datamodel.YangNode;
 import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
+import org.onosproject.yang.compiler.tool.YangCompilerManager;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
@@ -48,9 +49,9 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static org.onosproject.yang.compiler.datamodel.utils.DataModelUtils.deSerializeDataModel;
+import static org.onosproject.yang.compiler.tool.YangCompilerManager.deSerializeDataModel;
+import static org.onosproject.yang.compiler.tool.YangCompilerManager.processYangModel;
 import static org.onosproject.yang.compiler.utils.io.impl.YangIoUtils.deleteDirectory;
-import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.processYangModel;
 
 /**
  * Yang files upload resource.
@@ -141,39 +142,40 @@ public class YangWebResource extends AbstractWebResource {
 
     private YangCompilationParam createCompilationParam(List<File> inputFiles)
             throws IOException {
-        YangCompilationParam param = new DefaultYangCompilationParam();
+        DefaultYangCompilationParam.Builder builder = DefaultYangCompilationParam.builder();
         for (File file : inputFiles) {
             if (file.getName().endsWith(JAR_FILE_EXTENSION)
                     || file.getName().endsWith(ZIP_FILE_EXTENSION)) {
                 List<File> files = decompressFile(file);
 
                 for (File f : files) {
-                    param = addToParam(param, f);
+                    addToParam(builder, f);
                 }
             } else {
-                param = addToParam(param, file);
+                addToParam(builder, file);
             }
         }
-        param.setCodeGenDir(Paths.get(CODE_GEN_DIR));
-        param.setMetadataGenDir(Paths.get(YANG_RESOURCES));
-        return param;
+        builder.setCodeGenDir(Paths.get(CODE_GEN_DIR));
+        builder.setMetadataGenDir(Paths.get(YANG_RESOURCES));
+        return builder.build();
     }
 
-    private YangCompilationParam addToParam(YangCompilationParam param,
+    private void addToParam(DefaultYangCompilationParam.Builder builder,
                                             File file) {
         if (file.getName().endsWith(YANG_FILE_EXTENSION)) {
-            param.addYangFile(Paths.get(file.getAbsolutePath()));
+            builder.addYangFile(Paths.get(file.getAbsolutePath()));
         } else if (file.getName().endsWith(SER_FILE_EXTENSION)) {
-            param.addDependentSchema(Paths.get(file.getAbsolutePath()));
+            builder.addDependentSchema(Paths.get(file.getAbsolutePath()));
         }
-        return param;
     }
 
     private ModelRegistrationParam getModelRegParam() throws IOException {
         String metaPath = YANG_RESOURCES + SERIALIZED_FILE_NAME;
         List<YangNode> curNodes = getYangNodes(metaPath);
+        // FIXME: extract or derive the model id from the web request
+        String modelId = "unknown";
         if (curNodes != null && !curNodes.isEmpty()) {
-            YangModel model = processYangModel(metaPath, curNodes);
+            YangModel model = processYangModel(metaPath, curNodes, modelId, false);
             return DefaultModelRegistrationParam.builder()
                     .setYangModel(model).build();
         }
@@ -184,7 +186,7 @@ public class YangWebResource extends AbstractWebResource {
         List<YangNode> nodes = new LinkedList<>();
         File file = new File(path);
         if (file.getName().endsWith(SER_FILE_EXTENSION)) {
-            nodes.addAll(deSerializeDataModel(file.toString()));
+            nodes.addAll(YangCompilerManager.getYangNodes(deSerializeDataModel(file.toString())));
         }
         return nodes;
     }

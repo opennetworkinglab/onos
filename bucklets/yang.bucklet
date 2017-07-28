@@ -17,6 +17,7 @@ YANG_TOOLS = [
 def yang_model(
     name = None,
     app_name = None,
+    model_id = None,
     title = 'YANG Model',
     url = 'http://onosproject.org',
     description = None,
@@ -27,6 +28,9 @@ def yang_model(
     if name is None:
         name = _get_name()
 
+    if model_id is None:
+        model_id = app_name
+
     yang = name + '-yang'
     yangSrcs = yang + '#srcs'
     schema = name + '-schema'
@@ -35,6 +39,7 @@ def yang_model(
     yang_library(
       name = yang,
       srcs = glob(['**/*.yang'], excludes=['**/target/**']),
+      model_id = model_id
     )
 
     genrule(
@@ -74,6 +79,7 @@ def yang_model(
 def yang_osgi_jar(
     name = None,
     srcs = None,
+    model_id = None,
     group_id = ONOS_GROUP_ID,
     version = ONOS_VERSION,
     deps = [],
@@ -85,6 +91,8 @@ def yang_osgi_jar(
     if name is None:
         name = _get_name()
 
+    if model_id is None:
+        model_id = name
     yang_jar = name + '-yang'
     bnd_jar = name + '-bnd'
 
@@ -94,6 +102,7 @@ def yang_osgi_jar(
       deps = deps,
       name = yang_jar,
       srcs = srcs,
+      model_id = model_id,
       visibility = [ ],
     )
 

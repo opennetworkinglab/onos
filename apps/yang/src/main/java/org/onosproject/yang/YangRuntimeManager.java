@@ -29,9 +29,12 @@ import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.RpcContext;
 import org.onosproject.yang.model.SchemaContext;
 import org.onosproject.yang.model.SchemaContextProvider;
 import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.model.YangModule;
+import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
@@ -41,6 +44,7 @@ import org.onosproject.yang.runtime.YangRuntimeService;
 import org.onosproject.yang.runtime.YangSerializer;
 import org.onosproject.yang.runtime.YangSerializerRegistry;
 import org.onosproject.yang.runtime.impl.DefaultModelConverter;
+import org.onosproject.yang.runtime.impl.DefaultSchemaContextProvider;
 import org.onosproject.yang.runtime.impl.DefaultYangModelRegistry;
 import org.onosproject.yang.runtime.impl.DefaultYangRuntimeHandler;
 import org.onosproject.yang.runtime.impl.DefaultYangSerializerRegistry;
@@ -73,14 +77,15 @@ public class YangRuntimeManager implements YangModelRegistry,
     private DefaultYangSerializerRegistry serializerRegistry;
     private DefaultYangRuntimeHandler runtimeService;
     private DefaultModelConverter modelConverter;
+    private DefaultSchemaContextProvider schemaContextProvider;
 
     @Activate
     public void activate() {
         coreService.registerApplication(APP_ID);
         serializerRegistry = new DefaultYangSerializerRegistry();
         modelRegistry = new DefaultYangModelRegistry();
-        runtimeService =
-                new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
+        runtimeService = new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
+        schemaContextProvider = new DefaultSchemaContextProvider(modelRegistry);
         serializerRegistry.registerSerializer(new JsonSerializer());
         serializerRegistry.registerSerializer(new XmlSerializer());
         modelConverter = new DefaultModelConverter(modelRegistry);
@@ -106,6 +111,16 @@ public class YangRuntimeManager implements YangModelRegistry,
     @Override
     public Set<YangModel> getModels() {
         return modelRegistry.getModels();
+    }
+
+    @Override
+    public YangModel getModel(String s) {
+        return modelRegistry.getModel(s);
+    }
+
+    @Override
+    public YangModule getModule(YangModuleId yangModuleId) {
+        return modelRegistry.getModule(yangModuleId);
     }
 
     @Override
@@ -153,5 +168,10 @@ public class YangRuntimeManager implements YangModelRegistry,
         }
         log.info("To be implemented.");
         return null;
+    }
+
+    @Override
+    public RpcContext getRpcContext(ResourceId resourceId) {
+        return schemaContextProvider.getRpcContext(resourceId);
     }
 }

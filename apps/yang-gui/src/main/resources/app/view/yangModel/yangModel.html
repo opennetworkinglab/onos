@@ -15,9 +15,9 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="id" sortable>Module</td>
+                    <td colId="modelId" col-width="450px" sortable>Model ID</td>
+                    <td colId="id" col-width="450px" sortable>Module</td>
                     <td colId="revision" sortable>Revision</td>
-                    <td colId="modelId" col-width="130px" sortable>Model ID</td>
                     <!-- TODO: More columns to be added -->
                 </tr>
             </table>
@@ -36,9 +36,9 @@
                     ng-click="selectCallback($event, ymodel)"
                     ng-class="{selected: ymodel.id === selId}"
                     ng-repeat-complete row-id="{{ymodel.id}}">
+                    <td>{{ymodel.modelId}}</td>
                     <td>{{ymodel.id}}</td>
                     <td>{{ymodel.revision}}</td>
-                    <td>{{ymodel.modelId}}</td>
                     <!-- TODO: add more columns here -->
                 </tr>
             </table>

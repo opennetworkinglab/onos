@@ -110,7 +110,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
         protected void populateTable(TableModel tm, ObjectNode payload) {
             for (YangModel model : modelRegistry.getModels()) {
                 for (YangModuleId id : model.getYangModulesId()) {
-                    populateRow(tm.addRow(), modelId(model), id);
+                    populateRow(tm.addRow(), model.getYangModelId(), id);
                 }
             }
         }
@@ -172,7 +172,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
         int nid = Integer.parseInt(modelId.substring(2));
         log.info("Got {}; {}", modelId, nid);
         YangModel model = modelRegistry.getModels().stream()
-                .filter(m -> modelId(m).equals(modelId))
+                .filter(m -> m.getYangModelId().equals(modelId))
                 .findFirst().orElse(null);
         if (model != null) {
             log.info("Got model");
@@ -183,7 +183,4 @@ public class YangModelMessageHandler extends UiMessageHandler {
         return null;
     }
 
-    private String modelId(YangModel m) {
-        return "YM" + Math.abs(m.hashCode());
-    }
 }
