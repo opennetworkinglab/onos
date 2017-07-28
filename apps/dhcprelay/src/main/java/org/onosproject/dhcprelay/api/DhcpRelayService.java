@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.onosproject.dhcprelay;
+package org.onosproject.dhcprelay.api;
 
 import org.onlab.packet.MacAddress;
 import org.onosproject.dhcprelay.store.DhcpRecord;

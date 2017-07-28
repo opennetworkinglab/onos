@@ -33,7 +33,6 @@ public class DhcpRelayConfig extends Config<ApplicationId> {
 
     @Override
     public boolean isValid() {
-
         return hasOnlyFields(DHCP_CONNECT_POINT, DHCP_SERVER_IP, DHCP_GATEWAY_IP) &&
                 isConnectPoint(DHCP_CONNECT_POINT, MANDATORY) &&
                 isIpAddress(DHCP_SERVER_IP, MANDATORY) &&

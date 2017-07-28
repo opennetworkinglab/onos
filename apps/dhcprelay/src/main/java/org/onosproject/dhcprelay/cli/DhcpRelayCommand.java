@@ -27,7 +27,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.DhcpRelayConfig;
 import org.onosproject.dhcprelay.DhcpRelayManager;
-import org.onosproject.dhcprelay.DhcpRelayService;
+import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;

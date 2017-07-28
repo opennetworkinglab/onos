@@ -186,13 +186,20 @@ public class DhcpRelayManagerTest {
         mockHostStore = new MockHostStore();
         mockRouteStore = new MockRouteStore();
         mockDhcpRelayStore = new MockDhcpRelayStore();
-
-        manager.hostStore = mockHostStore;
-        manager.routeStore = mockRouteStore;
         manager.dhcpRelayStore = mockDhcpRelayStore;
 
         manager.interfaceService = new MockInterfaceService();
 
+        Dhcp4HandlerImpl v4Handler = new Dhcp4HandlerImpl();
+        v4Handler.dhcpRelayStore = mockDhcpRelayStore;
+        v4Handler.hostService = manager.hostService;
+        v4Handler.hostStore = mockHostStore;
+        v4Handler.interfaceService = manager.interfaceService;
+        v4Handler.packetService = manager.packetService;
+        v4Handler.routeStore = mockRouteStore;
+        manager.v4Handler = v4Handler;
+
+        // TODO: initialize v6 handler.
         // properties
         Dictionary<String, Object> dictionary = createNiceMock(Dictionary.class);
         expect(dictionary.get("arpEnabled")).andReturn(true).anyTimes();
