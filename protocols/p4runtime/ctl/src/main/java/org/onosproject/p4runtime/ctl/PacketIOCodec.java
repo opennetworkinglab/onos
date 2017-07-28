@@ -17,19 +17,24 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.protobuf.ByteString;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.slf4j.Logger;
-import p4.P4RuntimeOuterClass;
 import p4.config.P4InfoOuterClass;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.onosproject.p4runtime.ctl.P4InfoBrowser.*;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.p4runtime.ctl.P4InfoBrowser.NotFoundException;
 import static org.slf4j.LoggerFactory.getLogger;
+import static p4.P4RuntimeOuterClass.PacketIn;
 import static p4.P4RuntimeOuterClass.PacketMetadata;
+import static p4.P4RuntimeOuterClass.PacketOut;
 
 /**
  * Encoder of packet metadata, from ONOS Pi* format, to P4Runtime protobuf messages, and vice versa.
@@ -39,6 +44,8 @@ final class PacketIOCodec {
     private static final Logger log = getLogger(PacketIOCodec.class);
 
     private static final String PACKET_OUT = "packet_out";
+
+    private static final String PACKET_IN = "packet_in";
 
     // TODO: implement cache of encoded entities.
 
@@ -54,12 +61,12 @@ final class PacketIOCodec {
      * <p>
      * Please check the log for an explanation of any error that might have occurred.
      *
-     * @param packet   PI pakcet operation
+     * @param packet   PI packet operation
      * @param pipeconf the pipeconf for the program on the switch
      * @return a P4Runtime packet out protobuf message
      * @throws NotFoundException if the browser can't find the packet_out in the given p4Info
      */
-    static P4RuntimeOuterClass.PacketOut encodePacketOut(PiPacketOperation packet, PiPipeconf pipeconf)
+    static PacketOut encodePacketOut(PiPacketOperation packet, PiPipeconf pipeconf)
             throws NotFoundException {
 
         //Get the P4browser
@@ -68,7 +75,7 @@ final class PacketIOCodec {
         //Get the packet out packet metadata
         P4InfoOuterClass.ControllerPacketMetadata controllerPacketMetadata =
                 browser.controllerPacketMetadatas().getByName(PACKET_OUT);
-        P4RuntimeOuterClass.PacketOut.Builder packetOutBuilder = P4RuntimeOuterClass.PacketOut.newBuilder();
+        PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
 
         //outer controller packet metadata id
         int controllerPacketMetadataId = controllerPacketMetadata.getPreamble().getId();
@@ -102,6 +109,55 @@ final class PacketIOCodec {
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    //TODO: add decode packets
+    /**
+     * Returns a PiPacketOperation, decoded from the given P4Runtime PacketIn protobuf message
+     * for the given pipeconf. If a PI packet metadata inside the protobuf message cannot be decoded,
+     * it is skipped, hence the returned PiPacketOperation collection of metadatas might have different
+     * size than the input one.
+     * <p>
+     * Please check the log for an explanation of any error that might have occurred.
+     *
+     * @param packetIn the P4Runtime PAcketIn message
+     * @param pipeconf the pipeconf for the program on the switch
+     * @return a PiPacketOperation
+     */
+    static PiPacketOperation decodePacketIn(PacketIn packetIn, PiPipeconf pipeconf) {
+
+        //Get the P4browser
+        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+
+        //Transform the packetIn data
+        ImmutableByteSequence data = copyFrom(packetIn.getPayload().asReadOnlyByteBuffer());
+
+        //Build the PiPacketOperation with all the metadatas.
+        return PiPacketOperation.builder()
+                .withType(PiPacketOperation.Type.PACKET_IN)
+                .withMetadatas(decodePacketMetadata(packetIn.getMetadataList(), browser))
+                .withData(data)
+                .build();
+    }
+
+    private static List<PiPacketMetadata> decodePacketMetadata(List<PacketMetadata> packetMetadatas,
+                                                               P4InfoBrowser browser) {
+        return packetMetadatas.stream().map(packetMetadata -> {
+            try {
+
+                int controllerPacketMetadataId = packetMetadata.getMetadataId();
+                //convert id to name through p4Info
+                P4InfoOuterClass.ControllerPacketMetadata metadata =
+                        browser.controllerPacketMetadatas().getById(controllerPacketMetadataId);
+                PiPacketMetadataId metadataId = PiPacketMetadataId.of(metadata.getPreamble().getName());
+
+                //Build each metadata.
+                return PiPacketMetadata.builder()
+                        .withId(metadataId)
+                        .withValue(ImmutableByteSequence.copyFrom(packetMetadata.getValue().asReadOnlyByteBuffer()))
+                        .build();
+            } catch (NotFoundException e) {
+                log.error("Cant find metadata with id {} in p4Info file.", packetMetadata.getMetadataId());
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
 
 }

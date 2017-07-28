@@ -16,7 +16,6 @@
 
 package org.onosproject.p4runtime.ctl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.ByteString;
 import io.grpc.Context;
@@ -24,10 +23,11 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import org.onlab.util.ImmutableByteSequence;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
@@ -68,7 +68,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -407,13 +406,26 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 case PACKET:
                     // Packet-in
                     PacketIn packetIn = message.getPacket();
-                    ImmutableByteSequence data = copyFrom(packetIn.getPayload().asReadOnlyByteBuffer());
-                    ImmutableList.Builder<ImmutableByteSequence> metadataBuilder = ImmutableList.builder();
-                    packetIn.getMetadataList().stream()
-                            .map(m -> m.getValue().asReadOnlyByteBuffer())
-                            .map(ImmutableByteSequence::copyFrom)
-                            .forEach(metadataBuilder::add);
-                    P4RuntimeEvent event = new DefaultPacketInEvent(deviceId, data, metadataBuilder.build());
+
+                    // Retrieve the pipeconf for the specific device
+                    PiPipeconfService pipeconfService = DefaultServiceDirectory.getService(PiPipeconfService.class);
+                    if (pipeconfService == null) {
+                        throw new IllegalStateException("PiPipeconfService is null. Can't handle packet in.");
+                    }
+
+                    final PiPipeconf pipeconf;
+                    if (pipeconfService.ofDevice(deviceId).isPresent() &&
+                            pipeconfService.getPipeconf(pipeconfService.ofDevice(deviceId).get()).isPresent()) {
+                        pipeconf = pipeconfService.getPipeconf(pipeconfService.ofDevice(deviceId).get()).get();
+                    } else {
+                        log.warn("Unable to get the pipeconf of the {}. Can't handle packet in", deviceId);
+                        return;
+                    }
+                    //decode the packet and generate a corresponding p4Runtime event containing the PiPacketOperation
+                    P4RuntimeEvent event =
+                            new DefaultPacketInEvent(deviceId, PacketIOCodec.decodePacketIn(packetIn, pipeconf));
+
+                    //posting the event upwards
                     controller.postEvent(event);
                     return;
 

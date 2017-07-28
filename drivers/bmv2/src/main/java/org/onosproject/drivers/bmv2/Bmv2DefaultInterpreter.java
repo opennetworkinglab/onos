@@ -18,7 +18,10 @@ package org.onosproject.drivers.bmv2;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
+import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -27,6 +30,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.packet.DefaultInboundPacket;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -77,6 +82,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
             0, PiTableId.of(TABLE0));
+    public static final String INGRESS_PORT = "ingress_port";
 
 
     @Override
@@ -147,6 +153,39 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
             }
         }
         return builder.build();
+    }
+
+    @Override
+    public InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetIn)
+            throws PiInterpreterException {
+
+        //We are assuming that the packet is ethernet type
+        Ethernet ethPkt = new Ethernet();
+
+        ethPkt.deserialize(packetIn.data().asArray(), 0, packetIn.data().size());
+
+        //Returns the ingress port packet metadata
+        Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas()
+                .stream().filter(metadata -> metadata.id().name().equals(INGRESS_PORT))
+                .findFirst();
+
+        if (packetMetadata.isPresent()) {
+
+            //Obtaining the ingress port as an immutable byte sequence
+            ImmutableByteSequence portByteSequence = packetMetadata.get().value();
+
+            //Converting immutableByteSequence to short
+            short s = portByteSequence.asReadOnlyBuffer().getShort();
+
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(s));
+
+            //FIXME should be optimizable with .asReadOnlyBytebuffer
+            ByteBuffer rawData = ByteBuffer.wrap(packetIn.data().asArray());
+            return new DefaultInboundPacket(receivedFrom, ethPkt, rawData);
+
+        } else {
+            throw new PiInterpreterException("Can't get packet metadata for" + INGRESS_PORT);
+        }
     }
 
     private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber) throws PiInterpreterException {

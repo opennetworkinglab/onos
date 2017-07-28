@@ -17,15 +17,13 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.common.base.Objects;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
 import org.onosproject.p4runtime.api.P4RuntimeEventSubject;
 import org.onosproject.p4runtime.api.P4RuntimePacketIn;
-
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,9 +34,8 @@ final class DefaultPacketInEvent
         extends AbstractEvent<P4RuntimeEventListener.Type, P4RuntimeEventSubject>
         implements P4RuntimeEvent {
 
-    DefaultPacketInEvent(DeviceId deviceId, ImmutableByteSequence data,
-                                   List<ImmutableByteSequence> metadata) {
-        super(P4RuntimeEventListener.Type.PACKET_IN, new DefaultPacketIn(deviceId, data, metadata));
+    DefaultPacketInEvent(DeviceId deviceId, PiPacketOperation operation) {
+        super(P4RuntimeEventListener.Type.PACKET_IN, new DefaultPacketIn(deviceId, operation));
     }
 
     /**
@@ -47,13 +44,11 @@ final class DefaultPacketInEvent
     private static final class DefaultPacketIn implements P4RuntimePacketIn {
 
         private final DeviceId deviceId;
-        private final ImmutableByteSequence data;
-        private final List<ImmutableByteSequence> metadata;
+        private final PiPacketOperation operation;
 
-        private DefaultPacketIn(DeviceId deviceId, ImmutableByteSequence data, List<ImmutableByteSequence> metadata) {
+        private DefaultPacketIn(DeviceId deviceId, PiPacketOperation operation) {
             this.deviceId = checkNotNull(deviceId);
-            this.data = checkNotNull(data);
-            this.metadata = checkNotNull(metadata);
+            this.operation = checkNotNull(operation);
         }
 
         @Override
@@ -62,13 +57,8 @@ final class DefaultPacketInEvent
         }
 
         @Override
-        public ImmutableByteSequence data() {
-            return data;
-        }
-
-        @Override
-        public List<ImmutableByteSequence> metadata() {
-            return metadata;
+        public PiPacketOperation packetOperation() {
+            return operation;
         }
 
         @Override
@@ -81,13 +71,12 @@ final class DefaultPacketInEvent
             }
             DefaultPacketIn that = (DefaultPacketIn) o;
             return Objects.equal(deviceId, that.deviceId) &&
-                    Objects.equal(data, that.data) &&
-                    Objects.equal(metadata, that.metadata);
+                    Objects.equal(operation, that.operation);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(deviceId, data, metadata);
+            return Objects.hashCode(deviceId, operation);
         }
     }
 }

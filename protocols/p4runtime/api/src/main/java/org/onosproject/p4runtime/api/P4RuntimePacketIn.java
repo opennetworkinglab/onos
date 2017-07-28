@@ -17,10 +17,8 @@
 package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
-
-import java.util.List;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 /**
  * Information about a packet-in received from a P4Runtime device.
@@ -36,17 +34,10 @@ public interface P4RuntimePacketIn extends P4RuntimeEventSubject {
     DeviceId deviceId();
 
     /**
-     * Returns the packet raw data.
+     * Returns the packet operation corresponding to this packet-in event.
      *
-     * @return byte sequence
+     * @return pi packet operation
      */
-    ImmutableByteSequence data();
+    PiPacketOperation packetOperation();
 
-    /**
-     * Returns the list of metadata associated with this packet-in, to be parsed by a
-     * {@link org.onosproject.net.pi.model.PiPipelineInterpreter}.
-     *
-     * @return list of byte sequences
-     */
-    List<ImmutableByteSequence> metadata();
 }

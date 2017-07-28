@@ -30,15 +30,19 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketContext;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProgrammable;
 import org.onosproject.net.packet.PacketProvider;
 import org.onosproject.net.packet.PacketProviderRegistry;
 import org.onosproject.net.packet.PacketProviderService;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
+import org.onosproject.p4runtime.api.P4RuntimePacketIn;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -142,12 +146,25 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
 
         @Override
         public void event(P4RuntimeEvent event) {
-            /**
-             * TODO: handle packet-in event.
-             * The inputport need parse from metadata() of packet_in event,
-             * but support for parsing metadata() is not ready yet.
-             */
-
+            P4RuntimePacketIn eventSubject = (P4RuntimePacketIn) event.subject();
+            if (deviceService.getDevice(eventSubject.deviceId()).is(PiPipelineInterpreter.class)) {
+                PiPacketOperation operation = eventSubject.packetOperation();
+                try {
+                    InboundPacket inPkt = deviceService.getDevice(eventSubject.deviceId())
+                            .as(PiPipelineInterpreter.class)
+                            .mapInboundPacket(eventSubject.deviceId(), operation);
+                    //Creating the corresponding outbound Packet
+                    //FIXME Wrapping of bytebuffer might be optimized with .asReadOnlyByteBuffer()
+                    OutboundPacket outPkt = new DefaultOutboundPacket(eventSubject.deviceId(), null,
+                            ByteBuffer.wrap(operation.data().asArray()));
+                    //Creating PacketContext
+                    PacketContext pktCtx = new P4RuntimePacketContext(System.currentTimeMillis(), inPkt, outPkt, false);
+                    //Sendign the ctx up for processing.
+                    providerService.processPacket(pktCtx);
+                } catch (PiPipelineInterpreter.PiInterpreterException e) {
+                    log.error("Can't properly interpret the packetIn", e);
+                }
+            }
         }
     }
 }

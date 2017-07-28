@@ -17,9 +17,11 @@
 package org.onosproject.net.pi.model;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
@@ -83,6 +85,17 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      * @throws PiInterpreterException if the packet treatments cannot be mapped to any metadata
      */
     Collection<PiPacketOperation> mapOutboundPacket(OutboundPacket packet)
+            throws PiInterpreterException;
+
+    /**
+     * Returns a InboundPacket equivalent to the given packet operation.
+     *
+     * @param deviceId          the device that originated the packet-in
+     * @param packetInOperation the packet operation
+     * @return an ONOS inbound packet
+     * @throws PiInterpreterException if the port can't be extracted from the packet metadata
+     */
+    InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetInOperation)
             throws PiInterpreterException;
 
     /**
