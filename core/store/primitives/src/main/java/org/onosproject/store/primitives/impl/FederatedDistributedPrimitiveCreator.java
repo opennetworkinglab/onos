@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import org.onlab.util.HexString;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
@@ -61,14 +63,20 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
         checkNotNull(name);
         checkNotNull(serializer);
-        Map<PartitionId, AsyncConsistentMap<K, V>> maps =
+        Map<PartitionId, AsyncConsistentMap<String, byte[]>> maps =
                 Maps.transformValues(members,
-                                     partition -> partition.newAsyncConsistentMap(name, serializer));
-        Hasher<K> hasher = key -> {
-            int hashCode = Hashing.sha256().hashBytes(serializer.encode(key)).asInt();
+                                     partition -> partition.newAsyncConsistentMap(name, null));
+        HashFunction hashFunction = Hashing.goodFastHash(32);
+        Hasher<String> hasher = key -> {
+            int hashCode = hashFunction.hashUnencodedChars(key).asInt();
             return sortedMemberPartitionIds.get(Math.abs(hashCode) % members.size());
         };
-        return new PartitionedAsyncConsistentMap<>(name, maps, hasher);
+        AsyncConsistentMap<String, byte[]> partitionedMap = new PartitionedAsyncConsistentMap<>(name, maps, hasher);
+        return DistributedPrimitives.newTranscodingMap(partitionedMap,
+                key -> HexString.toHexString(serializer.encode(key)),
+                string -> serializer.decode(HexString.fromHexString(string)),
+                value -> value == null ? null : serializer.encode(value),
+                bytes -> serializer.decode(bytes));
     }
 
     @Override
