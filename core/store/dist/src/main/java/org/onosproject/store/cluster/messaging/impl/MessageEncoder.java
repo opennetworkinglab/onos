@@ -15,9 +15,10 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
+import java.io.IOException;
+
 import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import org.onlab.packet.IpAddress;
@@ -26,34 +27,55 @@ import org.onosproject.store.cluster.messaging.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * Encode InternalMessage out into a byte buffer.
  */
-@Sharable
 public class MessageEncoder extends MessageToByteEncoder<Object> {
 // Effectively MessageToByteEncoder<InternalMessage>,
 // had to specify <Object> to avoid Class Loader not being able to find some classes.
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final Endpoint endpoint;
     private final int preamble;
+    private boolean endpointWritten;
 
-    public MessageEncoder(int preamble) {
+    public MessageEncoder(Endpoint endpoint, int preamble) {
         super();
+        this.endpoint = endpoint;
         this.preamble = preamble;
     }
-
 
     @Override
     protected void encode(
             ChannelHandlerContext context,
             Object rawMessage,
             ByteBuf out) throws Exception {
+        if (rawMessage instanceof InternalRequest) {
+            encodeRequest((InternalRequest) rawMessage, out);
+        } else if (rawMessage instanceof InternalReply) {
+            encodeReply((InternalReply) rawMessage, out);
+        }
+    }
 
-        InternalMessage message = (InternalMessage) rawMessage;
+    private void encodeMessage(InternalMessage message, ByteBuf out) {
+        // If the endpoint hasn't been written to the channel, write it.
+        if (!endpointWritten) {
+            IpAddress senderIp = endpoint.host();
+            if (senderIp.version() == Version.INET) {
+                out.writeByte(0);
+            } else {
+                out.writeByte(1);
+            }
+            out.writeBytes(senderIp.toOctets());
 
+            // write sender port
+            out.writeInt(endpoint.port());
+
+            endpointWritten = true;
+        }
+
+        out.writeByte(message.type().id());
         out.writeInt(this.preamble);
 
         // write time
@@ -63,35 +85,6 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
         // write message id
         out.writeLong(message.id());
 
-        Endpoint sender = message.sender();
-
-        IpAddress senderIp = sender.host();
-        if (senderIp.version() == Version.INET) {
-            out.writeByte(0);
-        } else {
-            out.writeByte(1);
-        }
-        out.writeBytes(senderIp.toOctets());
-
-        // write sender port
-        out.writeInt(sender.port());
-
-        byte[] messageTypeBytes = message.type().getBytes(Charsets.UTF_8);
-
-        // write length of message type
-        out.writeShort(messageTypeBytes.length);
-
-        // write message type bytes
-        out.writeBytes(messageTypeBytes);
-
-        // write message status value
-        InternalMessage.Status status = message.status();
-        if (status == null) {
-            out.writeByte(-1);
-        } else {
-            out.writeByte(status.id());
-        }
-
         byte[] payload = message.payload();
 
         // write payload length
@@ -99,6 +92,26 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
 
         // write payload.
         out.writeBytes(payload);
+    }
+
+    private void encodeRequest(InternalRequest request, ByteBuf out) {
+        encodeMessage(request, out);
+
+        byte[] messageTypeBytes = request.subject().getBytes(Charsets.UTF_8);
+
+        // write length of message type
+        out.writeShort(messageTypeBytes.length);
+
+        // write message type bytes
+        out.writeBytes(messageTypeBytes);
+
+    }
+
+    private void encodeReply(InternalReply reply, ByteBuf out) {
+        encodeMessage(reply, out);
+
+        // write message status value
+        out.writeByte(reply.status().id());
     }
 
     @Override
