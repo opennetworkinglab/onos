@@ -17,6 +17,7 @@ package org.onosproject.cluster;
 
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
+import org.onosproject.core.Version;
 import org.onosproject.store.Store;
 
 import java.util.Set;
@@ -55,6 +56,14 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
      * @return availability state
      */
     ControllerNode.State getState(NodeId nodeId);
+
+    /**
+     * Returns the version of the specified controller node.
+     *
+     * @param nodeId controller instance identifier
+     * @return controller version
+     */
+    Version getVersion(NodeId nodeId);
 
     /**
      * Marks the current node as fully started.

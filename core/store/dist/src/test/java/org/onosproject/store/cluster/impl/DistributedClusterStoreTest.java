@@ -27,6 +27,8 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.Version;
+import org.onosproject.core.VersionServiceAdapter;
 import org.onosproject.store.cluster.messaging.impl.NettyMessagingManager;
 
 import java.util.Set;
@@ -55,7 +57,6 @@ public class DistributedClusterStoreTest {
     private static final int PORT2 = 2;
     private  static Set<ControllerNode> nodes;
 
-
     private TestDelegate delegate = new TestDelegate();
     private class TestDelegate implements ClusterStoreDelegate {
     private ClusterEvent event;
@@ -64,8 +65,6 @@ public class DistributedClusterStoreTest {
             this.event = event;
         }
     }
-
-
 
     @Before
     public void setUp() throws Exception {
@@ -78,6 +77,12 @@ public class DistributedClusterStoreTest {
         };
         distributedClusterStore.messagingService = new NettyMessagingManager();
         distributedClusterStore.cfgService = new ComponentConfigAdapter();
+        distributedClusterStore.versionService = new VersionServiceAdapter() {
+            @Override
+            public Version version() {
+                return Version.version("1.1.1");
+            }
+        };
         distributedClusterStore.activate();
         clusterStore = distributedClusterStore;
     }
@@ -93,11 +98,11 @@ public class DistributedClusterStoreTest {
         assertThat(clusterStore.getNode((nodeId)), is(nullValue()));
         assertFalse(clusterStore.hasDelegate());
         assertThat(clusterStore.getState(nodeId), is(ControllerNode.State.INACTIVE));
+        assertThat(clusterStore.getVersion(nodeId), is(nullValue()));
     }
 
     @Test
     public void addNodes() {
-
         clusterStore.setDelegate(delegate);
         assertThat(clusterStore.hasDelegate(), is(true));
         clusterStore.addNode(NID1, IP1, PORT1);

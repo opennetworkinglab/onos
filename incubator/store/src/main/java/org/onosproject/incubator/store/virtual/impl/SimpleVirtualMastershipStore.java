@@ -32,6 +32,8 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.core.Version;
+import org.onosproject.core.VersionService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkMastershipStore;
 import org.onosproject.mastership.MastershipEvent;
@@ -73,6 +75,9 @@ public class SimpleVirtualMastershipStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
 
     //devices mapped to their masters, to emulate multiple nodes
     protected final Map<NetworkId, Map<DeviceId, NodeId>> masterMapByNetwork =
@@ -476,6 +481,14 @@ public class SimpleVirtualMastershipStore
                 } else {
                     return ControllerNode.State.INACTIVE;
                 }
+            }
+
+            @Override
+            public Version getVersion(NodeId nodeId) {
+                if (instance.id().equals(nodeId)) {
+                    return versionService.version();
+                }
+                return null;
             }
 
             @Override

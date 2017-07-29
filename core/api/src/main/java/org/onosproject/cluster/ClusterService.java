@@ -18,6 +18,7 @@ package org.onosproject.cluster;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.onosproject.core.Version;
 import org.onosproject.event.ListenerService;
 
 /**
@@ -58,6 +59,14 @@ public interface ClusterService
      * @return availability state
      */
     ControllerNode.State getState(NodeId nodeId);
+
+    /**
+     * Returns the version of the given controller node.
+     *
+     * @param nodeId controller node identifier
+     * @return controller version
+     */
+    Version getVersion(NodeId nodeId);
 
     /**
      * Returns the system time when the availability state was last updated.

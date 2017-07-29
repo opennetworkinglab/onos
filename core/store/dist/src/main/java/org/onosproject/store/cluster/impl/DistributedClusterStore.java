@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.cluster.impl;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
@@ -41,6 +40,8 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.Version;
+import org.onosproject.core.VersionService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -93,7 +95,7 @@ public class DistributedClusterStore
     private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
 
     private static final StoreSerializer SERIALIZER = StoreSerializer.using(
-                  KryoNamespace.newBuilder()
+            KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
                     .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
                     .register(HeartbeatMessage.class)
@@ -103,7 +105,8 @@ public class DistributedClusterStore
 
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
-    private final Map<NodeId, DateTime> nodeStateLastUpdatedTimes = Maps.newConcurrentMap();
+    private final Map<NodeId, Version> nodeVersions = Maps.newConcurrentMap();
+    private final Map<NodeId, DateTime> nodeLastUpdatedTimes = Maps.newConcurrentMap();
 
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender", log));
@@ -113,6 +116,10 @@ public class DistributedClusterStore
     private PhiAccrualFailureDetector failureDetector;
 
     private ControllerNode localNode;
+    private Version localVersion;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterMetadataService clusterMetadataService;
@@ -122,9 +129,9 @@ public class DistributedClusterStore
 
     // This must be optional to avoid a cyclic dependency
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
-               bind = "bindComponentConfigService",
-               unbind = "unbindComponentConfigService",
-               policy = ReferencePolicy.DYNAMIC)
+            bind = "bindComponentConfigService",
+            unbind = "unbindComponentConfigService",
+            policy = ReferencePolicy.DYNAMIC)
     protected ComponentConfigService cfgService;
 
     /**
@@ -155,14 +162,16 @@ public class DistributedClusterStore
     @Activate
     public void activate() {
         localNode = clusterMetadataService.getLocalNode();
+        localVersion = versionService.version();
+        nodeVersions.put(localNode.id(), localVersion);
 
         messagingService.registerHandler(HEARTBEAT_MESSAGE,
-                                         new HeartbeatMessageHandler(), heartBeatMessageHandler);
+                new HeartbeatMessageHandler(), heartBeatMessageHandler);
 
         failureDetector = new PhiAccrualFailureDetector();
 
         heartBeatSender.scheduleWithFixedDelay(this::heartbeat, 0,
-                                               heartbeatInterval, TimeUnit.MILLISECONDS);
+                heartbeatInterval, TimeUnit.MILLISECONDS);
 
         log.info("Started");
     }
@@ -216,12 +225,18 @@ public class DistributedClusterStore
     @Override
     public State getState(NodeId nodeId) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
-        return MoreObjects.firstNonNull(nodeStates.get(nodeId), State.INACTIVE);
+        return firstNonNull(nodeStates.get(nodeId), State.INACTIVE);
+    }
+
+    @Override
+    public Version getVersion(NodeId nodeId) {
+        checkNotNull(nodeId, INSTANCE_ID_NULL);
+        return nodeVersions.get(nodeId);
     }
 
     @Override
     public void markFullyStarted(boolean started) {
-        updateState(localNode.id(), started ? State.READY : State.ACTIVE);
+        updateNode(localNode.id(), started ? State.READY : State.ACTIVE, null);
     }
 
     @Override
@@ -238,22 +253,27 @@ public class DistributedClusterStore
         ControllerNode node = allNodes.remove(nodeId);
         if (node != null) {
             nodeStates.remove(nodeId);
+            nodeVersions.remove(nodeId);
             notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_REMOVED, node));
         }
     }
 
     private void addNode(ControllerNode node) {
         allNodes.put(node.id(), node);
-        updateState(node.id(), node.equals(localNode) ? State.ACTIVE : State.INACTIVE);
+        updateNode(node.id(), node.equals(localNode) ? State.ACTIVE : State.INACTIVE, null);
         notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ADDED, node));
     }
 
-    private void updateState(NodeId nodeId, State newState) {
+    private void updateNode(NodeId nodeId, State newState, Version newVersion) {
         State currentState = nodeStates.get(nodeId);
-        if (!Objects.equals(currentState, newState)) {
+        Version currentVersion = nodeVersions.get(nodeId);
+        if (!Objects.equals(currentState, newState) || !Objects.equals(currentVersion, newVersion)) {
             nodeStates.put(nodeId, newState);
-            nodeStateLastUpdatedTimes.put(nodeId, DateTime.now());
-            notifyStateChange(nodeId, currentState, newState);
+            if (newVersion != null) {
+                nodeVersions.put(nodeId, newVersion);
+            }
+            nodeLastUpdatedTimes.put(nodeId, DateTime.now());
+            notifyChange(nodeId, currentState, newState, currentVersion, newVersion);
         }
     }
 
@@ -264,18 +284,18 @@ public class DistributedClusterStore
                     .filter(node -> !(node.id().equals(localNode.id())))
                     .collect(Collectors.toSet());
             State state = nodeStates.get(localNode.id());
-            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, state));
+            byte[] hbMessagePayload = SERIALIZER.encode(new HeartbeatMessage(localNode, state, localVersion));
             peers.forEach((node) -> {
                 heartbeatToPeer(hbMessagePayload, node);
                 State currentState = nodeStates.get(node.id());
                 double phi = failureDetector.phi(node.id());
                 if (phi >= phiFailureThreshold) {
                     if (currentState.isActive()) {
-                        updateState(node.id(), State.INACTIVE);
+                        updateNode(node.id(), State.INACTIVE, null);
                     }
                 } else {
                     if (currentState == State.INACTIVE) {
-                        updateState(node.id(), State.ACTIVE);
+                        updateNode(node.id(), State.ACTIVE, null);
                     }
                 }
             });
@@ -284,8 +304,8 @@ public class DistributedClusterStore
         }
     }
 
-    private void notifyStateChange(NodeId nodeId, State oldState, State newState) {
-        if (oldState != newState) {
+    private void notifyChange(NodeId nodeId, State oldState, State newState, Version oldVersion, Version newVersion) {
+        if (oldState != newState || !Objects.equals(oldVersion, newVersion)) {
             ControllerNode node = allNodes.get(nodeId);
             // Either this node or that node is no longer part of the same cluster
             if (node == null) {
@@ -314,7 +334,7 @@ public class DistributedClusterStore
             HeartbeatMessage hb = SERIALIZER.decode(message);
             if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
                 failureDetector.report(hb.source().id());
-                updateState(hb.source().id(), hb.state);
+                updateNode(hb.source().id(), hb.state, hb.version);
             }
         }
     }
@@ -322,10 +342,12 @@ public class DistributedClusterStore
     private static class HeartbeatMessage {
         private ControllerNode source;
         private State state;
+        private Version version;
 
-        public HeartbeatMessage(ControllerNode source, State state) {
+        public HeartbeatMessage(ControllerNode source, State state, Version version) {
             this.source = source;
             this.state = state != null ? state : State.ACTIVE;
+            this.version = version;
         }
 
         public ControllerNode source() {
@@ -335,7 +357,7 @@ public class DistributedClusterStore
 
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
-        return nodeStateLastUpdatedTimes.get(nodeId);
+        return nodeLastUpdatedTimes.get(nodeId);
     }
 
     /**
@@ -353,7 +375,7 @@ public class DistributedClusterStore
                             DEFAULT_HEARTBEAT_INTERVAL);
                 } else {
                     int newHeartbeatInterval = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
-                                                                : Integer.parseInt(s.trim());
+                            : Integer.parseInt(s.trim());
                     if (newHeartbeatInterval > 0 && heartbeatInterval != newHeartbeatInterval) {
                         heartbeatInterval = newHeartbeatInterval;
                         restartHeartbeatSender();
@@ -370,7 +392,7 @@ public class DistributedClusterStore
                             DEFAULT_PHI_FAILURE_THRESHOLD);
                 } else {
                     int newPhiFailureThreshold = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
-                                                                  : Integer.parseInt(s.trim());
+                            : Integer.parseInt(s.trim());
                     setPhiFailureThreshold(newPhiFailureThreshold);
                     log.info("Configured. Phi failure threshold is configured to {}",
                             phiFailureThreshold);
@@ -414,7 +436,7 @@ public class DistributedClusterStore
             heartBeatSender = Executors.newSingleThreadScheduledExecutor(
                     groupedThreads("onos/cluster/membership", "heartbeat-sender-%d", log));
             heartBeatSender.scheduleWithFixedDelay(this::heartbeat, 0,
-                                                   heartbeatInterval, TimeUnit.MILLISECONDS);
+                    heartbeatInterval, TimeUnit.MILLISECONDS);
             prevSender.shutdown();
         } catch (Exception e) {
             log.warn(e.getMessage());

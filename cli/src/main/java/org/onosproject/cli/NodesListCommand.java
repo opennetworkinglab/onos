@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.core.Version;
 import org.onosproject.utils.Comparators;
 
 import java.util.Collections;
@@ -39,7 +40,7 @@ import static com.google.common.collect.Lists.newArrayList;
         description = "Lists all controller cluster nodes")
 public class NodesListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "id=%s, address=%s:%s, state=%s, updated=%s %s";
+    private static final String FMT = "id=%s, address=%s:%s, state=%s, version=%s, updated=%s %s";
 
     @Override
     protected void execute() {
@@ -56,9 +57,12 @@ public class NodesListCommand extends AbstractShellCommand {
                 if (lastUpdated != null) {
                     timeAgo = Tools.timeAgo(lastUpdated.getMillis());
                 }
+                Version version = service.getVersion(node.id());
                 print(FMT, node.id(), node.ip(), node.tcpPort(),
-                      service.getState(node.id()), timeAgo,
-                      node.equals(self) ? "*" : "");
+                        service.getState(node.id()),
+                        version == null ? "unknown" : version,
+                        timeAgo,
+                        node.equals(self) ? "*" : "");
             }
         }
     }
@@ -70,6 +74,7 @@ public class NodesListCommand extends AbstractShellCommand {
         ControllerNode self = service.getLocalNode();
         for (ControllerNode node : nodes) {
             ControllerNode.State nodeState = service.getState(node.id());
+            Version nodeVersion = service.getVersion(node.id());
             ObjectNode newNode = mapper.createObjectNode()
                     .put("id", node.id().toString())
                     .put("ip", node.ip().toString())
@@ -77,6 +82,9 @@ public class NodesListCommand extends AbstractShellCommand {
                     .put("self", node.equals(self));
             if (nodeState != null) {
                 newNode.put("state", nodeState.toString());
+            }
+            if (nodeVersion != null) {
+                newNode.put("version", nodeVersion.toString());
             }
             result.add(newNode);
         }

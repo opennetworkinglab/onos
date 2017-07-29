@@ -33,9 +33,9 @@ sed -i "" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools
 sed -i "" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 sed -i "" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
-# Augment fallback version in CoreManager
+# Augment fallback version in VersionManager
 sed -i "" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")/" \
-   $ONOS_ROOT/core/net/src/main/java/org/onosproject/core/impl/CoreManager.java
+   $ONOS_ROOT/core/net/src/main/java/org/onosproject/core/impl/VersionManager.java
 
 # Augment the version in archetypes tree.
 mvn -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit

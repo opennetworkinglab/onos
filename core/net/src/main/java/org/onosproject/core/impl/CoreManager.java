@@ -35,25 +35,19 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
+import org.onosproject.core.VersionService;
 import org.onosproject.event.EventDeliveryService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Dictionary;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.onosproject.security.AppPermission.Type.APP_WRITE;
-
 
 /**
  * Core service implementation.
@@ -64,8 +58,8 @@ public class CoreManager implements CoreService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final File VERSION_FILE = new File("../VERSION");
-    private static Version version = Version.version("1.11.0-SNAPSHOT");
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore applicationIdStore;
@@ -105,16 +99,6 @@ public class CoreManager implements CoreService {
     protected void activate() {
         registerApplication(CORE_APP_NAME);
         cfgService.registerProperties(getClass());
-        try {
-            Path path = Paths.get(VERSION_FILE.getPath());
-            List<String> versionLines = Files.readAllLines(path);
-            if (versionLines != null && !versionLines.isEmpty()) {
-                version = Version.version(versionLines.get(0));
-            }
-        } catch (IOException e) {
-            // version file not found, using default
-            log.trace("Version file not found", e);
-        }
     }
 
     @Deactivate
@@ -127,7 +111,7 @@ public class CoreManager implements CoreService {
     @Override
     public Version version() {
         checkPermission(APP_READ);
-        return version;
+        return versionService.version();
     }
 
     @Override
@@ -147,7 +131,6 @@ public class CoreManager implements CoreService {
         checkPermission(APP_READ);
         return applicationIdStore.getAppId(name);
     }
-
 
     @Override
     public ApplicationId registerApplication(String name) {
@@ -170,7 +153,6 @@ public class CoreManager implements CoreService {
         IdBlockAllocator allocator = new StoreBasedIdBlockAllocator(topic, idBlockStore);
         return new BlockAllocatorBasedIdGenerator(allocator);
     }
-
 
     @Modified
     protected void modified(ComponentContext context) {

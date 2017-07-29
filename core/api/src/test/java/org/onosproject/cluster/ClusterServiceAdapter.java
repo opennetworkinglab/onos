@@ -21,6 +21,7 @@ import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.core.Version;
 
 /**
  * Test adapter for the cluster service.
@@ -46,6 +47,11 @@ public class ClusterServiceAdapter implements ClusterService {
 
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
+        return null;
+    }
+
+    @Override
+    public Version getVersion(NodeId nodeId) {
         return null;
     }
 
