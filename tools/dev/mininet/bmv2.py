@@ -23,9 +23,10 @@ class ONOSBmv2Switch(Switch):
     instanceCount = 0
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn", elogger=False,
-                 persistent=False, grpcPort=None, netcfg=True, **kwargs):
+                 persistent=False, grpcPort=None, thriftPort=None, netcfg=True, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
+        self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
         if self.dpid:
             self.deviceId = int(self.dpid, 0 if 'x' in self.dpid else 16)
         else:
@@ -120,6 +121,7 @@ class ONOSBmv2Switch(Switch):
             args.append('--debugger')
         args.append('--log-console')
         args.append('-L%s' % self.loglevel)
+        args.append('--thrift-port %d' % self.thriftPort)
         if not self.json:
             args.append('--no-p4')
         else:

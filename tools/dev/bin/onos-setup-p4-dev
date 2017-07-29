@@ -15,8 +15,8 @@
 set -e
 
 BUILD_DIR=~/p4tools
-BMV2_COMMIT="654e9c3794273b481284d8bafecfc74c7ffd643d"
-PI_COMMIT="8051d54c9c3415ca800db232a226189fd17ad60a"
+BMV2_COMMIT="a9b9fb3e30585bf880b252a3e00338ebca67b572"
+PI_COMMIT="b8d937fa72650eb6ec57d2e5755e0c9103fa995f"
 P4C_COMMIT="adce375fd961a9e467c7e77ad1bef647ef28e5e8"
 P4C_BM_COMMIT="8f4abeaa6f8374aaf95ea2aacfc2b750069391b5"
 PROTOBUF_COMMIT="tags/v3.0.2"
@@ -163,9 +163,18 @@ function do_bmv2 {
     git fetch
     git checkout ${BMV2_COMMIT}
 
+    # From bmv2's install_deps.sh
+    tmpdir=`mktemp -d -p .`
+    cd ${tmpdir}
+    bash ../travis/install-thrift.sh
+    bash ../travis/install-nanomsg.sh
+    sudo ldconfig
+    bash ../travis/install-nnpy.sh
+    cd ..
+    sudo rm -rf $tmpdir
+
     ./autogen.sh
-    # TODO: to build with debugger, we need to install nanomsg first (see bmv2's install_deps.sh)
-    ./configure --without-thrift --without-nanomsg --with-pi
+    ./configure --enable-debugger --with-pi
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
