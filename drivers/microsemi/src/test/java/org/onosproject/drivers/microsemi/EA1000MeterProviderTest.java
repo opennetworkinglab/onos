@@ -19,7 +19,6 @@ import java.util.HashSet;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.drivers.microsemi.yang.MockMseaUniEvcServiceManager;
@@ -93,7 +92,6 @@ public class EA1000MeterProviderTest {
     }
 
     @Test
-    @Ignore("fixme: failing with onos-yang-tools-2.2.0-b1")
     public void testPerformMeterOperationDeviceIdMeterRemove() {
         DeviceId mockDeviceId = DeviceId.deviceId("netconf:1.2.3.4:830");
 

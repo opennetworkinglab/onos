@@ -119,14 +119,13 @@ public class MseaUniEvcServiceManager extends AbstractYangServiceImpl
 
         ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
         for (BwpGroup bwpGrp:mseaUniEvcService.mefServices().profiles().bwpGroup()) {
-            String bwpGroupIndex = String.valueOf(bwpGrp.groupIndex());
 
             ResourceId.Builder ridBuilder = ResourceId.builder()
                     .addBranchPointSchema("/", null)
                     .addBranchPointSchema("mef-services", MSEA_UNI_EVC_SVC_NS)
                     .addBranchPointSchema("profiles", MSEA_UNI_EVC_SVC_NS)
                     .addBranchPointSchema("bwp-group", MSEA_UNI_EVC_SVC_NS)
-                    .addKeyLeaf("group-index", MSEA_UNI_EVC_SVC_NS, bwpGroupIndex);
+                    .addKeyLeaf("group-index", MSEA_UNI_EVC_SVC_NS, bwpGrp.groupIndex());
 
             AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
                     .resourceId(ridBuilder.build())
