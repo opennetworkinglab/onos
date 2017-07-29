@@ -512,7 +512,7 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
                 r = kryo.register(type, serializer, id);
             }
             if (r.getId() != id) {
-                log.warn("{}: {} already registered as {}. Skipping {}.",
+                log.debug("{}: {} already registered as {}. Skipping {}.",
                         friendlyName(), r.getType(), r.getId(), id);
             }
             log.trace("{} registered as {}", r.getType(), r.getId());
