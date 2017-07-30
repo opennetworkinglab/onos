@@ -37,6 +37,8 @@ public class DocumentPathTest {
         assertEquals(path.pathElements(), Arrays.asList("root", "a", "b"));
         assertEquals(path("root.a"), path.parent());
         assertEquals(path("b"), path.childPath());
+        path = DocumentPath.from("root", "a", "b");
+        assertEquals(path.pathElements(), Arrays.asList("root", "a", "b"));
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.store.primitives.resources.impl;
+package org.onosproject.store.primitives;
 
 import com.google.common.base.Throwables;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -33,83 +33,81 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Synchronous wrapper for a {@link AsyncDocumentTree}.  All operations are
+ * Synchronous wrapper for a {@link AsyncDocumentTree}. All operations are
  * made by making the equivalent calls to a backing {@link AsyncDocumentTree}
  * then blocking until the operations complete or timeout.
  *
  * @param <V> the type of the values
  */
-public class DefaultConsistentDocumentTree<V> extends Synchronous<AsyncDocumentTree<V>> implements DocumentTree<V> {
+public class DefaultDocumentTree<V> extends Synchronous<AsyncDocumentTree<V>> implements DocumentTree<V> {
 
-    private final AsyncDocumentTree<V> backingMap;
-    private static final int MAX_DELAY_BETWEEN_RETRY_MILLS = 50;
+    private final AsyncDocumentTree<V> backingTree;
     private final long operationTimeoutMillis;
 
-    public DefaultConsistentDocumentTree(AsyncDocumentTree<V> backingMap,
-                                         long operationTimeoutMillis) {
-        super(backingMap);
-        this.backingMap = backingMap;
+    public DefaultDocumentTree(AsyncDocumentTree<V> backingTree, long operationTimeoutMillis) {
+        super(backingTree);
+        this.backingTree = backingTree;
         this.operationTimeoutMillis = operationTimeoutMillis;
     }
 
     @Override
     public DocumentPath root() {
-        return backingMap.root();
+        return backingTree.root();
     }
 
     @Override
     public Map<String, Versioned<V>> getChildren(DocumentPath path) {
-        return complete(backingMap.getChildren(path));
+        return complete(backingTree.getChildren(path));
     }
 
     @Override
     public Versioned<V> get(DocumentPath path) {
-        return complete(backingMap.get(path));
+        return complete(backingTree.get(path));
     }
 
     @Override
     public Versioned<V> set(DocumentPath path, V value) {
-        return complete(backingMap.set(path, value));
+        return complete(backingTree.set(path, value));
     }
 
     @Override
     public boolean create(DocumentPath path, V value) {
-        return complete(backingMap.create(path, value));
+        return complete(backingTree.create(path, value));
     }
 
     @Override
     public boolean createRecursive(DocumentPath path, V value) {
-        return complete(backingMap.createRecursive(path, value));
+        return complete(backingTree.createRecursive(path, value));
     }
 
     @Override
     public boolean replace(DocumentPath path, V newValue, long version) {
-        return complete(backingMap.replace(path, newValue, version));
+        return complete(backingTree.replace(path, newValue, version));
     }
 
     @Override
     public boolean replace(DocumentPath path, V newValue, V currentValue) {
-        return complete(backingMap.replace(path, newValue, currentValue));
+        return complete(backingTree.replace(path, newValue, currentValue));
     }
 
     @Override
     public Versioned<V> removeNode(DocumentPath path) {
-        return complete(backingMap.removeNode(path));
+        return complete(backingTree.removeNode(path));
     }
 
     @Override
     public void addListener(DocumentPath path, DocumentTreeListener<V> listener) {
-        complete(backingMap.addListener(path, listener));
+        complete(backingTree.addListener(path, listener));
     }
 
     @Override
     public void removeListener(DocumentTreeListener<V> listener) {
-        complete(backingMap.removeListener(listener));
+        complete(backingTree.removeListener(listener));
     }
 
     @Override
     public void addListener(DocumentTreeListener<V> listener) {
-        complete(backingMap.addListener(listener));
+        complete(backingTree.addListener(listener));
     }
 
     private <T> T complete(CompletableFuture<T> future) {

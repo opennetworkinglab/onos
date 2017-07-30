@@ -26,7 +26,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <V> document tree value type
  */
 @NotThreadSafe
-public interface DocumentTree<V> {
+public interface DocumentTree<V> extends DistributedPrimitive {
+
+    @Override
+    default Type primitiveType() {
+        return Type.DOCUMENT_TREE;
+    }
 
     /**
      * Returns the {@link DocumentPath path} to root of the tree.

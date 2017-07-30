@@ -61,6 +61,11 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     }
 
     @Override
+    public String name() {
+        return null;
+    }
+
+    @Override
     public DocumentPath root() {
         return ROOT_PATH;
     }

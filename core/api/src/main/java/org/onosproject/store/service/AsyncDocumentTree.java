@@ -21,6 +21,8 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.onosproject.store.primitives.DefaultDocumentTree;
+
 /**
  * A hierarchical <a href="https://en.wikipedia.org/wiki/Document_Object_Model">document tree</a> data structure.
  *
@@ -28,6 +30,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public interface AsyncDocumentTree<V> extends DistributedPrimitive {
+
+    @Override
+    default Type primitiveType() {
+        return Type.DOCUMENT_TREE;
+    }
 
     /**
      * Returns the {@link DocumentPath path} to root of the tree.
@@ -147,5 +154,24 @@ public interface AsyncDocumentTree<V> extends DistributedPrimitive {
      */
     default CompletableFuture<Void> addListener(DocumentTreeListener<V> listener) {
         return addListener(root(), listener);
+    }
+
+    /**
+     * Returns a new {@link DocumentTree} that is backed by this instance.
+     *
+     * @return new {@code DocumentTree} instance
+     */
+    default DocumentTree<V> asDocumentTree() {
+        return asDocumentTree(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Returns a new {@link DocumentTree} that is backed by this instance.
+     *
+     * @param timeoutMillis timeout duration for the returned DocumentTree operations
+     * @return new {@code DocumentTree} instance
+     */
+    default DocumentTree<V> asDocumentTree(long timeoutMillis) {
+        return new DefaultDocumentTree<V>(this, timeoutMillis);
     }
 }
