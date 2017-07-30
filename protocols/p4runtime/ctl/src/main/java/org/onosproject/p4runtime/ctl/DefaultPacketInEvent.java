@@ -16,6 +16,7 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.DeviceId;
@@ -77,6 +78,14 @@ final class DefaultPacketInEvent
         @Override
         public int hashCode() {
             return Objects.hashCode(deviceId, operation);
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("deviceId", deviceId)
+                    .add("operation", operation)
+                    .toString();
         }
     }
 }

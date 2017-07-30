@@ -43,7 +43,6 @@ import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
@@ -56,7 +55,7 @@ import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
 public class P4RuntimeTest {
 
     private static final String GRPC_SERVER_ADDR = "192.168.56.102";
-    private static final int GRPC_SERVER_PORT = 55044;
+    private static final int GRPC_SERVER_PORT = 55001;
 
     private final URL p4InfoUrl = this.getClass().getResource("/bmv2/default.p4info");
     private final URL jsonUrl = this.getClass().getResource("/bmv2/default.json");
@@ -112,10 +111,10 @@ public class P4RuntimeTest {
                 .setGroupId(1)
                 .setType(SELECT)
                 .addMembers(P4RuntimeOuterClass.ActionProfileGroup.Member.newBuilder()
-                                    .setMemberId(1)
+                                    .setMemberId(0)
                                     .setWeight(1)
                                     .build())
-                .setMaxSize(3)
+                .setMaxSize(1)
                 .build();
 
         P4RuntimeOuterClass.WriteRequest writeRequest = P4RuntimeOuterClass.WriteRequest.newBuilder()
@@ -123,13 +122,13 @@ public class P4RuntimeTest {
                 .addUpdates(P4RuntimeOuterClass.Update.newBuilder()
                                     .setType(INSERT)
                                     .setEntity(P4RuntimeOuterClass.Entity.newBuilder()
-                                                       .setActionProfileGroup(groupMsg)
+                                                       .setActionProfileMember(profileMemberMsg)
                                                        .build())
                                     .build())
                 .addUpdates(P4RuntimeOuterClass.Update.newBuilder()
                                     .setType(INSERT)
                                     .setEntity(P4RuntimeOuterClass.Entity.newBuilder()
-                                                       .setActionProfileMember(profileMemberMsg)
+                                                       .setActionProfileGroup(groupMsg)
                                                        .build())
                                     .build())
                 .build();
@@ -137,19 +136,23 @@ public class P4RuntimeTest {
         stub.write(writeRequest);
     }
 
-    private void testPacketOut() throws IllegalAccessException, InstantiationException, ExecutionException,
+    private void testPacketIo() throws IllegalAccessException, InstantiationException, ExecutionException,
             InterruptedException, ImmutableByteSequence.ByteSequenceTrimException {
 
+        // Emits a packet out trough the CPU_PORT (255), i.e. we should receive the same packet back.
         PiPacketOperation packetOperation = PiPacketOperation.builder()
-                .withData(ImmutableByteSequence.ofOnes(10))
+                .withData(ImmutableByteSequence.ofOnes(512))
                 .withType(PACKET_OUT)
                 .withMetadata(PiPacketMetadata.builder()
                                       .withId(PiPacketMetadataId.of("egress_port"))
-                                      .withValue(fit(copyFrom(1), 9))
+                                      .withValue(copyFrom((short) 255))
                                       .build())
                 .build();
 
         assert (client.packetOut(packetOperation, bmv2DefaultPipeconf).get());
+
+        // Wait for packet in.
+        Thread.sleep(1000);
     }
 
     private void testDumpTable(String tableName, PiPipeconf pipeconf) throws ExecutionException, InterruptedException {
@@ -161,12 +164,9 @@ public class P4RuntimeTest {
     public void testBmv2() throws Exception {
 
         createClientAndSetPipelineConfig(bmv2DefaultPipeconf, BMV2_JSON);
-
+        testPacketIo();
         testDumpTable("table0", bmv2DefaultPipeconf);
-
-        // testPacketOut();
-
-        testActionProfile(285261835);
+        testActionProfile(285227860);
     }
 
     @Test
