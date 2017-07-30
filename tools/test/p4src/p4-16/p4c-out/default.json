@@ -370,7 +370,7 @@
           "parser_ops" : [],
           "transitions" : [
             {
-              "value" : "0xff",
+              "value" : "0x00ff",
               "mask" : null,
               "next_state" : "parse_packet_out"
             },
