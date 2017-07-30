@@ -1,7 +1,6 @@
 #ifndef PARSERS
 #define PARSERS
 #include "headers.p4"
-#include "metadata.p4"
 
 parser ParserImpl(packet_in packet, out headers_t hdr, inout metadata_t meta,
                     inout standard_metadata_t standard_metadata) {

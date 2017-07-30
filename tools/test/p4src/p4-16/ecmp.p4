@@ -2,6 +2,20 @@
 #include <v1model.p4>
 #include "include/defines.p4"
 #include "include/headers.p4"
+
+typedef bit<16> group_id_t;
+typedef bit<8> group_size_t;
+
+struct ecmp_metadata_t {
+    group_id_t group_id;
+    bit<16> selector;
+}
+
+struct metadata_t {
+    ecmp_metadata_t ecmp_metadata;
+    intrinsic_metadata_t intrinsic_metadata;
+}
+
 #include "include/parsers.p4"
 #include "include/port_counters.p4"
 #include "include/checksums.p4"

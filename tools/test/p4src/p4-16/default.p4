@@ -2,6 +2,11 @@
 #include <v1model.p4>
 #include "include/defines.p4"
 #include "include/headers.p4"
+
+struct metadata_t {
+    intrinsic_metadata_t intrinsic_metadata;
+}
+
 #include "include/parsers.p4"
 #include "include/port_counters.p4"
 #include "include/checksums.p4"

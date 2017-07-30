@@ -2,14 +2,28 @@
 #include <v1model.p4>
 #include "include/defines.p4"
 #include "include/headers.p4"
+
+#define SELECTOR_WIDTH 64
+const bit<SELECTOR_WIDTH> ONE = 64w1;
+
+typedef bit<16> group_id_t;
+
+struct wcmp_metadata_t {
+    group_id_t group_id;
+    bit<8>  numBits;
+    bit<SELECTOR_WIDTH> selector;
+}
+
+struct metadata_t {
+    wcmp_metadata_t wcmp_metadata;
+    intrinsic_metadata_t intrinsic_metadata;
+}
+
 #include "include/parsers.p4"
 #include "include/port_counters.p4"
 #include "include/checksums.p4"
 #include "include/actions.p4"
 #include "include/packet_io.p4"
-
-#define SELECTOR_WIDTH 64
-const bit<SELECTOR_WIDTH> ONE = 64w1;
 
 control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
 
@@ -17,15 +31,15 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     direct_counter(CounterType.packets) wcmp_group_table_counter;
 
     action wcmp_group(group_id_t group_id) {
-        meta.wcmp_meta.group_id = group_id;
-        hash(meta.wcmp_meta.numBits, HashAlgorithm.crc16, (bit<64>)2,
+        meta.wcmp_metadata.group_id = group_id;
+        hash(meta.wcmp_metadata.numBits, HashAlgorithm.crc16, (bit<64>)2,
         { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.ipv4.protocol, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.udp.srcPort,
             hdr.udp.dstPort },
         (bit<128>)62);
     }
 
     action wcmp_set_selector() {
-        meta.wcmp_meta.selector = ((ONE << meta.wcmp_meta.numBits) - ONE) << (SELECTOR_WIDTH - meta.wcmp_meta.numBits);
+        meta.wcmp_metadata.selector = ((ONE << meta.wcmp_metadata.numBits) - ONE) << (SELECTOR_WIDTH - meta.wcmp_metadata.numBits);
     }
 
     table table0 {
@@ -50,8 +64,8 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             set_egress_port(standard_metadata);
         }
         key = {
-            meta.wcmp_meta.group_id : exact;
-            meta.wcmp_meta.selector: lpm;
+            meta.wcmp_metadata.group_id : exact;
+            meta.wcmp_metadata.selector: lpm;
         }
         counters = wcmp_group_table_counter;
     }
