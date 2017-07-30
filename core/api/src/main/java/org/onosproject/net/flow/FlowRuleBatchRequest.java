@@ -15,12 +15,12 @@
  */
 package org.onosproject.net.flow;
 
-import com.google.common.collect.Lists;
-import org.onosproject.net.DeviceId;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import org.onosproject.net.DeviceId;
 
 @Deprecated
 /**
@@ -37,10 +37,9 @@ public class FlowRuleBatchRequest {
 
     private final Set<FlowRuleBatchEntry> ops;
 
-
     public FlowRuleBatchRequest(long batchId, Set<FlowRuleBatchEntry> ops) {
         this.batchId = batchId;
-        this.ops = Collections.unmodifiableSet(ops);
+        this.ops = ImmutableSet.copyOf(ops);
     }
 
     public Set<FlowRuleBatchEntry> ops() {
