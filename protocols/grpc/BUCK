@@ -31,7 +31,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.protocols.grpc',
     title = 'gRPC Protocol Subsystem',
-    category = 'Protocols',
+    category = 'Protocol',
     url = 'http://onosproject.org',
     description = 'ONOS gRPC protocol subsystem',
     included_bundles = BUNDLES,
