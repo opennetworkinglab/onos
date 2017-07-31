@@ -132,6 +132,16 @@ public interface Driver extends Annotations {
     Map<String, String> properties();
 
     /**
+     * Gets the value of given property name.
+     * If the driver does not define the property, a BFS will be performed to search its ancestors.
+     *
+     * @param name property name
+     * @return the value of the property,
+     *         or null if the property is not defined in this driver nor in any of its ancestors
+     */
+    String getProperty(String name);
+
+    /**
      * Merges the specified driver behaviours and properties into this one,
      * giving preference to the other driver when dealing with conflicts.
      *

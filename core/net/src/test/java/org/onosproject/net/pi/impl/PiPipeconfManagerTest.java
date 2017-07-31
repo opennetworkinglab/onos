@@ -279,6 +279,11 @@ public class PiPipeconfManagerTest {
         }
 
         @Override
+        public String getProperty(String name) {
+            return null;
+        }
+
+        @Override
         public Set<Class<? extends Behaviour>> behaviours() {
             return ImmutableSet.of(DeviceDescriptionDiscovery.class);
         }

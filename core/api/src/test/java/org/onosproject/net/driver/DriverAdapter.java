@@ -84,6 +84,11 @@ public class DriverAdapter implements Driver {
     }
 
     @Override
+    public String getProperty(String name) {
+        return null;
+    }
+
+    @Override
     public Driver merge(Driver other) {
         return null;
     }

@@ -59,7 +59,7 @@
        ~  TODO: version number in i12_1.7 is 2.0. Change it back when we can distinguish 3.0.
       -->
     <driver name="ofdpa" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA i12_1.7" swVersion="OF-DPA i12_1.7">
+            manufacturer="Broadcom Corp\." hwVersion="OF-DPA i12_1.7" swVersion="OF-DPA i12_1.7">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa2Pipeline"/>
         <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
@@ -70,13 +70,14 @@
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
+        <property name="meterCapable">false</property>
     </driver>
 
     <!--  Driver for OFDPA 3.0 EA*.
        ~  TODO: version number from switch is still 2.0. Update when 3.0 is GA.
       -->
-    <driver name="ofdpa3" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA 2.0" swVersion="OF-DPA 2.0">
+    <driver name="ofdpa3" extends="ofdpa"
+            manufacturer="Broadcom Corp\." hwVersion="OF-DPA 2.0" swVersion="OF-DPA 2.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa3Pipeline"/>
         <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
@@ -93,12 +94,16 @@
        ~  Note: driver needs to be configured using onos-netcfg.
       -->
     <driver name="qmx-ofdpa3" extends="ofdpa3"
-            manufacturer="Broadcom Corp." hwVersion="Qmx" swVersion="Qmx">
-            <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa3QmxPipeline"/>
+            manufacturer="Broadcom Corp\." hwVersion="Qmx" swVersion="Qmx">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+               impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa3QmxPipeline"/>
     </driver>
 
-    <driver name="znyx-ofdpa" extends="default"
+    <driver name="accton-ofdpa3" extends="ofdpa3"
+            manufacturer="Accton Corp\." hwVersion=".*" swVersion="ofdpa 3.*">
+    </driver>
+
+    <driver name="znyx-ofdpa" extends="ofdpa3"
             manufacturer="ZNYX Networks" hwVersion=".*" swVersion=".*OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa3Pipeline"/>

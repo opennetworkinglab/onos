@@ -22,9 +22,11 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -235,6 +237,22 @@ public class DefaultDriver implements Driver {
     @Override
     public Map<String, String> properties() {
         return properties;
+    }
+
+    @Override
+    public String getProperty(String name) {
+        Queue<Driver> queue = new LinkedList<>();
+        queue.add(this);
+        while (!queue.isEmpty()) {
+            Driver driver = queue.remove();
+            String property = driver.properties().get(name);
+            if (property != null) {
+                return property;
+            } else if (driver.parents() != null) {
+                queue.addAll(driver.parents());
+            }
+        }
+        return null;
     }
 
     @Override

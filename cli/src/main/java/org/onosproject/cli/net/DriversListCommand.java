@@ -88,9 +88,10 @@ public class DriversListCommand extends AbstractShellCommand {
             }
 
             driver.behaviours().forEach(b -> printBehaviour(b, driver));
+            driver.properties().forEach((k, v) -> print(FMT_P, k, v));
+
             //recursion call to print each parent
             parents.stream().forEach(parent -> printDriver(parent, false));
-            driver.properties().forEach((k, v) -> print(FMT_P, k, v));
         }
     }
 

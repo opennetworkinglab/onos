@@ -17,15 +17,25 @@ package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.driver.DefaultDriverDataTest.DEVICE_ID;
 
 public class DefaultDriverTest {
+    private static final String MFR = "mfr";
+    private static final String HW = "hw";
+    private static final String SW = "sw";
+    private static final String KEY = "key";
+    private static final String VALUE = "value";
+    private static final String ROOT = "rootDriver";
+    private static final String CHILD = "childDriver";
+    private static final String GRAND_CHILD = "grandChilDriver";
 
     @Test
     public void basics() {
@@ -89,5 +99,21 @@ public class DefaultDriverTest {
         assertEquals("incorrect property", "wee", ddc.value("goo"));
 
         assertTrue("incorrect toString", ddc.toString().contains("Circus"));
+    }
+
+    @Test
+    public void testGetProperty() throws Exception {
+        DefaultDriver root = new DefaultDriver(ROOT, Lists.newArrayList(), MFR, HW, SW,
+                ImmutableMap.of(), ImmutableMap.of());
+
+        DefaultDriver child = new DefaultDriver(CHILD, Lists.newArrayList(root), MFR, HW, SW,
+                ImmutableMap.of(), ImmutableMap.of(KEY, VALUE));
+
+        DefaultDriver grandChild = new DefaultDriver(GRAND_CHILD, Lists.newArrayList(child),
+                MFR, HW, SW, ImmutableMap.of(), ImmutableMap.of());
+
+        assertNull(root.getProperty(KEY));
+        assertEquals(VALUE, child.getProperty(KEY));
+        assertEquals(VALUE, grandChild.getProperty(KEY));
     }
 }
