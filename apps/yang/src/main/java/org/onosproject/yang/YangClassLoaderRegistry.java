@@ -20,7 +20,9 @@ import com.google.common.annotations.Beta;
 
 /**
  * Auxiliary mechanism for resolving model IDs into class-loaders from where
- * the model was registered.
+ * the model was registered to allow access to model-specific resources.
+ *
+ * Note: Consider promoting this to ONOS YANG Tools repo.
  */
 @Beta
 public interface YangClassLoaderRegistry {
