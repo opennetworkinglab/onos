@@ -16,13 +16,16 @@
 
 package org.onosproject.drivers.bmv2;
 
+import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.flow.FlowRule;
 
 /**
  * A wrapper for a ONOS flow rule installed on a BMv2 device.
  */
-public final class Bmv2FlowRuleWrapper {
+@Beta
+final class Bmv2FlowRuleWrapper {
 
     private final FlowRule rule;
     private final long installedOnMillis;
@@ -34,7 +37,7 @@ public final class Bmv2FlowRuleWrapper {
      * @param installedOnMillis the time (in milliseconds, since January 1, 1970 UTC) when the flow rule was installed
      *                          on the device
      */
-    public Bmv2FlowRuleWrapper(FlowRule rule, long installedOnMillis) {
+    Bmv2FlowRuleWrapper(FlowRule rule, long installedOnMillis) {
         this.rule = rule;
         this.installedOnMillis = installedOnMillis;
     }
@@ -44,7 +47,7 @@ public final class Bmv2FlowRuleWrapper {
      *
      * @return a flow rule
      */
-    public FlowRule rule() {
+    FlowRule rule() {
         return rule;
     }
 
@@ -53,18 +56,8 @@ public final class Bmv2FlowRuleWrapper {
      *
      * @return an integer value
      */
-    public long lifeInSeconds() {
+    long lifeInSeconds() {
         return (System.currentTimeMillis() - installedOnMillis) / 1000;
-    }
-
-    /**
-     * Returns the the time (in milliseconds, since January 1, 1970 UTC) when the flow rule was installed on
-     * the device.
-     *
-     * @return a long value
-     */
-    public long installedOnMillis() {
-        return installedOnMillis;
     }
 
     @Override
@@ -87,6 +80,9 @@ public final class Bmv2FlowRuleWrapper {
 
     @Override
     public String toString() {
-        return installedOnMillis + "-" + rule.hashCode();
+        return MoreObjects.toStringHelper(this)
+                .add("rule", rule)
+                .add("installedOnMillis", installedOnMillis)
+                .toString();
     }
 }

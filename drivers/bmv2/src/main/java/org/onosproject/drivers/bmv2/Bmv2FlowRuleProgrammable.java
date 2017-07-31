@@ -16,6 +16,8 @@
 
 package org.onosproject.drivers.bmv2;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -27,9 +29,12 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiFlowRuleTranslationService;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 import org.onosproject.p4runtime.api.P4RuntimeController;
@@ -38,8 +43,18 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.onosproject.drivers.bmv2.Bmv2FlowRuleProgrammable.Operation.APPLY;
+import static org.onosproject.drivers.bmv2.Bmv2FlowRuleProgrammable.Operation.REMOVE;
+import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
 
 /**
  * Implementation of the flow rule programmable behaviour for BMv2.
@@ -47,15 +62,24 @@ import java.util.stream.Collectors;
 public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private static final Map<DeviceId, Collection<Bmv2FlowRuleWrapper>> INSTALLED_FLOWENTRIES = Maps.newHashMap();
 
-    P4RuntimeClient client;
-    PiPipeconf pipeconf;
-    PiPipelineInterpreter interpreter;
-    DeviceId deviceId;
-    PiFlowRuleTranslationService piFlowRuleTranslationService;
+    // Needed to synchronize operations over the same table entry.
+    private static final ConcurrentMap<Bmv2TableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
+
+    // TODO: replace with distributed store.
+    // Can reuse old BMv2TableEntryService form ONOS 1.6
+    private static final ConcurrentMap<Bmv2TableEntryReference, Bmv2FlowRuleWrapper> ENTRY_STORE =
+            Maps.newConcurrentMap();
+
+    private DeviceId deviceId;
+    private P4RuntimeClient client;
+    private PiPipeconf pipeconf;
+    private PiPipelineModel pipelineModel;
+    private PiPipelineInterpreter interpreter;
+    private PiFlowRuleTranslationService piFlowRuleTranslationService;
 
     private boolean init() {
+
         deviceId = handler().data().deviceId();
 
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
@@ -64,25 +88,25 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
             return false;
         }
 
-        client = controller.getClient(deviceId);
-        piFlowRuleTranslationService = handler().get(PiFlowRuleTranslationService.class);
         PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
-
-        if (piPipeconfService.ofDevice(deviceId).isPresent() &&
-                piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
-            pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
-        } else {
+        if (!piPipeconfService.ofDevice(deviceId).isPresent() ||
+                !piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
             log.warn("Unable to get the pipeconf of {}", deviceId);
             return false;
         }
 
         DeviceService deviceService = handler().get(DeviceService.class);
         Device device = deviceService.getDevice(deviceId);
-        interpreter = device.is(PiPipelineInterpreter.class) ? device.as(PiPipelineInterpreter.class) : null;
-        if (device.is(PiPipelineInterpreter.class)) {
-            log.warn("Device {} unable to instantiate interpreter of pipeconf {}", deviceId, pipeconf.id());
+        if (!device.is(PiPipelineInterpreter.class)) {
+            log.warn("Unable to get interpreter of {}", deviceId);
             return false;
         }
+
+        client = controller.getClient(deviceId);
+        pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
+        pipelineModel = pipeconf.pipelineModel();
+        interpreter = device.as(PiPipelineInterpreter.class);
+        piFlowRuleTranslationService = handler().get(PiFlowRuleTranslationService.class);
 
         return true;
     }
@@ -94,81 +118,152 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
             return Collections.emptyList();
         }
 
-        //TD DO: retrieve statistics.
-        long packets = 0;
-        long bytes = 0;
-        Collection<FlowEntry> flowEntries = INSTALLED_FLOWENTRIES
-                .get(deviceId).stream().map(wrapper -> new DefaultFlowEntry(wrapper.rule(),
-                                                                            FlowEntry.FlowEntryState.ADDED,
-                                                                            wrapper.lifeInSeconds(),
-                                                                            packets,
-                                                                            bytes))
-                .collect(Collectors.toList());
+        ImmutableList.Builder<FlowEntry> resultBuilder = ImmutableList.builder();
+        List<PiTableEntry> inconsistentEntries = Lists.newArrayList();
 
-        return Collections.unmodifiableCollection(flowEntries);
+        for (PiTableModel tableModel : pipelineModel.tables()) {
+
+            PiTableId piTableId = PiTableId.of(tableModel.name());
+
+            // Only dump tables that are exposed by the interpreter.
+            // The reason is that some P4 targets (e.g. BMv2's simple_switch) use more table than those defined in the
+            // P4 program, to implement other capabilities, e.g. action execution in control flow.
+            if (!interpreter.mapPiTableId(piTableId).isPresent()) {
+                continue; // next table
+            }
+
+            Collection<PiTableEntry> installedEntries;
+            try {
+                installedEntries = client.dumpTable(piTableId, pipeconf).get();
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Exception while dumping table {} of {}", piTableId, deviceId, e);
+                return Collections.emptyList();
+            }
+
+            for (PiTableEntry installedEntry : installedEntries) {
+
+                Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, piTableId,
+                                                                               installedEntry.matchKey());
+
+                Bmv2FlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+
+                if (frWrapper == null) {
+                    // Inconsistent entry
+                    inconsistentEntries.add(installedEntry);
+                    continue; // next one.
+                }
+
+                // TODO: implement table entry counter retrieval.
+                long bytes = 0L;
+                long packets = 0L;
+
+                FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
+                                                       packets, bytes);
+                resultBuilder.add(entry);
+            }
+        }
+
+        if (inconsistentEntries.size() > 0) {
+            log.warn("Found {} entries in {} that are not known by table entry service," +
+                             " removing them", inconsistentEntries.size(), deviceId);
+            inconsistentEntries.forEach(entry -> log.debug(entry.toString()));
+            // Async remove them.
+            client.writeTableEntries(inconsistentEntries, DELETE, pipeconf);
+        }
+
+        return resultBuilder.build();
     }
 
     @Override
     public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
-
-        Collection<FlowRule> insertFlowRules = rules.stream()
-                .filter(r -> INSTALLED_FLOWENTRIES.get(deviceId) == null ||
-                        INSTALLED_FLOWENTRIES.get(deviceId).stream().noneMatch(x -> x.rule().id() == r.id()))
-                .collect(Collectors.toList());
-
-        Collection<FlowRule> updateFlowRules = rules.stream()
-                .filter(r -> INSTALLED_FLOWENTRIES.get(deviceId) != null &&
-                        INSTALLED_FLOWENTRIES.get(deviceId).stream().anyMatch(x -> x.rule().id() == r.id()))
-                .collect(Collectors.toList());
-
-        Collection<FlowRule> flowRules = processFlowRules(insertFlowRules, WriteOperationType.INSERT);
-        flowRules.addAll(processFlowRules(updateFlowRules, WriteOperationType.MODIFY));
-        return flowRules;
+        return processFlowRules(rules, APPLY);
     }
 
     @Override
     public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
-
-        return processFlowRules(rules, WriteOperationType.DELETE);
+        return processFlowRules(rules, REMOVE);
     }
 
-    private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules, WriteOperationType opType) {
+    private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules, Operation operation) {
 
         if (!init()) {
             return Collections.emptyList();
         }
 
-        Collection<PiTableEntry> piTableEntries = rules.stream().map(r -> {
-            PiTableEntry piTableEntry = null;
+        ImmutableList.Builder<FlowRule> processedFlowRuleListBuilder = ImmutableList.builder();
+
+        // TODO: send write operations in bulk (e.g. all entries to insert, modify or delete).
+        // Instead of calling the client for each one of them.
+
+        for (FlowRule rule : rules) {
+
+            PiTableEntry piTableEntry;
+
             try {
-                piTableEntry = piFlowRuleTranslationService.translate(r, pipeconf);
+                piTableEntry = piFlowRuleTranslationService.translate(rule, pipeconf);
             } catch (PiFlowRuleTranslationService.PiFlowRuleTranslationException e) {
-                log.error("Flow rule {} can not translte to PiTableEntry {}", r.toString(), e.getMessage());
+                log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
+                continue; // next rule
             }
-            return piTableEntry;
-        }).collect(Collectors.toList());
 
-        Collection<FlowRule> installedEntries = Collections.emptyList();
-        client.writeTableEntries(piTableEntries, opType, pipeconf).whenComplete((r, e) -> {
-            if (r) {
+            PiTableId tableId = piTableEntry.table();
+            Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, tableId, piTableEntry.matchKey());
 
-                Collection<Bmv2FlowRuleWrapper> bmv2FlowRuleWrappers = rules.stream()
-                        .map(rule -> new Bmv2FlowRuleWrapper(rule, System.currentTimeMillis()))
-                        .collect(Collectors.toList());
+            Lock lock = ENTRY_LOCKS.computeIfAbsent(entryRef, k -> new ReentrantLock());
+            lock.lock();
 
-                if (opType == WriteOperationType.INSERT) {
-                    INSTALLED_FLOWENTRIES.put(deviceId, bmv2FlowRuleWrappers);
-                } else if (opType == WriteOperationType.MODIFY) {
-                    rules.stream().forEach(rule -> INSTALLED_FLOWENTRIES
-                            .get(deviceId).removeIf(x -> x.rule().id() == rule.id()));
-                    INSTALLED_FLOWENTRIES.put(deviceId, bmv2FlowRuleWrappers);
-                } else if (opType == WriteOperationType.DELETE) {
-                    INSTALLED_FLOWENTRIES.get(deviceId).removeAll(bmv2FlowRuleWrappers);
+            try {
+
+                Bmv2FlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+
+                WriteOperationType opType;
+                if (operation == Operation.APPLY) {
+                    opType = INSERT;
+                    if (frWrapper != null) {
+                        // We've seen some strange error when trying to modify existing flow rules.
+                        // Remove before re-adding the modified one.
+                        try {
+                            if (client.writeTableEntries(newArrayList(piTableEntry), DELETE, pipeconf).get()) {
+                                frWrapper = null;
+                            } else {
+                                log.warn("Unable to DELETE table entry (before re-adding) in {}: {}",
+                                         deviceId, piTableEntry);
+                            }
+                        } catch (InterruptedException | ExecutionException e) {
+                            log.warn("Exception while deleting table entry:", operation.name(), e);
+                        }
+                    }
+                } else {
+                    opType = DELETE;
                 }
-                installedEntries.addAll(rules);
-            }
-        });
 
-        return installedEntries;
+                try {
+                    if (client.writeTableEntries(newArrayList(piTableEntry), opType, pipeconf).get()) {
+                        processedFlowRuleListBuilder.add(rule);
+                        frWrapper = new Bmv2FlowRuleWrapper(rule, System.currentTimeMillis());
+                    } else {
+                        log.warn("Unable to {} table entry in {}: {}", opType.name(), deviceId, piTableEntry);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    log.warn("Exception while performing {} table entry operation:", operation.name(), e);
+                }
+
+                // Update entryRef binding in table entry service.
+                if (frWrapper != null) {
+                    ENTRY_STORE.put(entryRef, frWrapper);
+                } else {
+                    ENTRY_STORE.remove(entryRef);
+                }
+
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        return processedFlowRuleListBuilder.build();
+    }
+
+    enum Operation {
+        APPLY, REMOVE
     }
 }

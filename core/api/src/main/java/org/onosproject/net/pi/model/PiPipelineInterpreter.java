@@ -66,6 +66,16 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
     Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId);
 
     /**
+     * Returns a numeric table id (as in {@link org.onosproject.net.flow.FlowRule#tableId()}) equivalent to the given
+     * protocol-independent table id. If not present, it means that the given protocol-independent table id refers to a
+     * table that does not exist, or that cannot be used for flow rule operations.
+     *
+     * @param piTableId protocol-independent table id
+     * @return numeric table id
+     */
+    Optional<Integer> mapPiTableId(PiTableId piTableId);
+
+    /**
      * Returns an action of a protocol-independent pipeline that is functionally equivalent to the given ONOS traffic
      * treatment for the given table.
      *

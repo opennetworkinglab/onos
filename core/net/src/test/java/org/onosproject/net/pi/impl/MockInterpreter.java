@@ -136,4 +136,9 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
         return Optional.ofNullable(TABLE_MAP.get(flowRuleTableId));
     }
 
+    @Override
+    public Optional<Integer> mapPiTableId(PiTableId piTableId) {
+        return Optional.ofNullable(TABLE_MAP.inverse().get(piTableId));
+    }
+
 }

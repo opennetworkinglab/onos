@@ -236,4 +236,9 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     public Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId) {
         return Optional.ofNullable(TABLE_MAP.get(flowRuleTableId));
     }
+
+    @Override
+    public Optional<Integer> mapPiTableId(PiTableId piTableId) {
+        return Optional.ofNullable(TABLE_MAP.inverse().get(piTableId));
+    }
 }
