@@ -78,6 +78,18 @@ public final class DistributedPrimitives {
     }
 
     /**
+     * Creates an instance of {@code AsyncConsistentMap} that disallows null values.
+     *
+     * @param map backing map
+     * @return not null map
+     * @param <K> map key type
+     * @param <V> map value type
+     */
+    public static <K, V> AsyncConsistentMap<K, V> newNotNullMap(AsyncConsistentMap<K, V> map) {
+        return new NotNullAsyncConsistentMap<>(map);
+    }
+
+    /**
      * Creates an instance of {@code AsyncAtomicCounterMap} that transforms key types.
      *
      * @param map backing map

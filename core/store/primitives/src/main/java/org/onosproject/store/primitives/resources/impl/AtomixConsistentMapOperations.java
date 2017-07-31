@@ -164,7 +164,7 @@ public enum AtomixConsistentMapOperations implements OperationId {
         }
 
         public ValueOperation(byte[] value) {
-            this.value = checkNotNull(value, "value cannot be null");
+            this.value = value;
         }
 
         /**

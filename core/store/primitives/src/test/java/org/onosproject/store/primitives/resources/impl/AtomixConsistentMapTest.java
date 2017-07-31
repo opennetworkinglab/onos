@@ -79,6 +79,44 @@ public class AtomixConsistentMapTest extends AtomixTestBase<AtomixConsistentMap>
     }
 
     /**
+     * Tests null values.
+     */
+    @Test
+    public void testNullValues() throws Throwable {
+        final byte[] rawFooValue = Tools.getBytesUtf8("Hello foo!");
+        final byte[] rawBarValue = Tools.getBytesUtf8("Hello bar!");
+
+        AtomixConsistentMap map = newPrimitive("testNullValues");
+
+        map.get("foo")
+                .thenAccept(v -> assertNull(v)).join();
+        map.put("foo", null)
+                .thenAccept(v -> assertNull(v)).join();
+        map.put("foo", rawFooValue).thenAccept(v -> {
+            assertNotNull(v);
+            assertNull(v.value());
+        }).join();
+        map.get("foo").thenAccept(v -> {
+            assertNotNull(v);
+            assertTrue(Arrays.equals(v.value(), rawFooValue));
+        }).join();
+        map.replace("foo", rawFooValue, null)
+                .thenAccept(replaced -> assertTrue(replaced)).join();
+        map.get("foo").thenAccept(v -> {
+            assertNotNull(v);
+            assertNull(v.value());
+        }).join();
+        map.replace("foo", rawFooValue, rawBarValue)
+                .thenAccept(replaced -> assertFalse(replaced)).join();
+        map.replace("foo", null, rawBarValue)
+                .thenAccept(replaced -> assertTrue(replaced)).join();
+        map.get("foo").thenAccept(v -> {
+            assertNotNull(v);
+            assertTrue(Arrays.equals(v.value(), rawBarValue));
+        }).join();
+    }
+
+    /**
      * Tests map event notifications.
      */
     @Test
@@ -273,7 +311,6 @@ public class AtomixConsistentMapTest extends AtomixTestBase<AtomixConsistentMap>
             assertTrue(Arrays.equals(Versioned.valueOrElse(result, null), value2));
         }).join();
     }
-
 
     protected void mapListenerTests() throws Throwable {
         final byte[] value1 = Tools.getBytesUtf8("value1");
