@@ -47,7 +47,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
     private boolean reportClientInfo = false;
 
     private static final String SERVER_FMT = "%-20s %8s %25s %s";
-    private static final String CLIENT_FMT = "%-20s %8s %10s %25s";
+    private static final String CLIENT_FMT = "%-20s %8s";
 
     /**
      * Displays partition info as text.
