@@ -53,7 +53,9 @@ import org.onosproject.yang.serializers.xml.XmlSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -65,7 +67,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 public class YangRuntimeManager implements YangModelRegistry,
         YangSerializerRegistry, YangRuntimeService, ModelConverter,
-        SchemaContextProvider {
+        SchemaContextProvider, YangClassLoaderRegistry {
 
     private static final String APP_ID = "org.onosproject.yang";
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -79,6 +81,8 @@ public class YangRuntimeManager implements YangModelRegistry,
     private DefaultModelConverter modelConverter;
     private DefaultSchemaContextProvider schemaContextProvider;
 
+    private Map<String, ClassLoader> classLoaders;
+
     @Activate
     public void activate() {
         coreService.registerApplication(APP_ID);
@@ -89,6 +93,7 @@ public class YangRuntimeManager implements YangModelRegistry,
         serializerRegistry.registerSerializer(new JsonSerializer());
         serializerRegistry.registerSerializer(new XmlSerializer());
         modelConverter = new DefaultModelConverter(modelRegistry);
+        classLoaders = new ConcurrentHashMap<>();
         log.info("Started");
     }
 
@@ -173,5 +178,20 @@ public class YangRuntimeManager implements YangModelRegistry,
     @Override
     public RpcContext getRpcContext(ResourceId resourceId) {
         return schemaContextProvider.getRpcContext(resourceId);
+    }
+
+    @Override
+    public ClassLoader getClassLoader(String modelId) {
+        return classLoaders.get(modelId);
+    }
+
+    @Override
+    public void registerClassLoader(String modelId, ClassLoader classLoader) {
+        classLoaders.put(modelId, classLoader);
+    }
+
+    @Override
+    public void unregisterClassLoader(String modelId) {
+        classLoaders.remove(modelId);
     }
 }

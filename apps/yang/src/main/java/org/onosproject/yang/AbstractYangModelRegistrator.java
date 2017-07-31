@@ -43,11 +43,16 @@ public abstract class AbstractYangModelRegistrator {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Class<?> loaderClass;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected YangModelRegistry modelRegistry;
+
     private Map<YangModuleId, AppModuleInfo> appInfo;
     protected YangModel model;
     private ModelRegistrationParam registrationParam;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected YangModelRegistry modelRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected YangClassLoaderRegistry sourceResolver;
 
     /**
      * Creates a model registrator primed with the class-loader of the specified
@@ -80,6 +85,7 @@ public abstract class AbstractYangModelRegistrator {
         ModelRegistrationParam.Builder b =
                 DefaultModelRegistrationParam.builder().setYangModel(model);
         registrationParam = getAppInfo(b).setYangModel(model).build();
+        sourceResolver.registerClassLoader(model.getYangModelId(), loaderClass.getClassLoader());
         modelRegistry.registerModel(registrationParam);
         log.info("Started");
     }
@@ -96,6 +102,7 @@ public abstract class AbstractYangModelRegistrator {
     @Deactivate
     protected void deactivate() {
         modelRegistry.unregisterModel(registrationParam);
+        sourceResolver.unregisterClassLoader(model.getYangModelId());
         log.info("Stopped");
     }
 }

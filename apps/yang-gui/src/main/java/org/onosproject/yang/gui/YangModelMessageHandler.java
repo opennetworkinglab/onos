@@ -25,6 +25,9 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.yang.YangClassLoaderRegistry;
+import org.onosproject.yang.model.DefaultYangModuleId;
+import org.onosproject.yang.model.ModelException;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.model.YangModule;
 import org.onosproject.yang.model.YangModuleId;
@@ -65,6 +68,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private YangModelRegistry modelRegistry;
+    private YangClassLoaderRegistry classLoaderRegistry;
 
 
     // ===============-=-=-=-=-=-==================-=-=-=-=-=-=-===========
@@ -73,6 +77,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         modelRegistry = directory.get(YangModelRegistry.class);
+        classLoaderRegistry = directory.get(YangClassLoaderRegistry.class);
     }
 
     @Override
@@ -132,25 +137,42 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(ObjectNode payload) {
-            String name = string(payload, ID);
             String modelId = string(payload, MODEL_ID);
-            YangModule module = getModule(modelId, name);
+            String moduleName = string(payload, ID);
+            String revision = string(payload, REVISION);
+            YangModule module = getModule(modelId, new DefaultYangModuleId(moduleName, revision));
 
             ObjectNode data = objectNode();
-            data.put(ID, name);
-            if (module != null) {
-                data.put(REVISION, module.getYangModuleId().revision());
-                data.put(MODEL_ID, modelId);
+            data.put(MODEL_ID, modelId);
+            data.put(ID, moduleName);
+            data.put(REVISION, revision);
 
+            if (module != null) {
                 ArrayNode source = arrayNode();
                 data.set(SOURCE, source);
-
-                addSource(source, module.getYangSource());
+                addSource(source, getSource(modelId, module));
             }
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
             sendMessage(DETAILS_RESP, rootNode);
+        }
+
+        // FIXME: Hack to properly resolve the YANG source resource
+        private InputStream getSource(String modelId, YangModule module) {
+            try {
+                module.getYangSource(); // trigger exception
+            } catch (ModelException e) {
+                // Strip the YANG source file base-name and then use it to access
+                // the corresponding resource in the correct run-time context.
+                String msg = e.getMessage();
+                int i = msg.lastIndexOf('/');
+                String baseName = i > 0 ? msg.substring(i) : msg;
+                ClassLoader loader = classLoaderRegistry.getClassLoader(modelId);
+                return loader == null ? null :
+                        loader.getResourceAsStream("/yang/resources" + baseName);
+            }
+            return null;
         }
 
         private void addSource(ArrayNode source, InputStream yangSource) {
@@ -160,27 +182,15 @@ public class YangModelMessageHandler extends UiMessageHandler {
                 while ((line = br.readLine()) != null) {
                     source.add(line);
                 }
-
             } catch (IOException e) {
                 log.warn("Unable to read YANG source", e);
             }
         }
     }
 
-
-    private YangModule getModule(String modelId, String name) {
-        int nid = Integer.parseInt(modelId.substring(2));
-        log.info("Got {}; {}", modelId, nid);
-        YangModel model = modelRegistry.getModels().stream()
-                .filter(m -> m.getYangModelId().equals(modelId))
-                .findFirst().orElse(null);
-        if (model != null) {
-            log.info("Got model");
-            return model.getYangModules().stream()
-                    .filter(m -> m.getYangModuleId().moduleName().contentEquals(name))
-                    .findFirst().orElse(null);
-        }
-        return null;
+    private YangModule getModule(String modelId, DefaultYangModuleId moduleId) {
+        YangModel model = modelRegistry.getModel(modelId);
+        return model != null ? model.getYangModule(moduleId) : null;
     }
 
 }

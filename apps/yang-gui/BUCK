@@ -1,6 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:onos-yang-runtime',
+    '//apps/yang:onos-apps-yang',
 ]
 
 osgi_jar_with_tests (

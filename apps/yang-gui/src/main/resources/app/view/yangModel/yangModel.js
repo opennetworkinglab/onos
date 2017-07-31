@@ -159,7 +159,11 @@
             // row selection callback
             function selCb($event, row) {
                 if ($scope.selId) {
-                    wss.sendEvent(detailsReq, { modelId: row.modelId, id: row.id  });
+                    wss.sendEvent(detailsReq, {
+                        modelId: row.modelId,
+                        id: row.id,
+                        revision: row.revision
+                    });
                 } else {
                     $scope.hidePanel();
                 }
