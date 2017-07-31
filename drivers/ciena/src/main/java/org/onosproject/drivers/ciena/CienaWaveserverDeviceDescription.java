@@ -18,19 +18,23 @@ package org.onosproject.drivers.ciena;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.onlab.packet.ChassisId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.protocol.rest.RestSBController;
@@ -68,9 +72,28 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        log.info("No description to be added for device");
-        //TODO to be implemented if needed.
-        return null;
+        log.debug("getting device description");
+        DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
+        DeviceId deviceId = handler().data().deviceId();
+        Device device = deviceService.getDevice(deviceId);
+
+        if (device == null) {
+            return new DefaultDeviceDescription(deviceId.uri(),
+                                                Device.Type.OTN,
+                                                "Ciena",
+                                                "WaveServer",
+                                                "Unknown",
+                                                "Unknown",
+                                                new ChassisId());
+        } else {
+            return new DefaultDeviceDescription(device.id().uri(),
+                                                Device.Type.OTN,
+                                                device.manufacturer(),
+                                                device.hwVersion(),
+                                                device.swVersion(),
+                                                device.serialNumber(),
+                                                device.chassisId());
+        }
     }
 
     @Override
