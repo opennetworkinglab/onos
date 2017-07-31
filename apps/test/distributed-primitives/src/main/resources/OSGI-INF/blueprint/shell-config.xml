@@ -17,9 +17,6 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.distributedprimitives.cli.AtomicValueTestCommand"/>
-        </command>
-        <command>
             <action class="org.onosproject.distributedprimitives.cli.CounterTestIncrementCommand"/>
         </command>
         <command>
@@ -50,7 +47,7 @@
             <action class="org.onosproject.distributedprimitives.cli.EventuallyConsistentMapTestCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.distributedprimitives.cli.ValueTestCommand"/>
+            <action class="org.onosproject.distributedprimitives.cli.AtomicValueTestCommand"/>
         </command>
         <command>
             <action class="org.onosproject.distributedprimitives.cli.LeaderElectorTestCommand"/>

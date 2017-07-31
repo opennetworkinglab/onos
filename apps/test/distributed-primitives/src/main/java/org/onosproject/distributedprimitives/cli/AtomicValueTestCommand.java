@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Laboratory
+ * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 
 /**
- * Atomic value test command.
+ * CLI command to manipulate a distributed value.
  */
 @Command(scope = "onos", name = "value-test",
-        description = "Manipulate an atomic value")
+        description = "Manipulate a distributed value")
 public class AtomicValueTestCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "name",
-            description = "value name",
+            description = "Value name",
             required = true, multiValued = false)
     String name = null;
 
@@ -40,43 +40,40 @@ public class AtomicValueTestCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String operation = null;
 
-    @Argument(index = 2, name = "key",
+    @Argument(index = 2, name = "value1",
             description = "first arg",
             required = false, multiValued = false)
-    String arg1 = null;
+    String value1 = null;
 
-    @Argument(index = 3, name = "value1",
+    @Argument(index = 3, name = "value2",
             description = "second arg",
             required = false, multiValued = false)
-    String arg2 = null;
+    String value2 = null;
 
-    AtomicValue<String> value;
+    AtomicValue<String> atomicValue;
 
     @Override
     protected void execute() {
         StorageService storageService = get(StorageService.class);
-        value = storageService.<String>atomicValueBuilder()
-                .withName(name)
-                .withSerializer(Serializer.using(KryoNamespaces.BASIC))
-                .build()
-                .asAtomicValue();
-
+        atomicValue = storageService.<String>atomicValueBuilder()
+                                    .withName(name)
+                                    .withSerializer(Serializer.using(KryoNamespaces.BASIC))
+                                    .build()
+                                    .asAtomicValue();
         if ("get".equals(operation)) {
-            print(value.get());
+            print("%s", atomicValue.get());
         } else if ("set".equals(operation)) {
-            value.set("null".equals(arg1) ? null : arg1);
-        } else if ("getAndSet".equals(operation)) {
-            print(value.getAndSet(arg1));
+            atomicValue.set("null".equals(value1) ? null : value1);
         } else if ("compareAndSet".equals(operation)) {
-            print(value.compareAndSet("null".equals(arg1) ? null : arg1, "null".equals(arg2) ? null : arg2));
-        }
-    }
-
-    void print(Object value) {
-        if (value == null) {
-            print("null");
+            print("%b", atomicValue.compareAndSet(
+                    "null".equals(value1) ? null : value1,
+                    "null".equals(value2) ? null : value2));
+        } else if ("getAndSet".equals(operation)) {
+            print("%s", atomicValue.getAndSet(value1));
+        } else if ("destroy".equals(operation)) {
+            atomicValue.destroy();
         } else {
-            print("%s", value);
+            print("Error, unknown operation %s", operation);
         }
     }
 }
