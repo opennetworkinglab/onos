@@ -41,6 +41,7 @@ import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -135,7 +136,9 @@ final class PiFlowRuleTranslator {
         tableEntryBuilder
                 .forTable(piTableId)
                 .withPriority(rule.priority())
-                .withFieldMatches(fieldMatches)
+                .withMatchKey(PiMatchKey.builder()
+                                      .addFieldMatches(fieldMatches)
+                                      .build())
                 .withAction(piAction);
 
         if (!rule.isPermanent()) {

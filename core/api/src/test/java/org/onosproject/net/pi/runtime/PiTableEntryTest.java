@@ -93,7 +93,9 @@ public class PiTableEntryTest {
         fieldMatches.put(piHeaderFieldId, piFieldMatch);
         final PiTableEntry piTableEntry = PiTableEntry.builder()
                 .forTable(piTableId)
-                .withFieldMatches(fieldMatches.values())
+                .withMatchKey(PiMatchKey.builder()
+                                      .addFieldMatches(fieldMatches.values())
+                                      .build())
                 .withAction(piAction)
                 .withCookie(cookie)
                 .withPriority(priority)
@@ -105,7 +107,7 @@ public class PiTableEntryTest {
         assertThat(piTableEntry.priority().get(), is(priority));
         assertThat(piTableEntry.timeout().get(), is(timeout));
         assertThat("Incorrect match param value",
-                CollectionUtils.isEqualCollection(piTableEntry.fieldMatches(), fieldMatches.values()));
+                   CollectionUtils.isEqualCollection(piTableEntry.matchKey().fieldMatches(), fieldMatches.values()));
         assertThat(piTableEntry.action(), is(piAction));
     }
 }

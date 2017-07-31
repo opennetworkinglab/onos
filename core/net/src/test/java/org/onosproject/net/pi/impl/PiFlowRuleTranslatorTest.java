@@ -124,16 +124,16 @@ public class PiFlowRuleTranslatorTest {
 
         int numMatchParams = pipeconf.pipelineModel().table(TABLE0).get().matchFields().size();
         // parse values stored in entry1
-        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.fieldMatch(IN_PORT_ID).get();
-        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.fieldMatch(ETH_DST_ID).get();
-        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.fieldMatch(ETH_SRC_ID).get();
-        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.fieldMatch(ETH_TYPE_ID).get();
+        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(IN_PORT_ID).get();
+        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_DST_ID).get();
+        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_SRC_ID).get();
+        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_TYPE_ID).get();
         Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TABLE0).get().supportsAging()
                 ? Optional.of((double) rule1.timeout()) : Optional.empty();
 
         // check that the number of parameters in the entry is the same as the number of table keys
         assertThat("Incorrect number of match parameters",
-                   entry1.fieldMatches().size(), is(equalTo(numMatchParams)));
+                   entry1.matchKey().fieldMatches().size(), is(equalTo(numMatchParams)));
 
         // check that values stored in entry are the same used for the flow rule
         assertThat("Incorrect inPort match param value",

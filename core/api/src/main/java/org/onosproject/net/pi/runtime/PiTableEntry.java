@@ -19,11 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
-import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -39,16 +35,16 @@ public final class PiTableEntry {
     private static final double NO_TIMEOUT = -1;
 
     private final PiTableId tableId;
-    private final Map<PiHeaderFieldId, PiFieldMatch> fieldMatches;
+    private final PiMatchKey matchKey;
     private final PiTableAction tableAction;
     private final long cookie;
     private final int priority;
     private final double timeout;
 
-    private PiTableEntry(PiTableId tableId, Map<PiHeaderFieldId, PiFieldMatch> fieldMatches,
+    private PiTableEntry(PiTableId tableId, PiMatchKey matchKey,
                          PiTableAction tableAction, long cookie, int priority, double timeout) {
         this.tableId = tableId;
-        this.fieldMatches = ImmutableMap.copyOf(fieldMatches);
+        this.matchKey = matchKey;
         this.tableAction = tableAction;
         this.cookie = cookie;
         this.priority = priority;
@@ -65,22 +61,12 @@ public final class PiTableEntry {
     }
 
     /**
-     * Returns an immutable view of the field matches of this table entry.
+     * Returns the match key of this table entry.
      *
-     * @return collection of field matches
+     * @return match key
      */
-    public Collection<PiFieldMatch> fieldMatches() {
-        return fieldMatches.values();
-    }
-
-    /**
-     * If present, returns the field match associated with the given header field identifier.
-     *
-     * @param fieldId field identifier
-     * @return optional field match
-     */
-    public Optional<PiFieldMatch> fieldMatch(PiHeaderFieldId fieldId) {
-        return Optional.ofNullable(fieldMatches.get(fieldId));
+    public PiMatchKey matchKey() {
+        return matchKey;
     }
 
     /**
@@ -133,20 +119,20 @@ public final class PiTableEntry {
         return priority == that.priority &&
                 Double.compare(that.timeout, timeout) == 0 &&
                 Objects.equal(tableId, that.tableId) &&
-                Objects.equal(fieldMatches, that.fieldMatches) &&
+                Objects.equal(matchKey, that.matchKey) &&
                 Objects.equal(tableAction, that.tableAction);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(tableId, fieldMatches, tableAction, priority, timeout);
+        return Objects.hashCode(tableId, matchKey, tableAction, priority, timeout);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("tableId", tableId)
-                .add("fieldMatches", fieldMatches)
+                .add("matchKey", matchKey)
                 .add("tableAction", tableAction)
                 .add("priority", priority == NO_PRIORITY ? "N/A" : String.valueOf(priority))
                 .add("timeout", timeout == NO_TIMEOUT ? "PERMANENT" : String.valueOf(timeout))
@@ -165,7 +151,7 @@ public final class PiTableEntry {
     public static final class Builder {
 
         private PiTableId tableId;
-        private Map<PiHeaderFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
+        private PiMatchKey matchKey;
         private PiTableAction tableAction;
         private long cookie = 0;
         private int priority = NO_PRIORITY;
@@ -198,24 +184,13 @@ public final class PiTableEntry {
         }
 
         /**
-         * Adds one field match to this table entry.
+         * Sets the match key of this table entry.
          *
-         * @param fieldMatch field match
+         * @param matchKey match key
          * @return this
          */
-        public Builder withFieldMatch(PiFieldMatch fieldMatch) {
-            this.fieldMatches.put(fieldMatch.fieldId(), fieldMatch);
-            return this;
-        }
-
-        /**
-         * Adds many field matches to this table entry.
-         *
-         * @param fieldMatches collection of field matches
-         * @return this
-         */
-        public Builder withFieldMatches(Collection<PiFieldMatch> fieldMatches) {
-            fieldMatches.forEach(f -> this.fieldMatches.put(f.fieldId(), f));
+        public Builder withMatchKey(PiMatchKey matchKey) {
+            this.matchKey = matchKey;
             return this;
         }
 
@@ -262,7 +237,7 @@ public final class PiTableEntry {
         public PiTableEntry build() {
             checkNotNull(tableId);
             checkNotNull(tableAction);
-            return new PiTableEntry(tableId, fieldMatches, tableAction, cookie, priority, timeout);
+            return new PiTableEntry(tableId, matchKey, tableAction, cookie, priority, timeout);
         }
     }
 }

@@ -29,6 +29,7 @@ import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
+import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
@@ -45,6 +46,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
+import static org.onlab.util.ImmutableByteSequence.ofOnes;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
@@ -94,15 +96,17 @@ public class TableEntryEncoderTest {
     private final PiTableEntry piTableEntry = PiTableEntry
             .builder()
             .forTable(tableId)
-            .withFieldMatch(new PiTernaryFieldMatch(ethDstAddrFieldId, ethAddr, ImmutableByteSequence.ofOnes(6)))
-            .withFieldMatch(new PiTernaryFieldMatch(ethSrcAddrFieldId, ethAddr, ImmutableByteSequence.ofOnes(6)))
-            .withFieldMatch(new PiTernaryFieldMatch(inPortFieldId, portValue, ImmutableByteSequence.ofOnes(2)))
-            .withFieldMatch(new PiTernaryFieldMatch(ethTypeFieldId, portValue, ImmutableByteSequence.ofOnes(2)))
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethDstAddrFieldId, ethAddr, ofOnes(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethSrcAddrFieldId, ethAddr, ofOnes(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(inPortFieldId, portValue, ofOnes(2)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethTypeFieldId, portValue, ofOnes(2)))
+                                  .build())
             .withAction(PiAction
-                    .builder()
-                    .withId(outActionId)
-                    .withParameter(new PiActionParam(portParamId, portValue))
-                    .build())
+                                .builder()
+                                .withId(outActionId)
+                                .withParameter(new PiActionParam(portParamId, portValue))
+                                .build())
             .withPriority(1)
             .withCookie(2)
             .build();

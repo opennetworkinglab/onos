@@ -28,6 +28,7 @@ import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -161,7 +162,7 @@ final class TableEntryEncoder {
         tableEntryMsgBuilder.setAction(encodePiTableAction(piTableEntry.action(), browser));
 
         // Field matches.
-        for (PiFieldMatch piFieldMatch : piTableEntry.fieldMatches()) {
+        for (PiFieldMatch piFieldMatch : piTableEntry.matchKey().fieldMatches()) {
             tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
         }
 
@@ -190,10 +191,12 @@ final class TableEntryEncoder {
         // Timeout.
         // FIXME: how to decode table entry messages with timeout, given that the timeout value is lost after encoding?
 
-        // Field matches.
+        // Match key for field matches.
+        PiMatchKey.Builder piMatchKeyBuilder = PiMatchKey.builder();
         for (FieldMatch fieldMatchMsg : tableEntryMsg.getMatchList()) {
-            piTableEntryBuilder.withFieldMatch(decodeFieldMatchMsg(fieldMatchMsg, tableInfo, browser));
+            piMatchKeyBuilder.addFieldMatch(decodeFieldMatchMsg(fieldMatchMsg, tableInfo, browser));
         }
+        piTableEntryBuilder.withMatchKey(piMatchKeyBuilder.build());
 
         return piTableEntryBuilder.build();
     }
