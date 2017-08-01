@@ -16,19 +16,14 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import org.onosproject.store.service.DocumentPath;
-import org.onosproject.store.service.Versioned;
-
 import com.google.common.base.MoreObjects;
 
 /**
- * Result of a document tree node update operation.
- * <p>
- * Both old and new values are accessible along with a status of update.
+ * Result of a document tree operation.
  *
  * @param <V> value type
  */
-public class DocumentTreeUpdateResult<V> {
+public class DocumentTreeResult<V> {
 
     public enum Status {
         /**
@@ -57,43 +52,61 @@ public class DocumentTreeUpdateResult<V> {
         ILLEGAL_MODIFICATION,
     }
 
-    private final DocumentPath path;
+    @SuppressWarnings("unchecked")
+    public static final DocumentTreeResult INVALID_PATH =
+            new DocumentTreeResult(Status.INVALID_PATH, null);
+
+    @SuppressWarnings("unchecked")
+    public static final DocumentTreeResult ILLEGAL_MODIFICATION =
+            new DocumentTreeResult(Status.ILLEGAL_MODIFICATION, null);
+
+    /**
+     * Returns a successful result.
+     *
+     * @param result the operation result
+     * @param <V> the result value type
+     * @return successful result
+     */
+    public static <V> DocumentTreeResult<V> ok(V result) {
+        return new DocumentTreeResult<V>(Status.OK, result);
+    }
+
+    /**
+     * Returns an {@code INVALID_PATH} result.
+     *
+     * @param <V> the result value type
+     * @return invalid path result
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> DocumentTreeResult<V> invalidPath() {
+        return INVALID_PATH;
+    }
+
+    /**
+     * Returns an {@code ILLEGAL_MODIFICATION} result.
+     *
+     * @param <V> the result value type
+     * @return illegal modification result
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> DocumentTreeResult<V> illegalModification() {
+        return ILLEGAL_MODIFICATION;
+    }
+
     private final Status status;
-    private final Versioned<V> oldValue;
-    private final Versioned<V> newValue;
+    private final V result;
 
-    public DocumentTreeUpdateResult(DocumentPath path,
-            Status status,
-            Versioned<V> newValue,
-            Versioned<V> oldValue) {
+    public DocumentTreeResult(Status status, V result) {
         this.status = status;
-        this.path = path;
-        this.newValue = newValue;
-        this.oldValue = oldValue;
-    }
-
-    public static <V> DocumentTreeUpdateResult<V> invalidPath(DocumentPath path) {
-        return new DocumentTreeUpdateResult<>(path, Status.INVALID_PATH, null, null);
-    }
-
-    public static <V> DocumentTreeUpdateResult<V> illegalModification(DocumentPath path) {
-        return new DocumentTreeUpdateResult<>(path, Status.ILLEGAL_MODIFICATION, null, null);
+        this.result = result;
     }
 
     public Status status() {
         return status;
     }
 
-    public DocumentPath path() {
-        return path;
-    }
-
-    public Versioned<V> oldValue() {
-        return oldValue;
-    }
-
-    public Versioned<V> newValue() {
-        return this.newValue;
+    public V result() {
+        return result;
     }
 
     public boolean updated() {
@@ -101,16 +114,14 @@ public class DocumentTreeUpdateResult<V> {
     }
 
     public boolean created() {
-        return updated() && oldValue == null;
+        return updated() && result == null;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("path", path)
                 .add("status", status)
-                .add("newValue", newValue)
-                .add("oldValue", oldValue)
+                .add("value", result)
                 .toString();
     }
 }

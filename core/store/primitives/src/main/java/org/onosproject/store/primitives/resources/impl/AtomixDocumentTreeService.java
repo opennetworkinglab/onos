@@ -47,7 +47,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperati
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.Listen;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.Unlisten;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.Update;
-import org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status;
+import org.onosproject.store.primitives.resources.impl.DocumentTreeResult.Status;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTree;
@@ -156,18 +156,22 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
     protected Versioned<byte[]> get(Commit<? extends Get> commit) {
         try {
             Versioned<byte[]> value = docTree.get(commit.value().path());
-            return value == null ? null : value.map(node -> node == null ? null : node);
+            return value == null ? null : value.map(node -> node);
         } catch (IllegalStateException e) {
             return null;
         }
     }
 
-    protected Map<String, Versioned<byte[]>> getChildren(Commit<? extends GetChildren> commit) {
-        return docTree.getChildren(commit.value().path());
+    protected DocumentTreeResult<Map<String, Versioned<byte[]>>> getChildren(Commit<? extends GetChildren> commit) {
+        try {
+            return DocumentTreeResult.ok(docTree.getChildren(commit.value().path()));
+        } catch (NoSuchDocumentPathException e) {
+            return DocumentTreeResult.invalidPath();
+        }
     }
 
-    protected DocumentTreeUpdateResult<byte[]> update(Commit<? extends Update> commit) {
-        DocumentTreeUpdateResult<byte[]> result = null;
+    protected DocumentTreeResult<Versioned<byte[]>> update(Commit<? extends Update> commit) {
+        DocumentTreeResult<Versioned<byte[]>> result = null;
         DocumentPath path = commit.value().path();
         boolean updated = false;
         Versioned<byte[]> currentValue = docTree.get(path);
@@ -178,25 +182,46 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             if (versionMatch.matches(currentValue == null ? null : currentValue.version())
                     && valueMatch.matches(currentValue == null ? null : currentValue.value())) {
                 if (commit.value().value() == null) {
-                    docTree.removeNode(path);
+                    Versioned<byte[]> oldValue = docTree.removeNode(path);
+                    result = new DocumentTreeResult<>(Status.OK, oldValue);
+                    if (oldValue != null) {
+                        notifyListeners(new DocumentTreeEvent<>(
+                                path,
+                                Type.DELETED,
+                                Optional.empty(),
+                                Optional.of(oldValue)));
+                    }
                 } else {
-                    docTree.set(path, commit.value().value().orElse(null));
+                    Versioned<byte[]> oldValue = docTree.set(path, commit.value().value().orElse(null));
+                    Versioned<byte[]> newValue = docTree.get(path);
+                    result = new DocumentTreeResult<>(Status.OK, newValue);
+                    if (oldValue == null) {
+                        notifyListeners(new DocumentTreeEvent<>(
+                                path,
+                                Type.CREATED,
+                                Optional.of(newValue),
+                                Optional.empty()));
+                    } else {
+                        notifyListeners(new DocumentTreeEvent<>(
+                                path,
+                                Type.UPDATED,
+                                Optional.of(newValue),
+                                Optional.of(oldValue)));
+                    }
                 }
-                updated = true;
+            } else {
+                result = new DocumentTreeResult<>(
+                        commit.value().value() == null ? Status.INVALID_PATH : Status.NOOP,
+                        currentValue);
             }
-            Versioned<byte[]> newValue = updated ? docTree.get(path) : currentValue;
-            Status updateStatus = updated
-                    ? Status.OK : commit.value().value() == null ? Status.INVALID_PATH : Status.NOOP;
-            result = new DocumentTreeUpdateResult<>(path, updateStatus, newValue, currentValue);
         } catch (IllegalDocumentModificationException e) {
-            result = DocumentTreeUpdateResult.illegalModification(path);
+            result = DocumentTreeResult.illegalModification();
         } catch (NoSuchDocumentPathException e) {
-            result = DocumentTreeUpdateResult.invalidPath(path);
+            result = DocumentTreeResult.invalidPath();
         } catch (Exception e) {
             getLogger().error("Failed to apply {} to state machine", commit.value(), e);
             throw Throwables.propagate(e);
         }
-        notifyListeners(path, result);
         return result;
     }
 
@@ -219,16 +244,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
         }
     }
 
-    private void notifyListeners(DocumentPath path, DocumentTreeUpdateResult<byte[]> result) {
-        if (result.status() != Status.OK) {
-            return;
-        }
-        DocumentTreeEvent<byte[]> event =
-                new DocumentTreeEvent<>(path,
-                        result.created() ? Type.CREATED : result.newValue() == null ? Type.DELETED : Type.UPDATED,
-                        Optional.ofNullable(result.newValue()),
-                        Optional.ofNullable(result.oldValue()));
-
+    private void notifyListeners(DocumentTreeEvent<byte[]> event) {
         listeners.values()
                 .stream()
                 .filter(l -> event.path().isDescendentOf(l.leastCommonAncestorPath()))

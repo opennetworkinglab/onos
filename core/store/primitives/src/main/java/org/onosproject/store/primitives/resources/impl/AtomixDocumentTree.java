@@ -51,9 +51,9 @@ import static org.onosproject.store.primitives.resources.impl.AtomixDocumentTree
 import static org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.GET_CHILDREN;
 import static org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.REMOVE_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations.UPDATE;
-import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.ILLEGAL_MODIFICATION;
-import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.INVALID_PATH;
-import static org.onosproject.store.primitives.resources.impl.DocumentTreeUpdateResult.Status.OK;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeResult.Status.ILLEGAL_MODIFICATION;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeResult.Status.INVALID_PATH;
+import static org.onosproject.store.primitives.resources.impl.DocumentTreeResult.Status.OK;
 
 /**
  * Distributed resource providing the {@link AsyncDocumentTree} primitive.
@@ -94,7 +94,20 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
 
     @Override
     public CompletableFuture<Map<String, Versioned<byte[]>>> getChildren(DocumentPath path) {
-        return proxy.invoke(GET_CHILDREN, SERIALIZER::encode, new GetChildren(checkNotNull(path)), SERIALIZER::decode);
+        return proxy.<GetChildren, DocumentTreeResult<Map<String, Versioned<byte[]>>>>invoke(
+                GET_CHILDREN,
+                SERIALIZER::encode,
+                new GetChildren(checkNotNull(path)),
+                SERIALIZER::decode)
+                .thenCompose(result -> {
+                    if (result.status() == INVALID_PATH) {
+                        return Tools.exceptionalFuture(new NoSuchDocumentPathException());
+                    } else if (result.status() == ILLEGAL_MODIFICATION) {
+                        return Tools.exceptionalFuture(new IllegalDocumentModificationException());
+                    } else {
+                        return CompletableFuture.completedFuture(result);
+                    }
+                }).thenApply(result -> result.result());
     }
 
     @Override
@@ -104,7 +117,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
 
     @Override
     public CompletableFuture<Versioned<byte[]>> set(DocumentPath path, byte[] value) {
-        return proxy.<Update, DocumentTreeUpdateResult<byte[]>>invoke(UPDATE,
+        return proxy.<Update, DocumentTreeResult<Versioned<byte[]>>>invoke(UPDATE,
                 SERIALIZER::encode,
                 new Update(checkNotNull(path), Optional.ofNullable(value), Match.any(), Match.any()),
                 SERIALIZER::decode)
@@ -116,7 +129,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
                     } else {
                         return CompletableFuture.completedFuture(result);
                     }
-                }).thenApply(result -> result.oldValue());
+                }).thenApply(result -> result.result());
     }
 
     @Override
@@ -144,7 +157,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, byte[] newValue, long version) {
-        return proxy.<Update, DocumentTreeUpdateResult<byte[]>>invoke(UPDATE,
+        return proxy.<Update, DocumentTreeResult<byte[]>>invoke(UPDATE,
                 SERIALIZER::encode,
                 new Update(checkNotNull(path),
                         Optional.ofNullable(newValue),
@@ -155,7 +168,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, byte[] newValue, byte[] currentValue) {
-        return proxy.<Update, DocumentTreeUpdateResult<byte[]>>invoke(UPDATE,
+        return proxy.<Update, DocumentTreeResult<byte[]>>invoke(UPDATE,
                 SERIALIZER::encode,
                 new Update(checkNotNull(path),
                         Optional.ofNullable(newValue),
@@ -178,7 +191,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
         if (path.equals(DocumentPath.from("root"))) {
             return Tools.exceptionalFuture(new IllegalDocumentModificationException());
         }
-        return proxy.<Update, DocumentTreeUpdateResult<byte[]>>invoke(UPDATE,
+        return proxy.<Update, DocumentTreeResult<Versioned<byte[]>>>invoke(UPDATE,
                 SERIALIZER::encode,
                 new Update(checkNotNull(path), null, Match.any(), Match.ifNotNull()),
                 SERIALIZER::decode)
@@ -190,7 +203,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
                     } else {
                         return CompletableFuture.completedFuture(result);
                     }
-                }).thenApply(result -> result.oldValue());
+                }).thenApply(result -> result.result());
     }
 
     @Override
@@ -217,8 +230,8 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
         return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<DocumentTreeUpdateResult.Status> createInternal(DocumentPath path, byte[] value) {
-        return proxy.<Update, DocumentTreeUpdateResult<byte[]>>invoke(UPDATE,
+    private CompletableFuture<DocumentTreeResult.Status> createInternal(DocumentPath path, byte[] value) {
+        return proxy.<Update, DocumentTreeResult<byte[]>>invoke(UPDATE,
                 SERIALIZER::encode,
                 new Update(checkNotNull(path), Optional.ofNullable(value), Match.any(), Match.ifNull()),
                 SERIALIZER::decode)

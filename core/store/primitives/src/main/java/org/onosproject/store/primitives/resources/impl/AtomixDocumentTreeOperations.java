@@ -67,8 +67,8 @@ public enum AtomixDocumentTreeOperations implements OperationId {
             .register(DocumentPath.class)
             .register(Match.class)
             .register(Versioned.class)
-            .register(DocumentTreeUpdateResult.class)
-            .register(DocumentTreeUpdateResult.Status.class)
+            .register(DocumentTreeResult.class)
+            .register(DocumentTreeResult.Status.class)
             .build("AtomixDocumentTreeOperations");
 
     /**
