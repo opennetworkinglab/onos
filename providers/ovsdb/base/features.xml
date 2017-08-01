@@ -24,7 +24,7 @@
         <bundle>mvn:io.netty/netty-handler/4.0.23.Final</bundle>
         <bundle>mvn:io.netty/netty-codec/4.0.23.Final</bundle>
         <bundle>mvn:${project.groupId}/onos-ovsdb-rfc/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-ovsdb-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-ovsdb-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ovsdb-ctl/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-drivers-ovsdb/${project.version}</bundle>
