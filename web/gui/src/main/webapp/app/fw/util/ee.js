@@ -37,7 +37,9 @@
         'ias',
         'jweeidkpizn',
         'fmfv',
-        'hwdoc'
+        'hwdoc',
+        'acxefcsdgt',
+        'pmmn'
         // Add more beans...
     ];
 
