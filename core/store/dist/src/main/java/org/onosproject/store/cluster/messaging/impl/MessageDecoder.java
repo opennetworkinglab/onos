@@ -69,32 +69,41 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             case READ_SENDER_IP_VERSION:
                 ipVersion = buffer.readByte() == 0x0 ? Version.INET : Version.INET6;
                 checkpoint(DecoderState.READ_SENDER_IP);
+                // FALLTHROUGH
             case READ_SENDER_IP:
                 byte[] octets = new byte[IpAddress.byteLength(ipVersion)];
                 buffer.readBytes(octets);
                 senderIp = IpAddress.valueOf(ipVersion, octets);
                 checkpoint(DecoderState.READ_SENDER_PORT);
+                // FALLTHROUGH
             case READ_SENDER_PORT:
                 senderPort = buffer.readInt();
                 checkpoint(DecoderState.READ_TYPE);
+                // FALLTHROUGH
             case READ_TYPE:
                 type = InternalMessage.Type.forId(buffer.readByte());
                 checkpoint(DecoderState.READ_PREAMBLE);
+                // FALLTHROUGH
             case READ_PREAMBLE:
                 preamble = buffer.readInt();
                 checkpoint(DecoderState.READ_LOGICAL_TIME);
+                // FALLTHROUGH
             case READ_LOGICAL_TIME:
                 logicalTime = buffer.readLong();
                 checkpoint(DecoderState.READ_LOGICAL_COUNTER);
+                // FALLTHROUGH
             case READ_LOGICAL_COUNTER:
                 logicalCounter = buffer.readLong();
                 checkpoint(DecoderState.READ_MESSAGE_ID);
+                // FALLTHROUGH
             case READ_MESSAGE_ID:
                 messageId = buffer.readLong();
                 checkpoint(DecoderState.READ_CONTENT_LENGTH);
+                // FALLTHROUGH
             case READ_CONTENT_LENGTH:
                 contentLength = buffer.readInt();
                 checkpoint(DecoderState.READ_CONTENT);
+                // FALLTHROUGH
             case READ_CONTENT:
                 if (contentLength > 0) {
                     //TODO Perform a sanity check on the size before allocating
@@ -125,6 +134,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
                     case READ_SUBJECT_LENGTH:
                         subjectLength = buffer.readShort();
                         checkpoint(DecoderState.READ_SUBJECT);
+                        // FALLTHROUGH
                     case READ_SUBJECT:
                         byte[] messageTypeBytes = new byte[subjectLength];
                         buffer.readBytes(messageTypeBytes);

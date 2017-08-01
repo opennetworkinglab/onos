@@ -91,15 +91,15 @@ public class AetherResolver {
         AetherResolver.session = session;
     }
 
-    public static BuckArtifact getArtifact(String name, String uri, String repo) {
-        return new AetherResolver(repo).build(name, uri);
+    public static BuckArtifact getArtifact(String name, String uri, String repo, boolean generateForBazel) {
+        return new AetherResolver(repo).build(name, uri, generateForBazel);
     }
 
     private AetherResolver(String repoUrl) {
         this.repoUrl = repoUrl;
     }
 
-    private BuckArtifact build(String name, String uri) {
+    private BuckArtifact build(String name, String uri, boolean generateForBazel) {
         uri = uri.replaceFirst("mvn:", "");
         Artifact artifact = new DefaultArtifact(uri);
         String originalVersion = artifact.getVersion();
@@ -122,9 +122,9 @@ public class AetherResolver {
                                                    artifact.getGroupId(),
                                                    artifact.getArtifactId(),
                                                    originalVersion);
-                return BuckArtifact.getArtifact(name, url, sha, mavenCoords, osgiReady);
+                return BuckArtifact.getArtifact(name, url, sha, mavenCoords, osgiReady, generateForBazel);
             }
-            return BuckArtifact.getArtifact(name, artifact, sha, repoUrl, osgiReady);
+            return BuckArtifact.getArtifact(name, artifact, sha, repoUrl, osgiReady, generateForBazel);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

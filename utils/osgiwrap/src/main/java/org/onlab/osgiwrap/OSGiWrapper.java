@@ -74,10 +74,11 @@ public class OSGiWrapper {
     private String bundleLicense;
 
     private String webContext;
+    private String destdir;
 
     // FIXME should consider using Commons CLI, etc.
     public static void main(String[] args) {
-        if (args.length < 12) {
+        if (args.length < 13) {
             System.err.println("Not enough args");
             System.exit(1);
         }
@@ -94,6 +95,7 @@ public class OSGiWrapper {
         String includeResources = args[9];
         String webContext = args[10];
         String dynamicimportPackages = args[11];
+        String destdir = args[12];
         String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
@@ -103,7 +105,8 @@ public class OSGiWrapper {
                                               includeResources,
                                               webContext,
                                               dynamicimportPackages,
-                                              desc);
+                                              desc,
+                                              destdir);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
             System.err.printf("Error generating %s\n", name);
@@ -124,7 +127,8 @@ public class OSGiWrapper {
                        String includeResources,
                        String webContext,
                        String dynamicimportPackages,
-                       String bundleDescription) {
+                       String bundleDescription,
+                       String destdir) {
         this.inputJar = inputJar;
         this.classpath = Lists.newArrayList(classpath.split(":"));
         if (!this.classpath.contains(inputJar)) {
@@ -151,6 +155,7 @@ public class OSGiWrapper {
         }
 
         this.webContext = webContext;
+        this.destdir = destdir;
     }
 
     private void setProperties(Analyzer analyzer) {
@@ -209,6 +214,8 @@ public class OSGiWrapper {
 
             // Scan the JAR for Felix SCR annotations and generate XML files
             Map<String, String> properties = Maps.newHashMap();
+            // destdir hack
+            properties.put("destdir", destdir);
             SCRDescriptorBndPlugin scrDescriptorBndPlugin = new SCRDescriptorBndPlugin();
             scrDescriptorBndPlugin.setProperties(properties);
             scrDescriptorBndPlugin.setReporter(analyzer);

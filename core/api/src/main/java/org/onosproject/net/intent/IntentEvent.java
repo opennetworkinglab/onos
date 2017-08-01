@@ -142,11 +142,10 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
                 type = Type.PURGED;
                 break;
 
-            // fallthrough to default from here
-            case COMPILING:
-            case INSTALLING:
-            case RECOMPILING:
-            case WITHDRAWING:
+            case COMPILING:     // FALLTHROUGH
+            case INSTALLING:    // FALLTHROUGH
+            case RECOMPILING:   // FALLTHROUGH
+            case WITHDRAWING:   // FALLTHROUGH
             default:
                 return Optional.empty();
         }

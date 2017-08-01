@@ -25,25 +25,33 @@ public abstract class BuckArtifact {
     private final String name;
     private final String sha;
     private final boolean osgiReady;
+    private final boolean generateForBazel;
 
-    public static BuckArtifact getArtifact(String name, Artifact artifact, String sha, String repo, boolean osgiReady) {
-        return new MavenArtifact(name, artifact, sha, repo, osgiReady);
+    public static BuckArtifact getArtifact(String name, Artifact artifact, String sha, String repo,
+                                           boolean osgiReady, boolean generateForBazel) {
+        return new MavenArtifact(name, artifact, sha, repo, osgiReady, generateForBazel);
     }
-    public static BuckArtifact getArtifact(String name, String url, String sha, String mavenCoords, boolean osgiReady) {
-        return new HTTPArtifact(name, url, sha, mavenCoords, osgiReady);
+    public static BuckArtifact getArtifact(String name, String url, String sha, String mavenCoords,
+                                           boolean osgiReady, boolean generateForBazel) {
+        return new HTTPArtifact(name, url, sha, mavenCoords, osgiReady, generateForBazel);
     }
-    public static BuckArtifact getArtifact(String name, String url, String sha) {
-        return new HTTPArtifact(name, url, sha, null, true);
+    public static BuckArtifact getArtifact(String name, String url, String sha, boolean generateForBazel) {
+        return new HTTPArtifact(name, url, sha, null, true, generateForBazel);
     }
 
-    public BuckArtifact(String name, String sha, boolean osgiReady) {
+    public BuckArtifact(String name, String sha, boolean osgiReady, boolean generateForBazel) {
         this.name = name;
         this.sha = sha;
         this.osgiReady = osgiReady;
+        this.generateForBazel = generateForBazel;
     }
 
     public String name() {
-        return name;
+        if (!generateForBazel) {
+            return name;
+        } else {
+            return name.replaceAll("[.-]", "_");
+        }
     }
 
     abstract String fileName();
@@ -51,7 +59,7 @@ public abstract class BuckArtifact {
     abstract String url();
 
     private String jarTarget() {
-        return name != null ? name : fileName();
+        return name != null ? name() : fileName();
     }
 
     private boolean isPublic() {
@@ -62,20 +70,82 @@ public abstract class BuckArtifact {
         return osgiReady;
     }
 
+    boolean isGenerateForBazel() {
+        return generateForBazel;
+    }
+
+
     String mavenCoords() {
         return null;
+    }
+
+    private boolean isJar() {
+        return fileName().endsWith(".jar");
+    }
+
+    private boolean isHttp() {
+        return url().startsWith("http");
+    }
+
+    String getBazelJavaLibraryFragment() {
+        if (isJar()) {
+            String format =
+                    "  native.java_library (\n" +
+                            "    name = '%s',\n" +
+                            "    visibility = ['//visibility:public'],\n" +
+                            "    exports = ['@%s//jar'],\n" +
+                            "  )\n\n";
+            return String.format(format, jarTarget(), jarTarget());
+        }
+        return "";
+    }
+
+    private String extractRepo() {
+        // This is a hack because the code above us already got rid of the maven repo
+        // info for artifacts
+        String url = url();
+        if (url.startsWith("http")) {
+            return url.substring(0, url.indexOf(fileName()) - mavenCoords().length() - 1);
+        } else {
+            return "";
+        }
+    }
+
+    String getBazelMavenJarFragment() {
+        if (isJar() && mavenCoords() != null) {
+            String repo = extractRepo();
+            String repoAttribute = "";
+            if (!"".equals(repo)) {
+                repoAttribute = "    repository = '" + repo + "',\n";
+            }
+            String format =
+                    "  native.maven_jar (\n" +
+                            "    name = '%s',\n" +
+                            "    artifact = '%s',\n" +
+                            "    sha1 = '%s',\n" +
+                            "%s" +
+                            "  )\n\n";
+            return String.format(format, jarTarget(), mavenCoords(), sha, repoAttribute);
+        } else {
+            String format =
+                    "  native.http_jar (\n" +
+                            "    name = '%s',\n" +
+                            "    url = '%s',\n" +
+                            "    sha256 = '%s',\n" +
+                            "  )\n\n";
+            return String.format(format, jarTarget(), url(), sha);
+        }
     }
 
     public String getBuckFragment() {
         String visibility = isPublic() ? "[ 'PUBLIC' ]" : "[]";
 
-        boolean isJar = fileName().endsWith(".jar");
-        String output = (isJar ? "remote_jar" : "remote_file") + " (\n" +
+        String output = (isJar() ? "remote_jar" : "remote_file") + " (\n" +
                 "  name = '%s',\n" + // jar target
                 "  out = '%s',\n" + // jar file name
                 "  url = '%s',\n" + // maven url
                 "  sha1 = '%s',\n" + // artifact sha
-                ( isJar && mavenCoords() != null ?
+                ( isJar() && mavenCoords() != null ?
                 "  maven_coords = '"+ mavenCoords()+"',\n" : "" ) +
                 "  visibility = %s,\n" +
                 ")\n\n";
@@ -87,8 +157,9 @@ public abstract class BuckArtifact {
         private final String url;
         private final String mavenCoords;
 
-        public HTTPArtifact(String name, String url, String sha, String mavenCoords, boolean osgiReady) {
-            super(name, sha, osgiReady);
+        public HTTPArtifact(String name, String url, String sha,
+                            String mavenCoords, boolean osgiReady, boolean generateForBazel) {
+            super(name, sha, osgiReady, generateForBazel);
             this.url = url;
             this.mavenCoords = mavenCoords;
         }
@@ -114,8 +185,9 @@ public abstract class BuckArtifact {
         private final Artifact artifact;
         private final String repo;
 
-        private MavenArtifact(String name, Artifact artifact, String sha, String repo, boolean osgiReady) {
-            super(name, sha, osgiReady);
+        private MavenArtifact(String name, Artifact artifact, String sha,
+                              String repo, boolean osgiReady, boolean generateForBazel) {
+            super(name, sha, osgiReady, generateForBazel);
             this.artifact = artifact;
             this.repo = repo;
         }
@@ -142,7 +214,7 @@ public abstract class BuckArtifact {
         @Override
         String mavenCoords() {
             String classifer = artifact.getClassifier();
-            if (!isOsgiReady()) {
+            if (!isOsgiReady() && !isGenerateForBazel()) {
                 classifer = "NON-OSGI" + classifer;
             }
 

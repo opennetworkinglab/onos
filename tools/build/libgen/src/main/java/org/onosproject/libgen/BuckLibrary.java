@@ -28,24 +28,73 @@ public class BuckLibrary {
 
     private final String name;
     private final List<String> targets;
+    private final boolean generateForBazel;
 
     private final Set<Artifact> provided = new HashSet<>();
     private final Set<Artifact> runtime = new HashSet<>();
 
-    public static BuckLibrary getLibrary(String libraryName, List<String> libraryTargets) {
-        return new BuckLibrary(libraryName, libraryTargets);
+    public static BuckLibrary getLibrary(String libraryName, List<String> libraryTargets, boolean generateForBazel) {
+        return new BuckLibrary(libraryName, libraryTargets, generateForBazel);
     }
 
-    private BuckLibrary(String name, List<String> targets) {
+    private BuckLibrary(String name, List<String> targets, boolean generateForBazel) {
         this.name = name;
         this.targets = targets;
+        this.generateForBazel = generateForBazel;
+    }
+
+    private String normalizeName(String name) {
+        if (!name.startsWith("//")) {
+            return name.replaceAll("[.-]", "_");
+        } else {
+            return name;
+        }
+    }
+
+    private String convertBuckTargetName(String buckTargetName) {
+        return normalizeName((buckTargetName.startsWith("//") ?
+                buckTargetName : buckTargetName.replaceFirst(":", "@")));
+    }
+
+    private boolean isAllUpper(String s) {
+        return s.toUpperCase().equals(s);
     }
 
     public String name() {
-        return name;
+        if (!generateForBazel) {
+            return name;
+        } else {
+            return normalizeName(name);
+        }
     }
 
-    public String getBuckFragment() {
+    public String getFragment() {
+        if (generateForBazel) {
+            return getBazelFragment();
+        } else {
+            return getBuckFragment();
+        }
+    }
+
+    private String getBazelFragment() {
+        StringBuilder output = new StringBuilder()
+                .append(name())
+                .append(" = [");
+
+        targets.forEach(target -> {
+            if (isAllUpper(target)) {
+                output.append(String.format("] + %s + [", target.replaceFirst(":", "")));
+            } else {
+                String pathEnd = target.startsWith("//") ? "" : "//jar";
+                output.append(String.format("\n    '%s%s',", convertBuckTargetName(target), pathEnd));
+            }
+        });
+        output.append("\n]\n");
+
+        return output.toString();
+    }
+
+    private String getBuckFragment() {
         StringBuilder output = new StringBuilder()
                 .append("osgi_feature_group(\n")
                 .append(String.format("  name = '%s',\n", name))

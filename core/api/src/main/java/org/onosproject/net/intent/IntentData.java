@@ -457,6 +457,7 @@ public class IntentData { //FIXME need to make this "immutable"
             } else if (currentState == INSTALLED) {
                 return true;
             }
+            // FALLTHROUGH
         case INSTALLED:
             if (currentState == INSTALLED) {
                 return false;
