@@ -41,10 +41,8 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  implementation_id: 285227860
   direct_resource_ids: 301990488
   size: 1024
-  with_entry_timeout: true
 }
 actions {
   preamble {
@@ -78,16 +76,6 @@ actions {
     name: "NoAction"
     alias: "NoAction"
   }
-}
-action_profiles {
-  preamble {
-    id: 285227860
-    name: "ecmp_selector"
-    alias: "ecmp_selector"
-  }
-  table_ids: 33617813
-  with_selector: true
-  size: 64
 }
 counters {
   preamble {

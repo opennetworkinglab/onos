@@ -2486,7 +2486,7 @@
           ],
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 7,
+            "line" : 23,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec = hdr.packet_out.egress_port"
           }
@@ -2605,7 +2605,7 @@
           ],
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 16,
+            "line" : 32,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
           }
@@ -2624,7 +2624,7 @@
           ],
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 17,
+            "line" : 33,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
           }
@@ -2646,7 +2646,7 @@
           ],
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 14,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "hdr.packet_out.setInvalid()"
           }
@@ -2660,7 +2660,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "default.p4",
-        "line" : 16,
+        "line" : 32,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -2694,7 +2694,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 21,
+            "line" : 44,
             "column" : 10,
             "source_fragment" : "table0"
           },
@@ -2721,8 +2721,7 @@
             }
           ],
           "match_type" : "ternary",
-          "type" : "indirect_ws",
-          "action_profile" : "ecmp_selector",
+          "type" : "simple",
           "max_size" : 1024,
           "support_timeout" : false,
           "direct_meters" : null,
@@ -2734,6 +2733,12 @@
             "send_to_cpu" : "node_6",
             "drop" : "node_6",
             "NoAction" : "node_6"
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
           }
         },
         {
@@ -2760,53 +2765,14 @@
           }
         }
       ],
-      "action_profiles" : [
-        {
-          "name" : "ecmp_selector",
-          "id" : 0,
-          "max_size" : 64,
-          "selector" : {
-            "algo" : "crc16",
-            "input" : [
-              {
-                "type" : "field",
-                "value" : ["ipv4", "srcAddr"]
-              },
-              {
-                "type" : "field",
-                "value" : ["ipv4", "dstAddr"]
-              },
-              {
-                "type" : "field",
-                "value" : ["ipv4", "protocol"]
-              },
-              {
-                "type" : "field",
-                "value" : ["tcp", "srcPort"]
-              },
-              {
-                "type" : "field",
-                "value" : ["tcp", "dstPort"]
-              },
-              {
-                "type" : "field",
-                "value" : ["udp", "srcPort"]
-              },
-              {
-                "type" : "field",
-                "value" : ["udp", "dstPort"]
-              }
-            ]
-          }
-        }
-      ],
+      "action_profiles" : [],
       "conditionals" : [
         {
           "name" : "node_2",
           "id" : 0,
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.isValid()"
           },
@@ -2832,7 +2798,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 52,
+            "line" : 79,
             "column" : 13,
             "source_fragment" : "hdr.packet_out.isValid()"
           },
@@ -2886,7 +2852,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "default.p4",
-        "line" : 60,
+        "line" : 87,
         "column" : 8,
         "source_fragment" : "egress"
       },
@@ -2946,9 +2912,9 @@
           "id" : 3,
           "source_info" : {
             "filename" : "include/packet_io.p4",
-            "line" : 15,
+            "line" : 31,
             "column" : 12,
-            "source_fragment" : "standard_metadata.egress_spec == CPU_PORT"
+            "source_fragment" : "standard_metadata.egress_port == CPU_PORT"
           },
           "expression" : {
             "type" : "expression",
@@ -2956,7 +2922,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["standard_metadata", "egress_spec"]
+                "value" : ["standard_metadata", "egress_port"]
               },
               "right" : {
                 "type" : "hexstr",

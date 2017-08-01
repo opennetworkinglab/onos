@@ -60,6 +60,7 @@ public final class Bmv2HeaderModel implements PiHeaderModel {
      *
      * @return name of this model
      */
+    @Override
     public String name() {
         return name;
     }

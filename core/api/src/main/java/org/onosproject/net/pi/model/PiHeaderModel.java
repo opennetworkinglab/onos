@@ -23,6 +23,14 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public interface PiHeaderModel {
+
+    /**
+     * Returns the name of this header instance.
+     *
+     * @return a string value
+     */
+    String name();
+
     /**
      * Returns the type of this header instance.
      *

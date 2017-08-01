@@ -67,6 +67,7 @@ public class P4RuntimeControllerImpl
 
     @Activate
     public void activate() {
+        eventDispatcher.addSink(P4RuntimeEvent.class, listenerRegistry);
         log.info("Started");
     }
 
@@ -74,6 +75,7 @@ public class P4RuntimeControllerImpl
     @Deactivate
     public void deactivate() {
         grpcController = null;
+        eventDispatcher.removeSink(P4RuntimeEvent.class);
         log.info("Stopped");
     }
 

@@ -72,6 +72,21 @@ class ONOSBmv2Switch(Switch):
             warn("WARN: unable to get device IP address, won't do onos-netcfg")
             return
         onosDeviceId = "bmv2:%s" % self.deviceId
+        portData = {}
+        portId = 1
+        for intfName in self.intfNames():
+            if intfName == 'lo':
+                continue
+            portData[str(portId)] = {
+                "number": portId,
+                "name": intfName,
+                "enabled": True,
+                "removed": False,
+                "type": "copper",
+                "speed": 10000
+            }
+            portId += 1
+
         cfgData = {
             "devices": {
                 "device:%s" % onosDeviceId: {
@@ -88,7 +103,8 @@ class ONOSBmv2Switch(Switch):
                     },
                     "basic": {
                         "driver": "bmv2"
-                    }
+                    },
+                    "ports": portData
                 }
             }
         }

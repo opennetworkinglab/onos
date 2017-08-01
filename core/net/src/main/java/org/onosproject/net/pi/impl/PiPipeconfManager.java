@@ -202,14 +202,17 @@ public class PiPipeconfManager implements PiPipeconfService {
                     driverAdminService.registerProvider(provider);
                 }
 
-                //Changing the configuration for the device to enforce the full driver with pipipeconf
+                // Changing the configuration for the device to enforce the full driver with pipipeconf
                 // and base behaviours
                 ObjectNode newCfg = (ObjectNode) basicDeviceConfig.node();
                 newCfg = newCfg.put(DRIVER, completeDriverName);
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode newCfgNode = mapper.convertValue(newCfg, JsonNode.class);
                 cfgService.applyConfig(deviceId, BasicDeviceConfig.class, newCfgNode);
-                //Completable future is needed for when this method will also apply the pipeline to the device.
+                // Completable future is needed for when this method will also apply the pipeline to the device.
+                // FIXME (maybe): the pipeline is currently applied by the general device provider. But we store here
+                // the association between device and pipeconf.
+                devicesToPipeconf.put(deviceId, pipeconfId);
                 operationResult.complete(true);
             }
         });

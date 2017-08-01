@@ -148,7 +148,7 @@ function do_p4runtime {
     git submodule update --init --recursive
 
     ./autogen.sh
-    ./configure --with-proto --without-cli --without-internal-rpc
+    ./configure --with-proto 'CXXFLAGS=-O0 -ggdb'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -174,7 +174,7 @@ function do_bmv2 {
     sudo rm -rf $tmpdir
 
     ./autogen.sh
-    ./configure --enable-debugger --with-pi
+    ./configure --enable-debugger --with-pi 'CXXFLAGS=-O0 -ggdb'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -182,7 +182,7 @@ function do_bmv2 {
     # Simple_switch_grpc target
     cd targets/simple_switch_grpc
     ./autogen.sh
-    ./configure
+    ./configure 'CXXFLAGS=-O0 -ggdb'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig

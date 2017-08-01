@@ -134,7 +134,10 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
                 treatment = outPacket().treatment();
             }
 
-            emit(new DefaultOutboundPacket(deviceId, treatment, rawData));
+            OutboundPacket outboundPacket = new DefaultOutboundPacket(deviceId, treatment, rawData);
+            log.debug("Processing outbound packet: {}", outboundPacket);
+
+            emit(outboundPacket);
         }
     }
 
@@ -142,7 +145,6 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
      * Internal packet listener to handle packet-in events received from the P4Runtime controller.
      */
     private class InternalPacketListener implements P4RuntimeEventListener {
-
 
         @Override
         public void event(P4RuntimeEvent event) {
@@ -157,6 +159,7 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
                     //FIXME Wrapping of bytebuffer might be optimized with .asReadOnlyByteBuffer()
                     OutboundPacket outPkt = new DefaultOutboundPacket(eventSubject.deviceId(), null,
                             ByteBuffer.wrap(operation.data().asArray()));
+                    log.debug("Processing inbound packet: {}", inPkt.toString());
                     //Creating PacketContext
                     PacketContext pktCtx = new P4RuntimePacketContext(System.currentTimeMillis(), inPkt, outPkt, false);
                     //Sendign the ctx up for processing.

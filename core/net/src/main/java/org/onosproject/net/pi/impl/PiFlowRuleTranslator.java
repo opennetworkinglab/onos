@@ -130,12 +130,13 @@ final class PiFlowRuleTranslator {
         PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
         // In BMv2 0 is the highest priority.
-        // FIXME: Check P4Runtime and agree on maximum priority in the TableEntry javadoc.
-        // int newPriority = Integer.MAX_VALUE - rule.priority();
+        // TODO: Move priority change to P4runtimeClient, in the table entry encode phase.
+        // Similarly, original priority should be re-established in the decode phase.
+        int newPriority = Integer.MAX_VALUE - rule.priority();
 
         tableEntryBuilder
                 .forTable(piTableId)
-                .withPriority(rule.priority())
+                .withPriority(newPriority)
                 .withMatchKey(PiMatchKey.builder()
                                       .addFieldMatches(fieldMatches)
                                       .build())
@@ -271,7 +272,7 @@ final class PiFlowRuleTranslator {
 
         for (PiTableMatchFieldModel fieldModel : tableModel.matchFields()) {
 
-            PiHeaderFieldId fieldId = PiHeaderFieldId.of(fieldModel.field().header().type().name(),
+            PiHeaderFieldId fieldId = PiHeaderFieldId.of(fieldModel.field().header().name(),
                                                          fieldModel.field().type().name(),
                                                          fieldModel.field().header().index());
 

@@ -31,11 +31,22 @@ struct metadata_t {
 
 control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
 
+    /*
+    FIXME:
+    It seems that with BMv2 it is not possible to use the same indirect table (like table0 with the
+    implementation attribute enabled), with table entries that use direct actions (e.g. send_to_cpu()).
+    A separate table for ECMP should be created.
+    */
+
     direct_counter(CounterType.packets) table0_counter;
-    action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    // action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
 
     table table0 {
-        support_timeout = true;
+        /*
+        Disabling timeout here as P4runtime doesn't allow setting timeouts.
+        This way the FlowRuleTranslator will produce instances of PiTableEntry without timeout.
+        */
+        support_timeout = false;
         key = {
             standard_metadata.ingress_port : ternary;
             hdr.ethernet.dstAddr           : ternary;
@@ -43,13 +54,13 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             hdr.ethernet.etherType         : ternary;
             // Not for matching.
             // Inputs to the hash function of the action selector.
-            hdr.ipv4.srcAddr               : selector;
+            /* hdr.ipv4.srcAddr               : selector;
             hdr.ipv4.dstAddr               : selector;
             hdr.ipv4.protocol              : selector;
             hdr.tcp.srcPort                : selector;
             hdr.tcp.dstPort                : selector;
             hdr.udp.srcPort                : selector;
-            hdr.udp.dstPort                : selector;
+            hdr.udp.dstPort                : selector; */
         }
         actions = {
             set_egress_port(standard_metadata);
@@ -57,7 +68,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             drop(standard_metadata);
         }
         counters = table0_counter;
-        implementation = ecmp_selector;
+        // implementation = ecmp_selector;
     }
 
     PacketIoIngressControl() packet_io_ingress_control;

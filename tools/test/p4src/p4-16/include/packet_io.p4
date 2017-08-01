@@ -28,7 +28,7 @@ control PacketIoIngressControl(inout headers_t hdr, inout standard_metadata_t st
 control PacketIoEgressControl(inout headers_t hdr, inout standard_metadata_t standard_metadata) {
     apply {
         hdr.packet_out.setInvalid();
-        if (standard_metadata.egress_spec == CPU_PORT) {
+        if (standard_metadata.egress_port == CPU_PORT) {
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;
         }

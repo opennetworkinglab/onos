@@ -17,12 +17,26 @@
 package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.event.Event;
+import org.onosproject.event.AbstractEvent;
 
 /**
  * Representation of an event received from a P4Runtime device.
  */
 @Beta
-public interface P4RuntimeEvent extends Event<P4RuntimeEventListener.Type, P4RuntimeEventSubject> {
+public final class P4RuntimeEvent extends AbstractEvent<P4RuntimeEvent.Type, P4RuntimeEventSubject> {
 
+    /**
+     * Type of event.
+     */
+    public enum Type {
+        /**
+         * A packet-in.
+         */
+        PACKET_IN,
+        // TODO: add mastership, device as soon as we define those.
+    }
+
+    public P4RuntimeEvent(Type type, P4RuntimeEventSubject subject) {
+        super(type, subject);
+    }
 }

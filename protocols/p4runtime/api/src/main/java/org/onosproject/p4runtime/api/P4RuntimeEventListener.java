@@ -25,14 +25,4 @@ import org.onosproject.event.EventListener;
 @Beta
 public interface P4RuntimeEventListener extends EventListener<P4RuntimeEvent> {
 
-    /**
-     * Type of event.
-     */
-    enum Type {
-        /**
-         * A packet-in.
-         */
-        PACKET_IN,
-        // TODO: add mastership, device as soon as we define those.
-    }
 }

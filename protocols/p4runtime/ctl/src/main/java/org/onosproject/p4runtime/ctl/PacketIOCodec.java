@@ -25,6 +25,7 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.slf4j.Logger;
 import p4.config.P4InfoOuterClass;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -72,7 +73,7 @@ final class PacketIOCodec {
         //Get the P4browser
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
-        //Get the packet out packet metadata
+        //Get the packet out controller packet metadata
         P4InfoOuterClass.ControllerPacketMetadata controllerPacketMetadata =
                 browser.controllerPacketMetadatas().getByName(PACKET_OUT);
         PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
@@ -126,27 +127,38 @@ final class PacketIOCodec {
         //Get the P4browser
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
+        List<PiPacketMetadata> packetMetadatas;
+        try {
+            int controllerPacketMetadataId = browser.controllerPacketMetadatas().getByName(PACKET_IN)
+                                                .getPreamble().getId();
+            packetMetadatas = decodePacketMetadataIn(packetIn.getMetadataList(), browser,
+                                                                            controllerPacketMetadataId);
+        } catch (NotFoundException e) {
+            log.error("Unable to decode packet metadatas: {}", e.getMessage());
+            packetMetadatas = Collections.emptyList();
+        }
+
         //Transform the packetIn data
         ImmutableByteSequence data = copyFrom(packetIn.getPayload().asReadOnlyByteBuffer());
 
         //Build the PiPacketOperation with all the metadatas.
         return PiPacketOperation.builder()
                 .withType(PiPacketOperation.Type.PACKET_IN)
-                .withMetadatas(decodePacketMetadata(packetIn.getMetadataList(), browser))
+                .withMetadatas(packetMetadatas)
                 .withData(data)
                 .build();
     }
 
-    private static List<PiPacketMetadata> decodePacketMetadata(List<PacketMetadata> packetMetadatas,
-                                                               P4InfoBrowser browser) {
+    private static List<PiPacketMetadata> decodePacketMetadataIn(List<PacketMetadata> packetMetadatas,
+                                                               P4InfoBrowser browser, int controllerPacketMetadataId) {
         return packetMetadatas.stream().map(packetMetadata -> {
             try {
 
-                int controllerPacketMetadataId = packetMetadata.getMetadataId();
-                //convert id to name through p4Info
-                P4InfoOuterClass.ControllerPacketMetadata metadata =
-                        browser.controllerPacketMetadatas().getById(controllerPacketMetadataId);
-                PiPacketMetadataId metadataId = PiPacketMetadataId.of(metadata.getPreamble().getName());
+                int packetMetadataId = packetMetadata.getMetadataId();
+                String packetMetadataName = browser.packetMetadatas(controllerPacketMetadataId)
+                        .getById(packetMetadataId).getName();
+
+                PiPacketMetadataId metadataId = PiPacketMetadataId.of(packetMetadataName);
 
                 //Build each metadata.
                 return PiPacketMetadata.builder()

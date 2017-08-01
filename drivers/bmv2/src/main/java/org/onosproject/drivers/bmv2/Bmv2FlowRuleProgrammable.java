@@ -67,7 +67,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
     private static final ConcurrentMap<Bmv2TableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
 
     // TODO: replace with distributed store.
-    // Can reuse old BMv2TableEntryService form ONOS 1.6
+    // Can reuse old BMv2TableEntryService from ONOS 1.6
     private static final ConcurrentMap<Bmv2TableEntryReference, Bmv2FlowRuleWrapper> ENTRY_STORE =
             Maps.newConcurrentMap();
 

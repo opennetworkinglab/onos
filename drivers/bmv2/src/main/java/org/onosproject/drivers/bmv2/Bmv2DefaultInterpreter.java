@@ -60,17 +60,17 @@ import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
  */
 public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements PiPipelineInterpreter {
     private static final String TABLE0 = "table0";
-    private static final String SEND_TO_CPU = "send_to_cpu_0";
+    private static final String SEND_TO_CPU = "send_to_cpu";
     private static final String PORT = "port";
-    private static final String DROP = "_drop_0";
-    private static final String SET_EGRESS_PORT = "set_egress_port_0";
+    private static final String DROP = "drop";
+    private static final String SET_EGRESS_PORT = "set_egress_port";
     private static final String EGRESS_PORT = "egress_port";
     private static final int PORT_NUMBER_BIT_WIDTH = 9;
 
     private static final PiHeaderFieldId IN_PORT_ID = PiHeaderFieldId.of("standard_metadata", "ingress_port");
-    private static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet_t", "dstAddr");
-    private static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet_t", "srcAddr");
-    private static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet_t", "etherType");
+    private static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
+    private static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
+    private static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
 
     private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP =
             new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()

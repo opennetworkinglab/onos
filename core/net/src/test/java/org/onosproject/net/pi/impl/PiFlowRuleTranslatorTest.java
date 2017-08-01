@@ -145,7 +145,7 @@ public class PiFlowRuleTranslatorTest {
         assertThat("Incorrect ethType match param value",
                    ethTypeParam.value().asReadOnlyBuffer().getShort(), is(equalTo(ethType)));
         assertThat("Incorrect priority value",
-                   entry1.priority().get(), is(equalTo(rule1.priority())));
+                   entry1.priority().get(), is(equalTo(Integer.MAX_VALUE - rule1.priority())));
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
 

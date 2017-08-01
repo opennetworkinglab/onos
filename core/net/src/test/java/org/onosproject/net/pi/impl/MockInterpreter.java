@@ -48,15 +48,15 @@ import static org.onosproject.net.flow.instructions.Instructions.OutputInstructi
 public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipelineInterpreter {
 
     static final String TABLE0 = "table0";
-    static final String SEND_TO_CPU = "send_to_cpu_0";
+    static final String SEND_TO_CPU = "send_to_cpu";
     static final String PORT = "port";
-    static final String DROP = "_drop_0";
-    static final String SET_EGRESS_PORT = "set_egress_port_0";
+    static final String DROP = "drop";
+    static final String SET_EGRESS_PORT = "set_egress_port";
 
     static final PiHeaderFieldId IN_PORT_ID = PiHeaderFieldId.of("standard_metadata", "ingress_port");
-    static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet_t", "dstAddr");
-    static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet_t", "srcAddr");
-    static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet_t", "etherType");
+    static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
+    static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
+    static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
 
     private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP = ImmutableBiMap.of(
             Criterion.Type.IN_PORT, IN_PORT_ID,

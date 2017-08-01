@@ -28,6 +28,7 @@ onos_app (
     included_bundles = BUNDLES,
     required_apps = [
         'org.onosproject.generaldeviceprovider',
-        'org.onosproject.protocols.p4runtime'
+        'org.onosproject.protocols.p4runtime',
+        'org.onosproject.p4runtime',
     ],
 )

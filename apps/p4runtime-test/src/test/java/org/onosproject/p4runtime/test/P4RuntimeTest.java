@@ -16,6 +16,7 @@
 
 package org.onosproject.p4runtime.test;
 
+import com.google.common.collect.Lists;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
 import org.junit.Before;
@@ -30,10 +31,19 @@ import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionId;
+import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiHeaderFieldId;
+import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.ctl.P4RuntimeClientImpl;
 import org.onosproject.p4runtime.ctl.P4RuntimeControllerImpl;
 import p4.P4RuntimeGrpc;
@@ -42,7 +52,7 @@ import p4.P4RuntimeOuterClass;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
-import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onlab.util.ImmutableByteSequence.*;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
@@ -55,7 +65,17 @@ import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
 public class P4RuntimeTest {
 
     private static final String GRPC_SERVER_ADDR = "192.168.56.102";
-    private static final int GRPC_SERVER_PORT = 55001;
+    private static final int GRPC_SERVER_PORT = 55044;
+
+    private static final String TABLE_0 = "table0";
+    private static final String SET_EGRESS_PORT = "set_egress_port";
+    private static final String PORT = "port";
+    private static final String ETHERNET = "ethernet";
+    private static final String DST_ADDR = "dstAddr";
+    private static final String SRC_ADDR = "srcAddr";
+    private static final String STANDARD_METADATA = "standard_metadata";
+    private static final String INGRESS_PORT = "ingress_port";
+    private static final String ETHER_TYPE = "etherType";
 
     private final URL p4InfoUrl = this.getClass().getResource("/bmv2/default.p4info");
     private final URL jsonUrl = this.getClass().getResource("/bmv2/default.json");
@@ -75,6 +95,37 @@ public class P4RuntimeTest {
             .usePlaintext(true);
     private P4RuntimeClientImpl client;
 
+    private final ImmutableByteSequence ethAddr = fit(copyFrom(1), 48);
+    private final ImmutableByteSequence portValue = copyFrom((short) 1);
+    private final PiHeaderFieldId ethDstAddrFieldId = PiHeaderFieldId.of(ETHERNET, DST_ADDR);
+    private final PiHeaderFieldId ethSrcAddrFieldId = PiHeaderFieldId.of(ETHERNET, SRC_ADDR);
+    private final PiHeaderFieldId inPortFieldId = PiHeaderFieldId.of(STANDARD_METADATA, INGRESS_PORT);
+    private final PiHeaderFieldId ethTypeFieldId = PiHeaderFieldId.of(ETHERNET, ETHER_TYPE);
+    private final PiActionParamId portParamId = PiActionParamId.of(PORT);
+    private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
+    private final PiTableId tableId = PiTableId.of(TABLE_0);
+
+    private final PiTableEntry piTableEntry = PiTableEntry
+            .builder()
+            .forTable(tableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethDstAddrFieldId, ethAddr, ofZeros(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethSrcAddrFieldId, ethAddr, ofZeros(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(inPortFieldId, portValue, ofZeros(2)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethTypeFieldId, portValue, ofZeros(2)))
+                                  .build())
+            .withAction(PiAction
+                                .builder()
+                                .withId(outActionId)
+                                .withParameter(new PiActionParam(portParamId, portValue))
+                                .build())
+            .withPriority(1)
+            .withCookie(2)
+            .build();
+
+    public P4RuntimeTest() throws ImmutableByteSequence.ByteSequenceTrimException {
+    }
+
     @Before
     public void setUp() throws Exception {
         controller.grpcController = grpcController;
@@ -82,13 +133,18 @@ public class P4RuntimeTest {
         grpcController.activate();
     }
 
-    private void createClientAndSetPipelineConfig(PiPipeconf pipeconf, PiPipeconf.ExtensionType extensionType)
+    private void createClient()
             throws ExecutionException, InterruptedException, PiPipelineInterpreter.PiInterpreterException,
             IllegalAccessException, InstantiationException {
 
         assert (controller.createClient(deviceId, 1, channelBuilder));
 
         client = (P4RuntimeClientImpl) controller.getClient(deviceId);
+    }
+
+    private void setPipelineConfig(PiPipeconf pipeconf, PiPipeconf.ExtensionType extensionType)
+            throws ExecutionException, InterruptedException, PiPipelineInterpreter.PiInterpreterException,
+            IllegalAccessException, InstantiationException {
 
         assert (client.setPipelineConfig(pipeconf, extensionType).get());
         assert (client.initStreamChannel().get());
@@ -100,7 +156,7 @@ public class P4RuntimeTest {
 
         P4RuntimeOuterClass.ActionProfileMember profileMemberMsg = P4RuntimeOuterClass.ActionProfileMember.newBuilder()
                 .setActionProfileId(actionProfileId)
-                // .setMemberId(1)
+                .setMemberId(1)
                 .setAction(P4RuntimeOuterClass.Action.newBuilder()
                                    .setActionId(16793508)
                                    .build())
@@ -111,10 +167,10 @@ public class P4RuntimeTest {
                 .setGroupId(1)
                 .setType(SELECT)
                 .addMembers(P4RuntimeOuterClass.ActionProfileGroup.Member.newBuilder()
-                                    .setMemberId(0)
+                                    .setMemberId(1)
                                     .setWeight(1)
                                     .build())
-                .setMaxSize(1)
+                .setMaxSize(3)
                 .build();
 
         P4RuntimeOuterClass.WriteRequest writeRequest = P4RuntimeOuterClass.WriteRequest.newBuilder()
@@ -122,13 +178,13 @@ public class P4RuntimeTest {
                 .addUpdates(P4RuntimeOuterClass.Update.newBuilder()
                                     .setType(INSERT)
                                     .setEntity(P4RuntimeOuterClass.Entity.newBuilder()
-                                                       .setActionProfileMember(profileMemberMsg)
+                                                       .setActionProfileGroup(groupMsg)
                                                        .build())
                                     .build())
                 .addUpdates(P4RuntimeOuterClass.Update.newBuilder()
                                     .setType(INSERT)
                                     .setEntity(P4RuntimeOuterClass.Entity.newBuilder()
-                                                       .setActionProfileGroup(groupMsg)
+                                                       .setActionProfileMember(profileMemberMsg)
                                                        .build())
                                     .build())
                 .build();
@@ -136,44 +192,58 @@ public class P4RuntimeTest {
         stub.write(writeRequest);
     }
 
-    private void testPacketIo() throws IllegalAccessException, InstantiationException, ExecutionException,
+    private void testPacketOut() throws IllegalAccessException, InstantiationException, ExecutionException,
             InterruptedException, ImmutableByteSequence.ByteSequenceTrimException {
 
-        // Emits a packet out trough the CPU_PORT (255), i.e. we should receive the same packet back.
         PiPacketOperation packetOperation = PiPacketOperation.builder()
-                .withData(ImmutableByteSequence.ofOnes(512))
+                .withData(fit(copyFrom(1), 48 + 48 + 16))
                 .withType(PACKET_OUT)
                 .withMetadata(PiPacketMetadata.builder()
                                       .withId(PiPacketMetadataId.of("egress_port"))
-                                      .withValue(copyFrom((short) 255))
+                                      .withValue(fit(copyFrom(255), 9))
                                       .build())
                 .build();
 
         assert (client.packetOut(packetOperation, bmv2DefaultPipeconf).get());
 
-        // Wait for packet in.
-        Thread.sleep(1000);
+        Thread.sleep(5000);
     }
 
     private void testDumpTable(String tableName, PiPipeconf pipeconf) throws ExecutionException, InterruptedException {
         assert (client.dumpTable(PiTableId.of(tableName), pipeconf).get().size() == 0);
     }
 
+    private void testAddEntry(PiPipeconf pipeconf) throws ExecutionException, InterruptedException {
+        assert (client.writeTableEntries(Lists.newArrayList(piTableEntry), P4RuntimeClient.WriteOperationType.INSERT,
+                                         pipeconf).get());
+    }
+
     @Test
     @Ignore
     public void testBmv2() throws Exception {
 
-        createClientAndSetPipelineConfig(bmv2DefaultPipeconf, BMV2_JSON);
-        testPacketIo();
-        testDumpTable("table0", bmv2DefaultPipeconf);
-        testActionProfile(285227860);
+        createClient();
+        setPipelineConfig(bmv2DefaultPipeconf, BMV2_JSON);
+        testPacketOut();
+
+        // testPacketOut();
+
+        // testActionProfile(285261835);
+    }
+
+    @Test
+    @Ignore
+    public void testBmv2AddEntry() throws Exception {
+        createClient();
+        testAddEntry(bmv2DefaultPipeconf);
+        testDumpTable(TABLE_0, bmv2DefaultPipeconf);
     }
 
     @Test
     @Ignore
     public void testTofino() throws Exception {
-
-        createClientAndSetPipelineConfig(bmv2DefaultPipeconf, null);
+        createClient();
+        setPipelineConfig(bmv2DefaultPipeconf, null);
     }
 
 // OLD STUFF
