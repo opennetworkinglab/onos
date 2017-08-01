@@ -19,7 +19,8 @@ package org.onlab.packet.dhcp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.Resources;
+
 import org.junit.Test;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.Ip6Address;
@@ -64,7 +65,7 @@ public class Dhcp6RelayTest {
      */
     @Test
     public void deserializeSolicit() throws Exception {
-        byte[] data = IOUtils.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT));
+        byte[] data = Resources.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT));
         DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_FORW.value());
         assertEquals(relayMsg.getHopCount(), HOP_COUNT);
@@ -177,7 +178,7 @@ public class Dhcp6RelayTest {
         relayOption.setPayload(relaiedDhcp6);
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
-        assertArrayEquals(IOUtils.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT)),
+        assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT)),
                           relayMsg.serialize());
     }
 
@@ -188,7 +189,7 @@ public class Dhcp6RelayTest {
      */
     @Test
     public void deserializeAdvertise() throws Exception {
-        byte[] data = IOUtils.toByteArray(getClass().getResource(ADVERTISE));
+        byte[] data = Resources.toByteArray(getClass().getResource(ADVERTISE));
         DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
 
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_REPL.value());
@@ -304,7 +305,7 @@ public class Dhcp6RelayTest {
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
 
-        assertArrayEquals(IOUtils.toByteArray(Dhcp6RelayTest.class.getResource(ADVERTISE)),
+        assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(ADVERTISE)),
                           relayMsg.serialize());
     }
 
@@ -315,7 +316,7 @@ public class Dhcp6RelayTest {
      */
     @Test
     public void deserializeRequest() throws Exception {
-        byte[] data = IOUtils.toByteArray(getClass().getResource(REQUEST));
+        byte[] data = Resources.toByteArray(getClass().getResource(REQUEST));
         DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
 
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_FORW.value());
@@ -458,7 +459,7 @@ public class Dhcp6RelayTest {
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
 
-        assertArrayEquals(IOUtils.toByteArray(Dhcp6RelayTest.class.getResource(REQUEST)),
+        assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(REQUEST)),
                           relayMsg.serialize());
     }
 
@@ -469,7 +470,7 @@ public class Dhcp6RelayTest {
      */
     @Test
     public void deserializeReply() throws Exception {
-        byte[] data = IOUtils.toByteArray(getClass().getResource(REPLY));
+        byte[] data = Resources.toByteArray(getClass().getResource(REPLY));
         DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
 
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_REPL.value());
@@ -580,7 +581,7 @@ public class Dhcp6RelayTest {
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
 
-        assertArrayEquals(IOUtils.toByteArray(Dhcp6RelayTest.class.getResource(REPLY)),
+        assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(REPLY)),
                           relayMsg.serialize());
     }
 }
