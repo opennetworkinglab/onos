@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//incubator/net:onos-incubator-net',
     '//incubator/store:onos-incubator-store',
+    '//core/store/serializers:onos-core-serializers',
 ]
 
 TEST_DEPS = [

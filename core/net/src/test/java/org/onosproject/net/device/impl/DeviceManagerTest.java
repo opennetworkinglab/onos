@@ -49,6 +49,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.trivial.SimpleDeviceStore;
 
 import java.util.ArrayList;
@@ -106,6 +107,7 @@ public class DeviceManagerTest {
         mgr.termService = mastershipManager;
         mgr.clusterService = new TestClusterService();
         mgr.networkConfigService = new TestNetworkConfigService();
+        mgr.communicationService = new TestClusterCommunicationService();
         mgr.activate();
 
 
@@ -336,5 +338,8 @@ public class DeviceManagerTest {
     }
 
     private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
+    }
+
+    private class TestClusterCommunicationService extends ClusterCommunicationServiceAdapter {
     }
 }
