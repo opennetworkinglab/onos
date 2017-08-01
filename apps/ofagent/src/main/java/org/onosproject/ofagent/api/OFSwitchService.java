@@ -18,7 +18,9 @@ package org.onosproject.ofagent.api;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.device.PortStatistics;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -42,6 +44,15 @@ public interface OFSwitchService {
     Set<OFSwitch> ofSwitches(NetworkId networkId);
 
     /**
+     * Returns openflow switch for the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return openflow switch; null if none exists
+     */
+    OFSwitch ofSwitch(NetworkId networkId, DeviceId deviceId);
+
+    /**
      * Returns all ports of the specified device in the specified network.
      *
      * @param networkId network id
@@ -49,4 +60,14 @@ public interface OFSwitchService {
      * @return set of ports; empty set if no ports exist for the specified device
      */
     Set<Port> ports(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Returns all port statistics of the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return list of port statistics; empty list if none exists for the specified device
+     */
+    List<PortStatistics> getPortStatistics(NetworkId networkId, DeviceId deviceId);
+
 }

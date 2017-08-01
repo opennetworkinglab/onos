@@ -21,6 +21,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.ofagent.api.OFSwitch;
@@ -39,6 +40,8 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
+import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFPortStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFRoleReply;
 import org.projectfloodlight.openflow.protocol.OFRoleRequest;
@@ -49,6 +52,7 @@ import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,31 +179,31 @@ public final class DefaultOFSwitch implements OFSwitch {
     @Override
     public void processPortDown(Port port) {
         // TODO generate PORT_STATUS message and send it to the controller
-        log.debug("Functionality not yet supported for {}", port);
+        log.debug("processPortDown: Functionality not yet supported for {}", port);
     }
 
     @Override
     public void processPortUp(Port port) {
         // TODO generate PORT_STATUS message and send it to the controller
-        log.debug("Functionality not yet supported for {}", port);
+        log.debug("processPortUp: Functionality not yet supported for {}", port);
     }
 
     @Override
     public void processFlowRemoved(FlowRule flowRule) {
         // TODO generate FLOW_REMOVED message and send it to the controller
-        log.debug("Functionality not yet supported for {}", flowRule);
+        log.debug("processFlowRemoved: Functionality not yet supported for {}", flowRule);
     }
 
     @Override
     public void processPacketIn(InboundPacket packet) {
         // TODO generate PACKET_IN message and send it to the controller
-        log.debug("Functionality not yet supported for {}", packet);
+        log.debug("processPacketIn: Functionality not yet supported for {}", packet);
     }
 
     @Override
     public void processControllerCommand(Channel channel, OFMessage msg) {
         // TODO process controller command
-        log.debug("Functionality not yet supported for {}", msg);
+        log.debug("processControllerCommand: Functionality not yet supported for {}", msg);
     }
 
     private void sendPortStatus(Port port, OFPortReason ofPortReason) {
@@ -228,6 +232,23 @@ public final class DefaultOFSwitch implements OFSwitch {
         return ofPortDesc;
     }
 
+    private OFPortStatsEntry portStatsEntry(PortStatistics portStatistic) {
+        OFPortStatsEntry ofPortStatsEntry = FACTORY.buildPortStatsEntry()
+                .setPortNo(OFPort.of(portStatistic.port()))
+                .setTxBytes(U64.of(portStatistic.bytesSent()))
+                .setTxPackets(U64.of(portStatistic.packetsSent()))
+                .setTxDropped(U64.of(portStatistic.packetsTxDropped()))
+                .setTxErrors(U64.of(portStatistic.packetsTxErrors()))
+                .setRxBytes(U64.of(portStatistic.bytesReceived()))
+                .setRxPackets(U64.of(portStatistic.packetsReceived()))
+                .setRxDropped(U64.of(portStatistic.packetsRxDropped()))
+                .setRxErrors(U64.of(portStatistic.packetsRxErrors()))
+                .setDurationSec(portStatistic.durationSec())
+                .setDurationNsec(portStatistic.durationNano())
+                .build();
+        return ofPortStatsEntry;
+    }
+
     @Override
     public void processStatsRequest(Channel channel, OFMessage msg) {
         if (msg.getType() != OFType.STATS_REQUEST) {
@@ -249,6 +270,23 @@ public final class DefaultOFSwitch implements OFSwitch {
                         .setXid(msg.getXid())
                         .setEntries(portDescs)
                         //TODO add details
+                        .build();
+                break;
+            case PORT:
+                OFPortStatsRequest portStatsRequest = (OFPortStatsRequest) msg;
+                OFPort ofPort = portStatsRequest.getPortNo();
+                List<OFPortStatsEntry> portStatsEntries = new ArrayList<>();
+                List<PortStatistics> portStatistics =
+                        ofSwitchService.getPortStatistics(networkId, deviceId);
+                if (ofPort.equals(OFPort.ANY)) {
+                    portStatistics.forEach(portStatistic -> {
+                        OFPortStatsEntry ofPortStatsEntry = portStatsEntry(portStatistic);
+                        portStatsEntries.add(ofPortStatsEntry);
+                    });
+                }
+                ofStatsReply = FACTORY.buildPortStatsReply()
+                        .setEntries(portStatsEntries)
+                        .setXid(msg.getXid())
                         .build();
                 break;
             case METER_FEATURES:

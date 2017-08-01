@@ -40,6 +40,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleService;
@@ -60,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -160,11 +162,23 @@ public class OFSwitchManager implements OFSwitchService {
     }
 
     @Override
+    public OFSwitch ofSwitch(NetworkId networkId, DeviceId deviceId) {
+        return ofSwitchMap.get(deviceId);
+    }
+
+    @Override
     public Set<Port> ports(NetworkId networkId, DeviceId deviceId) {
         Set<Port> ports = virtualNetService.getVirtualPorts(networkId, deviceId)
                 .stream()
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(ports);
+    }
+
+    @Override
+    public List<PortStatistics> getPortStatistics(NetworkId networkId, DeviceId deviceId) {
+        DeviceService deviceService = virtualNetService.get(networkId, DeviceService.class);
+        List<PortStatistics> portStatistics = deviceService.getPortStatistics(deviceId);
+        return portStatistics;
     }
 
     private void addOFSwitch(NetworkId networkId, DeviceId deviceId) {
