@@ -21,7 +21,6 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
 /**
  * Represents an individual member of the cluster (ONOS instance).
@@ -32,8 +31,6 @@ public class UiClusterMember extends UiElement {
 
     private final UiTopology topology;
     private final NodeId nodeId;
-
-    private ControllerNode.State state = INACTIVE;
 
     /**
      * Constructs a UI cluster member, with a reference to the parent
@@ -51,8 +48,6 @@ public class UiClusterMember extends UiElement {
     @Override
     public String toString() {
         return "UiClusterMember{" + nodeId +
-                ", online=" + isOnline() +
-                ", ready=" + isReady() +
                 "}";
     }
 
@@ -68,15 +63,6 @@ public class UiClusterMember extends UiElement {
      */
     public ControllerNode backingNode() {
         return topology.services.cluster().getNode(nodeId);
-    }
-
-    /**
-     * Sets the state of this cluster member.
-     *
-     * @param state the state
-     */
-    public void setState(ControllerNode.State state) {
-        this.state = state;
     }
 
     /**
@@ -97,21 +83,4 @@ public class UiClusterMember extends UiElement {
         return backingNode().ip();
     }
 
-    /**
-     * Returns true if this cluster member is online (active).
-     *
-     * @return true if online, false otherwise
-     */
-    public boolean isOnline() {
-        return state.isActive();
-    }
-
-    /**
-     * Returns true if this cluster member is considered ready.
-     *
-     * @return true if ready, false otherwise
-     */
-    public boolean isReady() {
-        return state.isReady();
-    }
 }

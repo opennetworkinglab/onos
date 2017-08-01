@@ -138,8 +138,7 @@ class ModelCache {
     }
 
     private void updateClusterMember(UiClusterMember member) {
-        ControllerNode.State state = services.cluster().getState(member.id());
-        member.setState(state);
+        // maybe something to update in the future?
     }
 
     private void loadClusterMembers() {

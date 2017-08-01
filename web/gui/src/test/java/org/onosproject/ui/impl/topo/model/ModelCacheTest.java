@@ -152,8 +152,11 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         // see AbstractUiImplTest Mock Environment for expected values...
         assertEquals("wrong id str", C1, member.idAsString());
         assertEquals("wrong id", nodeId(C1), member.id());
-        assertEquals("not online", true, member.isOnline());
-        assertEquals("not ready", true, member.isReady());
+
+        // TODO make assertions through the cluster service; state no longer
+        //   cached in the UiModel...
+//        assertEquals("not online", true, member.isOnline());
+//        assertEquals("not ready", true, member.isReady());
     }
 
 
