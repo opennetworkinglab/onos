@@ -36,7 +36,10 @@
         minus: 'minus',
         play: 'play',
         stop: 'stop',
-        
+
+        delta: 'delta',
+        nonzero: 'nonzero',
+
         close: 'xClose',
 
         topo: 'topo',
@@ -148,7 +151,7 @@
     function loadEmbeddedIcon(div, iconCls, size) {
         loadIconByClass(div, iconCls, size, true);
     }
-    
+
     // Adds a device glyph to the specified element.
     // Returns the D3 selection of the glyph (use) element.
     function addDeviceIcon(elem, glyphId, iconDim) {
