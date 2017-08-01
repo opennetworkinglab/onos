@@ -139,10 +139,8 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
         checkRootModification(path);
         DocumentTreeNode<V> node = getNode(path);
         if (node != null && node.value() != null && node.value().version() == version) {
-            if (!Objects.equals(newValue, node.value().value())) {
-                set(path, newValue);
-                return true;
-            }
+            set(path, newValue);
+            return true;
         }
         return false;
     }
