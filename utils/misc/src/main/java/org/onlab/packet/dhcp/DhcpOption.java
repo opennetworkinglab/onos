@@ -141,7 +141,7 @@ public class DhcpOption extends BasePacket {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(code, length, data);
+        return Objects.hash(code, length, Arrays.hashCode(data));
     }
 
     /*
