@@ -53,6 +53,21 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
 
     private static final String MESSAGE_NODE = "Received node %s request";
     private static final String NODES = "nodes";
+    private static final String CREATE = "CREATE";
+    private static final String UPDATE = "UPDATE";
+    private static final String NODE_ID = "NODE_ID";
+    private static final String DELETE = "DELETE";
+
+    private static final String HOST_NAME = "hostname";
+    private static final String TYPE = "type";
+    private static final String MANAGEMENT_IP = "managementIp";
+    private static final String DATA_IP = "dataIp";
+    private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String VLAN_INTF_NAME = "vlanPort";
+
+    // GATEWAY node specific fields
+    private static final String ROUTER_BRIDGE = "routerBridge";
+
 
     private final OpenstackNodeAdminService osNodeAdminService =
             DefaultServiceDirectory.getService(OpenstackNodeAdminService.class);
@@ -66,7 +81,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNodes(InputStream input) {
-        log.trace(String.format(MESSAGE_NODE, "CREATE"));
+        log.trace(String.format(MESSAGE_NODE, CREATE));
 
         readNodeConfiguration(input).forEach(osNode -> {
             OpenstackNode existing = osNodeService.node(osNode.hostname());
@@ -77,7 +92,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
 
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(NODES)
-                .path("NODE_ID");
+                .path(NODE_ID);
 
         return created(locationBuilder.build()).build();
     }
@@ -86,7 +101,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateNodes(InputStream input) {
-        log.trace(String.format(MESSAGE_NODE, "UPDATE"));
+        log.trace(String.format(MESSAGE_NODE, UPDATE));
 
         Set<OpenstackNode> nodes = readNodeConfiguration(input);
         for (OpenstackNode osNode: nodes) {
@@ -106,7 +121,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNodes(InputStream input) {
-        log.trace(String.format(MESSAGE_NODE, "DELETE"));
+        log.trace(String.format(MESSAGE_NODE, DELETE));
 
         Set<OpenstackNode> nodes = readNodeConfiguration(input);
         for (OpenstackNode osNode: nodes) {
@@ -126,28 +141,34 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         Set<OpenstackNode> nodeSet = Sets.newHashSet();
         try {
              JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-             ArrayNode nodes = (ArrayNode) jsonTree.path("nodes");
+             ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
              nodes.forEach(node -> {
                  try {
-                     String hostname = node.get("hostname").asText();
-                     String type = node.get("type").asText();
-                     String mIp = node.get("managementIp").asText();
-                     String dIp = node.get("dataIp").asText();
-                     String iBridge = node.get("integrationBridge").asText();
+                     String hostname = node.get(HOST_NAME).asText();
+                     String type = node.get(TYPE).asText();
+                     String mIp = node.get(MANAGEMENT_IP).asText();
+                     String iBridge = node.get(INTEGRATION_BRIDGE).asText();
                      String rBridge = null;
-                     if (node.get("routerBridge") != null) {
-                         rBridge = node.get("routerBridge").asText();
+                     if (node.get(ROUTER_BRIDGE) != null) {
+                         rBridge = node.get(ROUTER_BRIDGE).asText();
                      }
                      DefaultOpenstackNode.Builder nodeBuilder = DefaultOpenstackNode.builder()
                              .hostname(hostname)
                              .type(OpenstackNode.NodeType.valueOf(type))
                              .managementIp(IpAddress.valueOf(mIp))
-                             .dataIp(IpAddress.valueOf(dIp))
                              .intgBridge(DeviceId.deviceId(iBridge))
                              .state(NodeState.INIT);
+
+                     if (node.get(VLAN_INTF_NAME) != null) {
+                         nodeBuilder.vlanIntf(node.get(VLAN_INTF_NAME).asText());
+                     }
+                     if (node.get(DATA_IP) != null) {
+                         nodeBuilder.dataIp(IpAddress.valueOf(node.get(DATA_IP).asText()));
+                     }
                      if (rBridge != null) {
                          nodeBuilder.routerBridge(DeviceId.deviceId(rBridge));
                      }
+
                      log.trace("node is {}", nodeBuilder.build().toString());
                      nodeSet.add(nodeBuilder.build());
                  } catch (Exception e) {
