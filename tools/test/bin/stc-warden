@@ -1,0 +1,17 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Utility to view status of the cell warden and cell slaves
+#-------------------------------------------------------------------------------
+
+echo "========================================================"
+status=$(ssh sdn@$CELL_WARDEN ps -ef | grep warden | grep -v grep)
+let ok=$?
+[ $ok -eq 0 ] && echo "Warden is running" || echo "Warden is stopped"
+echo $status
+for slave in $CELL_SLAVES; do
+    echo "========================================================"
+    echo "$slave:"
+    ssh sdn@$slave sudo lxc-ls --fancy
+    let ok=ok+$?
+done
+exit $ok
