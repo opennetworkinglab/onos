@@ -100,7 +100,7 @@ public class EventsCommand
 
         Stream<Event<?, ?>> events = eventHistoryService.history().stream();
 
-        boolean dumpAll = all || !(mastership || device || link || topology || host);
+        boolean dumpAll = all || !(mastership || device || link || topology || host || cluster);
 
         if (!dumpAll) {
             Predicate<Event<?, ?>> filter = (defaultIs) -> false;
