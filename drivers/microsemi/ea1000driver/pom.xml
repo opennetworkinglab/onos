@@ -6,7 +6,7 @@
     <parent>
         <artifactId>onos-drivers-microsemi</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.10.3-SNAPSHOT</version>
+        <version>1.10.3</version>
     </parent>
 
     <artifactId>onos-drivers-microsemi-ea1000</artifactId>
