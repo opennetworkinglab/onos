@@ -53,7 +53,7 @@ public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, R
         NODE_DELETED,
 
         /**
-         * Signifies an unknown and hence invalid store opeartion.
+         * Signifies an unknown and hence invalid store operation.
          */
         UNKNOWN_OPRN
     }

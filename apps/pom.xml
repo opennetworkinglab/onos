@@ -87,6 +87,8 @@
         <module>network-troubleshoot</module>
         <module>restconf</module>
         <module>yang</module>
+        <module>openroadm</module>
+        <module>netconf/client</module>
     </modules>
 
     <properties>
