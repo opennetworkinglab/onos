@@ -25,9 +25,10 @@ import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.dhcprelay.DhcpRelayConfig;
+import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.DhcpRelayManager;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -65,16 +66,20 @@ public class DhcpRelayCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        DhcpRelayConfig cfg = CFG_SERVICE.getConfig(APP_ID, DhcpRelayConfig.class);
-        if (cfg == null) {
+        DefaultDhcpRelayConfig cfg = CFG_SERVICE.getConfig(APP_ID, DefaultDhcpRelayConfig.class);
+        if (cfg == null || cfg.dhcpServerConfigs().size() == 0) {
             print(MISSING_SERVER_CFG);
             return;
         }
 
         // DHCP server information
-        ConnectPoint connectPoint = cfg.getDhcpServerConnectPoint();
-        Ip4Address gatewayAddress = cfg.getDhcpGatewayIp();
-        Ip4Address serverIp = cfg.getDhcpServerIp();
+        // TODO: currently we pick up first DHCP server config.
+        // Will use other server configs in the future.
+        DhcpServerConfig serverConfig = cfg.dhcpServerConfigs().get(0);
+
+        ConnectPoint connectPoint = serverConfig.getDhcpServerConnectPoint().orElse(null);
+        Ip4Address gatewayAddress = serverConfig.getDhcpGatewayIp4().orElse(null);
+        Ip4Address serverIp = serverConfig.getDhcpServerIp4().orElse(null);
         String serverMac = DHCP_RELAY_SERVICE.getDhcpServerMacAddress()
                 .map(MacAddress::toString).orElse(NA);
         if (gatewayAddress != null) {

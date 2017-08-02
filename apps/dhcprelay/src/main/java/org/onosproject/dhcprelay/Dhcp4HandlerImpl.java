@@ -17,8 +17,11 @@
 
 package org.onosproject.dhcprelay;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -36,8 +39,11 @@ import org.onlab.packet.dhcp.CircuitId;
 import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.dhcp.DhcpRelayAgentOption;
 import org.onosproject.dhcprelay.api.DhcpHandler;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.routeservice.Route;
@@ -100,6 +106,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    private InternalHostListener hostListener = new InternalHostListener();
+
     private Ip4Address dhcpServerIp = null;
     // dhcp server may be connected directly to the SDN network or
     // via an external gateway. When connected directly, the dhcpConnectPoint, dhcpConnectMac,
@@ -109,6 +117,18 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     private MacAddress dhcpConnectMac = null;
     private VlanId dhcpConnectVlan = null;
     private Ip4Address dhcpGatewayIp = null;
+
+    @Activate
+    protected void activate() {
+        hostService.addListener(hostListener);
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        hostService.removeListener(hostListener);
+        this.dhcpConnectMac = null;
+        this.dhcpConnectVlan = null;
+    }
 
     @Override
     public void setDhcpServerIp(IpAddress dhcpServerIp) {
@@ -160,6 +180,64 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     }
 
     @Override
+    public void setDefaultDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
+        if (configs.size() == 0) {
+            // no config to update
+            return;
+        }
+
+        // TODO: currently we pick up first DHCP server config.
+        // Will use other server configs in the future for HA.
+        DhcpServerConfig serverConfig = configs.iterator().next();
+        checkState(serverConfig.getDhcpServerConnectPoint().isPresent(),
+                   "Connect point not exists");
+        checkState(serverConfig.getDhcpServerIp4().isPresent(),
+                   "IP of DHCP server not exists");
+        Ip4Address oldServerIp = this.dhcpServerIp;
+        Ip4Address oldGatewayIp = this.dhcpGatewayIp;
+
+        // stop monitoring gateway or server
+        if (oldGatewayIp != null) {
+            hostService.stopMonitoringIp(oldGatewayIp);
+        } else if (oldServerIp != null) {
+            hostService.stopMonitoringIp(oldServerIp);
+        }
+
+        this.dhcpServerConnectPoint = serverConfig.getDhcpServerConnectPoint().get();
+        this.dhcpServerIp = serverConfig.getDhcpServerIp4().get();
+        this.dhcpGatewayIp = serverConfig.getDhcpGatewayIp4().orElse(null);
+
+        // reset server mac and vlan
+        this.dhcpConnectMac = null;
+        this.dhcpConnectVlan = null;
+
+        log.info("DHCP server connect point: " + this.dhcpServerConnectPoint);
+        log.info("DHCP server IP: " + this.dhcpServerIp);
+
+        IpAddress ipToProbe = MoreObjects.firstNonNull(this.dhcpGatewayIp, this.dhcpServerIp);
+        String hostToProbe = this.dhcpGatewayIp != null ? "gateway" : "DHCP server";
+
+        if (ipToProbe == null) {
+            log.warn("Server IP not set, can't probe it");
+            return;
+        }
+
+        log.info("Probing to resolve {} IP {}", hostToProbe, ipToProbe);
+        hostService.startMonitoringIp(ipToProbe);
+
+        Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
+        if (!hosts.isEmpty()) {
+            Host host = hosts.iterator().next();
+            this.dhcpConnectVlan = host.vlan();
+            this.dhcpConnectMac = host.mac();
+        }
+    }
+
+    @Override
+    public void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
+        log.warn("Indirect config feature for DHCPv4 handler not implement yet");
+    }
+
     public void processDhcpPacket(PacketContext context, BasePacket payload) {
         checkNotNull(payload, "DHCP payload can't be null");
         checkState(payload instanceof DHCP, "Payload is not a DHCP");
@@ -812,5 +890,97 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
                       outIface.vlan());
         }
         packetService.emit(o);
+    }
+
+    class InternalHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            switch (event.type()) {
+                case HOST_ADDED:
+                case HOST_UPDATED:
+                    hostUpdated(event.subject());
+                    break;
+                case HOST_REMOVED:
+                    hostRemoved(event.subject());
+                    break;
+                case HOST_MOVED:
+                    hostMoved(event.subject());
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Handle host move.
+     * If the host DHCP server or gateway and it moved to the location different
+     * to user configured, unsets the connect mac and vlan
+     *
+     * @param host the host
+     */
+    private void hostMoved(Host host) {
+        if (this.dhcpServerConnectPoint == null) {
+            return;
+        }
+        if (this.dhcpGatewayIp != null) {
+            if (host.ipAddresses().contains(this.dhcpGatewayIp) &&
+                    !host.locations().contains(this.dhcpServerConnectPoint)) {
+                this.dhcpConnectMac = null;
+                this.dhcpConnectVlan = null;
+            }
+            return;
+        }
+        if (this.dhcpServerIp != null) {
+            if (host.ipAddresses().contains(this.dhcpServerIp) &&
+                    !host.locations().contains(this.dhcpServerConnectPoint)) {
+                this.dhcpConnectMac = null;
+                this.dhcpConnectVlan = null;
+            }
+        }
+    }
+
+    /**
+     * Handle host updated.
+     * If the host is DHCP server or gateway, update connect mac and vlan.
+     *
+     * @param host the host
+     */
+    private void hostUpdated(Host host) {
+        if (this.dhcpGatewayIp != null) {
+            if (host.ipAddresses().contains(this.dhcpGatewayIp)) {
+                this.dhcpConnectMac = host.mac();
+                this.dhcpConnectVlan = host.vlan();
+            }
+            return;
+        }
+        if (this.dhcpServerIp != null) {
+            if (host.ipAddresses().contains(this.dhcpServerIp)) {
+                this.dhcpConnectMac = host.mac();
+                this.dhcpConnectVlan = host.vlan();
+            }
+        }
+    }
+
+    /**
+     * Handle host removed.
+     * If the host is DHCP server or gateway, unset connect mac and vlan.
+     *
+     * @param host the host
+     */
+    private void hostRemoved(Host host) {
+        if (this.dhcpGatewayIp != null) {
+            if (host.ipAddresses().contains(this.dhcpGatewayIp)) {
+                this.dhcpConnectMac = null;
+                this.dhcpConnectVlan = null;
+            }
+            return;
+        }
+        if (this.dhcpServerIp != null) {
+            if (host.ipAddresses().contains(this.dhcpServerIp)) {
+                this.dhcpConnectMac = null;
+                this.dhcpConnectVlan = null;
+            }
+        }
     }
 }

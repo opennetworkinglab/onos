@@ -1,0 +1,19 @@
+{
+  "apps": {
+    "org.onosproject.dhcprelay" : {
+      "default": [
+        {
+          "dhcpServerConnectPoint": "of:0000000000000002/2",
+          "serverIps": ["172.168.10.2", "2000::200:1"],
+          "gatewayIps": ["192.168.10.254", "1000::100:1"]
+        }
+      ],
+      "indirect": [
+        {
+          "dhcpServerConnectPoint": "of:0000000000000002/3",
+          "serverIps": ["172.168.10.3"]
+        }
+      ]
+    }
+  }
+}
