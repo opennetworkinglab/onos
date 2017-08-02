@@ -267,7 +267,8 @@ public class DistributedClusterStore
     private void updateNode(NodeId nodeId, State newState, Version newVersion) {
         State currentState = nodeStates.get(nodeId);
         Version currentVersion = nodeVersions.get(nodeId);
-        if (!Objects.equals(currentState, newState) || !Objects.equals(currentVersion, newVersion)) {
+        if (!Objects.equals(currentState, newState)
+                || (newVersion != null && !Objects.equals(currentVersion, newVersion))) {
             nodeStates.put(nodeId, newState);
             if (newVersion != null) {
                 nodeVersions.put(nodeId, newVersion);
