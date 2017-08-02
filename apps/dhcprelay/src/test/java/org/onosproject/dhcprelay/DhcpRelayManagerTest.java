@@ -40,6 +40,10 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.dhcprelay.api.DhcpHandler;
+import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
+import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpRelayStoreEvent;
@@ -149,7 +153,7 @@ public class DhcpRelayManagerTest {
 
     // Components
     private static final ApplicationId APP_ID = TestApplicationId.create(DhcpRelayManager.DHCP_RELAY_APP);
-    private static final DhcpRelayConfig CONFIG = new MockDhcpRelayConfig();
+    private static final DefaultDhcpRelayConfig CONFIG = new MockDefaultDhcpRelayConfig();
     private static final Set<Interface> INTERFACES = ImmutableSet.of(
             CLIENT_INTERFACE,
             CLIENT2_INTERFACE,
@@ -167,8 +171,13 @@ public class DhcpRelayManagerTest {
         manager = new DhcpRelayManager();
         manager.cfgService = createNiceMock(NetworkConfigRegistry.class);
 
-        expect(manager.cfgService.getConfig(anyObject(), anyObject()))
+        expect(manager.cfgService.getConfig(APP_ID, DefaultDhcpRelayConfig.class))
                 .andReturn(CONFIG)
+                .anyTimes();
+
+        // TODO: add indirect test
+        expect(manager.cfgService.getConfig(APP_ID, IndirectDhcpRelayConfig.class))
+                .andReturn(null)
                 .anyTimes();
 
         manager.coreService = createNiceMock(CoreService.class);
@@ -200,6 +209,9 @@ public class DhcpRelayManagerTest {
         manager.v4Handler = v4Handler;
 
         // TODO: initialize v6 handler.
+        DhcpHandler v6Handler = createNiceMock(DhcpHandler.class);
+        manager.v6Handler = v6Handler;
+
         // properties
         Dictionary<String, Object> dictionary = createNiceMock(Dictionary.class);
         expect(dictionary.get("arpEnabled")).andReturn(true).anyTimes();
@@ -297,23 +309,27 @@ public class DhcpRelayManagerTest {
         assertArrayEquals(arp.getSenderHardwareAddress(), CLIENT_INTERFACE.mac().toBytes());
     }
 
-    private static class MockDhcpRelayConfig extends DhcpRelayConfig {
+    private static class MockDefaultDhcpRelayConfig extends DefaultDhcpRelayConfig {
         @Override
         public boolean isValid() {
             return true;
         }
 
         @Override
-        public ConnectPoint getDhcpServerConnectPoint() {
-            return SERVER_CONNECT_POINT;
+        public List<DhcpServerConfig> dhcpServerConfigs() {
+            return ImmutableList.of(new MockDhcpServerConfig());
+        }
+    }
+
+    private static class MockDhcpServerConfig extends DhcpServerConfig {
+        @Override
+        public Optional<ConnectPoint> getDhcpServerConnectPoint() {
+            return Optional.of(SERVER_CONNECT_POINT);
         }
 
-        public Ip4Address getDhcpServerIp() {
-            return SERVER_IP;
-        }
-
-        public Ip4Address getDhcpGatewayIp() {
-            return null;
+        @Override
+        public Optional<Ip4Address> getDhcpServerIp4() {
+            return Optional.of(SERVER_IP);
         }
     }
 

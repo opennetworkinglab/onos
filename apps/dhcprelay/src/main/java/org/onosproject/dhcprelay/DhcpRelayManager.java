@@ -38,7 +38,6 @@ import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -49,12 +48,14 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
+import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -64,8 +65,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -87,7 +86,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 @Component(immediate = true)
 @Service
 public class DhcpRelayManager implements DhcpRelayService {
-    public static final String DHCP_RELAY_APP = "org.onosproject.dhcp-relay";
+    public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
     public static final ProviderId PROVIDER_ID = new ProviderId("host", DHCP_RELAY_APP);
     public static final String HOST_LOCATION_PROVIDER =
             "org.onosproject.provider.host.impl.HostLocationProvider";
@@ -95,12 +94,22 @@ public class DhcpRelayManager implements DhcpRelayService {
     private final InternalConfigListener cfgListener = new InternalConfigListener();
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
-            new ConfigFactory<ApplicationId, DhcpRelayConfig>(APP_SUBJECT_FACTORY,
-                    DhcpRelayConfig.class,
-                    "dhcprelay") {
+            new ConfigFactory<ApplicationId, DefaultDhcpRelayConfig>(APP_SUBJECT_FACTORY,
+                                                                     DefaultDhcpRelayConfig.class,
+                                                                     DefaultDhcpRelayConfig.KEY,
+                                                                     true) {
                 @Override
-                public DhcpRelayConfig createConfig() {
-                    return new DhcpRelayConfig();
+                public DefaultDhcpRelayConfig createConfig() {
+                    return new DefaultDhcpRelayConfig();
+                }
+            },
+            new ConfigFactory<ApplicationId, IndirectDhcpRelayConfig>(APP_SUBJECT_FACTORY,
+                                                                      IndirectDhcpRelayConfig.class,
+                                                                      IndirectDhcpRelayConfig.KEY,
+                                                                      true) {
+                @Override
+                public IndirectDhcpRelayConfig createConfig() {
+                    return new IndirectDhcpRelayConfig();
                 }
             }
     );
@@ -139,7 +148,6 @@ public class DhcpRelayManager implements DhcpRelayService {
     protected boolean arpEnabled = true;
 
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
-    private InternalHostListener hostListener = new InternalHostListener();
     private ApplicationId appId;
 
     @Activate
@@ -156,7 +164,6 @@ public class DhcpRelayManager implements DhcpRelayService {
         packetService.addProcessor(dhcpRelayPacketProcessor, PacketProcessor.director(0));
 
         // listen host event for dhcp server or the gateway
-        hostService.addListener(hostListener);
         requestDhcpPackets();
         modified(context);
 
@@ -172,7 +179,6 @@ public class DhcpRelayManager implements DhcpRelayService {
         cfgService.removeListener(cfgListener);
         factories.forEach(cfgService::unregisterConfigFactory);
         packetService.removeProcessor(dhcpRelayPacketProcessor);
-        hostService.removeListener(hostListener);
         cancelDhcpPackets();
         cancelArpPackets();
         v4Handler.getDhcpGatewayIp().ifPresent(hostService::stopMonitoringIp);
@@ -202,74 +208,44 @@ public class DhcpRelayManager implements DhcpRelayService {
         }
     }
 
+    /**
+     * Updates DHCP relay app configuration.
+     */
     private void updateConfig() {
-        DhcpRelayConfig cfg = cfgService.getConfig(appId, DhcpRelayConfig.class);
-        if (cfg == null) {
-            log.warn("Dhcp Server info not available");
+        DefaultDhcpRelayConfig defaultConfig =
+                cfgService.getConfig(appId, DefaultDhcpRelayConfig.class);
+        IndirectDhcpRelayConfig indirectConfig =
+                cfgService.getConfig(appId, IndirectDhcpRelayConfig.class);
+
+        if (defaultConfig != null) {
+            updateConfig(defaultConfig);
+        }
+
+        if (indirectConfig != null) {
+            updateConfig(indirectConfig);
+        }
+    }
+
+    /**
+     * Updates DHCP relay app configuration with given configuration.
+     *
+     * @param config the configuration ot update
+     */
+    private void updateConfig(Config config) {
+        if (config == null) {
+            // Ignore if config is not present
             return;
         }
-        Optional<IpAddress> oldDhcpServerIp = v4Handler.getDhcpServerIp();
-        Optional<IpAddress> oldDhcpGatewayIp = v4Handler.getDhcpGatewayIp();
-        v4Handler.setDhcpServerConnectPoint(cfg.getDhcpServerConnectPoint());
-        v4Handler.setDhcpServerIp(cfg.getDhcpServerIp());
-        v4Handler.setDhcpGatewayIp(cfg.getDhcpGatewayIp());
-        v4Handler.setDhcpConnectMac(null);
-        v4Handler.setDhcpConnectVlan(null);
-
-        log.info("DHCP server connect point: " + cfg.getDhcpServerConnectPoint());
-        log.info("DHCP server ipaddress " + cfg.getDhcpServerIp());
-
-        IpAddress ipToProbe = v4Handler.getDhcpGatewayIp().isPresent() ? cfg.getDhcpGatewayIp() :
-                                                                         cfg.getDhcpServerIp();
-        String hostToProbe = v4Handler.getDhcpGatewayIp().isPresent() ? "gateway" : "DHCP server";
-
-        // TODO: DHCPv6 server config
-        Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
-        if (hosts.isEmpty()) {
-            log.info("Probing to resolve {} IP {}", hostToProbe, ipToProbe);
-            oldDhcpGatewayIp.ifPresent(hostService::stopMonitoringIp);
-            oldDhcpServerIp.ifPresent(hostService::stopMonitoringIp);
-            hostService.startMonitoringIp(ipToProbe);
-        } else {
-            // Probe target is known; There should be only 1 host with this ip
-            hostUpdated(hosts.iterator().next());
+        if (config instanceof DefaultDhcpRelayConfig) {
+            DefaultDhcpRelayConfig defaultConfig = (DefaultDhcpRelayConfig) config;
+            v4Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
+            v6Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
         }
-    }
-
-    private void hostRemoved(Host host) {
-        v4Handler.getDhcpServerIp().ifPresent(ip -> {
-            if (host.ipAddresses().contains(ip)) {
-                log.warn("DHCP server {} removed", ip);
-                v4Handler.setDhcpConnectMac(null);
-                v4Handler.setDhcpConnectVlan(null);
-            }
-        });
-        v4Handler.getDhcpGatewayIp().ifPresent(ip -> {
-            if (host.ipAddresses().contains(ip)) {
-                log.warn("DHCP gateway {} removed", ip);
-                v4Handler.setDhcpConnectMac(null);
-                v4Handler.setDhcpConnectVlan(null);
-            }
-        });
-        // TODO: v6 handler
-    }
-
-    private void hostUpdated(Host host) {
-        v4Handler.getDhcpGatewayIp().ifPresent(ip -> {
-            if (host.ipAddresses().contains(ip)) {
-                log.warn("DHCP gateway {} removed", ip);
-                v4Handler.setDhcpConnectMac(host.mac());
-                v4Handler.setDhcpConnectVlan(host.vlan());
-            }
-        });
-        v4Handler.getDhcpServerIp().ifPresent(ip -> {
-            if (host.ipAddresses().contains(ip)) {
-                log.warn("DHCP server {} removed", ip);
-                v4Handler.setDhcpConnectMac(host.mac());
-                v4Handler.setDhcpConnectVlan(host.vlan());
-            }
-        });
-        // TODO: v6 handler
+        if (config instanceof IndirectDhcpRelayConfig) {
+            IndirectDhcpRelayConfig indirectConfig = (IndirectDhcpRelayConfig) config;
+            v4Handler.setIndirectDhcpServerConfigs(indirectConfig.dhcpServerConfigs());
+            v6Handler.setIndirectDhcpServerConfigs(indirectConfig.dhcpServerConfigs());
+        }
     }
 
     /**
@@ -471,35 +447,20 @@ public class DhcpRelayManager implements DhcpRelayService {
     private class InternalConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
-                    event.configClass().equals(DhcpRelayConfig.class)) {
-                updateConfig();
+            if (event.type() != NetworkConfigEvent.Type.CONFIG_ADDED &&
+                    event.type() != NetworkConfigEvent.Type.CONFIG_UPDATED) {
+                // Ignore unhandled event type
+                return;
+            }
+            if (!event.configClass().equals(DefaultDhcpRelayConfig.class) &&
+                    !event.configClass().equals(IndirectDhcpRelayConfig.class)) {
+                // Ignore unhandled config type
+                return;
+            }
+            event.config().ifPresent(config -> {
+                updateConfig(config);
                 log.info("Reconfigured");
-            }
-        }
-    }
-
-    /**
-     * Internal listener for host events.
-     */
-    private class InternalHostListener implements HostListener {
-        @Override
-        public void event(HostEvent event) {
-            switch (event.type()) {
-            case HOST_ADDED:
-            case HOST_UPDATED:
-                hostUpdated(event.subject());
-                break;
-            case HOST_REMOVED:
-                hostRemoved(event.subject());
-                break;
-            case HOST_MOVED:
-                // XXX todo -- moving dhcp server
-                break;
-            default:
-                break;
-            }
+            });
         }
     }
 }

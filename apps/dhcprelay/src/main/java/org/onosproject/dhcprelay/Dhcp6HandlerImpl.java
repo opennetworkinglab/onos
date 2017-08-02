@@ -25,9 +25,11 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.dhcprelay.api.DhcpHandler;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.packet.PacketContext;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Component
@@ -77,6 +79,16 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
 
     @Override
     public void setDhcpServerIp(IpAddress dhcpServerIp) {
+
+    }
+
+    @Override
+    public void setDefaultDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
+
+    }
+
+    @Override
+    public void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
 
     }
 }

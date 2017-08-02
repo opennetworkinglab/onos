@@ -81,7 +81,7 @@ public class DistributedDhcpRelayStore implements DhcpRelayStore {
 
     @Override
     public void setDelegate(StoreDelegate<DhcpRelayStoreEvent> delegate) {
-        checkNotNull("Delegate can't be null", delegate);
+        checkNotNull(delegate, "Delegate can't be null");
         this.delegate = delegate;
     }
 
