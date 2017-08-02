@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.onlab.util.HexString;
 import org.onosproject.cluster.PartitionId;
@@ -66,9 +65,8 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
         Map<PartitionId, AsyncConsistentMap<String, byte[]>> maps =
                 Maps.transformValues(members,
                                      partition -> partition.newAsyncConsistentMap(name, null));
-        HashFunction hashFunction = Hashing.goodFastHash(32);
         Hasher<String> hasher = key -> {
-            int hashCode = hashFunction.hashUnencodedChars(key).asInt();
+            int hashCode = Hashing.sha256().hashString(key, Charsets.UTF_8).asInt();
             return sortedMemberPartitionIds.get(Math.abs(hashCode) % members.size());
         };
         AsyncConsistentMap<String, byte[]> partitionedMap = new PartitionedAsyncConsistentMap<>(name, maps, hasher);

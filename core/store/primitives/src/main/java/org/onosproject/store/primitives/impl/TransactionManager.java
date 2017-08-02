@@ -23,12 +23,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.Futures;
+import org.onlab.util.HexString;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.PartitionService;
@@ -101,7 +103,8 @@ public class TransactionManager {
         }
 
         Hasher<K> hasher = key -> {
-            int hashCode = Hashing.sha256().hashBytes(serializer.encode(key)).asInt();
+            int hashCode = Hashing.sha256()
+                    .hashString(HexString.toHexString(serializer.encode(key)), Charsets.UTF_8).asInt();
             return sortedPartitions.get(Math.abs(hashCode) % sortedPartitions.size());
         };
         return new PartitionedTransactionalMap<>(partitions, hasher);
