@@ -84,7 +84,6 @@ public class Filter {
      */
     private final int depth;
 
-
     /**
      * Creates a default Filter builder.
      *

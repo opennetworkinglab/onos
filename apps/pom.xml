@@ -81,6 +81,8 @@
         <module>tetunnel</module>
         <module>actn-mdsc</module>
         <module>config</module>
+        <module>configsync</module>
+        <module>configsync-netconf</module>
         <module>ofagent</module>
         <module>intentsync</module>
         <module>mappingmanagement</module>
