@@ -35,4 +35,7 @@ public final class PiConstantsTest {
     public static final String SRC_ADDR = "srcAddr";
     public static final String VID = "vid";
     public static final String PORT = "port";
+
+    public static final String EGRESS_PORT = "egress_port";
+    public static final String INGRESS_PORT = "ingress_port";
 }
