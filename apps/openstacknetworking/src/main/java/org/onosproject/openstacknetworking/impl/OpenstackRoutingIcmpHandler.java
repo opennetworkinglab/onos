@@ -42,27 +42,31 @@ import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
+import org.openstack4j.openstack.networking.domain.NeutronIP;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -259,9 +263,15 @@ public class OpenstackRoutingIcmpHandler {
                     osRouter.getId(), osRouter.getName());
             throw new IllegalStateException(error);
         }
+        Optional<NeutronIP> externalIpAddress = (Optional<NeutronIP>) exGatewayPort.getFixedIps().stream().findFirst();
+        if (!externalIpAddress.isPresent() || externalIpAddress.get().getIpAddress() == null) {
+            final String error = String.format(ERR_REQ +
+                            "no external gateway IP address for router (ID:%s, name:%s)",
+                    osRouter.getId(), osRouter.getName());
+            throw new IllegalStateException(error);
+        }
 
-        return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
-                .findFirst().get().getIpAddress());
+        return IpAddress.valueOf(externalIpAddress.get().getIpAddress());
     }
 
     private void processRequestForGateway(IPv4 ipPacket, InstancePort instPort) {
