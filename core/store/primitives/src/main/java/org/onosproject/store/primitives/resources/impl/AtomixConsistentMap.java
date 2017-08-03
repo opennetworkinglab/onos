@@ -29,6 +29,7 @@ import java.util.function.Predicate;
 
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ContainsKey;
@@ -49,6 +50,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperat
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionRollback;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -296,9 +298,7 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
             try {
                 computedValue = remappingFunction.apply(key, existingValue);
             } catch (Exception e) {
-                CompletableFuture<Versioned<byte[]>> future = new CompletableFuture<>();
-                future.completeExceptionally(e);
-                return future;
+                return Tools.exceptionalFuture(e);
             }
 
             if (computedValue == null && r1 == null) {
@@ -312,9 +312,17 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
                         new Put(key, computedValue),
                         serializer()::decode)
                         .whenComplete((r, e) -> throwIfLocked(r))
+                        .thenCompose(r -> checkLocked(r))
                         .thenApply(result -> new Versioned<>(computedValue, result.version()));
             } else if (computedValue == null) {
-                return remove(key, r1.version()).thenApply(v -> null);
+                return proxy.<RemoveVersion, MapEntryUpdateResult<String, byte[]>>invoke(
+                        REMOVE_VERSION,
+                        serializer()::encode,
+                        new RemoveVersion(key, r1.version()),
+                        serializer()::decode)
+                        .whenComplete((r, e) -> throwIfLocked(r))
+                        .thenCompose(r -> checkLocked(r))
+                        .thenApply(v -> null);
             } else {
                 return proxy.<ReplaceVersion, MapEntryUpdateResult<String, byte[]>>invoke(
                         REPLACE_VERSION,
@@ -322,10 +330,20 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
                         new ReplaceVersion(key, r1.version(), computedValue),
                         serializer()::decode)
                         .whenComplete((r, e) -> throwIfLocked(r))
+                        .thenCompose(r -> checkLocked(r))
                         .thenApply(result -> result.status() == MapEntryUpdateResult.Status.OK
                                 ? new Versioned(computedValue, result.version()) : result.result());
             }
         });
+    }
+
+    private CompletableFuture<MapEntryUpdateResult<String, byte[]>> checkLocked(
+            MapEntryUpdateResult<String, byte[]> result) {
+        if (result.status() == MapEntryUpdateResult.Status.PRECONDITION_FAILED ||
+                result.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
+            return Tools.exceptionalFuture(new ConsistentMapException.ConcurrentModification());
+        }
+        return CompletableFuture.completedFuture(result);
     }
 
     @Override
