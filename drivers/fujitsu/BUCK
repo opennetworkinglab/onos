@@ -33,5 +33,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'ONOS Fujitsu device drivers application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.netconf', 'org.onosproject.optical-model' ],
+    required_apps = [ 'org.onosproject.netconf', 'org.onosproject.optical-model', 'org.onosproject.drivers.optical' ],
 )

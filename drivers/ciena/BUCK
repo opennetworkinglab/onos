@@ -32,5 +32,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'ONOS Ciena Device Drivers application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.restsb', 'org.onosproject.optical-model' ],
+    required_apps = [ 'org.onosproject.restsb', 'org.onosproject.optical-model', 'org.onosproject.drivers.optical' ],
 )
