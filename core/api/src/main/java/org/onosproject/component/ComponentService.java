@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.component;
+package org.onosproject.component;
 
 import org.onosproject.core.ApplicationId;
 

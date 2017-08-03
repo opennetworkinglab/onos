@@ -96,7 +96,6 @@ osgi_feature (
   required_features = ['onos-core'],
   included_bundles = [
     '//incubator/net:onos-incubator-net',
-    '//incubator/core:onos-incubator-core',
     '//incubator/store:onos-incubator-store',
     '//incubator/rpc:onos-incubator-rpc',
   ]

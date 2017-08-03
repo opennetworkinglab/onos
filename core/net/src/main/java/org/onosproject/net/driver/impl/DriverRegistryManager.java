@@ -27,7 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.incubator.component.ComponentService;
+import org.onosproject.component.ComponentService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverProvider;

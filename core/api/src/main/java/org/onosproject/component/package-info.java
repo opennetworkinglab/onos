@@ -17,4 +17,4 @@
 /**
  * Component management system.
  */
-package org.onosproject.incubator.component;
+package org.onosproject.component;

@@ -21,7 +21,6 @@ CORE = UTILS + API + [
     '//core/store/persistence:onos-core-persistence',
 
     '//incubator/net:onos-incubator-net',
-    '//incubator/core:onos-incubator-core',
     '//incubator/store:onos-incubator-store',
     '//incubator/rpc:onos-incubator-rpc',
 
