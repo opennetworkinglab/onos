@@ -15,6 +15,6 @@
  */
 
 /**
- * Neighbour message (ARP, NDP) handling.
+ * Implementation of neighbour resolution service.
  */
-package org.onosproject.incubator.net.neighbour;
+package org.onosproject.net.neighbour.impl;

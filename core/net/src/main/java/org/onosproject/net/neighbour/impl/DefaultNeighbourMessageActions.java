@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
 
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
@@ -28,8 +28,8 @@ import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.util.Tools;
 import org.onosproject.net.intf.Interface;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageActions;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageActions;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;

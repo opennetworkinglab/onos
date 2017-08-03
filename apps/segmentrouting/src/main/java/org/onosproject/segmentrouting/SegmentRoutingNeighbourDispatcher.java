@@ -16,8 +16,8 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.net.host.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

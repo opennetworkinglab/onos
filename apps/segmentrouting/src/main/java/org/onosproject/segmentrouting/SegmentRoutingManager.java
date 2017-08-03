@@ -43,7 +43,7 @@ import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
-import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
+import org.onosproject.net.neighbour.NeighbourResolutionService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;

@@ -19,7 +19,7 @@ package org.onosproject.segmentrouting;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;

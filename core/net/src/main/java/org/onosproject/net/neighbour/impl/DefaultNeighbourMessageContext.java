@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
 
-import com.google.common.annotations.Beta;
+import java.util.Objects;
+
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
@@ -27,21 +28,19 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageActions;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
-import org.onosproject.incubator.net.neighbour.NeighbourProtocol;
 import org.onosproject.net.ConnectPoint;
-
-import java.util.Objects;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.neighbour.NeighbourMessageActions;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageType;
+import org.onosproject.net.neighbour.NeighbourProtocol;
 
 import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default implementation of a neighbour message context.
  */
-@Beta
+
 public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
 
     private final NeighbourProtocol protocol;

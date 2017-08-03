@@ -22,7 +22,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.host.HostService;
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.incubator.net.neighbour.NeighbourMessageType.REQUEST;
+import static org.onosproject.net.neighbour.NeighbourMessageType.REQUEST;
 
 /**
  * Handler of ARP packets that responses or forwards ARP packets that

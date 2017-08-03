@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour;
+package org.onosproject.net.neighbour;
 
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;

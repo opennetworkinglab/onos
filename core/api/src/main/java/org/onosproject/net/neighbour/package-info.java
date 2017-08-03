@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour;
-
-import com.google.common.annotations.Beta;
-
 /**
- * Neighbour message type.
+ * Neighbour message (ARP, NDP) handling.
  */
-@Beta
-public enum NeighbourMessageType {
-    /**
-     * Request message.
-     */
-    REQUEST,
-
-    /**
-     * Reply message.
-     */
-    REPLY
-}
+package org.onosproject.net.neighbour;

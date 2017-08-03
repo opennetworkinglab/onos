@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -39,11 +39,11 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intf.Interface;
-import org.onosproject.incubator.net.neighbour.NeighbourHandlerRegistration;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageActions;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
-import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
+import org.onosproject.net.neighbour.NeighbourHandlerRegistration;
+import org.onosproject.net.neighbour.NeighbourMessageActions;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageHandler;
+import org.onosproject.net.neighbour.NeighbourResolutionService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficSelector;

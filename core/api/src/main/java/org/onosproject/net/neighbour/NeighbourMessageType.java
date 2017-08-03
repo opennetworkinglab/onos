@@ -14,7 +14,22 @@
  * limitations under the License.
  */
 
+package org.onosproject.net.neighbour;
+
+import com.google.common.annotations.Beta;
+
 /**
- * Implementation of neighbour resolution service.
+ * Neighbour message type.
  */
-package org.onosproject.incubator.net.neighbour.impl;
+@Beta
+public enum NeighbourMessageType {
+    /**
+     * Request message.
+     */
+    REQUEST,
+
+    /**
+     * Reply message.
+     */
+    REPLY
+}

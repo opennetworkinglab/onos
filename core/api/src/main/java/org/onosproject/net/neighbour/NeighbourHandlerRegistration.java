@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour;
+package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.intf.Interface;
 
 /**
- * Enumerates protocols used for neighbour discover/address resolution.
+ * Information about the registration of a neighbour message handler.
  */
-@Beta
-public enum NeighbourProtocol {
+public interface NeighbourHandlerRegistration {
 
     /**
-     * Address Resolution Protocol (IPv4).
+     * Gets the interface of the registration.
+     *
+     * @return interface
      */
-    ARP,
+    Interface intf();
 
     /**
-     * Neighbor Discovery Protocol (IPv6).
+     * Gets the neighbour message handler.
+     *
+     * @return message handler
      */
-    NDP
+    NeighbourMessageHandler handler();
+
+    /**
+     * Gets the ID of the application that registered the handler.
+     *
+     * @return application ID
+     */
+    ApplicationId appId();
 }

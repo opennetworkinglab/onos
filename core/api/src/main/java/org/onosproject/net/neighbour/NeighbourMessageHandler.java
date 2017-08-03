@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour;
+package org.onosproject.net.neighbour;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.host.HostService;

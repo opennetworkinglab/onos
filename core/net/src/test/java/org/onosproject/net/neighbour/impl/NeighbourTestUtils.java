@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
 
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;

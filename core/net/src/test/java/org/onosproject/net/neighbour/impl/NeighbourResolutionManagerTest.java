@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
+
+import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,25 +29,23 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.incubator.net.neighbour.NeighbourHandlerRegistration;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
-import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.neighbour.NeighbourHandlerRegistration;
+import org.onosproject.net.neighbour.NeighbourMessageContext;
+import org.onosproject.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.PacketContextAdapter;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketContextAdapter;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.packet.PacketServiceAdapter;
-
-import java.util.Collection;
 
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
@@ -58,9 +58,9 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.incubator.net.neighbour.impl.DefaultNeighbourMessageContext.createContext;
-import static org.onosproject.incubator.net.neighbour.impl.NeighbourTestUtils.createArpRequest;
-import static org.onosproject.incubator.net.neighbour.impl.NeighbourTestUtils.intf;
+import static org.onosproject.net.neighbour.impl.DefaultNeighbourMessageContext.createContext;
+import static org.onosproject.net.neighbour.impl.NeighbourTestUtils.createArpRequest;
+import static org.onosproject.net.neighbour.impl.NeighbourTestUtils.intf;
 
 /**
  * Unit tests for the NeighbourResolutionManager.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.neighbour.impl;
+package org.onosproject.net.neighbour.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -43,9 +43,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.onosproject.incubator.net.neighbour.impl.DefaultNeighbourMessageContext.createContext;
-import static org.onosproject.incubator.net.neighbour.impl.NeighbourTestUtils.createArpRequest;
-import static org.onosproject.incubator.net.neighbour.impl.NeighbourTestUtils.intf;
+import static org.onosproject.net.neighbour.impl.DefaultNeighbourMessageContext.createContext;
 
 /**
  * Unit tests for DefaultNeighbourMessageActions.
@@ -70,8 +68,8 @@ public class DefaultNeighbourMessageActionsTest {
 
     private static final VlanId VLAN1 = VlanId.vlanId((short) 1);
 
-    private static final Interface INTF1 = intf(CP1, IP1, MAC1, VLAN1);
-    private static final Interface INTF2 = intf(CP2, IP2, MAC2, VLAN1);
+    private static final Interface INTF1 = NeighbourTestUtils.intf(CP1, IP1, MAC1, VLAN1);
+    private static final Interface INTF2 = NeighbourTestUtils.intf(CP2, IP2, MAC2, VLAN1);
 
     private DefaultNeighbourMessageActions actions;
     private PacketService packetService;
@@ -84,7 +82,7 @@ public class DefaultNeighbourMessageActionsTest {
 
     @Test
     public void reply() throws Exception {
-        Ethernet request = createArpRequest(IP1);
+        Ethernet request = NeighbourTestUtils.createArpRequest(IP1);
 
         Ip4Address ip4Address = INTF1.ipAddressesList().get(0).ipAddress().getIp4Address();
         Ethernet response = ARP.buildArpReply(ip4Address, MAC2, request);
@@ -100,7 +98,7 @@ public class DefaultNeighbourMessageActionsTest {
 
     @Test
     public void forwardToConnectPoint() {
-        Ethernet request = createArpRequest(IP1);
+        Ethernet request = NeighbourTestUtils.createArpRequest(IP1);
 
         packetService.emit(outbound(request, CP2));
         expectLastCall().once();
@@ -113,7 +111,7 @@ public class DefaultNeighbourMessageActionsTest {
 
     @Test
     public void forwardToInterface() {
-        Ethernet request = createArpRequest(IP1);
+        Ethernet request = NeighbourTestUtils.createArpRequest(IP1);
 
         Ethernet forwardedRequest = (Ethernet) request.clone();
         forwardedRequest.setSourceMACAddress(INTF2.mac());
@@ -130,7 +128,7 @@ public class DefaultNeighbourMessageActionsTest {
 
     @Test
     public void flood() {
-        Ethernet request = createArpRequest(IP1);
+        Ethernet request = NeighbourTestUtils.createArpRequest(IP1);
 
         // Expect the packet to be emitted out all ports apart from the in port
         Sets.difference(Sets.newLinkedHashSet(EDGE_PORTS), Collections.singleton(CP1))
