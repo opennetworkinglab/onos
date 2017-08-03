@@ -1,5 +1,5 @@
 <!-- YANG Model partial HTML -->
-<div id="ov-yang-model">
+<div id="ov-yang-model" yangfiledrop on-file-drop="yangDropped()">
 
     <div class="tabular-header">
         <h2>YANG Models ({{tableData.length}} total)</h2>
@@ -8,6 +8,19 @@
                  icon icon-id="refresh" icon-size="42"
                  tooltip tt-msg="autoRefreshTip"
                  ng-click="toggleRefresh()"></div>
+
+            <div class="separator"></div>
+
+            <form id="inputYangFileForm">
+                <input id="uploadYangFile"
+                       type="file" size="50" accept=".zip, *.jar, *.yang"
+                       yang-file-model="yangFile">
+            </form>
+
+            <div icon icon-size="42" icon-id="nav_yang"
+                 class="active" trigger-yang-form
+                 tooltip tt-msg="uploadTip">
+            </div>
         </div>
     </div>
 

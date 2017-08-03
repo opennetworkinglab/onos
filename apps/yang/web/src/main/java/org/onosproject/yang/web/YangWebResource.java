@@ -20,7 +20,10 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.yang.YangLiveCompilerService;
 import org.onosproject.yang.compiler.api.YangCompilationParam;
 import org.onosproject.yang.compiler.api.YangCompilerService;
 import org.onosproject.yang.compiler.datamodel.YangNode;
@@ -32,8 +35,10 @@ import org.onosproject.yang.runtime.ModelRegistrationParam;
 import org.onosproject.yang.runtime.YangModelRegistry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -74,11 +79,31 @@ public class YangWebResource extends AbstractWebResource {
     /**
      * Compiles and registers the given yang files.
      *
+     * @param modelId model identifier
+     * @param stream YANG, ZIP or JAR file
+     * @return 200 OK
+     * @throws IOException when fails to generate a file
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response upload(@QueryParam("modelId") @DefaultValue("org.onosproject.model.unknown") String modelId,
+                           @FormDataParam("file") InputStream stream) throws IOException {
+        YangLiveCompilerService compiler = get(YangLiveCompilerService.class);
+        ApplicationAdminService appService = get(ApplicationAdminService.class);
+        appService.install(compiler.compileYangFiles(modelId, stream));
+        appService.activate(appService.getId(modelId));
+        return Response.ok().build();
+    }
+
+    /**
+     * Compiles and registers the given yang files.
+     *
      * @param formData YANG files or ser files
      * @return 200 OK
      * @throws IOException when fails to generate a file
      */
     @POST
+    @Path("deprecated")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response upload(FormDataMultiPart formData) throws IOException {
         Map<String, List<File>> input = parseInputData(formData);
@@ -161,7 +186,7 @@ public class YangWebResource extends AbstractWebResource {
     }
 
     private void addToParam(DefaultYangCompilationParam.Builder builder,
-                                            File file) {
+                            File file) {
         if (file.getName().endsWith(YANG_FILE_EXTENSION)) {
             builder.addYangFile(Paths.get(file.getAbsolutePath()));
         } else if (file.getName().endsWith(SER_FILE_EXTENSION)) {
@@ -198,8 +223,7 @@ public class YangWebResource extends AbstractWebResource {
 
         // first get all directories,
         // then make those directory on the destination Path
-        for (Enumeration<? extends ZipEntry> enums = zip.entries();
-             enums.hasMoreElements();) {
+        for (Enumeration<? extends ZipEntry> enums = zip.entries(); enums.hasMoreElements();) {
             ZipEntry entry = enums.nextElement();
 
             String fileName = YANG_RESOURCES + entry.getName();
@@ -211,8 +235,7 @@ public class YangWebResource extends AbstractWebResource {
         }
 
         //now create all files
-        for (Enumeration<? extends ZipEntry> enums = zip.entries();
-             enums.hasMoreElements();) {
+        for (Enumeration<? extends ZipEntry> enums = zip.entries(); enums.hasMoreElements();) {
             ZipEntry entry = enums.nextElement();
             String fileName = YANG_RESOURCES + entry.getName();
             File f = new File(fileName);

@@ -262,6 +262,9 @@ public class ApplicationArchive
     public synchronized InputStream getApplicationInputStream(String appName) {
         try {
             File appFile = appFile(appName, appName + OAR);
+            if (!appFile.exists()) {
+                appFile = appFile(appName, appName + JAR);
+            }
             return new FileInputStream(appFile.exists() ? appFile : appFile(appName, APP_XML));
         } catch (FileNotFoundException e) {
             throw new ApplicationException("Application " + appName + " not found");
@@ -383,7 +386,7 @@ public class ApplicationArchive
 
         // Create the file directory structure and copy the file there.
         File jar = appFile(desc.name(), jarName);
-        boolean ok = jar.getParentFile().mkdirs();
+        boolean ok = jar.getParentFile().exists() || jar.getParentFile().mkdirs();
         if (ok) {
             Files.write(toByteArray(stream), jar);
             Files.copy(appFile(desc.name(), FEATURES_XML), appFile(desc.name(), featuresName));
@@ -402,7 +405,9 @@ public class ApplicationArchive
             cfg.setAttributeSplittingDisabled(true);
             cfg.setDelimiterParsingDisabled(true);
             cfg.load(appFile(desc.name(), FEATURES_XML));
-            return cfg.getString("feature.bundle");
+            return cfg.getString("feature.bundle")
+                    .replaceFirst("wrap:", "")
+                    .replaceFirst("\\$Bundle-.*$", "");
         } catch (ConfigurationException e) {
             log.warn("Self-contained application {} has no features.xml", desc.name());
             return null;

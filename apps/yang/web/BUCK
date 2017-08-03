@@ -6,6 +6,7 @@ COMPILE_DEPS = [
   '//lib:onos-yang-model',
   '//lib:onos-yang-compiler-api',
   '//lib:onos-yang-runtime',
+  '//apps/yang:onos-apps-yang'
 ]
 
 TEST_DEPS = [

@@ -161,7 +161,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
         // FIXME: Hack to properly resolve the YANG source resource
         private InputStream getSource(String modelId, YangModule module) {
             try {
-                module.getYangSource(); // trigger exception
+                return module.getYangSource(); // trigger exception
             } catch (ModelException e) {
                 // Strip the YANG source file base-name and then use it to access
                 // the corresponding resource in the correct run-time context.
@@ -172,7 +172,6 @@ public class YangModelMessageHandler extends UiMessageHandler {
                 return loader == null ? null :
                         loader.getResourceAsStream("/yang/resources" + baseName);
             }
-            return null;
         }
 
         private void addSource(ArrayNode source, InputStream yangSource) {

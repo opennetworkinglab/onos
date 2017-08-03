@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.yang;
+package org.onosproject.yang.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,11 +29,11 @@ import org.onosproject.yang.runtime.YangModelRegistry;
  * Lists registered YANG models.
  */
 @Command(scope = "onos", name = "models",
-         description = "Lists registered YANG models")
+        description = "Lists registered YANG models")
 public class YangModelsListCommand extends AbstractShellCommand {
 
 
-    private static final String FORMAT = "moduleName=%s moduleRevision=%s modelId=%s";
+    private static final String FORMAT = "modelId=%s moduleName=%s moduleRevision=%s";
     private static final String MODULE_NAME = "moduleName";
     private static final String MODULE_REVISION = "moduleRevision";
 
@@ -44,11 +44,11 @@ public class YangModelsListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(service));
         } else {
-            for (YangModel model: service.getModels()) {
+            for (YangModel model : service.getModels()) {
                 for (YangModule module : model.getYangModules()) {
-                    print(FORMAT, module.getYangModuleId().moduleName(),
-                          module.getYangModuleId().revision(),
-                          modelId(model));
+                    print(FORMAT, model.getYangModelId(),
+                          module.getYangModuleId().moduleName(),
+                          module.getYangModuleId().revision());
                 }
             }
         }
@@ -58,9 +58,9 @@ public class YangModelsListCommand extends AbstractShellCommand {
     private JsonNode json(YangModelRegistry service) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode result = mapper.createObjectNode();
-        for (YangModel model: service.getModels()) {
+        for (YangModel model : service.getModels()) {
             ArrayNode modelNode = mapper.createArrayNode();
-            result.set(modelId(model), modelNode);
+            result.set(model.getYangModelId(), modelNode);
             for (YangModule module : model.getYangModules()) {
                 ObjectNode moduleNode = mapper.createObjectNode();
                 modelNode.add(moduleNode);
@@ -71,7 +71,4 @@ public class YangModelsListCommand extends AbstractShellCommand {
         return result;
     }
 
-    private String modelId(YangModel m) {
-        return "YM" + Math.abs(m.hashCode());
-    }
 }

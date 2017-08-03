@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-/* -- Drag-n-Drop YANG/ZIP files -- */
-div.dropping {
-    border: solid 3px #0095d6;
-}
-
-.light #yang-model-details-panel .src-frame {
-    background-color: #f4f4f4;
-}
-.dark #yang-model-details-panel .src-frame {
-    background-color: #1b1b1b;
-}
+/**
+ * Implementations of various YANG runtime services.
+ */
+package org.onosproject.yang.impl;

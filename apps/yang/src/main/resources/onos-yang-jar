@@ -1,0 +1,24 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Assembles ONOS application jar from the compiled YANG model artifacts.
+# -----------------------------------------------------------------------------
+
+classes=${1:-classes}
+jar=${2:-model.jar}
+modelId=${3-org.onosproject.model.unknown}
+
+# Generate the app.xml descriptor file and stage it at the top of the jar
+sed "s/MODEL_ID/$modelId/g" $(dirname $0)/app.xml > $classes/app.xml
+
+# Generate features.xml file and stage it at the top of the jar
+sed "s/MODEL_ID/$modelId/g" $(dirname $0)/features.xml > $classes/features.xml
+mkdir -p $classes/m2/org/onosproject/$modelId/1.0/
+cp $classes/features.xml $classes/m2/org/onosproject/$modelId/1.0/$modelId-1.0-features.xml
+
+# Generate model self-registrator SCR descriptor
+mkdir -p $classes/OSGI-INF
+sed "s/PACKAGE/$modelId/g" $(dirname $0)/YangModelRegistrator.xml \
+    > $classes/OSGI-INF/$modelId.YangModelRegistrator.xml
+
+cd $classes
+jar cf $jar *

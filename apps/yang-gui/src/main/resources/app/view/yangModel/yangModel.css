@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-
 #ov-yang-model h2 {
     display: inline-block;
 }
 
+#ov-yang-model div.ctrl-btns {
+    width: 250px;
+}
+
+/* -- Drag-n-Drop file upload -- */
+#ov-yang-model form#inputYangFileForm,
+#ov-yang-model input#uploadYangFile {
+    display: none;
+}
+
+.dropping {
+
+}
 
 #yang-model-details-panel.floatpanel {
     z-index: 0;

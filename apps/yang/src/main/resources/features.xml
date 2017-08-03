@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
+          name="MODEL_ID-1.0">
+    <feature name="MODEL_ID" version="1.0"
+             description="YANG Model: MODEL_ID">
+        <feature>onos-api</feature>
+        <bundle>wrap:mvn:org.onosproject/MODEL_ID/1.0$Bundle-SymbolicName=MODEL_ID&amp;Bundle-Version=1.0&amp;Service-Component=OSGI-INF/MODEL_ID.YangModelRegistrator.xml</bundle>
+    </feature>
+</features>

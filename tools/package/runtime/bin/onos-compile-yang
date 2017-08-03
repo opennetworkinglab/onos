@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#
+# Copyright 2015-present Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# -----------------------------------------------------------------------------
+# Tool to compile the specified YANG file(s) using the ONOS live compilation.
+# -----------------------------------------------------------------------------
+
+# If ONOS_HOME is set, respect its value.
+# If ONOS_HOME is not set (e.g. in the init or service environment),
+# set it based on this script's path.
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+
+. ${ONOS_HOME}/bin/_find-node
+
+node=$(find_node $1)
+yang=$2
+
+export URL=http://$node:8181/onos/yang/models
+export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy localhost "
+
+# Prints usage help
+function usage {
+    echo "usage: onos-compile-yang <yang-file|zip-file|jar-file|directory>" >&2
+    exit 1
+}
+
+[ -z $node -o "$node" = "-h" -o "$node" = "--help" -o "$node" = "-?" ] && usage
+
+if [ -d $yang ]; then
+    newYang=/tmp/$(basename $yang).jar
+    jar cf $newYang $yang
+    yang=$newYang
+fi
+
+file=$(basename $yang)
+modelId="$(echo $file | sed -E 's/(.zip|.jar|.yang)$//g')"
+curl $URL?modelId=$modelId -F"file=@$yang"

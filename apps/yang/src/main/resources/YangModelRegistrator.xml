@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" immediate="true" name="PACKAGE.YangModelRegistrator" activate="activate" deactivate="deactivate">
+    <implementation class="PACKAGE.YangModelRegistrator"/>
+    <property name="service.pid" value="PACKAGE.YangModelRegistrator"/>
+    <reference name="modelRegistry" interface="org.onosproject.yang.runtime.YangModelRegistry" cardinality="1..1" policy="static" bind="bindModelRegistry" unbind="unbindModelRegistry"/>
+    <reference name="sourceResolver" interface="org.onosproject.yang.YangClassLoaderRegistry" cardinality="1..1" policy="static" bind="bindSourceResolver" unbind="unbindSourceResolver"/>
+</scr:component>

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.onosproject.yang;
+package org.onosproject.yang.impl;
 
-import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
+import org.onosproject.yang.YangClassLoaderRegistry;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.NodeKey;
@@ -62,7 +62,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents implementation of YANG runtime manager.
  */
-@Beta
 @Service
 @Component(immediate = true)
 public class YangRuntimeManager implements YangModelRegistry,

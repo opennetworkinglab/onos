@@ -82,11 +82,11 @@
         if (haveItems) {
             setTdWidths(tableElems.thead, width);
             setTdWidths(tableElems.tbody, width);
-            setHeight(tableElems.thead, tableElems.table.select('.table-body'), height);
         } else {
             setTdWidths(tableElems.thead, width);
             _width(tableElems.tbody, width + 'px');
         }
+        setHeight(tableElems.thead, tableElems.table.select('.table-body'), height);
     }
 
     // sort columns state model and functions

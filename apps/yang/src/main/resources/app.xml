@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app name="MODEL_ID" origin="ONOS Community" version="1.0"
+     title="YANG Model: MODEL_ID" category="Model" url="http://onosproject.org"
+     featuresRepo="mvn:org.onosproject/MODEL_ID/1.0/xml/features"
+     features="MODEL_ID" apps="org.onosproject.yang">
+    <description>YANG Model: MODEL_ID</description>
+    <artifact>mvn:org.onosproject/MODEL_ID/1.0</artifact>
+</app>
