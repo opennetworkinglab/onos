@@ -82,7 +82,9 @@
         var elem = d3.select(el),
             mouseX = d3.event.pageX,
             mouseY = d3.event.pageY,
-            style = tipStyle(mouseX, mouseY);
+            style = tipStyle(mouseX, mouseY),
+            ttMsg = fs.isF(msg) ? msg() : msg;
+
         currElemId = elem.attr('id');
 
         tooltip.transition()
@@ -92,7 +94,7 @@
             })
             .each('end', function () {
                 d3.select(this).style(style)
-                    .text(msg);
+                    .text(ttMsg);
             });
     }
 

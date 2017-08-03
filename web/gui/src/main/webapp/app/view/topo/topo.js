@@ -37,36 +37,77 @@
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
 
     // Internal state
-    var zoomer, actionMap;
+    var zoomer,
+        actionMap,
+        topoLion = function (x) { return '#' + x + '#'}; // func replaced later
 
     // --- Short Cut Keys ------------------------------------------------
 
     function setUpKeys(overlayKeys) {
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
+
+        // we need functions that can be invoked after LION bundle loaded
+        function togInst() {return topoLion('tbtt_tog_instances')}
+        function togSumm() {return topoLion('tbtt_tog_summary')}
+        function togUseDet() {return topoLion('tbtt_tog_use_detail')}
+
+        function togHost() {return topoLion('tbtt_tog_host')}
+        function togOff() {return topoLion('tbtt_tog_offline')}
+        function togPortHi() {return topoLion('tbtt_tog_porthi')}
+
+        function showBad() {return topoLion('tbtt_bad_links')}
+        function togMap() {return topoLion('tbtt_tog_map')}
+        function selMap() {return topoLion('tbtt_sel_map')}
+        function togSpr() {return topoLion('tbtt_tog_sprite')}
+
+        function rstLoc() {return topoLion('tbtt_reset_loc')}
+        function togOb() {return topoLion('tbtt_tog_oblique')}
+        function cycLayer() {return topoLion('tbtt_cyc_layers')}
+        function cycDev() {return topoLion('tbtt_cyc_dev_labs')}
+        function cycHost() {return topoLion('tbtt_cyc_host_labs')}
+
+        function unpin() {return topoLion('tbtt_unpin_node')}
+        function rzoom() {return topoLion('tbtt_reset_zoom')}
+        function togtb() {return topoLion('tbtt_tog_toolbar')}
+        function eqmaster() {return topoLion('tbtt_eq_master')}
+
+        function uiClick() {return topoLion('click')}
+        function uiShClick() {return topoLion('shift_click')}
+        function uiDrag() {return topoLion('drag')}
+        function uiCmdScr() {return topoLion('cmd_scroll')}
+        function uiCmdDrag() {return topoLion('cmd_drag')}
+
+        function uiClickTxt() {return topoLion('qh_gest_click')}
+        function uiShClickTxt() {return topoLion('qh_gest_shift_click')}
+        function uiDragTxt() {return topoLion('qh_gest_drag')}
+        function uiCmdScrTxt() {return topoLion('qh_gest_cmd_scroll')}
+        function uiCmdDragTxt() {return topoLion('qh_gest_cmd_drag')}
+
         actionMap = {
-            I: [toggleInstances, 'Toggle ONOS instances panel'],
-            O: [toggleSummary, 'Toggle ONOS summary panel'],
-            D: [toggleUseDetailsFlag, 'Disable / enable details panel'],
+            I: [toggleInstances, togInst],
+            O: [toggleSummary, togSumm],
+            D: [toggleUseDetailsFlag, togUseDet],
 
-            H: [toggleHosts, 'Toggle host visibility'],
-            M: [toggleOffline, 'Toggle offline visibility'],
-            P: [togglePorts, 'Toggle Port Highlighting'],
-            dash: [tfs.showBadLinks, 'Show bad links'],
-            B: [toggleMap, 'Toggle background geo map'],
-            G: [openMapSelection, 'Select background geo map'],
-            S: [toggleSprites, 'Toggle sprite layer'],
+            H: [toggleHosts, togHost],
+            M: [toggleOffline, togOff],
+            P: [togglePorts, togPortHi],
 
-            X: [tfs.resetAllLocations, 'Reset node locations'],
-            Z: [tos.toggleOblique, 'Toggle oblique view (Experimental)'],
-            N: [fltr.clickAction, 'Cycle node layers'],
-            L: [tfs.cycleDeviceLabels, 'Cycle device labels'],
-            'shift-L': [tfs.cycleHostLabels, 'Cycle host labels'],
-            U: [tfs.unpin, 'Unpin node (hover mouse over)'],
-            R: [resetZoom, 'Reset pan / zoom'],
-            dot: [ttbs.toggleToolbar, 'Toggle Toolbar'],
+            dash: [tfs.showBadLinks, showBad],
+            B: [toggleMap, togMap],
+            G: [openMapSelection, selMap],
+            S: [toggleSprites, togSpr],
 
-            E: [equalizeMasters, 'Equalize mastership roles'],
+            X: [tfs.resetAllLocations, rstLoc],
+            Z: [tos.toggleOblique, togOb],
+            N: [fltr.clickAction, cycLayer],
+            L: [tfs.cycleDeviceLabels, cycDev],
+            'shift-L': [tfs.cycleHostLabels, cycHost],
+
+            U: [tfs.unpin, unpin],
+            R: [resetZoom, rzoom],
+            dot: [ttbs.toggleToolbar, togtb],
+            E: [equalizeMasters, eqmaster],
 
             //-- instance color palette debug
             // 9: function () { sus.cat7().testCard(svg); },
@@ -96,11 +137,11 @@
         ks.keyBindings(actionMap);
 
         ks.gestureNotes([
-            ['click', 'Select the item and show details'],
-            ['shift-click', 'Toggle selection state'],
-            ['drag', 'Reposition (and pin) device / host'],
-            ['cmd-scroll', 'Zoom in / out'],
-            ['cmd-drag', 'Pan']
+            [uiClick, uiClickTxt],
+            [uiShClick, uiShClickTxt],
+            [uiDrag, uiDragTxt],
+            [uiCmdScr, uiCmdScrTxt],
+            [uiCmdDrag, uiCmdDragTxt]
         ]);
     }
 
@@ -535,22 +576,28 @@
     // --- Controller Definition -----------------------------------------
 
     angular.module('ovTopo', moduleDependencies)
-        .controller('OvTopoCtrl', ['$scope', '$log', '$location', '$timeout',
-            '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
+        .controller('OvTopoCtrl',
+            ['$scope', '$log', '$location', '$timeout', '$cookies',
+            'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
             'WebSocketService', 'PrefsService', 'ThemeService',
-            'TopoDialogService', 'TopoD3Service',
-            'TopoEventService', 'TopoForceService', 'TopoPanelService',
-            'TopoInstService', 'TopoSelectService', 'TopoLinkService',
-            'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
-            'TopoToolbarService', 'TopoMapService', 'TopoSpriteService',
-            'TooltipService', 'TopoOverlayService',
+            'TopoDialogService', 'TopoD3Service', 'TopoEventService',
+            'TopoForceService', 'TopoPanelService', 'TopoInstService',
+            'TopoSelectService', 'TopoLinkService', 'TopoTrafficService',
+            'TopoObliqueService', 'TopoFilterService', 'TopoToolbarService',
+            'TopoMapService', 'TopoSpriteService', 'TooltipService',
+            'TopoOverlayService', 'LionService',
 
-        function (_$scope_, _$log_, _$loc_, _$timeout_, _$cookies_, _fs_, mast, _ks_,
-                  _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _th_,
+                function (_$scope_, _$log_, _$loc_, _$timeout_, _$cookies_,
+                  _fs_, mast, _ks_, _zs_,
+                  _gs_, _ms_, _sus_, _flash_,
+                  _wss_, _ps_, _th_,
                   _tds_, _t3s_, _tes_,
-                  _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
-                  _ttbs_, _tms_, _tspr_, _ttip_, _tov_) {
+                  _tfs_, _tps_, _tis_,
+                  _tss_, _tls_, _tts_,
+                  _tos_, _fltr_, _ttbs_,
+                  _tms_, _tspr_, _ttip_,
+                  _tov_, lion) {
 
             var params = _$loc_.search(),
                 selOverlay = params.overlayId,
@@ -659,6 +706,12 @@
                     toggleMap(prefsState.bg);
                     flash.enable(true);
                     mapShader(true);
+
+                    // piggyback off the deferred map loading to load the
+                    // localization bundle after the uber bundle has arrived...
+                    $scope.lion = lion.bundle('core.view.Topo');
+                    topoLion = $scope.lion;
+                    $log.debug('Loaded Topo LION Bundle:', topoLion);
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...

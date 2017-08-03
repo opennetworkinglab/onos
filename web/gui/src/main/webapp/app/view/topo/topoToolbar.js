@@ -127,20 +127,34 @@
         keyData = d3.map(k2b);
         keyData.forEach(function(key, value) {
             var data = api.getActionEntry(key);
-            value.cb = data[0];                     // on-click callback
-            value.tt = data[1] + ' (' + key + ')';  // tooltip
+
+            value.key = key;
+            value.cb = data[0];     // on-click callback
+            value.tt = data[1];     // tooltip (may be a function)
         });
+    }
+
+    // returns a no-args function that returns the tooltip text
+    function deferredText(v) {
+        // this function will get invoked at the time the tooltip is displayed:
+        return function () {
+            if (!v.ttText) {
+                // haven't cached the value yet
+                v.ttText = (fs.isF(v.tt) ? v.tt() : v.tt) + ' (' + v.key + ')';
+            }
+            return v.ttText;
+        };
     }
 
     function addButton(key) {
         var v = keyData.get(key);
-        v.btn = toolbar.addButton(v.id, v.gid, v.cb, v.tt);
+        v.btn = toolbar.addButton(v.id, v.gid, v.cb, deferredText(v));
     }
 
     function addToggle(key, suppressIfMobile) {
         var v = keyData.get(key);
         if (suppressIfMobile && fs.isMobile()) { return; }
-        v.tog = toolbar.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
+        v.tog = toolbar.addToggle(v.id, v.gid, v.isel, v.cb, deferredText(v));
     }
 
     function addFirstRow() {

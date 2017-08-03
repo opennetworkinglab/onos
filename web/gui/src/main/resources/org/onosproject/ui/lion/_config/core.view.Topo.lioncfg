@@ -15,18 +15,19 @@
 #
 #
 
-# Common button text
-ok=승인
-cancel=취소
+bundle core.view.Topo
 
-# Gesture text
-click=클릭
-click_row=행 선택
-scroll_down=아래로 스크롤
-shift_click=shift-click (ko)
-drag=drag (ko)
-cmd_scroll=cmd-scroll (ko)
-cmd_drag=cmd-drag (ko)
+alias cv core.view
+alias cf core.fw
+alias cc core.common
 
-# Common control button tooltips
-tt_ctl_auto_refresh=자동 새로고침 토글
+from cv.Topo import *
+
+from cf.QuickHelp import qh_hint_close_detail
+
+from cc.Ui import click, shift_click, drag, cmd_scroll, cmd_drag
+
+# TODO: clean these up to just those used...
+from cc.Props import icon, title, app_id, version, category, origin, state, role
+from cc.Action import activate, deactivate, uninstall
+from cc.State import total

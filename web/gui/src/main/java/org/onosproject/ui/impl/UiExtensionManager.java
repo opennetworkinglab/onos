@@ -118,6 +118,7 @@ public class UiExtensionManager
             // view component localization
             "core.view.App",
             "core.view.Cluster",
+            "core.view.Topo",
 
             // TODO: More to come...
     };
