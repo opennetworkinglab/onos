@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf.impl;
+package org.onosproject.net.intf.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -30,11 +30,11 @@ import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceAdminService;
-import org.onosproject.incubator.net.intf.InterfaceEvent;
-import org.onosproject.incubator.net.intf.InterfaceListener;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceAdminService;
+import org.onosproject.net.intf.InterfaceEvent;
+import org.onosproject.net.intf.InterfaceListener;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;

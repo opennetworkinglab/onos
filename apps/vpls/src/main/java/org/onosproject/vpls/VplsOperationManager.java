@@ -33,7 +33,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;

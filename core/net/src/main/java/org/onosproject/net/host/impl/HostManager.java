@@ -29,7 +29,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;

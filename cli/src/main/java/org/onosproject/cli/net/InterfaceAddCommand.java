@@ -23,8 +23,8 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceAdminService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceAdminService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 

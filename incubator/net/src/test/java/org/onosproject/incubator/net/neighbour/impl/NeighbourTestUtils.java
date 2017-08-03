@@ -22,7 +22,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 

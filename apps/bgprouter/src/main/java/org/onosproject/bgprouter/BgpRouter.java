@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.component.ComponentService;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceEvent;

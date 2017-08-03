@@ -22,7 +22,7 @@ import org.apache.karaf.shell.console.CommandSessionHolder;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.vpls.VplsTest;
 import org.onosproject.vpls.cli.VplsCommandEnum;

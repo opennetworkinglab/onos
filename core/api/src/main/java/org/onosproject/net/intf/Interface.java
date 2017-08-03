@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.intf;
+package org.onosproject.net.intf;
 
-import com.google.common.annotations.Beta;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An Interface maps network configuration information (such as addresses and
  * vlans) to a port in the network.
  */
-@Beta
+
 public class Interface {
     public static final String NO_INTERFACE_NAME = "";
 

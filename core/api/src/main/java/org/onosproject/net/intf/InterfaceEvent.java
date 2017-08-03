@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf;
+package org.onosproject.net.intf;
 
-import org.onosproject.event.AbstractEvent;
 import org.joda.time.LocalDateTime;
+import org.onosproject.event.AbstractEvent;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**

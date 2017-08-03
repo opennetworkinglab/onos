@@ -25,7 +25,7 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.component.ComponentService;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;

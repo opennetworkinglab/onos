@@ -18,7 +18,7 @@ package org.onosproject.utils;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;

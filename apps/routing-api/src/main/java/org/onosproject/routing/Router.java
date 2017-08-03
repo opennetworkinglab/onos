@@ -17,10 +17,10 @@
 package org.onosproject.routing;
 
 import com.google.common.collect.Sets;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceEvent;
-import org.onosproject.incubator.net.intf.InterfaceListener;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceEvent;
+import org.onosproject.net.intf.InterfaceListener;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;

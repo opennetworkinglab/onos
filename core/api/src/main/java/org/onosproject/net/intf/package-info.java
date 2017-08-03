@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of service for interacting with interfaces.
+ * Interface Service.
  */
-package org.onosproject.incubator.net.intf.impl;
+package org.onosproject.net.intf;

@@ -21,8 +21,8 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 
 import java.util.Collections;
 import java.util.List;

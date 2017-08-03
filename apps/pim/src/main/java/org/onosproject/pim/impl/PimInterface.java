@@ -28,7 +28,7 @@ import org.onlab.packet.pim.PIMHello;
 import org.onlab.packet.pim.PIMHelloOption;
 import org.onlab.packet.pim.PIMJoinPrune;
 import org.onlab.packet.pim.PIMJoinPruneGroup;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;

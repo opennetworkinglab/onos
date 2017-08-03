@@ -27,7 +27,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageActions;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageType;

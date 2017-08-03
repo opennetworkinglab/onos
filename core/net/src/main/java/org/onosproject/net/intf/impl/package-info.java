@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf;
-
-import org.onosproject.event.EventListener;
-
 /**
- * Listener for interface events.
+ * Implementation of service for interacting with interfaces.
  */
-public interface InterfaceListener extends EventListener<InterfaceEvent> {
-}
+package org.onosproject.net.impl;

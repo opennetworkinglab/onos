@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf;
+package org.onosproject.net.intf;
 
-import com.google.common.annotations.Beta;
+import java.util.Set;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 
-import java.util.Set;
-
 /**
  * Service for interacting with interfaces.
  */
-@Beta
+
 public interface InterfaceService
         extends ListenerService<InterfaceEvent, InterfaceListener> {
 

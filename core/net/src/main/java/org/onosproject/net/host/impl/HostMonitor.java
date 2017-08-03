@@ -23,7 +23,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.SharedScheduledExecutors;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.edge.EdgePortService;

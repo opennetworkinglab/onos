@@ -16,7 +16,7 @@
 
 package org.onosproject.routing;
 
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 
 import static com.google.common.base.Preconditions.checkNotNull;

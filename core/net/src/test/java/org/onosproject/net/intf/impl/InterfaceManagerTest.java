@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf.impl;
+package org.onosproject.net.intf.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -27,7 +27,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigEvent;

@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.StoreDelegate;

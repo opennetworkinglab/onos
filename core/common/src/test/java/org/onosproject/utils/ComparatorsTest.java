@@ -69,7 +69,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.DefaultVirtualPort;

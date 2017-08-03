@@ -27,7 +27,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.incubator.net.neighbour.NeighbourHandlerRegistration;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;

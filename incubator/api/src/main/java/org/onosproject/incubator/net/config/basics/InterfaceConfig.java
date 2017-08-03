@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.host.InterfaceIpAddress;

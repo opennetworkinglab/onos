@@ -26,7 +26,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.DeviceId;

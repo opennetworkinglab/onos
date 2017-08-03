@@ -22,7 +22,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;

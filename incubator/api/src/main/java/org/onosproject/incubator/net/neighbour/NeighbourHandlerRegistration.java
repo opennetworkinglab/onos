@@ -17,7 +17,7 @@
 package org.onosproject.incubator.net.neighbour;
 
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 
 /**
  * Information about the registration of a neighbour message handler.

@@ -17,8 +17,8 @@
 package org.onosproject.cli.net.completer;
 
 import org.onosproject.cli.AbstractChoicesCompleter;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 
 import java.util.List;
 import java.util.stream.Collectors;

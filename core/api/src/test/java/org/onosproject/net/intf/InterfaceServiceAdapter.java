@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.intf;
+package org.onosproject.net.intf;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;

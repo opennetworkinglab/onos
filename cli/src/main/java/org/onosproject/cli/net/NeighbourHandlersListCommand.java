@@ -18,7 +18,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 
 /**

@@ -16,7 +16,7 @@
 
 package org.onosproject.vpls.api;
 
-import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.EncapsulationType;
 
 import java.util.Collection;
