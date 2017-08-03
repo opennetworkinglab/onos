@@ -77,7 +77,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <scope>test</scope>
             <classifier>tests</classifier>
         </dependency>
 
@@ -85,7 +84,6 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
             <classifier>tests</classifier>
         </dependency>
 
