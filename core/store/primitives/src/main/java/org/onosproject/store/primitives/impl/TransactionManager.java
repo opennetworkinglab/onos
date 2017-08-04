@@ -23,14 +23,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.Futures;
-import org.onlab.util.HexString;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.PartitionService;
@@ -51,15 +49,21 @@ public class TransactionManager {
     private final List<PartitionId> sortedPartitions;
     private final AsyncConsistentMap<TransactionId, Transaction.State> transactions;
     private final int cacheSize;
+    private final int buckets;
     private final Map<PartitionId, Cache<String, CachedMap>> partitionCache = Maps.newConcurrentMap();
 
-    public TransactionManager(StorageService storageService, PartitionService partitionService) {
-        this(storageService, partitionService, DEFAULT_CACHE_SIZE);
+    public TransactionManager(StorageService storageService, PartitionService partitionService, int buckets) {
+        this(storageService, partitionService, DEFAULT_CACHE_SIZE, buckets);
     }
 
-    public TransactionManager(StorageService storageService, PartitionService partitionService, int cacheSize) {
+    public TransactionManager(
+            StorageService storageService,
+            PartitionService partitionService,
+            int cacheSize,
+            int buckets) {
         this.partitionService = partitionService;
         this.cacheSize = cacheSize;
+        this.buckets = buckets;
         this.transactions = storageService.<TransactionId, Transaction.State>consistentMapBuilder()
                 .withName("onos-transactions")
                 .withSerializer(Serializer.using(KryoNamespaces.API,
@@ -103,9 +107,9 @@ public class TransactionManager {
         }
 
         Hasher<K> hasher = key -> {
-            int hashCode = Hashing.sha256()
-                    .hashString(HexString.toHexString(serializer.encode(key)), Charsets.UTF_8).asInt();
-            return sortedPartitions.get(Math.abs(hashCode) % sortedPartitions.size());
+            int bucket = Math.abs(Hashing.murmur3_32().hashBytes(serializer.encode(key)).asInt()) % buckets;
+            int partition = Hashing.consistentHash(bucket, sortedPartitions.size());
+            return sortedPartitions.get(partition);
         };
         return new PartitionedTransactionalMap<>(partitions, hasher);
     }

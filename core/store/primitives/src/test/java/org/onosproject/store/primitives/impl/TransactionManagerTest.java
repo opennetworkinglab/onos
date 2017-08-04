@@ -81,7 +81,7 @@ public class TransactionManagerTest {
 
         replay(storageService, partitionService, asyncMap, primitiveCreator, mapBuilder);
 
-        TransactionManager transactionManager = new TransactionManager(storageService, partitionService);
+        TransactionManager transactionManager = new TransactionManager(storageService, partitionService, 128);
         TransactionId transactionId = TransactionId.from(UUID.randomUUID().toString());
         TransactionCoordinator transactionCoordinator = new TransactionCoordinator(transactionId, transactionManager);
         Serializer serializer = Serializer.using(KryoNamespaces.API);
