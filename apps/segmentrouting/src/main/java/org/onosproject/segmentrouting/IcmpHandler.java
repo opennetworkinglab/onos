@@ -93,7 +93,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                                                               treatment, ByteBuffer.wrap(payload.serialize()));
             srManager.packetService.emit(packet);
         } else {
-            log.debug("Send a MPLS packet as a ICMP response");
+            log.trace("Send a MPLS packet as a ICMP response");
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(outport.port())
                     .build();

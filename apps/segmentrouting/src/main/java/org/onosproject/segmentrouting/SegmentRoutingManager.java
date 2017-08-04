@@ -522,6 +522,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    @Override
+    public void verifyGroups(DeviceId id) {
+        DefaultGroupHandler gh = groupHandlerMap.get(id);
+        if (gh != null) {
+            gh.triggerBucketCorrector();
+        }
+    }
+
     /**
      * Extracts the application ID from the manager.
      *
@@ -758,6 +766,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     DefaultGroupHandler getGroupHandler(DeviceId devId) {
         return groupHandlerMap.get(devId);
+    }
+
+    /**
+     * Returns the default routing handler object.
+     *
+     * @return the default routing handler object
+     */
+    public DefaultRoutingHandler getRoutingHandler() {
+        return defaultRoutingHandler;
     }
 
     /**
@@ -1249,7 +1266,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         seenLinks.keySet().removeIf(key -> key.src().deviceId().equals(device.id()) ||
                 key.dst().deviceId().equals(device.id()));
 
-        groupHandlerMap.remove(device.id());
+        DefaultGroupHandler gh = groupHandlerMap.remove(device.id());
+        if (gh != null) {
+            gh.shutdown();
+        }
         defaultRoutingHandler.purgeEcmpGraph(device.id());
         // Note that a switch going down is associated with all of its links
         // going down as well, but it is treated as a single switch down event

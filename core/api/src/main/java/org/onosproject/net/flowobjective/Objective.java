@@ -60,7 +60,20 @@ public interface Objective {
          * Remove from an existing Next Objective. Should not be used for any
          * other objective.
          */
-        REMOVE_FROM_EXISTING
+        REMOVE_FROM_EXISTING,
+
+        /**
+         * Verifies that an existing Next Objective's collection of treatments
+         * are correctly represented by the underlying implementation of the objective.
+         * Corrective action is taken if discrepancies are found during verification.
+         * For example, if the next objective defines 3 sets of treatments, which
+         * are meant to be implemented as 3 buckets in a group, but verification
+         * finds less or more buckets, then the appropriate buckets are added or
+         * removed to match the objective.
+         *
+         * Should not be used for any other objective.
+         */
+        VERIFY
     }
 
     /**

@@ -41,6 +41,7 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -213,22 +214,28 @@ public final class OfdpaGroupHandlerUtility {
     }
 
     /**
-     * Returns true if the group represented by allActiveKeys contains a bucket
-     * (group-chain) with actions that match the given outport and label.
+     * Returns a list of all indices in the allActiveKeys list (that represents
+     * a group) if the list element (a bucket or group-chain) has treatments
+     * that match the given outport and label.
      *
      * @param allActiveKeys the representation of the group
      * @param groupService groups service for querying group information
      * @param deviceId the device id for the device that contains the group
      * @param portToMatch the port to match in the group buckets
      * @param labelToMatch the MPLS label-id to match in the group buckets
-     * @return true if a bucket (group-chain) is found with actions that match
-     *                  the given portToMatch and labelToMatch
+     * @return a list of indexes in the allActiveKeys list where the list element
+     *         has treatments that match the given portToMatch and labelToMatch.
+     *         Could be empty if no list elements were found to match the given
+     *         port and label.
      */
-    public static boolean existingPortAndLabel(List<Deque<GroupKey>> allActiveKeys,
+    public static List<Integer> existingPortAndLabel(
+                                               List<Deque<GroupKey>> allActiveKeys,
                                                GroupService groupService,
                                                DeviceId deviceId,
                                                PortNumber portToMatch,
                                                int labelToMatch) {
+        List<Integer> indices = new ArrayList<>();
+        int index = 0;
         for (Deque<GroupKey> keyChain : allActiveKeys) {
             GroupKey ifaceGroupKey = keyChain.peekLast();
             Group ifaceGroup = groupService.getGroup(deviceId, ifaceGroupKey);
@@ -245,14 +252,15 @@ public final class OfdpaGroupHandlerUtility {
                                         secondGroup.buckets().buckets()
                                         .iterator().next().treatment());
                         if (label == labelToMatch) {
-                            return true;
+                            indices.add(index);
                         }
                     }
                 }
             }
+            index++;
         }
 
-        return false;
+        return indices;
     }
 
     /**

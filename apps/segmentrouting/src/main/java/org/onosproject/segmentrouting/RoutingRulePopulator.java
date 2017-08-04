@@ -757,7 +757,7 @@ public class RoutingRulePopulator {
                 return false;
             }
         } else {
-            // Unconfigure port, use INTERNAL_VLAN
+            // Unconfigured port, use INTERNAL_VLAN
             if (!processSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN, install)) {
                 return false;
             }

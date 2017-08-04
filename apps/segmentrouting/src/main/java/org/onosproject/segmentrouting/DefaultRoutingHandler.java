@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import org.joda.time.DateTime;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
@@ -61,6 +63,7 @@ public class DefaultRoutingHandler {
     private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 5;
     private static final int RETRY_INTERVAL_MS = 250;
     private static final int RETRY_INTERVAL_SCALE = 1;
+    private static final long STABLITY_THRESHOLD = 10; //secs
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
@@ -72,6 +75,7 @@ public class DefaultRoutingHandler {
     private volatile Status populationStatus;
     private ScheduledExecutorService executorService
         = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
+    private DateTime lastRoutingChange;
 
     /**
      * Represents the default routing population status.
@@ -120,6 +124,35 @@ public class DefaultRoutingHandler {
         return builder.build();
     }
 
+    /**
+     * Acquires the lock used when making routing changes.
+     */
+    public void acquireRoutingLock() {
+        statusLock.lock();
+    }
+
+    /**
+     * Releases the lock used when making routing changes.
+     */
+    public void releaseRoutingLock() {
+        statusLock.unlock();
+    }
+
+    /**
+    * Determines if routing in the network has been stable in the last
+    * STABLITY_THRESHOLD seconds, by comparing the current time to the last
+    * routing change timestamp.
+    *
+    * @return true if stable
+    */
+   public boolean isRoutingStable() {
+       long last = (long) (lastRoutingChange.getMillis() / 1000.0);
+       long now = (long) (DateTime.now().getMillis() / 1000.0);
+       log.debug("Routing stable since {}s", now - last);
+       return (now - last) > STABLITY_THRESHOLD;
+   }
+
+
     //////////////////////////////////////
     //  Route path handling
     //////////////////////////////////////
@@ -136,6 +169,7 @@ public class DefaultRoutingHandler {
      * startup or after a configuration event.
      */
     public void populateAllRoutingRules() {
+        lastRoutingChange = DateTime.now();
         statusLock.lock();
         try {
             if (populationStatus == Status.STARTED) {
@@ -205,6 +239,7 @@ public class DefaultRoutingHandler {
      * @param subnets subnets being added
      */ //XXX refactor
     protected void populateSubnet(Set<ConnectPoint> cpts, Set<IpPrefix> subnets) {
+        lastRoutingChange = DateTime.now();
         statusLock.lock();
         try {
            if (populationStatus == Status.STARTED) {
@@ -328,7 +363,7 @@ public class DefaultRoutingHandler {
             log.warn("Only one event can be handled for link status change .. aborting");
             return;
         }
-
+        lastRoutingChange = DateTime.now();
         statusLock.lock();
         try {
 

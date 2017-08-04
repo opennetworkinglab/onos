@@ -247,25 +247,12 @@ public final class DefaultNextObjective implements NextObjective {
 
         @Override
         public NextObjective add() {
-            treatments = listBuilder.build();
-            op = Operation.ADD;
-            checkNotNull(appId, "Must supply an application id");
-            checkNotNull(id, "id cannot be null");
-            checkNotNull(type, "The type cannot be null");
-            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
-
-            return new DefaultNextObjective(this);
+            return add(null);
         }
 
         @Override
         public NextObjective remove() {
-            treatments = listBuilder.build();
-            op = Operation.REMOVE;
-            checkNotNull(appId, "Must supply an application id");
-            checkNotNull(id, "id cannot be null");
-            checkNotNull(type, "The type cannot be null");
-
-            return new DefaultNextObjective(this);
+            return remove(null);
         }
 
         @Override
@@ -295,25 +282,12 @@ public final class DefaultNextObjective implements NextObjective {
 
         @Override
         public NextObjective addToExisting() {
-            treatments = listBuilder.build();
-            op = Operation.ADD_TO_EXISTING;
-            checkNotNull(appId, "Must supply an application id");
-            checkNotNull(id, "id cannot be null");
-            checkNotNull(type, "The type cannot be null");
-            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
-
-            return new DefaultNextObjective(this);
+            return addToExisting(null);
         }
 
         @Override
         public NextObjective removeFromExisting() {
-            treatments = listBuilder.build();
-            op = Operation.REMOVE_FROM_EXISTING;
-            checkNotNull(appId, "Must supply an application id");
-            checkNotNull(id, "id cannot be null");
-            checkNotNull(type, "The type cannot be null");
-
-            return new DefaultNextObjective(this);
+            return removeFromExisting(null);
         }
 
         @Override
@@ -338,6 +312,22 @@ public final class DefaultNextObjective implements NextObjective {
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
 
+            return new DefaultNextObjective(this);
+        }
+
+        @Override
+        public NextObjective verify() {
+            return verify(null);
+        }
+
+        @Override
+        public NextObjective verify(ObjectiveContext context) {
+            treatments = listBuilder.build();
+            op = Operation.VERIFY;
+            this.context = context;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
             return new DefaultNextObjective(this);
         }
 

@@ -134,4 +134,13 @@ public interface SegmentRoutingService {
      * @return current contents of the destinationSetNextObjectiveStore
      */
     ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDestinationSet();
+
+    /**
+     * Triggers the verification of all ECMP groups in the specified device.
+     * Adjusts the group buckets if verification finds that there are more or less
+     * buckets than what should be there.
+     *
+     * @param id the device identifier
+     */
+    void verifyGroups(DeviceId id);
 }
