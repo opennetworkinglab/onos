@@ -4,4 +4,4 @@
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-cd $ONOS_ROOT && onos-buck build onos && onos-buck test
+cd $ONOS_ROOT && onos-buck build onos && onos-buck test --only-failing
