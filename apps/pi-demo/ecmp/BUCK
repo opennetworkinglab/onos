@@ -1,0 +1,24 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:minimal-json',
+    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//apps/pi-demo/common:onos-apps-pi-demo-common',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+BUNDLES = [
+    '//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp',
+    '//apps/pi-demo/common:onos-apps-pi-demo-common',
+]
+
+onos_app (
+    app_name = 'org.onosproject.pi-ecmp-fabric',
+    title = 'PI Demo ECMP Fabric',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Provides ECMP support for a 2-stage clos fabric topology of PI-enabled devices',
+    included_bundles = BUNDLES,
+)
