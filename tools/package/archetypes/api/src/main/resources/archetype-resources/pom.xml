@@ -5,7 +5,7 @@
 #set( $year = $format.format($date) )
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright ${year} Open Networking Laboratory
+  ~ Copyright ${year} Open Networking Foundation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.

@@ -2,7 +2,7 @@ Upstream-Name: onos
 Source: http://github.com/opennetworkinglab/onos
 
 Files: *
-Copyright2015-present Open Networking Laboratory
+Copyright2015-present Open Networking Foundation
 License: Apache 2.0
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
