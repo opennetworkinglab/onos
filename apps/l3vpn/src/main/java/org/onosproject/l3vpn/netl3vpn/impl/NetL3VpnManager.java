@@ -1025,7 +1025,7 @@ public class NetL3VpnManager {
         public void processItems(List<DynamicConfigEvent> events) {
             for (DynamicConfigEvent event : events) {
                 checkNotNull(event, EVENT_NULL);
-                Filter filter = new Filter();
+                Filter filter = Filter.builder().build();
                 DataNode node;
                 try {
                     node = configService.readNode(event.subject(), filter);

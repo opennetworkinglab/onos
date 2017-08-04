@@ -17,7 +17,11 @@ package org.onosproject.config;
 
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
+
 import org.onosproject.yang.model.ResourceId;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -36,19 +40,25 @@ public class Filter {
      * Traversal modes.
      */
     public enum TraversalMode {
-        SUB_TREE(-1),
-        NODE_ONLY(0),
-        GIVEN_DEPTH;
+
         /**
-         * SUB_TREE => if the node points to a subtree, the entire subtree will
+         * SUB_TREE : if the node points to a subtree, the entire subtree will
          * be traversed; if pointing to a leaf, just the leaf will be retrieved.
-         * NODE_ONLY => tree will not be traversed; will retrieve just the
-         * specific node, irrespective of it being a subtree root or a leaf node
-         * GIVEN_DEPTH => as many levels of the subtree as indicated by depth
-         * field of filter that  will be traversed; if depth > the number of
-         * levels of children, the entire subtree will be traversed and end
-         * the traversal, without throwing any errors.
          */
+        SUB_TREE(-1),
+        /**
+         * NODE_ONLY : tree will not be traversed; will retrieve just the
+         * specific node, irrespective of it being a subtree root or a leaf node.
+         */
+        NODE_ONLY(0),
+        /**
+         * GIVEN_DEPTH : as many levels of the subtree as indicated by depth
+         * field of filter that  will be traversed; if depth is greater than
+         * the number of levels of children, the entire subtree will be
+         * traversed and end the traversal, without throwing any errors.
+         */
+        GIVEN_DEPTH;
+
         int val;
         TraversalMode() {
 
@@ -61,22 +71,40 @@ public class Filter {
         }
     }
 
-    /** Filtering criteria.
+    /**
+     *  Filtering criteria.
      */
-    Set<ResourceId> criteria = new LinkedHashSet<ResourceId>();
-    /** Traversal mode; default is to read just the given node(NODE_ONLY).
+    private final Set<ResourceId> criteria;
+    /**
+     * Traversal mode; default is to read just the given node(NODE_ONLY).
      */
-    TraversalMode mode = TraversalMode.NODE_ONLY;
-    /** depth of traversal; default value is 0.
+    private final TraversalMode mode;
+    /**
+     * depth of traversal; default value is 0.
      */
-    int depth = TraversalMode.NODE_ONLY.val();
+    private final int depth;
+
 
     /**
-     * Creates a new Filter object.
+     * Creates a default Filter builder.
+     *
+     * @return Filter builder
      */
-    public Filter() {
-
+    public static FilterBuilder builder() {
+        return new FilterBuilder();
     }
+
+    /**
+     * Creates a Filter builder based on {@code start}.
+     *
+     * @param start Filter to initialize builder with
+     * @return Filter builder
+     *
+     */
+    public static FilterBuilder builder(Filter start) {
+        return new FilterBuilder(start);
+    }
+
     /**
      * Creates a new Filter object.
      *
@@ -84,11 +112,10 @@ public class Filter {
      * @param mode traversal mode
      * @param depth depth of traversal
      */
-    public Filter(Set<ResourceId> criteria, TraversalMode mode, int depth) {
-        this.criteria = criteria;
+    protected Filter(Set<ResourceId> criteria, TraversalMode mode, int depth) {
+        this.criteria = ImmutableSet.copyOf(criteria);
         this.mode = mode;
         this.depth = depth;
-
     }
 
     /**
@@ -96,17 +123,8 @@ public class Filter {
      *
      *@return traversal mode
      */
-    TraversalMode mode() {
+    public TraversalMode mode() {
         return mode;
-    }
-
-    /**
-     * Sets the traversal mode.
-     *
-     * @param mode traversal mode
-     */
-    void mode(TraversalMode mode) {
-        this.mode = mode;
     }
 
     /**
@@ -114,64 +132,8 @@ public class Filter {
      *
      *@return depth
      */
-    int depth() {
+    public int depth() {
         return depth;
-    }
-
-    /**
-     * Sets the depth.
-     *
-     * @param depth of traversal
-     */
-    void mode(int depth) {
-        this.depth = depth;
-    }
-    /**
-     * Adds a new ResourceId filtering criterion to a Filter object.
-     * If the same ResourceId is already part of the criteria
-     * for the object, it will not be added again, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceId.
-     *
-     * @param add new criterion
-     */
-    void addCriteria(ResourceId add) {
-        criteria.add(add);
-    }
-
-    /**
-     * Adds new ResourceId filtering criteria to a Filter object.
-     * If the same ResourceId is already part of the criteria
-     * for the object, it will not be added again, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceId.
-     *
-     * @param addAll new criteria
-     */
-    void addCriteria(Set<ResourceId> addAll) {
-        criteria.addAll(addAll);
-    }
-
-    /**
-     * Removes the given ResourceId filtering criterion from a Filter object.
-     * If the ResourceId was NOT already part of the criteria for
-     * the object, it will not be removed, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceId.
-     *
-     * @param remove criterion to be removed
-     */
-    void removeCriteria(ResourceId remove) {
-        criteria.remove(remove);
-    }
-
-    /**
-     * Removes the given ResourceId filtering criteria from a Filter object.
-     * If the ResourceId was NOT already part of the criteria for
-     * the object, it will not be removed, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceId.
-     *
-     * @param removeAll criteria to be removed
-     */
-    void removeCriteria(Set<ResourceId> removeAll) {
-        criteria.removeAll(removeAll);
     }
 
     /**
@@ -179,7 +141,7 @@ public class Filter {
      *
      * @return Set of ResourceId criteria
      */
-    Set<ResourceId> criteria() {
+    public Set<ResourceId> criteria() {
         return this.criteria;
     }
 
@@ -191,7 +153,7 @@ public class Filter {
      * @throws InvalidFilterException if the received Filter object
      * was null or if it had an empty criteria set
      */
-    Filter negateFilter(Filter original) {
+    public static Filter negateFilter(Filter original) {
         throw new FailedException("Not yet implemented");
     }
 
@@ -200,7 +162,130 @@ public class Filter {
      *
      * @return {@code true} if criteria set is empty, {@code false} otherwise.
      */
-    boolean isEmptyFilter() {
+    public boolean isEmptyFilter() {
         return criteria.isEmpty();
+    }
+
+    public static final class FilterBuilder extends Builder<FilterBuilder> {
+
+        private FilterBuilder(Filter start) {
+            super(start.criteria, start.mode, start.depth);
+        }
+
+        private FilterBuilder() {
+            super();
+        }
+
+        public Filter build() {
+            return new Filter(criteria, mode, depth);
+        }
+    }
+
+    public abstract static class Builder<B extends Builder<B>> {
+
+        protected Set<ResourceId> criteria;
+        protected TraversalMode mode;
+        protected int depth;
+
+        protected Builder() {
+            this(ImmutableSet.of(), TraversalMode.NODE_ONLY, 0);
+        }
+
+        protected Builder(Set<ResourceId> criteria,
+                          TraversalMode mode,
+                          int depth) {
+            this.criteria = new LinkedHashSet<>(criteria);
+            this.mode = checkNotNull(mode);
+            this.depth = depth;
+        }
+
+        /**
+         * Adds a new ResourceId filtering criterion to a Filter object.
+         * If the same ResourceId is already part of the criteria
+         * for the object, it will not be added again, but will not throw any exceptions.
+         * This will not check for the validity of the ResourceId.
+         *
+         * @param add new criterion
+         * @return self
+         */
+        public B addCriteria(ResourceId add) {
+            criteria.add(add);
+            return (B) this;
+        }
+
+        /**
+         * Adds new ResourceId filtering criteria to a Filter object.
+         * If the same ResourceId is already part of the criteria
+         * for the object, it will not be added again, but will not throw any exceptions.
+         * This will not check for the validity of the ResourceId.
+         *
+         * @param addAll new criteria
+         * @return self
+         */
+        public B addAllCriteria(Set<ResourceId> addAll) {
+            criteria.addAll(addAll);
+            return (B) this;
+        }
+
+        /**
+         * Replaces ResourceId filtering criteria with the one specified.
+         * This will not check for the validity of the ResourceId.
+         *
+         * @param criteria new criteria
+         * @return self
+         */
+        public B setCriteria(Set<ResourceId> criteria) {
+            this.criteria = (criteria);
+            return (B) this;
+        }
+
+        /**
+         * Sets the traversal mode.
+         *
+         * @param mode traversal mode
+         * @return self
+         */
+        public B mode(TraversalMode mode) {
+            this.mode = mode;
+            return (B) this;
+        }
+
+        /**
+         * Sets the depth.
+         *
+         * @param depth of traversal
+         * @return self
+         */
+        public B depth(int depth) {
+            this.depth = depth;
+            return (B) this;
+        }
+        /**
+         * Removes the given ResourceId filtering criterion from a Filter object.
+         * If the ResourceId was NOT already part of the criteria for
+         * the object, it will not be removed, but will not throw any exceptions.
+         * This will not check for the validity of the ResourceId.
+         *
+         * @param remove criterion to be removed
+         * @return self
+         */
+        public B removeCriteria(ResourceId remove) {
+            criteria.remove(remove);
+            return (B) this;
+        }
+
+        /**
+         * Removes the given ResourceId filtering criteria from a Filter object.
+         * If the ResourceId was NOT already part of the criteria for
+         * the object, it will not be removed, but will not throw any exceptions.
+         * This will not check for the validity of the ResourceId.
+         *
+         * @param removeAll criteria to be removed
+         * @return self
+         */
+        public B removeAllCriteria(Set<ResourceId> removeAll) {
+            criteria.removeAll(removeAll);
+            return (B) this;
+        }
     }
 }

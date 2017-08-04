@@ -109,7 +109,7 @@ public class RestconfManager implements RestconfService {
             throws RestconfException {
         ResourceId rid = convertUriToRid(uri);
         // TODO: define Filter (if there is any requirement).
-        Filter filter = new Filter();
+        Filter filter = Filter.builder().build();
         DataNode dataNode;
 
         try {

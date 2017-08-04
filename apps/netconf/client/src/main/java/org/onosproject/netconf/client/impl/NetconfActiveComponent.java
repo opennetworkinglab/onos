@@ -367,7 +367,7 @@ public class NetconfActiveComponent implements DynamicConfigListener {
                         case NODE_ADDED:
                         case NODE_UPDATED:
                         case NODE_REPLACED:
-                            Filter filt = new Filter();
+                            Filter filt = Filter.builder().build();
                             DataNode node = cfgService.readNode(k, filt);
                             configUpdate(node, curDevice, k);
                             break;
@@ -389,7 +389,7 @@ public class NetconfActiveComponent implements DynamicConfigListener {
                     return;
                 }
                 initiateConnection(exDevice);
-                Filter filt = new Filter();
+                Filter filt = Filter.builder().build();
                 DataNode exnode = cfgService.readNode(exId, filt);
                 configUpdate(exnode, exDevice, exId);
             } //end of hack
