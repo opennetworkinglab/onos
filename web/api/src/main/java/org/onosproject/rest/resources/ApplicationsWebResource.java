@@ -149,7 +149,9 @@ public class ApplicationsWebResource extends AbstractWebResource {
     public Response uninstallApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
-        service.uninstall(appId);
+        if (appId != null) {
+            service.uninstall(appId);
+        }
         return Response.noContent().build();
     }
 
@@ -175,7 +177,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
      * De-activates the specified application.
      *
      * @param name application name
-     * @return 200 OK; 404; 401
+     * @return 204 NO CONTENT
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
@@ -183,8 +185,10 @@ public class ApplicationsWebResource extends AbstractWebResource {
     public Response deactivateApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
-        service.deactivate(appId);
-        return response(service, appId);
+        if (appId != null) {
+            service.deactivate(appId);
+        }
+        return Response.noContent().build();
     }
 
     /**
