@@ -28,6 +28,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
@@ -269,7 +270,15 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
      * @return the boolean value of meterCapable property, or true if it is not configured.
      */
     private boolean isMeterCapable(OpenFlowSwitch sw) {
-        Driver driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(sw.getDpid())));
+        Driver driver;
+
+        try {
+            driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(sw.getDpid())));
+        } catch (ItemNotFoundException e) {
+            driver = driverService.getDriver(sw.manufacturerDescription(), sw.hardwareDescription(),
+                    sw.softwareDescription());
+        }
+
         String isMeterCapable = driver.getProperty(METER_CAPABLE);
         return isMeterCapable == null || Boolean.parseBoolean(isMeterCapable);
     }
