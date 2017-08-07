@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.p4runtime.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -24,7 +24,10 @@ import org.onosproject.net.pi.runtime.PiTableId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public final class Bmv2TableEntryReference {
+/**
+ * Class containing the reference for a table entry in P4Runtime.
+ */
+public final class P4RuntimeTableEntryReference {
 
     private final DeviceId deviceId;
     private final PiTableId tableId;
@@ -37,7 +40,7 @@ public final class Bmv2TableEntryReference {
      * @param tableId  a table name
      * @param matchKey a match key
      */
-    public Bmv2TableEntryReference(DeviceId deviceId, PiTableId tableId, PiMatchKey matchKey) {
+    public P4RuntimeTableEntryReference(DeviceId deviceId, PiTableId tableId, PiMatchKey matchKey) {
         this.deviceId = checkNotNull(deviceId);
         this.tableId = checkNotNull(tableId);
         this.matchKey = checkNotNull(matchKey);
@@ -83,7 +86,7 @@ public final class Bmv2TableEntryReference {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Bmv2TableEntryReference other = (Bmv2TableEntryReference) obj;
+        final P4RuntimeTableEntryReference other = (P4RuntimeTableEntryReference) obj;
         return Objects.equal(this.deviceId, other.deviceId)
                 && Objects.equal(this.tableId, other.tableId)
                 && Objects.equal(this.matchKey, other.matchKey);

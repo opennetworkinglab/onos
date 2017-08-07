@@ -140,6 +140,7 @@ final class TableEntryEncoder {
 
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
 
+        //FIXME this thorws some kind of NPE
         P4InfoOuterClass.Table tableInfo = browser.tables().getByName(piTableEntry.table().id());
 
         // Table id.

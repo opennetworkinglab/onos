@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.drivers.p4runtime;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -34,7 +34,7 @@ import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.nio.ByteBuffer;
 
-public class Bmv2GroupProgrammable extends AbstractHandlerBehaviour implements GroupProgrammable {
+public class P4RuntimeGroupProgrammable extends AbstractHandlerBehaviour implements GroupProgrammable {
 
     /*
     Work in progress.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.drivers.p4runtime;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -38,6 +38,8 @@ import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 import org.onosproject.p4runtime.api.P4RuntimeController;
+import org.onosproject.p4runtime.api.P4RuntimeFlowRuleWrapper;
+import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +52,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.onosproject.drivers.bmv2.Bmv2FlowRuleProgrammable.Operation.APPLY;
-import static org.onosproject.drivers.bmv2.Bmv2FlowRuleProgrammable.Operation.REMOVE;
+import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
+import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
@@ -59,16 +61,16 @@ import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.I
 /**
  * Implementation of the flow rule programmable behaviour for BMv2.
  */
-public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
+public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // Needed to synchronize operations over the same table entry.
-    private static final ConcurrentMap<Bmv2TableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
+    private static final ConcurrentMap<P4RuntimeTableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
 
     // TODO: replace with distributed store.
     // Can reuse old BMv2TableEntryService from ONOS 1.6
-    private static final ConcurrentMap<Bmv2TableEntryReference, Bmv2FlowRuleWrapper> ENTRY_STORE =
+    private static final ConcurrentMap<P4RuntimeTableEntryReference, P4RuntimeFlowRuleWrapper> ENTRY_STORE =
             Maps.newConcurrentMap();
 
     private DeviceId deviceId;
@@ -142,10 +144,11 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
 
             for (PiTableEntry installedEntry : installedEntries) {
 
-                Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, piTableId,
-                                                                               installedEntry.matchKey());
+                P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId, piTableId,
+                        installedEntry.matchKey());
 
-                Bmv2FlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+                P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+
 
                 if (frWrapper == null) {
                     // Inconsistent entry
@@ -158,14 +161,14 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 long packets = 0L;
 
                 FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
-                                                       packets, bytes);
+                        packets, bytes);
                 resultBuilder.add(entry);
             }
         }
 
         if (inconsistentEntries.size() > 0) {
             log.warn("Found {} entries in {} that are not known by table entry service," +
-                             " removing them", inconsistentEntries.size(), deviceId);
+                    " removing them", inconsistentEntries.size(), deviceId);
             inconsistentEntries.forEach(entry -> log.debug(entry.toString()));
             // Async remove them.
             client.writeTableEntries(inconsistentEntries, DELETE, pipeconf);
@@ -207,17 +210,18 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
             }
 
             PiTableId tableId = piTableEntry.table();
-            Bmv2TableEntryReference entryRef = new Bmv2TableEntryReference(deviceId, tableId, piTableEntry.matchKey());
+            P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId,
+                    tableId, piTableEntry.matchKey());
 
             Lock lock = ENTRY_LOCKS.computeIfAbsent(entryRef, k -> new ReentrantLock());
             lock.lock();
 
             try {
 
-                Bmv2FlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+                P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
 
                 WriteOperationType opType;
-                if (operation == Operation.APPLY) {
+                if (operation == APPLY) {
                     opType = INSERT;
                     if (frWrapper != null) {
                         // We've seen some strange error when trying to modify existing flow rules.
@@ -227,7 +231,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                                 frWrapper = null;
                             } else {
                                 log.warn("Unable to DELETE table entry (before re-adding) in {}: {}",
-                                         deviceId, piTableEntry);
+                                        deviceId, piTableEntry);
                             }
                         } catch (InterruptedException | ExecutionException e) {
                             log.warn("Exception while deleting table entry:", operation.name(), e);
@@ -240,7 +244,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
                 try {
                     if (client.writeTableEntries(newArrayList(piTableEntry), opType, pipeconf).get()) {
                         processedFlowRuleListBuilder.add(rule);
-                        frWrapper = new Bmv2FlowRuleWrapper(rule, System.currentTimeMillis());
+                        frWrapper = new P4RuntimeFlowRuleWrapper(rule, System.currentTimeMillis());
                     } else {
                         log.warn("Unable to {} table entry in {}: {}", opType.name(), deviceId, piTableEntry);
                     }

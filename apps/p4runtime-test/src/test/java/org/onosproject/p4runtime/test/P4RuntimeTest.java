@@ -77,11 +77,12 @@ public class P4RuntimeTest {
     private static final String INGRESS_PORT = "ingress_port";
     private static final String ETHER_TYPE = "etherType";
 
+
     private final URL p4InfoUrl = this.getClass().getResource("/bmv2/default.p4info");
     private final URL jsonUrl = this.getClass().getResource("/bmv2/default.json");
 
     private final PiPipeconf bmv2DefaultPipeconf = DefaultPiPipeconf.builder()
-            .withId(new PiPipeconfId("mock-bmv2"))
+            .withId(new PiPipeconfId("mock-p4runtime"))
             .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
             .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
             .addExtension(P4_INFO_TEXT, p4InfoUrl)

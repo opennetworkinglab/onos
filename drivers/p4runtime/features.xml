@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   ~ Copyright 2017-present Open Networking Foundation
   ~
@@ -14,10 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<drivers>
-    <driver name="bmv2" manufacturer="p4.org" hwVersion="master" swVersion="master" extends="p4runtime">
-        <behaviour api="org.onosproject.net.pi.model.PiPipelineProgrammable"
-                   impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
-    </driver>
-</drivers>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
+    <feature name="${project.artifactId}" version="${project.version}"
+             description="${project.description}">
+        <feature>onos-api</feature>
+        <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
 
+    </feature>
+</features>

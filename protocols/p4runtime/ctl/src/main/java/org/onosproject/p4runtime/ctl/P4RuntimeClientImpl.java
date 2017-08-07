@@ -208,34 +208,40 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             return false;
         }
 
-        if (!pipeconf.extension(targetConfigExtType).isPresent()) {
-            log.warn("Missing extension {} in pipeconf {}", targetConfigExtType, pipeconf.id());
-            return false;
-        }
 
-        InputStream targetConfig = pipeconf.extension(targetConfigExtType).get();
-        P4Config.P4DeviceConfig p4DeviceConfigMsg;
-        try {
-            p4DeviceConfigMsg = P4Config.P4DeviceConfig
-                    .newBuilder()
-                    .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
-                    .setReassign(true)
-                    .setDeviceData(ByteString.readFrom(targetConfig))
-                    .build();
-        } catch (IOException ex) {
-            log.warn("Unable to load target-specific config for {}: {}", deviceId, ex.getMessage());
-            return false;
+        ForwardingPipelineConfig.Builder pipelineConfigBuilder = ForwardingPipelineConfig
+                .newBuilder()
+                .setDeviceId(p4DeviceId)
+                .setP4Info(p4Info);
+
+        //if the target config extension is null we don't want to add the config.
+        if (targetConfigExtType != null) {
+            if (!pipeconf.extension(targetConfigExtType).isPresent()) {
+                log.warn("Missing extension {} in pipeconf {}", targetConfigExtType, pipeconf.id());
+                return false;
+            }
+            InputStream targetConfig = pipeconf.extension(targetConfigExtType).get();
+            P4Config.P4DeviceConfig p4DeviceConfigMsg;
+            try {
+                p4DeviceConfigMsg = P4Config.P4DeviceConfig
+                        .newBuilder()
+                        .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
+                        .setReassign(true)
+                        .setDeviceData(ByteString.readFrom(targetConfig))
+                        .build();
+
+                pipelineConfigBuilder.setP4DeviceConfig(p4DeviceConfigMsg.toByteString());
+
+            } catch (IOException ex) {
+                log.warn("Unable to load target-specific config for {}: {}", deviceId, ex.getMessage());
+                return false;
+            }
         }
 
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
                 .setAction(VERIFY_AND_COMMIT)
-                .addConfigs(ForwardingPipelineConfig
-                                    .newBuilder()
-                                    .setDeviceId(p4DeviceId)
-                                    .setP4Info(p4Info)
-                                    .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
-                                    .build())
+                .addConfigs(pipelineConfigBuilder.build())
                 .build();
 
         try {
@@ -434,7 +440,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         private void doNext(StreamMessageResponse message) {
             try {
-                log.info("Received message on stream channel from {}: {}", deviceId, message.getUpdateCase());
+                log.debug("Received message on stream channel from {}: {}", deviceId, message.getUpdateCase());
                 switch (message.getUpdateCase()) {
                     case PACKET:
                         // Packet-in

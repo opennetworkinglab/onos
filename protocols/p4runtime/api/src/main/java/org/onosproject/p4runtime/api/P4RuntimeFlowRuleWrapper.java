@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
@@ -22,10 +22,10 @@ import com.google.common.base.Objects;
 import org.onosproject.net.flow.FlowRule;
 
 /**
- * A wrapper for a ONOS flow rule installed on a BMv2 device.
+ * A wrapper for a ONOS flow rule installed on a P4Runtime device.
  */
 @Beta
-final class Bmv2FlowRuleWrapper {
+public final class P4RuntimeFlowRuleWrapper {
 
     private final FlowRule rule;
     private final long installedOnMillis;
@@ -37,7 +37,7 @@ final class Bmv2FlowRuleWrapper {
      * @param installedOnMillis the time (in milliseconds, since January 1, 1970 UTC) when the flow rule was installed
      *                          on the device
      */
-    Bmv2FlowRuleWrapper(FlowRule rule, long installedOnMillis) {
+    public P4RuntimeFlowRuleWrapper(FlowRule rule, long installedOnMillis) {
         this.rule = rule;
         this.installedOnMillis = installedOnMillis;
     }
@@ -47,7 +47,7 @@ final class Bmv2FlowRuleWrapper {
      *
      * @return a flow rule
      */
-    FlowRule rule() {
+    public FlowRule rule() {
         return rule;
     }
 
@@ -56,7 +56,7 @@ final class Bmv2FlowRuleWrapper {
      *
      * @return an integer value
      */
-    long lifeInSeconds() {
+    public long lifeInSeconds() {
         return (System.currentTimeMillis() - installedOnMillis) / 1000;
     }
 
@@ -73,7 +73,7 @@ final class Bmv2FlowRuleWrapper {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Bmv2FlowRuleWrapper other = (Bmv2FlowRuleWrapper) obj;
+        final P4RuntimeFlowRuleWrapper other = (P4RuntimeFlowRuleWrapper) obj;
         return Objects.equal(this.rule, other.rule)
                 && Objects.equal(this.installedOnMillis, other.installedOnMillis);
     }

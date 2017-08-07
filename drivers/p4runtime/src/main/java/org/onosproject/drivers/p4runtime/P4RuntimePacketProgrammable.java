@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.drivers.p4runtime;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -36,7 +36,7 @@ import java.util.Collection;
 /**
  * Packet Programmable behaviour for BMv2 devices.
  */
-public class Bmv2PacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
+public class P4RuntimePacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override

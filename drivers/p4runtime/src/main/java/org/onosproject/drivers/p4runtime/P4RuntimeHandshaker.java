@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.drivers.p4runtime;
 
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
@@ -33,7 +33,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of DeviceHandshaker for BMv2.
  */
-public class Bmv2Handshaker extends AbstractHandlerBehaviour
+public class P4RuntimeHandshaker extends AbstractHandlerBehaviour
         implements DeviceHandshaker {
 
     private final Logger log = getLogger(getClass());
