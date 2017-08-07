@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 ONOS_INSTALL_LOCATION=$2
 echo ${ONOS_INSTALL_LOCATION}
@@ -8,9 +9,13 @@ export PATH=$NODEJS_HOME/bin:$PATH
 
 cd $ONOS_ROOT/tools/gui
 
+# Ensure lock file is removed
+rm -f package-lock.json
+
 # Install Project Dependencies
 echo "Installing project dependencies"
 npm install --loglevel=error
+rm -f package-lock.json
 
 # Build the GUI Project
 echo "Packaging JavaScript and CSS"

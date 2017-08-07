@@ -4,7 +4,7 @@ import strip from 'gulp-strip-comments';
 import uglyfy from 'gulp-uglify';
 import sourceMaps from 'gulp-sourcemaps';
 import BundleResources from '../helpers/bundleResources';
-// import { reload } from '../../dev-server';
+import { reload } from '../../dev-server';
 
 const GUI_BASE = '../../web/gui/src/main/webapp/';
 const bundleFiles = [
@@ -43,7 +43,7 @@ function bundle(files, exportName) {
             .pipe(concat(exportName))
             .pipe(sourceMaps.write('source-map'))
             .pipe(gulp.dest(GUI_BASE + '/dist/'))
-            .on('end', () => { /* reload(); */ })
+            .on('end', () => { reload(); })
     }
 
     return gulp.src(BundleResources(GUI_BASE, files))
