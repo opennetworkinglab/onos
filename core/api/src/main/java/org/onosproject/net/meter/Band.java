@@ -35,7 +35,7 @@ public interface Band {
         DROP,
 
         /**
-         * defines a simple DiffServ policer that remark
+         * Defines a simple DiffServ policer that remark
          * the drop precedence of the DSCP field in the
          * IP header of the packets that exceed the band
          * rate value.
@@ -43,7 +43,7 @@ public interface Band {
         REMARK,
 
         /**
-         * defines an experimental meter band.
+         * Defines an experimental meter band.
          */
         EXPERIMENTAL
     }
