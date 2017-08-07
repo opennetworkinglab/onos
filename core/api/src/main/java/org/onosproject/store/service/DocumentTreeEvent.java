@@ -44,7 +44,9 @@ public class DocumentTreeEvent<V> {
         /**
          * Signifies an existing node being deleted.
          */
-        DELETED
+        DELETED,
+        TRANSACTION_START,
+        TRANSACTION_END
     }
 
     private final DocumentPath path;
@@ -76,6 +78,22 @@ public class DocumentTreeEvent<V> {
         this.type = type;
         this.newValue = newValue;
         this.oldValue = oldValue;
+    }
+    /**
+     * Constructs a new {@code DocumentTreeEvent}.
+     *
+     * @param path path to the node
+     * @param newValue optional new value; will be empty if node was deleted
+     * @param oldValue optional old value; will be empty if node was created
+     */
+    public DocumentTreeEvent(DocumentPath path,
+                             Optional<Versioned<V>> newValue,
+                             Optional<Versioned<V>> oldValue) {
+        this.path = path;
+        this.newValue = newValue;
+        this.oldValue = oldValue;
+        this.type = newValue != null ?
+                oldValue != null ? Type.UPDATED : Type.CREATED : Type.DELETED;
     }
 
     /**

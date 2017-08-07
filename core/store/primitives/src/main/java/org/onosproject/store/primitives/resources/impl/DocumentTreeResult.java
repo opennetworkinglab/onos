@@ -53,6 +53,10 @@ public class DocumentTreeResult<V> {
     }
 
     @SuppressWarnings("unchecked")
+    public static final DocumentTreeResult WRITE_LOCK =
+            new DocumentTreeResult(Status.WRITE_LOCK, null);
+
+    @SuppressWarnings("unchecked")
     public static final DocumentTreeResult INVALID_PATH =
             new DocumentTreeResult(Status.INVALID_PATH, null);
 
@@ -69,6 +73,17 @@ public class DocumentTreeResult<V> {
      */
     public static <V> DocumentTreeResult<V> ok(V result) {
         return new DocumentTreeResult<V>(Status.OK, result);
+    }
+
+    /**
+     * Returns a {@code WRITE_LOCK} error result.
+     *
+     * @param <V> the result value type
+     * @return write lock result
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> DocumentTreeResult<V> writeLock() {
+        return WRITE_LOCK;
     }
 
     /**
