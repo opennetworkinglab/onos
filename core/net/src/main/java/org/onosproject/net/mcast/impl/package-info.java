@@ -17,4 +17,4 @@
 /**
  * An implementation of a multicast RIB.
  */
-package org.onosproject.incubator.net.mcast.impl;
+package org.onosproject.net.mcast.impl;

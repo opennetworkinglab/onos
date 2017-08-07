@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.mcast.impl;
+package org.onosproject.net.mcast.impl;
+
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -30,8 +32,6 @@ import org.onosproject.net.mcast.McastStore;
 import org.onosproject.net.mcast.McastStoreDelegate;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.slf4j.Logger;
-
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;

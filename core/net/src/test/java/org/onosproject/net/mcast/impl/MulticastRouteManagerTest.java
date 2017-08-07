@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.mcast.impl;
+package org.onosproject.net.mcast.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -26,7 +26,7 @@ import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.incubator.store.mcast.impl.DistributedMcastStore;
+import org.onosproject.store.mcast.impl.DistributedMcastStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.mcast.McastEvent;

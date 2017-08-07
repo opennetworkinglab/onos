@@ -18,4 +18,4 @@
  * A distributed multicast store implementation that stores multicast rib
  * data consistently across the cluster.
  */
-package org.onosproject.incubator.store.mcast.impl;
+package org.onosproject.store.mcast.impl;
