@@ -1009,9 +1009,10 @@ public class RoutingRulePopulator {
     private ForwardingObjective.Builder dad6FwdObjective(PortNumber port, int priority) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(TYPE_IPV6)
-                .matchIPv6Src(Ip6Address.ZERO.toIpPrefix())
-                .matchIPProtocol(PROTOCOL_ICMP6)
-                .matchIcmpv6Type(NEIGHBOR_SOLICITATION);
+                .matchIPv6Src(Ip6Address.ZERO.toIpPrefix());
+                // TODO CORD-1672 Fix this when OFDPA can distinguish ::/0 and ::/128 correctly
+                // .matchIPProtocol(PROTOCOL_ICMP6)
+                // .matchIcmpv6Type(NEIGHBOR_SOLICITATION);
         if (port != null) {
             sBuilder.matchInPort(port);
         }
