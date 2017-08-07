@@ -1,7 +1,7 @@
 # Local VirtualBox-based single ONOS instance & ONOS mininet box
 
-export ONOS_NIC=192.168.56.*
-export OC1="192.168.56.1"
-export OCN="192.168.56.99"
+export ONOS_NIC=192.168.36.*
+export OC1="192.168.36.1"
+export OCN="192.168.36.101"
 
-export ONOS_APPS="drivers,openflow,fwd,null,yang-gui,models.demo"
+export ONOS_APPS="drivers,openflow,fwd,drivermatrix"
