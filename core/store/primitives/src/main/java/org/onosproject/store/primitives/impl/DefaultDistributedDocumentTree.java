@@ -19,11 +19,15 @@ package org.onosproject.store.primitives.impl;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.onosproject.store.primitives.NodeUpdate;
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.Maps;
@@ -107,6 +111,33 @@ public class DefaultDistributedDocumentTree<V> implements AsyncDocumentTree<V> {
         return backingTree.removeNode(path)
                           .thenApply(v -> v == null ? null : v.map(serializer::decode));
     }
+
+
+    @Override
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        return backingTree.begin(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<NodeUpdate<V>> transactionLog) {
+        return backingTree.prepare(transactionLog.map(record -> record.map(serializer::encode)));
+    }
+
+    @Override
+    public CompletableFuture<Void> commit(TransactionId transactionId) {
+        return backingTree.commit(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Void> rollback(TransactionId transactionId) {
+        return backingTree.rollback(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<NodeUpdate<V>> transactionLog) {
+        return backingTree.prepareAndCommit(transactionLog.map(record -> record.map(serializer::encode)));
+    }
+
 
     @Override
     public CompletableFuture<Void> addListener(DocumentPath path, DocumentTreeListener<V> listener) {

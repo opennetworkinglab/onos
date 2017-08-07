@@ -16,7 +16,9 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,12 +28,16 @@ import com.google.common.base.Throwables;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
+import org.onosproject.store.primitives.NodeUpdate;
+import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
 import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.Ordering;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -407,6 +413,51 @@ public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
         assertEquals(path("root.a.b.c"), event.path());
         event = listener2abc.event();
         assertEquals(path("root.a.b.c"), event.path());
+    }
+
+    @Test
+    public void testTransaction() throws Throwable {
+        String treeName = UUID.randomUUID().toString();
+        AtomixDocumentTree tree = newPrimitive(treeName);
+
+        byte[] value1 = "abc".getBytes();
+        byte[] value2 = "def".getBytes();
+
+        assertTrue(tree.create(path("root.a"), value1).join());
+        assertTrue(tree.create(path("root.b"), value2).join());
+
+        long aVersion = tree.get(path("root.a")).join().version();
+        long bVersion = tree.get(path("root.b")).join().version();
+
+        TransactionId transactionId = TransactionId.from("1");
+        Version transactionVersion = tree.begin(transactionId).join();
+        List<NodeUpdate<byte[]>> records = Arrays.asList(
+                NodeUpdate.<byte[]>newBuilder()
+                        .withType(NodeUpdate.Type.CREATE_NODE)
+                        .withPath(path("root.c"))
+                        .withValue(value1)
+                        .build(),
+                NodeUpdate.<byte[]>newBuilder()
+                        .withType(NodeUpdate.Type.UPDATE_NODE)
+                        .withPath(path("root.a"))
+                        .withValue(value2)
+                        .withVersion(aVersion)
+                        .build(),
+                NodeUpdate.<byte[]>newBuilder()
+                        .withType(NodeUpdate.Type.DELETE_NODE)
+                        .withPath(path("root.b"))
+                        .withVersion(bVersion)
+                        .build());
+        TransactionLog<NodeUpdate<byte[]>> transactionLog = new TransactionLog<>(
+                transactionId,
+                transactionVersion.value(),
+                records);
+        assertTrue(tree.prepare(transactionLog).join());
+        tree.commit(transactionId).join();
+
+        assertArrayEquals(value2, tree.get(path("root.a")).join().value());
+        assertNull(tree.get(path("root.b")).join());
+        assertArrayEquals(value1, tree.get(path("root.c")).join().value());
     }
 
     private static class TestEventListener implements DocumentTreeListener<byte[]> {

@@ -16,6 +16,8 @@
 
 package org.onosproject.store.service;
 
+import org.onosproject.store.primitives.NodeUpdate;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,7 +31,7 @@ import org.onosproject.store.primitives.DefaultDocumentTree;
  * @param <V> document tree value type
  */
 @NotThreadSafe
-public interface AsyncDocumentTree<V> extends DistributedPrimitive {
+public interface AsyncDocumentTree<V> extends DistributedPrimitive, Transactional<NodeUpdate<V>> {
 
     @Override
     default Type primitiveType() {
