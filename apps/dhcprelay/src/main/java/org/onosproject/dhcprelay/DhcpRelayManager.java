@@ -179,7 +179,7 @@ public class DhcpRelayManager implements DhcpRelayService {
         v4Handler.getDhcpServerIp().ifPresent(hostService::stopMonitoringIp);
         // TODO: DHCPv6 Handler
 
-        compCfgService.unregisterProperties(getClass(), true);
+        compCfgService.unregisterProperties(getClass(), false);
         log.info("DHCP-RELAY Stopped");
     }
 
