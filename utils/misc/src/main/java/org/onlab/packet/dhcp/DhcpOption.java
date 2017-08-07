@@ -34,6 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DhcpOption extends BasePacket {
     public static final int OPT_CODE_LEN = 1;
     public static final int DEFAULT_LEN = 2;
+    protected static final int UNSIGNED_BYTE_MASK = 0xff;
     private final Logger log = getLogger(getClass());
     protected byte code;
     protected byte length;
@@ -76,7 +77,8 @@ public class DhcpOption extends BasePacket {
             dhcpOption.code = byteBuffer.get();
             if (byteBuffer.hasRemaining()) {
                 dhcpOption.length = byteBuffer.get();
-                dhcpOption.data = new byte[dhcpOption.length];
+                int optionLen = UNSIGNED_BYTE_MASK & dhcpOption.length;
+                dhcpOption.data = new byte[optionLen];
                 byteBuffer.get(dhcpOption.data);
             } else {
                 dhcpOption.length = 0;

@@ -102,7 +102,8 @@ public class DhcpRelayAgentOption extends DhcpOption {
             while (byteBuffer.remaining() >= DEFAULT_LEN) {
                 byte subOptCode = byteBuffer.get();
                 byte subOptLen = byteBuffer.get();
-                byte[] subOptData = new byte[subOptLen];
+                int subOptLenInt = UNSIGNED_BYTE_MASK & subOptLen;
+                byte[] subOptData = new byte[subOptLenInt];
                 byteBuffer.get(subOptData);
 
                 DhcpOption subOption = new DhcpOption();

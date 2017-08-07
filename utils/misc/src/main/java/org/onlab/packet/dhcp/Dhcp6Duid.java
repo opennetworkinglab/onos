@@ -17,11 +17,14 @@
 
 package org.onlab.packet.dhcp;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.BasePacket;
+import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class Dhcp6Duid extends BasePacket {
     private static final int DEFAULT_LLT_LEN = 8;
@@ -145,7 +148,11 @@ public class Dhcp6Duid extends BasePacket {
 
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
-        return null;
+        try {
+            return deserializer().deserialize(data, offset, length);
+        } catch (DeserializationException e) {
+            throw new RuntimeException("Can't deserialize duid due to {}", e);
+        }
     }
 
     public static Deserializer<Dhcp6Duid> deserializer() {
@@ -177,5 +184,32 @@ public class Dhcp6Duid extends BasePacket {
             }
             return duid;
         };
+    }
+
+    @Override
+    public String toString() {
+        MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(getClass());
+
+        switch (duidType) {
+            case DUID_LLT:
+                helper.add("type", "DUID_LLT");
+                helper.add("hardwareType", hardwareType);
+                helper.add("duidTime", duidTime);
+                helper.add("linkLayerAddress", Arrays.toString(linkLayerAddress));
+                break;
+            case DUID_EN:
+                helper.add("type", "DUID_EN");
+                helper.add("enterpriseNumber", enterpriseNumber);
+                helper.add("id", Arrays.toString(identifier));
+                break;
+            case DUID_LL:
+                helper.add("type", "DUID_LL");
+                helper.add("hardwareType", hardwareType);
+                helper.add("linkLayerAddress", Arrays.toString(linkLayerAddress));
+                break;
+            default:
+                helper.add("type", "Unknown");
+        }
+        return helper.toString();
     }
 }

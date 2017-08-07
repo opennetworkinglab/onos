@@ -34,6 +34,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class Dhcp6Option extends BasePacket {
     public static final int DEFAULT_LEN = 4;
+    protected static final int UNSIGNED_SHORT_MASK = 0xffff;
     private short code;
     private short length;
     // XXX: use "payload" from BasePacket for option data.
@@ -50,8 +51,8 @@ public class Dhcp6Option extends BasePacket {
      * @param dhcp6Option other DHCPv6 option
      */
     public Dhcp6Option(Dhcp6Option dhcp6Option) {
-        this.code = (short) (0xffff & dhcp6Option.code);
-        this.length = (short) (0xffff & dhcp6Option.length);
+        this.code = dhcp6Option.code;
+        this.length = dhcp6Option.length;
         this.payload = dhcp6Option.payload;
         this.payload.setParent(this);
     }
@@ -127,9 +128,10 @@ public class Dhcp6Option extends BasePacket {
                                                            "should be at least 4 bytes");
             }
             ByteBuffer bb = ByteBuffer.wrap(data, offset, len);
-            dhcp6Option.code = (short) (0xff & bb.getShort());
-            dhcp6Option.length = (short) (0xff & bb.getShort());
-            byte[] optData = new byte[dhcp6Option.length];
+            dhcp6Option.code = bb.getShort();
+            dhcp6Option.length = bb.getShort();
+            int optionLen = UNSIGNED_SHORT_MASK & dhcp6Option.length;
+            byte[] optData = new byte[optionLen];
             bb.get(optData);
             dhcp6Option.setData(optData);
             return dhcp6Option;

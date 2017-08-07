@@ -17,6 +17,7 @@
 
 package org.onlab.packet.dhcp;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
@@ -86,5 +87,14 @@ public final class Dhcp6ClientIdOption extends Dhcp6Option {
         bb.putShort(getLength());
         bb.put(payload.serialize());
         return bb.array();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("code", getCode())
+                .add("length", getLength())
+                .add("duid", getDuid().toString())
+                .toString();
     }
 }

@@ -17,6 +17,7 @@
 
 package org.onlab.packet.dhcp;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
@@ -34,6 +35,11 @@ public final class Dhcp6RelayOption extends Dhcp6Option {
     @Override
     public short getLength() {
         return (short) payload.serialize().length;
+    }
+
+    @Override
+    public byte[] getData() {
+        return this.payload.serialize();
     }
 
     /**
@@ -66,5 +72,14 @@ public final class Dhcp6RelayOption extends Dhcp6Option {
             payload.setParent(relayOption);
             return relayOption;
         };
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("code", getCode())
+                .add("length", getLength())
+                .add("data", payload.toString())
+                .toString();
     }
 }

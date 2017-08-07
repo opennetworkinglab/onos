@@ -39,6 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Base on RFC-3315.
  */
 public class DHCP6 extends BasePacket {
+    private static final int UNSIGNED_SHORT_MASK = 0xffff;
     // size of different field of option
     private static final int OPT_CODE_SIZE = 2;
     private static final int OPT_LEN_SIZE = 2;
@@ -87,7 +88,7 @@ public class DHCP6 extends BasePacket {
         RELAY_MSG((short) 9), AUTH((short) 11), UNICAST((short) 12),
         STATUS_CODE((short) 13), RAPID_COMMIT((short) 14), USER_CLASS((short) 15),
         VENDOR_CLASS((short) 16), VENDOR_OPTS((short) 17), INTERFACE_ID((short) 18),
-        RECONF_MSG((short) 19), RECONF_ACCEPT((short) 20);
+        RECONF_MSG((short) 19), RECONF_ACCEPT((short) 20), SUBSCRIBER_ID((short) 38);
 
         protected short value;
         OptionCode(final short value) {
@@ -183,7 +184,7 @@ public class DHCP6 extends BasePacket {
             }
 
             // peek message type
-            dhcp6.msgType = (byte) (0xff & bb.array()[offset]);
+            dhcp6.msgType = bb.array()[offset];
             if (RELAY_MSG_TYPES.contains(dhcp6.msgType)) {
                 bb.get(); // drop message type
                 dhcp6.hopCount = bb.get();
@@ -202,9 +203,9 @@ public class DHCP6 extends BasePacket {
             while (bb.remaining() >= Dhcp6Option.DEFAULT_LEN) {
                 // create temporary byte buffer for reading code and length
                 ByteBuffer optByteBuffer =
-                        ByteBuffer.wrap(data, bb.position(), length - bb.position());
+                        ByteBuffer.wrap(data, bb.position(), bb.limit() - bb.position());
                 short code = optByteBuffer.getShort();
-                short optionLen = (short) (0xffff & optByteBuffer.getShort());
+                int optionLen = UNSIGNED_SHORT_MASK & optByteBuffer.getShort();
                 if (optByteBuffer.remaining() < optionLen) {
                     throw new DeserializationException(
                             "Buffer underflow while reading DHCPv6 option");

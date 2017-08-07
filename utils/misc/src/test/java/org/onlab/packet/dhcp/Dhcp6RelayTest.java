@@ -21,12 +21,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 
+import org.apache.commons.io.Charsets;
 import org.junit.Test;
 import org.onlab.packet.DHCP6;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.UDP;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -42,9 +45,9 @@ public class Dhcp6RelayTest {
 
     private static final int HOP_COUNT = 0;
     private static final Ip6Address LINK_ADDRESS = Ip6Address.valueOf("2000::2ff");
-    private static final Ip6Address PEER_ADDRESS = Ip6Address.valueOf("fe80::1");
-    private static final int XID_1 = 13346301;
-    private static final int XID_2 = 9807588;
+    private static final Ip6Address PEER_ADDRESS = Ip6Address.valueOf("fe80::2bb:ff:fe00:1");
+    private static final int XID_1 = 8135067;
+    private static final int XID_2 = 14742082;
     private static final int IA_ID = 1;
     private static final int T1_CLIENT = 3600;
     private static final int T2_CLIENT = 5400;
@@ -54,9 +57,18 @@ public class Dhcp6RelayTest {
     private static final int PREFFERRED_LT_SERVER = 375;
     private static final int VALID_LT_SERVER = 600;
     private static final int PREFFERRED_LT_REQ = 7200;
-    private static final int VALID_LT_REQ = 7500;
+    private static final int VALID_LT_REQ = 10800;
+    private static final int VALID_LT_REQ_2 = 7500;
+    private static final MacAddress DOWNSTREAM_MAC = MacAddress.valueOf("4a:c0:c2:78:92:34");
     private static final MacAddress CLIENT_MAC = MacAddress.valueOf("00:bb:00:00:00:01");
-    private static final int CLIENT_DUID_TIME = 0x210016b4;
+    private static final int CLIENT_DUID_TIME = 555636143;
+    private static final MacAddress IPV6_MCAST = MacAddress.valueOf("33:33:00:01:00:03");
+    private static final Ip6Address DOWNSTREAM_LL = Ip6Address.valueOf("fe80::48c0:c2ff:fe78:9234");
+    private static final Ip6Address DHCP6_BRC = Ip6Address.valueOf("ff05::1:3");
+    private static final Ip6Address SERVER_IP = Ip6Address.valueOf("2000::9903");
+    private static final MacAddress SERVER_MAC = MacAddress.valueOf("00:99:66:00:00:01");
+    private static final Ip6Address SERVER_LL = Ip6Address.valueOf("fe80::299:66ff:fe00:1");
+
 
     /**
      * Test deserialize relay message with solicit message.
@@ -66,16 +78,22 @@ public class Dhcp6RelayTest {
     @Test
     public void deserializeSolicit() throws Exception {
         byte[] data = Resources.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT));
-        DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
+        Ethernet eth = Ethernet.deserializer().deserialize(data, 0, data.length);
+        DHCP6 relayMsg = (DHCP6) eth.getPayload().getPayload().getPayload();
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_FORW.value());
         assertEquals(relayMsg.getHopCount(), HOP_COUNT);
         assertEquals(relayMsg.getIp6LinkAddress(), LINK_ADDRESS);
         assertEquals(relayMsg.getIp6PeerAddress(), PEER_ADDRESS);
 
-        assertEquals(relayMsg.getOptions().size(), 1);
+        assertEquals(relayMsg.getOptions().size(), 2);
         Dhcp6Option option = relayMsg.getOptions().get(0);
+        assertEquals(option.getCode(), DHCP6.OptionCode.SUBSCRIBER_ID.value());
+        assertEquals(option.getLength(), 10);
+        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+
+        option = relayMsg.getOptions().get(1);
         assertEquals(option.getCode(), DHCP6.OptionCode.RELAY_MSG.value());
-        assertEquals(option.getLength(), 56);
+        assertEquals(option.getLength(), 84);
         assertTrue(option.getPayload() instanceof DHCP6);
 
         DHCP6 relaiedDhcp6 = (DHCP6) option.getPayload();
@@ -113,13 +131,17 @@ public class Dhcp6RelayTest {
         assertTrue(option instanceof Dhcp6IaNaOption);
         Dhcp6IaNaOption iaNaOption = (Dhcp6IaNaOption) option;
         assertEquals(iaNaOption.getCode(), DHCP6.OptionCode.IA_NA.value());
-        assertEquals(iaNaOption.getLength(), 12);
+        assertEquals(iaNaOption.getLength(), 40);
         assertEquals(iaNaOption.getIaId(), IA_ID);
         assertEquals(iaNaOption.getT1(), T1_CLIENT);
         assertEquals(iaNaOption.getT2(), T2_CLIENT);
-        assertEquals(iaNaOption.getOptions().size(), 0);
+        assertEquals(iaNaOption.getOptions().size(), 1);
+        Dhcp6IaAddressOption subOption = (Dhcp6IaAddressOption) iaNaOption.getOptions().get(0);
+        assertEquals(subOption.getIp6Address(), IA_ADDRESS);
+        assertEquals(subOption.getPreferredLifetime(), PREFFERRED_LT_REQ);
+        assertEquals(subOption.getValidLifetime(), VALID_LT_REQ);
 
-        assertArrayEquals(data, relayMsg.serialize());
+        assertArrayEquals(data, eth.serialize());
     }
 
     /**
@@ -169,17 +191,47 @@ public class Dhcp6RelayTest {
         iaNaOption.setIaId(IA_ID);
         iaNaOption.setT1(T1_CLIENT);
         iaNaOption.setT2(T2_CLIENT);
-        iaNaOption.setOptions(Collections.emptyList());
+        Dhcp6IaAddressOption iaAddressOption = new Dhcp6IaAddressOption();
+        iaAddressOption.setIp6Address(IA_ADDRESS);
+        iaAddressOption.setPreferredLifetime(PREFFERRED_LT_REQ);
+        iaAddressOption.setValidLifetime(VALID_LT_REQ);
+        iaNaOption.setOptions(ImmutableList.of(iaAddressOption));
         options.add(iaNaOption);
         relaiedDhcp6.setOptions(options);
-
 
         Dhcp6RelayOption relayOption = new Dhcp6RelayOption();
         relayOption.setPayload(relaiedDhcp6);
 
-        relayMsg.setOptions(ImmutableList.of(relayOption));
+        Dhcp6Option subscriberId = new Dhcp6Option();
+        subscriberId.setCode(DHCP6.OptionCode.SUBSCRIBER_ID.value());
+        subscriberId.setLength((short) 10);
+        subscriberId.setData(SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+
+        relayMsg.setOptions(ImmutableList.of(subscriberId, relayOption));
+
+        UDP udp = new UDP();
+        udp.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setPayload(relayMsg);
+        udp.setChecksum((short) 0x9a99);
+
+        IPv6 ipv6 = new IPv6();
+        ipv6.setHopLimit((byte) 32);
+        ipv6.setSourceAddress(DOWNSTREAM_LL.toOctets());
+        ipv6.setDestinationAddress(DHCP6_BRC.toOctets());
+        ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+        ipv6.setTrafficClass((byte) 0);
+        ipv6.setFlowLabel(0x000cbf64);
+        ipv6.setPayload(udp);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(IPV6_MCAST);
+        eth.setSourceMACAddress(DOWNSTREAM_MAC);
+        eth.setEtherType(Ethernet.TYPE_IPV6);
+        eth.setPayload(ipv6);
+
         assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(SOLICIT)),
-                          relayMsg.serialize());
+                          eth.serialize());
     }
 
     /**
@@ -190,8 +242,8 @@ public class Dhcp6RelayTest {
     @Test
     public void deserializeAdvertise() throws Exception {
         byte[] data = Resources.toByteArray(getClass().getResource(ADVERTISE));
-        DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
-
+        Ethernet eth = Ethernet.deserializer().deserialize(data, 0, data.length);
+        DHCP6 relayMsg = (DHCP6) eth.getPayload().getPayload().getPayload();
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_REPL.value());
         assertEquals(relayMsg.getHopCount(), HOP_COUNT);
         assertEquals(relayMsg.getIp6LinkAddress(), LINK_ADDRESS);
@@ -243,10 +295,13 @@ public class Dhcp6RelayTest {
         option = relaiedDhcp6.getOptions().get(2);
         assertEquals(option.getCode(), DHCP6.OptionCode.SERVERID.value());
         assertEquals(option.getLength(), 14);
-        assertArrayEquals(option.getData(),
-                          new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
-
-        assertArrayEquals(data, relayMsg.serialize());
+        Dhcp6Duid serverDuid =
+                Dhcp6Duid.deserializer().deserialize(option.getData(), 0, option.getData().length);
+        assertEquals(serverDuid.getDuidType(), Dhcp6Duid.DuidType.DUID_LLT);
+        assertEquals(serverDuid.getDuidTime(), 0x211e5340);
+        assertEquals(serverDuid.getHardwareType(), 1);
+        assertArrayEquals(serverDuid.getLinkLayerAddress(), SERVER_MAC.toBytes());
+        assertArrayEquals(data, eth.serialize());
     }
 
     /**
@@ -295,7 +350,12 @@ public class Dhcp6RelayTest {
         Dhcp6Option option = new Dhcp6Option();
         option.setCode(DHCP6.OptionCode.SERVERID.value());
         option.setLength((short) 14);
-        option.setData(new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
+        Dhcp6Duid serverDuid = new Dhcp6Duid();
+        serverDuid.setDuidType(Dhcp6Duid.DuidType.DUID_LLT);
+        serverDuid.setLinkLayerAddress(SERVER_MAC.toBytes());
+        serverDuid.setHardwareType((short) 1);
+        serverDuid.setDuidTime(0x211e5340);
+        option.setData(serverDuid.serialize());
         options.add(option);
 
         relaiedDhcp6.setOptions(options);
@@ -305,8 +365,28 @@ public class Dhcp6RelayTest {
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
 
+        UDP udp = new UDP();
+        udp.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setPayload(relayMsg);
+        udp.setChecksum((short) 0x0000019d);
+
+        IPv6 ipv6 = new IPv6();
+        ipv6.setHopLimit((byte) 64);
+        ipv6.setSourceAddress(SERVER_LL.toOctets());
+        ipv6.setDestinationAddress(DOWNSTREAM_LL.toOctets());
+        ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+        ipv6.setTrafficClass((byte) 0);
+        ipv6.setFlowLabel(0x000c72ef);
+        ipv6.setPayload(udp);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(DOWNSTREAM_MAC);
+        eth.setSourceMACAddress(SERVER_MAC);
+        eth.setEtherType(Ethernet.TYPE_IPV6);
+        eth.setPayload(ipv6);
         assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(ADVERTISE)),
-                          relayMsg.serialize());
+                          eth.serialize());
     }
 
     /**
@@ -317,15 +397,20 @@ public class Dhcp6RelayTest {
     @Test
     public void deserializeRequest() throws Exception {
         byte[] data = Resources.toByteArray(getClass().getResource(REQUEST));
-        DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
-
+        Ethernet eth = Ethernet.deserializer().deserialize(data, 0, data.length);
+        DHCP6 relayMsg = (DHCP6) eth.getPayload().getPayload().getPayload();
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_FORW.value());
         assertEquals(relayMsg.getHopCount(), HOP_COUNT);
         assertEquals(relayMsg.getIp6LinkAddress(), LINK_ADDRESS);
         assertEquals(relayMsg.getIp6PeerAddress(), PEER_ADDRESS);
 
-        assertEquals(relayMsg.getOptions().size(), 1);
+        assertEquals(relayMsg.getOptions().size(), 2);
         Dhcp6Option option = relayMsg.getOptions().get(0);
+        assertEquals(option.getCode(), DHCP6.OptionCode.SUBSCRIBER_ID.value());
+        assertEquals(option.getLength(), 10);
+        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+
+        option = relayMsg.getOptions().get(1);
         assertEquals(option.getCode(), DHCP6.OptionCode.RELAY_MSG.value());
         assertEquals(option.getLength(), 102);
         assertTrue(option.getPayload() instanceof DHCP6);
@@ -350,8 +435,12 @@ public class Dhcp6RelayTest {
         option = relaiedDhcp6.getOptions().get(1);
         assertEquals(option.getCode(), DHCP6.OptionCode.SERVERID.value());
         assertEquals(option.getLength(), 14);
-        assertArrayEquals(option.getData(),
-                          new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
+        Dhcp6Duid serverDuid =
+                Dhcp6Duid.deserializer().deserialize(option.getData(), 0, option.getData().length);
+        assertEquals(serverDuid.getDuidType(), Dhcp6Duid.DuidType.DUID_LLT);
+        assertEquals(serverDuid.getDuidTime(), 0x211e5340);
+        assertEquals(serverDuid.getHardwareType(), 1);
+        assertArrayEquals(serverDuid.getLinkLayerAddress(), SERVER_MAC.toBytes());
 
         // Option Request
         option = relaiedDhcp6.getOptions().get(2);
@@ -363,8 +452,7 @@ public class Dhcp6RelayTest {
         option = relaiedDhcp6.getOptions().get(3);
         assertEquals(option.getCode(), DHCP6.OptionCode.ELAPSED_TIME.value());
         assertEquals(option.getLength(), 2);
-        assertArrayEquals(option.getData(),
-                          new byte[]{0, 0});
+        assertArrayEquals(option.getData(), new byte[]{0, 0});
 
         // IA NA
         option = relaiedDhcp6.getOptions().get(4);
@@ -383,10 +471,10 @@ public class Dhcp6RelayTest {
                 (Dhcp6IaAddressOption) iaNaOption.getOptions().get(0);
         assertEquals(iaAddressOption.getIp6Address(), IA_ADDRESS);
         assertEquals(iaAddressOption.getPreferredLifetime(), PREFFERRED_LT_REQ);
-        assertEquals(iaAddressOption.getValidLifetime(), VALID_LT_REQ);
+        assertEquals(iaAddressOption.getValidLifetime(), VALID_LT_REQ_2);
         assertNull(iaAddressOption.getOptions());
 
-        assertArrayEquals(data, relayMsg.serialize());
+        assertArrayEquals(data, eth.serialize());
     }
 
     /**
@@ -421,7 +509,12 @@ public class Dhcp6RelayTest {
         Dhcp6Option option = new Dhcp6Option();
         option.setCode(DHCP6.OptionCode.SERVERID.value());
         option.setLength((short) 14);
-        option.setData(new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
+        Dhcp6Duid serverDuid = new Dhcp6Duid();
+        serverDuid.setDuidType(Dhcp6Duid.DuidType.DUID_LLT);
+        serverDuid.setLinkLayerAddress(SERVER_MAC.toBytes());
+        serverDuid.setHardwareType((short) 1);
+        serverDuid.setDuidTime(0x211e5340);
+        option.setData(serverDuid.serialize());
         options.add(option);
 
         // Option request
@@ -442,7 +535,7 @@ public class Dhcp6RelayTest {
         Dhcp6IaAddressOption iaAddressOption = new Dhcp6IaAddressOption();
         iaAddressOption.setIp6Address(IA_ADDRESS);
         iaAddressOption.setPreferredLifetime(PREFFERRED_LT_REQ);
-        iaAddressOption.setValidLifetime(VALID_LT_REQ);
+        iaAddressOption.setValidLifetime(VALID_LT_REQ_2);
 
         // IA NA
         Dhcp6IaNaOption iaNaOption = new Dhcp6IaNaOption();
@@ -454,13 +547,39 @@ public class Dhcp6RelayTest {
 
         relaiedDhcp6.setOptions(options);
 
+        Dhcp6Option subscriberId = new Dhcp6Option();
+        subscriberId.setCode(DHCP6.OptionCode.SUBSCRIBER_ID.value());
+        subscriberId.setLength((short) 10);
+        subscriberId.setData(SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+
         Dhcp6RelayOption relayOption = new Dhcp6RelayOption();
         relayOption.setPayload(relaiedDhcp6);
 
-        relayMsg.setOptions(ImmutableList.of(relayOption));
+        relayMsg.setOptions(ImmutableList.of(subscriberId, relayOption));
+
+        UDP udp = new UDP();
+        udp.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setPayload(relayMsg);
+        udp.setChecksum((short) 0x9aab);
+
+        IPv6 ipv6 = new IPv6();
+        ipv6.setHopLimit((byte) 32);
+        ipv6.setSourceAddress(DOWNSTREAM_LL.toOctets());
+        ipv6.setDestinationAddress(DHCP6_BRC.toOctets());
+        ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+        ipv6.setTrafficClass((byte) 0);
+        ipv6.setFlowLabel(0x000cbf64);
+        ipv6.setPayload(udp);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(IPV6_MCAST);
+        eth.setSourceMACAddress(DOWNSTREAM_MAC);
+        eth.setEtherType(Ethernet.TYPE_IPV6);
+        eth.setPayload(ipv6);
 
         assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(REQUEST)),
-                          relayMsg.serialize());
+                          eth.serialize());
     }
 
     /**
@@ -471,8 +590,8 @@ public class Dhcp6RelayTest {
     @Test
     public void deserializeReply() throws Exception {
         byte[] data = Resources.toByteArray(getClass().getResource(REPLY));
-        DHCP6 relayMsg = DHCP6.deserializer().deserialize(data, 0, data.length);
-
+        Ethernet eth = Ethernet.deserializer().deserialize(data, 0, data.length);
+        DHCP6 relayMsg = (DHCP6) eth.getPayload().getPayload().getPayload();
         assertEquals(relayMsg.getMsgType(), DHCP6.MsgType.RELAY_REPL.value());
         assertEquals(relayMsg.getHopCount(), HOP_COUNT);
         assertEquals(relayMsg.getIp6LinkAddress(), LINK_ADDRESS);
@@ -524,10 +643,14 @@ public class Dhcp6RelayTest {
         option = relaiedDhcp6.getOptions().get(2);
         assertEquals(option.getCode(), DHCP6.OptionCode.SERVERID.value());
         assertEquals(option.getLength(), 14);
-        assertArrayEquals(option.getData(),
-                          new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
+        Dhcp6Duid serverDuid =
+                Dhcp6Duid.deserializer().deserialize(option.getData(), 0, option.getData().length);
+        assertEquals(serverDuid.getDuidType(), Dhcp6Duid.DuidType.DUID_LLT);
+        assertEquals(serverDuid.getDuidTime(), 0x211e5340);
+        assertEquals(serverDuid.getHardwareType(), 1);
+        assertArrayEquals(serverDuid.getLinkLayerAddress(), SERVER_MAC.toBytes());
 
-        assertArrayEquals(data, relayMsg.serialize());
+        assertArrayEquals(data, eth.serialize());
     }
 
     @Test
@@ -571,7 +694,12 @@ public class Dhcp6RelayTest {
         Dhcp6Option option = new Dhcp6Option();
         option.setCode(DHCP6.OptionCode.SERVERID.value());
         option.setLength((short) 14);
-        option.setData(new byte[]{0, 1, 0, 1, 32, -1, -8, -17, 0, -103, 102, 0, 0, 1});
+        Dhcp6Duid serverDuid = new Dhcp6Duid();
+        serverDuid.setDuidType(Dhcp6Duid.DuidType.DUID_LLT);
+        serverDuid.setLinkLayerAddress(SERVER_MAC.toBytes());
+        serverDuid.setHardwareType((short) 1);
+        serverDuid.setDuidTime(0x211e5340);
+        option.setData(serverDuid.serialize());
         options.add(option);
 
         relaiedDhcp6.setOptions(options);
@@ -581,7 +709,28 @@ public class Dhcp6RelayTest {
 
         relayMsg.setOptions(ImmutableList.of(relayOption));
 
+        UDP udp = new UDP();
+        udp.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+        udp.setPayload(relayMsg);
+        udp.setChecksum((short) 0x019d);
+
+        IPv6 ipv6 = new IPv6();
+        ipv6.setHopLimit((byte) 64);
+        ipv6.setSourceAddress(SERVER_LL.toOctets());
+        ipv6.setDestinationAddress(DOWNSTREAM_LL.toOctets());
+        ipv6.setNextHeader(IPv6.PROTOCOL_UDP);
+        ipv6.setTrafficClass((byte) 0);
+        ipv6.setFlowLabel(0x000c72ef);
+        ipv6.setPayload(udp);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(DOWNSTREAM_MAC);
+        eth.setSourceMACAddress(SERVER_MAC);
+        eth.setEtherType(Ethernet.TYPE_IPV6);
+        eth.setPayload(ipv6);
+
         assertArrayEquals(Resources.toByteArray(Dhcp6RelayTest.class.getResource(REPLY)),
-                          relayMsg.serialize());
+                          eth.serialize());
     }
 }

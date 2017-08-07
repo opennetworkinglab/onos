@@ -119,7 +119,8 @@ public final class Dhcp6IaTaOption extends Dhcp6Option {
                                                            optionData.length - bb.position());
                 short code = optByteBuffer.getShort();
                 short len = optByteBuffer.getShort();
-                byte[] subOptData = new byte[Dhcp6Option.DEFAULT_LEN + len];
+                int optLen = UNSIGNED_SHORT_MASK & len;
+                byte[] subOptData = new byte[Dhcp6Option.DEFAULT_LEN + optLen];
                 bb.get(subOptData);
 
                 // TODO: put more sub-options?
