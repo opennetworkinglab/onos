@@ -28,5 +28,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'ONOS Lumentum Device Drivers application.',
     required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model',
-     'org.onosproject.tl1'],
+     'org.onosproject.tl1', 'org.onosproject.drivers.optical'],
 )
