@@ -20,5 +20,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'BGP router application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.fibinstaller' ],
+    required_apps = [ 'org.onosproject.fibinstaller', 'org.onosproject.route-service' ],
 )

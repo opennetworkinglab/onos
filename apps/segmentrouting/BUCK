@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
+    '//apps/route-service/api:onos-apps-route-service-api',
 ]
 
 BUNDLES = [
@@ -29,4 +30,5 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'Segment routing application.',
+    required_apps = [ 'org.onosproject.route-service' ],
 )

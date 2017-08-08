@@ -89,8 +89,9 @@
         <module>yang</module>
         <module>openroadm</module>
         <module>netconf/client</module>
-	<module>gluon</module>
+	    <module>gluon</module>
         <module>evpnopenflow</module>
+        <module>route-service</module>
     </modules>
 
     <properties>

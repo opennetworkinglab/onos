@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.incubator.net.routing.RouteTools.createBinaryString;
+import static org.onosproject.routeservice.RouteTools.createBinaryString;
 
 /**
  * Reactive routing configuration manager.

@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//apps/route-service/api:onos-apps-route-service-api',
     '//core/common:onos-core-common',
 ]
 

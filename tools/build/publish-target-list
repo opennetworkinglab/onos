@@ -3,6 +3,7 @@
     //apps/optical-model:onos-apps-optical-model
     //apps/restconf/api:onos-apps-restconf-api
     //apps/routing-api:onos-apps-routing-api
+    //apps/route-service/api:onos-apps-route-service-api
     //cli:onos-cli
     //core/api:onos-api
     //core/common:onos-core-common

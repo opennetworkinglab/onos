@@ -105,5 +105,10 @@
             <artifactId>onos-app-vtn-rsc</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-route-service-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

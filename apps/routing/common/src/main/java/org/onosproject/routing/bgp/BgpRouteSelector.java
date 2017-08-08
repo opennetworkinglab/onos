@@ -18,7 +18,7 @@ package org.onosproject.routing.bgp;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.incubator.net.routing.Route;
+import org.onosproject.routeservice.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

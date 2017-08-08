@@ -38,7 +38,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.incubator.net.routing.RouteAdminService;
+import org.onosproject.routeservice.RouteAdminService;
 import org.osgi.service.component.ComponentContext;
 
 import java.net.InetAddress;

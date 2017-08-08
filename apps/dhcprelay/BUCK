@@ -2,14 +2,14 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
-    '//incubator/api:onos-incubator-api',
-    '//core/store/serializers:onos-core-serializers'
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/route-service/api:onos-apps-route-service-api',
 ]
 
 TEST_DEPS = [
-    '//lib:TEST_ADAPTERS',
+    '//lib:TEST',
+    '//apps/route-service/api:onos-apps-route-service-api-tests',
     '//core/api:onos-api-tests',
-    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar_with_tests (
@@ -23,4 +23,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'DHCP Relay Agent Application.',
+    required_apps = [ 'org.onosproject.route-service' ],
 )

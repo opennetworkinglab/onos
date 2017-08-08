@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//apps/route-service/api:onos-apps-route-service-api',
     '//core/store/serializers:onos-core-serializers',
 ]
 
@@ -29,4 +30,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'Receives routes from external routing daemon over FPM protocol',
     included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.route-service' ],
 )

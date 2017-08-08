@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:concurrent-trees',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/route-service/api:onos-apps-route-service-api',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//apps/route-service/api:onos-apps-route-service-api-tests',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

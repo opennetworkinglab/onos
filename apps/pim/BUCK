@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//apps/route-service/api:onos-apps-route-service-api',
 ]
 
 BUNDLES = [
@@ -23,4 +24,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'Protocol independent multicast emulation.',
     included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.route-service' ],
 )

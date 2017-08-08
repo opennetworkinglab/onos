@@ -210,6 +210,7 @@ ONOS_APPS = [
     '//apps/artemis:onos-apps-artemis-oar',
     '//apps/gluon:onos-apps-gluon-oar',
     '//apps/evpnopenflow:onos-apps-evpnopenflow-oar',
+    '//apps/route-service:onos-apps-route-service-oar',
 ]
 
 PROTOCOL_APPS = [

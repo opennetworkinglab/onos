@@ -29,7 +29,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.neighbour.NeighbourMessageType;
-import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;

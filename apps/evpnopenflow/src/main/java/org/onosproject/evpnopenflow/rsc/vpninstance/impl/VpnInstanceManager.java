@@ -34,7 +34,7 @@ import org.onosproject.evpnopenflow.rsc.VpnInstanceId;
 import org.onosproject.evpnopenflow.rsc.vpnafconfig.VpnAfConfigService;
 import org.onosproject.evpnopenflow.rsc.vpninstance.VpnInstanceService;
 import org.onosproject.incubator.net.routing.EvpnInstanceName;
-import org.onosproject.incubator.net.routing.RouteAdminService;
+import org.onosproject.routeservice.RouteAdminService;
 import org.onosproject.incubator.net.routing.RouteDistinguisher;
 import org.onosproject.incubator.net.routing.VpnRouteTarget;
 import org.onosproject.store.serializers.KryoNamespaces;
