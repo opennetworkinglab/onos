@@ -2,7 +2,17 @@
 
 import os
 import sys
+import json
 import argparse
+
+TEMP_NETCFG_FILE = '/tmp/bmv2-demo-cfg.json'
+BASE_LONGITUDE = -115
+SWITCH_BASE_LATITUDE = 25
+HOST_BASE_LATITUDE = 28
+BASE_SHIFT = 8
+VLAN_NONE = -1
+DEFAULT_SW_BW = 50
+DEFAULT_HOST_BW = 25
 
 if 'ONOS_ROOT' not in os.environ:
     print "Environment var $ONOS_ROOT not set"
@@ -28,47 +38,52 @@ from mininet.link import TCLink
 from mininet.log import setLogLevel
 from mininet.net import Mininet
 from mininet.node import RemoteController, Host
-from mininet.topo import Topo, SingleSwitchTopo
-
+from mininet.topo import Topo
 
 class ClosTopo(Topo):
     "2 stage Clos topology"
 
-    def __init__(self, **opts):
+    def __init__(self, pipeconfId="", **opts):
         # Initialize topology and default options
         Topo.__init__(self, **opts)
 
         bmv2SwitchIds = ["s11", "s12", "s13", "s21", "s22", "s23"]
-
         bmv2Switches = {}
 
-        tport = 9090
         for switchId in bmv2SwitchIds:
+            deviceId=int(switchId[1:])
+            # Use first number in device id to calculate latitude (row number)
+            latitude = SWITCH_BASE_LATITUDE + (deviceId // 10) * BASE_SHIFT
+
+            # Use second number in device id to calculate longitude (column number)
+            longitude = BASE_LONGITUDE + (deviceId % 10) * BASE_SHIFT
             bmv2Switches[switchId] = self.addSwitch(switchId,
                                                     cls=ONOSBmv2Switch,
                                                     loglevel="warn",
-                                                    deviceId=int(switchId[1:]),
-                                                    thriftPort=tport)
-            tport += 1
+                                                    deviceId=deviceId,
+                                                    netcfg=False,
+                                                    longitude=longitude,
+                                                    latitude=latitude,
+                                                    pipeconfId=pipeconfId)
 
         for i in (1, 2, 3):
             for j in (1, 2, 3):
                 if i == j:
                     # 2 links
                     self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
-                                 cls=TCLink, bw=50)
+                                 cls=TCLink, bw=DEFAULT_SW_BW)
                     self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
-                                 cls=TCLink, bw=50)
+                                 cls=TCLink, bw=DEFAULT_SW_BW)
                 else:
                     self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
-                                 cls=TCLink, bw=50)
+                                 cls=TCLink, bw=DEFAULT_SW_BW)
 
         for hostId in (1, 2, 3):
             host = self.addHost("h%d" % hostId,
                                 cls=DemoHost,
                                 ip="10.0.0.%d/24" % hostId,
                                 mac='00:00:00:00:00:%02x' % hostId)
-            self.addLink(host, bmv2Switches["s1%d" % hostId], cls=TCLink, bw=22)
+            self.addLink(host, bmv2Switches["s1%d" % hostId], cls=TCLink, bw=DEFAULT_HOST_BW)
 
 
 class DemoHost(Host):
@@ -82,10 +97,8 @@ class DemoHost(Host):
     def config(self, **params):
         r = super(Host, self).config(**params)
 
-        self.defaultIntf().rename("eth0")
-
         for off in ["rx", "tx", "sg"]:
-            cmd = "/sbin/ethtool --offload eth0 %s off" % off
+            cmd = "/sbin/ethtool --offload %s %s off" % (self.defaultIntf(), off)
             self.cmd(cmd)
 
         # disable IPv6
@@ -130,16 +143,82 @@ class DemoHost(Host):
     def getCmdBg(self, cmd, logfile="/dev/null"):
         return "{} > {} 2>&1 &".format(cmd, logfile)
 
+def generateNetcfg(onosIp, net):
+    netcfg = { 'devices': {}, 'links': {}, 'hosts': {}}
+    # Device configs
+    for sw in net.switches:
+        srcIp = sw.getSourceIp(onosIp)
+        netcfg['devices'][sw.onosDeviceId] = sw.getDeviceConfig(srcIp)
+
+    hostLocations = {}
+    # Link configs
+    for link in net.links:
+        switchPort = link.intf1.name.split('-')
+        sw1Name = switchPort[0] # s11
+        port1Name = switchPort[1] # eth0
+        port1 = port1Name[3:]
+        switchPort = link.intf2.name.split('-')
+        sw2Name = switchPort[0]
+        port2Name = switchPort[1]
+        port2 = port2Name[3:]
+        sw1 = net[sw1Name]
+        sw2 = net[sw2Name]
+        if isinstance(sw1, Host):
+            # record host location and ignore it
+            # e.g. {'h1': 'device:bmv2:11'}
+            hostLocations[sw1.name] = '%s/%s' % (sw2.onosDeviceId, port2)
+            continue
+
+        if isinstance(sw2, Host):
+            # record host location and ignore it
+            # e.g. {'h1': 'device:bmv2:11'}
+            hostLocations[sw2.name] = '%s/%s' % (sw1.onosDeviceId, port1)
+            continue
+
+        linkId = '%s/%s-%s/%s' % (sw1.onosDeviceId, port1, sw2.onosDeviceId, port2)
+        netcfg['links'][linkId] = {
+            'basic': {
+                'type': 'DIRECT',
+                'bandwidth': 50
+            }
+        }
+
+    # Host configs
+    longitude = BASE_LONGITUDE
+    for host in net.hosts:
+        longitude = longitude + BASE_SHIFT
+        hostDefaultIntf = host.defaultIntf()
+        hostMac = host.MAC(hostDefaultIntf)
+        hostIp = host.IP(hostDefaultIntf)
+        hostId = '%s/%d' % (hostMac, VLAN_NONE)
+        location = hostLocations[host.name]
+
+        # use host Id to generate host location
+        hostConfig = {
+            'basic': {
+                'locations': [location],
+                'ips': [hostIp],
+                'name': host.name,
+                'latitude': HOST_BASE_LATITUDE,
+                'longitude': longitude
+            }
+        }
+        netcfg['hosts'][hostId] = hostConfig
+
+    print "Writing network config to %s" % TEMP_NETCFG_FILE
+    with open(TEMP_NETCFG_FILE, 'w') as tempFile:
+        json.dump(netcfg, tempFile)
 
 def main(args):
-    topo = ClosTopo()
-
+    setLogLevel('debug')
     if not args.onos_ip:
         controller = ONOSCluster('c0', 3)
         onosIp = controller.nodes()[0].IP()
     else:
-        controller = RemoteController('c0', ip=args.onos_ip, port=args.onos_port)
+        controller = RemoteController('c0', ip=args.onos_ip)
         onosIp = args.onos_ip
+
+    topo = ClosTopo(pipeconfId=args.pipeconf_id)
 
     net = Mininet(topo=topo, build=False, controller=[controller])
 
@@ -165,9 +244,10 @@ def main(args):
     # print "Starting traffic from h1 to h3..."
     # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
 
-    print "Setting netcfg..."
-    call(("%s/onos-netcfg" % RUN_PACK_PATH, onosIp,
-          "%s/tools/test/topos/bmv2-demo-cfg.json" % ONOS_ROOT))
+    generateNetcfg(onosIp, net)
+
+    print "Uploading netcfg..."
+    call(("%s/onos-netcfg" % RUN_PACK_PATH, onosIp, TEMP_NETCFG_FILE))
 
     if not args.onos_ip:
         ONOSCLI(net)
@@ -175,6 +255,7 @@ def main(args):
         CLI(net)
 
     net.stop()
+    call(("rm", "-f", TEMP_NETCFG_FILE))
 
 
 if __name__ == '__main__':
@@ -182,8 +263,8 @@ if __name__ == '__main__':
         description='BMv2 mininet demo script (2-stage Clos topology)')
     parser.add_argument('--onos-ip', help='ONOS-BMv2 controller IP address',
                         type=str, action="store", required=False)
-    parser.add_argument('--onos-port', help='ONOS-BMv2 controller port',
-                        type=int, action="store", default=40123)
+    parser.add_argument('--pipeconf-id', help='Pipeconf ID for switches',
+                        type=str, action="store", required=False, default='')
     args = parser.parse_args()
     setLogLevel('info')
     main(args)

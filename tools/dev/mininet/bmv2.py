@@ -23,7 +23,8 @@ class ONOSBmv2Switch(Switch):
     instanceCount = 0
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn", elogger=False,
-                 persistent=False, grpcPort=None, thriftPort=None, netcfg=True, **kwargs):
+                 persistent=False, grpcPort=None, thriftPort=None, netcfg=True,
+                 pipeconfId="", **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
         self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
@@ -40,11 +41,24 @@ class ONOSBmv2Switch(Switch):
         self.persistent = persistent
         self.netcfg = netcfg
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
+        self.pipeconfId = pipeconfId
         if persistent:
             self.exectoken = "/tmp/bmv2-%d-exec-token" % self.deviceId
             self.cmd("touch %s" % self.exectoken)
         # Store thrift port for future uses.
         self.cmd("echo %d > /tmp/bmv2-%d-grpc-port" % (self.grpcPort, self.deviceId))
+
+        if 'longitude' in kwargs:
+            self.longitude = kwargs['longitude']
+        else:
+            self.longitude = None
+
+        if 'latitude' in kwargs:
+            self.latitude = kwargs['latitude']
+        else:
+            self.latitude = None
+
+        self.onosDeviceId = "device:bmv2:%d" % self.deviceId
 
     @classmethod
     def pickUnusedPort(cls):
@@ -63,15 +77,7 @@ class ONOSBmv2Switch(Switch):
         r = re.search(r"src (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", ipRouteOut)
         return r.group(1) if r else None
 
-    def doOnosNetcfg(self, controllerIP):
-        """
-        Notifies ONOS about the new device via Netcfg.
-        """
-        srcIP = self.getSourceIp(controllerIP)
-        if not srcIP:
-            warn("WARN: unable to get device IP address, won't do onos-netcfg")
-            return
-        onosDeviceId = "bmv2:%s" % self.deviceId
+    def getDeviceConfig(self, srcIP):
         portData = {}
         portId = 1
         for intfName in self.intfNames():
@@ -87,25 +93,44 @@ class ONOSBmv2Switch(Switch):
             }
             portId += 1
 
+        basicCfg = {
+            "driver": "bmv2"
+        }
+
+        if self.longitude and self.latitude:
+            basicCfg["longitude"] = self.longitude
+            basicCfg["latitude"] = self.latitude
+
+        cfgData = {
+                "generalprovider": {
+                    "p4runtime": {
+                        "ip": srcIP,
+                        "port": self.grpcPort,
+                        "deviceId": self.deviceId,
+                        "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
+                    }
+                },
+                "piPipeconf": {
+                    "piPipeconfId": self.pipeconfId
+                },
+                "basic": basicCfg,
+                "ports": portData
+        }
+
+        return cfgData
+
+    def doOnosNetcfg(self, controllerIP):
+        """
+        Notifies ONOS about the new device via Netcfg.
+        """
+        srcIP = self.getSourceIp(controllerIP)
+        if not srcIP:
+            warn("WARN: unable to get device IP address, won't do onos-netcfg")
+            return
+
         cfgData = {
             "devices": {
-                "device:%s" % onosDeviceId: {
-                    "generalprovider": {
-                        "p4runtime": {
-                            "ip": srcIP,
-                            "port": self.grpcPort,
-                            "deviceId": self.deviceId,
-                            "deviceKeyId": "p4runtime:%s" % onosDeviceId
-                        }
-                    },
-                    "piPipeconf": {
-                        "piPipeconfId": ""
-                    },
-                    "basic": {
-                        "driver": "bmv2"
-                    },
-                    "ports": portData
-                }
+                self.onosDeviceId: self.getDeviceConfig(srcIP)
             }
         }
         with open(self.netcfgfile, 'w') as fp:
