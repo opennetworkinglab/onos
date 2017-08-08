@@ -197,11 +197,6 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SoftRouterPipeline"/>
     </driver>
-    <driver name="centec-V350" extends="default"
-            manufacturer=".*Centec.*" hwVersion=".*" swVersion="3.1.*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
-    </driver>
     <driver name="pica" extends="default"
             manufacturer="Pica8, Inc." hwVersion=".*" swVersion="PicOS 2.6">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
@@ -240,5 +235,13 @@
         <behaviour api="org.onosproject.net.behaviour.MeterQuery"
                    impl="org.onosproject.driver.query.FullMetersAvailable"/>
     </driver>
+
+      <!-- The following is a demo-specific driver with very limited pipeline capabilities
+    <driver name="centec-V350" extends="default"
+            manufacturer=".*Centec.*" hwVersion=".*" swVersion="3.1.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
+    </driver>
+    -->
 </drivers>
 
