@@ -360,7 +360,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "purgeOnDisconnection", "true");
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
                                       "requestInterceptsEnabled", "false");
-        compCfgService.preSetProperty("org.onosproject.incubator.net.neighbour.impl.NeighbourResolutionManager",
+        compCfgService.preSetProperty("org.onosproject.net.neighbour.impl.NeighbourResolutionManager",
                                       "requestInterceptsEnabled", "false");
         compCfgService.preSetProperty("org.onosproject.dhcprelay.DhcpRelayManager",
                                       "arpEnabled", "false");
