@@ -108,9 +108,9 @@ def _block_until_complete(disruptor, processes):
             # Once all processes have completed, stop the disruptor.
             disruptor.stop()
 
-            # Wait for the disruptor thread to complete to ensure partitions are healed and crashed nodes are recovered.
-            if not disruptor.is_running():
-                break
+        # Wait for the disruptor thread to complete to ensure partitions are healed and crashed nodes are recovered.
+        if not disruptor.is_running():
+            break
 
         # If we haven't broken out of the loop by now, sleep and then check again.
         time.sleep(1)
