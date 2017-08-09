@@ -16,8 +16,10 @@
 package org.onosproject.ofagent.api;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.PortStatistics;
 
 import java.util.List;
@@ -70,4 +72,13 @@ public interface OFSwitchService {
      */
     List<PortStatistics> getPortStatistics(NetworkId networkId, DeviceId deviceId);
 
+    /**
+     * Returns neighbour port of the specified port in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @param portNumber port number
+     * @return connect point; null if none exists
+     */
+    ConnectPoint neighbour(NetworkId networkId, DeviceId deviceId, PortNumber portNumber);
 }

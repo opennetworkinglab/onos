@@ -17,9 +17,11 @@ package org.onosproject.ofagent.api;
 
 import io.netty.channel.Channel;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.packet.InboundPacket;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPacketOut;
 
 /**
  * Service for providing OpenFlow operations.
@@ -119,6 +121,14 @@ public interface OFSwitchOperationService {
      * @param msg     packet out message with lldp
      */
     void processLldp(Channel channel, OFMessage msg);
+
+    /**
+     * Sends lldp response to the controller.
+     *
+     * @param ofPacketOut packet out message with lldp
+     * @param inPort      in port to be used for packet in message
+     */
+    void sendLldpResponse(OFPacketOut ofPacketOut, PortNumber inPort);
 
     /**
      * Sends hello to the controller.

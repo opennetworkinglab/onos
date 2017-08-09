@@ -34,9 +34,12 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -44,6 +47,7 @@ import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
@@ -179,6 +183,19 @@ public class OFSwitchManager implements OFSwitchService {
         DeviceService deviceService = virtualNetService.get(networkId, DeviceService.class);
         List<PortStatistics> portStatistics = deviceService.getPortStatistics(deviceId);
         return portStatistics;
+    }
+
+    @Override
+    public ConnectPoint neighbour(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
+        ConnectPoint cp = new ConnectPoint(deviceId, portNumber);
+        LinkService linkService = virtualNetService.get(networkId, LinkService.class);
+        Set<Link> links = linkService.getEgressLinks(cp);
+        log.trace("neighbour cp {} egressLinks {}", cp, links);
+        if (links != null && links.size() > 0) {
+            Link link = links.iterator().next();
+            return link.src();
+        }
+        return null;
     }
 
     private void addOFSwitch(NetworkId networkId, DeviceId deviceId) {

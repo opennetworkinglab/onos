@@ -124,6 +124,10 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
                     case ROLE_REQUEST:
                         handler.ofSwitch.processRoleRequest(handler.channel, msg);
                         break;
+                    case PACKET_OUT:
+                        // TODO: check if this is lldp - ignore if it is not lldp
+                        handler.ofSwitch.processLldp(handler.channel, msg);
+                        break;
                     case ERROR:
                         handler.logErrorClose((OFErrorMsg) msg);
                         break;

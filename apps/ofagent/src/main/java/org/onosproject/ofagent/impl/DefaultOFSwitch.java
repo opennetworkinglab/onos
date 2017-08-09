@@ -19,14 +19,17 @@ import com.google.common.collect.ImmutableSet;
 import io.netty.channel.Channel;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.PortNumber;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
 import org.onosproject.ofagent.api.OFSwitchService;
+import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFBarrierReply;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 import org.projectfloodlight.openflow.protocol.OFEchoReply;
@@ -38,6 +41,9 @@ import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
+import org.projectfloodlight.openflow.protocol.OFPacketIn;
+import org.projectfloodlight.openflow.protocol.OFPacketInReason;
+import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
@@ -50,6 +56,10 @@ import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U64;
@@ -349,7 +359,46 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void processLldp(Channel channel, OFMessage msg) {
-        // TODO process lldp
+        log.trace("processLldp msg{}", msg);
+
+        // For each output port, look up neighbour port.
+        // If neighbour port exists, have the neighbour switch send lldp response.
+        // Modeled after how OpenVirtex handles lldp from external controller.
+        OFPacketOut ofPacketOut = (OFPacketOut) msg;
+        List<OFAction> actions = ofPacketOut.getActions();
+        for (final OFAction action : actions) {
+            OFActionType actionType = action.getType();
+            if (actionType.equals(OFActionType.OUTPUT)) {
+                OFActionOutput ofActionOutput = (OFActionOutput) action;
+                OFPort ofPort = ofActionOutput.getPort();
+                ConnectPoint neighbourCp =
+                        ofSwitchService.neighbour(networkId, deviceId,
+                                                   PortNumber.portNumber(ofPort.getPortNumber()));
+                if (neighbourCp == null) {
+                    log.trace("No neighbour found for {} {}", deviceId, ofPort);
+                    continue;
+                }
+                OFSwitch neighbourSwitch = ofSwitchService.ofSwitch(networkId,
+                                                                    neighbourCp.deviceId());
+                neighbourSwitch.sendLldpResponse(ofPacketOut, neighbourCp.port());
+            }
+        }
+    }
+
+    @Override
+    public void sendLldpResponse(OFPacketOut po, PortNumber inPort) {
+        Match.Builder matchB = FACTORY.buildMatch();
+        matchB.setExact(MatchField.IN_PORT, OFPort.of((int) inPort.toLong()));
+        OFPacketIn pi = FACTORY.buildPacketIn()
+                .setBufferId(po.getBufferId())
+                .setMatch(matchB.build())
+                .setReason(OFPacketInReason.NO_MATCH)
+                .setData(po.getData())
+                .build();
+        log.trace("Sending packet in {}", pi);
+        controllerChannels().forEach(channel -> {
+            channel.writeAndFlush(Collections.singletonList(pi));
+        });
     }
 
     @Override
