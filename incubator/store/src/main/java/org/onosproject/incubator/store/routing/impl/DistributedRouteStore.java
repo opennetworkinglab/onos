@@ -88,13 +88,13 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
                 .build()
                 .asDistributedSet();
 
-        masterRouteTable.forEach(this::createRouteTable);
-
         masterRouteTable.addListener(masterRouteTableListener);
 
         // Add default tables (add is idempotent)
         masterRouteTable.add(IPV4);
         masterRouteTable.add(IPV6);
+
+        masterRouteTable.forEach(this::createRouteTable);
 
         log.info("Started");
     }
