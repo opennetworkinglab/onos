@@ -132,7 +132,7 @@ public class DistributedGroupStoreTest {
         groupStoreImpl.clusterCommunicator = new ClusterCommunicationServiceAdapter();
         groupStoreImpl.mastershipService = new MasterOfAll();
         groupStoreImpl.cfgService = new ComponentConfigAdapter();
-        groupStoreImpl.activate();
+        groupStoreImpl.activate(null);
         groupStore = groupStoreImpl;
         auditPendingReqQueue =
                 TestUtils.getField(groupStoreImpl, "auditPendingReqQueue");
