@@ -987,10 +987,10 @@ public class DeviceManager
         @Override
         public void event(NetworkConfigEvent event) {
             DeviceEvent de = null;
-            DeviceId did = (DeviceId) event.subject();
-            DeviceProvider dp = getProvider(did);
             if (event.configClass().equals(BasicDeviceConfig.class)) {
                 log.debug("Detected device network config event {}", event.type());
+                DeviceId did = (DeviceId) event.subject();
+                DeviceProvider dp = getProvider(did);
                 BasicDeviceConfig cfg =
                         networkConfigService.getConfig(did, BasicDeviceConfig.class);
 
@@ -1005,18 +1005,24 @@ public class DeviceManager
                         de = store.createOrUpdateDevice(dp.id(), did, desc);
                     }
                 }
-            }
-            if (event.configClass().equals(PortDescriptionsConfig.class) && event.config().isPresent()
-                    && getDevice(did) != null && dp != null) {
+            } else if (event.configClass().equals(PortDescriptionsConfig.class)) {
+                DeviceId did = (DeviceId) event.subject();
+                DeviceProvider dp = getProvider(did);
+                if (!event.config().isPresent() ||
+                    getDevice(did) == null || dp == null) {
+                    // sanity check failed, ignore
+                    return;
+                }
                 PortDescriptionsConfig portConfig = (PortDescriptionsConfig) event.config().get();
-                    //updating the ports if configration exists
+                    //updating the ports if configuration exists
                     List<PortDescription> complete = store.getPortDescriptions(dp.id(), did)
                             .collect(Collectors.toList());
                     complete.addAll(portConfig.portDescriptions());
                     store.updatePorts(dp.id(), did, complete);
-            }
-            if (portOpsIndex.containsKey(event.configClass())) {
+            } else if (portOpsIndex.containsKey(event.configClass())) {
                 ConnectPoint cpt = (ConnectPoint) event.subject();
+                DeviceId did = cpt.deviceId();
+                DeviceProvider dp = getProvider(did);
 
                 // Note: assuming PortOperator can modify existing port,
                 //       but cannot add new port purely from Config.
