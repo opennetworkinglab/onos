@@ -17,6 +17,8 @@ package org.onosproject.provider.lldp.impl;
 
 import java.util.Dictionary;
 import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -369,6 +371,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         }
         discoverers.values().forEach(LinkDiscovery::stop);
         discoverers.clear();
+        linkTimes.clear();
 
         providerService = null;
     }
@@ -420,6 +423,19 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
      */
     private Optional<LinkDiscovery> updateDevice(Device device) {
         if (device == null) {
+            return Optional.empty();
+        }
+        if (!masterService.isLocalMaster(device.id())) {
+            // Reset the last seen time for all links to this device
+            // then stop discovery for this device
+            List<LinkKey> updateLinks = new LinkedList<>();
+            linkTimes.forEach((link, time) -> {
+                if (link.dst().deviceId().equals(device.id())) {
+                    updateLinks.add(link);
+                }
+            });
+            updateLinks.forEach(link -> linkTimes.remove(link));
+            removeDevice(device.id());
             return Optional.empty();
         }
         if (rules.isSuppressed(device) || isBlacklisted(device.id())) {
@@ -797,21 +813,32 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             updateRules(newRules);
         }
 
+        private boolean isRelevantDeviceEvent(NetworkConfigEvent event) {
+            return event.configClass() == LinkDiscoveryFromDevice.class &&
+                    CONFIG_CHANGED.contains(event.type());
+        }
+
+        private boolean isRelevantPortEvent(NetworkConfigEvent event) {
+            return event.configClass() == LinkDiscoveryFromPort.class &&
+                    CONFIG_CHANGED.contains(event.type());
+        }
+
+        private boolean isRelevantSuppressionEvent(NetworkConfigEvent event) {
+            return (event.configClass().equals(SuppressionConfig.class) &&
+                    (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED));
+        }
+
         @Override
         public void event(NetworkConfigEvent event) {
             eventExecutor.execute(() -> {
-                if (event.configClass() == LinkDiscoveryFromDevice.class &&
-                        CONFIG_CHANGED.contains(event.type())) {
-
+                if (isRelevantDeviceEvent(event)) {
                     if (event.subject() instanceof DeviceId) {
                         final DeviceId did = (DeviceId) event.subject();
                         Device device = deviceService.getDevice(did);
                         updateDevice(device).ifPresent(ld -> updatePorts(ld, did));
                     }
-
-                } else if (event.configClass() == LinkDiscoveryFromPort.class &&
-                        CONFIG_CHANGED.contains(event.type())) {
-
+                } else if (isRelevantPortEvent(event)) {
                     if (event.subject() instanceof ConnectPoint) {
                         ConnectPoint cp = (ConnectPoint) event.subject();
                         if (cp.elementId() instanceof DeviceId) {
@@ -821,10 +848,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                             updateDevice(device).ifPresent(ld -> updatePort(ld, port));
                         }
                     }
-
-                } else if (event.configClass().equals(SuppressionConfig.class) &&
-                        (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                                event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) {
+                } else if (isRelevantSuppressionEvent(event)) {
                     SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
                     reconfigureSuppressionRules(cfg);
                     log.trace("Network config reconfigured");
