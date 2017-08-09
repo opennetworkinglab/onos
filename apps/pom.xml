@@ -90,6 +90,7 @@
         <module>openroadm</module>
         <module>netconf/client</module>
 	<module>gluon</module>
+        <module>evpnopenflow</module>
     </modules>
 
     <properties>

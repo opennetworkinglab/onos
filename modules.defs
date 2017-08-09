@@ -209,6 +209,7 @@ ONOS_APPS = [
     '//apps/openroadm:onos-apps-openroadm-oar',
     '//apps/artemis:onos-apps-artemis-oar',
     '//apps/gluon:onos-apps-gluon-oar',
+    '//apps/evpnopenflow:onos-apps-evpnopenflow-oar',
 ]
 
 PROTOCOL_APPS = [

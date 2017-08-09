@@ -62,7 +62,6 @@ public class EvpnRoute {
      * @param source       route source
      * @param prefixMac    mac address
      * @param prefix       ip address
-     * @param prefix
      * @param nextHop      evpn nexthop
      * @param rd           route distinguisher
      * @param importRtList import route targets
@@ -104,7 +103,6 @@ public class EvpnRoute {
      * @param importRtList import route targets
      * @param exportRtList export route targets
      * @param labelToInt   evpn route label
-     * @param prefix
      */
     public EvpnRoute(Source source,
                      MacAddress prefixMac,
