@@ -933,6 +933,33 @@ remote_jar (
 )
 
 remote_jar (
+  name = 'org.apache.httpcomponents.httpasyncclient-osgi',
+  out = 'httpasyncclient-osgi-4.1.2.jar',
+  url = 'mvn:org.apache.httpcomponents:httpasyncclient-osgi:jar:4.1.2',
+  sha1 = '17eccd8d9f2803ee95e80ee8283155432600e17b',
+  maven_coords = 'org.apache.httpcomponents:httpasyncclient-osgi:4.1.2',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'org.apache.httpcomponents.httpcore-nio',
+  out = 'httpcore-nio-4.4.4.jar',
+  url = 'mvn:org.apache.httpcomponents:httpcore-nio:jar:4.4.4',
+  sha1 = '16badfc2d99db264c486ba8c57ae577301a58bd9',
+  maven_coords = 'org.apache.httpcomponents:httpcore-nio:jar:NON-OSGI:4.4.4',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'org.apache.karaf.jaas',
+  out = 'org.apache.karaf.jaas.modules-3.0.5.jar',
+  url = 'mvn:org.apache.karaf.jaas:org.apache.karaf.jaas.modules:jar:3.0.5',
+  sha1 = '008ff2ef5fa49f346789dfa8919c0537b6261864',
+  maven_coords = 'org.apache.karaf.jaas:org.apache.karaf.jaas.modules:3.0.5',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
   name = 'org.apache.karaf.system.core',
   out = 'org.apache.karaf.system.core-3.0.8.jar',
   url = 'mvn:org.apache.karaf.system:org.apache.karaf.system.core:jar:3.0.8',

@@ -89,6 +89,7 @@
         <module>yang</module>
         <module>openroadm</module>
         <module>netconf/client</module>
+	<module>gluon</module>
     </modules>
 
     <properties>
