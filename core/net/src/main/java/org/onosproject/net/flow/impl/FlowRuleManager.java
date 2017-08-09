@@ -534,7 +534,8 @@ public class FlowRuleManager
                         }
                     }
                 } catch (Exception e) {
-                    log.warn("Can't process added or extra rule {}", e);
+                    log.warn("Can't process added or extra rule {} for device {}:{}",
+                             rule, deviceId, e);
                 }
             }
 

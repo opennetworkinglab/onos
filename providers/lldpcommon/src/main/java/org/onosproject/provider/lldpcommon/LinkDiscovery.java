@@ -265,7 +265,7 @@ public class LinkDiscovery implements TimerTask {
         if (context.packetService() == null) {
             return;
         }
-        log.trace("Sending probes out to {}@{}", portNumber, device.id());
+        log.trace("Sending probes out of {}@{}", portNumber, device.id());
         OutboundPacket pkt = createOutBoundLldp(portNumber);
         context.packetService().emit(pkt);
         if (context.useBddp()) {

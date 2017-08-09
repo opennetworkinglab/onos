@@ -496,7 +496,7 @@ public class IntentManager
         public void triggerCompile(Iterable<Key> intentKeys,
                                    boolean compileAllFailed) {
             // TODO figure out who is making excessive calls?
-            log.trace("submitting {} + all?:{}", intentKeys, compileAllFailed);
+            log.trace("submitting {} + all?:{} for compilation", intentKeys, compileAllFailed);
             buildAndSubmitBatches(intentKeys, compileAllFailed);
         }
     }

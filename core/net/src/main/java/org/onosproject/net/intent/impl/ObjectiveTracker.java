@@ -422,7 +422,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private final class InternalPartitionListener implements WorkPartitionEventListener {
         @Override
         public void event(WorkPartitionEvent event) {
-            log.debug("got message {}", event.subject());
+            log.debug("got message {}:{}", event.type(), event.subject());
             scheduleIntentUpdate(1);
         }
     }
