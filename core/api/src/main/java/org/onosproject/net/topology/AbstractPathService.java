@@ -286,7 +286,7 @@ public abstract class AbstractPathService
         }
         if (dstLink != NOT_HOST) {
             links.add(dstLink);
-            cost = cost.merge(weigher.weight(new DefaultTopologyEdge(null, null, srcLink)));
+            cost = cost.merge(weigher.weight(new DefaultTopologyEdge(null, null, dstLink)));
         }
         return new DefaultPath(PID, links, cost);
     }
