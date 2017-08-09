@@ -1,0 +1,72 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.cfg";
+
+package nb.cfg;
+
+import "cfg/ConfigPropertyProto.proto";
+
+message getComponentNamesRequest {
+}
+
+message getComponentNamesReply {
+    repeated string names = 1;
+}
+
+message registerPropertiesRequest {
+    string component_class = 1;
+}
+
+message registerPropertiesReply {
+}
+
+message unregisterPropertiesRequest {
+    string component_class = 1;
+    bool clear = 2;
+}
+
+message unregisterPropertiesReply {
+}
+
+message getPropertiesRequest {
+    string component_name = 1;
+}
+
+message getPropertiesReply {
+    repeated .cfg.ConfigPropertyProto config_properties = 1;
+}
+
+message setPropertyRequest {
+    string component_name = 1;
+    string name = 2;
+    string value = 3;
+}
+
+message setPropertyReply {
+}
+
+message preSetPropertyRequest {
+    string component_name = 1;
+    string name = 2;
+    string value = 3;
+}
+
+message preSetPropertyReply {
+}
+
+message unsetPropertyRequest {
+    string component_name = 1;
+    string name = 2;
+}
+
+message unsetPropertyReply {
+}
+
+service ComponentConfigService {
+    rpc getComponentNames(getComponentNamesRequest) returns (getComponentNamesReply) {}
+    rpc registerProperties(registerPropertiesRequest) returns (registerPropertiesReply) {}
+    rpc unregisterProperties(unregisterPropertiesRequest) returns (unregisterPropertiesReply) {}
+    rpc getProperties(getPropertiesRequest) returns (getPropertiesReply) {}
+    rpc setProperty(setPropertyRequest) returns (setPropertyReply) {}
+    rpc preSetProperty(preSetPropertyRequest) returns (preSetPropertyReply) {}
+    rpc unsetProperty(unsetPropertyRequest) returns (unsetPropertyReply) {}
+}
