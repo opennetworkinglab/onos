@@ -165,6 +165,7 @@ ONOS_APPS = [
     '//apps/pathpainter:onos-apps-pathpainter-oar',
     '//apps/pcep-api:onos-apps-pcep-api-oar',
     '//apps/pim:onos-apps-pim-oar',
+    '//apps/linkprops:onos-apps-linkprops-oar',
     '//apps/reactive-routing:onos-apps-reactive-routing-oar',
     '//apps/roadm:onos-apps-roadm-oar',
     '//apps/sdnip:onos-apps-sdnip-oar',
