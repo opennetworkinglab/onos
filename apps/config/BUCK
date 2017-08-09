@@ -10,7 +10,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
 ]
 
-osgi_jar (
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
 )
 

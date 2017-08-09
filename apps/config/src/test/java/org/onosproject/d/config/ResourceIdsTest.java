@@ -23,7 +23,7 @@ import org.onosproject.yang.model.ResourceId;
 
 public class ResourceIdsTest {
 
-    final ResourceId DEVICES = ResourceId.builder()
+    static final ResourceId DEVICES = ResourceId.builder()
             .addBranchPointSchema(DeviceResourceIds.ROOT_NAME, DCS_NAMESPACE)
             .addBranchPointSchema(DeviceResourceIds.DEVICES_NAME, DCS_NAMESPACE)
             .build();

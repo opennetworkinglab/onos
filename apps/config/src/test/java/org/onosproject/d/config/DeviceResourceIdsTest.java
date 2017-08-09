@@ -22,7 +22,6 @@ import static org.onosproject.d.config.DeviceResourceIds.ROOT_NAME;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.d.config.DeviceResourceIds;
 import org.onosproject.net.DeviceId;
 import org.onosproject.yang.model.ResourceId;
 

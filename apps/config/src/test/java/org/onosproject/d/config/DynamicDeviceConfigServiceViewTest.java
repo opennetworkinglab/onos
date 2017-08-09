@@ -36,17 +36,17 @@ import org.onosproject.yang.model.RpcOutput;
 
 public class DynamicDeviceConfigServiceViewTest {
 
-    static DeviceId DID = DeviceId.deviceId("test:device");
+    static DeviceId did = DeviceId.deviceId("test:device");
     /**
      * Absolute ResourceId to {@code DID}.
      */
-    static ResourceId RID = DeviceResourceIds.toResourceId(DID);
+    static ResourceId rid = DeviceResourceIds.toResourceId(did);
 
 
     /**
      * Device relative ResourceId pointing to intf node.
      */
-    static ResourceId REL_INTF = ResourceId.builder()
+    static ResourceId relIntf = ResourceId.builder()
                 .addBranchPointSchema("intf", "test")
                 .build();
 
@@ -72,7 +72,7 @@ public class DynamicDeviceConfigServiceViewTest {
         viewEvent = null;
 
         service = new TestDynamicConfigService();
-        view = DynamicDeviceConfigServiceView.deviceView(service, DID);
+        view = DynamicDeviceConfigServiceView.deviceView(service, did);
     }
 
     // FIXME add test scenario where irrelevant event get discarded.
@@ -80,7 +80,7 @@ public class DynamicDeviceConfigServiceViewTest {
     @Test
     public void testListener() throws CloneNotSupportedException, InterruptedException {
         ResourceId realIntf = ResourceId.builder()
-            .append(RID)
+            .append(rid)
             .addBranchPointSchema("intf", "test")
             .build();
 
@@ -107,26 +107,26 @@ public class DynamicDeviceConfigServiceViewTest {
         assertTrue(recieved.await(5, TimeUnit.SECONDS));
 
         assertFalse("Expect relative path but was" + viewRelevantEvent.subject(),
-                    ResourceIds.isPrefix(RID, viewRelevantEvent.subject()));
+                    ResourceIds.isPrefix(rid, viewRelevantEvent.subject()));
         assertFalse("Expect relative path but was" + viewEvent.subject(),
-                    ResourceIds.isPrefix(RID, viewEvent.subject()));
+                    ResourceIds.isPrefix(rid, viewEvent.subject()));
 
         view.removeListener(lsnr);
     }
 
     @Test
     public void testCreateNode() {
-        view.createNode(REL_INTF, node);
+        view.createNode(relIntf, node);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
     }
 
     @Test
     public void testReadNode() {
         Filter filter = null;
-        DataNode returned = view.readNode(REL_INTF, filter);
+        DataNode returned = view.readNode(relIntf, filter);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
 
         // FIXME test realFilter
 
@@ -135,38 +135,38 @@ public class DynamicDeviceConfigServiceViewTest {
 
     @Test
     public void testNodeExist() {
-        view.nodeExist(REL_INTF);
+        view.nodeExist(relIntf);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
     }
 
     @Test
     public void testUpdateNode() {
-        view.updateNode(REL_INTF, node);
+        view.updateNode(relIntf, node);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
     }
 
     @Test
     public void testReplaceNode() {
-        view.replaceNode(REL_INTF, node);
+        view.replaceNode(relIntf, node);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
     }
 
     @Test
     public void testDeleteNode() {
-        view.deleteNode(REL_INTF);
+        view.deleteNode(relIntf);
 
-        assertTrue(ResourceIds.isPrefix(RID, realPath));
+        assertTrue(ResourceIds.isPrefix(rid, realPath));
     }
 
     @Test
     public void testInvokeRpc() {
         RpcInput input = null;
-        view.invokeRpc(REL_INTF, input);
+        view.invokeRpc(relIntf, input);
 
-        assertTrue(ResourceIds.isPrefix(RID, realId));
+        assertTrue(ResourceIds.isPrefix(rid, realId));
     }
 
     private final class TestDynamicConfigService
