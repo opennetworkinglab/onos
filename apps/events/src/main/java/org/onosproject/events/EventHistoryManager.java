@@ -44,6 +44,7 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
@@ -82,6 +83,9 @@ public class EventHistoryManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EdgePortService edgeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService netcfgService;
@@ -127,6 +131,7 @@ public class EventHistoryManager
                  .addListener(hostService, this::addEvent)
                  .addListener(clusterService, this::addEvent)
                  .addListener(edgeService, this::addEvent)
+                 .addListener(intentService, this::addEvent)
                  .addListener(netcfgService, this::addEvent);
 
         log.info("Started");
@@ -164,6 +169,9 @@ public class EventHistoryManager
     }
 
     private void addEvent(Event<?, ?> event) {
+        if (log.isTraceEnabled()) {
+            log.trace(event.toString());
+        }
         history.offer(event);
     }
 
