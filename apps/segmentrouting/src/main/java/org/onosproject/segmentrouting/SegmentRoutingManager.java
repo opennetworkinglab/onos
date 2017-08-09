@@ -1478,12 +1478,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
-            // Do not proceed without mastership
-            DeviceId deviceId = event.subject().location().deviceId();
-            if (!mastershipService.isLocalMaster(deviceId)) {
-                return;
-            }
-
             switch (event.type()) {
                 case HOST_ADDED:
                     hostHandler.processHostAddedEvent(event);
