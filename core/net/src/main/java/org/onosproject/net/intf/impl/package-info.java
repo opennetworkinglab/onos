@@ -17,4 +17,4 @@
 /**
  * Implementation of service for interacting with interfaces.
  */
-package org.onosproject.net.impl;
+package org.onosproject.net.intf.impl;
