@@ -127,6 +127,7 @@ public class BgpCfgProvider extends AbstractProvider {
         bgpConfig.setHoldTime(config.holdTime());
         bgpConfig.setMaxSession(config.maxSession());
         bgpConfig.setLargeASCapability(config.largeAsCapability());
+        bgpConfig.setEvpnCapability(config.evpnCapability());
 
         if (config.flowSpecCapability() == null) {
             bgpConfig.setFlowSpecCapability(BgpCfg.FlowSpec.NONE);

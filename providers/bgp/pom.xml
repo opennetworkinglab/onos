@@ -28,7 +28,8 @@
         <module>cfg</module>
         <module>app</module>
         <module>cli</module>
-  </modules>
+        <module>route</module>
+    </modules>
     <dependencies>
 
         <dependency>

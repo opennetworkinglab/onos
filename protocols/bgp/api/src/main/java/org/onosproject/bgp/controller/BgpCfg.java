@@ -345,4 +345,18 @@ public interface BgpCfg {
      * @param rpdCapability flow specification RPD capability
      */
     void setFlowSpecRpdCapability(boolean rpdCapability);
+
+    /**
+     * Sets the evpn capability.
+     *
+     * @param evpnCapability evpn capability
+     */
+    void setEvpnCapability(boolean evpnCapability);
+    /**
+     * Gets the evpn capability.
+     *
+     * @return evpn capability
+     */
+    boolean getEvpnCapability();
+
 }

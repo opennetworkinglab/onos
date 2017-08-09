@@ -16,25 +16,27 @@
 
 package org.onosproject.bgpio.types;
 
-import java.net.InetAddress;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpEvpnNlri;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
+import org.onosproject.bgpio.protocol.evpn.BgpEvpnNlriImpl;
+import org.onosproject.bgpio.protocol.evpn.BgpEvpnRouteType2Nlri;
 import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecNlri;
-import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.net.InetAddress;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 /*
  * Provides Implementation of MpReach Nlri BGP Path Attribute.
@@ -52,6 +54,7 @@ public class MpReachNlri implements BgpValueType {
     private final byte safi;
     private final Ip4Address ipNextHop;
     private BgpFlowSpecNlri bgpFlowSpecNlri;
+    private List<BgpEvpnNlri> evpnNlri;
 
     /**
      * Constructor to initialize parameters.
@@ -71,12 +74,37 @@ public class MpReachNlri implements BgpValueType {
         this.length = length;
     }
 
+    /**
+     * Constructor to initialize parameters.
+     *
+     * @param bgpFlowSpecNlri bgpFlowSpecNlri
+     * @param afi             afi
+     * @param safi            safi
+     */
     public MpReachNlri(BgpFlowSpecNlri bgpFlowSpecNlri, short afi, byte safi) {
         this.mpReachNlri = null;
         this.isMpReachNlri = true;
         this.length = 0;
         this.ipNextHop = null;
         this.bgpFlowSpecNlri = bgpFlowSpecNlri;
+        this.afi = afi;
+        this.safi = safi;
+    }
+
+    /**
+     * Constructor to initialize parameters.
+     *
+     * @param evpnNlri  evpnNlri
+     * @param afi       afi
+     * @param safi      safi
+     * @param ipNextHop IP Nexthop
+     */
+    public MpReachNlri(List<BgpEvpnNlri> evpnNlri, short afi, byte safi, Ip4Address ipNextHop) {
+        this.mpReachNlri = null;
+        this.length = 42;
+        this.ipNextHop = ipNextHop;
+        this.isMpReachNlri = true;
+        this.evpnNlri = evpnNlri;
         this.afi = afi;
         this.safi = safi;
     }
@@ -115,6 +143,60 @@ public class MpReachNlri implements BgpValueType {
      */
     public BgpFlowSpecNlri bgpFlowSpecNlri() {
         return this.bgpFlowSpecNlri;
+    }
+
+    /**
+     * Returns BGP Evpn info.
+     *
+     * @return BGP Evpn info
+     */
+    public List<BgpEvpnNlri> bgpEvpnNlri() {
+        return this.evpnNlri;
+    }
+
+    /**
+     * Returns afi.
+     *
+     * @return afi
+     */
+    public short getAfi() {
+        return this.afi;
+    }
+
+    /**
+     * Returns safi.
+     *
+     * @return safi
+     */
+    public byte getSafi() {
+        return this.safi();
+    }
+
+    /**
+     * Returns mpReachNlri details type.
+     *
+     * @return type
+     */
+    public BgpNlriType getNlriDetailsType() {
+        if ((this.afi == Constants.AFI_VALUE)
+                && (this.safi == Constants.SAFI_VALUE)
+                || (this.afi == Constants.AFI_VALUE)
+                && (this.safi == Constants.VPN_SAFI_VALUE)) {
+            return BgpNlriType.LINK_STATE;
+        }
+
+        if ((afi == Constants.AFI_FLOWSPEC_VALUE)
+                && ((safi == Constants.SAFI_FLOWSPEC_VALUE)
+                || (safi == Constants.VPN_SAFI_FLOWSPEC_VALUE))) {
+            return BgpNlriType.FLOW_SPEC;
+        }
+
+        if ((afi == Constants.AFI_EVPN_VALUE)
+                && (safi == Constants.SAFI_EVPN_VALUE)) {
+            return BgpNlriType.EVPN;
+        }
+
+        return null;
     }
 
     /**
@@ -272,6 +354,29 @@ public class MpReachNlri implements BgpValueType {
                 BgpFlowSpecNlri flowSpecDetails = new BgpFlowSpecNlri(flowSpecComponents);
                 flowSpecDetails.setRouteDistinguiher(routeDistinguisher);
                 return new MpReachNlri(flowSpecDetails, afi, safi);
+            } else if ((afi == Constants.AFI_EVPN_VALUE)
+                    && (safi == Constants.SAFI_EVPN_VALUE)) {
+
+                List<BgpEvpnNlri> eVpnComponents = null;
+
+                byte nextHopLen = tempCb.readByte();
+                InetAddress ipAddress = Validation.toInetAddress(nextHopLen,
+                                                                 tempCb);
+                if (ipAddress.isMulticastAddress()) {
+                    throw new BgpParseException("Multicast not supported");
+                }
+                ipNextHop = Ip4Address.valueOf(ipAddress);
+                byte reserved = tempCb.readByte();
+                while (tempCb.readableBytes() > 0) {
+                    BgpEvpnNlri eVpnComponent = BgpEvpnNlriImpl.read(tempCb);
+                    eVpnComponents = new LinkedList<>();
+                    eVpnComponents.add(eVpnComponent);
+                    log.info("=====evpn Component is {} ======", eVpnComponent);
+                }
+
+                return new MpReachNlri(eVpnComponents, afi, safi, ipNextHop);
+
+
             } else {
                 throw new BgpParseException("Not Supporting afi " + afi + "safi " + safi);
             }
@@ -358,6 +463,48 @@ public class MpReachNlri implements BgpValueType {
             int fsNlriLen = cb.writerIndex() - mpReachDataIndx;
             cb.setShort(mpReachDataIndx, (short) (fsNlriLen - 2));
 
+        } else if ((afi == Constants.AFI_EVPN_VALUE)
+                && (safi == Constants.SAFI_EVPN_VALUE)) {
+
+            cb.writeByte(FLAGS);
+            cb.writeByte(MPREACHNLRI_TYPE);
+
+            int mpReachDataIndex = cb.writerIndex();
+            cb.writeShort(0);
+            cb.writeShort(afi);
+            cb.writeByte(safi);
+            // ip address length
+            cb.writeByte(0x04);
+            cb.writeInt(ipNextHop.toInt());
+            //sub network points of attachment
+            cb.writeByte(0);
+
+            for (BgpEvpnNlri element : evpnNlri) {
+                short routeType = element.getType();
+                switch (routeType) {
+                    case Constants.BGP_EVPN_MAC_IP_ADVERTISEMENT:
+                        cb.writeByte(element.getType());
+                        int iSpecStartIndex = cb.writerIndex();
+                        cb.writeByte(0);
+                        BgpEvpnRouteType2Nlri macIpAdvNlri = (BgpEvpnRouteType2Nlri) element
+                                .getNlri();
+                        macIpAdvNlri.write(cb);
+                        cb.setByte(iSpecStartIndex, (byte) (cb.writerIndex()
+                                - iSpecStartIndex - 1));
+                        //ChannelBuffer temcb = cb.copy();
+                        break;
+                    case Constants.BGP_EVPN_ETHERNET_AUTO_DISCOVERY:
+                        break;
+                    case Constants.BGP_EVPN_INCLUSIVE_MULTICASE_ETHERNET:
+                        break;
+                    case Constants.BGP_EVPN_ETHERNET_SEGMENT:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            int evpnNlriLen = cb.writerIndex() - mpReachDataIndex;
+            cb.setShort(mpReachDataIndex, (short) (evpnNlriLen - 2));
         }
 
         return cb.writerIndex() - iLenStartIndex;

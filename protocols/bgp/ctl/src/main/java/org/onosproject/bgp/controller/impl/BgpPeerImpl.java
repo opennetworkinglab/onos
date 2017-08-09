@@ -26,6 +26,7 @@ import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpSessionInfo;
 import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpEvpnNlri;
 import org.onosproject.bgpio.protocol.BgpFactories;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
@@ -36,8 +37,8 @@ import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
-import org.onosproject.bgpio.types.AsPath;
 import org.onosproject.bgpio.types.As4Path;
+import org.onosproject.bgpio.types.AsPath;
 import org.onosproject.bgpio.types.BgpExtendedCommunity;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LocalPref;
@@ -46,8 +47,8 @@ import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.types.Origin;
-import org.onosproject.bgpio.types.attr.WideCommunity;
 import org.onosproject.bgpio.types.RpdCapabilityTlv;
+import org.onosproject.bgpio.types.attr.WideCommunity;
 import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,6 +254,69 @@ public class BgpPeerImpl implements BgpPeer {
         Preconditions.checkNotNull(flowSpec.fsActionTlv(), "flow specification action cannot be null");
 
         sendFlowSpecUpdateMessageToPeer(operType, routeKey, flowSpec, wideCommunity);
+    }
+
+    @Override
+    public void updateEvpnNlri(FlowSpecOperation operType, IpAddress nextHop,
+                               List<BgpValueType> extcommunity,
+                               List<BgpEvpnNlri> evpnNlris) {
+        Preconditions.checkNotNull(operType, "Operation type cannot be null");
+        Preconditions.checkNotNull(evpnNlris, "Evpn nlri cannot be null");
+        sendEvpnUpdateMessageToPeer(operType, nextHop, extcommunity, evpnNlris);
+    }
+
+    private void sendEvpnUpdateMessageToPeer(FlowSpecOperation operType,
+                                             IpAddress nextHop,
+                                             List<BgpValueType> extcommunity,
+                                             List<BgpEvpnNlri> evpnNlris) {
+        List<BgpValueType> attributesList = new LinkedList<>();
+        byte sessionType = sessionInfo.isIbgpSession() ? (byte) 0 : (byte) 1;
+        short afi = Constants.AFI_EVPN_VALUE;
+        byte safi = Constants.SAFI_EVPN_VALUE;
+        boolean isEvpnCapabilitySet = isCapabilitySupported(MultiProtocolExtnCapabilityTlv.TYPE,
+                                                            afi, safi);
+        if (!isEvpnCapabilitySet) {
+            log.debug("Peer do not support BGP Evpn capability",
+                     channel.getRemoteAddress());
+            return;
+        }
+        attributesList.add(new Origin((byte) 0));
+
+        if (sessionType != 0) {
+            // EBGP
+            if (!bgpController.getConfig().getLargeASCapability()) {
+                List<Short> aspathSet = new ArrayList<>();
+                List<Short> aspathSeq = new ArrayList<>();
+                aspathSeq.add((short) bgpController.getConfig().getAsNumber());
+
+                AsPath asPath = new AsPath(aspathSet, aspathSeq);
+                attributesList.add(asPath);
+            } else {
+                List<Integer> aspathSet = new ArrayList<>();
+                List<Integer> aspathSeq = new ArrayList<>();
+                aspathSeq.add(bgpController.getConfig().getAsNumber());
+
+                As4Path as4Path = new As4Path(aspathSet, aspathSeq);
+                attributesList.add(as4Path);
+            }
+        } else {
+            attributesList.add(new AsPath());
+        }
+
+        if (!extcommunity.isEmpty()) {
+            attributesList.add(new BgpExtendedCommunity(extcommunity));
+        }
+        if (operType == FlowSpecOperation.ADD || operType == FlowSpecOperation.UPDATE) {
+            attributesList
+                    .add(new MpReachNlri(evpnNlris, afi, safi, nextHop.getIp4Address()));
+        } else if (operType == FlowSpecOperation.DELETE) {
+            attributesList.add(new MpUnReachNlri(evpnNlris, afi, safi));
+        }
+
+        BgpMessage msg = Controller.getBgpMessageFactory4()
+                .updateMessageBuilder().setBgpPathAttributes(attributesList)
+                .build();
+        channel.write(Collections.singletonList(msg));
     }
 
     @Override

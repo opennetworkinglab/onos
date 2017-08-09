@@ -148,6 +148,16 @@ public interface BgpOpenMsg extends BgpMessage {
          */
         Builder setFlowSpecRpdCapabilityTlv(boolean isFlowSpecRpdCapabilitySet);
 
+        /**
+         * Sets Evpn capability and return its builder.
+         *
+         * @param isEvpnCapabilitySet boolean value to know whether evpn
+         *            capability is set or not
+         *
+         * @return builder by setting capabilities
+         */
+        Builder setEvpnCapabilityTlv(boolean isEvpnCapabilitySet);
+
         @Override
         Builder setHeader(BgpHeader bgpMsgHeader);
     }

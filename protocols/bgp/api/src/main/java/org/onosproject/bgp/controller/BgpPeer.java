@@ -16,7 +16,9 @@
 package org.onosproject.bgp.controller;
 import java.util.List;
 import org.jboss.netty.channel.Channel;
+import org.onlab.packet.IpAddress;
 import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpEvpnNlri;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpMessage;
 import org.onosproject.bgpio.protocol.flowspec.BgpFlowSpecNlri;
@@ -140,5 +142,17 @@ public interface BgpPeer {
      * @param wideCommunity for route policy
      */
     void updateFlowSpec(FlowSpecOperation operType, BgpFlowSpecRouteKey routeKey,
-                               BgpFlowSpecNlri flowSpec, WideCommunity wideCommunity);
+                        BgpFlowSpecNlri flowSpec, WideCommunity wideCommunity);
+
+    /**
+     * Updates evpn rule.
+     *
+     * @param operType     operation type add or delete or update
+     * @param nextHop      next Hop
+     * @param extcommunity extended community
+     * @param evpnNlris    list of evpnNlri
+     */
+    void updateEvpnNlri(FlowSpecOperation operType, IpAddress nextHop,
+                        List<BgpValueType> extcommunity,
+                        List<BgpEvpnNlri> evpnNlris);
 }

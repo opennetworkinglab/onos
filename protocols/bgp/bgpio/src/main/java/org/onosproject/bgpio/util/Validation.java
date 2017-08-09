@@ -24,6 +24,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +152,19 @@ public class Validation {
         }
         return ipAddress;
     }
-
+    /**
+     * Convert byte array to MacAddress.
+     *
+     * @param length of MacAddress
+     * @param cb channelBuffer
+     * @return macAddress
+     */
+    public static MacAddress toMacAddress(int length, ChannelBuffer cb) {
+        byte[] address = new byte[length];
+        cb.readBytes(address, 0, length);
+        MacAddress macAddress = MacAddress.valueOf(address);
+        return macAddress;
+    }
     /**
      * Returns first bit in type flags.
      *

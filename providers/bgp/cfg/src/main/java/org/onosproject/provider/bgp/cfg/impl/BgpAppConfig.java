@@ -30,9 +30,9 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
 import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Configuration object for BGP.
@@ -52,6 +52,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String LARGE_AS_CAPABILITY = "largeAsCapability";
     public static final String FLOW_SPEC_CAPABILITY = "flowSpecCapability";
     public static final String FLOW_SPEC_RPD_CAPABILITY = "flowSpecRpdCapability";
+    public static final String EVPN_CAPABILITY = "evpnCapability";
 
     public static final String BGP_PEER = "bgpPeer";
     public static final String PEER_IP = "peerIp";
@@ -78,12 +79,14 @@ public class BgpAppConfig extends Config<ApplicationId> {
         bgpConfig = bgpController.getConfig();
 
         fields = hasOnlyFields(ROUTER_ID, LOCAL_AS, MAX_SESSION, LS_CAPABILITY,
-                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY, FLOW_SPEC_RPD_CAPABILITY, BGP_PEER) &&
+                               HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY,
+                               FLOW_SPEC_RPD_CAPABILITY, BGP_PEER, EVPN_CAPABILITY) &&
                 isIpAddress(ROUTER_ID, MANDATORY) && isNumber(LOCAL_AS, MANDATORY) &&
                 isNumber(MAX_SESSION, OPTIONAL, MIN_SESSION_NUMBER, MAX_SESSION_NUMBER)
                 && isNumber(HOLD_TIME, OPTIONAL, MIN_HOLDTIME, MAX_HOLDTIME) &&
                 isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL) &&
-                isString(FLOW_SPEC_CAPABILITY, OPTIONAL) && isBoolean(FLOW_SPEC_RPD_CAPABILITY, OPTIONAL);
+                isString(FLOW_SPEC_CAPABILITY, OPTIONAL) && isBoolean(FLOW_SPEC_RPD_CAPABILITY, OPTIONAL)
+                && isBoolean(EVPN_CAPABILITY, OPTIONAL);
 
         if (!fields) {
             return fields;
@@ -179,6 +182,15 @@ public class BgpAppConfig extends Config<ApplicationId> {
         }
         log.debug("Flow specification capabality is true");
         return true;
+    }
+
+    /**
+     * Returns evpn capability support from the configuration.
+     *
+     * @return evpn capability
+     */
+    public boolean evpnCapability() {
+        return Boolean.parseBoolean(get(EVPN_CAPABILITY, null));
     }
 
     /**
