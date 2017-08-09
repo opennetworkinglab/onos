@@ -31,7 +31,7 @@ import org.onosproject.incubator.net.routing.EvpnRouteService;
 import org.onosproject.incubator.net.routing.EvpnRouteSet;
 import org.onosproject.incubator.net.routing.EvpnRouteStore;
 import org.onosproject.incubator.net.routing.EvpnRouteStoreDelegate;
-import org.onosproject.incubator.net.routing.RouteTableId;
+import org.onosproject.incubator.net.routing.EvpnRouteTableId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +146,7 @@ public class EvpnRouteManager implements EvpnRouteService,
     }
 
 
-    public Collection<RouteTableId> getRouteTables() {
+    public Collection<EvpnRouteTableId> getRouteTables() {
         return evpnRouteStore.getRouteTables();
     }
 

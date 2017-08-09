@@ -30,8 +30,8 @@ import org.onosproject.incubator.net.routing.EvpnRoute;
 import org.onosproject.incubator.net.routing.EvpnRouteSet;
 import org.onosproject.incubator.net.routing.EvpnRouteStore;
 import org.onosproject.incubator.net.routing.EvpnRouteStoreDelegate;
+import org.onosproject.incubator.net.routing.EvpnRouteTableId;
 import org.onosproject.incubator.net.routing.EvpnTable;
-import org.onosproject.incubator.net.routing.RouteTableId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
@@ -67,18 +67,18 @@ public class DistributedEvpnRouteStore extends
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public StorageService storageService;
 
-    private static final RouteTableId EVPN_IPV4 = new RouteTableId("evpn_ipv4");
-    private static final RouteTableId EVPN_IPV6 = new RouteTableId("evpn_ipv6");
+    private static final EvpnRouteTableId EVPN_IPV4 = new EvpnRouteTableId("evpn_ipv4");
+    private static final EvpnRouteTableId EVPN_IPV6 = new EvpnRouteTableId("evpn_ipv6");
 
-    private final SetEventListener<RouteTableId> masterRouteTableListener =
+    private final SetEventListener<EvpnRouteTableId> masterRouteTableListener =
             new MasterRouteTableListener();
     private final EvpnRouteStoreDelegate ourDelegate = new
             InternalEvpnRouteStoreDelegate();
 
     // Stores the route tables that have been created
-    public DistributedSet<RouteTableId> masterRouteTable;
+    public DistributedSet<EvpnRouteTableId> masterRouteTable;
     // Local memory map to store route table object
-    public Map<RouteTableId, EvpnTable> routeTables;
+    public Map<EvpnRouteTableId, EvpnTable> routeTables;
 
     private ExecutorService executor;
 
@@ -92,10 +92,10 @@ public class DistributedEvpnRouteStore extends
         executor = Executors.newSingleThreadExecutor(groupedThreads("onos/route", "store", log));
 
         KryoNamespace masterRouteTableSerializer = KryoNamespace.newBuilder()
-                .register(RouteTableId.class)
+                .register(EvpnRouteTableId.class)
                 .build();
 
-        masterRouteTable = storageService.<RouteTableId>setBuilder()
+        masterRouteTable = storageService.<EvpnRouteTableId>setBuilder()
                 .withName("onos-master-route-table")
                 .withSerializer(Serializer.using(masterRouteTableSerializer))
                 .build()
@@ -135,12 +135,12 @@ public class DistributedEvpnRouteStore extends
     }
 
     @Override
-    public Set<RouteTableId> getRouteTables() {
+    public Set<EvpnRouteTableId> getRouteTables() {
         return ImmutableSet.copyOf(masterRouteTable);
     }
 
     @Override
-    public Collection<EvpnRouteSet> getRoutes(RouteTableId table) {
+    public Collection<EvpnRouteSet> getRoutes(EvpnRouteTableId table) {
         EvpnTable routeTable = routeTables.get(table);
         if (routeTable == null) {
             return Collections.emptySet();
@@ -154,12 +154,12 @@ public class DistributedEvpnRouteStore extends
         return getDefaultRouteTable(ip).getRoutesForNextHop(ip);
     }
 
-    private void createRouteTable(RouteTableId tableId) {
+    private void createRouteTable(EvpnRouteTableId tableId) {
         routeTables.computeIfAbsent(tableId, id -> new EvpnRouteTable(id,
                                                                       ourDelegate, storageService, executor));
     }
 
-    private void destroyRouteTable(RouteTableId tableId) {
+    private void destroyRouteTable(EvpnRouteTableId tableId) {
         EvpnTable table = routeTables.remove(tableId);
         if (table != null) {
             table.destroy();
@@ -171,7 +171,7 @@ public class DistributedEvpnRouteStore extends
     }
 
     private EvpnTable getDefaultRouteTable(IpAddress ip) {
-        RouteTableId routeTableId = (ip.isIp4()) ? EVPN_IPV4 : EVPN_IPV6;
+        EvpnRouteTableId routeTableId = (ip.isIp4()) ? EVPN_IPV4 : EVPN_IPV6;
         return routeTables.getOrDefault(routeTableId, EmptyEvpnRouteTable
                 .instance());
     }
@@ -185,9 +185,9 @@ public class DistributedEvpnRouteStore extends
         }
     }
 
-    private class MasterRouteTableListener implements SetEventListener<RouteTableId> {
+    private class MasterRouteTableListener implements SetEventListener<EvpnRouteTableId> {
         @Override
-        public void event(SetEvent<RouteTableId> event) {
+        public void event(SetEvent<EvpnRouteTableId> event) {
             switch (event.type()) {
                 case ADD:
                     executor.execute(() -> createRouteTable(event.entry()));

@@ -44,7 +44,7 @@ public interface EvpnTable {
      *
      * @return route table ID
      */
-    RouteTableId id();
+    EvpnRouteTableId id();
 
     /**
      * Returns all routes in the route table.

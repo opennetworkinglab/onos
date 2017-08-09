@@ -47,7 +47,7 @@ public interface EvpnRouteStore extends Store<EvpnInternalRouteEvent,
      *
      * @return route table IDs
      */
-    Set<RouteTableId> getRouteTables();
+    Set<EvpnRouteTableId> getRouteTables();
 
     /**
      * Returns the routes in the given route table, grouped by prefix.
@@ -55,7 +55,7 @@ public interface EvpnRouteStore extends Store<EvpnInternalRouteEvent,
      * @param table route table ID
      * @return routes
      */
-    Collection<EvpnRouteSet> getRoutes(RouteTableId table);
+    Collection<EvpnRouteSet> getRoutes(EvpnRouteTableId table);
 
     /**
      * Returns the routes that point to the given next hop IP address.

@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A set of routes for a particular prefix in a route table.
  */
 public class EvpnRouteSet {
-    private final RouteTableId tableId;
+    private final EvpnRouteTableId tableId;
 
     private final EvpnPrefix prefix;
     private final Set<EvpnRoute> routes;
@@ -39,7 +39,7 @@ public class EvpnRouteSet {
      * @param prefix  IP prefix
      * @param routes  routes for the given prefix
      */
-    public EvpnRouteSet(RouteTableId tableId, EvpnPrefix prefix, Set<EvpnRoute>
+    public EvpnRouteSet(EvpnRouteTableId tableId, EvpnPrefix prefix, Set<EvpnRoute>
             routes) {
         this.tableId = checkNotNull(tableId);
         this.prefix = checkNotNull(prefix);
@@ -51,7 +51,7 @@ public class EvpnRouteSet {
      *
      * @return route table ID
      */
-    public RouteTableId tableId() {
+    public EvpnRouteTableId tableId() {
         return tableId;
     }
 
@@ -84,7 +84,7 @@ public class EvpnRouteSet {
             return true;
         }
 
-        if (!(other instanceof RouteSet)) {
+        if (!(other instanceof EvpnRouteSet)) {
             return false;
         }
 

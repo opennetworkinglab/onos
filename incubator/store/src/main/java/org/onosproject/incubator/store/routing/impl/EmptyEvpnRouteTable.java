@@ -20,8 +20,8 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.incubator.net.routing.EvpnPrefix;
 import org.onosproject.incubator.net.routing.EvpnRoute;
 import org.onosproject.incubator.net.routing.EvpnRouteSet;
+import org.onosproject.incubator.net.routing.EvpnRouteTableId;
 import org.onosproject.incubator.net.routing.EvpnTable;
-import org.onosproject.incubator.net.routing.RouteTableId;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import java.util.Collections;
  */
 public final class EmptyEvpnRouteTable implements EvpnTable {
 
-    private final RouteTableId id = new RouteTableId("empty");
+    private final EvpnRouteTableId id = new EvpnRouteTableId("empty");
 
     private static final EmptyEvpnRouteTable INSTANCE = new EmptyEvpnRouteTable();
 
@@ -58,7 +58,7 @@ public final class EmptyEvpnRouteTable implements EvpnTable {
     }
 
     @Override
-    public RouteTableId id() {
+    public EvpnRouteTableId id() {
         return id;
     }
 

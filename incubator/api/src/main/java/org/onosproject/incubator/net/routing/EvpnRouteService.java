@@ -32,5 +32,5 @@ public interface EvpnRouteService extends ListenerService<EvpnRouteEvent,
      *
      * @return collection of route table IDs.
      */
-    Collection<RouteTableId> getRouteTables();
+    Collection<EvpnRouteTableId> getRouteTables();
 }

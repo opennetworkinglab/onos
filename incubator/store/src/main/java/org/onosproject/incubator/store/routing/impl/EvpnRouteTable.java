@@ -25,11 +25,10 @@ import org.onosproject.incubator.net.routing.EvpnPrefix;
 import org.onosproject.incubator.net.routing.EvpnRoute;
 import org.onosproject.incubator.net.routing.EvpnRouteSet;
 import org.onosproject.incubator.net.routing.EvpnRouteStoreDelegate;
+import org.onosproject.incubator.net.routing.EvpnRouteTableId;
 import org.onosproject.incubator.net.routing.EvpnTable;
 import org.onosproject.incubator.net.routing.Label;
-import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteDistinguisher;
-import org.onosproject.incubator.net.routing.RouteTableId;
 import org.onosproject.incubator.net.routing.VpnRouteTarget;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -55,7 +54,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class EvpnRouteTable implements EvpnTable {
 
-    private final RouteTableId id;
+    private final EvpnRouteTableId id;
     private final ConsistentMap<EvpnPrefix, Set<EvpnRoute>> routes;
     private final EvpnRouteStoreDelegate delegate;
     private final ExecutorService executor;
@@ -71,7 +70,7 @@ public class EvpnRouteTable implements EvpnTable {
      * @param storageService storage service
      * @param executor       executor service
      */
-    public EvpnRouteTable(RouteTableId id, EvpnRouteStoreDelegate delegate,
+    public EvpnRouteTable(EvpnRouteTableId id, EvpnRouteStoreDelegate delegate,
                           StorageService storageService, ExecutorService executor) {
         this.delegate = checkNotNull(delegate);
         this.id = checkNotNull(id);
@@ -103,8 +102,6 @@ public class EvpnRouteTable implements EvpnTable {
         KryoNamespace routeTableSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(KryoNamespaces.MISC)
-                .register(Route.class)
-                .register(Route.Source.class)
                 .register(EvpnRoute.class)
                 .register(EvpnPrefix.class)
                 .register(RouteDistinguisher.class)
@@ -114,7 +111,7 @@ public class EvpnRouteTable implements EvpnTable {
                 .register(IpAddress.class)
                 .register(VpnRouteTarget.class)
                 .register(Label.class)
-                .register(RouteTableId.class)
+                .register(EvpnRouteTableId.class)
                 .build();
         return storageService.<EvpnPrefix, Set<EvpnRoute>>consistentMapBuilder()
                 .withName("onos-evpn-routes-" + id.name())
@@ -124,7 +121,7 @@ public class EvpnRouteTable implements EvpnTable {
     }
 
     @Override
-    public RouteTableId id() {
+    public EvpnRouteTableId id() {
         return id;
     }
 
