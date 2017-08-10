@@ -16,9 +16,9 @@
 
 package org.onosproject.evpnopenflow.rsc;
 
-import org.onosproject.incubator.net.routing.EvpnInstanceName;
-import org.onosproject.incubator.net.routing.RouteDistinguisher;
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.EvpnInstanceName;
+import org.onosproject.evpnrouteservice.RouteDistinguisher;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 import java.util.Objects;
 import java.util.Set;

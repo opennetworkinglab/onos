@@ -92,6 +92,7 @@
 	    <module>gluon</module>
         <module>evpnopenflow</module>
         <module>route-service</module>
+        <module>evpn-route-service</module>
     </modules>
 
     <properties>

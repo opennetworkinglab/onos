@@ -211,6 +211,7 @@ ONOS_APPS = [
     '//apps/gluon:onos-apps-gluon-oar',
     '//apps/evpnopenflow:onos-apps-evpnopenflow-oar',
     '//apps/route-service:onos-apps-route-service-oar',
+    '//apps/evpn-route-service:onos-apps-evpn-route-service-oar',
 ]
 
 PROTOCOL_APPS = [

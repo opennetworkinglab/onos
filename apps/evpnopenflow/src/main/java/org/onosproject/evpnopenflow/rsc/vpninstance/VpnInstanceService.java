@@ -19,7 +19,7 @@ package org.onosproject.evpnopenflow.rsc.vpninstance;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.evpnopenflow.rsc.VpnInstance;
 import org.onosproject.evpnopenflow.rsc.VpnInstanceId;
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 import java.util.Collection;
 import java.util.Set;

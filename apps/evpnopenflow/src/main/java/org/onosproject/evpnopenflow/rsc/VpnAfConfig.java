@@ -16,7 +16,7 @@
 
 package org.onosproject.evpnopenflow.rsc;
 
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 /**
  * Representation of a VPN af configuration.

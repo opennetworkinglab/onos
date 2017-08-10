@@ -18,9 +18,9 @@ package org.onosproject.evpnopenflow.rsc.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.routing.EvpnRoute;
-import org.onosproject.incubator.net.routing.EvpnRouteSet;
-import org.onosproject.incubator.net.routing.EvpnRouteStore;
+import org.onosproject.evpnrouteservice.EvpnRoute;
+import org.onosproject.evpnrouteservice.EvpnRouteSet;
+import org.onosproject.evpnrouteservice.EvpnRouteStore;
 
 import java.util.Collection;
 

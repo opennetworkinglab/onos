@@ -31,7 +31,7 @@ import org.onosproject.evpnopenflow.rsc.VpnAfConfig;
 import org.onosproject.evpnopenflow.rsc.vpnafconfig.VpnAfConfigEvent;
 import org.onosproject.evpnopenflow.rsc.vpnafconfig.VpnAfConfigListener;
 import org.onosproject.evpnopenflow.rsc.vpnafconfig.VpnAfConfigService;
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;

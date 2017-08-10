@@ -16,7 +16,7 @@
 
 package org.onosproject.evpnopenflow.rsc;
 
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;

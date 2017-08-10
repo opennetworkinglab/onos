@@ -18,7 +18,7 @@ package org.onosproject.evpnopenflow.rsc.vpnafconfig;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.evpnopenflow.rsc.VpnAfConfig;
-import org.onosproject.incubator.net.routing.VpnRouteTarget;
+import org.onosproject.evpnrouteservice.VpnRouteTarget;
 
 import java.util.Collection;
 

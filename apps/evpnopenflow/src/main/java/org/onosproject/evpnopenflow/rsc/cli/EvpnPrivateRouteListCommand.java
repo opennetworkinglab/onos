@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.manager.EvpnService;
 import org.onosproject.evpnopenflow.manager.impl.EvpnManager;
-import org.onosproject.incubator.net.routing.EvpnInstanceRoute;
+import org.onosproject.evpnrouteservice.EvpnInstanceRoute;
 
 import java.util.Collection;
 

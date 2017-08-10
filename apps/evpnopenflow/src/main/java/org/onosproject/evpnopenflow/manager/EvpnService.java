@@ -17,7 +17,7 @@
 package org.onosproject.evpnopenflow.manager;
 
 import org.onosproject.evpnopenflow.rsc.VpnPort;
-import org.onosproject.incubator.net.routing.EvpnRoute;
+import org.onosproject.evpnrouteservice.EvpnRoute;
 import org.onosproject.net.Host;
 
 /**

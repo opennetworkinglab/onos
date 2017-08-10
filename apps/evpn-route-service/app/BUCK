@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//utils/misc:onlab-misc',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

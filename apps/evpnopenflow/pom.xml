@@ -110,5 +110,10 @@
             <artifactId>onos-apps-route-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-evpn-route-service-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
