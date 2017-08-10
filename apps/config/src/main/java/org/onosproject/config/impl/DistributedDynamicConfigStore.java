@@ -197,9 +197,11 @@ public class DistributedDynamicConfigStore
     }
 
     private Boolean addKey(String path, DataNode.Type type) {
-        Boolean stat = false;
-        CompletableFuture<Boolean> ret = keystore.create(DocumentPath.from(path), type);
-        return complete(ret);
+        if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
+            completeVersioned(keystore.set(DocumentPath.from(path), type));
+            return true;
+        }
+        return complete(keystore.create(DocumentPath.from(path), type));
     }
 
     @Override
