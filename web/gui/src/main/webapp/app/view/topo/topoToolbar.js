@@ -126,10 +126,16 @@
         // TODO: use angular forEach instead of d3.map
         keyData = d3.map(k2b);
         keyData.forEach(function (key, value) {
-            var data = api.getActionEntry(key);
+            var data = api.getActionEntry(key),
+                ttfn = data[1]; // tooltip-possibly-a-function
+
             value.key = key;
             value.cb = data[0]; // on-click callback
-            value.tt = data[1] + ' (' + key + ')'; // tooltip
+
+            // tooltip function invoked at the time the tooltip is displayed
+            value.tt = function () {
+                return fs.isF(ttfn) ? ttfn() : "" + ttfn;
+            };
         });
     }
 
@@ -137,11 +143,7 @@
     function deferredText(v) {
         // this function will get invoked at the time the tooltip is displayed:
         return function () {
-            if (!v.ttText) {
-                // haven't cached the value yet
-                v.ttText = (fs.isF(v.tt) ? v.tt() : v.tt) + ' (' + v.key + ')';
-            }
-            return v.ttText;
+            return (fs.isF(v.tt) ? v.tt() : v.tt) + ' (' + v.key + ')';
         };
     }
 
