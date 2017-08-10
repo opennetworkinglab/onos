@@ -253,7 +253,7 @@ public class McastHandler {
         }
 
         // Process the ingress device
-        addFilterToDevice(source.deviceId(), source.port(), assignedVlan(source));
+        addFilterToDevice(source.deviceId(), source.port(), assignedVlan(source), mcastIp);
 
         // When source and sink are on the same device
         if (source.deviceId().equals(sink.deviceId())) {
@@ -277,7 +277,7 @@ public class McastHandler {
             links.forEach(link -> {
                 addPortToDevice(link.src().deviceId(), link.src().port(), mcastIp,
                         assignedVlan(link.src().deviceId().equals(source.deviceId()) ? source : null));
-                addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null));
+                addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null), mcastIp);
             });
 
             // Process the egress device
@@ -344,7 +344,7 @@ public class McastHandler {
                     links.forEach(link -> {
                         addPortToDevice(link.src().deviceId(), link.src().port(), mcastIp,
                                 assignedVlan(link.src().deviceId().equals(source.deviceId()) ? source : null));
-                        addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null));
+                        addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null), mcastIp);
                     });
                     // Setup new transit mcast role
                     mcastRoleStore.put(new McastStoreKey(mcastIp,
@@ -365,7 +365,7 @@ public class McastHandler {
      * @param port ingress port number
      * @param assignedVlan assigned VLAN ID
      */
-    private void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan) {
+    private void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan, IpAddress mcastIp) {
         // Do nothing if the port is configured as suppressed
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
         SegmentRoutingAppConfig appConfig = srManager.cfgService
@@ -376,7 +376,7 @@ public class McastHandler {
         }
 
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan);
+                filterObjBuilder(deviceId, port, assignedVlan, mcastIp);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
                         deviceId, port.toLong(), assignedVlan),
@@ -596,9 +596,17 @@ public class McastHandler {
     private ForwardingObjective.Builder fwdObjBuilder(IpAddress mcastIp,
             VlanId assignedVlan, int nextId) {
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        IpPrefix mcastPrefix = IpPrefix.valueOf(mcastIp, IpPrefix.MAX_INET_MASK_LENGTH);
-        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
-        sbuilder.matchIPDst(mcastPrefix);
+        IpPrefix mcastPrefix = mcastIp.toIpPrefix();
+
+        if (mcastIp.isIp4()) {
+            sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+            sbuilder.matchIPDst(mcastPrefix);
+        } else {
+            sbuilder.matchEthType(Ethernet.TYPE_IPV6);
+            sbuilder.matchIPv6Dst(mcastPrefix);
+        }
+
+
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
         metabuilder.matchVlanId(assignedVlan);
 
@@ -621,14 +629,22 @@ public class McastHandler {
      * @return filtering objective builder
      */
     private FilteringObjective.Builder filterObjBuilder(DeviceId deviceId, PortNumber ingressPort,
-            VlanId assignedVlan) {
+            VlanId assignedVlan, IpAddress mcastIp) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
-        filtBuilder.withKey(Criteria.matchInPort(ingressPort))
-                .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
-                        MacAddress.IPV4_MULTICAST_MASK))
-                .addCondition(Criteria.matchVlanId(egressVlan()))
-                .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
 
+        if (mcastIp.isIp4()) {
+            filtBuilder.withKey(Criteria.matchInPort(ingressPort))
+            .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
+                    MacAddress.IPV4_MULTICAST_MASK))
+            .addCondition(Criteria.matchVlanId(egressVlan()))
+            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        } else {
+            filtBuilder.withKey(Criteria.matchInPort(ingressPort))
+            .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
+                     MacAddress.IPV6_MULTICAST_MASK))
+            .addCondition(Criteria.matchVlanId(egressVlan()))
+            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        }
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .pushVlan().setVlanId(assignedVlan).build();
         filtBuilder.withMeta(tt);
