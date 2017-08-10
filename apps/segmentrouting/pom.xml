@@ -109,7 +109,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-route-service-api</artifactId>
+            <artifactId>onos-apps-route-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

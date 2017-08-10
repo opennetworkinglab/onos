@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-route-service-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-route-service/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-route-service-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-route-service/${project.version}</bundle>
     </feature>
 </features>
