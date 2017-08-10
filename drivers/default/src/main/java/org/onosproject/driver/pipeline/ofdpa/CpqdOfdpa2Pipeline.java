@@ -18,6 +18,7 @@ package org.onosproject.driver.pipeline.ofdpa;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -491,10 +492,30 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                         + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
         } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
-            if (buildIpv6Selector(filteredSelector, fwd) < 0) {
-                return Collections.emptyList();
+            IpPrefix ipv6Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV6_DST)).ip();
+            if (ipv6Dst.isMulticast()) {
+                if (ipv6Dst.prefixLength() != IpAddress.INET6_BIT_LENGTH) {
+                    log.debug("Multicast specific IPv6 forwarding objective can only be /128");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+                if (assignedVlan == null) {
+                    log.debug("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                    fail(fwd, ObjectiveError.BADPARAMS);
+                    return ImmutableSet.of();
+                }
+                filteredSelector.matchVlanId(assignedVlan);
+                filteredSelector.matchEthType(Ethernet.TYPE_IPV6).matchIPv6Dst(ipv6Dst);
+                forTableId = MULTICAST_ROUTING_TABLE;
+                log.debug("processing IPv6 multicast specific forwarding objective {} -> next:{}"
+                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+            } else {
+                if (buildIpv6Selector(filteredSelector, fwd) < 0) {
+                    return Collections.emptyList();
+                }
+                forTableId = UNICAST_ROUTING_TABLE;
             }
-            forTableId = UNICAST_ROUTING_TABLE;
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)

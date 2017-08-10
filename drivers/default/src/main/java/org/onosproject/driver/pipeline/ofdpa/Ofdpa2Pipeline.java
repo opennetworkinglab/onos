@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -857,6 +858,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
                                                       ApplicationId applicationId) {
+        ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
@@ -870,7 +872,22 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        return ImmutableList.<FlowRule>builder().add(rule).build();
+        builder.add(rule);
+
+        selector = DefaultTrafficSelector.builder();
+        treatment = DefaultTrafficTreatment.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV6);
+        selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
+        treatment.transition(MULTICAST_ROUTING_TABLE);
+        rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+        return builder.add(rule).build();
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
@@ -1281,16 +1298,34 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         IpPrefix ipv6Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV6_DST)).ip();
         if (ipv6Dst.isMulticast()) {
-            log.warn("IPv6 Multicast is currently not supported");
-            fail(fwd, ObjectiveError.BADPARAMS);
-            return -1;
-        }
-        if (ipv6Dst.prefixLength() != 0) {
-            builderToUpdate.matchIPv6Dst(ipv6Dst);
-        }
+            if (ipv6Dst.prefixLength() != IpAddress.INET6_BIT_LENGTH) {
+                log.warn("Multicast specific forwarding objective can only be /128");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+            if (assignedVlan == null) {
+                log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+                builderToUpdate.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                builderToUpdate.matchVlanId(assignedVlan);
+            }
+            builderToUpdate.matchEthType(Ethernet.TYPE_IPV6).matchIPv6Dst(ipv6Dst);
+            log.debug("processing IPv6 multicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        } else {
+           if (ipv6Dst.prefixLength() != 0) {
+               builderToUpdate.matchIPv6Dst(ipv6Dst);
+           }
         builderToUpdate.matchEthType(Ethernet.TYPE_IPV6);
         log.debug("processing IPv6 unicast specific forwarding objective {} -> next:{}"
                               + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        }
         return 0;
     }
 

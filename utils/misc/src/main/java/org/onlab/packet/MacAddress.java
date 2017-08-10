@@ -56,6 +56,14 @@ public class MacAddress {
      */
     public static final MacAddress IPV4_MULTICAST_MASK = valueOf("ff:ff:ff:80:00:00");
     /**
+     * IPv6 multicast MAC address.
+     */
+    public static final MacAddress IPV6_MULTICAST = valueOf("33:33:00:00:00:00");
+    /**
+     * IPv6 multicast MAC mask.
+     */
+    public static final MacAddress IPV6_MULTICAST_MASK = valueOf("FF:FF:00:00:00:00");
+    /**
      * A set of LLDP MAC addresses.
      */
     public static final Set<MacAddress> LLDP = ImmutableSet.of(
