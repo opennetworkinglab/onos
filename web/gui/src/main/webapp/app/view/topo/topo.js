@@ -193,14 +193,14 @@
 
     function _togSvgLayer(x, G, tag, what) {
         var on = (x === 'keyev') ? !sus.visible(G) : !!x,
-            verb = on ? 'Show' : 'Hide';
+            verb = on ? topoLion('show') : topoLion('hide');
         sus.visible(G, on);
         updatePrefsState(tag, on);
         flash.flash(verb + ' ' + what);
     }
 
     function toggleMap(x) {
-        _togSvgLayer(x, mapG, 'bg', 'background map');
+        _togSvgLayer(x, mapG, 'bg', topoLion('fl_background_map'));
     }
 
     function openMapSelection() {
@@ -208,17 +208,17 @@
     }
 
     function toggleSprites(x) {
-        _togSvgLayer(x, spriteG, 'spr', 'sprite layer');
+        _togSvgLayer(x, spriteG, 'spr', topoLion('fl_sprite_layer'));
     }
 
     function resetZoom() {
         zoomer.reset();
-        flash.flash('Pan and zoom reset');
+        flash.flash(topoLion('fl_pan_zoom_reset'));
     }
 
     function equalizeMasters() {
         wss.sendEvent('equalizeMasters');
-        flash.flash('Equalizing master roles');
+        flash.flash(topoLion('fl_eq_masters'));
     }
 
     function handleEscape() {
@@ -337,7 +337,7 @@
 
         g = noDevsLayer.append('g');
         gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
-        g.append('text').text('No devices are connected')
+        g.append('text').text(topoLion('no_devices_are_connected'))
             .attr({ x: 120, y: 80 });
 
         box = g.node().getBBox();
@@ -346,6 +346,11 @@
         g.attr('transform', sus.translate(box.x, box.y));
 
         showNoDevs(true);
+    }
+
+    function lionNoDevs() {
+        d3.select('#topo-noDevsLayer g text')
+            .text(topoLion('no_devices_are_connected'));
     }
 
     function showNoDevs(b) {
@@ -709,6 +714,10 @@
                     $scope.lion = lion.bundle('core.view.Topo');
                     topoLion = $scope.lion;
                     $log.debug('Loaded Topo LION Bundle:', topoLion);
+
+                    // insert localized text into already established
+                    // DOM elements...
+                    lionNoDevs();
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...

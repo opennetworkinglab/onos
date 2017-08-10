@@ -27,7 +27,4 @@ from cf.QuickHelp import qh_hint_close_detail
 
 from cc.Ui import click, shift_click, drag, cmd_scroll, cmd_drag
 
-# TODO: clean these up to just those used...
-from cc.Props import icon, title, app_id, version, category, origin, state, role
-from cc.Action import activate, deactivate, uninstall
-from cc.State import total
+from cc.Action import show, hide
