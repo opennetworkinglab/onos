@@ -25,6 +25,7 @@ from cv.Topo import *
 
 from cf.QuickHelp import qh_hint_close_detail
 
+from cc.Action import show, hide, enable, disable
+from cc.Network import hosts, devices
+from cc.State import visible, hidden
 from cc.Ui import click, shift_click, drag, cmd_scroll, cmd_drag
-
-from cc.Action import show, hide

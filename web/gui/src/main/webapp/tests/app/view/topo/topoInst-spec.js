@@ -37,7 +37,8 @@ describe('factory: view/topo/topoInst.js', function() {
             'initInst', 'destroyInst',
             'addInstance', 'updateInstance', 'removeInstance',
             'cancelAffinity',
-            'isVisible', 'show', 'hide', 'toggle', 'showMaster'
+            'isVisible', 'show', 'hide', 'toggle', 'showMaster',
+            'setLionBundle',
         ])).toBeTruthy();
     });
 

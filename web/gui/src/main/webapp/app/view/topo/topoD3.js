@@ -25,6 +25,11 @@
     // injected refs
     var sus, is, ts, ps, ttbs;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tfs#' + x + '#';
+    };
+
     // api to topoForce
     var zoomer, api;
     /*
@@ -126,9 +131,9 @@
     function incDevLabIndex() {
         setDevLabIndex(deviceLabelIndex+1);
         switch (deviceLabelIndex) {
-            case 0: return 'Hide device labels';
-            case 1: return 'Show friendly device labels';
-            case 2: return 'Show device ID labels';
+            case 0: return topoLion('fl_device_labels_hide');
+            case 1: return topoLion('fl_device_labels_show_friendly');
+            case 2: return topoLion('fl_device_labels_show_id');
         }
     }
 
@@ -142,9 +147,9 @@
     function incHostLabIndex() {
         setHostLabIndex(hostLabelIndex+1);
         switch (hostLabelIndex) {
-            case 0: return 'Show friendly host labels';
-            case 1: return 'Show host IP Addresses';
-            case 2: return 'Show host MAC Addresses';
+            case 0: return topoLion('fl_host_labels_show_friendly');
+            case 1: return topoLion('fl_host_labels_show_ip');
+            case 2: return topoLion('fl_host_labels_show_mac');
         }
     }
 
@@ -603,6 +608,11 @@
         labels.exit().remove();
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+    }
+
     // ==========================
     // Module definition
 
@@ -653,6 +663,8 @@
                 transformLabel: transformLabel,
                 applyPortLabels: applyPortLabels,
                 applyNumLinkLabels: applyNumLinkLabels,
+
+                setLionBundle: setLionBundle,
             };
         }]);
 }());

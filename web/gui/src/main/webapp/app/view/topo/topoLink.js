@@ -36,6 +36,10 @@
     // SVG elements;
     var svg;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tlink#' + x + '#';
+    };
 
     // ======== ALGORITHM TO FIND LINK CLOSEST TO MOUSE ========
 
@@ -288,7 +292,8 @@
     function togglePorts(x) {
         var kev = (x === 'keyev'),
             on = kev ? !showPorts : !!x,
-            what = on ? 'Enable' : 'Disable',
+            what = on ? topoLion('enable') : topoLion('disable'),
+            philite = topoLion('fl_port_highlighting'),
             handler = on ? mouseMoveHandler : null;
 
         showPorts = on;
@@ -297,7 +302,7 @@
             enhanceLink(null);
         }
         svg.on('mousemove', handler);
-        flash.flash(what + ' port highlighting');
+        flash.flash(what + ' ' + philite);
         return on;
     }
 
@@ -310,6 +315,11 @@
                 }
             });
         }
+    }
+
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
     }
 
     // ==========================
@@ -350,6 +360,7 @@
                 destroyLink: destroyLink,
                 togglePorts: togglePorts,
                 deselectAllLinks: deselectAllLinks,
+                setLionBundle: setLionBundle,
             };
         }]);
 }());

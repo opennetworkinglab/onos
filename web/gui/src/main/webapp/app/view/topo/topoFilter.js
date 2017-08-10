@@ -33,6 +33,11 @@
      link()     // get ref to D3 selection of links
      */
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tfltr#' + x + '#';
+    };
+
     var smax = 'suppressedmax';
 
     // which "layer" a particular item "belongs to"
@@ -61,25 +66,26 @@
             {
                 type: 'all',
                 action: function () { suppressLayers(false); },
-                msg: 'All Layers Shown',
             },
             {
                 type: 'pkt',
                 action: function () { showLayer('pkt'); },
-                msg: 'Packet Layer Shown',
             },
             {
                 type: 'opt',
                 action: function () { showLayer('opt'); },
-                msg: 'Optical Layer Shown',
             },
         ],
-        layer = 0;
+        layer = 0,
+        layerType,
+        lionKey;
 
     function clickAction() {
         layer = (layer + 1) % dispatch.length;
         dispatch[layer].action();
-        flash.flash(dispatch[layer].msg);
+        layerType = dispatch[layer].type;
+        lionKey = 'fl_layer_' + layerType;
+        flash.flash(topoLion(lionKey));
     }
 
     function selected() {
@@ -119,6 +125,11 @@
         unsuppressLayer(which);
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+    }
+
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
 
@@ -137,6 +148,7 @@
                     clickAction: clickAction,
                     selected: selected,
                     inLayer: inLayer,
+                    setLionBundle: setLionBundle,
                 };
             },
         ]);

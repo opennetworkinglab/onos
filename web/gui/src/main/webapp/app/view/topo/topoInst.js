@@ -45,6 +45,11 @@
         oiShowMaster,
         oiBox;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tinst#' + x + '#';
+    };
+
 
     function addInstance(data) {
         var id = data.id;
@@ -165,7 +170,7 @@
                 .data(onosOrder, function (d) { return d.id; });
 
         function nSw(n) {
-            return 'Devices: ' + n;
+            return topoLion('devices') + ': ' + n;
         }
 
         // operate on existing onos instances if necessary
@@ -307,9 +312,14 @@
                 hideInsts();
             }
         }
-        verb = on ? 'Show' : 'Hide';
-        flash.flash(verb + ' instances panel');
+        verb = on ? topoLion('show') : topoLion('hide');
+        flash.flash(verb + ' ' + topoLion('fl_panel_instances'));
         return on;
+    }
+
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
     }
 
     // ==========================
@@ -343,6 +353,7 @@
                 hide: hideInsts,
                 toggle: toggleInsts,
                 showMaster: function () { return oiShowMaster; },
+                setLionBundle: setLionBundle,
             };
         }]);
 }());

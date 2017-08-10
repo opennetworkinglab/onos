@@ -46,7 +46,9 @@ describe('factory: view/topo/topoForce.js', function() {
 
             'resetAllLocations', 'addDevice', 'updateDevice', 'removeDevice',
             'addHost', 'updateHost', 'moveHost', 'removeHost',
-            'addLink', 'updateLink', 'removeLink', 'topoStartDone'
+            'addLink', 'updateLink', 'removeLink', 'topoStartDone',
+
+            'setLionBundle',
         ])).toBeTruthy();
     });
 

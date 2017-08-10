@@ -326,8 +326,18 @@
 
     // --- Background Map ------------------------------------------------
 
+    function recenterLabel(g) {
+        var box = g.node().getBBox();
+
+        box.x -= box.width/2;
+        box.y -= box.height/2;
+        g.attr('transform', sus.translate(box.x, box.y));
+
+    }
+
     function setUpNoDevs() {
-        var g, box;
+        var g;
+
         noDevsLayer = svg.append('g').attr({
             id: 'topo-noDevsLayer',
             transform: sus.translate(500, 500),
@@ -337,20 +347,16 @@
 
         g = noDevsLayer.append('g');
         gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
-        g.append('text').text(topoLion('no_devices_are_connected'))
-            .attr({ x: 120, y: 80 });
-
-        box = g.node().getBBox();
-        box.x -= box.width/2;
-        box.y -= box.height/2;
-        g.attr('transform', sus.translate(box.x, box.y));
-
+        g.append('text').text('').attr({x: 120, y: 80 });
+        recenterLabel(g);
         showNoDevs(true);
     }
 
     function lionNoDevs() {
-        d3.select('#topo-noDevsLayer g text')
-            .text(topoLion('no_devices_are_connected'));
+        var g = d3.select('#topo-noDevsLayer g');
+
+        g.select('text').text(topoLion('no_devices_are_connected'));
+        recenterLabel(g);
     }
 
     function showNoDevs(b) {
@@ -718,6 +724,10 @@
                     // insert localized text into already established
                     // DOM elements...
                     lionNoDevs();
+
+                    // pass lion bundle function ref to other topo modules
+                    tfs.setLionBundle(topoLion);
+                    tis.setLionBundle(topoLion);
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...

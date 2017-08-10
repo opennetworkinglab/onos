@@ -26,6 +26,11 @@
     var $log, $timeout, fs, sus, ts, flash, wss, tov,
         tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg, tpis;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tfs#' + x + '#';
+    };
+
     // configuration
     var linkConfig = {
         light: {
@@ -486,7 +491,8 @@
     }
 
     function vis(b) {
-        return b ? 'visible' : 'hidden';
+        var lionKey = b ? 'visible' : 'hidden';
+        return topoLion(lionKey);
     }
 
     function toggleHosts(x) {
@@ -495,7 +501,7 @@
 
         showHosts = on;
         updateHostVisibility();
-        flash.flash('Hosts ' + vis(on));
+        flash.flash(topoLion('hosts') + ' ' + vis(on));
         return on;
     }
 
@@ -505,7 +511,7 @@
 
         showOffline = on;
         updateOfflineVisibility();
-        flash.flash('Offline devices ' + vis(on));
+        flash.flash(topoLion('fl_offline_devices') + ' ' + vis(on));
         return on;
     }
 
@@ -586,7 +592,7 @@
 
     function showBadLinks() {
         var badLinks = tms.findBadLinks();
-        flash.flash('Bad Links: ' + badLinks.length);
+        flash.flash(topoLion('fl_bad_links') + ': ' + badLinks.length);
         $log.debug('Bad Link List (' + badLinks.length + '):');
         badLinks.forEach(function (d) {
             $log.debug('bad link: (' + d.bad + ') ' + d.key, d);
@@ -650,7 +656,7 @@
         tms.resetAllLocations();
         updateNodes();
         tick(); // force nodes to be redrawn in their new locations
-        flash.flash('Reset Node Locations');
+        flash.flash(topoLion('fl_reset_node_locations'));
     }
 
     // ==========================================
@@ -1105,6 +1111,14 @@
         updateNodes();
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+        td3.setLionBundle(bundle);
+        fltr.setLionBundle(bundle);
+        tls.setLionBundle(bundle);
+    }
+
     angular.module('ovTopo')
     .factory('TopoForceService',
         ['$log', '$timeout', 'FnService', 'SvgUtilService',
@@ -1263,6 +1277,8 @@
                 updateLink: updateLink,
                 removeLink: removeLink,
                 topoStartDone: topoStartDone,
+
+                setLionBundle: setLionBundle,
             };
         }]);
 }());
