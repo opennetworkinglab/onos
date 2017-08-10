@@ -539,14 +539,12 @@ public class ReactiveForwarding {
     // Selects a path from the given set that does not lead back to the
     // specified port if possible.
     private Path pickForwardPathIfPossible(Set<Path> paths, PortNumber notToPort) {
-        Path lastPath = null;
         for (Path path : paths) {
-            lastPath = path;
             if (!path.src().port().equals(notToPort)) {
                 return path;
             }
         }
-        return lastPath;
+        return null;
     }
 
     // Floods the specified packet if permissible.
