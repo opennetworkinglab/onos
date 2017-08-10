@@ -16,6 +16,7 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -30,6 +31,7 @@ import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
 import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Versioned;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -43,15 +45,26 @@ import static org.junit.Assert.fail;
  * Unit tests for {@link AtomixDocumentTree}.
  */
 public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
+    private Ordering ordering = Ordering.NATURAL;
 
     @Override
     protected RaftService createService() {
-        return new AtomixDocumentTreeService();
+        return new AtomixDocumentTreeService(ordering);
     }
 
     @Override
     protected AtomixDocumentTree createPrimitive(RaftProxy proxy) {
         return new AtomixDocumentTree(proxy);
+    }
+
+    @Override
+    protected AtomixDocumentTree newPrimitive(String name) {
+        return newPrimitive(name, Ordering.NATURAL);
+    }
+
+    protected AtomixDocumentTree newPrimitive(String name, Ordering ordering) {
+        this.ordering = ordering;
+        return super.newPrimitive(name);
     }
 
     /**
@@ -103,6 +116,34 @@ public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
 
         Versioned<byte[]> abc = tree.get(path("root.a.b.c")).join();
         assertArrayEquals("abc".getBytes(), abc.value());
+    }
+
+    /**
+     * Tests child node order.
+     */
+    @Test
+    public void testOrder() throws Throwable {
+        AtomixDocumentTree naturalTree = newPrimitive(UUID.randomUUID().toString(), Ordering.NATURAL);
+        naturalTree.create(path("root.c"), "foo".getBytes());
+        naturalTree.create(path("root.b"), "bar".getBytes());
+        naturalTree.create(path("root.a"), "baz".getBytes());
+
+        Iterator<Map.Entry<String, Versioned<byte[]>>> naturalIterator = naturalTree.getChildren(path("root"))
+                .join().entrySet().iterator();
+        assertEquals("a", naturalIterator.next().getKey());
+        assertEquals("b", naturalIterator.next().getKey());
+        assertEquals("c", naturalIterator.next().getKey());
+
+        AtomixDocumentTree insertionTree = newPrimitive(UUID.randomUUID().toString(), Ordering.INSERTION);
+        insertionTree.create(path("root.c"), "foo".getBytes());
+        insertionTree.create(path("root.b"), "bar".getBytes());
+        insertionTree.create(path("root.a"), "baz".getBytes());
+
+        Iterator<Map.Entry<String, Versioned<byte[]>>> insertionIterator = insertionTree.getChildren(path("root"))
+                .join().entrySet().iterator();
+        assertEquals("c", insertionIterator.next().getKey());
+        assertEquals("b", insertionIterator.next().getKey());
+        assertEquals("a", insertionIterator.next().getKey());
     }
 
     /**

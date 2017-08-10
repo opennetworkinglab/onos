@@ -55,6 +55,7 @@ import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeEvent.Type;
 import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 
@@ -91,6 +92,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             .register(DocumentPath.class)
             .register(new HashMap().keySet().getClass())
             .register(TreeMap.class)
+            .register(Ordering.class)
             .register(SessionListenCommits.class)
             .register(new com.esotericsoftware.kryo.Serializer<DefaultDocumentTree>() {
                 @Override
@@ -110,7 +112,11 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
 
     private Map<Long, SessionListenCommits> listeners = new HashMap<>();
     private AtomicLong versionCounter = new AtomicLong(0);
-    private DocumentTree<byte[]> docTree = new DefaultDocumentTree<>(versionCounter::incrementAndGet);
+    private DocumentTree<byte[]> docTree;
+
+    public AtomixDocumentTreeService(Ordering ordering) {
+        this.docTree = new DefaultDocumentTree<>(versionCounter::incrementAndGet, ordering);
+    }
 
     @Override
     public void snapshot(SnapshotWriter writer) {

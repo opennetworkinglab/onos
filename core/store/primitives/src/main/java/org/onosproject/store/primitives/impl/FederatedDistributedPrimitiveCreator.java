@@ -34,6 +34,7 @@ import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
 
@@ -139,8 +140,8 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     }
 
     @Override
-    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer) {
-        return getCreator(name).newAsyncDocumentTree(name, serializer);
+    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer, Ordering ordering) {
+        return getCreator(name).newAsyncDocumentTree(name, serializer, ordering);
     }
 
     @Override

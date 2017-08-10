@@ -50,6 +50,7 @@ import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.DistributedPrimitive;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
@@ -242,10 +243,10 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     }
 
     @Override
-    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer) {
+    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer, Ordering ordering) {
         AtomixDocumentTree atomixDocumentTree = new AtomixDocumentTree(client.newProxyBuilder()
                 .withName(name)
-                .withServiceType(DistributedPrimitive.Type.DOCUMENT_TREE.name())
+                .withServiceType(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), ordering))
                 .withReadConsistency(ReadConsistency.SEQUENTIAL)
                 .withCommunicationStrategy(CommunicationStrategy.ANY)
                 .withTimeout(Duration.ofSeconds(30))

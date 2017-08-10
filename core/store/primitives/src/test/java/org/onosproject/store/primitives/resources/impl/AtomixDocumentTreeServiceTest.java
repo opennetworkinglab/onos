@@ -30,6 +30,7 @@ import io.atomix.time.WallClockTimestamp;
 import org.junit.Test;
 import org.onlab.util.Match;
 import org.onosproject.store.service.DocumentPath;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Versioned;
 
 import static org.easymock.EasyMock.mock;
@@ -42,15 +43,25 @@ import static org.onosproject.store.primitives.resources.impl.AtomixDocumentTree
  * Document tree service test.
  */
 public class AtomixDocumentTreeServiceTest {
+
     @Test
-    public void testSnapshot() throws Exception {
+    public void testNaturalOrderedSnapshot() throws Exception {
+        testSnapshot(Ordering.NATURAL);
+    }
+
+    @Test
+    public void testInsertionOrderedSnapshot() throws Exception {
+        testSnapshot(Ordering.INSERTION);
+    }
+
+    private void testSnapshot(Ordering ordering) throws Exception {
         SnapshotStore store = new SnapshotStore(RaftStorage.newBuilder()
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
         Snapshot snapshot = store.newSnapshot(ServiceId.from(1), 2, new WallClockTimestamp());
 
-        AtomixDocumentTreeService service = new AtomixDocumentTreeService();
+        AtomixDocumentTreeService service = new AtomixDocumentTreeService(ordering);
         service.update(new DefaultCommit<>(
                 2,
                 UPDATE,
@@ -68,7 +79,7 @@ public class AtomixDocumentTreeServiceTest {
 
         snapshot.complete();
 
-        service = new AtomixDocumentTreeService();
+        service = new AtomixDocumentTreeService(ordering);
         try (SnapshotReader reader = snapshot.openReader()) {
             service.install(reader);
         }

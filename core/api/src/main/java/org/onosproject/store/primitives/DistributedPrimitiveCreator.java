@@ -27,6 +27,7 @@ import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
 
@@ -139,7 +140,20 @@ public interface DistributedPrimitiveCreator {
      * @param serializer serializer
      * @return document tree
      */
-    <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer);
+    default <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer) {
+        return newAsyncDocumentTree(name, serializer, Ordering.NATURAL);
+    }
+
+    /**
+     * Creates a new {@code AsyncDocumentTree}.
+     *
+     * @param <V> document tree node value type
+     * @param name tree name
+     * @param serializer serializer
+     * @param ordering tree node ordering
+     * @return document tree
+     */
+    <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer, Ordering ordering);
 
     /**
      * Returns the names of all created {@code AsyncConsistentMap} instances.

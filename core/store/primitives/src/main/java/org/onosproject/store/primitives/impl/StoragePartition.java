@@ -43,6 +43,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeService
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorService;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueService;
 import org.onosproject.store.service.DistributedPrimitive;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 
@@ -68,7 +69,12 @@ public class StoragePartition implements Managed<StoragePartition> {
                     .put(DistributedPrimitive.Type.COUNTER.name(), AtomixCounterService::new)
                     .put(DistributedPrimitive.Type.LEADER_ELECTOR.name(), AtomixLeaderElectorService::new)
                     .put(DistributedPrimitive.Type.WORK_QUEUE.name(), AtomixWorkQueueService::new)
-                    .put(DistributedPrimitive.Type.DOCUMENT_TREE.name(), AtomixDocumentTreeService::new)
+                    .put(DistributedPrimitive.Type.DOCUMENT_TREE.name(),
+                            () -> new AtomixDocumentTreeService(Ordering.NATURAL))
+                    .put(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), Ordering.NATURAL),
+                            () -> new AtomixDocumentTreeService(Ordering.NATURAL))
+                    .put(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), Ordering.INSERTION),
+                            () -> new AtomixDocumentTreeService(Ordering.INSERTION))
                     .build();
 
     public StoragePartition(Partition partition,

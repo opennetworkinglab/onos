@@ -27,6 +27,7 @@ import org.onosproject.store.service.DocumentTreeListener;
 import org.onosproject.store.service.DocumentTreeNode;
 import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.Preconditions;
@@ -47,11 +48,11 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     public DefaultDocumentTree() {
         AtomicLong versionCounter = new AtomicLong(0);
         versionSupplier = versionCounter::incrementAndGet;
-        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), null);
+        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), Ordering.NATURAL, null);
     }
 
-    public DefaultDocumentTree(Supplier<Long> versionSupplier) {
-        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), null);
+    public DefaultDocumentTree(Supplier<Long> versionSupplier, Ordering ordering) {
+        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), ordering, null);
         this.versionSupplier = versionSupplier;
     }
 
@@ -74,7 +75,7 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     public Map<String, Versioned<V>> getChildren(DocumentPath path) {
         DocumentTreeNode<V> node = getNode(path);
         if (node != null) {
-            Map<String, Versioned<V>> childrenValues = Maps.newHashMap();
+            Map<String, Versioned<V>> childrenValues = Maps.newLinkedHashMap();
             node.children().forEachRemaining(n -> childrenValues.put(simpleName(n.path()), n.value()));
             return childrenValues;
         }

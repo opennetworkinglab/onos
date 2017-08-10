@@ -25,6 +25,7 @@ public abstract class DocumentTreeBuilder<V>
         extends DistributedPrimitiveBuilder<DocumentTreeBuilder<V>, AsyncDocumentTree<V>> {
 
     private boolean purgeOnUninstall = false;
+    private Ordering ordering = Ordering.NATURAL;
 
     public DocumentTreeBuilder() {
         super(DistributedPrimitive.Type.DOCUMENT_TREE);
@@ -47,6 +48,32 @@ public abstract class DocumentTreeBuilder<V>
      */
     public boolean purgeOnUninstall() {
         return purgeOnUninstall;
+    }
+
+    /**
+     * Sets the ordering of the tree nodes.
+     * <p>
+     * When {@link AsyncDocumentTree#getChildren(DocumentPath)} is called, children will be returned according to
+     * the specified sort order.
+     *
+     * @param ordering ordering of the tree nodes
+     * @return this builder
+     */
+    public DocumentTreeBuilder<V> withOrdering(Ordering ordering) {
+        this.ordering = ordering;
+        return this;
+    }
+
+    /**
+     * Returns the ordering of tree nodes.
+     * <p>
+     * When {@link AsyncDocumentTree#getChildren(DocumentPath)} is called, children will be returned according to
+     * the specified sort order.
+     *
+     * @return the ordering of tree nodes
+     */
+    public Ordering ordering() {
+        return ordering;
     }
 
     /**

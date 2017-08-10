@@ -16,6 +16,7 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import com.google.common.base.MoreObjects;
@@ -59,6 +60,7 @@ public enum AtomixDocumentTreeOperations implements OperationId {
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()
             .register(KryoNamespaces.BASIC)
             .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
+            .register(LinkedHashMap.class)
             .register(Listen.class)
             .register(Unlisten.class)
             .register(Get.class)
