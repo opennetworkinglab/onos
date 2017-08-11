@@ -6,7 +6,7 @@
 BVER=2.2.0-b3
 SVER=2.2-SNAPSHOT
 
-YANG_TOOLS_ROOT=~/onos-yang-tools
+YANG_TOOLS_ROOT=${YANG_TOOLS_ROOT:-~/onos-yang-tools}
 
 rm -f $ONOS_ROOT/lib/yang/* 2>/dev/null
 mkdir -p $ONOS_ROOT/lib/yang
