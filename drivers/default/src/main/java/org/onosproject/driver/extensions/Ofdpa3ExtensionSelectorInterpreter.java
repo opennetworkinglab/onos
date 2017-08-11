@@ -16,7 +16,9 @@
 
 package org.onosproject.driver.extensions;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.VlanId;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
@@ -30,12 +32,17 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsL2Port;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaOvid;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Interpreter for OFDPA3 OpenFlow selector extensions.
  */
 public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
         implements ExtensionSelectorInterpreter, ExtensionSelectorResolver {
+
+    private final Logger log = getLogger(getClass());
 
     @Override
     public boolean supported(ExtensionSelectorType extensionSelectorType) {
@@ -130,5 +137,19 @@ public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());
+    }
+
+    @Override
+    public ObjectNode encode(ExtensionSelector extensionSelector, CodecContext context) {
+        // TODO
+        log.warn("The encode method of Ofdpa3ExtensionSelectorInterpreter hasn't been implemented");
+        return null;
+    }
+
+    @Override
+    public ExtensionSelector decode(ObjectNode json, CodecContext context) {
+        // TODO
+        log.warn("The decode method of Ofdpa3ExtensionSelectorInterpreter hasn't been implemented");
+        return null;
     }
 }

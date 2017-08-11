@@ -142,6 +142,8 @@ public final class EncodeInstructionCodecHelper {
                         (L2ModificationInstruction.ModVlanHeaderInstruction) l2Instruction;
                 result.put(InstructionCodec.ETHERNET_TYPE, pushVlanInstruction.ethernetType().toString());
                 break;
+            case VLAN_POP:
+                break;
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2Instruction;
@@ -162,11 +164,13 @@ public final class EncodeInstructionCodecHelper {
                 final L2ModificationInstruction.ModMplsBosInstruction modMplsBosInstruction =
                         (L2ModificationInstruction.ModMplsBosInstruction) l2Instruction;
                 result.put(InstructionCodec.MPLS_BOS, modMplsBosInstruction.mplsBos());
+                break;
             case MPLS_POP:
                 final L2ModificationInstruction.ModMplsHeaderInstruction popHeaderInstruction =
                         (L2ModificationInstruction.ModMplsHeaderInstruction) l2Instruction;
                 result.put(InstructionCodec.ETHERNET_TYPE,
                         toHexWithPrefix(popHeaderInstruction.ethernetType().toShort()));
+                break;
             case DEC_MPLS_TTL:
                 break;
             default:

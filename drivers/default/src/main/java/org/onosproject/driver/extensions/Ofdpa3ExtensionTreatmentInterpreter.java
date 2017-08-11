@@ -16,7 +16,9 @@
 
 package org.onosproject.driver.extensions;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.VlanId;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
@@ -39,6 +41,9 @@ import org.projectfloodlight.openflow.types.U8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
+
 /**
  * Interpreter for OFDPA3 OpenFlow treatment extensions.
  */
@@ -50,6 +55,11 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
     private static final int SUB_TYPE_POP_L2_HEADER = 2;
     private static final int SUB_TYPE_PUSH_CW = 3;
     private static final int SUB_TYPE_POP_CW = 4;
+
+    private static final String TYPE = "type";
+    private static final String MISSING_MEMBER_MESSAGE = " member is required in Ofdpa3ExtensionTreatmentInterpreter";
+    private static final String MISSING_TREATMENT_MESSAGE = "Extension treatment cannot be null";
+    private static final String NOT_SUPPORTED_MESSAGE = "Driver does not support extension type of ";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -214,7 +224,70 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
             return new Ofdpa3PopCw();
         }
-        throw new UnsupportedOperationException(
-                "Driver does not support extension type " + type.toString());
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE + type.toString());
+    }
+
+    @Override
+    public ObjectNode encode(ExtensionTreatment extensionTreatment, CodecContext context) {
+        checkNotNull(extensionTreatment, MISSING_TREATMENT_MESSAGE);
+        ExtensionTreatmentType type = extensionTreatment.type();
+        ObjectNode root = context.mapper().createObjectNode();
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_TYPE.type())) {
+            Ofdpa3SetMplsType setMplsType = (Ofdpa3SetMplsType) extensionTreatment;
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_TYPE.name());
+            root.setAll(context.codec(Ofdpa3SetMplsType.class).encode(setMplsType, context));
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_OVID.type())) {
+            Ofdpa3SetOvid setOvid = (Ofdpa3SetOvid) extensionTreatment;
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_OVID.name());
+            root.setAll(context.codec(Ofdpa3SetOvid.class).encode(setOvid, context));
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
+            Ofdpa3SetMplsL2Port setMplsL2Port = (Ofdpa3SetMplsL2Port) extensionTreatment;
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.name());
+            root.setAll(context.codec(Ofdpa3SetMplsL2Port.class).encode(setMplsL2Port, context));
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.type())) {
+            Ofdpa3SetQosIndex setQosIndex = (Ofdpa3SetQosIndex) extensionTreatment;
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.name());
+            root.setAll(context.codec(Ofdpa3SetQosIndex.class).encode(setQosIndex, context));
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_L2_HEADER.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_L2_HEADER.name());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_CW.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_CW.name());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_L2_HEADER.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_L2_HEADER.name());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.name());
+        }
+
+        return root;
+    }
+
+    @Override
+    public ExtensionTreatment decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        String type = nullIsIllegal(json.get(TYPE), TYPE + MISSING_MEMBER_MESSAGE).asText();
+
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_TYPE.name())) {
+            return context.codec(Ofdpa3SetMplsType.class).decode(json, context);
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_OVID.name())) {
+            return context.codec(Ofdpa3SetOvid.class).decode(json, context);
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.name())) {
+            return context.codec(Ofdpa3SetMplsL2Port.class).decode(json, context);
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.name())) {
+            return context.codec(Ofdpa3SetQosIndex.class).decode(json, context);
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_L2_HEADER.name())) {
+            return new Ofdpa3PushL2Header();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_PUSH_CW.name())) {
+            return new Ofdpa3PushCw();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_L2_HEADER.name())) {
+            return new Ofdpa3PopL2Header();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.name())) {
+            return new Ofdpa3PopCw();
+        } else {
+            throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE + type.toString());
+        }
     }
 }
