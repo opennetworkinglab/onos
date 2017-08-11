@@ -12,7 +12,6 @@
     //core/store/persistence:onos-core-persistence
     //core/store/serializers:onos-core-serializers
     //incubator/api:onos-incubator-api
-    //incubator/core:onos-incubator-core
     //incubator/net:onos-incubator-net
     //incubator/rpc:onos-incubator-rpc
     //incubator/store:onos-incubator-store
