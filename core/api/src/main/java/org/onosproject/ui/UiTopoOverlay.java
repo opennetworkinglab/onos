@@ -16,6 +16,7 @@
 
 package org.onosproject.ui;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.link.LinkEvent;
@@ -114,7 +115,7 @@ public class UiTopoOverlay {
      * a selected device.
      * This default implementation does nothing.
      *
-     * @param pp       property panel model of summary data
+     * @param pp       property panel model of device data
      * @param deviceId device id
      */
     public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
@@ -125,10 +126,45 @@ public class UiTopoOverlay {
      * a selected host.
      * This default implementation does nothing.
      *
-     * @param pp     property panel model of summary data
+     * @param pp     property panel model of host data
      * @param hostId host id
      */
     public void modifyHostDetails(PropertyPanel pp, HostId hostId) {
+    }
+
+    /**
+     * Callback to modify the contents of the details panel for a selected
+     * edge link. The parameters include identifiers for the host and the
+     * connect point (device and port) to which the host is connected.
+     * <p>
+     * This default implementation does nothing.
+     *
+     * @param pp     property panel model of edge link data
+     * @param hostId host ID
+     * @param cp     connect point
+     */
+    public void modifyEdgeLinkDetails(PropertyPanel pp,
+                                      HostId hostId, ConnectPoint cp) {
+    }
+
+    /**
+     * Callback to modify the contents of the details panel for a selected
+     * infrastructure link. The parameters include the two connect points
+     * at either end of the link.
+     * <p>
+     * Note that links in the topology view are (usually) "bi-directional",
+     * meaning that both {@literal A-->B} and {@literal B-->A} backing links
+     * exist. If, however, there is only one backing link, it is guaranteed
+     * to be {@literal A-->B}.
+     * <p>
+     * This default implementation does nothing.
+     *
+     * @param pp  property panel model of infrastructure link data
+     * @param cpA connect point A
+     * @param cpB connect point B
+     */
+    public void modifyInfraLinkDetails(PropertyPanel pp,
+                                       ConnectPoint cpA, ConnectPoint cpB) {
     }
 
     /**
@@ -144,7 +180,8 @@ public class UiTopoOverlay {
      * @param event the link event
      * @return map of additional key/value pairs to be added to the JSON event
      * @deprecated this is a temporary addition for Goldeneye (1.6) release,
-     * and expected to be replaced in the Ibis (1.8) release
+     * and is superceded by use of {@link #modifyEdgeLinkDetails} and
+     * {@link #modifyInfraLinkDetails}.
      */
     @Deprecated
     public Map<String, String> additionalLinkData(LinkEvent event) {

@@ -80,6 +80,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
+import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
@@ -137,10 +138,16 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String EXTRA = "extra";
     private static final String ID = "id";
     private static final String KEY = "key";
+    private static final String IS_EDGE_LINK = "isEdgeLink";
+    private static final String SOURCE_ID = "sourceId";
+    private static final String SOURCE_PORT = "sourcePort";
+    private static final String TARGET_ID = "targetId";
+    private static final String TARGET_PORT = "targetPort";
     private static final String APP_ID = "appId";
     private static final String APP_NAME = "appName";
     private static final String DEVICE = "device";
     private static final String HOST = "host";
+    private static final String LINK = "link";
     private static final String CLASS = "class";
     private static final String UNKNOWN = "unknown";
     private static final String ONE = "one";
@@ -161,6 +168,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String PORT_STATS_PKT_SEC = "portStatsPktSec";
 
     private static final String MY_APP_ID = "org.onosproject.gui";
+
+    private static final String SLASH = "/";
 
     private static final long TRAFFIC_PERIOD = 5000;
     private static final long SUMMARY_PERIOD = 30000;
@@ -362,20 +371,48 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(ObjectNode payload) {
             String type = string(payload, CLASS, UNKNOWN);
-            String id = string(payload, ID);
+            String id = string(payload, ID, "");
             PropertyPanel pp = null;
 
             if (type.equals(DEVICE)) {
                 DeviceId did = deviceId(id);
                 pp = deviceDetails(did);
                 overlayCache.currentOverlay().modifyDeviceDetails(pp, did);
+
             } else if (type.equals(HOST)) {
                 HostId hid = hostId(id);
                 pp = hostDetails(hid);
                 overlayCache.currentOverlay().modifyHostDetails(pp, hid);
+
+            } else if (type.equals(LINK)) {
+                String srcId = string(payload, SOURCE_ID);
+                String tgtId = string(payload, TARGET_ID);
+                boolean isEdgeLink = bool(payload, IS_EDGE_LINK);
+
+                if (isEdgeLink) {
+                    HostId hid = hostId(srcId);
+                    String cpstr = tgtId + SLASH + string(payload, TARGET_PORT);
+                    ConnectPoint cp = deviceConnectPoint(cpstr);
+
+                    pp = edgeLinkDetails(hid, cp);
+                    overlayCache.currentOverlay().modifyEdgeLinkDetails(pp, hid, cp);
+
+                } else {
+                    String cpAstr = srcId + SLASH + string(payload, SOURCE_PORT);
+                    String cpBstr = tgtId + SLASH + string(payload, TARGET_PORT);
+                    ConnectPoint cpA = deviceConnectPoint(cpAstr);
+                    ConnectPoint cpB = deviceConnectPoint(cpBstr);
+
+                    pp = infraLinkDetails(cpA, cpB);
+                    overlayCache.currentOverlay().modifyInfraLinkDetails(pp, cpA, cpB);
+                }
             }
 
-            sendMessage(envelope(SHOW_DETAILS, json(pp)));
+            if (pp != null) {
+                sendMessage(envelope(SHOW_DETAILS, json(pp)));
+            } else {
+                log.warn("Unable to process details request: {}", payload);
+            }
         }
     }
 

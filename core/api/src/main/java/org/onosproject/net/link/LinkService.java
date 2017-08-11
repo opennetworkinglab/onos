@@ -103,6 +103,8 @@ public interface LinkService
 
     // FIXME: I don't think this makes sense; discuss and remove or adjust return
     // to be a Set<Link> or add Link.Type parameter
+    // NOTE: TopoViewMessageHandler uses this to acquire a given link from
+    //        two connect points. Would hate to see this method go away.. SDH
     /**
      * Returns the infrastructure links between the specified source
      * and destination connection points.

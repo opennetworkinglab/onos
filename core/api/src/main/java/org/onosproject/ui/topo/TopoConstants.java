@@ -22,8 +22,8 @@ package org.onosproject.ui.topo;
 public final class TopoConstants {
 
     /**
-     * Defines constants for property keys on the default summary and
-     * details panels. Note that display labels should be looked up using
+     * Defines constants for property/localization keys on the default summary
+     * and details panels. Note that display labels should be looked up using
      * the "core.view.Topo" localization bundle (LionBundle).
      */
     public static final class Properties {
@@ -56,6 +56,7 @@ public final class TopoConstants {
         public static final String MAC = "mac";
         public static final String IP = "ip";
         public static final String VLAN = "vlan";
+        public static final String VLAN_NONE = "vlan_none";
     }
 
     /**

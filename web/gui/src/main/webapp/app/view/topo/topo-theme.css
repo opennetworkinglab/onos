@@ -45,11 +45,11 @@
 /* --- general topo-panel styling --- */
 
 .topo-p svg {
-    background: #c0242b;
+    background: none;
 }
 
 .topo-p svg .glyph {
-    fill: #ffffff;
+    fill: #c0242b;
 }
 
 .topo-p hr {

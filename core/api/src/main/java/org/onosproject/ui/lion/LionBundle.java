@@ -97,6 +97,17 @@ public final class LionBundle {
     }
 
     /**
+     * Converts the given enum constant to lowercase and then uses that as the
+     * key to invoke {@link #getSafe(String)}.
+     *
+     * @param enumConst the constant to use as the key
+     * @return the localized value (or a wrapped key placeholder)
+     */
+    public String getSafe(Enum<?> enumConst) {
+        return getSafe(enumConst.name().toLowerCase());
+    }
+
+    /**
      * Returns an immutable set of the items in this bundle.
      *
      * @return the items in this bundle

@@ -46,7 +46,7 @@ public final class TopoJson {
     static final String MSG = "msg";
 
     static final String TITLE = "title";
-    static final String TYPE = "type";
+    static final String GLYPH_ID = "glyphId";
     static final String NAV_PATH = "navPath";
     static final String PROP_ORDER = "propOrder";
     static final String PROP_LABELS = "propLabels";
@@ -179,7 +179,7 @@ public final class TopoJson {
     public static ObjectNode json(PropertyPanel pp) {
         ObjectNode result = objectNode()
                 .put(TITLE, pp.title())
-                .put(TYPE, pp.typeId())
+                .put(GLYPH_ID, pp.glyphId())
                 .put(ID, pp.id());
 
         if (pp.navPath() != null) {

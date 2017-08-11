@@ -31,7 +31,7 @@ public class PropertyPanel {
     private static final NumberFormat NF = NumberFormat.getInstance();
 
     private String title;
-    private String typeId;
+    private String glyphId;
     private String id;
     private String navPath;
     private List<Prop> properties = new ArrayList<>();
@@ -39,14 +39,14 @@ public class PropertyPanel {
 
     /**
      * Constructs a property panel model with the given title and
-     * type identifier (icon to display).
+     * glyph identifier (icon to display).
      *
-     * @param title  title text
-     * @param typeId type (icon) ID
+     * @param title   title text
+     * @param glyphId glyph ID
      */
-    public PropertyPanel(String title, String typeId) {
+    public PropertyPanel(String title, String glyphId) {
         this.title = title;
-        this.typeId = typeId;
+        this.glyphId = glyphId;
     }
 
     /**
@@ -154,7 +154,7 @@ public class PropertyPanel {
      * regular expression string are stripped.
      *
      * @param key     property key
-     * @param label property label (localized)
+     * @param label   property label (localized)
      * @param value   property value
      * @param reStrip regexp characters to strip from value string
      * @return self, for chaining
@@ -177,8 +177,9 @@ public class PropertyPanel {
      * @param key   property key (also used as display label)
      * @param value property value
      * @return self, for chaining
-     * @see #addProp(String, String, String)
+     * @deprecated as of Loon (1.11) in deference to the localized version
      */
+    @Deprecated
     public PropertyPanel addProp(String key, String value) {
         return addProp(key, key, value);
     }
@@ -190,7 +191,9 @@ public class PropertyPanel {
      * @param key   property key (also used as display label)
      * @param value property value
      * @return self, for chaining
+     * @deprecated as of Loon (1.11) in deference to the localized version
      */
+    @Deprecated
     public PropertyPanel addProp(String key, int value) {
         return addProp(key, key, value);
     }
@@ -202,7 +205,9 @@ public class PropertyPanel {
      * @param key   property key (also used as display label)
      * @param value property value
      * @return self, for chaining
+     * @deprecated as of Loon (1.11) in deference to the localized version
      */
+    @Deprecated
     public PropertyPanel addProp(String key, long value) {
         return addProp(key, key, value);
     }
@@ -216,7 +221,9 @@ public class PropertyPanel {
      * @param key   property key (also used as display label)
      * @param value property value
      * @return self, for chaining
+     * @deprecated as of Loon (1.11) in deference to the localized version
      */
+    @Deprecated
     public PropertyPanel addProp(String key, Object value) {
         return addProp(key, key, value);
     }
@@ -232,7 +239,9 @@ public class PropertyPanel {
      * @param value   property value
      * @param reStrip regexp characters to strip from value string
      * @return self, for chaining
+     * @deprecated as of Loon (1.11) in deference to the localized version
      */
+    @Deprecated
     public PropertyPanel addProp(String key, Object value, String reStrip) {
         return addProp(key, key, value, reStrip);
     }
@@ -257,12 +266,12 @@ public class PropertyPanel {
     }
 
     /**
-     * Returns the type identifier.
+     * Returns the glyph identifier.
      *
-     * @return type identifier
+     * @return glyph identifier
      */
-    public String typeId() {
-        return typeId;
+    public String glyphId() {
+        return glyphId;
     }
 
     /**
@@ -288,7 +297,6 @@ public class PropertyPanel {
      *
      * @return the property list
      */
-    // TODO: consider protecting this?
     public List<Prop> properties() {
         return properties;
     }
@@ -298,7 +306,6 @@ public class PropertyPanel {
      *
      * @return the button list
      */
-    // TODO: consider protecting this?
     public List<ButtonId> buttons() {
         return buttons;
     }
@@ -317,13 +324,13 @@ public class PropertyPanel {
     }
 
     /**
-     * Sets the type identifier (icon ID).
+     * Sets the glyph identifier.
      *
-     * @param typeId type identifier
+     * @param glyphId glyph identifier
      * @return self, for chaining
      */
-    public PropertyPanel typeId(String typeId) {
-        this.typeId = typeId;
+    public PropertyPanel glyphId(String glyphId) {
+        this.glyphId = glyphId;
         return this;
     }
 
@@ -478,8 +485,8 @@ public class PropertyPanel {
     /**
      * Auxiliary class representing a separator property.
      */
-    public static class Separator extends Prop {
-        public Separator() {
+    static class Separator extends Prop {
+        Separator() {
             super("-", "-", "");
         }
     }

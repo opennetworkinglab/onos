@@ -254,8 +254,9 @@
         d.el.classed('selected', true);
         selectedLinks[d.key] = { key: d };
 
-        tps.displayLink(d, tov.hooks.modifyLinkData);
-        tps.displaySomething();
+        // TODO: deprecate tov.hooks.modifyLinkData
+        // tps.displayLink(d, tov.hooks.modifyLinkData);
+        // tps.displaySomething();
     }
 
     // ====== MOUSE EVENT HANDLERS ======

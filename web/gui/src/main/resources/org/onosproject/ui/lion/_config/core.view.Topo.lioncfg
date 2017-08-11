@@ -18,15 +18,18 @@
 bundle core.view.Topo
 
 alias cv core.view
+alias ce core.enums
 alias cf core.fw
 alias cc core.common
 
 from cv.Topo import *
 
+from ce.LinkEnums import *
+
 from cf.QuickHelp import qh_hint_close_detail
 
 from cc.Action import show, hide, enable, disable, select
-from cc.Network import devices, links, hosts, topology_sccs, intents, tunnels, flows, protocol
-from cc.Props import version, vendor, hw_version, sw_version, serial_number
-from cc.State import visible, hidden
+from cc.Network import devices, links, hosts, topology_sccs, intents, tunnels, flows, ports, protocol, uri, mac, ip, vlan, device, host
+from cc.Props import version, vendor, hw_version, sw_version, serial_number, latitude, longitude, grid_y, grid_x
+from cc.State import visible, hidden, vlan_none, expected, not_expected
 from cc.Ui import click, shift_click, drag, cmd_scroll, cmd_drag, ok, close

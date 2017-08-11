@@ -42,8 +42,8 @@ public class PropertyPanelTest {
         private static final NumberFormat ENGLISH_FORMATTER =
                 NumberFormat.getInstance(Locale.ENGLISH);
 
-        public EnglishPropertyPanel(String title, String typeId) {
-            super(title, typeId);
+        public EnglishPropertyPanel(String title, String glyphId) {
+            super(title, glyphId);
         }
 
         @Override
@@ -53,9 +53,9 @@ public class PropertyPanelTest {
     }
 
     private static final String TITLE_ORIG = "Original Title";
-    private static final String TYPE_ORIG = "Original type ID";
+    private static final String GLYPH_ORIG = "Original glyph ID";
     private static final String TITLE_NEW = "New Title";
-    private static final String TYPE_NEW = "New type";
+    private static final String GLYPH_NEW = "New glyph ID";
     private static final String SOME_IDENTIFICATION = "It's Me!";
 
     private static final String KEY_A = "A";
@@ -103,9 +103,9 @@ public class PropertyPanelTest {
 
     @Test
     public void basic() {
-        pp = new EnglishPropertyPanel(TITLE_ORIG, TYPE_ORIG);
+        pp = new EnglishPropertyPanel(TITLE_ORIG, GLYPH_ORIG);
         assertEquals("wrong title", TITLE_ORIG, pp.title());
-        assertEquals("wrong type", TYPE_ORIG, pp.typeId());
+        assertEquals("wrong glyph", GLYPH_ORIG, pp.glyphId());
         assertNull("id?", pp.id());
         assertEquals("unexpected props", 0, pp.properties().size());
         assertEquals("unexpected buttons", 0, pp.buttons().size());
@@ -119,10 +119,10 @@ public class PropertyPanelTest {
     }
 
     @Test
-    public void changeType() {
+    public void changeGlyph() {
         basic();
-        pp.typeId(TYPE_NEW);
-        assertEquals("wrong type", TYPE_NEW, pp.typeId());
+        pp.glyphId(GLYPH_NEW);
+        assertEquals("wrong glyph", GLYPH_NEW, pp.glyphId());
     }
 
     @Test

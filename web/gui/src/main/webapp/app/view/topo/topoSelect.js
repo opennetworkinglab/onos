@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var fs, wss, tov, tps, tts, sus;
+    var $log, fs, wss, tov, tps, tts, sus;
 
     // api to topoForce
     var api;
@@ -183,10 +183,31 @@
     // === -----------------------------------------------------
 
     function requestDetails(data) {
-        wss.sendEvent('requestDetails', {
-            id: data.id,
-            class: data.class,
-        });
+        var itemClass = data.class,
+            payload = {
+                class: itemClass,
+                id: data.id,
+            };
+
+        // special handling for links...
+        if (itemClass === 'link') {
+            payload.key = data.key;
+            if (data.source.class === 'host') {
+                payload.isEdgeLink = true;
+                payload.sourceId = data.source.id;
+                payload.targetId = data.source.cp.device;
+                payload.targetPort = data.source.cp.port;
+            } else {
+                payload.isEdgeLink = false;
+                payload.sourceId = data.source.id;
+                payload.sourcePort = data.srcPort;
+                payload.targetId = data.target.id;
+                payload.targetPort = data.tgtPort;
+            }
+        }
+
+        $log.debug('EVENT> requestDetails', payload);
+        wss.sendEvent('requestDetails', payload);
     }
 
     // === -----------------------------------------------------
@@ -210,10 +231,7 @@
     function singleSelect() {
         var data = getSel(0).obj;
 
-        // the link details are already taken care of in topoLink.js
-        if (data.class === 'link') {
-            return;
-        }
+        $log.debug('Requesting details from server for', data);
         requestDetails(data);
         // NOTE: detail panel is shown as a response to receiving
         //       a 'showDetails' event from the server. See 'showDetails'
@@ -304,10 +322,11 @@
 
     angular.module('ovTopo')
     .factory('TopoSelectService',
-        ['FnService', 'WebSocketService', 'TopoOverlayService',
+        ['$log', 'FnService', 'WebSocketService', 'TopoOverlayService',
         'TopoPanelService', 'TopoTrafficService', 'SvgUtilService',
 
-        function (_fs_, _wss_, _tov_, _tps_, _tts_, _sus_) {
+        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _sus_) {
+            $log = _$log_;
             fs = _fs_;
             wss = _wss_;
             tov = _tov_;

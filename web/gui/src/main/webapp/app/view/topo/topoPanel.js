@@ -156,8 +156,10 @@
         tbody.append('tr').append('td').attr('colspan', 2).append('hr');
     }
 
-    function addBtnFooter() {
-        detail.appendFooter('hr');
+    function addBtnFooter(sepAlreadyThere) {
+        if (!sepAlreadyThere) {
+            detail.appendFooter('hr');
+        }
         detail.appendFooter('div').classed('actionBtns', true);
     }
 
@@ -173,35 +175,25 @@
         function addCell(cls, txt) {
             tr.append('td').attr('class', cls).text(txt);
         }
+
         addCell('label', lab + ' :');
         addCell('value', value);
     }
 
     function listProps(tbody, data) {
+        var sepLast = false;
 
-        // Suppress Lat Long in details panel if null
-        if (data.propLabels.latitude === null ||
-            data.propLabels.longitude === null) {
-            var idx = data.propOrder.indexOf('latitude');
-            data.propOrder.splice(idx, 3);
-        }
-
+        // note: track whether we end with a separator or not...
         data.propOrder.forEach(function (p) {
-            // TODO: remove after topo view fully i18n'd
-            var foo = data.props && data.props[p];
-
             if (p === '-') {
                 addSep(tbody);
-
+                sepLast = true;
             } else {
-                // TODO: remove this if/else once DETAILS panel fixed for i18n
-                if (foo !== undefined) {
-                    addProp(tbody, p, foo);
-                } else {
-                    addProp(tbody, data.propLabels[p], data.propValues[p]);
-                }
+                addProp(tbody, data.propLabels[p], data.propValues[p]);
+                sepLast = false;
             }
         });
+        return sepLast;
     }
 
     function watchWindow() {
@@ -232,9 +224,10 @@
                 .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            glyphId = data.glyphId || 'bird';
 
-        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        gs.addGlyph(svg, glyphId, 24, 0, [1, 1]);
 
         title.text(data.title);
         listProps(tbody, data);
@@ -249,7 +242,12 @@
     };
 
     function displaySingle(data) {
+        var sepLast;
+
         detail.setup();
+
+        // TODO: remove
+        $log.debug('>> Display Single Item Details', data);
 
         var svg = detail.appendHeader('div')
                 .classed('icon clickable', true)
@@ -261,7 +259,7 @@
             navFn,
             navPath;
 
-        gs.addGlyph(svg, (data.type || 'unknown'), 26);
+        gs.addGlyph(svg, (data.glyphId || 'm_unknown'), 26);
         title.text(data.title);
 
         // add navigation hot-link if defined
@@ -277,8 +275,8 @@
             title.on('click', navFn);
         }
 
-        listProps(tbody, data);
-        addBtnFooter();
+        sepLast = listProps(tbody, data);
+        addBtnFooter(sepLast);
     }
 
     function displayMulti(ids) {
@@ -288,9 +286,9 @@
             table = detail.appendBody('table'),
             tbody = table.append('tbody');
 
-        title.text('Selected Items');
+        title.text(topoLion('title_selected_items'));
         ids.forEach(function (d, i) {
-            addProp(tbody, i+1, d);
+            addProp(tbody, i + 1, d);
         });
         addBtnFooter();
     }
@@ -331,6 +329,7 @@
         return d.expected();
     }
 
+    // TODO: implement server-side processing of link details
     var coreOrder = [
             'Type', 'Expected', '-',
             'A_type', 'A_id', 'A_label', 'A_port', '-',
@@ -342,6 +341,7 @@
             'B_type', 'B_id', 'B_label', 'B_port',
         ];
 
+    // FIXME: DEPRECATED (no longer called)
     function displayLink(data, modifyCb) {
         detail.setup();
 
@@ -428,6 +428,7 @@
             summary.panel().show();
             summary.adjustHeight(sumFromTop, sumMax);
         }
+
         if (detail.panel().isVisible()) {
             detail.down(_show);
         } else {
@@ -493,7 +494,7 @@
             verb;
 
         useDetails = kev ? !useDetails : !!x;
-        verb = useDetails ? 'Enable' : 'Disable';
+        verb = useDetails ? 'Enable' : 'Disable'; // TODO: Lion
 
         if (useDetails) {
             if (haveDetails) {
@@ -502,7 +503,7 @@
         } else {
             hideDetailPanel();
         }
-        flash.flash(verb + ' details panel');
+        flash.flash(verb + ' details panel'); // TODO: Lion
         return useDetails;
     }
 
