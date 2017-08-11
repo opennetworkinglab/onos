@@ -34,7 +34,7 @@ public interface LsdbAge {
     /**
      * Gets LSA from bin, this method is used while processing ls refresh and max age on LSA.
      *
-     * @param binKey key to retreive the LSA from bin
+     * @param binKey key to retrieve the LSA from bin
      * @return lsaBin bin instance
      */
     public LsaBin getLsaBin(Integer binKey);

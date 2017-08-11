@@ -21,7 +21,7 @@ import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 
 @Command(scope = "onos", name = "global-label-pool-destroy",
 description = "Destroys global label resource pool")
-public class GlobalLabelPoolDestoryCommand extends AbstractShellCommand {
+public class GlobalLabelPoolDestroyCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         LabelResourceAdminService lrs = get(LabelResourceAdminService.class);

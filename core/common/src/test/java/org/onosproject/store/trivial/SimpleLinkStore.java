@@ -251,7 +251,7 @@ public class SimpleLinkStore
                 !AnnotationsUtil.isEqual(oldLink.annotations(), newLink.annotations())) {
 
             links.put(key, newLink);
-            // strictly speaking following can be ommitted
+            // strictly speaking following can be omitted
             srcLinks.put(oldLink.src().deviceId(), key);
             dstLinks.put(oldLink.dst().deviceId(), key);
             return new LinkEvent(LINK_UPDATED, newLink);

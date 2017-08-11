@@ -577,7 +577,7 @@
             <action class="org.onosproject.cli.net.LabelPoolCreateCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.GlobalLabelPoolDestoryCommand"/>
+            <action class="org.onosproject.cli.net.GlobalLabelPoolDestroyCommand"/>
         </command>
         <command>
             <action class="org.onosproject.cli.net.LabelPoolDestroyCommand"/>

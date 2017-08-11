@@ -1337,7 +1337,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     log.debug("Received unsupported message type {}", msg.getType().toString());
                 }
             } catch (Exception e) {
-                log.error("Exception occured while processing report message {}", e.getMessage());
+                log.error("Exception occurred while processing report message {}", e.getMessage());
             }
         }
 

@@ -73,7 +73,7 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
             print("%s", res);
         } catch (IOException e) {
             log.error("Configuration could not be retrieved", e);
-            print("Error occured retrieving configuration");
+            print("Error occurred retrieving configuration");
         }
     }
 

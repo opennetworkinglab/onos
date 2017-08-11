@@ -272,7 +272,7 @@ public class OplinkOpticalProtectionSwitchConfig extends AbstractHandlerBehaviou
         Set<Link> links = handler().get(LinkService.class).getIngressLinks(dstCp);
         for (Link l : links) {
             if (l.type() == Link.Type.VIRTUAL) {
-                // This devide is the destination and peer is the source.
+                // This device is the destination and peer is the source.
                 return l.src().deviceId();
             }
         }

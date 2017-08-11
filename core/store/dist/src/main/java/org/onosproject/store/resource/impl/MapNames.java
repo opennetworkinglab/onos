@@ -21,6 +21,6 @@ final class MapNames {
     static final String CONTINUOUS_CONSUMER_MAP = "onos-continuous-consumers";
     static final String CONTINUOUS_CHILD_MAP = "onos-resource-continuous-children";
 
-    // prohibit contruction
+    // prohibit construction
     private MapNames() {}
 }

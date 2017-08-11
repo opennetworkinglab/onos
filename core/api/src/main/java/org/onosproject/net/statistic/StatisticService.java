@@ -27,7 +27,7 @@ import java.util.Optional;
 /**
  * Service for obtaining statistic information about link in the system.
  * Statistics are obtained from the FlowRuleService in order to minimize the
- * amount of hammering occuring at the dataplane.
+ * amount of hammering occurring at the dataplane.
  */
 public interface StatisticService {
 

@@ -216,7 +216,7 @@ public class ControllerTest {
     }
 
     /**
-     * Tests controll utility health methods.
+     * Tests control utility health methods.
      */
     @Test
     public void testHealth() {
