@@ -256,7 +256,7 @@
     function showDetails(data) {
         var buttons = fs.isA(data.buttons) || [];
         tps.displaySingle(data);
-        tov.installButtons(buttons, data, data.props['URI']);
+        tov.installButtons(buttons, data, data.propValues['uri']);
         tov.hooks.singleSelect(data);
         tps.displaySomething();
     }

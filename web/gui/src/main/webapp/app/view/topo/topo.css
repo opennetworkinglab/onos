@@ -124,8 +124,8 @@ html[data-platform='iPad'] #topo-p-detail {
     padding: 0;
 }
 
-#topo-p-summary  td.label {
-    width: 50%;
+#topo-p-summary td.label {
+    width: 65%;
 }
 
 #topo-p-detail  div.actionBtns {

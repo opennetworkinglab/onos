@@ -22,39 +22,40 @@ package org.onosproject.ui.topo;
 public final class TopoConstants {
 
     /**
-     * Defines constants for property names on the default summary and
-     * details panels.
+     * Defines constants for property keys on the default summary and
+     * details panels. Note that display labels should be looked up using
+     * the "core.view.Topo" localization bundle (LionBundle).
      */
     public static final class Properties {
         public static final String SEPARATOR = "-";
 
         // summary panel
-        public static final String DEVICES = "Devices";
-        public static final String LINKS = "Links";
-        public static final String HOSTS = "Hosts";
-        public static final String TOPOLOGY_SSCS = "Topology SCCs";
-        public static final String INTENTS = "Intents";
-        public static final String TUNNELS = "Tunnels";
-        public static final String FLOWS = "Flows";
-        public static final String VERSION = "Version";
+        public static final String DEVICES = "devices";
+        public static final String LINKS = "links";
+        public static final String HOSTS = "hosts";
+        public static final String TOPOLOGY_SSCS = "topology_sccs";
+        public static final String INTENTS = "intents";
+        public static final String TUNNELS = "tunnels";
+        public static final String FLOWS = "flows";
+        public static final String VERSION = "version";
 
         // device details
-        public static final String URI = "URI";
-        public static final String VENDOR = "Vendor";
-        public static final String HW_VERSION = "H/W Version";
-        public static final String SW_VERSION = "S/W Version";
-        public static final String SERIAL_NUMBER = "Serial #";
-        public static final String PROTOCOL = "Protocol";
-        public static final String LATITUDE = "Latitude";
-        public static final String LONGITUDE = "Longitude";
-        public static final String GRID_Y = "Grid Y";
-        public static final String GRID_X = "Grid X";
-        public static final String PORTS = "Ports";
+        public static final String URI = "uri";
+        public static final String VENDOR = "vendor";
+        public static final String HW_VERSION = "hw_version";
+        public static final String SW_VERSION = "sw_version";
+        public static final String SERIAL_NUMBER = "serial_number";
+        public static final String PROTOCOL = "protocol";
+        public static final String LATITUDE = "latitude";
+        public static final String LONGITUDE = "longitude";
+        public static final String GRID_Y = "grid_y";
+        public static final String GRID_X = "grid_x";
+        public static final String PORTS = "ports";
 
         // host details
-        public static final String MAC = "MAC";
-        public static final String IP = "IP";
-        public static final String VLAN = "VLAN";
+        public static final String MAC = "mac";
+        public static final String IP = "ip";
+        public static final String VLAN = "vlan";
     }
 
     /**

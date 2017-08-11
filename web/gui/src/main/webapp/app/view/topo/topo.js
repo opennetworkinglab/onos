@@ -728,6 +728,7 @@
                     tfs.setLionBundle(topoLion);
                     tis.setLionBundle(topoLion);
                     tms.setLionBundle(topoLion);
+                    tps.setLionBundle(topoLion);
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...

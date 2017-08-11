@@ -22,6 +22,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.ui.lion.LionBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,7 @@ public abstract class UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Map<String, RequestHandler> handlerMap = new HashMap<>();
+    private final Map<String, LionBundle> cachedLionBundles = new HashMap<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -178,6 +180,44 @@ public abstract class UiMessageHandler {
      */
     protected <T> T get(Class<T> serviceClass) {
         return directory.get(serviceClass);
+    }
+
+    /**
+     * Returns the set of identifiers for localization bundles that the
+     * message handler would like injected into itself, so that it can use
+     * those bundles in composing localized data to ship to the client.
+     * <p>
+     * This default implementation returns an empty set.
+     * <p>
+     * Subclasses that wish to have localization bundles injected should
+     * override this method and return the set of bundle identifiers.
+     *
+     * @return the set of identifiers of required localization bundles
+     */
+    public Set<String> requiredLionBundles() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * Invoked during initialization to cache any requested localization
+     * bundles in the handler's context, so that it may subsequently look
+     * up localization strings when composing data for the client.
+     *
+     * @param bundle the bundle to cache
+     */
+    public void cacheLionBundle(LionBundle bundle) {
+        cachedLionBundles.put(bundle.id(), bundle);
+    }
+
+    /**
+     * Returns the localization bundle with the given identifier, if we
+     * requested to have it cached during initialization; null otherwise.
+     *
+     * @param id the lion bundle identifier
+     * @return the associated lion bundle
+     */
+    protected LionBundle getLionBundle(String id) {
+        return cachedLionBundles.get(id);
     }
 
     /**

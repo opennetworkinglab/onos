@@ -85,6 +85,18 @@ public final class LionBundle {
     }
 
     /**
+     * Returns the localized value for the given key, or, if no such mapping
+     * exists, returns the key wrapped in '%' characters.
+     *
+     * @param key the key
+     * @return the localized value (or a wrapped key placeholder)
+     */
+    public String getSafe(String key) {
+        String value = mapped.get(key);
+        return value == null ? "%" + key + "%" : value;
+    }
+
+    /**
      * Returns an immutable set of the items in this bundle.
      *
      * @return the items in this bundle

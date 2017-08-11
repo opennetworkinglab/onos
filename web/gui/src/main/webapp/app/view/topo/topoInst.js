@@ -47,7 +47,7 @@
 
     // function to be replaced by the localization bundle function
     var topoLion = function (x) {
-        return '#tinst#' + x + '#';
+        return '#tis#' + x + '#';
     };
 
 
@@ -317,11 +317,6 @@
         return on;
     }
 
-    // invoked after the localization bundle has been received from the server
-    function setLionBundle(bundle) {
-        topoLion = bundle;
-    }
-
     // ==========================
 
     angular.module('ovTopo')
@@ -353,7 +348,7 @@
                 hide: hideInsts,
                 toggle: toggleInsts,
                 showMaster: function () { return oiShowMaster; },
-                setLionBundle: setLionBundle,
+                setLionBundle: function (bundle) { topoLion = bundle; },
             };
         }]);
 }());

@@ -97,11 +97,12 @@ public class PropertyPanel {
      * Adds a property to the panel data.
      *
      * @param key   property key
+     * @param label property label (localized)
      * @param value property value
      * @return self, for chaining
      */
-    public PropertyPanel addProp(String key, String value) {
-        properties.add(new Prop(key, value));
+    public PropertyPanel addProp(String key, String label, String value) {
+        properties.add(new Prop(key, label, value));
         return this;
     }
 
@@ -109,11 +110,12 @@ public class PropertyPanel {
      * Adds a property to the panel data, using a decimal formatter.
      *
      * @param key   property key
+     * @param label property label (localized)
      * @param value property value
      * @return self, for chaining
      */
-    public PropertyPanel addProp(String key, int value) {
-        properties.add(new Prop(key, formatter().format(value)));
+    public PropertyPanel addProp(String key, String label, int value) {
+        properties.add(new Prop(key, label, formatter().format(value)));
         return this;
     }
 
@@ -121,11 +123,12 @@ public class PropertyPanel {
      * Adds a property to the panel data, using a decimal formatter.
      *
      * @param key   property key
+     * @param label property label (localized)
      * @param value property value
      * @return self, for chaining
      */
-    public PropertyPanel addProp(String key, long value) {
-        properties.add(new Prop(key, formatter().format(value)));
+    public PropertyPanel addProp(String key, String label, long value) {
+        properties.add(new Prop(key, label, formatter().format(value)));
         return this;
     }
 
@@ -135,11 +138,12 @@ public class PropertyPanel {
      * value to a string.
      *
      * @param key   property key
+     * @param label property label (localized)
      * @param value property value
      * @return self, for chaining
      */
-    public PropertyPanel addProp(String key, Object value) {
-        properties.add(new Prop(key, value.toString()));
+    public PropertyPanel addProp(String key, String label, Object value) {
+        properties.add(new Prop(key, label, value.toString()));
         return this;
     }
 
@@ -150,14 +154,87 @@ public class PropertyPanel {
      * regular expression string are stripped.
      *
      * @param key     property key
+     * @param label property label (localized)
+     * @param value   property value
+     * @param reStrip regexp characters to strip from value string
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, String label,
+                                 Object value, String reStrip) {
+        String val = value.toString().replaceAll(reStrip, "");
+        properties.add(new Prop(key, label, val));
+        return this;
+    }
+
+    /*
+     * The following degenerate forms of addProp(...) for backward compatibility.
+     */
+
+    /**
+     * Adds a property to the panel data.
+     * Note that the key is used as the label.
+     *
+     * @param key   property key (also used as display label)
+     * @param value property value
+     * @return self, for chaining
+     * @see #addProp(String, String, String)
+     */
+    public PropertyPanel addProp(String key, String value) {
+        return addProp(key, key, value);
+    }
+
+    /**
+     * Adds a property to the panel data, using a decimal formatter.
+     * Note that the key is used as the label.
+     *
+     * @param key   property key (also used as display label)
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, int value) {
+        return addProp(key, key, value);
+    }
+
+    /**
+     * Adds a property to the panel data, using a decimal formatter.
+     * Note that the key is used as the label.
+     *
+     * @param key   property key (also used as display label)
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, long value) {
+        return addProp(key, key, value);
+    }
+
+    /**
+     * Adds a property to the panel data. Note that the value's
+     * {@link Object#toString toString()} method is used to convert the
+     * value to a string.
+     * Note also that the key is used as the label.
+     *
+     * @param key   property key (also used as display label)
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, Object value) {
+        return addProp(key, key, value);
+    }
+
+    /**
+     * Adds a property to the panel data. Note that the value's
+     * {@link Object#toString toString()} method is used to convert the
+     * value to a string, from which the characters defined in the given
+     * regular expression string are stripped.
+     * Note also that the key is used as the label.
+     *
+     * @param key     property key (also used as display label)
      * @param value   property value
      * @param reStrip regexp characters to strip from value string
      * @return self, for chaining
      */
     public PropertyPanel addProp(String key, Object value, String reStrip) {
-        String val = value.toString().replaceAll(reStrip, "");
-        properties.add(new Prop(key, val));
-        return this;
+        return addProp(key, key, value, reStrip);
     }
 
     /**
@@ -321,20 +398,23 @@ public class PropertyPanel {
 
 
     /**
-     * Simple data carrier for a property, composed of a key/value pair.
+     * Simple data carrier for a property, composed of a key/label/value trio.
      */
     public static class Prop {
         private final String key;
+        private final String label;
         private final String value;
 
         /**
          * Constructs a property data value.
          *
-         * @param key   property key
+         * @param key   property key (localization key)
+         * @param label property label (localization value)
          * @param value property value
          */
-        public Prop(String key, String value) {
+        public Prop(String key, String label, String value) {
             this.key = key;
+            this.label = label;
             this.value = value;
         }
 
@@ -348,6 +428,15 @@ public class PropertyPanel {
         }
 
         /**
+         * Returns the property's (localized) label.
+         *
+         * @return the label
+         */
+        public String label() {
+            return label;
+        }
+
+        /**
          * Returns the property's value.
          *
          * @return the value
@@ -355,6 +444,10 @@ public class PropertyPanel {
         public String value() {
             return value;
         }
+
+        /*
+         * NOTE: equals/hashCode are only expressed in terms of key and value.
+         */
 
         @Override
         public boolean equals(Object o) {
@@ -378,7 +471,7 @@ public class PropertyPanel {
 
         @Override
         public String toString() {
-            return "{" + key + " -> " + value + "}";
+            return "{" + key + "(" + label + ") -> " + value + "}";
         }
     }
 
@@ -387,7 +480,7 @@ public class PropertyPanel {
      */
     public static class Separator extends Prop {
         public Separator() {
-            super("-", "");
+            super("-", "-", "");
         }
     }
 

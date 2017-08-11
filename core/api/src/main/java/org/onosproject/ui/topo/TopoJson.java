@@ -49,7 +49,8 @@ public final class TopoJson {
     static final String TYPE = "type";
     static final String NAV_PATH = "navPath";
     static final String PROP_ORDER = "propOrder";
-    static final String PROPS = "props";
+    static final String PROP_LABELS = "propLabels";
+    static final String PROP_VALUES = "propValues";
     static final String BUTTONS = "buttons";
 
 
@@ -185,14 +186,17 @@ public final class TopoJson {
             result.put(NAV_PATH, pp.navPath());
         }
 
-        ObjectNode pnode = objectNode();
+        ObjectNode plabels = objectNode();
+        ObjectNode pvalues = objectNode();
         ArrayNode porder = arrayNode();
         for (PropertyPanel.Prop p : pp.properties()) {
             porder.add(p.key());
-            pnode.put(p.key(), p.value());
+            plabels.put(p.key(), p.label());
+            pvalues.put(p.key(), p.value());
         }
         result.set(PROP_ORDER, porder);
-        result.set(PROPS, pnode);
+        result.set(PROP_LABELS, plabels);
+        result.set(PROP_VALUES, pvalues);
 
         ArrayNode buttons = arrayNode();
         for (ButtonId b : pp.buttons()) {

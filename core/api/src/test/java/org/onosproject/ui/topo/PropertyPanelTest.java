@@ -64,6 +64,11 @@ public class PropertyPanelTest {
     private static final String SEP = "-";
     private static final String KEY_Z = "Z";
 
+    private static final String LABEL_A = "labA";
+    private static final String LABEL_B = "labB";
+    private static final String LABEL_C = "labC";
+    private static final String LABEL_Z = "labZ";
+
     private static final String VALUE_A = "Hay";
     private static final String VALUE_B = "Bee";
     private static final String VALUE_C = "Sea";
@@ -89,10 +94,10 @@ public class PropertyPanelTest {
 
     @BeforeClass
     public static void setUpClass() {
-        PROP_MAP.put(KEY_A, new Prop(KEY_A, VALUE_A));
-        PROP_MAP.put(KEY_B, new Prop(KEY_B, VALUE_B));
-        PROP_MAP.put(KEY_C, new Prop(KEY_C, VALUE_C));
-        PROP_MAP.put(KEY_Z, new Prop(KEY_Z, VALUE_Z));
+        PROP_MAP.put(KEY_A, new Prop(KEY_A, LABEL_A, VALUE_A));
+        PROP_MAP.put(KEY_B, new Prop(KEY_B, LABEL_B, VALUE_B));
+        PROP_MAP.put(KEY_C, new Prop(KEY_C, LABEL_C, VALUE_C));
+        PROP_MAP.put(KEY_Z, new Prop(KEY_Z, LABEL_Z, VALUE_Z));
         PROP_MAP.put(SEP, new PropertyPanel.Separator());
     }
 
@@ -160,6 +165,27 @@ public class PropertyPanelTest {
                 .addProp(KEY_C, VALUE_C);
         assertEquals("bad props", 3, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C);
+    }
+
+
+    @Test
+    public void localizedProp() {
+        basic();
+        pp.addProp(KEY_A, LABEL_A, VALUE_A);
+        Prop p = pp.properties().get(0);
+        assertEquals("wrong key", KEY_A, p.key());
+        assertEquals("wrong label", LABEL_A, p.label());
+        assertEquals("wrong value", VALUE_A, p.value());
+    }
+
+    @Test
+    public void nonLocalizedProp() {
+        basic();
+        pp.addProp(KEY_A, VALUE_A);
+        Prop p = pp.properties().get(0);
+        assertEquals("wrong key", KEY_A, p.key());
+        assertEquals("wrong label", KEY_A, p.label());
+        assertEquals("wrong value", VALUE_A, p.value());
     }
 
     @Test

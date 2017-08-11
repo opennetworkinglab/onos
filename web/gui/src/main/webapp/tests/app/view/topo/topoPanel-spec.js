@@ -76,7 +76,9 @@ describe('factory: view/topo/topoPanel.js', function() {
             'addAction',
 
             'detailVisible',
-            'summaryVisible'
+            'summaryVisible',
+
+            'setLionBundle',
         ])).toBeTruthy();
     });
 

@@ -40,6 +40,7 @@ import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
+import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,8 @@ public class UiWebSocket
     private Map<String, UiMessageHandler> handlers;
     private TopoOverlayCache overlayCache;
     private Topo2OverlayCache overlay2Cache;
+
+    private Map<String, LionBundle> lionBundleMap;
 
     private UiSessionToken sessionToken;
 
@@ -289,14 +292,16 @@ public class UiWebSocket
         overlay2Cache = new Topo2OverlayCache();
 
         Map<Class<?>, UiMessageHandler> handlerInstances = new HashMap<>();
-
         UiExtensionService service = directory.get(UiExtensionService.class);
+        lionBundleMap = generateLionMap(service);
+
         service.getExtensions().forEach(ext -> {
             UiMessageHandlerFactory factory = ext.messageHandlerFactory();
             if (factory != null) {
                 factory.newHandlers().forEach(handler -> {
                     try {
                         handler.init(this, directory);
+                        injectLionBundles(handler, lionBundleMap);
                         handler.messageTypes().forEach(type -> handlers.put(type, handler));
                         handlerInstances.put(handler.getClass(), handler);
 
@@ -305,13 +310,34 @@ public class UiWebSocket
                     }
                 });
             }
-
             registerOverlays(ext);
         });
 
         handlerCrossConnects(handlerInstances);
 
-        log.debug("#handlers = {}, #overlays = {}", handlers.size(), overlayCache.size());
+        log.debug("#handlers = {}, #overlays = {}",
+                  handlers.size(), overlayCache.size());
+    }
+
+    private Map<String, LionBundle> generateLionMap(UiExtensionService service) {
+        Map<String, LionBundle> bundles = new HashMap<>();
+        service.getExtensions().forEach(ext -> {
+            ext.lionBundles().forEach(lb -> bundles.put(lb.id(), lb));
+        });
+        return bundles;
+    }
+
+    private void injectLionBundles(UiMessageHandler handler,
+                                   Map<String, LionBundle> lionBundleMap) {
+        handler.requiredLionBundles().forEach(lbid -> {
+            LionBundle lb = lionBundleMap.get(lbid);
+            if (lb != null) {
+                handler.cacheLionBundle(lb);
+            } else {
+                log.warn("handler {}: Lion bundle {} non existent!",
+                         handler.getClass().getName(), lbid);
+            }
+        });
     }
 
     private void authenticate(String type, ObjectNode message) {
@@ -424,9 +450,7 @@ public class UiWebSocket
         service.getExtensions().forEach(ext -> {
             ext.lionBundles().forEach(lb -> {
                 ObjectNode lionMap = objectNode();
-                lb.getItems().forEach(item -> {
-                    lionMap.put(item.key(), item.value());
-                });
+                lb.getItems().forEach(item -> lionMap.put(item.key(), item.value()));
                 lion.set(lb.id(), lionMap);
             });
         });

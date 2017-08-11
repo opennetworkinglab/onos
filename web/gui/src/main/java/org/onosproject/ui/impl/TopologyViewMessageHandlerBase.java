@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.DefaultHashMap;
@@ -50,6 +51,7 @@ import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +68,14 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
+import static org.onosproject.ui.topo.TopoConstants.Properties.DEVICES;
+import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.HOSTS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.INTENTS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.LINKS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.TOPOLOGY_SSCS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.TUNNELS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.VERSION;
 import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 
 /**
@@ -125,6 +135,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return Collections.unmodifiableMap(metaUi);
     }
 
+    private static final String LION_TOPO = "core.view.Topo";
+
+    private static final Set<String> REQ_LION_BUNDLES = ImmutableSet.of(
+            LION_TOPO
+    );
 
     protected ServicesBundle services;
 
@@ -142,6 +157,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private void setVersionString(ServiceDirectory directory) {
         String ver = directory.get(CoreService.class).version().toString();
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
+    }
+
+    @Override
+    public Set<String> requiredLionBundles() {
+        return REQ_LION_BUNDLES;
     }
 
     // Returns the first of the given set of IP addresses as a string.
@@ -351,18 +371,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Returns property panel model for summary response.
     protected PropertyPanel summmaryMessage() {
         Topology topology = services.topology().currentTopology();
+        LionBundle lion = getLionBundle(LION_TOPO);
+        String panelTitle = lion.getSafe("title_panel_summary");
 
-        return new PropertyPanel("ONOS Summary", "node")
-                .addProp(Properties.VERSION, version)
+        return new PropertyPanel(panelTitle, "node")
+                .addProp(VERSION, lion.getSafe(VERSION), version)
                 .addSeparator()
-                .addProp(Properties.DEVICES, services.device().getDeviceCount())
-                .addProp(Properties.LINKS, topology.linkCount())
-                .addProp(Properties.HOSTS, services.host().getHostCount())
-                .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
+                .addProp(DEVICES, lion.getSafe(DEVICES), services.device().getDeviceCount())
+                .addProp(LINKS, lion.getSafe(LINKS), topology.linkCount())
+                .addProp(HOSTS, lion.getSafe(HOSTS), services.host().getHostCount())
+                .addProp(TOPOLOGY_SSCS, lion.getSafe(TOPOLOGY_SSCS), topology.clusterCount())
                 .addSeparator()
-                .addProp(Properties.INTENTS, services.intent().getIntentCount())
-                .addProp(Properties.TUNNELS, services.tunnel().tunnelCount())
-                .addProp(Properties.FLOWS, services.flow().getFlowRuleCount());
+                .addProp(INTENTS, lion.getSafe(INTENTS), services.intent().getIntentCount())
+                .addProp(TUNNELS, lion.getSafe(TUNNELS), services.tunnel().tunnelCount())
+                .addProp(FLOWS, lion.getSafe(FLOWS), services.flow().getFlowRuleCount());
     }
 
     // Returns property panel model for device details response.
@@ -394,8 +416,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .addSeparator()
 
                 .addProp(Properties.PORTS, portCount)
-                .addProp(Properties.FLOWS, flowCount)
-                .addProp(Properties.TUNNELS, tunnelCount)
+                .addProp(FLOWS, flowCount)
+                .addProp(TUNNELS, tunnelCount)
 
                 .addButton(CoreButtons.SHOW_DEVICE_VIEW)
                 .addButton(CoreButtons.SHOW_FLOW_VIEW)

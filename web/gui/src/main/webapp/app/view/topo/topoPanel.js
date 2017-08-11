@@ -25,6 +25,11 @@
     // injected refs
     var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast, ns;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tps#' + x + '#';
+    };
+
     // constants
     var pCls = 'topo-p',
         idSum = 'topo-p-summary',
@@ -175,17 +180,26 @@
     function listProps(tbody, data) {
 
         // Suppress Lat Long in details panel if null
-        if (data.props.Latitude === null ||
-            data.props.Longitude === null) {
-            var idx = data.propOrder.indexOf('Latitude');
+        if (data.propLabels.latitude === null ||
+            data.propLabels.longitude === null) {
+            var idx = data.propOrder.indexOf('latitude');
             data.propOrder.splice(idx, 3);
         }
 
         data.propOrder.forEach(function (p) {
+            // TODO: remove after topo view fully i18n'd
+            var foo = data.props && data.props[p];
+
             if (p === '-') {
                 addSep(tbody);
+
             } else {
-                addProp(tbody, p, data.props[p]);
+                // TODO: remove this if/else once DETAILS panel fixed for i18n
+                if (foo !== undefined) {
+                    addProp(tbody, p, foo);
+                } else {
+                    addProp(tbody, data.propLabels[p], data.propValues[p]);
+                }
             }
         });
     }
@@ -392,7 +406,8 @@
     function toggleSummary(x) {
         var kev = (x === 'keyev'),
             on = kev ? !summary.panel().isVisible() : !!x,
-            verb = on ? 'Show' : 'Hide';
+            verb = on ? topoLion('show') : topoLion('hide'),
+            sumpan = topoLion('fl_panel_summary');
 
         if (on) {
             // ask server to start sending summary data.
@@ -401,7 +416,7 @@
         } else {
             hideSummaryPanel();
         }
-        flash.flash(verb + ' summary panel');
+        flash.flash(verb + ' ' + sumpan);
         return on;
     }
 
@@ -553,6 +568,8 @@
 
                 detailVisible: function () { return detail.panel().isVisible(); },
                 summaryVisible: function () { return summary.panel().isVisible(); },
+
+                setLionBundle: function (bundle) { topoLion = bundle; },
             };
         }]);
 }());
