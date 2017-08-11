@@ -387,7 +387,7 @@ public class LispGcAddress extends AbstractExtension
         /**
          * Sets mapping address.
          *
-         * @param address mapping addres
+         * @param address mapping address
          * @return Builder object
          */
         public Builder withAddress(MappingAddress address) {

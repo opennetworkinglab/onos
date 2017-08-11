@@ -280,7 +280,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
                     try {
                         Date date = dateFormat.parse(strDate + SPACE + strTime);
                         timeRaised = date.getTime();
-                        log.debug("{} {} coverted to {}", strDate, strTime, timeRaised);
+                        log.debug("{} {} converted to {}", strDate, strTime, timeRaised);
                         return timeRaised;
                     } catch (ParseException e) {
                         log.error("Cannot parse exception {} {} {}", strDate, strTime, e);

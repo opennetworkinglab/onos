@@ -310,7 +310,7 @@ public class SnmpDeviceProvider extends AbstractProvider
                 log.info("Added device to ONOS core. Device Info: "
                                  + device.deviceInfo() + " " + did.uri().toString());
                 //FIXME this description will be populated only if driver is pushed from outside
-                // becuase otherwise default driver is used
+                // because otherwise default driver is used
                 Device d = deviceService.getDevice(did);
                 if (d.is(DeviceDescriptionDiscovery.class)) {
                     DeviceDescriptionDiscovery descriptionDiscovery = d.as(DeviceDescriptionDiscovery.class);

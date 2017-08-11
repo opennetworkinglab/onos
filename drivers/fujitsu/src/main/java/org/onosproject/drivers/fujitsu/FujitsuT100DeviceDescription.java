@@ -126,7 +126,7 @@ public class FujitsuT100DeviceDescription extends AbstractHandlerBehaviour
         HierarchicalConfiguration otuConfig = cfg.configurationAt("otu");
         boolean enabled = "up".equals(otuConfig.getString("administrative-state"));
         OduSignalType signalType = "OTU4".equals(otuConfig.getString("rate")) ? OduSignalType.ODU4 : null;
-        //Unsure how to retreive, outside knowledge it is tunable.
+        //Unsure how to retrieve, outside knowledge it is tunable.
         boolean isTunable = true;
         OchSignal lambda = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 0, 4);
         DefaultAnnotations annotations = DefaultAnnotations.builder().

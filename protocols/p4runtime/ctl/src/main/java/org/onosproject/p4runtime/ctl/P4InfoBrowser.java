@@ -237,7 +237,7 @@ final class P4InfoBrowser {
      *
      * @param controllerPacketMetadataId controller packet metadata identifier
      * @return metadata browser
-     * @throws NotFoundException controller packet metadata cannot be foudn
+     * @throws NotFoundException controller packet metadata cannot be found
      */
     EntityBrowser<ControllerPacketMetadata.Metadata> packetMetadatas(int controllerPacketMetadataId)
             throws NotFoundException {

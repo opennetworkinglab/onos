@@ -94,7 +94,7 @@ public class DefaultDocumentTreeNode<V> implements DocumentTreeNode<V> {
      * @param newValue new value to set
      * @param newVersion new version to set
      * @return previous value; can be {@code null} if no child currently exists with that relative path name.
-     * a non null return value indicates child already exists and no modification occured.
+     * a non null return value indicates child already exists and no modification occurred.
      */
     public Versioned<V> addChild(String name, V newValue, long newVersion) {
         DefaultDocumentTreeNode<V> child = (DefaultDocumentTreeNode<V>) children.get(name);

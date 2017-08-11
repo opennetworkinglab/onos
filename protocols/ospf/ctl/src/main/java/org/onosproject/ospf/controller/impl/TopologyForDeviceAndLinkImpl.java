@@ -234,7 +234,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
     /**
      * Gets OSPF Link TED details from the map.
      *
-     * @param key key used to retreive from map
+     * @param key key used to retrieve from map
      * @return OSPF link ted instance
      */
     public OspfLinkTed getOspfLinkTedHashMap(String key) {

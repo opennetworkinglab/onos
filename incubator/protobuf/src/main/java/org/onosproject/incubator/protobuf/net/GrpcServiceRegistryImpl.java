@@ -101,7 +101,7 @@ public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
             if (!registeredServices.containsKey(service.getClass())) {
                 registeredServices.put(service.getClass(), service);
             } else {
-                log.warn("The specified class \"{}\" was not added becuase an " +
+                log.warn("The specified class \"{}\" was not added because an " +
                                  "instance of the class is already registered.",
                          service.getClass().toString());
                 return false;

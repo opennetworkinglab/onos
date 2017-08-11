@@ -273,7 +273,7 @@ public class OspfAreaImpl implements OspfArea {
         ChecksumCalculator checksum = new ChecksumCalculator();
         byte[] lsaBytes = routerLsa.asBytes();
         routerLsa.setLsPacketLen(lsaBytes.length);
-        //Convert lsa object to byte again to reflect the packet length whic we added.
+        //Convert lsa object to byte again to reflect the packet length which we added.
         lsaBytes = routerLsa.asBytes();
         //find the checksum
         byte[] twoByteChecksum = checksum.calculateLsaChecksum(lsaBytes,

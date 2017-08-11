@@ -210,7 +210,7 @@ final class TextBlockParserCisco {
     }
 
     /**
-     * Parses the text and seperates to Parent Interfaces.
+     * Parses the text and separates to Parent Interfaces.
      * @param interfacesReply the interfaces as plain text
      * @return Parent interface
      */

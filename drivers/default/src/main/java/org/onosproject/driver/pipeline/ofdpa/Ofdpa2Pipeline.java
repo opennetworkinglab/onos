@@ -402,7 +402,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
             if (assignedVlan == null) {
                 log.error("Driver fails to extract VLAN information. "
-                        + "Not proccessing VLAN filters on device {}.", deviceId);
+                        + "Not processing VLAN filters on device {}.", deviceId);
                 log.debug("VLAN ID in criterion={}, metadata={}",
                         readVlanFromTreatment(filt.meta()), vidCriterion.vlanId());
                 fail(filt, ObjectiveError.BADPARAMS);

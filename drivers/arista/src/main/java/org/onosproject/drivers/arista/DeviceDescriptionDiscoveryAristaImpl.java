@@ -136,7 +136,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
             });
 
         } catch (IOException e) {
-            log.warn("IO exception occured because of ", e);
+            log.warn("IO exception occurred because of ", e);
         }
         return ports;
     }

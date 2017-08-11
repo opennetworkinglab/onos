@@ -1051,7 +1051,7 @@ public class OspfNbrImpl implements OspfNbr {
     public boolean processReceivedLsa(LsaHeader recLsa,
                                       boolean receivedViaFlooding, Channel ch, Ip4Address sourceIp)
             throws Exception {
-        log.debug("OSPFNbr::processReceivedLsa(recLsa, recievedViaFlooding, ch)...!!!");
+        log.debug("OSPFNbr::processReceivedLsa(recLsa, receivedViaFlooding, ch)...!!!");
 
         //Validate the lsa checksum RFC 2328 13 (1)
         ChecksumCalculator checkSum = new ChecksumCalculator();
