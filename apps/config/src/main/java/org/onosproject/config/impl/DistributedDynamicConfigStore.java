@@ -40,6 +40,7 @@ import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.NoSuchDocumentPathException;
+import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
@@ -102,6 +103,7 @@ public class DistributedDynamicConfigStore
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-key-store")
                 .withRelaxedReadConsistency()
+                .withOrdering(Ordering.INSERTION)
                 .buildDocumentTree();
         objectStore = storageService.<String, LeafNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
