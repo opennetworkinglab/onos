@@ -144,4 +144,19 @@ describe('factory: fw/util/theme.js', function() {
         expect(cb.calls.count()).toEqual(2);
     });
 
+    it('should return a color', function () {
+        ts.theme('light');
+        var color = ts.spriteColor('gray1', 'stroke');
+        expect(color).toEqual('#cccccc');
+
+        color = ts.spriteColor('gray1');
+        expect(color).toEqual('#cccccc');
+
+        color = ts.spriteColor('gray1', 'fill');
+        expect(color).toEqual('#eeeeee');
+
+        color = ts.spriteColor(null, 'stroke');
+        expect(color).toEqual('none');
+    });
+
 });

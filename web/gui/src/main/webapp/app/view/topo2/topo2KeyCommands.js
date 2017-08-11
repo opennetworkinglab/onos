@@ -56,7 +56,7 @@
         if (add) {
             _.each(add, function (value, key) {
                 // filter out meta properties (e.g. _keyOrder)
-                if (!(key.startsWith('_'))) {
+                if (!(_.startsWith(key, '_'))) {
                     // don't allow re-definition of existing key bindings
                     if (am[key]) {
                         $log.warn('keybind: ' + key + ' already exists');

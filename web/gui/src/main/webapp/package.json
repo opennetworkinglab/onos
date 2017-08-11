@@ -15,8 +15,6 @@
   "license": "Apache 2.0",
   "devDependencies": {
     "browser-sync": "^2.12.8",
-    "eslint": "^3.4.0",
-    "eslint-config-google": "^0.6.0",
     "express": "^4.14.0",
     "parallelshell": "^2.0.0",
     "serve-static": "^1.10.2"

@@ -22,6 +22,7 @@ module.exports = function(config) {
         '../tp/angular-cookies.js',
         '../tp/d3.js',
         '../tp/topojson.v1.min.js',
+        '../tp/lodash.min.js',
 
         // production code...
         // make sure modules are defined first...

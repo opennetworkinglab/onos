@@ -69,4 +69,8 @@ describe('factory: fw/layer/flash.js', function () {
             expect(text.text()).toEqual('foo');
         }, 100);
     });
+
+    it('should create temp div', function () {
+        expect(flash.tempDiv()).toBeDefined();
+    });
 });

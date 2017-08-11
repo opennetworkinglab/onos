@@ -22,7 +22,6 @@
         "block-spacing": ["error", "always"],
         "space-before-function-paren": ["error", { "anonymous": "always", "named": "never" }],
         "max-len": ["error", 120],
-        "no-invalid-this": 0,
-        "switch-colon-spacing": ["error", { "after": true, "before": false }]
+        "no-invalid-this": 0
     }
 }
