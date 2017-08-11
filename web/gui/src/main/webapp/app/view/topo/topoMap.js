@@ -31,9 +31,10 @@
     // internal state
     var order, maps, map, mapItems, msgHandlers;
 
-    // === ---------------------------
-    // === Helper functions
-
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tmap#' + x + '#';
+    };
 
     // === ---------------------------
     // === Main API functions
@@ -64,11 +65,11 @@
             // tint: tintCheck.property('checked') ? 'on' : 'off'
         };
         setMap(p);
-        $log.debug('Dialog OK button clicked');
+        // $log.debug('Dialog OK button clicked');
     }
 
     function dClose() {
-        $log.debug('Dialog Close button clicked (or Esc pressed)');
+        // $log.debug('Dialog Close button clicked (or Esc pressed)');
     }
 
     function selectMap() {
@@ -80,6 +81,7 @@
         var content = tds.createDiv('map-list'),
             form = content.append('form'),
             current = currentMap();
+
         map = maps[current.mapid];
         mapItems = form.append('select').on('change', selectMap);
         order.forEach(function (id) {
@@ -90,15 +92,6 @@
                     .text(m.description);
         });
 
-/*
-        var p = form.append('p');
-        tintCheck = p.append('input').attr('type', 'checkbox').attr('name', 'tint');
-        if (current.tint == 'on') {
-            tintCheck.attr('checked', 'true');
-        }
-        p.append('span').text('Enable map tint');
-*/
-
         return content;
     }
 
@@ -107,10 +100,10 @@
         order = data.order;
         maps = data.maps;
         tds.openDialog()
-            .setTitle('Select Map')
+            .setTitle(topoLion('title_select_map'))
             .addContent(createListContent())
-            .addOk(dOk, 'OK')
-            .addCancel(dClose, 'Close')
+            .addOk(dOk, topoLion('ok'))
+            .addCancel(dClose, topoLion('close'))
             .bindKeys();
     }
 
@@ -126,6 +119,10 @@
         delegate.setMap(map);
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+    }
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
 
@@ -151,6 +148,8 @@
                 closeMapSelection: closeMapSelection,
                 start: start,
                 stop: stop,
+
+                setLionBundle: setLionBundle,
             };
         }]);
 

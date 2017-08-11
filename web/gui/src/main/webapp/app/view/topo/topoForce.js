@@ -491,8 +491,7 @@
     }
 
     function vis(b) {
-        var lionKey = b ? 'visible' : 'hidden';
-        return topoLion(lionKey);
+        return topoLion(b ? 'visible' : 'hidden');
     }
 
     function toggleHosts(x) {
@@ -1117,6 +1116,8 @@
         td3.setLionBundle(bundle);
         fltr.setLionBundle(bundle);
         tls.setLionBundle(bundle);
+        tos.setLionBundle(bundle);
+        tov.setLionBundle(bundle);
     }
 
     angular.module('ovTopo')

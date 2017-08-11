@@ -59,6 +59,10 @@
         plane = {},
         oldNodeLock;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tobq#' + x + '#';
+    };
 
     function planeId(tag) {
         return 'topo-obview-' + tag + 'Plane';
@@ -214,6 +218,10 @@
         rem('pkt');
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+    }
 
 // === -----------------------------------------------------
 // === MODULE DEFINITION ===
@@ -236,10 +244,10 @@ angular.module('ovTopo')
             oblique = !oblique;
             if (oblique) {
                 api.force().stop();
-                flash.flash('Oblique view');
+                flash.flash(topoLion('fl_oblique_view'));
                 toObliqueView();
             } else {
-                flash.flash('Normal view');
+                flash.flash(topoLion('fl_normal_view'));
                 toNormalView();
             }
         }
@@ -250,6 +258,7 @@ angular.module('ovTopo')
 
             isOblique: function () { return oblique; },
             toggleOblique: toggleOblique,
+            setLionBundle: setLionBundle,
         };
     }]);
 }());

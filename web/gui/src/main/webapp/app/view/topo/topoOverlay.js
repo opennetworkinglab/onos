@@ -37,6 +37,11 @@
         current = null,
         reset = true;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tov#' + x + '#';
+    };
+
     function error(fn, msg) {
         $log.error(tos + fn + '(): ' + msg);
     }
@@ -184,27 +189,27 @@
     var coreButtons = {
         showDeviceView: {
             gid: 'switch',
-            tt: 'Show Device View',
+            tt: function () { return topoLion('btn_show_view_device'); },
             path: 'device',
         },
         showFlowView: {
             gid: 'flowTable',
-            tt: 'Show Flow View for this Device',
+            tt: function () { return topoLion('btn_show_view_flow'); },
             path: 'flow',
         },
         showPortView: {
             gid: 'portTable',
-            tt: 'Show Port View for this Device',
+            tt: function () { return topoLion('btn_show_view_port'); },
             path: 'port',
         },
         showGroupView: {
             gid: 'groupTable',
-            tt: 'Show Group View for this Device',
+            tt: function () { return topoLion('btn_show_view_group'); },
             path: 'group',
         },
         showMeterView: {
             gid: 'meterTable',
-            tt: 'Show Meter View for this Device',
+            tt: function () { return topoLion('btn_show_view_meter'); },
             path: 'meter',
         },
     };
@@ -411,6 +416,11 @@
         api.updateLinks();
     }
 
+    // invoked after the localization bundle has been received from the server
+    function setLionBundle(bundle) {
+        topoLion = bundle;
+    }
+
     // ========================================================================
 
     angular.module('ovTopo')
@@ -450,6 +460,7 @@
                 },
 
                 showHighlights: showHighlights,
+                setLionBundle: setLionBundle,
             };
         }]);
 

@@ -332,7 +332,6 @@
         box.x -= box.width/2;
         box.y -= box.height/2;
         g.attr('transform', sus.translate(box.x, box.y));
-
     }
 
     function setUpNoDevs() {
@@ -728,6 +727,7 @@
                     // pass lion bundle function ref to other topo modules
                     tfs.setLionBundle(topoLion);
                     tis.setLionBundle(topoLion);
+                    tms.setLionBundle(topoLion);
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...
