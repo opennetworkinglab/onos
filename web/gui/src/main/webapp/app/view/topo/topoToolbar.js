@@ -29,6 +29,11 @@
     //  getActionEntry
     //  setUpKeys
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#ttbar#' + x + '#';
+    };
+
     // internal state
     var toolbar, keyData, cachedState, thirdRow, ovRset, ovIndex;
 
@@ -36,7 +41,7 @@
     var name = 'topo-tbar',
         cooktag = 'topo_prefs',
         soa = 'switchOverlayActions: ',
-        selOver = 'Select overlay here &#x21e7;',
+        selOver = '************',
         defaultOverlay = 'traffic';
 
 
@@ -134,7 +139,7 @@
 
             // tooltip function invoked at the time the tooltip is displayed
             value.tt = function () {
-                return fs.isF(ttfn) ? ttfn() : "" + ttfn;
+                return fs.isF(ttfn) ? ttfn() : '' + ttfn;
             };
         });
     }
@@ -188,7 +193,7 @@
         // generate radio button set for overlays; start with 'none'
         var rset = [{
                 gid: 'm_unknown',
-                tooltip: 'No Overlay',
+                tooltip: topoLion('ov_tt_none'),
                 cb: function () {
                     tov.tbSelection(null, switchOverlayActions);
                 },
@@ -236,7 +241,11 @@
                     value = keyBindings[key];
                     bid = oid + '-' + key;
                     gid = tov.mkGlyphId(oid, value.gid);
-                    tt = value.tt + ' (' + key + ')';
+                    tt = function () {
+                        var ttfn = value.tt,
+                            txt = fs.isF(ttfn) ? ttfn() : ttfn;
+                        return txt + ' (' + key + ')';
+                    };
                     thirdRow.addButton(bid, gid, value.cb, tt);
                 }
             });
@@ -333,6 +342,7 @@
                 selectOverlay: selectOverlay,
                 defaultPrefs: defaultPrefsState,
                 fnkey: fnkey,
+                setLionBundle: function (bundle) { topoLion = bundle; },
             };
         }]);
 }());

@@ -346,7 +346,7 @@
 
         g = noDevsLayer.append('g');
         gs.addGlyph(g, 'bird', 100).attr('class', 'noDevsBird');
-        g.append('text').text('').attr({x: 120, y: 80 });
+        g.append('text').text('').attr({ x: 120, y: 80 });
         recenterLabel(g);
         showNoDevs(true);
     }
@@ -729,6 +729,7 @@
                     tis.setLionBundle(topoLion);
                     tms.setLionBundle(topoLion);
                     tps.setLionBundle(topoLion);
+                    ttbs.setLionBundle(topoLion);
 
                     // now we have the map projection, we are ready for
                     //  the server to send us device/host data...

@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is, ks;
+    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is;
 
     // internal state
     var detailsPanel,
@@ -34,18 +34,11 @@
         selDiv,
         topSelTable,
         topTrtTable,
-        bottom,
         iconDiv,
-        nameDiv,
         wSize;
-
 
     // constants
     var topPdg = 28,
-        ctnrPdg = 24,
-        scrollSize = 17,
-        portsTblPdg = 50,
-        htPdg = 479,
         wtPdg = 532,
 
         pName = 'flow-details-panel',
@@ -106,7 +99,7 @@
     }
 
     function setUpPanel() {
-        var container, closeBtn, tblDiv;
+        var container, closeBtn;
         detailsPanel.empty();
         container = detailsPanel.append('div').classed('container', true);
 

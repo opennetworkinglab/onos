@@ -26,6 +26,10 @@
     // constants
     // var refreshInterval = 2000;
 
+    /*
+     * NOTE: work-in-progress; this relates to ONOS-5579 (currently stalled)
+     */
+
     function noop() {}
 
     // TODO: describe the input object for the main function

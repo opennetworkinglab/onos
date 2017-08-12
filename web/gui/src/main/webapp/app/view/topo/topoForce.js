@@ -1118,6 +1118,7 @@
         tls.setLionBundle(bundle);
         tos.setLionBundle(bundle);
         tov.setLionBundle(bundle);
+        tss.setLionBundle(bundle);
     }
 
     angular.module('ovTopo')

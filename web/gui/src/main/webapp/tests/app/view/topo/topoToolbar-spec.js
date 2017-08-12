@@ -45,7 +45,7 @@ describe('factory: view/topo/topoToolbar.js', function() {
         expect(fs.areFunctions(ttbs, [
             'init', 'createToolbar', 'destroyToolbar',
             'keyListener', 'toggleToolbar', 'setDefaultOverlay',
-            'fnkey'
+            'fnkey', 'setLionBundle',
         ])).toBeTruthy();
     });
 

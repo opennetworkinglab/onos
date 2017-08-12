@@ -25,6 +25,11 @@
     // injected refs
     var $log, flash, wss, api;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#ttraf#' + x + '#';
+    };
+
     /*
        API to topoForce
          hovered()
@@ -37,11 +42,7 @@
             'portStatsBitSec',
             'portStatsPktSec',
         ],
-        allTrafficMsgs = [
-            'Flow Stats (bytes)',
-            'Port Stats (bits / second)',
-            'Port Stats (packets / second)',
-        ];
+        allTrafficMsgs = []; // filled in with localized messages
 
     // internal state
     var trafficMode = null,
@@ -51,6 +52,16 @@
 
     // === -----------------------------------------------------
     //  Helper functions
+
+    function setLionBundle(bundle) {
+        $log.debug('topoTraffic: setting Lion bundle');
+        topoLion = bundle;
+        allTrafficMsgs = [
+            topoLion('tr_fl_fstats_bytes'),
+            topoLion('tr_fl_pstats_bits'),
+            topoLion('tr_fl_pstats_pkts'),
+        ];
+    }
 
     // invoked in response to change in selection and/or mouseover/out:
     function requestTrafficForMode(mouse) {
@@ -112,7 +123,7 @@
 
         trafficMode = hoverMode = null;
         wss.sendEvent('cancelTraffic');
-        flash.flash('Traffic monitoring canceled');
+        flash.flash(topoLion('fl_monitoring_canceled'));
         return true;
     }
 
@@ -129,20 +140,20 @@
     function showDeviceLinkFlows() {
         trafficMode = hoverMode = 'flows';
         requestDeviceLinkFlows();
-        flash.flash('Device Flows');
+        flash.flash(topoLion('tr_fl_dev_flows'));
     }
 
     function showRelatedIntents() {
         trafficMode = hoverMode = 'intents';
         requestRelatedIntents();
-        flash.flash('Related Paths');
+        flash.flash(topoLion('tr_fl_rel_paths'));
     }
 
     function showPrevIntent() {
         if (trafficMode === 'intents') {
             hoverMode = null;
             wss.sendEvent('requestPrevRelatedIntent');
-            flash.flash('Previous related intent');
+            flash.flash(topoLion('tr_fl_prev_rel_int'));
         }
     }
 
@@ -150,7 +161,7 @@
         if (trafficMode === 'intents') {
             hoverMode = null;
             wss.sendEvent('requestNextRelatedIntent');
-            flash.flash('Next related intent');
+            flash.flash(topoLion('tr_fl_next_rel_int'));
         }
     }
 
@@ -158,7 +169,7 @@
         if (trafficMode === 'intents') {
             hoverMode = null;
             wss.sendEvent('requestSelectedIntentTraffic');
-            flash.flash('Traffic on Selected Path');
+            flash.flash(topoLion('tr_fl_traf_on_path'));
         }
     }
 
@@ -167,7 +178,7 @@
         trafficMode = 'intents';
         hoverMode = null;
         wss.sendEvent('selectIntent', data);
-        flash.flash('Selecting Intent ' + data.key);
+        flash.flash(topoLion('fl_selecting_intent') + ' ' + data.key);
     }
 
 
@@ -176,6 +187,7 @@
 
     function addHostIntent() {
         var so = api.selectOrder();
+
         wss.sendEvent('addHostIntent', {
             one: so[0],
             two: so[1],
@@ -183,11 +195,12 @@
         });
         trafficMode = 'intents';
         hoverMode = null;
-        flash.flash('Host-to-Host flow added');
+        flash.flash(topoLion('tr_fl_h2h_flow_added'));
     }
 
     function removeIntent(d) {
-        $log.debug('Entering removeIntent');
+        var action = topoLion(d.intentPurge ? 'purged' : 'withdrawn');
+
         wss.sendEvent('removeIntent', {
             appId: d.appId,
             appName: d.appName,
@@ -196,12 +209,10 @@
         });
         trafficMode = 'intents';
         hoverMode = null;
-        var txt = d.intentPurge ? 'purged' : 'withdrawn';
-        flash.flash('Intent ' + txt);
+        flash.flash(topoLion('intent') + ' ' + action);
     }
 
     function resubmitIntent(d) {
-        $log.debug('Entering resubmitIntent');
         wss.sendEvent('resubmitIntent', {
             appId: d.appId,
             appName: d.appName,
@@ -210,11 +221,12 @@
         });
         trafficMode = 'intents';
         hoverMode = null;
-        flash.flash('Intent resubmitted');
+        flash.flash(topoLion('intent') + ' ' + topoLion('resubmitted'));
     }
 
     function addMultiSourceIntent() {
         var so = api.selectOrder();
+
         wss.sendEvent('addMultiSourceIntent', {
             src: so.slice(0, so.length - 1),
             dst: so[so.length - 1],
@@ -222,15 +234,14 @@
         });
         trafficMode = 'intents';
         hoverMode = null;
-        flash.flash('Multi-Source flow added');
+        flash.flash(topoLion('tr_fl_multisrc_flow') + ' ' + topoLion('added'));
     }
 
     function removeIntents() {
-        $log.debug('Entering removeIntents');
         wss.sendEvent('removeIntents', {});
         trafficMode = 'intents';
         hoverMode = null;
-        flash.flash('Intent are purged');
+        flash.flash(topoLion('intents') + ' ' + topoLion('purged'));
     }
 
 
@@ -239,7 +250,7 @@
 
     angular.module('ovTopo')
     .factory('TopoTrafficService',
-        ['$log', 'FnService', 'WebSocketService',
+        ['$log', 'FlashService', 'WebSocketService',
 
         function (_$log_, _flash_, _wss_) {
             $log = _$log_;
@@ -263,13 +274,14 @@
                 // invoked from mouseover/mouseout and selection change
                 requestTrafficForMode: requestTrafficForMode,
 
-                // TODO: these should move to new UI demo app
                 // invoked from buttons on detail (multi-select) panel
                 addHostIntent: addHostIntent,
                 addMultiSourceIntent: addMultiSourceIntent,
                 removeIntent: removeIntent,
                 resubmitIntent: resubmitIntent,
                 removeIntents: removeIntents,
+
+                setLionBundle: setLionBundle,
             };
         }]);
 }());

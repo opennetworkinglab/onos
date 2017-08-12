@@ -167,25 +167,25 @@
     function qhlion() {
         return ls.bundle('core.fw.QuickHelp');
     }
-    function qhlion_show_hide() {
+    function qhlionShowHide() {
         return qhlion()('qh_hint_show_hide_qh');
     }
 
-    function qhlion_hint_esc() {
+    function qhlionHintEsc() {
         return qhlion()('qh_hint_esc');
     }
 
-    function qhlion_hint_t() {
+    function qhlionHintT() {
         return qhlion()('qh_hint_t');
     }
 
     function setupGlobalKeys() {
         angular.extend(keyHandler, {
             globalKeys: {
-                backSlash: [quickHelp, qhlion_show_hide],
-                slash: [quickHelp, qhlion_show_hide],
-                esc: [escapeKey, qhlion_hint_esc],
-                T: [toggleTheme, qhlion_hint_t],
+                backSlash: [quickHelp, qhlionShowHide],
+                slash: [quickHelp, qhlionShowHide],
+                esc: [escapeKey, qhlionHintEsc],
+                T: [toggleTheme, qhlionHintT],
             },
             globalFormat: ['backSlash', 'slash', 'esc', 'T'],
 

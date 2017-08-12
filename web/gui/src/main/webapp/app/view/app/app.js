@@ -59,16 +59,16 @@
         // note: url is handled separately
 
     // deferred localization strings
-    var warn_deactivate,
-        warn_own_risk,
+    var warnDeactivate,
+        warnOwnRisk,
         friendlyProps,
         lion;
 
     function doLion() {
         lion = ls.bundle('core.view.App');
 
-        warn_deactivate = lion('dlg_warn_deactivate');
-        warn_own_risk = lion('dlg_warn_own_risk');
+        warnDeactivate = lion('dlg_warn_deactivate');
+        warnOwnRisk = lion('dlg_warn_own_risk');
 
         friendlyProps = [
             lion('app_id'), lion('state'), lion('category'), lion('version'),
@@ -314,9 +314,9 @@
             content.append('p').text(lion(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
                 content.append('p').html(
-                    fs.sanitize(warn_deactivate) +
+                    fs.sanitize(warnDeactivate) +
                     '<br>' +
-                    fs.sanitize(warn_own_risk)
+                    fs.sanitize(warnOwnRisk)
                 ).classed('strong', true);
             }
             return content;

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, tss, tps, tov;
+    var $log, fs, flash, tss;
 
     // internal state
     var api,
@@ -329,15 +329,12 @@
     angular.module('ovTopo')
         .factory('TopoLinkService',
         ['$log', 'FnService', 'FlashService', 'TopoSelectService',
-        'TopoPanelService', 'TopoOverlayService',
 
-        function (_$log_, _fs_, _flash_, _tss_, _tps_, _tov_) {
+        function (_$log_, _fs_, _flash_, _tss_) {
             $log = _$log_;
             fs = _fs_;
             flash = _flash_;
             tss = _tss_;
-            tps = _tps_;
-            tov = _tov_;
 
             function initLink(_api_, _td3_) {
                 api = _api_;

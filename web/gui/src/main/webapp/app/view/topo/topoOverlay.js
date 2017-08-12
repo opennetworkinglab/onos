@@ -147,7 +147,7 @@
         angular.forEach(overlays, function (ov) {
             rset.push({
                 gid: ov._glyphId,
-                tooltip: (ov.tooltip || '(no tooltip)'),
+                tooltip: (ov.tooltip || ''),
                 cb: function () {
                     tbSelection(ov.overlayId, switchFn);
                 },
@@ -302,17 +302,18 @@
         cb && cb();
     }
 
-    // Temporary function to allow overlays to modify link detail data
-    // in the client. (In the near future, this will be done on the server).
-    function modifyLinkDataHook(data, extra) {
-        var cb = _hook('modifylinkdata');
-        return cb && extra ? cb(data, extra) : data;
-    }
-
     // Request from Intent View to visualize an intent on the topo view
     function showIntentHook(intentData) {
         var cb = _hook('showIntent');
         return cb && cb(intentData);
+    }
+
+    // 'core.view.Topo' lion bundle will be injected here.
+    // NOTE: if an overlay wants additional bundles, it should use the
+    //       LionService to request them at this time.
+    function injectLion(topoBundle) {
+        var cb = _hook('injectLion');
+        return cb && cb(topoBundle);
     }
 
     // === -----------------------------------------------------
@@ -419,6 +420,12 @@
     // invoked after the localization bundle has been received from the server
     function setLionBundle(bundle) {
         topoLion = bundle;
+        // also inject the topo lion bundle to all overlays that request it
+        angular.forEach(overlays, function (ov) {
+            var hooks = fs.isO(ov.hooks) || {},
+                inj = fs.isF(hooks.injectLion);
+            inj && inj(bundle);
+        });
     }
 
     // ========================================================================
@@ -455,7 +462,6 @@
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
                     mouseOut: mouseOutHook,
-                    modifyLinkData: modifyLinkDataHook,
                     showIntent: showIntentHook,
                 },
 

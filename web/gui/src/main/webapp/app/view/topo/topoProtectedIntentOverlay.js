@@ -25,17 +25,18 @@
     // injected refs
     var $log, tov, tpis;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tprotiov#' + x + '#';
+    };
+
     // NOTE: no internal state here -- see topoProtectedIntents for that
-
-    // NOTE: providing button disabling requires too big a refactoring of
-    //       the button factory etc. Will have to be done another time.
-
 
     // traffic overlay definition
     var overlay = {
         overlayId: 'protectedIntent',
         glyphId: 'm_ips',
-        tooltip: 'Protected Intents Overlay',
+        tooltip: function () { return topoLion('ov_tt_protected_intents'); },
 
         activate: function () {
             $log.debug('Protected Intent overlay ACTIVATED');
@@ -43,7 +44,7 @@
 
         deactivate: function () {
             tpis.cancelHighlights();
-            $log.debug('Protected Intent DEACTIVATED');
+            $log.debug('Protected Intent overlay DEACTIVATED');
         },
 
         hooks: {
@@ -52,14 +53,18 @@
                 // Must return true to consume ESC, false otherwise.
                 return tpis.cancelHighlights();
             },
-            // intent visualization hook
+            // intent visualization hooks
             acceptIntent: function (type) {
                 // accept only intents with type "Protected"
                 return (type.startsWith('Protected'));
             },
             showIntent: function (info) {
-                $log.debug('^^ topoProtectedIntentsOverlay.showintent() ^^', info);
                 tpis.showProtectedIntent(info);
+            },
+            // localization bundle injection hook
+            injectLion: function (bundle) {
+                topoLion = bundle;
+                tpis.setLionBundle(bundle);
             },
         },
     };

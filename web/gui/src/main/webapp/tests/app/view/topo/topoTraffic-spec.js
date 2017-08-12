@@ -51,6 +51,7 @@ describe('factory: view/topo/topoTraffic.js', function() {
             'removeIntent',
             'resubmitIntent',
             'removeIntents',
+            'setLionBundle',
         ])).toBeTruthy();
     });
 

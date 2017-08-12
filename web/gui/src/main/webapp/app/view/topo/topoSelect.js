@@ -37,6 +37,11 @@
     // internal state
     var hovered, selections, selectOrder, consumeClick;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tsel#' + x + '#';
+    };
+
     function setInitialState() {
         hovered = null; // the node over which the mouse is hovering
         selections = {}; // currently selected nodes (by id)
@@ -65,7 +70,7 @@
 
     function nodeMouseOver(m) {
         if (!m.dragStarted) {
-            if (hovered != m) {
+            if (hovered !== m) {
                 hovered = m;
                 tov.hooks.mouseOver({
                     id: m.id,
@@ -101,7 +106,7 @@
             n = d3.select(el);
         } else {
             api.node().each(function (d) {
-                if (d == obj) {
+                if (d === obj) {
                     n = d3.select(el = this);
                 }
             });
@@ -250,16 +255,16 @@
             if (nSel() === 2) {
                 tps.addAction({
                     id: 'host-flow-btn',
-                    gid: 'endstation',
+                    gid: 'm_endstation',
                     cb: tts.addHostIntent,
-                    tt: 'Create Host-to-Host Flow',
+                    tt: function () { return topoLion('tr_btn_create_h2h_flow'); },
                 });
             } else if (nSel() >= 2) {
                 tps.addAction({
                     id: 'mult-src-flow-btn',
                     gid: 'flows',
                     cb: tts.addMultiSourceIntent,
-                    tt: 'Create Multi-Source Flow',
+                    tt: function () { return topoLion('tr_btn_create_msrc_flow'); },
                 });
             }
         }
@@ -362,6 +367,7 @@
                 clickConsumed: clickConsumed,
                 selectionContext: selectionContext,
                 reselect: reselect,
+                setLionBundle: function (bundle) { topoLion = bundle; },
             };
         }]);
 }());

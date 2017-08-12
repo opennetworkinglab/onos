@@ -25,6 +25,11 @@
     // injected refs
     var flash, wss;
 
+    // function to be replaced by the localization bundle function
+    var topoLion = function (x) {
+        return '#tproti#' + x + '#';
+    };
+
     // internal state
     var showingProtectedIntent = null;
 
@@ -38,14 +43,14 @@
 
         showingProtectedIntent = false;
         wss.sendEvent('cancelProtectedIntentHighlight');
-        flash.flash('Monitoring canceled');
+        flash.flash(topoLion('fl_monitoring_canceled'));
         return true;
     }
 
     // force the system to create a single intent selection
     function showProtectedIntent(data) {
         wss.sendEvent('selectProtectedIntent', data);
-        flash.flash('Selecting Intent ' + data.key);
+        flash.flash(topoLion('fl_selecting_intent') + ' ' + data.key);
         showingProtectedIntent = true;
     }
 
@@ -64,6 +69,7 @@
                 // TODO: Remove references
                 initProtectedIntents: function (_api_) {},
                 destroyProtectedIntents: function () { },
+                setLionBundle: function (bundle) { topoLion = bundle; },
 
                 // invoked from toolbar overlay buttons or keystrokes
                 cancelHighlights: cancelHighlights,

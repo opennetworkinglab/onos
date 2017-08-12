@@ -270,7 +270,7 @@
         addRow(mkArrRow(vgest));
     }
 
-    function qhlion_title() {
+    function qhlionTitle() {
         var lion = ls.bundle('core.fw.QuickHelp');
         return lion('qh_title');
     }
@@ -286,7 +286,7 @@
             .attr('rx', 8);
 
         pane.append('text')
-            .text(qhlion_title())
+            .text(qhlionTitle())
             .attr({
                 class: 'title',
                 dy: '1.2em',
