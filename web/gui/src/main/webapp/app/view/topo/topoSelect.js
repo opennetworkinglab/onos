@@ -206,7 +206,6 @@
             }
         }
 
-        $log.debug('EVENT> requestDetails', payload);
         wss.sendEvent('requestDetails', payload);
     }
 

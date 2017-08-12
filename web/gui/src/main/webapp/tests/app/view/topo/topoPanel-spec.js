@@ -70,7 +70,6 @@ describe('factory: view/topo/topoPanel.js', function() {
             'toggleUseDetailsFlag',
             'displaySingle',
             'displayMulti',
-            'displayLink',
             'displayNothing',
             'displaySomething',
             'addAction',

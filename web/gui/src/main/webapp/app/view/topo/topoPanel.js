@@ -246,9 +246,6 @@
 
         detail.setup();
 
-        // TODO: remove
-        $log.debug('>> Display Single Item Details', data);
-
         var svg = detail.appendHeader('div')
                 .classed('icon clickable', true)
                 .append('svg'),
@@ -299,88 +296,6 @@
             .append('div')
             .classed('actionBtn', true);
         bns.button(btnDiv, idDet + '-' + o.id, o.gid, o.cb, o.tt);
-    }
-
-    var friendlyIndex = {
-        device: 1,
-        host: 0,
-    };
-
-    function friendly(d) {
-        var i = friendlyIndex[d.class] || 0;
-        return (d.labels && d.labels[i]) || '';
-    }
-
-    function linkSummary(d) {
-        var o = d && d.online ? 'online' : 'offline';
-        return d ? d.type + ' / ' + o : '-';
-    }
-
-    // provided to change presentation of internal type name
-    var linkTypePres = {
-        hostLink: 'edge link',
-    };
-
-    function linkType(d) {
-        return linkTypePres[d.type()] || d.type();
-    }
-
-    function linkExpected(d) {
-        return d.expected();
-    }
-
-    // TODO: implement server-side processing of link details
-    var coreOrder = [
-            'Type', 'Expected', '-',
-            'A_type', 'A_id', 'A_label', 'A_port', '-',
-            'B_type', 'B_id', 'B_label', 'B_port',
-        ],
-        edgeOrder = [
-            'Type', '-',
-            'A_type', 'A_id', 'A_label', '-',
-            'B_type', 'B_id', 'B_label', 'B_port',
-        ];
-
-    // FIXME: DEPRECATED (no longer called)
-    function displayLink(data, modifyCb) {
-        detail.setup();
-
-        var svg = detail.appendHeader('div')
-                .classed('icon', true)
-                .append('svg'),
-            title = detail.appendHeader('h2'),
-            table = detail.appendBody('table'),
-            tbody = table.append('tbody'),
-            edgeLink = data.type() === 'hostLink',
-            order = edgeLink ? edgeOrder : coreOrder;
-
-        gs.addGlyph(svg, 'ports', 26);
-        title.text('Link');
-
-        var linkData = {
-            propOrder: order.slice(0), // makes a copy of the array
-            props: {
-                Type: linkType(data),
-                Expected: linkExpected(data),
-
-                A_type: data.source.class,
-                A_id: data.source.id,
-                A_label: friendly(data.source),
-                A_port: data.srcPort,
-
-                B_type: data.target.class,
-                B_id: data.target.id,
-                B_label: friendly(data.target),
-                B_port: data.tgtPort,
-            },
-        };
-        listProps(tbody, modifyCb(linkData, data.extra));
-
-        if (!edgeLink) {
-            addSep(tbody);
-            addProp(tbody, 'A &rarr; B', linkSummary(data.fromSource));
-            addProp(tbody, 'B &rarr; A', linkSummary(data.fromTarget));
-        }
     }
 
     function displayNothing() {
@@ -494,7 +409,7 @@
             verb;
 
         useDetails = kev ? !useDetails : !!x;
-        verb = useDetails ? 'Enable' : 'Disable'; // TODO: Lion
+        verb = topoLion(useDetails ? 'enable' : 'disable');
 
         if (useDetails) {
             if (haveDetails) {
@@ -503,7 +418,7 @@
         } else {
             hideDetailPanel();
         }
-        flash.flash(verb + ' details panel'); // TODO: Lion
+        flash.flash(verb + ' ' + topoLion('fl_panel_details'));
         return useDetails;
     }
 
@@ -562,7 +477,6 @@
                 toggleUseDetailsFlag: toggleUseDetailsFlag,
                 displaySingle: displaySingle,
                 displayMulti: displayMulti,
-                displayLink: displayLink,
                 displayNothing: displayNothing,
                 displaySomething: displaySomething,
                 addAction: addAction,
