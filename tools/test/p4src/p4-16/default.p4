@@ -21,6 +21,7 @@
 
 struct metadata_t {
     intrinsic_metadata_t intrinsic_metadata;
+    ecmp_group_id_t ecmp_group_id;
 }
 
 #include "include/parsers.p4"
@@ -30,16 +31,12 @@ struct metadata_t {
 #include "include/packet_io.p4"
 
 control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {
-
-    /*
-    FIXME:
-    It seems that with BMv2 it is not possible to use the same indirect table (like table0 with the
-    implementation attribute enabled), with table entries that use direct actions (e.g. send_to_cpu()).
-    A separate table for ECMP should be created.
-    */
-
     direct_counter(CounterType.packets) table0_counter;
-    // action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    direct_counter(CounterType.packets) ecmp_counter;
+
+    action do_ecmp(inout metadata_t meta, ecmp_group_id_t ecmp_group_id) {
+        meta.ecmp_group_id = ecmp_group_id;
+    }
 
     table table0 {
         /*
@@ -52,23 +49,37 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             hdr.ethernet.dstAddr           : ternary;
             hdr.ethernet.srcAddr           : ternary;
             hdr.ethernet.etherType         : ternary;
+        }
+        actions = {
+            set_egress_port(standard_metadata);
+            send_to_cpu(standard_metadata);
+            do_ecmp(meta);
+            drop(standard_metadata);
+        }
+        counters = table0_counter;
+    }
+
+    action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    table ecmp {
+        support_timeout = false;
+
+        key = {
+            meta.ecmp_group_id             : exact;
             // Not for matching.
             // Inputs to the hash function of the action selector.
-            /* hdr.ipv4.srcAddr               : selector;
+            hdr.ipv4.srcAddr               : selector;
             hdr.ipv4.dstAddr               : selector;
             hdr.ipv4.protocol              : selector;
             hdr.tcp.srcPort                : selector;
             hdr.tcp.dstPort                : selector;
             hdr.udp.srcPort                : selector;
-            hdr.udp.dstPort                : selector; */
+            hdr.udp.dstPort                : selector;
         }
         actions = {
             set_egress_port(standard_metadata);
-            send_to_cpu(standard_metadata);
-            drop(standard_metadata);
         }
-        counters = table0_counter;
-        // implementation = ecmp_selector;
+        implementation = ecmp_selector;
+        counters = ecmp_counter;
     }
 
     PacketIoIngressControl() packet_io_ingress_control;
@@ -77,11 +88,15 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     apply {
         packet_io_ingress_control.apply(hdr, standard_metadata);
         if (!hdr.packet_out.isValid()) {
-            table0.apply();
+            switch(table0.apply().action_run) {
+                do_ecmp: {
+                    ecmp.apply();
+                }
+            }
         }
+
         port_counters_control.apply(hdr, meta, standard_metadata);
     }
-
 }
 
 control egress(inout headers_t hdr, inout metadata_t meta, inout standard_metadata_t standard_metadata) {

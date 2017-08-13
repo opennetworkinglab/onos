@@ -24,6 +24,7 @@
 #define IP_TYPE_UDP 8w17
 
 typedef bit<9> port_t;
+typedef bit<8> ecmp_group_id_t;
 
 const port_t CPU_PORT = 255;
 const port_t DROP_PORT = 511;

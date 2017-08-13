@@ -35,6 +35,9 @@ tables {
     id: 16829080
   }
   action_refs {
+    id: 16824896
+  }
+  action_refs {
     id: 16793508
   }
   action_refs {
@@ -42,6 +45,29 @@ tables {
     annotations: "@defaultonly()"
   }
   direct_resource_ids: 301990488
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33573767
+    name: "ecmp"
+    alias: "ecmp"
+  }
+  match_fields {
+    id: 1
+    name: "meta.ecmp_group_id"
+    bitwidth: 8
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16794308
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  implementation_id: 285227860
+  direct_resource_ids: 302048161
   size: 1024
 }
 actions {
@@ -77,6 +103,28 @@ actions {
     alias: "NoAction"
   }
 }
+actions {
+  preamble {
+    id: 16824896
+    name: "do_ecmp"
+    alias: "do_ecmp"
+  }
+  params {
+    id: 1
+    name: "ecmp_group_id"
+    bitwidth: 8
+  }
+}
+action_profiles {
+  preamble {
+    id: 285227860
+    name: "ecmp_selector"
+    alias: "ecmp_selector"
+  }
+  table_ids: 33573767
+  with_selector: true
+  size: 64
+}
 counters {
   preamble {
     id: 302025528
@@ -109,6 +157,17 @@ direct_counters {
     unit: PACKETS
   }
   direct_table_id: 33617813
+}
+direct_counters {
+  preamble {
+    id: 302048161
+    name: "ecmp_counter"
+    alias: "ecmp_counter"
+  }
+  spec {
+    unit: PACKETS
+  }
+  direct_table_id: 33573767
 }
 controller_packet_metadata {
   preamble {
