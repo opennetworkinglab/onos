@@ -15,9 +15,9 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
-
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -236,9 +236,9 @@ public class DefaultGroupHandler {
      *                  not seen-before
      */
     public void retryHash(Link link, boolean linkDown, boolean firstTime) {
-        MacAddress dstMac;
+        MacAddress neighborMac;
         try {
-            dstMac = deviceConfig.getDeviceMac(link.dst().deviceId());
+            neighborMac = deviceConfig.getDeviceMac(link.dst().deviceId());
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting retryHash.");
             return;
@@ -264,124 +264,153 @@ public class DefaultGroupHandler {
             int nextId = nextHops.nextId();
             Set<DeviceId> dstSet = nextHops.getDstForNextHop(link.dst().deviceId());
             if (!linkDown) {
-                dstSet.forEach(dst -> {
-                    int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                    addToHashedNextObjective(link.src().port(), dstMac,
-                                             edgeLabel, nextId);
-                });
-
+                List<PortLabel> pl = Lists.newArrayList();
                 if (firstTime) {
                     // some links may have come up before the next-objective was created
                     // we take this opportunity to ensure other ports to same next-hop-dst
                     // are part of the hash group (see CORD-1180). Duplicate additions
                     // to the same hash group are avoided by the driver.
                     for (PortNumber p : devicePortMap.get(link.dst().deviceId())) {
-                        if (p.equals(link.src().port())) {
-                            continue;
-                        }
                         dstSet.forEach(dst -> {
                             int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                            addToHashedNextObjective(p, dstMac, edgeLabel, nextId);
+                            pl.add(new PortLabel(p, edgeLabel));
                         });
                     }
+                    addToHashedNextObjective(pl, neighborMac, nextId);
+                } else {
+                    // handle only the port that came up
+                    dstSet.forEach(dst -> {
+                        int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
+                        pl.add(new PortLabel(link.src().port(), edgeLabel));
+                    });
+                    addToHashedNextObjective(pl, neighborMac, nextId);
                 }
             } else {
+                // linkdown
+                List<PortLabel> pl = Lists.newArrayList();
                 dstSet.forEach(dst -> {
                     int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                    removeFromHashedNextObjective(link.src().port(), dstMac,
-                                                  edgeLabel, nextId);
+                    pl.add(new PortLabel(link.src().port(), edgeLabel));
                 });
+                removeFromHashedNextObjective(pl, neighborMac, nextId);
             }
         }
     }
 
     /**
-     * Makes a call to the FlowObjective service to add a single bucket to
-     * a hashed group.
+     * Utility class for associating output ports and the corresponding MPLS
+     * labels to push. In dual-homing, there are different labels to push
+     * corresponding to the destination switches in an edge-pair. If both
+     * destinations are reachable via the same spine, then the output-port to
+     * the spine will be associated with two labels i.e. there will be two
+     * PortLabel objects for the same port but with different labels.
+     */
+    private class PortLabel {
+        PortNumber port;
+        int edgeLabel;
+
+        PortLabel(PortNumber port, int edgeLabel) {
+            this.port = port;
+            this.edgeLabel = edgeLabel;
+        }
+
+        @Override
+        public String toString() {
+            return port.toString() + "/" + String.valueOf(edgeLabel);
+        }
+    }
+
+    /**
+     * Makes a call to the FlowObjective service to add buckets to
+     * a hashed group. User must ensure that all the ports & labels are meant
+     * same neighbor (ie. dstMac).
      *
-     * @param outport port to add to hash group
+     * @param portLables a collection of port & label combinations to add
+     *                   to the hash group identified by the nextId
      * @param dstMac destination mac address of next-hop
-     * @param edgeLabel the label to use in the bucket
-     * @param nextId id for next-objective to which the bucket will be added
+     * @param nextId id for next-objective to which buckets will be added
      *
      */
-    private void addToHashedNextObjective(PortNumber outport, MacAddress dstMac,
-            int edgeLabel, Integer nextId) {
-        // Create the new bucket to be updated
-        TrafficTreatment.Builder tBuilder =
-                DefaultTrafficTreatment.builder();
-        tBuilder.setOutput(outport)
-            .setEthDst(dstMac)
-            .setEthSrc(nodeMacAddr);
-        if (edgeLabel != DestinationSet.NO_EDGE_LABEL) {
-            tBuilder.pushMpls()
-                .copyTtlOut()
-                .setMpls(MplsLabel.mplsLabel(edgeLabel));
-        }
+    private void addToHashedNextObjective(Collection<PortLabel> portLabels,
+                                          MacAddress dstMac, Integer nextId) {
         // setup metadata to pass to nextObjective - indicate the vlan on egress
         // if needed by the switch pipeline. Since hashed next-hops are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
         metabuilder.matchVlanId(INTERNAL_VLAN);
-
         NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
                 .withId(nextId)
                 .withType(NextObjective.Type.HASHED)
-                .addTreatment(tBuilder.build())
                 .withMeta(metabuilder.build())
                 .fromApp(appId);
-        log.debug("addToHash in device {}: Adding Bucket with port/label {}/{} "
-                + "to nextId {}", deviceId, outport, edgeLabel, nextId);
+        // Create the new buckets to be updated
+        portLabels.forEach(pl -> {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(pl.port)
+                .setEthDst(dstMac)
+                .setEthSrc(nodeMacAddr);
+            if (pl.edgeLabel != DestinationSet.NO_EDGE_LABEL) {
+                tBuilder.pushMpls()
+                    .copyTtlOut()
+                    .setMpls(MplsLabel.mplsLabel(pl.edgeLabel));
+            }
+            nextObjBuilder.addTreatment(tBuilder.build());
+        });
+
+        log.debug("addToHash in device {}: Adding Bucket with port/label {} "
+                + "to nextId {}", deviceId, portLabels, nextId);
 
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("addToHash addedTo NextObj {} on {}",
-                                         nextId, deviceId),
+                (objective) -> log.debug("addToHash port/label {} addedTo "
+                        + "NextObj {} on {}", portLabels, nextId, deviceId),
                 (objective, error) ->
-                        log.warn("addToHash failed to addTo NextObj {} on {}: {}",
+                        log.warn("addToHash failed to add port/label {} to"
+                                + " NextObj {} on {}: {}", portLabels,
                                  nextId, deviceId, error));
         NextObjective nextObjective = nextObjBuilder.addToExisting(context);
         flowObjectiveService.next(deviceId, nextObjective);
     }
 
     /**
-     * Makes a call to the FlowObjective service to remove a single bucket from
-     * a hashed group.
+     * Makes a call to the FlowObjective service to remove buckets from
+     * a hash group. User must ensure that all the ports & labels are meant
+     * same neighbor (ie. dstMac).
      *
-     * @param port port to remove from hash group
+     * @param portLables a collection of port & label combinations to remove
+     *                   from the hash group identified by the nextId
      * @param dstMac destination mac address of next-hop
-     * @param edgeLabel the label to use in the bucket
-     * @param nextId id for next-objective from which the bucket will be removed
+     * @param nextId id for next-objective from which buckets will be removed
      */
-    private void removeFromHashedNextObjective(PortNumber port, MacAddress dstMac,
-                                               int edgeLabel, Integer nextId) {
-        // Create the bucket to be removed
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
-                .builder();
-        tBuilder.setOutput(port)
-        .setEthDst(dstMac)
-        .setEthSrc(nodeMacAddr);
-        if (edgeLabel != DestinationSet.NO_EDGE_LABEL) {
-            tBuilder.pushMpls()
-            .copyTtlOut()
-            .setMpls(MplsLabel.mplsLabel(edgeLabel));
-        }
-        log.info("{} in device {}: Removing Bucket with Port {} to next object id {}",
-                 "removeFromHash", deviceId, port, nextId);
+    private void removeFromHashedNextObjective(Collection<PortLabel> portLabels,
+                                               MacAddress dstMac, Integer nextId) {
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder()
                 .withType(NextObjective.Type.HASHED) //same as original
                 .withId(nextId)
-                .fromApp(appId)
-                .addTreatment(tBuilder.build());
-        ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("port {} removedFrom NextObj {} on {}",
-                                         port, nextId, deviceId),
-                (objective, error) ->
-                log.warn("port {} failed to removeFrom NextObj {} on {}: {}",
-                         port, nextId, deviceId, error));
-        NextObjective nextObjective = nextObjBuilder.
-                removeFromExisting(context);
+                .fromApp(appId);
+        // Create the buckets to be removed
+        portLabels.forEach(pl -> {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.setOutput(pl.port)
+                .setEthDst(dstMac)
+                .setEthSrc(nodeMacAddr);
+            if (pl.edgeLabel != DestinationSet.NO_EDGE_LABEL) {
+                tBuilder.pushMpls()
+                    .copyTtlOut()
+                    .setMpls(MplsLabel.mplsLabel(pl.edgeLabel));
+            }
+            nextObjBuilder.addTreatment(tBuilder.build());
+        });
+        log.debug("removeFromHash in device {}: Removing Bucket with port/label"
+                + " {} from nextId {}", deviceId, portLabels, nextId);
 
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("port/label {} removedFrom NextObj"
+                        + " {} on {}", portLabels, nextId, deviceId),
+                (objective, error) ->
+                log.warn("port/label {} failed to removeFrom NextObj {} on "
+                        + "{}: {}", portLabels, nextId, deviceId, error));
+        NextObjective nextObjective = nextObjBuilder.removeFromExisting(context);
         flowObjectiveService.next(deviceId, nextObjective);
     }
 
@@ -405,7 +434,7 @@ public class DefaultGroupHandler {
         // temporary storage of keys to be updated
         Map<DestinationSetNextObjectiveStoreKey, Set<DeviceId>> tempStore =
                 new HashMap<>();
-        boolean foundNextObjective = false;
+        boolean foundNextObjective = false, success = true;
 
         // retrieve hash-groups meant for destSw, which have destinationSets
         // with different neighbors than the given next-hops
@@ -432,44 +461,17 @@ public class DefaultGroupHandler {
                         + "hops:{} ..adding {}", targetSw, destSw, nextId,
                         currNeighbors, diff);
             }
-            for (DeviceId neighbor : diff) {
-                MacAddress dstMac;
-                try {
-                    dstMac = deviceConfig.getDeviceMac(neighbor);
-                } catch (DeviceConfigNotFoundException e) {
-                    log.warn(e.getMessage() + " Aborting fixHashGroup for nextId:"
-                            + nextId);
-                    return false;
-                }
-                if (devicePortMap.get(neighbor) == null ||
-                        devicePortMap.get(neighbor).isEmpty()) {
-                    log.warn("No ports found in dev:{} for neighbor:{} .. cannot "
-                            + "fix hash group for nextId: {}",
-                             deviceId, neighbor, nextId);
-                    return false;
-                }
+            boolean suc = updateAllPortsToNextHop(diff, edgeLabel, nextId,
+                                                  revoke);
+            if (suc) {
+                // to update neighbor set with changes made
                 if (revoke) {
-                    for (PortNumber port : devicePortMap.get(neighbor)) {
-                        log.info("fixHashGroup in device {}: Removing Bucket "
-                                + "with Port {} to next object id {}",
-                                deviceId, port, nextId);
-                        removeFromHashedNextObjective(port, dstMac,
-                                                      edgeLabel,
-                                                      nextId);
-                    }
-                    // to update neighbor set with changes made
                     tempStore.put(dskey, Sets.difference(currNeighbors, diff));
                 } else {
-                    for (PortNumber port : devicePortMap.get(neighbor)) {
-                        log.info("fixHashGroup in device {}: Adding Bucket "
-                                + "with Port {} to next object id {}",
-                                deviceId, port, nextId);
-                        addToHashedNextObjective(port, dstMac, edgeLabel, nextId);
-                    }
-                    // to update neighbor set with changes made
                     tempStore.put(dskey, Sets.union(currNeighbors, diff));
                 }
             }
+            success &= suc;
         }
 
         if (!foundNextObjective) {
@@ -480,18 +482,29 @@ public class DefaultGroupHandler {
 
         // update the dsNextObjectiveStore with new destinationSet to nextId mappings
         for (DestinationSetNextObjectiveStoreKey key : tempStore.keySet()) {
-            NextNeighbors oldHops = dsNextObjStore.get(key);
-            if (oldHops == null) {
+            NextNeighbors currentNextHops = dsNextObjStore.get(key);
+            if (currentNextHops == null) {
+                log.warn("fixHashGroups could not update global store in "
+                        + "device {} .. missing nextNeighbors for key {}",
+                        deviceId, key);
                 continue;
             }
-            Set<DeviceId> newNeighbors = tempStore.get(key);
-            Set<DeviceId> oldNeighbors = ImmutableSet.copyOf(oldHops.nextHops(destSw));
-            oldHops.dstNextHops().put(destSw, newNeighbors);
-            log.debug("Updating nsNextObjStore: oldHops:{} -> newHops:{} :: nextId:{}",
-                      oldNeighbors, newNeighbors, oldHops.nextId());
+            Set<DeviceId> newNeighbors = new HashSet<>();
+            newNeighbors.addAll(tempStore.get(key));
+            Map<DeviceId, Set<DeviceId>> oldDstNextHops =
+                    ImmutableMap.copyOf(currentNextHops.dstNextHops());
+            currentNextHops.dstNextHops().put(destSw, newNeighbors); //local change
+            log.debug("Updating nsNextObjStore target:{} -> dst:{} in key:{} nextId:{}",
+                      targetSw, destSw, key, currentNextHops.nextId());
+            log.debug("Old dstNextHops: {}", oldDstNextHops);
+            log.debug("New dstNextHops: {}", currentNextHops.dstNextHops());
+            // update global store
+            dsNextObjStore.put(key,
+                               new NextNeighbors(currentNextHops.dstNextHops(),
+                                                 currentNextHops.nextId()));
         }
-
-        return true;
+        // even if one fails and others succeed, return false so ECMPspg not updated
+        return success;
     }
 
     /**
@@ -543,7 +556,9 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Adds or removes buckets for all ports to a set of neighbor devices.
+     * Adds or removes buckets for all ports to a set of neighbor devices. Caller
+     * needs to ensure that the  given neighbors are all next hops towards the
+     * same destination (represented by the given edgeLabel).
      *
      * @param neighbors set of neighbor device ids
      * @param edgeLabel MPLS label to use in buckets
@@ -556,37 +571,33 @@ public class DefaultGroupHandler {
     private boolean updateAllPortsToNextHop(Set<DeviceId> neighbors, int edgeLabel,
                                          int nextId, boolean revoke) {
         for (DeviceId neighbor : neighbors) {
-            MacAddress dstMac;
+            MacAddress neighborMac;
             try {
-                dstMac = deviceConfig.getDeviceMac(neighbor);
+                neighborMac = deviceConfig.getDeviceMac(neighbor);
             } catch (DeviceConfigNotFoundException e) {
-                log.warn(e.getMessage() + " Aborting fixHashGroup for nextId:"
-                        + nextId);
+                log.warn(e.getMessage() + " Aborting updateAllPortsToNextHop"
+                        + " for nextId:" + nextId);
                 return false;
             }
-            if (devicePortMap.get(neighbor) == null ||
-                    devicePortMap.get(neighbor).isEmpty()) {
+            Collection<PortNumber> portsToNeighbor = devicePortMap.get(neighbor);
+            if (portsToNeighbor == null || portsToNeighbor.isEmpty()) {
                 log.warn("No ports found in dev:{} for neighbor:{} .. cannot "
-                        + "fix hash group for nextId: {}",
+                        + "updateAllPortsToNextHop for nextId: {}",
                          deviceId, neighbor, nextId);
                 return false;
             }
+            List<PortLabel> pl = Lists.newArrayList();
+            portsToNeighbor.forEach(p -> pl.add(new PortLabel(p, edgeLabel)));
             if (revoke) {
-                for (PortNumber port : devicePortMap.get(neighbor)) {
-                    log.debug("fixHashGroup in device {}: Removing Bucket "
-                            + "with Port {} edgeLabel:{} to next object id {}",
-                            deviceId, port, edgeLabel, nextId);
-                    removeFromHashedNextObjective(port, dstMac,
-                                                  edgeLabel,
-                                                  nextId);
-                }
+                log.debug("updateAllPortsToNextHops in device {}: Removing Bucket(s) "
+                        + "with Port/Label:{} to next object id {}",
+                        deviceId, pl, nextId);
+                removeFromHashedNextObjective(pl, neighborMac, nextId);
             } else {
-                for (PortNumber port : devicePortMap.get(neighbor)) {
-                    log.debug("fixHashGroup in device {}: Adding Bucket "
-                            + "with Port {} edgeLabel: {} to next object id {}",
-                            deviceId, port, edgeLabel, nextId);
-                    addToHashedNextObjective(port, dstMac, edgeLabel, nextId);
-                }
+                log.debug("fixHashGroup in device {}: Adding Bucket(s) "
+                        + "with Port/Label: {} to next object id {}",
+                        deviceId, pl, nextId);
+                addToHashedNextObjective(pl, neighborMac, nextId);
             }
         }
         return true;
@@ -1124,8 +1135,13 @@ public class DefaultGroupHandler {
 
 
     /**
-     *
-     *
+     * Performs bucket verification operation for all hash groups in this device.
+     * Checks RouteHandler to ensure that routing is stable before attempting
+     * verification. Verification involves creating a nextObjective with
+     * operation VERIFY for existing next objectives in the store, and passing
+     * it to the driver. It is the driver that actually performs the verification
+     * by adding or removing buckets to match the verification next objective
+     * created here.
      */
     protected final class BucketCorrector implements Runnable {
         Integer nextId;
@@ -1152,7 +1168,7 @@ public class DefaultGroupHandler {
             }
             rh.acquireRoutingLock();
             try {
-                log.debug("running bucket corrector for dev: {}", deviceId);
+                log.trace("running bucket corrector for dev: {}", deviceId);
                 Set<DestinationSetNextObjectiveStoreKey> dsKeySet = dsNextObjStore.entrySet()
                         .stream()
                         .filter(entry -> entry.getKey().deviceId().equals(deviceId))
@@ -1167,7 +1183,7 @@ public class DefaultGroupHandler {
                     if (nextId != null && nextId != nid) {
                         continue;
                     }
-                    log.debug("bkt-corr: dsNextObjStore for device {}: {}",
+                    log.trace("bkt-corr: dsNextObjStore for device {}: {}",
                               deviceId, dsKey, next);
                     TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
                     metabuilder.matchVlanId(INTERNAL_VLAN);
@@ -1189,7 +1205,7 @@ public class DefaultGroupHandler {
                                 return;
                             }
                             devicePortMap.get(neighbor).forEach(port -> {
-                                log.debug("verify in device {} nextId {}: bucket with"
+                                log.trace("verify in device {} nextId {}: bucket with"
                                         + " port/label {}/{} to dst {} via {}",
                                         deviceId, nid, port, edgeLabel,
                                         dstDev, neighbor);

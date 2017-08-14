@@ -1106,16 +1106,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processLinkAdded(Link link) {
         log.info("** LINK ADDED {}", link.toString());
-        if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
-            log.warn("Source device of this link is not configured..not processing");
-            return;
-        }
         if (link.type() != Link.Type.DIRECT) {
             // NOTE: A DIRECT link might be transiently marked as INDIRECT
             //       if BDDP is received before LLDP. We can safely ignore that
             //       until the LLDP is received and the link is marked as DIRECT.
             log.info("Ignore link {}->{}. Link type is {} instead of DIRECT.",
                     link.src(), link.dst(), link.type());
+            return;
+        }
+        if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
+            updateSeenLink(link, true);
+            // XXX revisit - what about devicePortMap
+            log.warn("Source device of this link is not configured.. "
+                    + "not processing further");
             return;
         }
 
@@ -1127,6 +1130,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (groupHandler != null) {
             groupHandler.portUpForLink(link);
         } else {
+            // XXX revisit/cleanup
             Device device = deviceService.getDevice(link.src().deviceId());
             if (device != null) {
                 log.warn("processLinkAdded: Link Added "
@@ -1189,7 +1193,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (groupHandler != null) {
             if (mastershipService.isLocalMaster(link.src().deviceId()) &&
                     isParallelLink(link)) {
+                log.debug("* retrying hash for parallel link removed:{}", link);
                 groupHandler.retryHash(link, true, false);
+            } else {
+                log.debug("Not attempting retry-hash for link removed: {} .. {}", link,
+                          (mastershipService.isLocalMaster(link.src().deviceId()))
+                                  ? "not parallel" : "not master");
             }
             // ensure local stores are updated
             groupHandler.portDown(link.src().port());

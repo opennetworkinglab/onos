@@ -267,7 +267,6 @@ public class DeviceConfiguration implements DeviceProperties {
     public MacAddress getDeviceMac(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
-            log.trace("getDeviceMac for device{} is {}", deviceId, srinfo.mac);
             return srinfo.mac;
         } else {
             String message = "getDeviceMac fails for device: " + deviceId + ".";
