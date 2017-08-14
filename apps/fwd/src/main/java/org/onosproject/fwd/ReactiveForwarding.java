@@ -541,7 +541,10 @@ public class ReactiveForwarding {
     private Path pickForwardPathIfPossible(Set<Path> paths, PortNumber notToPort) {
         Path lastPath = null;
         for (Path path : paths) {
-            lastPath = path;
+            //in the 469 line,the caller check if the retrun value is null,to ensure "pick a path that does not lead back to where we
+            // came from; if no such path, flood and bail." But if every loop make lastPath=path;then if there is not any path meet 
+            //the demand,this method will retrun a false value.
+            //lastPath = path;
             if (!path.src().port().equals(notToPort)) {
                 return path;
             }
