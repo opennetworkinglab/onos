@@ -163,7 +163,7 @@ public class InterfaceManagerTest {
         interfaces.add(newIntf);
 
         NetworkConfigEvent event = new NetworkConfigEvent(
-                NetworkConfigEvent.Type.CONFIG_ADDED, cp, CONFIG_CLASS);
+                NetworkConfigEvent.Type.CONFIG_ADDED, cp, ic, null, CONFIG_CLASS);
 
         assertEquals(NUM_INTERFACES, interfaceManager.getInterfaces().size());
 
@@ -201,12 +201,13 @@ public class InterfaceManagerTest {
 
         // New interface config updates the existing interface and adds a new
         // interface to the same connect point
+        InterfaceConfig oldIc = new TestInterfaceConfig(cp, Sets.newHashSet(intf));
         InterfaceConfig ic = new TestInterfaceConfig(cp, interfaces);
 
         configs.put(cp, ic);
 
         NetworkConfigEvent event = new NetworkConfigEvent(
-                NetworkConfigEvent.Type.CONFIG_UPDATED, cp, CONFIG_CLASS);
+                NetworkConfigEvent.Type.CONFIG_UPDATED, cp, ic, oldIc, CONFIG_CLASS);
 
         // Send in the event signalling the interfaces for this connect point
         // have been updated

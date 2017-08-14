@@ -249,9 +249,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
-                    InterfaceConfig config =
-                            configService.getConfig((ConnectPoint) event.subject(), InterfaceConfig.class);
-                    updateInterfaces(config);
+                    event.config().ifPresent(config -> updateInterfaces((InterfaceConfig) config));
                     break;
                 case CONFIG_REMOVED:
                     removeInterfaces((ConnectPoint) event.subject());
