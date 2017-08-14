@@ -42,6 +42,7 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -1497,7 +1498,6 @@ public class Ofdpa2GroupHandler {
         List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
         List<TrafficTreatment> bucketsToCreate = Lists.newArrayList();
         List<Integer> indicesToRemove = Lists.newArrayList();
-        // XXX verify empty group
         for (TrafficTreatment bkt : nextObjective.next()) {
             PortNumber portNumber = readOutPortFromTreatment(bkt);
             int label = readLabelFromTreatment(bkt);
@@ -1542,6 +1542,100 @@ public class Ofdpa2GroupHandler {
             indicesToRemove.forEach(index -> chainsToRemove
                                                  .add(allActiveKeys.get(index)));
             removeBucket(chainsToRemove, nextObjective);
+        }
+
+        if (bucketsToCreate.isEmpty() && indicesToRemove.isEmpty()) {
+            // flowObjective store record is in-sync with nextObjective passed-in
+            // Nevertheless groupStore may not be in sync due to bug in the store
+            // - see CORD-1844. XXX When this bug is fixed, the rest of this verify
+            // method will not be required.
+            GroupKey hashGroupKey = allActiveKeys.get(0).peekFirst();
+            Group hashGroup = groupService.getGroup(deviceId, hashGroupKey);
+            int actualGroupSize = hashGroup.buckets().buckets().size();
+            int objGroupSize = nextObjective.next().size();
+            if (actualGroupSize != objGroupSize) {
+                log.warn("Mismatch detected in device:{}, nextId:{}, nextObjective-size"
+                        + ":{} group-size:{} .. correcting", deviceId, nextObjective.id(),
+                        objGroupSize, actualGroupSize);
+            }
+            if (actualGroupSize > objGroupSize) {
+                List<GroupBucket> bucketsToRemove = Lists.newArrayList();
+                //check every bucket in the actual group
+                for (GroupBucket bucket : hashGroup.buckets().buckets()) {
+                    GroupInstruction g = (GroupInstruction) bucket.treatment()
+                                            .allInstructions().iterator().next();
+                    GroupId gidToCheck = g.groupId(); // the group pointed to
+                    boolean matches = false;
+                    for (Deque<GroupKey> validChain : allActiveKeys) {
+                        if (validChain.size() < 2) {
+                            continue;
+                        }
+                        GroupKey pointedGroupKey = validChain.stream()
+                                                       .collect(Collectors.toList()).get(1);
+                        Group pointedGroup = groupService.getGroup(deviceId, pointedGroupKey);
+                        if (pointedGroup != null && gidToCheck.equals(pointedGroup.id())) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (!matches) {
+                        log.warn("Removing bucket pointing to groupId:{}", gidToCheck);
+                        bucketsToRemove.add(bucket);
+                    }
+                }
+                // remove buckets for which there was no record in the obj store
+                if (bucketsToRemove.isEmpty()) {
+                    log.warn("Mismatch detected but could not determine which"
+                            + "buckets to remove");
+                } else {
+                    GroupBuckets removeBuckets = new GroupBuckets(bucketsToRemove);
+                    groupService.removeBucketsFromGroup(deviceId, hashGroupKey,
+                                                        removeBuckets, hashGroupKey,
+                                                        nextObjective.appId());
+                }
+            } else if (actualGroupSize < objGroupSize) {
+                // should also add buckets not in group-store but in obj-store
+                List<GroupBucket> bucketsToAdd = Lists.newArrayList();
+                //check every bucket in the obj
+                for (Deque<GroupKey> validChain : allActiveKeys) {
+                    if (validChain.size() < 2) {
+                        continue;
+                    }
+                    GroupKey pointedGroupKey = validChain.stream()
+                                                   .collect(Collectors.toList()).get(1);
+                    Group pointedGroup = groupService.getGroup(deviceId, pointedGroupKey);
+                    if (pointedGroup == null) {
+                        // group should exist, otherwise cannot be added as bucket
+                        continue;
+                    }
+                    boolean matches = false;
+                    for (GroupBucket bucket : hashGroup.buckets().buckets()) {
+                        GroupInstruction g = (GroupInstruction) bucket.treatment()
+                                                .allInstructions().iterator().next();
+                        GroupId gidToCheck = g.groupId(); // the group pointed to
+                        if (pointedGroup.id().equals(gidToCheck)) {
+                            matches = true;
+                            break;
+                        }
+                    }
+                    if (!matches) {
+                        log.warn("Adding bucket pointing to groupId:{}", pointedGroup);
+                        TrafficTreatment t = DefaultTrafficTreatment.builder()
+                                                .group(pointedGroup.id())
+                                                .build();
+                        bucketsToAdd.add(DefaultGroupBucket.createSelectGroupBucket(t));
+                    }
+                }
+                if (bucketsToAdd.isEmpty()) {
+                    log.warn("Mismatch detected but could not determine which "
+                            + "buckets to add");
+                } else {
+                    GroupBuckets addBuckets = new GroupBuckets(bucketsToAdd);
+                    groupService.addBucketsToGroup(deviceId, hashGroupKey,
+                                                   addBuckets, hashGroupKey,
+                                                   nextObjective.appId());
+                }
+            }
         }
 
         pass(nextObjective);
@@ -1733,7 +1827,6 @@ public class Ofdpa2GroupHandler {
     private class InnerGroupListener implements GroupListener {
         @Override
         public void event(GroupEvent event) {
-            log.trace("received group event of type {}", event.type());
             switch (event.type()) {
                 case GROUP_ADDED:
                     processPendingAddGroupsOrNextObjs(event.subject().appCookie(), true);
