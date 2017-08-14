@@ -455,6 +455,16 @@ public class HostManager
             store.removeLocation(hostId, location);
         }
 
+        @Override
+        public MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
+            return store.addPendingHostLocation(hostId, hostLocation);
+        }
+
+        @Override
+        public void removePendingHostLocation(MacAddress probeMac) {
+            store.removePendingHostLocation(probeMac);
+        }
+
         private boolean allowedToChange(HostId hostId) {
             // Disallow removing inexistent host or host provided by others
             Host host = store.getHost(hostId);

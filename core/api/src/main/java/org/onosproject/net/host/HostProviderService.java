@@ -16,6 +16,7 @@
 package org.onosproject.net.host;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.provider.ProviderService;
@@ -57,4 +58,23 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      * @param location location of host that vanished
      */
     void removeLocationFromHost(HostId hostId, HostLocation location);
+
+    /**
+     * Notifies HostProviderService the beginning of pending host location verification and
+     * retrieves the unique MAC address for the probe.
+     *
+     * @param hostId ID of the host
+     * @param hostLocation the host location that is under verification
+     * @return probeMac, the source MAC address ONOS uses to probe the host
+     */
+    default MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
+        return MacAddress.NONE;
+    }
+
+    /**
+     * Notifies HostProviderService the end of pending host location verification.
+     *
+     * @param probeMac the source MAC address ONOS uses to probe the host
+     */
+    default void removePendingHostLocation(MacAddress probeMac) {}
 }

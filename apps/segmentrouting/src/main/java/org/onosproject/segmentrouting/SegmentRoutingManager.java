@@ -370,6 +370,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "forceUnprovision", "true");
         compCfgService.preSetProperty("org.onosproject.routeservice.store.RouteStoreImpl",
                                       "distributed", "true");
+        compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
+                                      "multihomingEnabled", "true");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();

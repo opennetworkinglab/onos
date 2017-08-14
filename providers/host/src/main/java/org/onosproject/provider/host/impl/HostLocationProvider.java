@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.host.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,10 +32,10 @@ import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
@@ -90,6 +91,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
+import java.util.Set;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -162,9 +164,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             label = "Enable requesting packet intercepts")
     private boolean requestInterceptsEnabled = true;
 
-    protected ExecutorService eventHandler;
+    @Property(name = "multihomingEnabled", boolValue = false,
+            label = "Allow hosts to be multihomed")
+    private boolean multihomingEnabled = false;
 
-    private static final byte[] SENDER_ADDRESS = IpAddress.valueOf("0.0.0.0").toOctets();
+    protected ExecutorService eventHandler;
 
     /**
      * Creates an OpenFlow host provider.
@@ -245,18 +249,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             packetService.cancelPackets(ipv6NsSelector, PacketPriority.CONTROL, appId);
             packetService.cancelPackets(ipv6NaSelector, PacketPriority.CONTROL, appId);
         }
-
-        // Use DHCP
-        TrafficSelector dhcpServerSelector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
-                .build();
-        TrafficSelector dhcpClientSelector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
-                .build();
     }
 
     /**
@@ -336,6 +328,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             log.info("Configured. Request intercepts is {}",
                      requestInterceptsEnabled ? "enabled" : "disabled");
         }
+
+        flag = Tools.isPropertyEnabled(properties, "multihomingEnabled");
+        if (flag == null) {
+            log.info("Multihoming is not configured, " +
+                    "using current value of {}", multihomingEnabled);
+        } else {
+            multihomingEnabled = flag;
+            log.info("Configured. Multihoming is {}",
+                    multihomingEnabled ? "enabled" : "disabled");
+        }
+
     }
 
     @Override
@@ -378,26 +381,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     // This method is using source ip as 0.0.0.0 , to receive the reply even from the sub net hosts.
     private Ethernet buildArpRequest(IpAddress targetIp, Host host) {
-
-        ARP arp = new ARP();
-        arp.setHardwareType(ARP.HW_TYPE_ETHERNET)
-           .setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
-           .setProtocolType(ARP.PROTO_TYPE_IP)
-           .setProtocolAddressLength((byte) IpAddress.INET_BYTE_LENGTH)
-           .setOpCode(ARP.OP_REQUEST);
-
-        arp.setSenderHardwareAddress(MacAddress.BROADCAST.toBytes())
-                .setSenderProtocolAddress(SENDER_ADDRESS)
-                .setTargetHardwareAddress(MacAddress.BROADCAST.toBytes())
-                .setTargetProtocolAddress(targetIp.toOctets());
-
-        Ethernet ethernet = new Ethernet();
-        ethernet.setEtherType(Ethernet.TYPE_ARP)
-                .setDestinationMACAddress(MacAddress.BROADCAST)
-                .setSourceMACAddress(MacAddress.BROADCAST).setPayload(arp);
-
-        ethernet.setPad(true);
-        return ethernet;
+        return ARP.buildArpRequest(MacAddress.BROADCAST.toBytes(), Ip4Address.ZERO.toOctets(),
+                MacAddress.BROADCAST.toBytes(), targetIp.toOctets(),
+                MacAddress.BROADCAST.toBytes(), VlanId.NONE.toShort());
     }
 
     private class InternalHostProvider implements PacketProcessor {
@@ -414,14 +400,72 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void createOrUpdateHost(HostId hid, MacAddress mac,
                                         VlanId vlan, HostLocation hloc,
                                         IpAddress ip) {
+            Set<HostLocation> newLocations = Sets.newHashSet(hloc);
+
+            if (multihomingEnabled) {
+                Host existingHost = hostService.getHost(hid);
+                if (existingHost != null) {
+                    Set<HostLocation> prevLocations = existingHost.locations();
+                    newLocations.addAll(prevLocations);
+
+                    if (!existingHost.locations().contains(hloc)) {
+                        probeLocations(existingHost);
+                    }
+                }
+            }
+
             HostDescription desc = ip == null || ip.isZero() || ip.isSelfAssigned() ?
-                    new DefaultHostDescription(mac, vlan, hloc) :
-                    new DefaultHostDescription(mac, vlan, hloc, ip);
+                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(), false) :
+                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(ip), false);
             try {
                 providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
                 log.debug("Host {} suppressed", hid);
             }
+        }
+
+        /**
+         * Start verification procedure of all previous locations by sending probes.
+         *
+         * @param host Host to be probed
+         */
+        private void probeLocations(Host host) {
+            host.locations().forEach(location -> {
+                MacAddress probeMac = providerService.addPendingHostLocation(host.id(), location);
+
+                host.ipAddresses().stream().findFirst().ifPresent(ip -> {
+                    Ethernet probe;
+                    if (ip.isIp4()) {
+                        probe = ARP.buildArpRequest(probeMac.toBytes(), Ip4Address.ZERO.toOctets(),
+                                host.id().mac().toBytes(), ip.toOctets(),
+                                host.id().mac().toBytes(), host.id().vlanId().toShort());
+                    } else {
+                        probe = NeighborSolicitation.buildNdpSolicit(
+                                ip.getIp6Address().toOctets(),
+                                IPv6.getLinkLocalAddress(probeMac.toBytes()),
+                                IPv6.getSolicitNodeAddress(ip.getIp6Address().toOctets()),
+                                probeMac.toBytes(),
+                                IPv6.getMCastMacAddress(ip.getIp6Address().toOctets()),
+                                host.id().vlanId());
+                    }
+                    sendProbe(probe, location);
+                });
+            });
+        }
+
+        /**
+         * Send the probe packet on given port.
+         *
+         * @param probe the probe packet
+         * @param connectPoint the port we want to probe
+         */
+        private void sendProbe(Ethernet probe, ConnectPoint connectPoint) {
+            log.info("Probing host {} on location {} with probeMac {}",
+                    probe.getDestinationMAC(), connectPoint, probe.getSourceMAC());
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
+            OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
+                    treatment, ByteBuffer.wrap(probe.serialize()));
+            packetService.emit(outboundPacket);
         }
 
         /**
@@ -433,12 +477,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void updateHostIp(HostId hid, IpAddress ip) {
             Host host = hostService.getHost(hid);
             if (host == null) {
-                log.debug("Fail to update IP for {}. Host does not exist");
+                log.warn("Fail to update IP for {}. Host does not exist", hid);
                 return;
             }
 
             HostDescription desc = new DefaultHostDescription(hid.mac(), hid.vlanId(),
-                    host.location(), ip);
+                    host.locations(), Sets.newHashSet(ip), false);
             try {
                 providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
@@ -478,6 +522,14 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
             HostLocation hloc = new HostLocation(heardOn, System.currentTimeMillis());
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
+            MacAddress destMac = eth.getDestinationMAC();
+
+            // Receives a location probe. Invalid entry from the cache
+            if (multihomingEnabled && destMac.isOnos() && !MacAddress.NONE.equals(destMac)) {
+                log.info("Receives probe for {}/{} on {}", srcMac, vlan, heardOn);
+                providerService.removePendingHostLocation(destMac);
+                return;
+            }
 
             // ARP: possible new hosts, update both location and IP
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
