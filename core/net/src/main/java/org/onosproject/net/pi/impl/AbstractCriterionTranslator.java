@@ -47,9 +47,9 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
      */
     void initAsExactMatch(ImmutableByteSequence value, int bitWidth)
             throws ByteSequenceTrimException {
+        this.initType = PiMatchType.EXACT;
         this.value = fit(value, bitWidth);
         this.bitWidth = bitWidth;
-        this.initType = PiMatchType.EXACT;
     }
 
     /**
@@ -62,10 +62,10 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
      */
     void initAsTernaryMatch(ImmutableByteSequence value, ImmutableByteSequence mask, int bitWidth)
             throws ByteSequenceTrimException {
+        this.initType = PiMatchType.TERNARY;
         this.value = fit(value, bitWidth);
         this.mask = fit(mask, bitWidth);
         this.bitWidth = bitWidth;
-        this.initType = PiMatchType.TERNARY;
     }
 
     /**
@@ -78,10 +78,19 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
      */
     void initAsLpm(ImmutableByteSequence value, int prefixLength, int bitWidth)
             throws ByteSequenceTrimException {
+        this.initType = PiMatchType.LPM;
         this.value = fit(value, bitWidth);
         this.prefixLength = prefixLength;
         this.bitWidth = bitWidth;
-        this.initType = PiMatchType.LPM;
+    }
+
+    /**
+     * Computes the prefix padding size (in bits) based on value and bit width.
+     *
+     * @return prefix padding in bits
+     */
+    private int prefixPadding() {
+        return value.size() * Byte.SIZE - this.bitWidth;
     }
 
     @Override
@@ -112,7 +121,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
     public Pair<ImmutableByteSequence, ImmutableByteSequence> ternaryMatch() {
         switch (initType) {
             case EXACT:
-                mask = ImmutableByteSequence.ofOnes(value.size());
+                mask = ImmutableByteSequence.prefixZeros(value.size(), prefixPadding());
                 break;
             case TERNARY:
                 break;

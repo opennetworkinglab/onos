@@ -53,6 +53,8 @@ import static org.onosproject.net.pi.impl.MockInterpreter.*;
 public class PiFlowRuleTranslatorTest {
 
     private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
+    private static final short IN_PORT_MASK = 0x01ff; // 9-bit mask
+    private static final short ETH_TYPE_MASK = (short) 0xffff;
 
     private Random random = new Random();
     private PiPipeconf pipeconf;
@@ -138,12 +140,20 @@ public class PiFlowRuleTranslatorTest {
         // check that values stored in entry are the same used for the flow rule
         assertThat("Incorrect inPort match param value",
                    inPortParam.value().asReadOnlyBuffer().getShort(), is(equalTo(inPort)));
+        assertThat("Incorrect inPort match param mask",
+                   inPortParam.mask().asReadOnlyBuffer().getShort(), is(equalTo(IN_PORT_MASK)));
         assertThat("Incorrect ethDestMac match param value",
                    ethDstParam.value().asArray(), is(equalTo(ethDstMac.toBytes())));
+        assertThat("Incorrect ethDestMac match param mask",
+                   ethDstParam.mask().asArray(), is(equalTo(MacAddress.BROADCAST.toBytes())));
         assertThat("Incorrect ethSrcMac match param value",
                    ethSrcParam.value().asArray(), is(equalTo(ethSrcMac.toBytes())));
+        assertThat("Incorrect ethSrcMac match param mask",
+                   ethSrcParam.mask().asArray(), is(equalTo(MacAddress.BROADCAST.toBytes())));
         assertThat("Incorrect ethType match param value",
                    ethTypeParam.value().asReadOnlyBuffer().getShort(), is(equalTo(ethType)));
+        assertThat("Incorrect ethType match param mask",
+                   ethTypeParam.mask().asReadOnlyBuffer().getShort(), is(equalTo(ETH_TYPE_MASK)));
         assertThat("Incorrect priority value",
                    entry1.priority().get(), is(equalTo(Integer.MAX_VALUE - rule1.priority())));
         assertThat("Incorrect timeout value",

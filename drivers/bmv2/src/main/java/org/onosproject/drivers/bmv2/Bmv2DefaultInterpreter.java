@@ -103,7 +103,7 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
                 Instructions.OutputInstruction outInstruction = (Instructions.OutputInstruction) instruction;
                 PortNumber port = outInstruction.port();
                 if (!port.isLogical()) {
-                    PiAction.builder()
+                    return PiAction.builder()
                             .withId(PiActionId.of(SET_EGRESS_PORT))
                             .withParameter(new PiActionParam(PiActionParamId.of(PORT),
                                     ImmutableByteSequence.copyFrom(port.toLong())))
