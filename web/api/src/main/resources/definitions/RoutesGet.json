@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "title": "routes",
+  "required": [
+    "ipv4",
+    "ipv6"
+  ],
+  "properties": {
+    "ipv4": {
+      "type": "array",
+      "xml": {
+        "name": "ipv4",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "route",
+        "required": [
+          "source",
+          "prefix",
+          "nextHop"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "STATIC",
+            "description": "Route source"
+          },
+          "prefix": {
+            "type": "string",
+            "example": "10.1.1.0/24",
+            "description": "Route prefix"
+          },
+          "nextHop": {
+            "type": "string",
+            "example": "1.1.1.1",
+            "description": "Next hop IP address"
+          }
+        }
+      }
+    },
+    "ipv6": {
+      "type": "array",
+      "xml": {
+        "name": "ipv6",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "route",
+        "required": [
+          "source",
+          "prefix",
+          "nextHop"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "example": "STATIC",
+            "description": "Route source"
+          },
+          "prefix": {
+            "type": "string",
+            "example": "1111::/64",
+            "description": "Route prefix"
+          },
+          "nextHop": {
+            "type": "string",
+            "example": "2222::1",
+            "description": "Next hop IP address"
+          }
+        }
+      }
+    }
+  }
+}
