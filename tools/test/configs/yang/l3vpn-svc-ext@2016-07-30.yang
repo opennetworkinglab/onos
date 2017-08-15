@@ -1,0 +1,362 @@
+module l3vpn-svc-ext {
+    yang-version 1;
+    namespace "urn:ietf:params:xml:ns:yang:l3vpn:svc:ext";
+    prefix "l3vpn-svc-ext";
+
+    import ietf-inet-types { prefix inet;  }
+    import ietf-l3vpn-svc { prefix l3vpn;  }
+
+    revision 2016-07-30 {
+        description
+        "Eliminated warnings";
+    }
+
+    revision "2016-07-20" {
+        description "Initial revision of extended l3vpn yang model";
+    }
+
+    typedef short-as-number {
+        type inet:as-number {
+            range 0..65535;
+        }
+    }
+
+    typedef route-distinguisher {
+        reference "https://tools.ietf.org/html/rfc4364#section-4.2";
+        type union {
+            type rd-ipv4;
+            type rd-as;
+            type rd-as2;
+        }
+    }
+
+    typedef rd-ipv4 {
+        type string {
+            /* IPv4 : 2B number */
+            pattern '((([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+                + '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]))'
+                + ':'
+                + '([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|'
+                + '[1-5][0-9][0-9][0-9][0-9]|6[0-4][0-9][0-9][0-9]|'
+                + '65[0-4][0-9][0-9]|655[0-2][0-9]|6553[0-5])';
+        }
+    }
+
+    typedef rd-as {
+        type string {
+            /* 2B AS : 4B number */
+            pattern '([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|'
+                + '[1-5][0-9][0-9][0-9][0-9]|6[0-4][0-9][0-9][0-9]|'
+                + '65[0-4][0-9][0-9]|655[0-2][0-9]|6553[0-5])'
+                + ':'
+                + '([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9]|[1-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9][0-9][0-9]|[1-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|[1-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|'
+                + '42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|'
+                + '42949672[0-8][0-9]|429496729[0-5])';
+        }
+    }
+
+    typedef rd-as2 {
+        type string {
+            /* 4B AS : 2B number */
+            pattern '([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9]|[1-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9][0-9][0-9]|[1-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '[1-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|[1-3][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '4[0-1][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|42[0-8][0-9][0-9][0-9][0-9][0-9][0-9][0-9]|'
+                + '429[0-3][0-9][0-9][0-9][0-9][0-9][0-9]|4294[0-8][0-9][0-9][0-9][0-9][0-9]|'
+                + '42949[0-5][0-9][0-9][0-9][0-9]|429496[0-6][0-9][0-9][0-9]|4294967[0-1][0-9][0-9]|'
+                + '42949672[0-8][0-9]|429496729[0-5])'
+                + ':'
+                + '([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|'
+                + '[1-5][0-9][0-9][0-9][0-9]|6[0-4][0-9][0-9][0-9]|'
+                + '65[0-4][0-9][0-9]|655[0-2][0-9]|6553[0-5])';
+        }
+    }
+
+    identity tc-demanded-tunnel {
+        base l3vpn:transport-constraint;
+        description "on-demand tunnel.";
+    }
+
+    grouping class-profile {
+        list qos-class {
+            key class-id;
+            leaf class-id {
+                type string;
+                description
+                 "Identification of the
+                 class of service.
+                 This identifier is internal to
+                 the administration.";
+            }
+            leaf rate-limit {
+                type uint8;
+                units percent;
+                description
+                 "To be used if class must
+                 be rate
+                 limited. Expressed as
+                 percentage of the svc-bw.";
+            }
+            leaf priority-level {
+                type uint8;
+                description
+                 "Defines the level of the
+                 class in
+                 term of priority queueing.
+                 The higher the level is the
+                 higher
+                 is the priority.";
+            }
+            leaf guaranteed-bw-percent {
+                type uint8;
+                units percent;
+                description
+                 "To be used to define the
+                 guaranteed
+                 BW in percent of the svc-bw
+                 available at the priority-level.";
+            }
+            description
+             "List of class of services.";
+        }
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:sites/l3vpn:site/l3vpn:site-network-accesses/l3vpn:site-network-access/l3vpn:service/l3vpn:qos/l3vpn:qos-profile/l3vpn:qos-profile" {
+        case custom-unicom {
+            container inbound-classes {
+                uses class-profile;
+            }
+            container outbound-classes {
+                uses class-profile;
+            }
+        }
+    }
+
+    grouping bearer-attachment-grouping {
+        container bearer-attachment {
+            leaf pe-name {
+                type string;
+            }
+            leaf pe-mgmt-ip {
+                type inet:ipv4-address;
+            }
+            description "attached PE";
+        }
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:sites/l3vpn:site/l3vpn:site-network-accesses/l3vpn:site-network-access/l3vpn:bearer" {
+        uses bearer-attachment-grouping;
+    }
+
+    grouping requested-type-grouping {
+        container requested-type-profile {
+            choice requested-type-choice {
+                case dot1q-case {
+                    container dot1q {
+                        leaf physical-if {
+                            description "physical interface name.";
+                            type string;
+                        }
+                        leaf vlan-id {
+                            type uint16 {
+                                range "1..4096";
+                            }
+                        }
+                    }
+                }
+                case physical-case {
+                    container physical {
+                        leaf physical-if {
+                            description "physical interface name.";
+                            type string;
+                        }
+                    }
+                }
+            }
+            leaf circuit-id {
+                description "circuit description for PE-CE port.";
+                type string;
+            }
+        }
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:sites/l3vpn:site/l3vpn:site-network-accesses/l3vpn:site-network-access/l3vpn:bearer/l3vpn:requested-type" {
+        uses requested-type-grouping;
+    }
+
+    grouping bfd-grouping {
+        leaf bfd-enabled {
+            type boolean;
+            description
+             "BFD activation";
+        }
+        choice holdtime {
+            case profile {
+                leaf profile-name {
+                    type string;
+                    description
+                     "Service provider well
+                     known profile.";
+                }
+                description
+                 "Service provider well
+                 known profile.";
+            }
+            case fixed {
+                leaf fixed-value {
+                    type uint32;
+                    units msec;
+                    description
+                     "Expected holdtime
+                     expressed
+                     in msec.";
+                }
+            }
+            case dynamic {
+                container dynamic-value {
+                    leaf interval {
+                        type uint16;
+                        units msec;
+                        default 500;
+                    }
+                    leaf multiplier {
+                        type uint16;
+                        default 3;
+                    }
+                    description
+                     "interval * multiplier is
+                     timeout value.";
+                }
+            }
+        }
+    }
+
+    grouping bgp-profile {
+        leaf as-override {
+            type boolean;
+            default false;
+        }
+        container soo {
+            leaf soo-enabled {
+                type boolean;
+            }
+            leaf soo-value {
+                type string;
+            }
+        }
+        container password {
+            leaf password-enabled {
+                type boolean;
+            }
+            leaf password-value {
+                type string;
+            }
+        }
+        container bgp-timer {
+            leaf keep-alive {
+                type uint16;
+                default 60;
+                units "seconds";
+            }
+            leaf hold-time {
+                type uint16;
+                default 180;
+                units "seconds";
+            }
+        }
+        container bfd {
+            uses bfd-grouping;
+        }
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:sites/l3vpn:site/l3vpn:site-network-accesses/l3vpn:site-network-access/l3vpn:routing-protocols/l3vpn:routing-protocol/l3vpn:bgp" {
+        uses bgp-profile;
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:vpn-services/l3vpn:vpn-svc/l3vpn:transport-constraints/l3vpn:unicast-transport-constraints/l3vpn:constraint/l3vpn:constraint-list" {
+        leaf constraint-opaque-value2 {
+            type string;
+            description
+             "Opaque value that can be used to
+             specify constraint parameters.";
+        }
+    }
+
+    grouping route-ipv4-extended-community {
+        reference "http://tools.ietf.org/html/rfc4360";
+        leaf global-administrator {
+            type inet:ipv4-address;
+        }
+        leaf local-administrator {
+            type uint16;
+        }
+    }
+
+    grouping extended-community {
+        choice extended-community {
+            reference "http://tools.ietf.org/html/rfc4360#section-4";
+            default route-target-extended-community-case;
+            case route-target-extended-community-case {
+                container route-target-extended-community {
+                    leaf global-administrator {
+                        type short-as-number;
+                    }
+                    leaf local-administrator {
+                        type uint32;
+                    }
+                }
+            }
+            case route-target-ipv4-case {
+                container route-target-ipv4 {
+                    uses route-ipv4-extended-community;
+                }
+            }
+            case route-target-extended-community-case2 {
+                container route-target-extended-community2 {
+                    leaf global-administrator {
+                        type uint32;
+                    }
+                    leaf local-administrator {
+                        type uint16;
+                    }
+                }
+            }
+        }
+    }
+
+    grouping rdrt-profile {
+        choice site-role {
+            case custom-case {
+                container custom {
+                    list import-rt {
+                        key imrt-id;
+                        leaf imrt-id {
+                          type string;
+                        }
+                        uses extended-community;
+                    }
+                    list export-rt {
+                        key exrt-id;
+                        leaf exrt-id {
+                          type string;
+                        }
+                        uses extended-community;
+                    }
+                    leaf rd {
+                        type route-distinguisher;
+                    }
+                }
+            }
+        }
+    }
+
+    augment "/l3vpn:l3vpn-svc/l3vpn:sites/l3vpn:site/l3vpn:site-network-accesses/l3vpn:site-network-access/l3vpn:vpn-attachment" {
+        uses rdrt-profile;
+    }
+}
