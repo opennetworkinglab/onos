@@ -28,7 +28,7 @@ start () {
     mkdir -p $ONOS_HOME/var 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/var
     mkdir -p $ONOS_HOME/config 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/config
     mkdir -p $ONOS_HOME/apps 2>/dev/null && chown -R $ONOS_USER:$ONOS_GROUP $ONOS_HOME/apps
-    [ ! -h $ONOS_OME/karaf ] && ln -s /opt/onos/apache-karaf* $ONOS_HOME/karaf || :
+    [ ! -h $ONOS_HOME/karaf ] && ln -s /opt/onos/apache-karaf* $ONOS_HOME/karaf || :
     [ ! -h $ONOS_HOME/log ] && ln -s $ONOS_HOME/karaf/data/log $ONOS_HOME/log || :
     # Start ONOS if it's not already running
     if ! status >/dev/null; then

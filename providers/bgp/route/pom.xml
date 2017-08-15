@@ -28,10 +28,6 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
