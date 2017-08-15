@@ -146,7 +146,7 @@ final class TableEntryEncoder {
         tableEntryMsgBuilder.setTableId(tableInfo.getPreamble().getId());
 
         // Priority.
-        // FIXME: check on P4Runtime if/what is the defaulr priority.
+        // FIXME: check on P4Runtime if/what is the default priority.
         int priority = piTableEntry.priority().orElse(0);
         tableEntryMsgBuilder.setPriority(priority);
 
