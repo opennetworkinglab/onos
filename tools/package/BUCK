@@ -39,6 +39,14 @@ staged_apps = ['$(location %s)' % a for a in APPS]
 sources = [ '$(location :onos-features)', ]
 sources += staged_repos + staged_apps
 
+tar_file(
+  name = 'onos-package-runtime',
+  srcs = glob(['runtime/bin/*']),
+  root = 'tools/package',
+  out = 'package-runtime.tar.gz',
+  visibility = [ 'PUBLIC' ],
+)
+
 genrule(
   name = 'onos-package',
   srcs = glob(['bin/*', 'etc/*', 'init/*', 'config/*', 'runtime/bin/*']),

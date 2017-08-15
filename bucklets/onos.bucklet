@@ -313,14 +313,19 @@ def osgi_jar_with_tests(
 def tar_file(
    name,
    srcs,
+   other_tars = [],
    root = None,
    out = None,
    visibility = [ 'PUBLIC' ],
    ):
 
-   cmd = ( 'mkdir -p $TMP/%(root_dir)s && '
-           'cp -R -L $SRCDIR/* $TMP/%(root_dir)s && '
-           'tar -C $TMP -zcf $OUT %(root_dir)s' ) % {
+   cmds = [ 'mkdir -p $TMP/%(root_dir)s',
+            'cp -R -L $SRCDIR/* $TMP/%(root_dir)s' ]
+   for t in other_tars:
+       cmds += [ 'tar -zxf $(location %s)' % t + ' -C $TMP/%(root_dir)s' ]
+   cmds += [ 'tar -C $TMP -zcf $OUT %(root_dir)s' ]
+
+   cmd = ' && '.join(cmds) % {
            'root_dir': root if root is not None else name
          }
 

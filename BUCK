@@ -55,6 +55,7 @@ tar_file(
                'tools/dev/bin/onos-create-app',
                'tools/build/envDefaults'
            ],
+    other_tars = [ '//tools/package:onos-package-runtime' ],
 )
 
 only_lib_dep_pom(

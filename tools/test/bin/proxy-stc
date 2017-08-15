@@ -32,9 +32,11 @@ ssh -t -t $ONOS_USER@$OCT "
     topo default
     export stcDumpLogs=true
     export stcColor=$stcColor
-    stc fast
+    stc $1
 "
+status=$?
 
 mkdir -p /tmp/stc
 scp -r ${ONOS_USER}@${OCT}:/tmp/stc/* /tmp/stc/
 
+exit $status
