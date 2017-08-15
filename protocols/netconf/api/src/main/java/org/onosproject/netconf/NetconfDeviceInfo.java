@@ -16,13 +16,15 @@
 
 package org.onosproject.netconf;
 
-import com.google.common.base.Preconditions;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
 import org.onosproject.netconf.config.NetconfSshClientLib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.net.URI;
@@ -64,9 +66,9 @@ public class NetconfDeviceInfo {
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port) {
-        Preconditions.checkArgument(!name.equals(""), "Empty device username");
-        Preconditions.checkNotNull(port > 0, "Negative port");
-        Preconditions.checkNotNull(ipAddress, "Null ip address");
+        checkArgument(!name.equals(""), "Empty device username");
+        checkNotNull(port > 0, "Negative port");
+        checkNotNull(ipAddress, "Null ip address");
         this.name = name;
         this.password = password;
         this.ipAddress = ipAddress;
@@ -93,9 +95,9 @@ public class NetconfDeviceInfo {
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port, String keyString) {
-        Preconditions.checkArgument(!name.equals(""), "Empty device name");
-        Preconditions.checkNotNull(port > 0, "Negative port");
-        Preconditions.checkNotNull(ipAddress, "Null ip address");
+        checkArgument(!name.equals(""), "Empty device name");
+        checkNotNull(port > 0, "Negative port");
+        checkNotNull(ipAddress, "Null ip address");
         this.name = name;
         this.password = password;
         this.ipAddress = ipAddress;
@@ -113,9 +115,9 @@ public class NetconfDeviceInfo {
      * @param netconfConfig NetCf configuration
      */
     public NetconfDeviceInfo(NetconfDeviceConfig netconfConfig) {
-        Preconditions.checkArgument(!netconfConfig.username().isEmpty(), "Empty device name");
-        Preconditions.checkNotNull(netconfConfig.port() > 0, "Negative port");
-        Preconditions.checkNotNull(netconfConfig.ip(), "Null ip address");
+        checkArgument(!netconfConfig.username().isEmpty(), "Empty device name");
+        checkNotNull(netconfConfig.port() > 0, "Negative port");
+        checkNotNull(netconfConfig.ip(), "Null ip address");
 
         this.name = netconfConfig.username();
         this.password = netconfConfig.password();

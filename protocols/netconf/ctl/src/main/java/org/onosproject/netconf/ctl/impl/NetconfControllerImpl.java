@@ -71,20 +71,23 @@ public class NetconfControllerImpl implements NetconfController {
 
     private static final String ETHZ_SSH2 = "ethz-ssh2";
 
-    private static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
+    protected static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
     private static final String PROP_NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
+    // FIXME @Property should not be static
     @Property(name = PROP_NETCONF_CONNECT_TIMEOUT, intValue = DEFAULT_CONNECT_TIMEOUT_SECONDS,
             label = "Time (in seconds) to wait for a NETCONF connect.")
     protected static int netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
 
     private static final String PROP_NETCONF_REPLY_TIMEOUT = "netconfReplyTimeout";
-    private static final int DEFAULT_REPLY_TIMEOUT_SECONDS = 5;
+    protected static final int DEFAULT_REPLY_TIMEOUT_SECONDS = 5;
+    // FIXME @Property should not be static
     @Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
             label = "Time (in seconds) waiting for a NetConf reply")
     protected static int netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
 
     private static final String PROP_NETCONF_IDLE_TIMEOUT = "netconfIdleTimeout";
-    private static final int DEFAULT_IDLE_TIMEOUT_SECONDS = 300;
+    protected static final int DEFAULT_IDLE_TIMEOUT_SECONDS = 300;
+    // FIXME @Property should not be static
     @Property(name = PROP_NETCONF_IDLE_TIMEOUT, intValue = DEFAULT_IDLE_TIMEOUT_SECONDS,
             label = "Time (in seconds) SSH session will close if no traffic seen")
     protected static int netconfIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS;
@@ -93,7 +96,7 @@ public class NetconfControllerImpl implements NetconfController {
     private static final String APACHE_MINA_STR = "apache-mina";
     @Property(name = SSH_LIBRARY, value = APACHE_MINA_STR,
             label = "Ssh Library instead of apache_mina (i.e. ethz-ssh2")
-    protected static NetconfSshClientLib sshLibrary = NetconfSshClientLib.APACHE_MINA;
+    protected NetconfSshClientLib sshLibrary = NetconfSshClientLib.APACHE_MINA;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;

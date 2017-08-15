@@ -125,6 +125,9 @@ public class NetconfControllerImplTest {
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
         ctrl.netCfgService = netCfgService;
+        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
@@ -179,6 +182,10 @@ public class NetconfControllerImplTest {
     @After
     public void tearDown() {
         ctrl.deactivate();
+        // resetting static variables..
+        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
     }
 
     /**

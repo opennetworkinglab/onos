@@ -134,4 +134,16 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <!-- Workaround for P4 test code using symlinks in git -->
+                <!-- last version which copies symlink target -->
+                <version>2.7</version>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

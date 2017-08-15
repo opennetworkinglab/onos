@@ -120,6 +120,9 @@ public class NetconfSessionImplTest {
         log.info("SSH Server opened on port {}", PORT_NUMBER);
 
         NetconfController netconfCtl = new NetconfControllerImpl();
+        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
 
         NetconfDeviceInfo deviceInfo1 = new NetconfDeviceInfo(
                 TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
@@ -172,6 +175,9 @@ public class NetconfSessionImplTest {
         }
 
         sshServerNetconf.stop();
+        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
     }
 
     @Test
