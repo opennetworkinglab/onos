@@ -17,7 +17,7 @@ package org.onosproject.tetopology.management.impl;
 
 import org.onlab.packet.Ip4Address;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.Config;
 
 /**

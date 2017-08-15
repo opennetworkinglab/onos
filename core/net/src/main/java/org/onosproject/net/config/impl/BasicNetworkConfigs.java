@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.config.basics.InterfaceConfig;
+import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;

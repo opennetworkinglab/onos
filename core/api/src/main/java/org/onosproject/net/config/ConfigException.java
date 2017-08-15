@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config;
 
 import com.google.common.annotations.Beta;
 
 /**
  * Signals that an error was encountered while reading/writing configuration.
  */
+
 @Beta
 public class ConfigException extends Exception {
 

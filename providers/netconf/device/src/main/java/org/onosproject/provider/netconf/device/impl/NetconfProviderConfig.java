@@ -21,7 +21,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.Config;
 
 import java.util.Set;

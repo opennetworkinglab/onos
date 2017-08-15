@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.Config;
 import org.onosproject.tl1.DefaultTl1Device;
 import org.onosproject.tl1.Tl1Device;

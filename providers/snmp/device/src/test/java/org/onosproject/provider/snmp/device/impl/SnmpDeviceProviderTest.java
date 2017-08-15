@@ -26,7 +26,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
-import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
