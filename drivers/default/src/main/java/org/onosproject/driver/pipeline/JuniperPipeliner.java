@@ -71,7 +71,7 @@ public class JuniperPipeliner extends DefaultSingleTablePipeline implements Pipe
     @Override
     public void filter(FilteringObjective filterObjective) {
         //Do nothing
-        log.info("No action is needed here");
+        log.debug("No action is needed here");
     }
 
     @Override
@@ -83,7 +83,7 @@ public class JuniperPipeliner extends DefaultSingleTablePipeline implements Pipe
 
         Device device = deviceService.getDevice(deviceId);
         if (forwardObjective.treatment() != null && forwardObjective.treatment().clearedDeferred()) {
-            log.warn("Using 'clear actions' instruction which is not supported by {} "  +  " {} " + "{} Switch ",
+            log.warn("Using 'clear actions' instruction which is not supported by {}  {} {} Switch",
                     device.id(), device.manufacturer(), device.hwVersion());
             newFwd = forwardingObjectiveWithoutCleardDef(forwardObjective).orElse(forwardObjective);
         }
@@ -161,7 +161,7 @@ public class JuniperPipeliner extends DefaultSingleTablePipeline implements Pipe
     @Override
     public void next(NextObjective nextObjective) {
         //Do nothing
-        log.info("no action is needed here");
+        log.debug("no action is needed here");
     }
 
     @Override
