@@ -48,13 +48,13 @@ import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.DisjointPath;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
-import org.onosproject.net.DisjointPath;
-import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.protection.TransportEndpointDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -97,7 +97,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.CODEC_READ;
+import static org.onosproject.security.AppPermission.Type.CODEC_WRITE;
 
 /**
  * Implementation of the JSON codec brokering service.
