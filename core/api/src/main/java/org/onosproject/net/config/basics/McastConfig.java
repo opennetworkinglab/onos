@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config.basics;
 
 import com.google.common.annotations.Beta;
 import org.onlab.packet.VlanId;

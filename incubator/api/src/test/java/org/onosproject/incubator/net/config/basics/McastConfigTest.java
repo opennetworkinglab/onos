@@ -27,6 +27,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.basics.McastConfig;
 
 import java.io.InputStream;
 
