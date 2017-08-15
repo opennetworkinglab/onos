@@ -19,7 +19,7 @@
         <step name="Pre-Cleanup-YANG-Model" exec="onos ${OC1} app uninstall l3vpn" env="~"/>
         <step name="Check-YANG-Runtime" exec="onos-check-apps ${OC1} drivers,yang includes"
               requires="Activate-YANG-Runtime"/>
-        <step name="Compile-YANG-Model" exec="onos-compile-yang ${OC1} ${ONOS_ROOT}/tools/test/config/yang"
+        <step name="Compile-YANG-Model" exec="onos-compile-yang ${OC1} ${ONOS_ROOT}/tools/test/configs/yang"
               requires="Check-YANG-Runtime,Pre-Cleanup-YANG-Model"/>
         <step name="Verify-YANG-Models" exec="onos ${OC1} models | grep l3vpn"
               requires="Compile-YANG-Model"/>
