@@ -30,6 +30,7 @@ web/gui/src/test/_karma/node_modules
 web/gui/src/main/webapp/node_modules/
 web/gui/src/main/webapp/tests/coverage
 web/gui/src/main/webapp/dist/
+web/gui/src/main/webapp/vendor/
 
 npm-debug.log
 sonar-project.properties

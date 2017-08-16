@@ -4,8 +4,9 @@
   "description": "Tests for the ONOS GUI",
   "main": "karma.conf.js",
   "scripts": {
-    "test:dev": "karma start",
-    "test": "karma start karma.ci.js"
+    "install:deps": "./node_modules/bower/bin/bower install ../bower.json --config.directory=../vendor",
+    "test:dev": "npm run install:deps && karma start",
+    "test": "npm run install:deps && karma start karma.ci.js"
   },
   "author": "ON.Lab",
   "license": "Apache-2.0",
@@ -14,6 +15,7 @@
     "url": "opennetworkinglab/onos"
   },
   "devDependencies": {
+    "bower": "^1.8.0",
     "jasmine-core": "^2.4.1",
     "karma": "^0.13.22",
     "karma-babel-preprocessor": "^6.0.1",

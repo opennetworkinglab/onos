@@ -16,13 +16,15 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
         // library code...
-        '../tp/angular.js',
-        '../tp/angular-mocks.js',
-        '../tp/angular-route.js',
-        '../tp/angular-cookies.js',
-        '../tp/d3.js',
-        '../tp/topojson.v1.min.js',
-        '../tp/lodash.min.js',
+        '../vendor/angular/angular.min.js',
+        '../vendor/angular-mocks/index.js',
+        '../vendor/angular-route/angular-route.min.js',
+        '../vendor/angular-cookies/angular-cookies.min.js',
+        '../vendor/d3/d3.min.js',
+        '../vendor/topojson/topojson.js',
+        '../vendor/Chart.js/dist/Chart.min.js',
+        '../vendor/angular-chart.js/dist/angular-chart.min.js',
+        '../vendor/lodash/index.js',
 
         // production code...
         // make sure modules are defined first...

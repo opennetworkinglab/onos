@@ -7,8 +7,6 @@ const files = [
     '../../web/gui/src/main/webapp/app/**/*.js'
 ];
 
-console.log(eslint().version);
-
 function isFixed(file) {
     // Has ESLint fixed the file contents?
     return file.eslint != null && file.eslint.fixed;
