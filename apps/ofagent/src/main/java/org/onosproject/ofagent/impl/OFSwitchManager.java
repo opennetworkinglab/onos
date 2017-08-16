@@ -16,6 +16,7 @@
 package org.onosproject.ofagent.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import io.netty.channel.ChannelOutboundInvoker;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.apache.felix.scr.annotations.Activate;
@@ -44,9 +45,13 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
@@ -65,6 +70,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -196,6 +202,30 @@ public class OFSwitchManager implements OFSwitchService {
             return link.src();
         }
         return null;
+    }
+
+    @Override
+    public List<FlowEntry> getFlowEntries(NetworkId networkId, DeviceId deviceId) {
+        FlowRuleService flowRuleService = virtualNetService.get(networkId, FlowRuleService.class);
+        Iterable<FlowEntry> entries = flowRuleService.getFlowEntries(deviceId);
+        return Lists.newArrayList(entries);
+    }
+
+    @Override
+    public List<TableStatisticsEntry> getFlowTableStatistics(NetworkId networkId, DeviceId deviceId) {
+        FlowRuleService flowRuleService = virtualNetService.get(networkId, FlowRuleService.class);
+        Iterable<TableStatisticsEntry> entries = flowRuleService.getFlowTableStatistics(deviceId);
+        if (entries == null) {
+            entries = new ArrayList<>();
+        }
+        return Lists.newArrayList(entries);
+    }
+
+    @Override
+    public List<Group> getGroups(NetworkId networkId, DeviceId deviceId) {
+        GroupService groupService = virtualNetService.get(networkId, GroupService.class);
+        Iterable<Group> entries = groupService.getGroups(deviceId);
+        return Lists.newArrayList(entries);
     }
 
     private void addOFSwitch(NetworkId networkId, DeviceId deviceId) {

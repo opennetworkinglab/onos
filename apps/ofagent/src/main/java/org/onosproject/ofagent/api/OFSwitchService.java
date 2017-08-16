@@ -21,6 +21,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.group.Group;
 
 import java.util.List;
 import java.util.Set;
@@ -71,6 +74,33 @@ public interface OFSwitchService {
      * @return list of port statistics; empty list if none exists for the specified device
      */
     List<PortStatistics> getPortStatistics(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Returns all flow entries of the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return list of flow entries; empty list if none exists for the specified device
+     */
+    List<FlowEntry> getFlowEntries(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Returns all flow table statistics of the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return list of flow table statistics; empty list if none exists for the specified device
+     */
+    List<TableStatisticsEntry> getFlowTableStatistics(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Returns all groups associated with the specified device in the specified network.
+     *
+     * @param networkId network id
+     * @param deviceId device id
+     * @return list of  groups; empty list if none exists for the specified device
+     */
+    List<Group> getGroups(NetworkId networkId, DeviceId deviceId);
 
     /**
      * Returns neighbour port of the specified port in the specified network.

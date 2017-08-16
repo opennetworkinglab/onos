@@ -16,28 +16,38 @@
 package org.onosproject.ofagent.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
-import org.onosproject.net.device.PortStatistics;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
 import org.onosproject.ofagent.api.OFSwitchService;
 import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFBarrierReply;
+import org.projectfloodlight.openflow.protocol.OFBucket;
+import org.projectfloodlight.openflow.protocol.OFBucketCounter;
 import org.projectfloodlight.openflow.protocol.OFControllerRole;
 import org.projectfloodlight.openflow.protocol.OFEchoReply;
 import org.projectfloodlight.openflow.protocol.OFEchoRequest;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
+import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
@@ -54,14 +64,18 @@ import org.projectfloodlight.openflow.protocol.OFRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFSetConfig;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsRequest;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.types.DatapathId;
+import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.U64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,6 +273,76 @@ public final class DefaultOFSwitch implements OFSwitch {
         return ofPortStatsEntry;
     }
 
+    private OFFlowStatsEntry ofFlowStatsEntry(FlowEntry flowEntry) {
+        // TODO get match from flowEntry.selector()
+        Match.Builder matchB = FACTORY.buildMatch();
+        OFActionOutput actionOutput = FACTORY.actions()
+                .buildOutput().build();
+        // TODO get instructions from flowEntry.treatment()
+        OFInstruction instruction = FACTORY.instructions()
+                .applyActions(Collections.singletonList(actionOutput));
+        OFFlowStatsEntry ofFlowStatsEntry = FACTORY.buildFlowStatsEntry()
+                .setMatch(matchB.build())
+                .setInstructions(Collections.singletonList(instruction))
+                .setTableId(TableId.of(flowEntry.tableId()))
+                .setHardTimeout(flowEntry.hardTimeout())
+                .setIdleTimeout(flowEntry.timeout())
+                .setCookie(U64.of(flowEntry.id().value()))
+                .setPriority(flowEntry.priority())
+                .setDurationSec(flowEntry.life())
+                .setPacketCount(U64.of(flowEntry.packets()))
+                .setByteCount(U64.of(flowEntry.bytes()))
+                .build();
+        return ofFlowStatsEntry;
+    }
+
+    private OFTableStatsEntry ofFlowTableStatsEntry(TableStatisticsEntry tableStatisticsEntry) {
+        OFTableStatsEntry ofTableStatsEntry = FACTORY.buildTableStatsEntry()
+                .setTableId(TableId.of(tableStatisticsEntry.tableId()))
+                .setActiveCount(tableStatisticsEntry.activeFlowEntries())
+                .setLookupCount(U64.of(tableStatisticsEntry.packetsLookedup()))
+                .setMatchedCount(U64.of(tableStatisticsEntry.packetsLookedup()))
+                .build();
+        return ofTableStatsEntry;
+    }
+
+    private OFGroupStatsEntry ofGroupStatsEntry(Group group) {
+        List<OFBucketCounter> ofBucketCounters = Lists.newArrayList();
+        group.buckets().buckets().forEach(groupBucket -> {
+            ofBucketCounters.add(FACTORY.bucketCounter(
+                    U64.of(groupBucket.packets()), U64.of(groupBucket.bytes())));
+        });
+        OFGroupStatsEntry entry = FACTORY.buildGroupStatsEntry()
+                .setGroup(OFGroup.of(group.id().id()))
+                .setDurationSec(group.life())
+                .setPacketCount(U64.of(group.packets()))
+                .setByteCount(U64.of(group.bytes()))
+                .setRefCount(group.referenceCount())
+                .setBucketStats(ofBucketCounters)
+                .build();
+        return entry;
+    }
+
+    private OFGroupDescStatsEntry ofGroupDescStatsEntry(Group group) {
+        List<OFBucket> ofBuckets = Lists.newArrayList();
+        group.buckets().buckets().forEach(groupBucket -> {
+            ofBuckets.add(FACTORY.buildBucket()
+                    .setWeight(groupBucket.weight())
+                    .setWatchGroup(OFGroup.of(groupBucket.watchGroup().id()))
+                    .setWatchPort(OFPort.of((int) groupBucket.watchPort().toLong()))
+                    .build()
+            );
+        });
+        OFGroup ofGroup = OFGroup.of(group.givenGroupId());
+        OFGroupType ofGroupType = OFGroupType.valueOf(group.type().name());
+        OFGroupDescStatsEntry entry = FACTORY.buildGroupDescStatsEntry()
+                .setGroup(ofGroup)
+                .setGroupType(ofGroupType)
+                .setBuckets(ofBuckets)
+                .build();
+        return entry;
+    }
+
     @Override
     public void processStatsRequest(Channel channel, OFMessage msg) {
         if (msg.getType() != OFType.STATS_REQUEST) {
@@ -306,6 +390,54 @@ public final class DefaultOFSwitch implements OFSwitch {
                         .setXid(msg.getXid())
                         .setFeatures(ofMeterFeatures)
                         //TODO add details
+                        .build();
+                break;
+            case FLOW:
+                List<OFFlowStatsEntry> flowStatsEntries = new ArrayList<>();
+                List<FlowEntry> flowStats = ofSwitchService.getFlowEntries(networkId, deviceId);
+                flowStats.forEach(flowEntry -> {
+                    OFFlowStatsEntry ofFlowStatsEntry = ofFlowStatsEntry(flowEntry);
+                    flowStatsEntries.add(ofFlowStatsEntry);
+                });
+                ofStatsReply = FACTORY.buildFlowStatsReply()
+                        .setEntries(flowStatsEntries)
+                        .setXid(msg.getXid())
+                        .build();
+                break;
+            case TABLE:
+                List<OFTableStatsEntry> ofTableStatsEntries = new ArrayList<>();
+                List<TableStatisticsEntry> tableStats = ofSwitchService.getFlowTableStatistics(networkId, deviceId);
+                tableStats.forEach(tableStatisticsEntry -> {
+                    OFTableStatsEntry ofFlowStatsEntry = ofFlowTableStatsEntry(tableStatisticsEntry);
+                    ofTableStatsEntries.add(ofFlowStatsEntry);
+                });
+                ofStatsReply = FACTORY.buildTableStatsReply()
+                        .setEntries(ofTableStatsEntries)
+                        .setXid(msg.getXid())
+                        .build();
+                break;
+            case GROUP:
+                List<Group> groupStats = ofSwitchService.getGroups(networkId, deviceId);
+                List<OFGroupStatsEntry> ofGroupStatsEntries = new ArrayList<>();
+                groupStats.forEach(group -> {
+                    OFGroupStatsEntry entry = ofGroupStatsEntry(group);
+                    ofGroupStatsEntries.add(entry);
+                });
+                ofStatsReply = FACTORY.buildGroupStatsReply()
+                        .setEntries(ofGroupStatsEntries)
+                        .setXid(msg.getXid())
+                        .build();
+                break;
+            case GROUP_DESC:
+                List<OFGroupDescStatsEntry> ofGroupDescStatsEntries = new ArrayList<>();
+                List<Group> groupStats2 = ofSwitchService.getGroups(networkId, deviceId);
+                groupStats2.forEach(group -> {
+                    OFGroupDescStatsEntry entry = ofGroupDescStatsEntry(group);
+                    ofGroupDescStatsEntries.add(entry);
+                });
+                ofStatsReply = FACTORY.buildGroupDescStatsReply()
+                        .setEntries(ofGroupDescStatsEntries)
+                        .setXid(msg.getXid())
                         .build();
                 break;
             case DESC:
