@@ -14,6 +14,6 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'BGP protocol southbound providers.',
-    required_apps = [ 'org.onosproject.evpnrouteservice' ],
+    required_apps = [ 'org.onosproject.evpn-route-service' ],
 )
 
