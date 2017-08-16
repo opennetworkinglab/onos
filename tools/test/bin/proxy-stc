@@ -6,10 +6,10 @@
 
 . $ONOS_ROOT/tools/build/envDefaults
 
-onos-push-test-bits $OCT
-onos-push-bits $OCT
+onos-push-test-bits $OCN
+onos-push-bits $OCN
 
-ssh -t -t $ONOS_USER@$OCT "
+ssh -t -t $ONOS_USER@$OCN "
     # Unpack the test tools
     cd /tmp; rm -fr \$(ls -Fd onos-test-*/)
     tar xf \$(basename $ONOS_TEST_TAR)
@@ -32,11 +32,12 @@ ssh -t -t $ONOS_USER@$OCT "
     topo default
     export stcDumpLogs=true
     export stcColor=$stcColor
+    export TERM=vt100
     stc $1
 "
 status=$?
 
 mkdir -p /tmp/stc
-scp -r ${ONOS_USER}@${OCT}:/tmp/stc/* /tmp/stc/
+scp -r ${ONOS_USER}@${OCN}:/tmp/stc/* /tmp/stc/
 
 exit $status
