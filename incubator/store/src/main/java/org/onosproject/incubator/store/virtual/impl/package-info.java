@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of virtual network stores.
+ * Implementation of distributed virtual network store.
  */
 package org.onosproject.incubator.store.virtual.impl;
