@@ -16,7 +16,6 @@
 package org.onosproject.net.packet.impl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -33,6 +32,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -62,7 +63,6 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -89,6 +89,7 @@ public class PacketManager
     private static final String ERROR_NULL_SELECTOR = "Selector cannot be null";
     private static final String ERROR_NULL_APP_ID = "Application ID cannot be null";
     private static final String ERROR_NULL_DEVICE_ID = "Device ID cannot be null";
+    private static final String SUPPORT_PACKET_REQUEST_PROPERTY = "supportPacketRequest";
 
     private final PacketStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -100,6 +101,9 @@ public class PacketManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketStore store;
@@ -259,11 +263,6 @@ public class PacketManager
     }
 
     /**
-     * Set of DeviceId scheme which supports packet requests.
-     */
-    private static final Set<String> SUPPORTED = ImmutableSet.of("of");
-
-    /**
      * Pushes a packet request flow rule to all devices.
      *
      * @param request the packet request
@@ -271,8 +270,9 @@ public class PacketManager
     private void pushToAllDevices(PacketRequest request) {
         log.debug("Pushing packet request {} to all devices", request);
         for (Device device : deviceService.getDevices()) {
-            // TODO properly test capability via driver, defining behaviour
-            if (SUPPORTED.contains(device.id().uri().getScheme())) {
+            Driver driver = driverService.getDriver(device.id());
+            if (driver != null &&
+                    Boolean.parseBoolean(driver.getProperty(SUPPORT_PACKET_REQUEST_PROPERTY))) {
                 pushRule(device, request);
             }
         }
@@ -446,12 +446,20 @@ public class PacketManager
             eventHandlingExecutor.execute(() -> {
                 try {
                     Device device = event.subject();
+                    Driver driver = driverService.getDriver(device.id());
+                    if (driver == null) {
+                        return;
+                    }
+                    if (!Boolean.parseBoolean(driver.getProperty(SUPPORT_PACKET_REQUEST_PROPERTY))) {
+                        return;
+                    }
+                    if (!deviceService.isAvailable(event.subject().id())) {
+                        return;
+                    }
                     switch (event.type()) {
                         case DEVICE_ADDED:
                         case DEVICE_AVAILABILITY_CHANGED:
-                            if (deviceService.isAvailable(event.subject().id())) {
-                                pushRulesToDevice(device);
-                            }
+                            pushRulesToDevice(device);
                             break;
                         default:
                             break;

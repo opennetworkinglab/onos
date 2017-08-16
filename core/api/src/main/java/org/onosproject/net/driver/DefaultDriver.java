@@ -89,7 +89,13 @@ public class DefaultDriver implements Driver {
 
         // Merge the properties.
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
-        properties.putAll(this.properties).putAll(other.properties());
+        properties.putAll(other.properties());
+
+        // remove duplicated properties from this driver and merge
+        this.properties().entrySet().stream()
+                .filter(e -> !other.properties().containsKey(e.getKey()))
+                .forEach(properties::put);
+
         List<Driver> completeParents = new ArrayList<>();
 
         if (parents != null) {
