@@ -31,6 +31,9 @@ describe('Controller: OvTopoCtrl', function () {
         d3Topo = d3.select('body').append('div').attr('id', 'ov-topo');
         d3Topo.append('svg');
 
+        d3.select('body').append('div').attr('id', 'topo-p-summary');
+        d3.select('body').append('div').attr('id', 'topo-p-details');
+
         createController = function () {
             return $controller('OvTopoCtrl', {
                 '$scope': $scope,
