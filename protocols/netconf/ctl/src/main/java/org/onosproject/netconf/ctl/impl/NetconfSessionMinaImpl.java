@@ -38,8 +38,10 @@ import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.NetconfSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
@@ -453,11 +455,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
             message = message.substring(0, message.length() - ENDPATTERN.length());
         }
         if (!message.startsWith(LF + HASH)) {
-            try {
-                message = LF + HASH + message.getBytes("UTF-8").length + LF + message + LF + HASH + HASH + LF;
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            message = LF + HASH + message.getBytes(UTF_8).length + LF + message + LF + HASH + HASH + LF;
         }
         return message;
     }
@@ -558,11 +556,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
             String rpcWithEnding = request.substring(request.indexOf('<'));
             String firstBlock = request.split(MSGLEN_REGEX_PATTERN)[1].split(LF + HASH + HASH + LF)[0];
             int newLen = 0;
-            try {
-                newLen = firstBlock.getBytes("UTF-8").length;
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            newLen = firstBlock.getBytes(UTF_8).length;
             if (oldLen != newLen) {
                 return LF + HASH + newLen + LF + rpcWithEnding;
             }
@@ -572,7 +566,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
 
     private String formatXmlHeader(String request) {
         if (!request.contains(XML_HEADER)) {
-            //FIXME if application provieds his own XML header of different type there is a clash
+            //FIXME if application provides his own XML header of different type there is a clash
             if (request.startsWith(LF + HASH)) {
                 request = request.split("<")[0] + XML_HEADER + request.substring(request.split("<")[0].length());
             } else {

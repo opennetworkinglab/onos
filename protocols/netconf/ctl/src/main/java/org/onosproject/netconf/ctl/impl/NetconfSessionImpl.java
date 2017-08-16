@@ -37,8 +37,9 @@ import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -493,11 +494,7 @@ public class NetconfSessionImpl implements NetconfSession {
             String rpcWithEnding = request.substring(request.indexOf(LESS_THAN));
             String firstBlock = request.split(MSGLEN_REGEX_PATTERN)[1].split(LF + HASH + HASH + LF)[0];
             int newLen = 0;
-            try {
-                newLen = firstBlock.getBytes("UTF-8").length;
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            newLen = firstBlock.getBytes(UTF_8).length;
             if (oldLen != newLen) {
                 return LF + HASH + newLen + LF + rpcWithEnding;
             }
