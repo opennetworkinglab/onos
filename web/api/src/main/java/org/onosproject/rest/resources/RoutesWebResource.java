@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 /**
  * Manage the unicast routing information.
  */
-@Path("route")
-public class RouteWebResource extends AbstractWebResource {
+@Path("routes")
+public class RoutesWebResource extends AbstractWebResource {
 
     /**
      * Get all unicast routes.
