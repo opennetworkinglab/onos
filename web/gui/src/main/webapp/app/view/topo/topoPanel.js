@@ -231,6 +231,8 @@
 
         title.text(data.title);
         listProps(tbody, data);
+
+        augmentDetailPanel();
     }
 
     // === -----------------------------------------------------
@@ -365,6 +367,10 @@
         }
     }
 
+    function summaryBBox() {
+        return d3.select('#' + idSum).node().getBoundingClientRect();
+    }
+
     function hideDetailPanel() {
         detail.panel().hide();
     }
@@ -373,7 +379,8 @@
 
     function augmentDetailPanel() {
         var d = detail,
-            downPos = sumFromTop + sumMax + padFudge;
+            downPos = summaryBBox().bottom + padTop;
+
         d.ypos = { up: sumFromTop, down: downPos, current: downPos };
 
         d._move = function (y, cb) {
