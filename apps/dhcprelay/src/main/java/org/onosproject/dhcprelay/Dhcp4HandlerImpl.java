@@ -117,6 +117,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     private MacAddress dhcpConnectMac = null;
     private VlanId dhcpConnectVlan = null;
     private Ip4Address dhcpGatewayIp = null;
+    private Ip4Address relayAgentIp = null;
 
     @Activate
     protected void activate() {
@@ -128,6 +129,12 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         hostService.removeListener(hostListener);
         this.dhcpConnectMac = null;
         this.dhcpConnectVlan = null;
+
+        if (dhcpGatewayIp != null) {
+            hostService.stopMonitoringIp(dhcpGatewayIp);
+        } else if (dhcpServerIp != null) {
+            hostService.stopMonitoringIp(dhcpServerIp);
+        }
     }
 
     @Override
@@ -231,6 +238,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
             this.dhcpConnectVlan = host.vlan();
             this.dhcpConnectMac = host.mac();
         }
+
+        this.relayAgentIp = serverConfig.getRelayAgentIp4().orElse(null);
     }
 
     @Override
@@ -238,6 +247,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         log.warn("Indirect config feature for DHCPv4 handler not implement yet");
     }
 
+    @Override
     public void processDhcpPacket(PacketContext context, BasePacket payload) {
         checkNotNull(payload, "DHCP payload can't be null");
         checkState(payload instanceof DHCP, "Payload is not a DHCP");
@@ -340,7 +350,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
      * @return the first interface IP; null if not exists an IP address in
      *         these interfaces
      */
-    private Ip4Address getRelayAgentIPv4Address(Interface iface) {
+    private Ip4Address getFirstIpFromInterface(Interface iface) {
         checkNotNull(iface, "Interface can't be null");
         return iface.ipAddressesList().stream()
                 .map(InterfaceIpAddress::ipAddress)
@@ -398,9 +408,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
             log.warn("Can't get server interface, ignore");
             return null;
         }
-        Ip4Address relayAgentIp = getRelayAgentIPv4Address(serverInterface);
-        MacAddress relayAgentMac = serverInterface.mac();
-        if (relayAgentIp == null || relayAgentMac == null) {
+        Ip4Address ipFacingServer = getFirstIpFromInterface(serverInterface);
+        MacAddress macFacingServer = serverInterface.mac();
+        if (ipFacingServer == null || macFacingServer == null) {
             log.warn("No IP address for server Interface {}", serverInterface);
             return null;
         }
@@ -414,11 +424,11 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         }
         // get dhcp header.
         Ethernet etherReply = (Ethernet) ethernetPacket.clone();
-        etherReply.setSourceMACAddress(relayAgentMac);
+        etherReply.setSourceMACAddress(macFacingServer);
         etherReply.setDestinationMACAddress(dhcpConnectMac);
         etherReply.setVlanID(dhcpConnectVlan.toShort());
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
-        ipv4Packet.setSourceAddress(relayAgentIp.toInt());
+        ipv4Packet.setSourceAddress(ipFacingServer.toInt());
         ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
@@ -457,6 +467,12 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
             // Sets giaddr to IP address from the Interface which facing to
             // DHCP client
             dhcpPacket.setGatewayIPAddress(clientInterfaceIp.toInt());
+        }
+
+        // replace giaddr if relay agent IP is set
+        // FIXME for both direct and indirect case now, should be separated
+        if (relayAgentIp != null) {
+            dhcpPacket.setGatewayIPAddress(relayAgentIp.toInt());
         }
 
         udpPacket.setPayload(dhcpPacket);
@@ -590,8 +606,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
 
         // we leave the srcMac from the original packet
         // figure out the relay agent IP corresponding to the original request
-        Ip4Address relayAgentIP = getRelayAgentIPv4Address(clientInterface);
-        if (relayAgentIP == null) {
+        Ip4Address ipFacingClient = getFirstIpFromInterface(clientInterface);
+        if (ipFacingClient == null) {
             log.warn("Cannot determine relay agent interface Ipv4 addr for host {}/{}. "
                              + "Aborting relay for dhcp packet from server {}",
                      etherReply.getDestinationMAC(), clientInterface.vlan(),
@@ -600,7 +616,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         }
         // SRC_IP: relay agent IP
         // DST_IP: offered IP
-        ipv4Packet.setSourceAddress(relayAgentIP.toInt());
+        ipv4Packet.setSourceAddress(ipFacingClient.toInt());
         ipv4Packet.setDestinationAddress(dhcpPayload.getYourIPAddress());
         udpPacket.setSourcePort(UDP.DHCP_SERVER_PORT);
         if (directlyConnected(dhcpPayload)) {

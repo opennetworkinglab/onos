@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultDhcpRelayConfig extends Config<ApplicationId> {
     public static final String KEY = "default";
 
-
-
     @Override
     public boolean isValid() {
         // check if all configs are valid

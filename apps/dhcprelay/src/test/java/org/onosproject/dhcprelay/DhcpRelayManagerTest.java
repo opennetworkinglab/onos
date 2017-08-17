@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
+import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -152,6 +153,9 @@ public class DhcpRelayManagerTest {
                                                                     SERVER_IFACE_MAC,
                                                                     SERVER_VLAN);
 
+    // Relay agent config
+    private static final Ip4Address RELAY_AGENT_IP = Ip4Address.valueOf("10.0.4.254");
+
     // Components
     private static final ApplicationId APP_ID = TestApplicationId.create(DhcpRelayManager.DHCP_RELAY_APP);
     private static final DefaultDhcpRelayConfig CONFIG = new MockDefaultDhcpRelayConfig();
@@ -187,8 +191,8 @@ public class DhcpRelayManagerTest {
                 .andReturn(APP_ID).anyTimes();
 
         manager.hostService = createNiceMock(HostService.class);
-        expect(manager.hostService.getHostsByIp(anyObject())).andReturn(ImmutableSet.of(SERVER_HOST));
-        expect(manager.hostService.getHost(OUTER_RELAY_HOST_ID)).andReturn(OUTER_RELAY_HOST);
+        expect(manager.hostService.getHostsByIp(anyObject())).andReturn(ImmutableSet.of(SERVER_HOST)).anyTimes();
+        expect(manager.hostService.getHost(OUTER_RELAY_HOST_ID)).andReturn(OUTER_RELAY_HOST).anyTimes();
 
         packetService = new MockPacketService();
         manager.packetService = packetService;
@@ -300,6 +304,24 @@ public class DhcpRelayManagerTest {
     }
 
     @Test
+    public void testWithRelayAgentConfig() throws DeserializationException {
+        manager.v4Handler
+                .setDefaultDhcpServerConfigs(ImmutableList.of(new MockDhcpServerConfig(RELAY_AGENT_IP)));
+        packetService.processPacket(new TestDhcpRequestPacketContext(CLIENT2_MAC,
+                                                                     CLIENT2_VLAN,
+                                                                     CLIENT2_CP,
+                                                                     INTERFACE_IP.ipAddress().getIp4Address(),
+                                                                     true));
+        OutboundPacket outPacket = packetService.emittedPacket;
+        byte[] outData = outPacket.data().array();
+        Ethernet eth = Ethernet.deserializer().deserialize(outData, 0, outData.length);
+        IPv4 ip = (IPv4) eth.getPayload();
+        UDP udp = (UDP) ip.getPayload();
+        DHCP dhcp = (DHCP) udp.getPayload();
+        assertEquals(RELAY_AGENT_IP.toInt(), dhcp.getGatewayIPAddress());
+    }
+
+    @Test
     public void testArpRequest() throws Exception {
         packetService.processPacket(new TestArpRequestPacketContext(CLIENT_INTERFACE));
         OutboundPacket outboundPacket = packetService.emittedPacket;
@@ -319,11 +341,27 @@ public class DhcpRelayManagerTest {
 
         @Override
         public List<DhcpServerConfig> dhcpServerConfigs() {
-            return ImmutableList.of(new MockDhcpServerConfig());
+            return ImmutableList.of(new MockDhcpServerConfig(null));
         }
     }
 
     private static class MockDhcpServerConfig extends DhcpServerConfig {
+        Ip4Address relayAgentIp;
+
+        /**
+         * Create mocked version DHCP server config.
+         *
+         * @param relayAgentIp the relay agent Ip config; null if we don't need it
+         */
+        public MockDhcpServerConfig(Ip4Address relayAgentIp) {
+            this.relayAgentIp = relayAgentIp;
+        }
+
+        @Override
+        public Optional<Ip4Address> getRelayAgentIp4() {
+            return Optional.ofNullable(relayAgentIp);
+        }
+
         @Override
         public Optional<ConnectPoint> getDhcpServerConnectPoint() {
             return Optional.of(SERVER_CONNECT_POINT);
