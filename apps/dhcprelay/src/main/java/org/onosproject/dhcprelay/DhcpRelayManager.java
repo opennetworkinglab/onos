@@ -181,9 +181,6 @@ public class DhcpRelayManager implements DhcpRelayService {
         packetService.removeProcessor(dhcpRelayPacketProcessor);
         cancelDhcpPackets();
         cancelArpPackets();
-        v4Handler.getDhcpGatewayIp().ifPresent(hostService::stopMonitoringIp);
-        v4Handler.getDhcpServerIp().ifPresent(hostService::stopMonitoringIp);
-        // TODO: DHCPv6 Handler
 
         compCfgService.unregisterProperties(getClass(), false);
         log.info("DHCP-RELAY Stopped");
@@ -236,15 +233,15 @@ public class DhcpRelayManager implements DhcpRelayService {
             // Ignore if config is not present
             return;
         }
-        if (config instanceof DefaultDhcpRelayConfig) {
-            DefaultDhcpRelayConfig defaultConfig = (DefaultDhcpRelayConfig) config;
-            v4Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
-            v6Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
-        }
+
         if (config instanceof IndirectDhcpRelayConfig) {
             IndirectDhcpRelayConfig indirectConfig = (IndirectDhcpRelayConfig) config;
             v4Handler.setIndirectDhcpServerConfigs(indirectConfig.dhcpServerConfigs());
             v6Handler.setIndirectDhcpServerConfigs(indirectConfig.dhcpServerConfigs());
+        } else if (config instanceof DefaultDhcpRelayConfig) {
+            DefaultDhcpRelayConfig defaultConfig = (DefaultDhcpRelayConfig) config;
+            v4Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
+            v6Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
         }
     }
 

@@ -33,12 +33,15 @@ public class DhcpServerConfig {
     private static final String DHCP_CONNECT_POINT = "dhcpServerConnectPoint";
     private static final String DHCP_SERVER_IP = "serverIps";
     private static final String DHCP_GATEWAY_IP = "gatewayIps";
+    private static final String RELAY_AGENT_IP = "relayAgentIps";
 
     private ConnectPoint connectPoint;
     private Ip4Address serverIp4Addr;
     private Ip4Address gatewayIp4Addr;
+    private Ip4Address relayAgentIp4Addr;
     private Ip6Address serverIp6Addr;
     private Ip6Address gatewayIp6Addr;
+    private Ip6Address relayAgentIp6Addr;
 
     protected DhcpServerConfig() {
         // empty config not allowed here
@@ -68,22 +71,34 @@ public class DhcpServerConfig {
             }
         });
 
-        if (!config.has(DHCP_GATEWAY_IP)) {
-            // gateway ip doesn't exist, ignore the gateway
-            return;
+        if (config.has(DHCP_GATEWAY_IP)) {
+            ArrayNode gatewayIps = (ArrayNode) config.path(DHCP_GATEWAY_IP);
+            gatewayIps.forEach(node -> {
+                if (node.isTextual()) {
+                    IpAddress ip = IpAddress.valueOf(node.asText());
+                    if (ip.isIp4() && gatewayIp4Addr == null) {
+                        gatewayIp4Addr = ip.getIp4Address();
+                    }
+                    if (ip.isIp6() && gatewayIp6Addr == null) {
+                        gatewayIp6Addr = ip.getIp6Address();
+                    }
+                }
+            });
         }
-        ArrayNode gatewayIps = (ArrayNode) config.path(DHCP_GATEWAY_IP);
-        gatewayIps.forEach(node -> {
-            if (node.isTextual()) {
-                IpAddress ip = IpAddress.valueOf(node.asText());
-                if (ip.isIp4() && gatewayIp4Addr == null) {
-                    gatewayIp4Addr = ip.getIp4Address();
+        if (config.has(RELAY_AGENT_IP)) {
+            ArrayNode relayAgentIps = (ArrayNode) config.path(RELAY_AGENT_IP);
+            relayAgentIps.forEach(node -> {
+                if (node.isTextual()) {
+                    IpAddress ip = IpAddress.valueOf(node.asText());
+                    if (ip.isIp4() && relayAgentIp4Addr == null) {
+                        relayAgentIp4Addr = ip.getIp4Address();
+                    }
+                    if (ip.isIp6() && relayAgentIp6Addr == null) {
+                        relayAgentIp6Addr = ip.getIp6Address();
+                    }
                 }
-                if (ip.isIp6() && gatewayIp6Addr == null) {
-                    gatewayIp6Addr = ip.getIp6Address();
-                }
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -145,5 +160,27 @@ public class DhcpServerConfig {
      */
     public Optional<Ip6Address> getDhcpGatewayIp6() {
         return Optional.ofNullable(gatewayIp6Addr);
+    }
+
+    /**
+     * Returns the optional IPv4 address for relay agent, if configured.
+     * This option is used if we want to replace the giaddr field in DHCPv4
+     * payload.
+     *
+     * @return the giaddr; empty value if not set
+     */
+    public Optional<Ip4Address> getRelayAgentIp4() {
+        return Optional.ofNullable(relayAgentIp4Addr);
+    }
+
+    /**
+     * Returns the optional IPv6 address for relay agent, if configured.
+     * This option is used if we want to replace the link-address field in DHCPv6
+     * payload.
+     *
+     * @return the giaddr; empty value if not set
+     */
+    public Optional<Ip6Address> getRelayAgentIp6() {
+        return Optional.ofNullable(relayAgentIp6Addr);
     }
 }
