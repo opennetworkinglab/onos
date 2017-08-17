@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
     '//protocols/isis/api:onos-protocols-isis-api',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

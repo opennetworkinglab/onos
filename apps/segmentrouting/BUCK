@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
     '//cli:onos-cli',
@@ -7,6 +9,7 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//apps/route-service/api:onos-apps-route-service-api',
+    '//lib:joda-time',
 ]
 
 BUNDLES = [

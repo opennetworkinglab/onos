@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//models/l3vpn:onos-models-l3vpn',
     '//apps/config:onos-apps-config',
     '//core/store/serializers:onos-core-serializers',

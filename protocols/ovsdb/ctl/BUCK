@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
     '//lib:netty-transport',
     '//lib:netty-buffer',
     '//lib:netty-codec',

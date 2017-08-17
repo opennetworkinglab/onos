@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:METRICS',
     '//core/store/serializers:onos-core-serializers',
     '//core/store/primitives:onos-core-primitives',
     '//core/api:onos-api',

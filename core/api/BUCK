@@ -1,8 +1,14 @@
 COMPILE_DEPS = [
     '//lib:COMPILE',
+    '//lib:NETTY',
+    '//lib:JACKSON',
+    '//lib:METRICS',
+    '//lib:KRYO',
     '//utils/misc:onlab-misc',
     '//utils/osgi:onlab-osgi',
     '//utils/rest:onlab-rest',
+    '//lib:joda-time',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

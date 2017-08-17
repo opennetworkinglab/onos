@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
@@ -8,6 +9,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST_REST',
     '//web/api:onos-rest-tests',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (

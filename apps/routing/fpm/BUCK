@@ -1,11 +1,14 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:KRYO',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
     '//apps/route-service/api:onos-apps-route-service-api',
     '//core/store/serializers:onos-core-serializers',
+    '//lib:netty',
 ]
 
 TEST_DEPS = [

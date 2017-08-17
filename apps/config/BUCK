@@ -4,6 +4,7 @@ APPS = [
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//lib:org.apache.karaf.shell.console',
     '//lib:onos-yang-model',
     '//core/store/serializers:onos-core-serializers',

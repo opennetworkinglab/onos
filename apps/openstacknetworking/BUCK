@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
+  '//lib:JACKSON',
+  '//lib:KRYO',
   '//core/store/serializers:onos-core-serializers',
   '//lib:org.apache.karaf.shell.console',
   '//lib:javax.ws.rs-api',
@@ -7,6 +9,7 @@ COMPILE_DEPS = [
   '//cli:onos-cli',
   '//apps/openstacknode/api:onos-apps-openstacknode-api',
   '//lib:openstack4j-core',
+  '//lib:joda-time',
 ]
 
 TEST_DEPS = [

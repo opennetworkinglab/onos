@@ -36,6 +36,7 @@ TEST_DEPS = [
     '//lib:netty-transport',
     '//lib:netty-transport-native-epoll',
     '//lib:netty-resolver',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests(

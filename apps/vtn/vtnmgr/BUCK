@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//lib:org.apache.karaf.shell.console',
     '//core/store/serializers:onos-core-serializers',
     '//cli:onos-cli',

@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//cli:onos-cli',
     '//lib:httpclient-osgi',
     '//lib:httpcore-osgi',

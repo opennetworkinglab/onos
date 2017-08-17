@@ -1,7 +1,6 @@
 {
   "libraries": {
     "COMPILE": [
-      "joda-time",
       "commons-configuration",
       "commons-logging",
       "commons-collections",
@@ -9,37 +8,15 @@
       "commons-lang3",
       "commons-io",
       "commons-pool",
-      "objenesis",
       "guava",
-      "netty",
-      "netty-buffer",
-      "netty-common",
-      "minimal-json",
-      "kryo",
-      "reflectasm",
-      "asm",
-      "minlog",
-      "metrics-core",
-      "metrics-json",
       "slf4j-api",
       "osgi-core",
       "org.osgi.compendium",
       "org.apache.felix.scr.annotations",
       "org.apache.felix.scr",
-      "jackson-annotations",
-      "jackson-core",
-      "jackson-databind",
       "org.apache.karaf.features.core",
       "org.apache.karaf.system.core",
       { "name": "jsr305", "compile_only": true },
-      "onos-yang-datamodel",
-      "onos-yang-utils-generator",
-      "onos-yang-model",
-      "onos-yang-compiler-api",
-      "onos-yang-maven-plugin",
-      "onos-yang-serializers-json",
-      "onos-yang-serializers-xml",
-      "onos-yang-serializers-utils",
       "org.apache.servicemix.bundles.dom4j"
     ],
     "CORE_DEPS": [
@@ -88,6 +65,10 @@
       "//core/common:onos-core-common-tests",
       "//utils/osgi:onlab-osgi-tests"
     ],
+    "NETTY": [
+      "netty-buffer",
+      "netty-common"
+    ],
     "GRPC_1.3": [
       "grpc-core-1.3.0",
       "grpc-protobuf-1.3.0",
@@ -104,6 +85,31 @@
       "google-errorprone-2.0.19",
       "google-instrumentation-0.3.0",
       "junit-dep",
+      "objenesis"
+    ],
+    "ONOS_YANG": [
+      "onos-yang-datamodel",
+      "onos-yang-utils-generator",
+      "onos-yang-model",
+      "onos-yang-compiler-api",
+      "onos-yang-serializers-json",
+      "onos-yang-serializers-xml",
+      "onos-yang-serializers-utils"
+    ],
+    "JACKSON": [
+      "jackson-annotations",
+      "jackson-core",
+      "jackson-databind"
+    ],
+    "METRICS": [
+      "metrics-core",
+      "metrics-json"
+    ],
+    "KRYO": [
+      "kryo",
+      "reflectasm",
+      "asm",
+      "minlog",
       "objenesis"
     ]
   },

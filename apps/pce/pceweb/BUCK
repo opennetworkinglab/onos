@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//apps/pce/app:onos-apps-pce-app',
     '//cli:onos-cli',
     '//lib:org.apache.karaf.shell.console',

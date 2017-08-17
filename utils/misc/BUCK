@@ -1,5 +1,9 @@
 COMPILE_DEPS = [
     '//lib:COMPILE',
+    '//lib:NETTY',
+    '//lib:METRICS',
+    '//lib:KRYO',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests(

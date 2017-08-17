@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//lib:openflowj',
     '//drivers/default:onos-drivers-default',
     '//drivers/utilities:onos-drivers-utilities',

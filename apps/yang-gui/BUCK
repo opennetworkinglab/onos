@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:ONOS_YANG',
     '//lib:onos-yang-runtime',
     '//apps/yang:onos-apps-yang',
 ]

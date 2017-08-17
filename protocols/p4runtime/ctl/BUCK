@@ -13,6 +13,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST',
+    '//lib:minimal-json',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
 ]
 

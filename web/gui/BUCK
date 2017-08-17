@@ -2,6 +2,8 @@ NODE_VERSION = '8.0.1'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//lib:javax.ws.rs-api',
     '//lib:servlet-api',
     '//lib:jetty-websocket',
@@ -14,7 +16,8 @@ COMPILE_DEPS = [
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',
     '//core/store/serializers:onos-core-serializers',
-    ':onos-tools-gui'
+    ':onos-tools-gui',
+    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

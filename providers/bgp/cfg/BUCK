@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//protocols/bgp/api:onos-protocols-bgp-api',
 ]
 

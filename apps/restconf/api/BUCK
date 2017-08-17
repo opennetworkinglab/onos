@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//lib:jersey-client',
     '//lib:javax.ws.rs-api',
     '//lib:jersey-server',

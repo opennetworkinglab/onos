@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//apps/tetopology/api:onos-apps-tetopology-api',
     '//apps/tetunnel/api:onos-apps-tetunnel-api',
     '//incubator/api:onos-incubator-api',

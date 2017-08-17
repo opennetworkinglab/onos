@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:COMPILE',
+    '//lib:JACKSON',
     '//utils/osgi:onlab-osgi',
     '//utils/misc:onlab-misc',
     '//lib:javax.ws.rs-api',

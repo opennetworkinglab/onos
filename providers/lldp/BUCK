@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
     '//providers/lldpcommon:onos-providers-lldpcommon',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',

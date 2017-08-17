@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
     '//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc',
@@ -9,6 +10,7 @@ TEST_DEPS = [
     '//lib:TEST_REST',
     '//utils/osgi:onlab-osgi-tests',
     '//web/api:onos-rest-tests',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (

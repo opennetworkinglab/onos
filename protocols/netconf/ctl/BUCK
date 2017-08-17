@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//lib:ganymed-ssh2',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//cli:onos-cli',

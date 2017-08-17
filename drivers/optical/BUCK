@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
     '//lib:openflowj',
     '//protocols/openflow/api:onos-protocols-openflow-api',
     '//drivers/default:onos-drivers-default',

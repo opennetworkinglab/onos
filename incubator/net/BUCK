@@ -1,5 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:METRICS',
+    '//lib:KRYO',
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//incubator/store:onos-incubator-store',

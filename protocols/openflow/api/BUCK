@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
     '//lib:openflowj',
     '//lib:netty-transport',
 ]

@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//apps/routing-api:onos-apps-routing-api',
@@ -9,7 +11,8 @@ COMPILE_DEPS = [
     ':commons-net',
     ':io.socket-client',
     ':json',
-    ':engine.io-client'
+    ':engine.io-client',
+    '//lib:netty',
  ]
 
 BUNDLES = [

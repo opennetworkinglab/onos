@@ -1,5 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//core/common:onos-core-common',
     '//utils/rest:onlab-rest',
     '//core/store/serializers:onos-core-serializers',
@@ -11,6 +14,7 @@ COMPILE_DEPS = [
     '//lib:netty-resolver',
     '//lib:commons-math3',
     '//incubator/api:onos-incubator-api',
+    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//apps/tetopology/api:onos-apps-tetopology-api',
     '//incubator/api:onos-incubator-api',
     '//core/store/serializers:onos-core-serializers',

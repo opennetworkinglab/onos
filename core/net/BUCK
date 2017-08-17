@@ -1,11 +1,15 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:METRICS',
+    '//lib:KRYO',
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//incubator/net:onos-incubator-net',
     '//incubator/store:onos-incubator-store',
     '//core/store/serializers:onos-core-serializers',
+    '//lib:joda-time',
 ]
 
 TEST_DEPS = [
@@ -14,7 +18,8 @@ TEST_DEPS = [
     '//core/store/dist:onos-core-dist',
     '//core/store/dist:onos-core-dist-tests',
     '//utils/osgi:onlab-osgi-tests',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model'
+    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (

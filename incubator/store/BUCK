@@ -1,9 +1,11 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//lib:concurrent-trees',
     '//incubator/api:onos-incubator-api',
     '//core/store/dist:onos-core-dist',
-    '//core/store/serializers:onos-core-serializers'
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

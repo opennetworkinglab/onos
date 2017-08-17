@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//lib:jersey-client',
     '//lib:javax.ws.rs-api',
     '//lib:org.apache.karaf.shell.console',

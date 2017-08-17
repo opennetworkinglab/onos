@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//lib:netty-buffer',

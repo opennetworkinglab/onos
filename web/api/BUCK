@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:METRICS',
     '//incubator/api:onos-incubator-api',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
@@ -7,6 +9,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_REST',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (

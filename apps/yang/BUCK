@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
+  '//lib:JACKSON',
   '//core/api:onos-api',
   '//core/common:onos-core-common',
   '//cli:onos-cli',

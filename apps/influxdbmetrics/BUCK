@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:METRICS',
     '//lib:org.apache.karaf.shell.console',
     '//lib:metrics-influxdb',
     '//lib:influxdb-java',
@@ -9,6 +10,7 @@ COMPILE_DEPS = [
     '//lib:okio',
     '//lib:gson',
     '//cli:onos-cli',
+    '//lib:joda-time',
 ]
 
 EXCLUDED_BUNDLES = [

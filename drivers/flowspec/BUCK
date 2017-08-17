@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//drivers/default:onos-drivers-default',
     '//apps/flowspec-api/flowapi:onos-apps-flowspec-api-flowapi',
 ]

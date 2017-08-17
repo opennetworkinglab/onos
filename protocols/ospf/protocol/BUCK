@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
     '//protocols/ospf/api:onos-protocols-ospf-api',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

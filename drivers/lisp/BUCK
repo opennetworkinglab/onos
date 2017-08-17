@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',

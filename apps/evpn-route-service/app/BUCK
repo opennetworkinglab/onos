@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//utils/misc:onlab-misc',
     '//core/store/serializers:onos-core-serializers',
     '//apps/evpn-route-service/api:onos-apps-evpn-route-service-api',

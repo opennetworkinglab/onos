@@ -1,10 +1,12 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
     '//lib:jackson-databind',
     '//lib:jackson-annotations',
     '//lib:osgi-core',
     '//lib:org.apache.karaf.shell.console',
     '//lib:org.apache.felix.scr.annotations',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

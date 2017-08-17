@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//lib:concurrent-trees',
     '//core/store/serializers:onos-core-serializers',
     '//apps/route-service/api:onos-apps-route-service-api',

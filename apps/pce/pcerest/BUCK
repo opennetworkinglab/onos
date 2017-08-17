@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
     '//apps/pce/app:onos-apps-pce-app',
@@ -10,6 +11,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_REST',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (

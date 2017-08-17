@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
     '//incubator/api:onos-incubator-api',
     '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
     '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
@@ -8,6 +10,7 @@ COMPILE_DEPS = [
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//core/api:onos-api-tests',
     '//apps/optical-model:onos-apps-optical-model',
+    '//lib:netty',
 ]
 
 osgi_jar_with_tests (

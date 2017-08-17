@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//lib:snmp-core',
     '//lib:bti7000',

@@ -1,10 +1,13 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:METRICS',
     '//lib:org.apache.karaf.shell.console',
     '//incubator/api:onos-incubator-api',
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',
     '//core/common:onos-core-common',
+    '//lib:joda-time',
 ]
 
 osgi_jar (

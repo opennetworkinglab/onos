@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//incubator/api:onos-incubator-api',
     '//protocols/netconf/api:onos-protocols-netconf-api',
 ]

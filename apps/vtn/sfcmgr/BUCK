@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//core/store/serializers:onos-core-serializers',
     '//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc',
 ]

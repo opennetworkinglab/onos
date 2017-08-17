@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//core/store/serializers:onos-core-serializers',

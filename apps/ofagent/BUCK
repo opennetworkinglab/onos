@@ -1,5 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:NETTY',
+    '//lib:JACKSON',
+    '//lib:KRYO',
     '//core/store/serializers:onos-core-serializers',
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
@@ -21,6 +24,7 @@ TEST_DEPS = [
     '//lib:TEST_REST',
     '//lib:jersey-server',
     '//web/api:onos-rest-tests',
+    '//lib:minimal-json',
 ]
 
 osgi_jar_with_tests (
