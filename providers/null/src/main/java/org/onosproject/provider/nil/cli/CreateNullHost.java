@@ -32,6 +32,7 @@ import org.onosproject.provider.nil.CustomTopologySimulator;
 import org.onosproject.provider.nil.NullProviders;
 import org.onosproject.provider.nil.TopologySimulator;
 
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -88,6 +89,7 @@ public class CreateNullHost extends AbstractShellCommand {
         BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
 
         cfg.locType(locType);
+        cfg.setLocations(new HashSet<HostLocation>() {{ add(location); }});
 
         if (GEO.equals(locType)) {
             cfg.latitude(latOrY).longitude(longOrX);
