@@ -164,19 +164,18 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Creates a new byte sequence of the given size where alla bits are 0.
+     * Creates a new byte sequence of the given size where all bits are 0.
      *
      * @param size number of bytes
      * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence ofZeros(int size) {
-        byte[] bytes = new byte[size];
-        Arrays.fill(bytes, (byte) 0);
-        return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
+        // array is initialized to all 0's by default
+        return new ImmutableByteSequence(ByteBuffer.wrap(new byte[size]));
     }
 
     /**
-     * Creates a new byte sequence of the given size where alla bits are 1.
+     * Creates a new byte sequence of the given size where all bits are 1.
      *
      * @param size number of bytes
      * @return a new immutable byte sequence
@@ -185,6 +184,51 @@ public final class ImmutableByteSequence {
         byte[] bytes = new byte[size];
         Arrays.fill(bytes, (byte) 0xFF);
         return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
+    }
+
+    /**
+     * Creates a new byte sequence that is prefixed with specified number of
+     * zeros if val = 0 or ones if val = 0xff.
+     *
+     * @param size number of total bytes
+     * @param prefixBits number of bits in prefix
+     * @param val 0 for prefix of zeros; 0xff for prefix of ones
+     * @return new immutable byte sequence
+     */
+    static ImmutableByteSequence prefix(int size, long prefixBits, byte val) {
+        checkArgument(val == 0 || val == (byte) 0xff, "Val must be 0 or 0xff");
+        byte[] bytes = new byte[size];
+        int prefixBytes = (int) (prefixBits / Byte.SIZE);
+        Arrays.fill(bytes, 0, prefixBytes, val);
+        Arrays.fill(bytes, prefixBytes, bytes.length, (byte) ~val);
+        int partialBits = (int) (prefixBits % Byte.SIZE);
+        if (partialBits != 0) {
+            bytes[prefixBytes] = val == 0 ?
+                    (byte) (0xff >> partialBits) : (byte) (0xff << Byte.SIZE - partialBits);
+        }
+        return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
+    }
+
+    /**
+     * Creates a new byte sequence that is prefixed with specified number of zeros.
+     *
+     * @param size number of total bytes
+     * @param prefixBits number of bits in prefix
+     * @return new immutable byte sequence
+     */
+    public static ImmutableByteSequence prefixZeros(int size, long prefixBits) {
+        return prefix(size, prefixBits, (byte) 0);
+    }
+
+    /**
+     * Creates a new byte sequence that is prefixed with specified number of ones.
+     *
+     * @param size number of total bytes
+     * @param prefixBits number of bits in prefix
+     * @return new immutable byte sequence
+     */
+    public static ImmutableByteSequence prefixOnes(int size, long prefixBits) {
+        return prefix(size, prefixBits, (byte) 0xff);
     }
 
     /**
