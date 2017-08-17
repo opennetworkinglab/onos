@@ -18,6 +18,7 @@ buck-out
 .buckjavaargs*
 bucklets/plugins/
 .watchmanconfig
+.vscode
 
 /bin/
 lib/yang
