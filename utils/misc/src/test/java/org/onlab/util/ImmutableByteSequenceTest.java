@@ -17,7 +17,9 @@
 package org.onlab.util;
 
 import com.google.common.testing.EqualsTester;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -28,6 +30,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class ImmutableByteSequenceTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testCopy() throws Exception {
@@ -114,5 +118,72 @@ public class ImmutableByteSequenceTest {
                                   bsLongCopy.asReadOnlyBuffer().order(),
                                   ByteOrder.BIG_ENDIAN)
                 .testEquals();
+    }
+
+    @Test
+    public void testBitSetMethods() throws Exception {
+        // All zeros tests
+        assertThat("3 bytes, all 0's",
+                ImmutableByteSequence.ofZeros(3),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, 0}))));
+        assertThat("3 bytes, all 0's via prefix",
+                ImmutableByteSequence.prefixZeros(3, 3 * Byte.SIZE),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, 0}))));
+
+        // All ones tests
+        assertThat("3 bytes, all 1's",
+                ImmutableByteSequence.ofZeros(3),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, 0}))));
+        assertThat("3 bytes, all 1's via prefix",
+                ImmutableByteSequence.prefixOnes(3, 3 * Byte.SIZE),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff}))));
+
+        // Zero prefix tests
+        assertThat("2 bytes, prefixed with 5 0's",
+                ImmutableByteSequence.prefix(2, 5, (byte) 0),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0x7, (byte) 0xff}))));
+        assertThat("4 bytes, prefixed with 16 0's",
+                ImmutableByteSequence.prefix(4, 16, (byte) 0),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, (byte) 0xff, (byte) 0xff}))));
+        assertThat("4 bytes, prefixed with 20 0's",
+                ImmutableByteSequence.prefix(4, 20, (byte) 0),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, (byte) 0x0f, (byte) 0xff}))));
+        assertThat("8 bytes, prefixed with 36 0's",
+                ImmutableByteSequence.prefixZeros(8, 38),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{0, 0, 0, 0, (byte) 0x03, (byte) 0xff, (byte) 0xff, (byte) 0xff}))));
+
+        // Ones prefix tests
+        assertThat("2 bytes, prefixed with 5 1's",
+                ImmutableByteSequence.prefix(2, 5, (byte) 0xff),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0xf8, 0}))));
+        assertThat("4 bytes, prefixed with 16 1's",
+                ImmutableByteSequence.prefix(4, 16, (byte) 0xff),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0xff, (byte) 0xff, 0, 0}))));
+        assertThat("4 bytes, prefixed with 20 1's",
+                ImmutableByteSequence.prefix(4, 20, (byte) 0xff),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xf0, 0}))));
+        assertThat("8 bytes, prefixed with 10 1's",
+                ImmutableByteSequence.prefixOnes(8, 10),
+                is(equalTo(ImmutableByteSequence.copyFrom(
+                        new byte[]{(byte) 0xff, (byte) 0xc0, 0, 0, 0, 0, 0, 0}))));
+    }
+
+    @Test
+    public void testBadPrefixVal() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.reportMissingExceptionWithMessage(
+                "Expect IllegalArgumentException due to val = 0x7");
+        ImmutableByteSequence.prefix(5, 10, (byte) 0x7);
     }
 }
