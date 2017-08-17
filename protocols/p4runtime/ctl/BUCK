@@ -13,8 +13,9 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST',
+    '//lib:GRPC_TEST_1.3',
     '//lib:minimal-json',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//lib:grpc-protobuf-lite-' + GRPC_VER,
 ]
 
 osgi_jar_with_tests(

@@ -186,7 +186,7 @@ public class P4RuntimeControllerImpl
         }
     }
 
-    void postEvent(P4RuntimeEvent event) {
+    public void postEvent(P4RuntimeEvent event) {
         post(event);
     }
 }

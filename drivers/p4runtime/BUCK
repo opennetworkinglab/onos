@@ -5,14 +5,22 @@ COMPILE_DEPS = [
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:KRYO',
 ]
 
 BUNDLES = [
     ':onos-drivers-p4runtime',
 ]
 
-osgi_jar(
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
 onos_app (

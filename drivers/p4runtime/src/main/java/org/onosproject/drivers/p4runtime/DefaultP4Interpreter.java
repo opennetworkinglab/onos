@@ -30,6 +30,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -167,7 +168,7 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
 
     @Override
     public PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId) throws PiInterpreterException {
-
+        initTargetSpecificAttributes();
         if (treatment.allInstructions().size() == 0) {
             // No instructions means drop for us.
             return actionWithName(DROP);
@@ -181,21 +182,33 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
         switch (instruction.type()) {
             case OUTPUT:
                 Instructions.OutputInstruction outInstruction = (Instructions.OutputInstruction) instruction;
-                PortNumber port = outInstruction.port();
-                if (!port.isLogical()) {
-                    return PiAction.builder()
-                            .withId(PiActionId.of(SET_EGRESS_PORT))
-                            .withParameter(new PiActionParam(PiActionParamId.of(PORT), copyFrom(port.toLong())))
-                            .build();
-                } else if (port.equals(CONTROLLER)) {
-                    return actionWithName(SEND_TO_CPU);
-                } else {
-                    throw new PiInterpreterException(format("Egress on logical port '%s' not supported", port));
-                }
+                return outputPiAction(outInstruction);
+            case PROTOCOL_INDEPENDENT:
+                PiInstruction piInstruction = (PiInstruction) instruction;
+                return (PiAction) piInstruction.action();
             case NOACTION:
                 return actionWithName(DROP);
             default:
                 throw new PiInterpreterException(format("Instruction type '%s' not supported", instruction.type()));
+        }
+    }
+
+    private PiAction outputPiAction(Instructions.OutputInstruction outInstruction) throws PiInterpreterException {
+        PortNumber port = outInstruction.port();
+        if (!port.isLogical()) {
+            try {
+                return PiAction.builder()
+                        .withId(PiActionId.of(SET_EGRESS_PORT))
+                        .withParameter(new PiActionParam(PiActionParamId.of(PORT),
+                                                         fit(copyFrom(port.toLong()), portFieldBitWidth)))
+                        .build();
+            } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+                throw new PiInterpreterException(e.getMessage());
+            }
+        } else if (port.equals(CONTROLLER)) {
+            return actionWithName(SEND_TO_CPU);
+        } else {
+            throw new PiInterpreterException(format("Egress on logical port '%s' not supported", port));
         }
     }
 

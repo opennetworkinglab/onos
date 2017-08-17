@@ -18,12 +18,13 @@ package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
+import org.easymock.EasyMock;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
@@ -33,7 +34,6 @@ import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.slf4j.Logger;
 import p4.P4RuntimeOuterClass.Action;
 import p4.P4RuntimeOuterClass.TableEntry;
 
@@ -47,19 +47,14 @@ import static org.hamcrest.Matchers.is;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onlab.util.ImmutableByteSequence.ofOnes;
-import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
-import static org.slf4j.LoggerFactory.getLogger;
 
-//import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
-//import org.onosproject.drivers.bmv2.Bmv2DefaultInterpreter;
-
+/**
+ * Test for P4 runtime table entry encoder.
+ */
 public class TableEntryEncoderTest {
-
-    private final Logger log = getLogger(getClass());
-
     private static final String TABLE_0 = "table0";
     private static final String SET_EGRESS_PORT = "set_egress_port";
     private static final String PORT = "port";
@@ -72,14 +67,11 @@ public class TableEntryEncoderTest {
 
     private final Random rand = new Random();
     private final URL p4InfoUrl = this.getClass().getResource("/default.p4info");
-    private final URL jsonUrl = this.getClass().getResource("/default.json");
 
     private final PiPipeconf defaultPipeconf = DefaultPiPipeconf.builder()
             .withId(new PiPipeconfId("mock"))
-            .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
-//            .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
+            .withPipelineModel(EasyMock.niceMock(PiPipelineModel.class))
             .addExtension(P4_INFO_TEXT, p4InfoUrl)
-            .addExtension(BMV2_JSON, jsonUrl)
             .build();
 
     private final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(defaultPipeconf);

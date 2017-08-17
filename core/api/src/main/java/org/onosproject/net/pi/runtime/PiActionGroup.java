@@ -47,11 +47,15 @@ public final class PiActionGroup {
     private final PiActionGroupId id;
     private final Type type;
     private final ImmutableSet<PiActionGroupMember> members;
+    private final PiActionProfileId piActionProfileId;
 
-    private PiActionGroup(PiActionGroupId id, Type type, ImmutableSet<PiActionGroupMember> members) {
+    private PiActionGroup(PiActionGroupId id, Type type,
+                          ImmutableSet<PiActionGroupMember> members,
+                          PiActionProfileId piActionProfileId) {
         this.id = id;
         this.type = type;
         this.members = members;
+        this.piActionProfileId = piActionProfileId;
     }
 
     /**
@@ -81,18 +85,28 @@ public final class PiActionGroup {
         return members;
     }
 
+    /**
+     * Gets identifier of the action profile.
+     *
+     * @return action profile id
+     */
+    public PiActionProfileId actionProfileId() {
+        return piActionProfileId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || !(o instanceof PiActionGroup)) {
             return false;
         }
         PiActionGroup that = (PiActionGroup) o;
-        return id == that.id &&
+        return Objects.equal(id, that.id) &&
                 Objects.equal(type, that.type) &&
-                Objects.equal(members, that.members);
+                Objects.equal(members, that.members) &&
+                Objects.equal(piActionProfileId, that.piActionProfileId);
     }
 
     @Override
@@ -106,6 +120,7 @@ public final class PiActionGroup {
                 .add("groupId", id)
                 .add("type", type)
                 .add("members", members)
+                .add("piActionProfileId", piActionProfileId)
                 .toString();
     }
 
@@ -126,6 +141,7 @@ public final class PiActionGroup {
         private PiActionGroupId id;
         private Type type;
         private Map<PiActionGroupMemberId, PiActionGroupMember> members = Maps.newHashMap();
+        private PiActionProfileId piActionProfileId;
 
         private Builder() {
             // hides constructor.
@@ -176,6 +192,17 @@ public final class PiActionGroup {
         }
 
         /**
+         * Sets the identifier of the action profile.
+         *
+         * @param piActionProfileId the identifier of the action profile
+         * @return this
+         */
+        public Builder withActionProfileId(PiActionProfileId piActionProfileId) {
+            this.piActionProfileId = piActionProfileId;
+            return this;
+        }
+
+        /**
          * Creates a new action group.
          *
          * @return action group
@@ -183,8 +210,11 @@ public final class PiActionGroup {
         public PiActionGroup build() {
             checkNotNull(id);
             checkNotNull(type);
-            checkArgument(members.size() > 0, "Members cannot be empty");
-            return new PiActionGroup(id, type, ImmutableSet.copyOf(members.values()));
+            checkArgument(!members.isEmpty(), "Members cannot be empty");
+            checkNotNull(piActionProfileId);
+            return new PiActionGroup(id, type,
+                                     ImmutableSet.copyOf(members.values()),
+                                     piActionProfileId);
         }
     }
 }

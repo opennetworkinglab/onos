@@ -38,4 +38,7 @@ public final class PiConstantsTest {
 
     public static final String EGRESS_PORT = "egress_port";
     public static final String INGRESS_PORT = "ingress_port";
+
+    public static final PiActionProfileId ACTION_PROF_ID =
+            PiActionProfileId.of("Test action profile");
 }

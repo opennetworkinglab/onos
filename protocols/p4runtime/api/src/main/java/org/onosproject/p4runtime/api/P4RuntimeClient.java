@@ -18,9 +18,12 @@ package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
@@ -113,6 +116,42 @@ public interface P4RuntimeClient {
      */
     CompletableFuture<Collection<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
                                                                       PiPipeconf pipeconf);
+
+    /**
+     * Performs the given write operation for the given action group members and pipeconf.
+     *
+     * @param group action group
+     * @param members the collection of action group members
+     * @param opType write operation type
+     * @param pipeconf the pipeconf currently deployed on the device
+     * @return true if the operation was successful, false otherwise
+     */
+    CompletableFuture<Boolean> writeActionGroupMembers(PiActionGroup group,
+                                                       Collection<PiActionGroupMember> members,
+                                                       WriteOperationType opType,
+                                                       PiPipeconf pipeconf);
+
+    /**
+     * Performs the given write operation for the given action group and pipeconf.
+     *
+     * @param group the action group
+     * @param opType write operation type
+     * @param pipeconf the pipeconf currently deployed on the device
+     * @return true if the operation was successful, false otherwise
+     */
+    CompletableFuture<Boolean> writeActionGroup(PiActionGroup group,
+                                                WriteOperationType opType,
+                                                PiPipeconf pipeconf);
+
+    /**
+     * Dumps all groups currently installed for the given action profile.
+     *
+     * @param actionProfileId the action profile id
+     * @param pipeconf the pipeconf currently deployed on the device
+     * @return completable future of a collection of groups
+     */
+    CompletableFuture<Collection<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,
+                                                            PiPipeconf pipeconf);
 
     /**
      * Shutdown the client by terminating any active RPC such as the stream channel.

@@ -212,6 +212,7 @@ import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
@@ -388,7 +389,6 @@ public final class KryoNamespaces {
                     DefaultFlowRule.class,
                     TableId.class,
                     IndexTableId.class,
-                    PiTableId.class,
                     FlowRule.FlowRemoveReason.class,
                     DefaultPacketRequest.class,
                     PacketPriority.class,
@@ -620,6 +620,7 @@ public final class KryoNamespaces {
                     PiTableId.class,
                     PiTernaryFieldMatch.class,
                     PiValidFieldMatch.class,
+                    PiActionProfileId.class,
                     // Other
                     PiCriterion.class,
                     PiInstruction.class

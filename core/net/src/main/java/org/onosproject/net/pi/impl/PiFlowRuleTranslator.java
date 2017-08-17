@@ -131,8 +131,8 @@ final class PiFlowRuleTranslator {
         Collection<PiFieldMatch> fieldMatches = buildFieldMatches(interpreter, rule.selector(), table);
 
         /* Translate treatment */
-        PiAction piAction = buildAction(rule.treatment(), interpreter, piTableId);
-        piAction = typeCheckAction(piAction, table);
+        PiTableAction piTableAction = buildAction(rule.treatment(), interpreter, piTableId);
+        piTableAction = typeCheckAction(piTableAction, table);
 
         PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
@@ -154,7 +154,7 @@ final class PiFlowRuleTranslator {
                 .withMatchKey(PiMatchKey.builder()
                                       .addFieldMatches(fieldMatches)
                                       .build())
-                .withAction(piAction);
+                .withAction(piTableAction);
 
         if (!rule.isPermanent()) {
             if (table.supportsAging()) {
@@ -172,7 +172,7 @@ final class PiFlowRuleTranslator {
     /**
      * Builds a PI action out of the given treatment, optionally using the given interpreter.
      */
-    private static PiAction buildAction(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
+    private static PiTableAction buildAction(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
                                         PiTableId tableId)
             throws PiFlowRuleTranslationException {
 
@@ -208,22 +208,28 @@ final class PiFlowRuleTranslator {
                             + "protocol-independent instruction were provided.");
         }
 
-        if (piTableAction.type() != PiTableAction.Type.ACTION) {
-            // TODO: implement handling of other table action types, e.g. action profiles.
-            throw new PiFlowRuleTranslationException(format(
-                    "PiTableAction type %s is not supported yet.", piTableAction.type()));
-        }
-
-        return (PiAction) piTableAction;
+        return piTableAction;
     }
 
     /**
-     * Checks that the given PI action is suitable for the given table model and returns a new action instance with
-     * parameters well-sized, according to the table model. If not suitable, throws an exception explaining why.
+     * Checks that the given PI table action is suitable for the given table
+     * model and returns a new action instance with parameters well-sized,
+     * according to the table model. If not suitable, throws an exception explaining why.
      */
-    private static PiAction typeCheckAction(PiAction piAction, PiTableModel table)
+    private static PiTableAction typeCheckAction(PiTableAction piTableAction, PiTableModel table)
             throws PiFlowRuleTranslationException {
+        switch (piTableAction.type()) {
+            case ACTION:
+                return checkPiAction((PiAction) piTableAction, table);
+            default:
+                // FIXME: should we check? how?
+                return piTableAction;
 
+        }
+    }
+
+    private static PiTableAction checkPiAction(PiAction piAction, PiTableModel table)
+            throws PiFlowRuleTranslationException  {
         // Table supports this action?
         PiActionModel actionModel = table.action(piAction.id().name()).orElseThrow(
                 () -> new PiFlowRuleTranslationException(format("Not such action '%s' for table '%s'",

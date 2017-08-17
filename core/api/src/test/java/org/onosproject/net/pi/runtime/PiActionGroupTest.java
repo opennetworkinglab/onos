@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.ACTION_PROF_ID;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
 
@@ -51,12 +52,14 @@ public class PiActionGroupTest {
             .addMember(piActionGroupMember)
             .withId(piActionGroupId)
             .withType(PiActionGroup.Type.SELECT)
+            .withActionProfileId(ACTION_PROF_ID)
             .build();
 
     PiActionGroup sameAsPiActionGroup1 = PiActionGroup.builder()
             .addMember(piActionGroupMember)
             .withId(piActionGroupId)
             .withType(PiActionGroup.Type.SELECT)
+            .withActionProfileId(ACTION_PROF_ID)
             .build();
 
     PiActionGroupId piActionGroupId2 = PiActionGroupId.of(20);
@@ -64,6 +67,7 @@ public class PiActionGroupTest {
             .addMember(piActionGroupMember)
             .withId(piActionGroupId2)
             .withType(PiActionGroup.Type.SELECT)
+            .withActionProfileId(ACTION_PROF_ID)
             .build();
 
     /**

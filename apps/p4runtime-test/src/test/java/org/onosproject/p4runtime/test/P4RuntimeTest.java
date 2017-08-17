@@ -29,9 +29,14 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMember;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
@@ -43,15 +48,19 @@ import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.ctl.P4RuntimeClientImpl;
 import org.onosproject.p4runtime.ctl.P4RuntimeControllerImpl;
+import org.slf4j.Logger;
 import p4.P4RuntimeGrpc;
 import p4.P4RuntimeOuterClass;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.onlab.util.ImmutableByteSequence.*;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
+import static org.slf4j.LoggerFactory.getLogger;
 import static p4.P4RuntimeOuterClass.ActionProfileGroup.Type.SELECT;
 import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
 
@@ -59,6 +68,7 @@ import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
  * Class used for quick testing of P4Runtime with real devices. To be removed before release.
  */
 public class P4RuntimeTest {
+    private static final Logger log = getLogger(P4RuntimeTest.class);
 
     private static final String GRPC_SERVER_ADDR = "192.168.56.102";
     private static final int GRPC_SERVER_PORT = 55044;
@@ -228,6 +238,56 @@ public class P4RuntimeTest {
         createClient();
         testAddEntry(bmv2DefaultPipeconf);
         testDumpTable(TABLE_0, bmv2DefaultPipeconf);
+    }
+
+    @Test
+    @Ignore
+    public void testBmv2ActionProfile() throws Exception {
+        createClient();
+        setPipelineConfig(bmv2DefaultPipeconf, BMV2_JSON);
+        PiActionProfileId actionProfileId = PiActionProfileId.of("ecmp_selector");
+        PiActionGroupId groupId = PiActionGroupId.of(1);
+
+        Collection<PiActionGroupMember> members = Lists.newArrayList();
+
+        for (int port = 1; port <= 4; port++) {
+            PiAction memberAction = PiAction.builder()
+                    .withId(PiActionId.of(SET_EGRESS_PORT))
+                    .withParameter(new PiActionParam(PiActionParamId.of(PORT),
+                                                     ImmutableByteSequence.copyFrom((short) port)))
+                    .build();
+            PiActionGroupMemberId memberId = PiActionGroupMemberId.of(port);
+            PiActionGroupMember member = PiActionGroupMember.builder()
+                    .withId(memberId)
+                    .withAction(memberAction)
+                    .withWeight(port)
+                    .build();
+            members.add(member);
+        }
+        PiActionGroup actionGroup = PiActionGroup.builder()
+                .withType(PiActionGroup.Type.SELECT)
+                .withActionProfileId(actionProfileId)
+                .withId(groupId)
+                .addMembers(members)
+                .build();
+        CompletableFuture<Boolean> success = client.writeActionGroupMembers(actionGroup, members,
+                                                                            P4RuntimeClient.WriteOperationType.INSERT,
+                                                                            bmv2DefaultPipeconf);
+        assert (success.get());
+
+        success = client.writeActionGroup(actionGroup, P4RuntimeClient.WriteOperationType.INSERT, bmv2DefaultPipeconf);
+        assert (success.get());
+
+        CompletableFuture<Collection<PiActionGroup>> piGroups = client.dumpGroups(actionProfileId, bmv2DefaultPipeconf);
+
+        log.info("Number of groups: {}", piGroups.get().size());
+        piGroups.get().forEach(piGroup -> {
+            log.info("Group {}", piGroup);
+            log.info("------");
+            piGroup.members().forEach(piMem -> {
+                log.info("    {}", piMem);
+            });
+        });
     }
 
     @Test

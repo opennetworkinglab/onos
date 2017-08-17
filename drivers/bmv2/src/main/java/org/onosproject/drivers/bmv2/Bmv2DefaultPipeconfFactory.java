@@ -55,7 +55,6 @@ public final class Bmv2DefaultPipeconfFactory {
 
         final URL jsonUrl = Bmv2DefaultPipeconfFactory.class.getResource(JSON_PATH);
         final URL p4InfoUrl = Bmv2DefaultPipeconfFactory.class.getResource(P4INFO_PATH);
-
         return DefaultPiPipeconf.builder()
                 .withId(new PiPipeconfId(PIPECONF_ID))
                 .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
