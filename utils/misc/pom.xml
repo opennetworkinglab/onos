@@ -70,11 +70,6 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
-        <!-- TODO: do we still need this here? -->
-        <dependency>
-            <groupId>com.eclipsesource.minimal-json</groupId>
-            <artifactId>minimal-json</artifactId>
-        </dependency>
         <dependency>
           <groupId>com.esotericsoftware</groupId>
           <artifactId>kryo</artifactId>
