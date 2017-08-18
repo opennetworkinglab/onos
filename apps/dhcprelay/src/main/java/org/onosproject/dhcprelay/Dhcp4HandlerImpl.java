@@ -506,7 +506,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
                 log.warn("Can't find record for host id {}, discard packet", hostId);
                 return null;
             }
-
+        } else {
+            etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
         }
 
         // we leave the srcMac from the original packet
