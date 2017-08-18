@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -36,6 +38,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Generates a BUCK file from a JSON file containing third-party library
@@ -103,7 +107,7 @@ public class BuckLibGenerator {
         System.out.flush();
         BuckArtifact buckArtifact;
         if (uri.startsWith("http")) {
-            String sha = getHttpSha(uri);
+            String sha = getHttpSha(name, uri);
             buckArtifact = BuckArtifact.getArtifact(name, uri, sha);
         } else if (uri.startsWith("mvn")) {
             uri = uri.replaceFirst("mvn:", "");
@@ -198,16 +202,49 @@ public class BuckLibGenerator {
         }
     }
 
-    String getHttpSha(String url) {
-        //TODO look in buck-out/gen first
+    String getHttpSha(String name, String urlStr) {
         //FIXME need http download cache
         try {
-            URLConnection connection = new URL(url).openConnection();
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] buffer = new byte[8192];
+
+            URL url = new URL(urlStr);
+            String fname = new File(url.getPath()).getName();
+
+            // naively look for cache in buck-out/gen/
+            // only works for `buck fetch`-ed artifacts
+            // (=doesn't work for bndexe unless manually fetched)
+            Optional<File> cache = Optional.ofNullable(System.getenv("ONOS_ROOT"))
+                .map(Paths::get)
+                .map(Stream::of)
+                .orElseGet(Stream::empty)
+                // look for remote_file, remote_jar path
+                .flatMap(root -> Stream.of(root.resolve("buck-out/gen/lib/" + name + "/" + fname),
+                                           root.resolve("buck-out/gen/lib/" + fname + "/" + fname)))
+                .map(Path::toFile)
+                .filter(File::canRead)
+                .findAny();
+
+            if (cache.isPresent()) {
+                try (FileInputStream stream = new FileInputStream(cache.get())) {
+                    int read;
+                    while ((read = stream.read(buffer)) >= 0) {
+                        md.update(buffer, 0, read);
+                    }
+                    StringBuilder result = new StringBuilder();
+                    byte[] digest = md.digest();
+                    for (byte b : digest) {
+                        result.append(String.format("%02x", b));
+                    }
+                    return result.toString();
+                } catch (IOException e) {
+                    // fall back to regular download
+                }
+            }
+            URLConnection connection = url.openConnection();
             connection.connect();
             InputStream stream = connection.getInputStream();
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
 
-            byte[] buffer = new byte[8192];
             int read;
             while ((read = stream.read(buffer)) >= 0) {
                 md.update(buffer, 0, read);
