@@ -844,8 +844,7 @@
                     <configLocation>onos/checkstyle-mvn.xml</configLocation>
                     <suppressionsLocation>onos/suppressions.xml
                     </suppressionsLocation>
-                    <headerLocation>onos/onos-java.header
-                    </headerLocation>
+                    <headerLocation>onos/onos-java.header</headerLocation>
                     <failsOnError>false</failsOnError>
                     <logViolationsToConsole>true</logViolationsToConsole>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
