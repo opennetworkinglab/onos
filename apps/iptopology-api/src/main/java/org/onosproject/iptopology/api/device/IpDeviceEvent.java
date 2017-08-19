@@ -15,7 +15,7 @@
  */
 package org.onosproject.iptopology.api.device;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.iptopology.api.DeviceIntf;
 import org.onosproject.iptopology.api.DevicePrefix;
@@ -173,7 +173,7 @@ public class IpDeviceEvent extends AbstractEvent<IpDeviceEvent.Type, IpDevice> {
             return super.toString();
         }
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("interface", devInterface)

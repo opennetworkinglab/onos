@@ -19,6 +19,7 @@ import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,7 +37,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -97,7 +97,7 @@ public class SimpleMastershipStore
 
             clusterService = new ClusterService() {
 
-                private final DateTime creationTime = DateTime.now();
+                private final Instant creationTime = Instant.now();
 
                 @Override
                 public ControllerNode getLocalNode() {
@@ -135,7 +135,7 @@ public class SimpleMastershipStore
                 }
 
                 @Override
-                public DateTime getLastUpdated(NodeId nodeId) {
+                public Instant getLastUpdatedInstant(NodeId nodeId) {
                     return creationTime;
                 }
 

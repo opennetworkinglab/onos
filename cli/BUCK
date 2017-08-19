@@ -7,7 +7,6 @@ COMPILE_DEPS = [
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',
     '//core/common:onos-core-common',
-    '//lib:joda-time',
 ]
 
 osgi_jar (

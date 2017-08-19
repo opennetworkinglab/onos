@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.config;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 
 import java.util.Optional;
@@ -141,7 +141,7 @@ public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, O
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("config", config())
                 .add("prevConfig", prevConfig())

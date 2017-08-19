@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ConfigProperty;
@@ -50,6 +49,7 @@ import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -106,7 +106,7 @@ public class DistributedClusterStore
     private final Map<NodeId, ControllerNode> allNodes = Maps.newConcurrentMap();
     private final Map<NodeId, State> nodeStates = Maps.newConcurrentMap();
     private final Map<NodeId, Version> nodeVersions = Maps.newConcurrentMap();
-    private final Map<NodeId, DateTime> nodeLastUpdatedTimes = Maps.newConcurrentMap();
+    private final Map<NodeId, Instant> nodeLastUpdatedTimes = Maps.newConcurrentMap();
 
     private ScheduledExecutorService heartBeatSender = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("onos/cluster/membership", "heartbeat-sender", log));
@@ -273,7 +273,7 @@ public class DistributedClusterStore
             if (newVersion != null) {
                 nodeVersions.put(nodeId, newVersion);
             }
-            nodeLastUpdatedTimes.put(nodeId, DateTime.now());
+            nodeLastUpdatedTimes.put(nodeId, Instant.now());
             notifyChange(nodeId, currentState, newState, currentVersion, newVersion);
         }
     }
@@ -357,7 +357,7 @@ public class DistributedClusterStore
     }
 
     @Override
-    public DateTime getLastUpdated(NodeId nodeId) {
+    public Instant getLastUpdatedInstant(NodeId nodeId) {
         return nodeLastUpdatedTimes.get(nodeId);
     }
 

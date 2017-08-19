@@ -17,7 +17,6 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//core/store/serializers:onos-core-serializers',
     ':onos-tools-gui',
-    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

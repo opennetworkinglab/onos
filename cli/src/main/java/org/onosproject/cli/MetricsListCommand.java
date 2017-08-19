@@ -31,8 +31,8 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.joda.time.LocalDateTime;
 import org.onlab.metrics.MetricsService;
+import org.onlab.util.Tools;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -108,7 +108,7 @@ public class MetricsListCommand extends AbstractShellCommand {
             Gauge gauge = (Gauge) metric;
             final Object value = gauge.getValue();
             if (name.endsWith("EpochMs") && value instanceof Long) {
-                print("          value = %s (%s)", value, new LocalDateTime(value));
+                print("          value = %s (%s)", value, Tools.defaultOffsetDataTime((Long) value));
             } else {
                 print("          value = %s", value);
             }
@@ -233,4 +233,6 @@ public class MetricsListCommand extends AbstractShellCommand {
     private double nanoToMs(double nano) {
         return nano / 1_000_000D;
     }
+
+
 }

@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import org.joda.time.DateTime;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
@@ -41,6 +40,7 @@ import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,7 +79,7 @@ public class DefaultRoutingHandler {
     private volatile Status populationStatus;
     private ScheduledExecutorService executorService
         = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
-    private DateTime lastRoutingChange;
+    private Instant lastRoutingChange;
 
     /**
      * Represents the default routing population status.
@@ -150,8 +150,8 @@ public class DefaultRoutingHandler {
     * @return true if stable
     */
    public boolean isRoutingStable() {
-       long last = (long) (lastRoutingChange.getMillis() / 1000.0);
-       long now = (long) (DateTime.now().getMillis() / 1000.0);
+       long last = (long) (lastRoutingChange.toEpochMilli() / 1000.0);
+       long now = (long) (Instant.now().toEpochMilli() / 1000.0);
        log.trace("Routing stable since {}s", now - last);
        return (now - last) > STABLITY_THRESHOLD;
    }
@@ -173,7 +173,7 @@ public class DefaultRoutingHandler {
      * startup or after a configuration event.
      */
     public void populateAllRoutingRules() {
-        lastRoutingChange = DateTime.now();
+        lastRoutingChange = Instant.now();
         statusLock.lock();
         try {
             if (populationStatus == Status.STARTED) {
@@ -249,7 +249,7 @@ public class DefaultRoutingHandler {
             return;
         }
 
-        lastRoutingChange = DateTime.now();
+        lastRoutingChange = Instant.now();
         statusLock.lock();
         try {
            if (populationStatus == Status.STARTED) {
@@ -374,7 +374,7 @@ public class DefaultRoutingHandler {
             log.warn("Only one event can be handled for link status change .. aborting");
             return;
         }
-        lastRoutingChange = DateTime.now();
+        lastRoutingChange = Instant.now();
         executorService.schedule(new UpdateMaps(), UPDATE_INTERVAL,
                                  TimeUnit.SECONDS);
         statusLock.lock();

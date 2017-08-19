@@ -14,7 +14,6 @@ COMPILE_DEPS = [
     '//lib:netty-resolver',
     '//lib:commons-math3',
     '//incubator/api:onos-incubator-api',
-    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

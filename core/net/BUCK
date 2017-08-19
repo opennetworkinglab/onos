@@ -9,7 +9,6 @@ COMPILE_DEPS = [
     '//incubator/net:onos-incubator-net',
     '//incubator/store:onos-incubator-store',
     '//core/store/serializers:onos-core-serializers',
-    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

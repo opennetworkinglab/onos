@@ -15,9 +15,9 @@
  */
 package org.onosproject.cluster;
 
+import java.time.Instant;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.ImmutableSet;
@@ -56,7 +56,7 @@ public class ClusterServiceAdapter implements ClusterService {
     }
 
     @Override
-    public DateTime getLastUpdated(NodeId nodeId) {
+    public Instant getLastUpdatedInstant(NodeId nodeId) {
         return null;
     }
 

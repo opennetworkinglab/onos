@@ -4,7 +4,6 @@ SRC_DEPS = [
     '//lib:METRICS',
     '//incubator/api:onos-incubator-api',
     '//core/api:onos-api',
-    '//lib:joda-time',
 ]
 
 TEST_DEPS = [

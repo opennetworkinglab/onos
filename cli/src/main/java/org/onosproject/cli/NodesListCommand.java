@@ -20,13 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.joda.time.DateTime;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Version;
 import org.onosproject.utils.Comparators;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,10 +51,10 @@ public class NodesListCommand extends AbstractShellCommand {
         } else {
             ControllerNode self = service.getLocalNode();
             for (ControllerNode node : nodes) {
-                DateTime lastUpdated = service.getLastUpdated(node.id());
+                Instant lastUpdated = service.getLastUpdatedInstant(node.id());
                 String timeAgo = "Never";
                 if (lastUpdated != null) {
-                    timeAgo = Tools.timeAgo(lastUpdated.getMillis());
+                    timeAgo = Tools.timeAgo(lastUpdated.getEpochSecond());
                 }
                 Version version = service.getVersion(node.id());
                 print(FMT, node.id(), node.ip(), node.tcpPort(),

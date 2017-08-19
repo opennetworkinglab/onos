@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 
-import org.joda.time.DateTime;
+import org.onlab.util.Tools;
 import org.onosproject.store.Timestamp;
 
 import com.google.common.collect.ComparisonChain;
@@ -69,7 +69,7 @@ public class WallClockTimestamp implements Timestamp {
 
     @Override
     public String toString() {
-        return new DateTime(unixTimestamp).toString();
+        return Tools.defaultOffsetDataTime(unixTimestamp).toString();
     }
 
     /**

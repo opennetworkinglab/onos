@@ -3,7 +3,6 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
-    '//lib:joda-time',
 ]
 
 osgi_jar_with_tests (

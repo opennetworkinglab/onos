@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoadSnapshot;
@@ -36,6 +35,9 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.chart.ChartModel;
 import org.onosproject.ui.chart.ChartRequestHandler;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -63,7 +65,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
 
     private static final int MILLI_CONV_UNIT = 1000;
 
-    private static final String TIME_FORMAT = "HH:mm";
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ISO_LOCAL_TIME;
 
     private long timestamp = 0L;
 
@@ -98,7 +100,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                 DeviceId deviceId = DeviceId.deviceId(uri);
                 if (cpms.availableResourcesSync(localNodeId, CONTROL_MESSAGE).contains(deviceId.toString())) {
                     Map<ControlMetricType, Long[]> data = generateMatrix(cpms, cs, deviceId);
-                    LocalDateTime ldt = new LocalDateTime(timestamp * MILLI_CONV_UNIT);
+                    LocalDateTime ldt = LocalDateTime.from(Instant.ofEpochMilli(timestamp * MILLI_CONV_UNIT));
 
                     populateMetrics(cm, data, ldt, NUM_OF_DATA_POINTS);
 
@@ -167,6 +169,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
             }
         }
 
+        // FIXME using local time in timestamps likely to be sign of problem
         private void populateMetrics(ChartModel cm,
                                      Map<ControlMetricType, Long[]> data,
                                      LocalDateTime time, int numOfDp) {
@@ -176,7 +179,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                     local.put(StringUtils.lowerCase(cmt.name()), data.get(cmt)[i]);
                 }
 
-                String calculated = time.minusMinutes(numOfDp - i).toString(TIME_FORMAT);
+                String calculated = time.minusMinutes(numOfDp - i).format(TIME_FORMAT);
 
                 local.put(LABEL, calculated);
                 populateMetric(cm.addDataPoint(calculated), local);

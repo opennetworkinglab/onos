@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknetworking.api;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
@@ -178,7 +178,7 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
             return super.toString();
         }
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("network", subject())
                 .add("port", port)

@@ -16,7 +16,7 @@
 
 package org.onosproject.routeservice;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 
 import java.util.Collection;
@@ -210,7 +210,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("prevSubject", prevSubject)

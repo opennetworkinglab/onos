@@ -15,12 +15,10 @@
  */
 package org.onosproject.influxdbmetrics;
 
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Default implementation of influx metric.
@@ -28,9 +26,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class DefaultInfluxMetric implements InfluxMetric {
 
     private double oneMinRate;
-    private DateTime time;
+    private Instant time;
 
-    private DefaultInfluxMetric(double oneMinRate, DateTime time) {
+    private DefaultInfluxMetric(double oneMinRate, Instant time) {
         this.oneMinRate = oneMinRate;
         this.time = time;
     }
@@ -41,7 +39,7 @@ public final class DefaultInfluxMetric implements InfluxMetric {
     }
 
     @Override
-    public DateTime time() {
+    public Instant time() {
         return time;
     }
 
@@ -75,10 +73,8 @@ public final class DefaultInfluxMetric implements InfluxMetric {
             return new DefaultInfluxMetric(oneMinRate, parseTime(timestamp));
         }
 
-        private DateTime parseTime(String time) {
-            String reformatTime = StringUtils.replace(StringUtils.replace(time, "T", " "), "Z", "");
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-            return formatter.parseDateTime(reformatTime);
+        private Instant parseTime(String time) {
+            return DateTimeFormatter.ISO_DATE_TIME.parse(time, Instant::from);
         }
     }
 }

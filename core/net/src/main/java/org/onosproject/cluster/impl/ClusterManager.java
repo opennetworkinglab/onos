@@ -15,6 +15,7 @@
  */
 package org.onosproject.cluster.impl;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +32,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.karaf.system.SystemService;
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterAdminService;
@@ -147,9 +147,9 @@ public class ClusterManager
     }
 
     @Override
-    public DateTime getLastUpdated(NodeId nodeId) {
+    public Instant getLastUpdatedInstant(NodeId nodeId) {
         checkPermission(CLUSTER_READ);
-        return store.getLastUpdated(nodeId);
+        return store.getLastUpdatedInstant(nodeId);
     }
 
     @Override

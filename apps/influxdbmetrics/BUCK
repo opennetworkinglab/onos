@@ -10,7 +10,6 @@ COMPILE_DEPS = [
     '//lib:okio',
     '//lib:gson',
     '//cli:onos-cli',
-    '//lib:joda-time',
 ]
 
 EXCLUDED_BUNDLES = [

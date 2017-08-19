@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.device;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Device;
 import org.onosproject.net.Port;
@@ -132,7 +132,7 @@ public class DeviceEvent extends AbstractEvent<DeviceEvent.Type, Device> {
             return super.toString();
         }
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("port", port)

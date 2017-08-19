@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknetworking.api;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -228,7 +228,7 @@ public class OpenstackRouterEvent extends AbstractEvent<OpenstackRouterEvent.Typ
             return super.toString();
         }
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("router", subject())
                 .add("externalGateway", exGateway)

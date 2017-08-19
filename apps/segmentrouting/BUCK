@@ -9,7 +9,6 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//apps/route-service/api:onos-apps-route-service-api',
-    '//lib:joda-time',
 ]
 
 BUNDLES = [

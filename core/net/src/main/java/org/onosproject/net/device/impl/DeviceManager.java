@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.joda.time.DateTime;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
@@ -74,6 +73,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -180,9 +180,9 @@ public class DeviceManager
      */
     private class LocalStatus {
         boolean connected;
-        DateTime dateTime;
+        Instant dateTime;
 
-        public LocalStatus(boolean b, DateTime now) {
+        public LocalStatus(boolean b, Instant now) {
             connected = b;
             dateTime = now;
         }
@@ -333,7 +333,7 @@ public class DeviceManager
         if (ls == null) {
             return "No Record";
         }
-        String timeAgo = Tools.timeAgo(ls.dateTime.getMillis());
+        String timeAgo = Tools.timeAgo(ls.dateTime.toEpochMilli());
         return (ls.connected) ? "connected " + timeAgo : "disconnected " + timeAgo;
     }
 
@@ -508,7 +508,7 @@ public class DeviceManager
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
 
-            deviceLocalStatus.put(deviceId, new LocalStatus(true, DateTime.now()));
+            deviceLocalStatus.put(deviceId, new LocalStatus(true, Instant.now()));
 
             BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
             if (!isAllowed(cfg)) {
@@ -564,7 +564,7 @@ public class DeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
-            deviceLocalStatus.put(deviceId, new LocalStatus(false, DateTime.now()));
+            deviceLocalStatus.put(deviceId, new LocalStatus(false, Instant.now()));
             log.info("Device {} disconnected from this node", deviceId);
 
             List<PortDescription> descs = store.getPortDescriptions(provider().id(), deviceId)

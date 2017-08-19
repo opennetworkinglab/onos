@@ -3,7 +3,6 @@ COMPILE_DEPS = [
     '//lib:JACKSON',
     '//lib:METRICS',
     '//lib:KRYO',
-    '//lib:joda-time',
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
     '//lib:rrd4j',

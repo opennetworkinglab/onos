@@ -18,7 +18,6 @@ package org.onosproject.faultmanagement.alarms.gui;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.joda.time.DateTime;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.ui.RequestHandler;
@@ -29,6 +28,7 @@ import org.onosproject.ui.table.cell.TimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
 
@@ -126,7 +126,7 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
                     .cell(DEVICE_ID_STR, alarm.deviceId())
                     .cell(DESCRIPTION, alarm.description())
                     .cell(SOURCE, alarm.source())
-                    .cell(TIME_RAISED, new DateTime(alarm.timeRaised()))
+                    .cell(TIME_RAISED, Instant.ofEpochMilli(alarm.timeRaised()))
                     .cell(SEVERITY, alarm.severity());
         }
     }
@@ -177,6 +177,6 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
         if (msSinceStartOfEpoch == null) {
             return "-";
         }
-        return new TimeFormatter().format(new DateTime(msSinceStartOfEpoch));
+        return new TimeFormatter().format(Instant.ofEpochMilli(msSinceStartOfEpoch));
     }
 }

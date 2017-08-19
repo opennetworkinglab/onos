@@ -16,14 +16,15 @@
 
 package org.onosproject.ui.table.cell;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.Test;
 import org.onosproject.ui.table.CellFormatter;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Locale;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.isOneOf;
+import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for {@link TimeFormatter}.
@@ -31,9 +32,9 @@ import static org.junit.Assert.assertTrue;
 public class TimeFormatterTest {
 
     private static final Locale LOCALE = Locale.ENGLISH;
-    private static final DateTimeZone ZONE = DateTimeZone.UTC;
+    private static final ZoneOffset ZONE = ZoneOffset.UTC;
 
-    private static final DateTime TIME = new DateTime(2015, 5, 4, 15, 30, ZONE);
+    private static final OffsetDateTime TIME = OffsetDateTime.of(2015, 5, 4, 15, 30, 0, 0, ZONE);
     private static final String EXP_ZONE_NAME = "3:30:00 PM UTC";
     private static final String EXP_ZONE_OFFSET = "3:30:00 PM +00:00";
 
@@ -45,7 +46,6 @@ public class TimeFormatterTest {
 
     @Test
     public void basic() {
-        assertTrue("wrong format", (EXP_ZONE_NAME.equals(fmt.format(TIME)) ||
-                   EXP_ZONE_OFFSET.equals(fmt.format(TIME))));
+        assertThat(fmt.format(TIME), isOneOf(EXP_ZONE_OFFSET, EXP_ZONE_NAME));
     }
 }

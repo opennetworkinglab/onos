@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
@@ -41,6 +40,7 @@ import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -64,7 +64,7 @@ public class SimpleClusterStore
 
     private ControllerNode instance;
 
-    private final DateTime creationTime = DateTime.now();
+    private final Instant creationTime = Instant.now();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
@@ -123,7 +123,7 @@ public class SimpleClusterStore
     }
 
     @Override
-    public DateTime getLastUpdated(NodeId nodeId) {
+    public Instant getLastUpdatedInstant(NodeId nodeId) {
         return creationTime;
     }
 

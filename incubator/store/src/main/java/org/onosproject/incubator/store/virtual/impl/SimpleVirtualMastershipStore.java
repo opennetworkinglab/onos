@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -43,6 +42,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.slf4j.Logger;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -454,7 +454,7 @@ public class SimpleVirtualMastershipStore
 
         ClusterService faceClusterService = new ClusterService() {
 
-            private final DateTime creationTime = DateTime.now();
+            private final Instant creationTime = Instant.now();
 
             @Override
             public ControllerNode getLocalNode() {
@@ -492,7 +492,7 @@ public class SimpleVirtualMastershipStore
             }
 
             @Override
-            public DateTime getLastUpdated(NodeId nodeId) {
+            public Instant getLastUpdatedInstant(NodeId nodeId) {
                 return creationTime;
             }
 

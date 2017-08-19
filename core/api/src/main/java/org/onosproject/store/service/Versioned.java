@@ -18,8 +18,8 @@ package org.onosproject.store.service;
 
 import java.util.function.Function;
 
-import org.joda.time.DateTime;
 import org.onlab.util.ByteArraySizeHashPrinter;
+import org.onlab.util.Tools;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -143,7 +143,7 @@ public class Versioned<V> {
         return MoreObjects.toStringHelper(this)
             .add("value", value instanceof byte[] ? new ByteArraySizeHashPrinter((byte[]) value) : value)
             .add("version", version)
-            .add("creationTime", new DateTime(creationTime))
+            .add("creationTime", Tools.defaultOffsetDataTime(creationTime))
             .toString();
     }
 }

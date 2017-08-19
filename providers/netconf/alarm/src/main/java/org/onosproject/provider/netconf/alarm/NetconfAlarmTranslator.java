@@ -38,10 +38,11 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.joda.time.format.ISODateTimeFormat;
 import org.xml.sax.SAXException;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -96,7 +97,7 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
 
     private long parseDate(String timeStr)
             throws UnsupportedOperationException, IllegalArgumentException {
-        return ISODateTimeFormat.dateTime().parseMillis(timeStr);
+        return DateTimeFormatter.ISO_DATE_TIME.parse(timeStr, Instant::from).getEpochSecond();
     }
 
     private static String nodeToString(Node rootNode) throws TransformerException {

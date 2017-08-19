@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.event.Event;
@@ -187,7 +187,7 @@ public class EventsCommand
             if (event.type().toString().startsWith("PORT")) {
                 // Port event
                 print("%s %s\t%s/%s [%s]",
-                      new LocalDateTime(event.time()),
+                      Tools.defaultOffsetDataTime(event.time()),
                       event.type(),
                       deviceEvent.subject().id(), deviceEvent.port().number(),
                       deviceEvent.port()
@@ -195,7 +195,7 @@ public class EventsCommand
             } else {
                 // Device event
                 print("%s %s\t%s [%s]",
-                      new LocalDateTime(event.time()),
+                      Tools.defaultOffsetDataTime(event.time()),
                       event.type(),
                       deviceEvent.subject().id(),
                       deviceEvent.subject()
@@ -204,7 +204,7 @@ public class EventsCommand
 
         } else if (event instanceof MastershipEvent) {
             print("%s %s\t%s [%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   event.subject(),
                   ((MastershipEvent) event).roleInfo());
@@ -213,7 +213,7 @@ public class EventsCommand
             LinkEvent linkEvent = (LinkEvent) event;
             Link link = linkEvent.subject();
             print("%s %s\t%s/%s-%s/%s [%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   link.src().deviceId(), link.src().port(), link.dst().deviceId(), link.dst().port(),
                   link);
@@ -221,7 +221,7 @@ public class EventsCommand
         } else if (event instanceof HostEvent) {
             HostEvent hostEvent = (HostEvent) event;
             print("%s %s\t%s [%s->%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   hostEvent.subject().id(),
                   hostEvent.prevSubject(), hostEvent.subject());
@@ -236,14 +236,14 @@ public class EventsCommand
                                            topo.linkCount(),
                                            topo.clusterCount());
             print("%s %s%s [%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   summary,
                   reasons.stream().map(e -> e.type()).collect(toList()));
 
         } else if (event instanceof ClusterEvent) {
             print("%s %s\t%s [%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   ((ClusterEvent) event).subject().id(),
                   event.subject());
@@ -251,7 +251,7 @@ public class EventsCommand
         } else {
             // Unknown Event?
             print("%s %s\t%s [%s]",
-                  new LocalDateTime(event.time()),
+                  Tools.defaultOffsetDataTime(event.time()),
                   event.type(),
                   event.subject(),
                   event);

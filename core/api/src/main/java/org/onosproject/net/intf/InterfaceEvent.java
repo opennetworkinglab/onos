@@ -16,7 +16,7 @@
 
 package org.onosproject.net.intf;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -106,7 +106,7 @@ public class InterfaceEvent extends AbstractEvent<InterfaceEvent.Type, Interface
             return super.toString();
         }
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("prevSubject", prevSubject)

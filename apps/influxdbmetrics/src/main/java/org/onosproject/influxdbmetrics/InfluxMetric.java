@@ -15,7 +15,7 @@
  */
 package org.onosproject.influxdbmetrics;
 
-import org.joda.time.DateTime;
+import java.time.Instant;
 
 /**
  * Metric that represents all values queried from influx database.
@@ -35,7 +35,7 @@ public interface InfluxMetric {
      *
      * @return collected timestamp of the given metric
      */
-    DateTime time();
+    Instant time();
 
     /**
      * A builder of InfluxMetric.

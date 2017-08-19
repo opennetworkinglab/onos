@@ -15,7 +15,7 @@
  */
 package org.onosproject.event;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -70,7 +70,7 @@ public class AbstractEvent<T extends Enum, S> implements Event<T, S> {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time))
+                .add("time", Tools.defaultOffsetDataTime(time))
                 .add("type", type())
                 .add("subject", subject())
                 .toString();

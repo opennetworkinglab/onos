@@ -32,6 +32,9 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -676,7 +679,7 @@ public abstract class Tools {
             return future;
         }
 
-        BlockingAwareFuture<T> newFuture = new BlockingAwareFuture<T>();
+        BlockingAwareFuture<T> newFuture = new BlockingAwareFuture<>();
         future.whenComplete((result, error) -> {
             Runnable completer = () -> {
                 if (future.isCompletedExceptionally()) {
@@ -825,6 +828,18 @@ public abstract class Tools {
             Files.copy(file, dst.resolve(src.relativize(file)), copyOption);
             return FileVisitResult.CONTINUE;
         }
+    }
+
+    /**
+     * Creates OffsetDateTime instance from epoch milliseconds,
+     * using system default time zone.
+     *
+     * @param epochMillis to convert
+     * @return OffsetDateTime
+     */
+    public static OffsetDateTime defaultOffsetDataTime(long epochMillis) {
+        return OffsetDateTime.ofInstant(Instant.ofEpochMilli(epochMillis),
+                                        ZoneId.systemDefault());
     }
 
 }

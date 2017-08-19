@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.host;
 
-import org.joda.time.LocalDateTime;
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Host;
 
@@ -104,7 +104,7 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("time", new LocalDateTime(time()))
+                .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
                 .add("prevSubject", prevSubject())
