@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.resources.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
@@ -566,75 +565,5 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
             }
         }
         return true;
-    }
-
-    /**
-     * Inner entry type for testing.
-     * @param <K>
-     * @param <V>
-     */
-    private class InnerEntry<K, V> implements Map.Entry<K, V> {
-        private K key;
-        private V value;
-        public InnerEntry(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public K getKey() {
-            return key;
-        }
-
-        @Override
-        public V getValue() {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value) {
-            V temp = this.value;
-            this.value = value;
-            return temp;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof InnerEntry)) {
-                return false;
-            }
-            InnerEntry other = (InnerEntry) o;
-            boolean keysEqual = false;
-            boolean valuesEqual = false;
-            if (this.key instanceof byte[]) {
-                if (other.getKey() instanceof byte[]) {
-                    keysEqual =  Arrays.equals((byte[]) this.key,
-                                               (byte[]) other.getKey());
-                } else {
-                    return false;
-                }
-            } else {
-                keysEqual = this.getKey().equals(other.getKey());
-            }
-
-            if (keysEqual) {
-                if (this.value instanceof byte[]) {
-                    if (other.getValue() instanceof byte[]) {
-                        return Arrays.equals((byte[]) this.value,
-                                             (byte[]) other.getValue());
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return this.key.equals(other.getKey());
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return 0;
-        }
     }
 }
