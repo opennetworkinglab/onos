@@ -176,22 +176,21 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
         @Override
         public void run() {
             stopped = false;
-            log.info("Dispatch loop initiated");
+            log.info("Dispatch loop({}) initiated", name);
             while (!stopped) {
                 try {
                     // Fetch the next event and if it is the kill-pill, bail
                     Event event = eventsQueue.take();
-                    if (event == KILL_PILL) {
-                        break;
+                    if (event != KILL_PILL) {
+                        process(event);
                     }
-                    process(event);
                 } catch (InterruptedException e) {
                     log.warn("Dispatch loop interrupted");
                 } catch (Exception | Error e) {
                     log.warn("Error encountered while dispatching event:", e);
                 }
             }
-            log.info("Dispatch loop terminated");
+            log.info("Dispatch loop({}) terminated", name);
         }
 
         // Locate the sink for the event class and use it to process the event
@@ -211,7 +210,6 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
         void stop() {
             stopped = true;
-            stopWatchdog();
             add(KILL_PILL);
         }
 
