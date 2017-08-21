@@ -41,7 +41,7 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -107,7 +107,7 @@ public class ConsistentVirtualDeviceMastershipStore
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final int WAIT_BEFORE_MASTERSHIP_HANDOFF_MILLIS = 3000;
 
-    public static final StoreSerializer SERIALIZER = StoreSerializer.using(
+    public static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
                     .register(MastershipRole.class)

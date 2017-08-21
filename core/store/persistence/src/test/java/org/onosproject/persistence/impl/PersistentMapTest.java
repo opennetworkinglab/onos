@@ -74,6 +74,11 @@ public class PersistentMapTest extends MapDBTest {
 
                 return (T) Integer.valueOf(num);
             }
+
+            @Override
+            public <T> T copy(T object) {
+                return decode(encode(object));
+            }
         }, fakeDB, "map");
     }
 

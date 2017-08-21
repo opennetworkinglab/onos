@@ -34,11 +34,11 @@ import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.DistributedPrimitive;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +88,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final ClusterService clusterService;
     private final ClusterCommunicationService clusterCommunicator;
-    private final StoreSerializer serializer;
+    private final Serializer serializer;
     private final NodeId localNodeId;
     private final PersistenceService persistenceService;
 
@@ -287,8 +287,8 @@ public class EventuallyConsistentMapImpl<K, V>
         this.bootstrap();
     }
 
-    private StoreSerializer createSerializer(KryoNamespace ns) {
-        return StoreSerializer.using(KryoNamespace.newBuilder()
+    private Serializer createSerializer(KryoNamespace ns) {
+        return Serializer.using(KryoNamespace.newBuilder()
                          .register(ns)
                          // not so robust way to avoid collision with other
                          // user supplied registrations

@@ -44,7 +44,6 @@ import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
@@ -103,7 +102,7 @@ public class DistributedVirtualPacketStore
     private static final MessageSubject PACKET_OUT_SUBJECT =
             new MessageSubject("virtual-packet-out");
 
-    private static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespaces.API);
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
     private ExecutorService messageHandlingExecutor;
 

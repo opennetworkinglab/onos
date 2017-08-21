@@ -42,7 +42,7 @@ import org.onosproject.net.statistic.FlowStatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -97,7 +97,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     public static final MessageSubject GET_CURRENT = new MessageSubject("peer-return-current");
     public static final MessageSubject GET_PREVIOUS = new MessageSubject("peer-return-previous");
 
-    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(KryoNamespaces.API);
+    protected static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
     private NodeId local;
     private ExecutorService messageHandlingExecutor;

@@ -752,6 +752,11 @@ public class DistributedFlowRuleStore
                             public <T> T decode(byte[] bytes) {
                                 return serializer.decode(bytes);
                             }
+
+                            @Override
+                            public <T> T copy(T object) {
+                                return serializer.copy(object);
+                            }
                         })
                         .build());
             } else {
@@ -774,6 +779,11 @@ public class DistributedFlowRuleStore
                             @Override
                             public <T> T decode(byte[] bytes) {
                                 return serializer.decode(bytes);
+                            }
+
+                            @Override
+                            public <T> T copy(T object) {
+                                return serializer.copy(object);
                             }
                         })
                         .build());
