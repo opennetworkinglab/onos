@@ -11,11 +11,13 @@ empty.json: empty.p4
 	empty.p4
 
 ecmp.json: ecmp.p4
-	p4c-bmv2 --json p4c-out/ecmp.json \
+	p4c-bm2-ss --p4v 14 -o p4c-out/ecmp.json \
+	--p4runtime-file p4c-out/ecmp.p4info --p4runtime-format text \
 	ecmp.p4
 
 wcmp.json: wcmp.p4
-	p4c-bmv2 --json p4c-out/wcmp.json \
+	p4c-bm2-ss --p4v 14 -o p4c-out/wcmp.json \
+	--p4runtime-file p4c-out/ecmp.p4info --p4runtime-format text \
 	wcmp.p4
 
 clean:

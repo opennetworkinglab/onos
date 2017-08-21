@@ -8,6 +8,7 @@ header_type ecmp_metadata_t {
     fields {
         groupId : 16;
         selector : 16;
+        groupSize : 32; // Not used. Workaround to avoid p4c complaining about inferring type to groupSize.
     }
 }
 
@@ -27,12 +28,13 @@ field_list_calculation ecmp_hash {
     input {
         ecmp_hash_fields;
     }
-    algorithm : bmv2_hash;
-    output_width : 64;
+    algorithm : crc32;
+    output_width : 32;
 }
 
 action ecmp_group(groupId, groupSize) {
     modify_field(ecmp_metadata.groupId, groupId);
+    modify_field(ecmp_metadata.groupSize, groupSize);
     modify_field_with_hash_based_offset(ecmp_metadata.selector, 0, ecmp_hash, groupSize);
 }
 
@@ -47,7 +49,7 @@ table table0 {
         set_egress_port;
         ecmp_group;
         send_to_cpu;
-        _drop;
+        drop;
     }
     support_timeout: true;
 }

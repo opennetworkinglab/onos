@@ -4,7 +4,7 @@
 #include "include/actions.p4"
 #include "include/port_counters.p4"
 
-#define SELECTOR_WIDTH 64
+#define SELECTOR_WIDTH 32
 
 header_type wcmp_meta_t {
     fields {
@@ -30,8 +30,8 @@ field_list_calculation wcmp_hash {
     input {
         wcmp_hash_fields;
     }
-    algorithm : bmv2_hash;
-    output_width : 64;
+    algorithm : crc32;
+    output_width : 32;
 }
 
 action wcmp_group(groupId) {
@@ -55,7 +55,7 @@ table table0 {
         set_egress_port;
         wcmp_group;
         send_to_cpu;
-        _drop;
+        drop;
     }
     support_timeout: true;
 }

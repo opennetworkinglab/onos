@@ -14,7 +14,7 @@ table table0 {
     actions {
         set_egress_port;
         send_to_cpu;
-        _drop;
+        drop;
     }
     support_timeout: true;
 }
