@@ -15,10 +15,9 @@
 set -e
 
 BUILD_DIR=~/p4tools
-BMV2_COMMIT="a9b9fb3e30585bf880b252a3e00338ebca67b572"
-PI_COMMIT="b8d937fa72650eb6ec57d2e5755e0c9103fa995f"
-P4C_COMMIT="adce375fd961a9e467c7e77ad1bef647ef28e5e8"
-P4C_BM_COMMIT="8f4abeaa6f8374aaf95ea2aacfc2b750069391b5"
+BMV2_COMMIT="0f7f05e6ad88640f68b34cd0cae50214bb4140c5"
+PI_COMMIT="1202bfc3d76d88e274c7ec3156a06d206e0ee068"
+P4C_COMMIT="55067fd0e5f9e25fef06e58e49033da3493f796d"
 PROTOBUF_COMMIT="tags/v3.0.2"
 GRPC_COMMIT="tags/v1.3.0"
 
@@ -80,8 +79,10 @@ function do_requirements {
 function do_requirements_1404 {
     sudo apt install -y python-software-properties software-properties-common
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
     sudo apt update
     sudo apt install -y \
+        cmake \
         dpkg-dev \
         g++-4.9 \
         gcc-4.9 \
@@ -96,6 +97,7 @@ function do_requirements_1604 {
     sudo apt-get update
     sudo apt-get install -y --no-install-recommends \
         ca-certificates \
+        cmake \
         g++ \
         libboost-iostreams1.58-dev
 }
@@ -198,8 +200,9 @@ function do_p4c {
     git checkout ${P4C_COMMIT}
     git submodule update --init --recursive
 
-    ./bootstrap.sh
+    mkdir -p build
     cd build
+    cmake ..
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
