@@ -45,6 +45,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onosproject.net.pi.impl.MockInterpreter.*;
+import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
 
 /**
  * Tests for {@link PiFlowRuleTranslator}.
@@ -155,7 +156,7 @@ public class PiFlowRuleTranslatorTest {
         assertThat("Incorrect ethType match param mask",
                    ethTypeParam.mask().asReadOnlyBuffer().getShort(), is(equalTo(ETH_TYPE_MASK)));
         assertThat("Incorrect priority value",
-                   entry1.priority().get(), is(equalTo(Integer.MAX_VALUE - rule1.priority())));
+                   entry1.priority().get(), is(equalTo(MAX_PI_PRIORITY - rule1.priority())));
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
 

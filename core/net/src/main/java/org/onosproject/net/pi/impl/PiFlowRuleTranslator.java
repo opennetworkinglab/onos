@@ -68,6 +68,7 @@ import static org.onosproject.net.pi.runtime.PiFlowRuleTranslationService.PiFlow
  */
 final class PiFlowRuleTranslator {
 
+    public static final int MAX_PI_PRIORITY = (int) Math.pow(2, 24);
     private static final Logger log = LoggerFactory.getLogger(PiFlowRuleTranslationServiceImpl.class);
 
     private PiFlowRuleTranslator() {
@@ -129,10 +130,17 @@ final class PiFlowRuleTranslator {
 
         PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
-        // In BMv2 0 is the highest priority.
-        // TODO: Move priority change to P4runtimeClient, in the table entry encode phase.
-        // Similarly, original priority should be re-established in the decode phase.
-        int newPriority = Integer.MAX_VALUE - rule.priority();
+        // In the P4 world 0 is the highest priority, in ONOS the lowest one.
+        // FIXME: move priority conversion to the driver, where different constraints might apply
+        // e.g. less bits for encoding priority in TCAM-based implementations.
+        int newPriority;
+        if (rule.priority() > MAX_PI_PRIORITY) {
+            log.warn("Flow rule priority too big, setting translated priority to max value {}: {}",
+                     MAX_PI_PRIORITY, rule);
+            newPriority = 0;
+        } else {
+            newPriority = MAX_PI_PRIORITY - rule.priority();
+        }
 
         tableEntryBuilder
                 .forTable(piTableId)
