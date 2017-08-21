@@ -24,7 +24,10 @@ import org.onosproject.store.service.Serializer;
 
 /**
  * Service to serialize Objects into byte array.
+ *
+ * @deprecated since 1.11 ("Loon")
  */
+@Deprecated
 public interface StoreSerializer extends Serializer {
 
     /**

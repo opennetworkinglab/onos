@@ -63,7 +63,6 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.impl.MastershipBasedTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -150,7 +149,7 @@ public class ECDeviceStore
     private final SetEventListener<DeviceId> deviceStatusTracker =
             new InternalDeviceStatusTracker();
 
-    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(
+    protected static final Serializer SERIALIZER = Serializer.using(
                   KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)

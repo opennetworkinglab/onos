@@ -46,7 +46,7 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
+import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -94,7 +94,7 @@ public class DistributedClusterStore
             label = "the value of Phi threshold to detect accrual failure")
     private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
 
-    private static final StoreSerializer SERIALIZER = StoreSerializer.using(
+    private static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
                     .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)

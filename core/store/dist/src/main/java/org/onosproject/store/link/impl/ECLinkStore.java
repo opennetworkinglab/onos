@@ -61,11 +61,11 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.MastershipBasedTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.serializers.StoreSerializer;
 import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
@@ -153,7 +153,7 @@ public class ECLinkStore
 
     protected LinkDiscoveryMode linkDiscoveryMode = LinkDiscoveryMode.STRICT;
 
-    protected static final StoreSerializer SERIALIZER = StoreSerializer.using(
+    protected static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
