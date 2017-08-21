@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:openflowj',
     '//protocols/openflow/api:onos-protocols-openflow-api',
+    '//lib:NETTY',
     '//lib:netty-buffer',
     '//lib:netty-codec',
     '//lib:netty-common',
