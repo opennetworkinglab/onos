@@ -103,7 +103,7 @@ public class DefaultPortDescription extends AbstractDescription
      */
     public DefaultPortDescription(PortDescription base,
                                   SparseAnnotations annotations) {
-        this(base.portNumber(), base.isEnabled(), base.type(), base.portSpeed(),
+        this(base.portNumber(), base.isEnabled(), base.isRemoved(), base.type(), base.portSpeed(),
              annotations);
     }
 
@@ -150,6 +150,7 @@ public class DefaultPortDescription extends AbstractDescription
         return MoreObjects.toStringHelper(getClass())
                 .add("number", number)
                 .add("isEnabled", isEnabled)
+                .add("isRemoved", isRemoved)
                 .add("type", type)
                 .add("portSpeed", portSpeed)
                 .add("annotations", annotations())
