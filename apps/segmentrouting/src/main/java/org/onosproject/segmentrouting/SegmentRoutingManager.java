@@ -212,16 +212,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             new ConcurrentHashMap<>();
     /**
      * Per device next objective ID store with (device id + destination set) as key.
+     * Used to keep track on MPLS group information.
      */
     EventuallyConsistentMap<DestinationSetNextObjectiveStoreKey, NextNeighbors>
             dsNextObjStore = null;
     /**
-     * Per device next objective ID store with (device id + subnet) as key.
+     * Per device next objective ID store with (device id + vlanid) as key.
+     * Used to keep track on L2 flood group information.
      */
     EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
             vlanNextObjStore = null;
     /**
-     * Per device next objective ID store with (device id + port) as key.
+     * Per device next objective ID store with (device id + port + treatment + meta) as key.
+     * Used to keep track on L2 interface group and L3 unicast group information.
      */
     EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
@@ -551,6 +554,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /**
      * Per device next objective ID store with (device id + destination set) as key.
+     * Used to keep track on MPLS group information.
      *
      * @return next objective ID store
      */
@@ -560,7 +564,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Per device next objective ID store with (device id + subnet) as key.
+     * Per device next objective ID store with (device id + vlanid) as key.
+     * Used to keep track on L2 flood group information.
      *
      * @return vlan next object store
      */
@@ -569,7 +574,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Per device next objective ID store with (device id + port) as key.
+     * Per device next objective ID store with (device id + port + treatment + meta) as key.
+     * Used to keep track on L2 interface group and L3 unicast group information.
      *
      * @return port next object store.
      */
