@@ -51,9 +51,10 @@ public final class DefaultQueueDescription extends AbstractDescription
                                     Optional<Long> burst, Optional<Long> priority,
                                     SparseAnnotations... annotations) {
         super(annotations);
-        if (dscp.isPresent()) {
-            checkArgument(dscp.get() < MIN_DSCP || dscp.get() > MAX_DSCP, "dscp should be in range 0 to 63.");
-        }
+        dscp.ifPresent(dscpValue ->
+                               checkArgument(dscpValue >= MIN_DSCP &&
+                                             dscpValue <= MAX_DSCP,
+                                             "dscp should be in range 0 to 63."));
         this.queueId = checkNotNull(queueId);
         this.dscp = dscp;
         this.type = type;
