@@ -15,10 +15,13 @@
  */
 package org.onosproject.openstacknode.impl;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +52,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
-import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.behaviour.InterfaceConfig;
@@ -85,22 +87,33 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.MoreExecutors;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.Device.Type.CONTROLLER;
 import static org.onosproject.net.Device.Type.SWITCH;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onosproject.openstacknode.api.Constants.*;
-import static org.onosproject.openstacknode.api.NodeState.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
+import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.PATCH_ROUT_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.ROUTER_BRIDGE;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
+import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.INIT;
+import static org.onosproject.openstacknode.api.NodeState.PORT_CREATED;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -722,21 +735,6 @@ public class DefaultOpenstackNodeHandlerTest {
         @Override
         public void setHandler(DriverHandler handler) {
 
-        }
-
-        @Override
-        public void addBridge(BridgeName bridgeName) {
-
-        }
-
-        @Override
-        public void addBridge(BridgeName bridgeName, String dpid, String exPortName) {
-
-        }
-
-        @Override
-        public boolean addBridge(BridgeName bridgeName, String dpid, List<ControllerInfo> controllers) {
-            return false;
         }
 
         @Override
