@@ -809,17 +809,7 @@ public class DefaultOpenstackNodeHandlerTest {
         }
 
         @Override
-        public boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId) {
-            return false;
-        }
-
-        @Override
         public boolean addAccessMode(String intf, VlanId vlanId) {
-            return false;
-        }
-
-        @Override
-        public boolean removeAccessInterface(DeviceId deviceId, String intf) {
             return false;
         }
 
@@ -829,17 +819,7 @@ public class DefaultOpenstackNodeHandlerTest {
         }
 
         @Override
-        public boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds) {
-            return false;
-        }
-
-        @Override
         public boolean addTrunkMode(String intf, List<VlanId> vlanIds) {
-            return false;
-        }
-
-        @Override
-        public boolean removeTrunkInterface(DeviceId deviceId, String intf) {
             return false;
         }
 
@@ -897,11 +877,6 @@ public class DefaultOpenstackNodeHandlerTest {
         @Override
         public boolean removePatchMode(String ifaceName) {
             return false;
-        }
-
-        @Override
-        public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId) {
-            return null;
         }
 
         @Override

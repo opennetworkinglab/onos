@@ -119,32 +119,6 @@ public class OvsdbInterfaceConfig extends AbstractHandlerBehaviour implements In
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
-    // deprecated interfaces
-    @Override
-    public boolean addAccessInterface(DeviceId deviceId, String ifaceName, VlanId vlanId) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public boolean removeAccessInterface(DeviceId deviceId, String ifaceName) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public boolean addTrunkInterface(DeviceId deviceId, String ifaceName, List<VlanId> vlanIds) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    @Override
-    public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId) {
-        return null;
-    }
-
-    @Override
-    public boolean removeTrunkInterface(DeviceId deviceId, String ifaceName) {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
     // OvsdbNodeId(IP) is used in the adaptor while DeviceId(ovsdb:IP)
     // is used in the core. So DeviceId need be changed to OvsdbNodeId.
     private OvsdbNodeId changeDeviceIdToNodeId(DeviceId deviceId) {

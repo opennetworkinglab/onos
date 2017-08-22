@@ -17,9 +17,12 @@
 
 package org.onosproject.drivers.cisco;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import org.onlab.packet.VlanId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
@@ -29,10 +32,6 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -44,19 +43,6 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         implements InterfaceConfig {
 
     private final Logger log = getLogger(getClass());
-
-    /**
-     * Adds an access interface to a VLAN.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @param vlanId the VLAN ID
-     * @return the result of operation
-     */
-    @Override
-    public boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId) {
-        return addAccessMode(intf, vlanId);
-    }
 
     /**
      * Adds an access interface to a VLAN.
@@ -106,18 +92,6 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
     /**
      * Removes an access interface to a VLAN.
      *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @return the result of operation
-     */
-    @Override
-    public boolean removeAccessInterface(DeviceId deviceId, String intf) {
-        return removeAccessMode(intf);
-    }
-
-    /**
-     * Removes an access interface to a VLAN.
-     *
      * @param intf the name of the interface
      * @return the result of operation
      */
@@ -155,19 +129,6 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append(getClosingString());
 
         return rpc.toString();
-    }
-
-    /**
-     *  Adds a trunk interface for VLANs.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @param vlanIds the VLAN IDs
-     * @return the result of operation
-     */
-    @Override
-    public boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds) {
-        return addTrunkMode(intf, vlanIds);
     }
 
     /**
@@ -215,18 +176,6 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
         rpc.append(getClosingString());
 
         return rpc.toString();
-    }
-
-    /**
-     * Removes trunk mode configuration from an interface.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @return the result of operation
-     */
-    @Override
-    public boolean removeTrunkInterface(DeviceId deviceId, String intf) {
-        return removeTrunkMode(intf);
     }
 
     /**
@@ -420,17 +369,6 @@ public class InterfaceConfigCiscoIosImpl extends AbstractHandlerBehaviour
             }
         }
         return  vlansStringBuilder.toString();
-    }
-
-    /**
-     * Provides the interfaces configured on a device.
-     *
-     * @param deviceId the device ID
-     * @return the list of the configured interfaces
-     */
-    @Override
-    public List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId) {
-        return getInterfaces();
     }
 
     /**

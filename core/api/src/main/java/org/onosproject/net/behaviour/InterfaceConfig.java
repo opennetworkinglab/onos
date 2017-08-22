@@ -15,29 +15,16 @@
  */
 package org.onosproject.net.behaviour;
 
+import java.util.List;
+
 import org.onlab.packet.VlanId;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceInterfaceDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
-
-import java.util.List;
 
 /**
  * Means to configure interfaces on devices.
  */
 public interface InterfaceConfig extends HandlerBehaviour {
-
-    /**
-     * Adds an access interface to a VLAN.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @param vlanId the VLAN ID
-     * @return the result of operation
-     * @deprecated in 1.7.0 Hummingbird release - use of addAccessMode() instead
-     */
-    @Deprecated
-    boolean addAccessInterface(DeviceId deviceId, String intf, VlanId vlanId);
 
     /**
      * Adds an access interface to a VLAN.
@@ -51,33 +38,10 @@ public interface InterfaceConfig extends HandlerBehaviour {
     /**
      * Removes an access interface to a VLAN.
      *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @return the result of operation
-     * @deprecated in 1.7.0 Hummingbird release - use of removeAccessMode() instead
-     */
-    @Deprecated
-    boolean removeAccessInterface(DeviceId deviceId, String intf);
-
-    /**
-     * Removes an access interface to a VLAN.
-     *
      * @param intf the name of the interface
      * @return the result of operation
      */
     boolean removeAccessMode(String intf);
-
-    /**
-     *  Adds a trunk interface for VLANs.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @param vlanIds the VLAN IDs
-     * @return the result of operation
-     * @deprecated in 1.7.0 Hummingbird release - use of addTrunkMode() instead
-     */
-    @Deprecated
-    boolean addTrunkInterface(DeviceId deviceId, String intf, List<VlanId> vlanIds);
 
     /**
      *  Adds a trunk interface for VLANs.
@@ -87,17 +51,6 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @return the result of operation
      */
     boolean addTrunkMode(String intf, List<VlanId> vlanIds);
-
-    /**
-     * Removes trunk mode configuration from an interface.
-     *
-     * @param deviceId the device ID
-     * @param intf the name of the interface
-     * @return the result of operation
-     * @deprecated in 1.7.0 Hummingbird release - use of removeTrunkMode() instead
-     */
-    @Deprecated
-    boolean removeTrunkInterface(DeviceId deviceId, String intf);
 
     /**
      *  Removes trunk mode configuration from an interface.
@@ -157,17 +110,6 @@ public interface InterfaceConfig extends HandlerBehaviour {
      * @return true if the operation succeeds
      */
     boolean removePatchMode(String ifaceName);
-
-    /**
-     * Provides the interfaces configured on a device.
-     *
-     * @param deviceId the device ID
-     * @return the list of the configured interfaces
-     * @deprecated in 1.7.0 Hummingbird release - use of getInterfaces() without
-     * deviceId as parameter instead
-     */
-    @Deprecated
-    List<DeviceInterfaceDescription> getInterfaces(DeviceId deviceId);
 
     /**
      * Provides the interfaces configured on a device.
