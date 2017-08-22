@@ -1,5 +1,11 @@
 # ONOS UI
 
+## Updated Development Tools (WIP)
+
+- `cd $ONOS_ROOT/tools/gui`
+- `gulp`
+- `npm run dev`
+
 ## Development environment
 
 To help with UI development we provide a dedicated environment that introduce an auto reload feature and allow you to change your javascript files without recompiling the application.
