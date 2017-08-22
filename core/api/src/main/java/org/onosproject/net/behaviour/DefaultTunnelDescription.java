@@ -42,30 +42,6 @@ public final class DefaultTunnelDescription extends AbstractDescription
     /**
      * Creates a tunnel description using the supplied information.
      *
-     * @param src TunnelPoint source
-     * @param dst TunnelPoint destination
-     * @param type tunnel type
-     * @param tunnelName tunnel name
-     * @param annotations optional key/value annotations
-     * @deprecated version 1.7.0 - Hummingbird
-     */
-    @Deprecated
-    public DefaultTunnelDescription(TunnelEndPoint src,
-                                    TunnelEndPoint dst, Type type,
-                                    TunnelName tunnelName,
-                                    SparseAnnotations... annotations) {
-        super(annotations);
-        this.deviceId = Optional.empty();
-        this.local = Optional.ofNullable(src);
-        this.remote = Optional.ofNullable(dst);
-        this.type = type;
-        this.ifaceName = tunnelName.value();
-        this.key = Optional.empty();
-    }
-
-    /**
-     * Creates a tunnel description using the supplied information.
-     *
      * @param ifaceName tunnel interface ifaceName
      * @param local source tunnel endpoint
      * @param remote destination tunnel endpoint
@@ -98,18 +74,6 @@ public final class DefaultTunnelDescription extends AbstractDescription
         return ifaceName;
     }
 
-    @Deprecated
-    @Override
-    public TunnelEndPoint src() {
-        return local.isPresent() ? local.get() : null;
-    }
-
-    @Deprecated
-    @Override
-    public TunnelEndPoint dst() {
-        return remote.isPresent() ? remote.get() : null;
-    }
-
     @Override
     public Type type() {
         return type;
@@ -128,12 +92,6 @@ public final class DefaultTunnelDescription extends AbstractDescription
     @Override
     public Optional<TunnelKey> key() {
         return key;
-    }
-
-    @Deprecated
-    @Override
-    public TunnelName tunnelName() {
-        return TunnelName.tunnelName(ifaceName);
     }
 
     @Override

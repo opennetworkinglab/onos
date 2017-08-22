@@ -102,33 +102,6 @@ public interface TunnelDescription extends Description, Annotated {
     Optional<TunnelKey> key();
 
     /**
-     * Returns the connection point source.
-     *
-     * @deprecated version 1.7.0 - Hummingbird; use local instead
-     * @return tunnel source ConnectionPoint
-     */
-    @Deprecated
-    TunnelEndPoint src();
-
-    /**
-     * Returns the connection point destination.
-     *
-     * @deprecated version 1.7.0 - Hummingbird; use remote instead
-     * @return tunnel destination
-     */
-    @Deprecated
-    TunnelEndPoint dst();
-
-    /**
-     * Return the name of a tunnel.
-     *
-     * @deprecated version 1.7.0 - Hummingbird; use ifaceName instead
-     * @return Tunnel Name
-     */
-    @Deprecated
-    TunnelName tunnelName();
-
-    /**
      * Builder of tunnel interface description entities.
      */
     interface Builder {
