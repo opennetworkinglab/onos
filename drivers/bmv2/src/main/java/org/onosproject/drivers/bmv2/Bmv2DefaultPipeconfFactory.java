@@ -19,6 +19,7 @@ package org.onosproject.drivers.bmv2;
 import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
@@ -58,6 +59,7 @@ final class Bmv2DefaultPipeconfFactory {
                 .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
                 .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addBehaviour(PortStatisticsDiscovery.class, Bmv2DefaultPortStatisticsDiscovery.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
                 .build();

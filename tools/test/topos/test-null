@@ -1,0 +1,37 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Creates a replica of the GEANT topology using ONOS null provider
+# -----------------------------------------------------------------------------
+
+# config
+host=${1:-localhost}
+nports=24
+sleepfor=5
+
+
+# start custom simulation..
+onos ${host} null-simulation start custom
+
+
+## unfortunately, it takes a time for the sim to start up
+#  this is not ideal...
+
+echo
+echo "Sleeping while sim starts up... (${sleepfor} seconds)..."
+echo
+sleep ${sleepfor}
+
+# Add devices, links, and hosts
+onos ${1:-localhost} <<-EOF
+
+null-create-device switch ATH ${nports} 37.984149 23.7279843
+null-create-device switch LIS ${nports} 38.707792 -9.1365069
+
+
+null-create-link direct ATH LIS
+null-create-link direct LIS ATH
+
+null-create-host ATH 192.168.1.1   34.984149  24.7279843
+null-create-host LIS 192.168.1.2   37.707792  -7.1365069
+
+EOF
