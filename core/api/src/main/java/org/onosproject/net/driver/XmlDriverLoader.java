@@ -73,18 +73,6 @@ public class XmlDriverLoader {
      * class loader.
      *
      * @param classLoader class loader to use
-     * @deprecated since 1.7.0 (Hummingbird)
-     */
-    @Deprecated
-    public XmlDriverLoader(ClassLoader classLoader) {
-        this(classLoader, null);
-    }
-
-    /**
-     * Creates a new driver loader capable of loading drivers from the supplied
-     * class loader.
-     *
-     * @param classLoader class loader to use
      * @param resolver    behaviour class resolver
      */
     public XmlDriverLoader(ClassLoader classLoader, BehaviourClassResolver resolver) {
