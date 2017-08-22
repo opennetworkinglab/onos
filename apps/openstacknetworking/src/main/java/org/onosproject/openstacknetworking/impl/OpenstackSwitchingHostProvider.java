@@ -75,6 +75,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
 
     private static final String PORT_NAME_PREFIX_VM = "tap";
     private static final String ERR_ADD_HOST = "Failed to add host: ";
+    private static final String ANNOTATION_SEGMENT_ID = "segId";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -169,7 +170,8 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
                 .set(ANNOTATION_PORT_ID, osPort.getId())
-                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()));
+                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()))
+                .set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
 
         HostDescription hostDesc = new DefaultHostDescription(
                 macAddr,
