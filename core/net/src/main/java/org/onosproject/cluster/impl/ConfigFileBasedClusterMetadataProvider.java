@@ -316,11 +316,15 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private void watchUrl(String metadataUrl) {
         // TODO: We are merely polling the url.
         // This can be easily addressed for files. For http urls we need to move to a push style protocol.
-        Versioned<ClusterMetadata> latestMetadata = fetchMetadata(metadataUrl);
-        if (cachedMetadata.get() != null && latestMetadata != null
-                && cachedMetadata.get().version() < latestMetadata.version()) {
-            cachedMetadata.set(latestMetadata);
-            providerService.clusterMetadataChanged(latestMetadata);
+        try {
+            Versioned<ClusterMetadata> latestMetadata = fetchMetadata(metadataUrl);
+            if (cachedMetadata.get() != null && latestMetadata != null
+                    && cachedMetadata.get().version() < latestMetadata.version()) {
+                cachedMetadata.set(latestMetadata);
+                providerService.clusterMetadataChanged(latestMetadata);
+            }
+        } catch (Exception e) {
+            log.error("Unable to parse metadata : ", e);
         }
     }
 }
