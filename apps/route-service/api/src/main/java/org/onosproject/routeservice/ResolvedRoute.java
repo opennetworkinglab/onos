@@ -29,6 +29,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Represents a route with the next hop MAC address resolved.
  */
+// TODO Remove location from ResolvedRoute
 public class ResolvedRoute {
 
     private final Route route;
@@ -42,7 +43,9 @@ public class ResolvedRoute {
      * @param route input route
      * @param nextHopMac next hop MAC address
      * @param location connect point where the next hop connects to
+     * @deprecated in 1.11 ("Loon")
      */
+    @Deprecated
     public ResolvedRoute(Route route, MacAddress nextHopMac, ConnectPoint location) {
         this(route, nextHopMac, VlanId.NONE, location);
     }
@@ -54,13 +57,40 @@ public class ResolvedRoute {
      * @param nextHopMac next hop MAC address
      * @param nextHopVlan next hop VLAN ID
      * @param location connect point where the next hop connects to
+     * @deprecated in 1.11 ("Loon")
      */
+    @Deprecated
     public ResolvedRoute(Route route, MacAddress nextHopMac, VlanId nextHopVlan,
                          ConnectPoint location) {
         this.route = route;
         this.nextHopMac = nextHopMac;
         this.nextHopVlan = nextHopVlan;
         this.location = location;
+    }
+
+
+    /**
+     * Creates a new resolved route.
+     *
+     * @param route input route
+     * @param nextHopMac next hop MAC address
+     */
+    public ResolvedRoute(Route route, MacAddress nextHopMac) {
+        this(route, nextHopMac, VlanId.NONE);
+    }
+
+    /**
+     * Creates a new resolved route.
+     *
+     * @param route input route
+     * @param nextHopMac next hop MAC address
+     * @param nextHopVlan next hop VLAN ID
+     */
+    public ResolvedRoute(Route route, MacAddress nextHopMac, VlanId nextHopVlan) {
+        this.route = route;
+        this.nextHopMac = nextHopMac;
+        this.nextHopVlan = nextHopVlan;
+        this.location = null;
     }
 
     /**
@@ -112,7 +142,9 @@ public class ResolvedRoute {
      * Returns the next hop location.
      *
      * @return connect point where the next hop attaches to
+     * @deprecated in 1.11 ("Loon")
      */
+    @Deprecated
     public ConnectPoint location() {
         return location;
     }

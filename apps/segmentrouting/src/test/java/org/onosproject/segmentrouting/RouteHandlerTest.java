@@ -25,11 +25,15 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intf.Interface;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteEvent;
@@ -62,19 +66,24 @@ public class RouteHandlerTest {
     private static final VlanId V1 = VlanId.vlanId((short) 1);
     private static final ConnectPoint CP1 = ConnectPoint.deviceConnectPoint("of:0000000000000001/1");
     private static final Route R1 = new Route(Route.Source.STATIC, P1, N1);
-    private static final ResolvedRoute RR1 = new ResolvedRoute(R1, M1, V1, CP1);
+    private static final ResolvedRoute RR1 = new ResolvedRoute(R1, M1, V1);
 
     private static final IpAddress N2 = IpAddress.valueOf("10.0.2.254");
     private static final MacAddress M2 = MacAddress.valueOf("00:00:00:00:00:02");
     private static final VlanId V2 = VlanId.vlanId((short) 2);
     private static final ConnectPoint CP2 = ConnectPoint.deviceConnectPoint("of:0000000000000001/2");
     private static final Route R2 = new Route(Route.Source.STATIC, P1, N2);
-    private static final ResolvedRoute RR2 = new ResolvedRoute(R2, M2, V2, CP2);
+    private static final ResolvedRoute RR2 = new ResolvedRoute(R2, M2, V2);
 
     private static final RouteInfo RI1 = new RouteInfo(P1, RR1, Sets.newHashSet(RR1));
 
+    private static final Host H1 = new DefaultHost(ProviderId.NONE, HostId.hostId(M1, V1), M1, V1,
+            Sets.newHashSet(new HostLocation(CP1, 0)), Sets.newHashSet(N1), false);
+    private static final Host H2 = new DefaultHost(ProviderId.NONE, HostId.hostId(M2, V2), M2, V2,
+            Sets.newHashSet(new HostLocation(CP2, 0)), Sets.newHashSet(N2), false);
+
     // A set of hosts
-    private static final Set<Host> HOSTS = Sets.newHashSet();
+    private static final Set<Host> HOSTS = Sets.newHashSet(H1, H2);
     // A set of devices of which we have mastership
     private static final Set<DeviceId> LOCAL_DEVICES = Sets.newHashSet();
     // A set of interfaces
@@ -127,7 +136,11 @@ public class RouteHandlerTest {
         routeHandler.init(CP1.deviceId());
 
         assertEquals(1, ROUTING_TABLE.size());
-        assertNotNull(ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1)));
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
     }
@@ -138,7 +151,11 @@ public class RouteHandlerTest {
         routeHandler.processRouteAdded(re);
 
         assertEquals(1, ROUTING_TABLE.size());
-        assertNotNull(ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1)));
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
     }
@@ -151,7 +168,11 @@ public class RouteHandlerTest {
         routeHandler.processRouteUpdated(re);
 
         assertEquals(1, ROUTING_TABLE.size());
-        assertNotNull(ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1)));
+        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M2, rtv2.macAddress);
+        assertEquals(V2, rtv2.vlanId);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
     }
@@ -166,5 +187,4 @@ public class RouteHandlerTest {
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
     }
-
 }
