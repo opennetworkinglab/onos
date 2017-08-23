@@ -17,22 +17,24 @@
 package org.onosproject.net.pi.impl;
 
 import org.junit.Test;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.EthType;
-import org.onlab.packet.VlanId;
-import org.onlab.packet.Ip6Address;
-import org.onlab.packet.TpPort;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MplsLabel;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.criteria.ArpHaCriterion;
+import org.onosproject.net.flow.criteria.ArpOpCriterion;
+import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.PortCriterion;
-import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.IPDscpCriterion;
+import org.onosproject.net.flow.criteria.IPEcnCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.IPv6ExthdrFlagsCriterion;
 import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
@@ -47,27 +49,25 @@ import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.MplsTcCriterion;
 import org.onosproject.net.flow.criteria.PbbIsidCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpFlagsCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
-import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-import org.onosproject.net.flow.criteria.ArpHaCriterion;
-import org.onosproject.net.flow.criteria.ArpOpCriterion;
-import org.onosproject.net.flow.criteria.ArpPaCriterion;
-import org.onosproject.net.flow.criteria.IPEcnCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+
 import java.util.Random;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
-import static org.onosproject.net.pi.model.PiMatchType.EXACT;
-import static org.onosproject.net.pi.model.PiMatchType.TERNARY;
-import static org.onosproject.net.pi.model.PiMatchType.LPM;
+import static org.onosproject.net.pi.model.PiMatchType.*;
 
 /**
  * Tests for CriterionTranslators.
@@ -337,7 +337,7 @@ public class PiCriterionTranslatorsTest {
 
         PiExactFieldMatch exactMatch = (PiExactFieldMatch) translateCriterion(criterion, fieldId, EXACT, bitWidth);
 
-        assertThat(exactMatch.value().asReadOnlyBuffer().get(), is(criterion.tc()));
+        assertThat(exactMatch.value().asReadOnlyBuffer().get(1), is(criterion.tc()));
     }
 
     @Test
