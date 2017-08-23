@@ -53,4 +53,12 @@ public class DriverServiceAdapter implements DriverService {
     public Driver getDriver(String driverName) {
         return null;
     }
+
+    @Override
+    public void addListener(DriverListener listener) {
+    }
+
+    @Override
+    public void removeListener(DriverListener listener) {
+    }
 }

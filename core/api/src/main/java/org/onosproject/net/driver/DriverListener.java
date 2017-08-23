@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.net.driver;
 
-import org.onosproject.event.ListenerService;
-
-import java.util.Set;
+import org.onosproject.event.EventListener;
 
 /**
- * Service for obtaining drivers and driver behaviour implementations.
+ * Entity capable of receiving driver related events.
  */
-public interface DriverRegistry extends DriverPrimordialResolver, DriverResolver,
-        ListenerService<DriverEvent, DriverListener> {
-
-    /**
-     * Returns the overall set of drivers being provided.
-     *
-     * @return provided drivers
-     */
-    Set<Driver> getDrivers();
-
+public interface DriverListener extends EventListener<DriverEvent> {
 }
