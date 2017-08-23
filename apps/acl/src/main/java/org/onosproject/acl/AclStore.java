@@ -124,7 +124,7 @@ public interface AclStore extends Store {
      * Checks if an existing ACL rule already works in a given device.
      *
      * @param ruleId   ACL rule id
-     * @param deviceId devide id
+     * @param deviceId device id
      * @return true if the given ACL rule works in the given device
      */
     boolean checkIfRuleWorksInDevice(RuleId ruleId, DeviceId deviceId);

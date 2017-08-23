@@ -167,7 +167,7 @@ public final class PimInterface {
     /**
      * Return a single "best" IP address.
      *
-     * @return the choosen IP address or null if none
+     * @return the chosen IP address or null if none
      */
     public IpAddress getIpAddress() {
         if (onosInterface.ipAddressesList().isEmpty()) {

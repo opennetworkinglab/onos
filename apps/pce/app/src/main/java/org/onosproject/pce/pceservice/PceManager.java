@@ -307,7 +307,7 @@ public class PceManager implements PceService {
         return devList;
     }
 
-    //To dectect loops in the path i.e if the partial paths has intersection node avoid it.
+    //To detect loops in the path i.e if the partial paths has intersection node avoid it.
     private boolean pathValidation(List<Path> partialPath, Path path) {
 
         //List of devices in new path computed

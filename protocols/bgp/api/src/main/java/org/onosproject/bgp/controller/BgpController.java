@@ -151,7 +151,7 @@ public interface BgpController {
     Set<BgpLinkListener> linkListener();
 
     /**
-     * Stores the exceptions occured during an active session.
+     * Stores the exceptions occurred during an active session.
      *
      * @param peerId BGP peer id
      * @param exception exceptions based on the peer id.
@@ -159,7 +159,7 @@ public interface BgpController {
     void activeSessionExceptionAdd(String peerId, String exception);
 
     /**
-     * Stores the exceptions occured during an closed session.
+     * Stores the exceptions occurred during an closed session.
      *
      * @param peerId BGP peer id
      * @param exception exceptions based on the peer id

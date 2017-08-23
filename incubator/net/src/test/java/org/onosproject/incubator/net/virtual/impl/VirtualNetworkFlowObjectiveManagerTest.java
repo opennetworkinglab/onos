@@ -221,7 +221,7 @@ public class VirtualNetworkFlowObjectiveManagerTest
         service1.filter(VDID1, filter);
     }
 
-    //TODO: More test cases for filter, foward, and next
+    //TODO: More test cases for filter, forward, and next
 
     private class TestProvider extends AbstractVirtualProvider
             implements VirtualFlowRuleProvider {

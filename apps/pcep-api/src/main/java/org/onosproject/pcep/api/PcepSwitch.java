@@ -30,7 +30,7 @@ public interface PcepSwitch extends PcepOperator {
         /* router */
         ROUTER,
 
-        /* unkown type */
+        /* unknown type */
         UNKNOW,
     }
 

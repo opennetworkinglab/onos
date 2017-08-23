@@ -146,7 +146,7 @@ public class ClusterIpManager {
             addIpAlias(aliasIp, aliasMask, aliasAdapter);
             wasLeader = true;
         } else if (wasLeader && !isLeader) {
-            // Loosing leadership, so drop the IP alias
+            // Losing leadership, so drop the IP alias
             removeIpAlias(aliasIp, aliasMask, aliasAdapter);
             wasLeader = false;
         }

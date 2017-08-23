@@ -136,7 +136,7 @@ public class MQServiceImpl implements MQService {
     /**
      * Publishes packet message to MQ server.
      *
-     * @param context Context of the packet recieved including details like mac, length etc
+     * @param context Context of the packet received including details like mac, length etc
      */
     @Override
     public void publish(PacketContext context) {

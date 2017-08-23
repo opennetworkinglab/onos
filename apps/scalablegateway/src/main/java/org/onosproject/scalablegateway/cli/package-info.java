@@ -15,6 +15,6 @@
  */
 
 /**
- * Command line interface for Scaleable Gateway management.
+ * Command line interface for Scalable Gateway management.
  */
 package org.onosproject.scalablegateway.cli;

@@ -131,7 +131,7 @@ public class VpnAdjRibIn {
     }
 
     /**
-     * Update nlri identifier mapped with route distinguisher if it exists in tree otherwise add nlri infomation mapped
+     * Update nlri identifier mapped with route distinguisher if it exists in tree otherwise add nlri information mapped
      * to respective route distinguisher in tree.
      *
      * @param nlri NLRI info

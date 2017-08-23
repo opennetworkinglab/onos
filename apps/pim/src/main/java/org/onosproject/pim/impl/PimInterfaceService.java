@@ -24,7 +24,7 @@ import java.util.Set;
  * define PIM Interfaces.  The PIM Application signed up as a Netconfig
  * listener.
  *
- * TODO: Do we need a PIMInterfaceListenerService?  Who sould listen to Interfaces changes?
+ * TODO: Do we need a PIMInterfaceListenerService?  Who should listen to Interfaces changes?
  */
 public interface PimInterfaceService {
 

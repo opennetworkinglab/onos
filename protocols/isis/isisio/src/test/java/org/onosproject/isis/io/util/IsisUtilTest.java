@@ -33,7 +33,7 @@ public class IsisUtilTest {
 
     private final String systemId = "2929.2929.2929";
     private final String lanId = "2929.2929.2929.01";
-    private final String areaAddres = "490001";
+    private final String areaAddress = "490001";
     private final byte[] l1Lsp = {
             -125, 27, 1, 0, 18, 1, 0, 0, 0, 86, 4, -81, 34, 34, 34,
             34, 34, 34, 0, 0, 0, 0, 0, 9, 99, 11, 1, 1, 4, 3, 73,
@@ -94,13 +94,13 @@ public class IsisUtilTest {
     }
 
     /**
-     * Tests areaAddres() method.
+     * Tests areaAddress() method.
      */
     @Test
     public void testAreaAddres() throws Exception {
-        result1 = IsisUtil.areaAddres(Bytes.toArray(
-                IsisUtil.areaAddressToBytes(areaAddres)));
-        assertThat(result1, is(areaAddres));
+        result1 = IsisUtil.areaAddress(Bytes.toArray(
+                IsisUtil.areaAddressToBytes(areaAddress)));
+        assertThat(result1, is(areaAddress));
     }
 
     /**
@@ -108,7 +108,7 @@ public class IsisUtilTest {
      */
     @Test
     public void testAreaAddressToBytes() throws Exception {
-        result2 = Bytes.toArray(IsisUtil.areaAddressToBytes(areaAddres));
+        result2 = Bytes.toArray(IsisUtil.areaAddressToBytes(areaAddress));
         assertThat(result2, is(notNullValue()));
     }
 

@@ -64,7 +64,7 @@ public class AreaAddressTlv extends TlvHeader implements IsisTlv {
             int addressLength = channelBuffer.readByte();
             byte[] addressbytes = new byte[addressLength];
             channelBuffer.readBytes(addressbytes, 0, addressLength);
-            String areaAddress = IsisUtil.areaAddres(addressbytes);
+            String areaAddress = IsisUtil.areaAddress(addressbytes);
             this.areaAddress.add(areaAddress);
         }
     }

@@ -109,7 +109,7 @@ public final class MQConstants {
     public static final String CHASIS_ID = "chassis_id";
 
     /**
-     * Specifies event occurence time.
+     * Specifies event occurrence time.
      */
     public static final String OCC_TIME = "occurrence_time";
 
@@ -129,9 +129,9 @@ public final class MQConstants {
     public static final String LOGICAL = "logical";
 
     /**
-     * Specifies packet recieved time.
+     * Specifies packet received time.
      */
-    public static final String RECIEVED = "received";
+    public static final String RECEIVED = "received";
 
     /**
      * Specifies message type.

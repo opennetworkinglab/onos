@@ -48,7 +48,7 @@ public interface BgpLocalRib {
     void delete(BgpLSNlri nlri) throws BgpParseException;
 
     /**
-     * Update NLRI identifier mapped with route distinguisher if it exists in tree otherwise add NLRI infomation mapped
+     * Update NLRI identifier mapped with route distinguisher if it exists in tree otherwise add NLRI information mapped
      * to respective route distinguisher.
      *
      * @param sessionInfo BGP session info

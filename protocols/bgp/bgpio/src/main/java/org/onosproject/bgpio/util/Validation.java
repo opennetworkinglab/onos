@@ -148,7 +148,7 @@ public class Validation {
         try {
             ipAddress = InetAddress.getByAddress(address);
         } catch (UnknownHostException e) {
-             log.info("InetAddress convertion failed");
+             log.info("InetAddress conversion failed");
         }
         return ipAddress;
     }

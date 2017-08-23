@@ -144,9 +144,9 @@ public final class IsisUtil {
      * Parse byte array to area address.
      *
      * @param bytes area address
-     * @return areaAddres area address
+     * @return areaAddress area address
      */
-    public static String areaAddres(byte[] bytes) {
+    public static String areaAddress(byte[] bytes) {
         String areaAddres = "";
         for (Byte byt : bytes) {
             String hexa = Integer.toHexString(Byte.toUnsignedInt(byt));

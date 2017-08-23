@@ -44,7 +44,7 @@ public final class AlarmId extends Identifier<String> {
     }
 
     /**
-     * Instantiates a new Alarm id, primarly meant for lookup.
+     * Instantiates a new Alarm id, primarily meant for lookup.
      *
      * @param globallyUniqueIdentifier the globally unique identifier of the Alarm,
      *                                 device Id + local unique identifier on the device

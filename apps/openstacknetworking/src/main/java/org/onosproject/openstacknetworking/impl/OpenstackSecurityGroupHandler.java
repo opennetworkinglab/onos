@@ -285,7 +285,7 @@ public class OpenstackSecurityGroupHandler {
     /**
      * Sets connection tracking rule using OVS extension commands.
      * It is not so graceful, but I don't want to make it more general because it is going to be used
-     * only here. The following is the usage of the fucntion.
+     * only here. The following is the usage of the function.
      *
      * @param deviceId Device ID
      * @param ctState ctState: please use RulePopulatorUtil.computeCtStateFlag() to build the value

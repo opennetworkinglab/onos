@@ -426,8 +426,8 @@ public class EvpnManager implements EvpnService {
             List<VpnRouteTarget> expRt = route.exportRouteTarget();
             List<VpnRouteTarget> similar = new LinkedList<>(expRt);
             similar.retainAll(vpnInstance.getImportRouteTargets());
-            //TODO: currently checking for RT comparision.
-            //TODO: Need to check about RD comparision is really required.
+            //TODO: currently checking for RT comparison.
+            //TODO: Need to check about RD comparison is really required.
             //if (route.routeDistinguisher()
             //.equals(vpnInstance.routeDistinguisher())) {
             if (!similar.isEmpty()) {

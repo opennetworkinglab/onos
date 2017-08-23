@@ -51,7 +51,7 @@ public class YdtDecimal64Test {
 
     Positive scenario
 
-    input at boundry for decimal64 with fraction 2
+    input at boundary for decimal64 with fraction 2
         i. min value
         ii. max value
 
