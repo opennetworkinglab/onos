@@ -16,29 +16,44 @@
 
 package org.onosproject.segmentrouting;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onosproject.routeservice.ResolvedRoute;
+import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteInfo;
 import org.onosproject.routeservice.RouteServiceAdapter;
 import org.onosproject.routeservice.RouteTableId;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mock Route Service.
  * We assume there is only one routing table named "default".
  */
 public class MockRouteService extends RouteServiceAdapter {
-    private Set<RouteInfo> routes;
+    private Map<MockRoutingTableKey, MockRoutingTableValue> routingTable;
 
-    MockRouteService(Set<RouteInfo> routes) {
-        this.routes = ImmutableSet.copyOf(routes);
+    MockRouteService(Map<MockRoutingTableKey, MockRoutingTableValue> routingTable) {
+        this.routingTable = routingTable;
     }
 
     @Override
     public Collection<RouteInfo> getRoutes(RouteTableId id) {
-        return routes;
+        return routingTable.entrySet().stream().map(e -> {
+            IpPrefix prefix = e.getKey().ipPrefix;
+            IpAddress nextHop = IpAddress.valueOf(0); // dummy
+            MacAddress mac = e.getValue().macAddress;
+            VlanId vlan = e.getValue().vlanId;
+            Route route = new Route(Route.Source.STATIC, prefix, nextHop);
+            ResolvedRoute rr = new ResolvedRoute(route, mac, vlan);
+
+            return new RouteInfo(prefix, rr, Sets.newHashSet(rr));
+        }).collect(Collectors.toSet());
     }
 
     @Override

@@ -119,7 +119,7 @@ public class RoutingRulePopulator {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
      */
-    public void populateRoute(DeviceId deviceId, IpPrefix prefix,
+    void populateRoute(DeviceId deviceId, IpPrefix prefix,
                               MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
         log.debug("Populate direct routing entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
@@ -136,9 +136,11 @@ public class RoutingRulePopulator {
                     + "to error for dev:{} route:{}", deviceId, prefix);
             return;
         }
+
+        int nextId = fwdBuilder.add().nextId();
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Direct routing rule for route {} populated",
-                                         prefix),
+                (objective) -> log.debug("Direct routing rule for route {} populated. nextId={}",
+                                         prefix, nextId),
                 (objective, error) ->
                         log.warn("Failed to populate direct routing rule for route {}: {}",
                                  prefix, error));
@@ -155,7 +157,7 @@ public class RoutingRulePopulator {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
      */
-    public void revokeRoute(DeviceId deviceId, IpPrefix prefix,
+    void revokeRoute(DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
         log.debug("Revoke IP table entry for route {} at {}:{}",
                 prefix, deviceId, outPort);

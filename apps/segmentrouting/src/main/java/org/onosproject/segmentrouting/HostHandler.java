@@ -50,7 +50,6 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Handles host-related events.
  */
 public class HostHandler {
-    private static final String NOT_MASTER = "Current instance is not the master of {}. Ignore.";
 
     private static final Logger log = LoggerFactory.getLogger(HostHandler.class);
     protected final SegmentRoutingManager srManager;
@@ -87,8 +86,7 @@ public class HostHandler {
     void processHostAddedAtLocation(Host host, HostLocation location) {
         checkArgument(host.locations().contains(location), "{} is not a location of {}", location, host);
 
-        if (!isMasterOf(location)) {
-            log.debug(NOT_MASTER, location);
+        if (!srManager.isMasterOf(location)) {
             return;
         }
 
@@ -115,16 +113,19 @@ public class HostHandler {
         Set<IpAddress> ips = host.ipAddresses();
         log.info("Host {}/{} is removed from {}", hostMac, hostVlanId, locations);
 
-        locations.stream().filter(this::isMasterOf).forEach(location -> {
-            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
-            ips.forEach(ip ->
-                processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
-            );
+        locations.forEach(location -> {
+            if (srManager.isMasterOf(location)) {
+                processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
+                ips.forEach(ip ->
+                        processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
+                );
+            }
 
             // Also remove redirection flows on the pair device if exists.
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
             Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(location.deviceId());
-            if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
+            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() &&
+                    srManager.mastershipService.isLocalMaster(pairDeviceId.get())) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                 //       when the host is untagged
                 VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
@@ -150,7 +151,7 @@ public class HostHandler {
                 .collect(Collectors.toSet());
 
         // For each old location
-        Sets.difference(prevLocations, newLocations).stream().filter(this::isMasterOf)
+        Sets.difference(prevLocations, newLocations).stream().filter(srManager::isMasterOf)
                 .forEach(prevLocation -> {
             // Remove routing rules for old IPs
             Sets.difference(prevIps, newIps).forEach(ip ->
@@ -211,7 +212,7 @@ public class HostHandler {
         });
 
         // For each new location, add all new IPs.
-        Sets.difference(newLocations, prevLocations).stream().filter(this::isMasterOf)
+        Sets.difference(newLocations, prevLocations).stream().filter(srManager::isMasterOf)
                 .forEach(newLocation -> {
             processBridgingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId, false);
             newIps.forEach(ip ->
@@ -221,7 +222,7 @@ public class HostHandler {
         });
 
         // For each unchanged location, add new IPs and remove old IPs.
-        Sets.intersection(newLocations, prevLocations).stream().filter(this::isMasterOf)
+        Sets.intersection(newLocations, prevLocations).stream().filter(srManager::isMasterOf)
                 .forEach(unchangedLocation -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
@@ -243,7 +244,7 @@ public class HostHandler {
         Set<IpAddress> newIps = event.subject().ipAddresses();
         log.info("Host {}/{} is updated", mac, vlanId);
 
-        locations.stream().filter(this::isMasterOf).forEach(location -> {
+        locations.stream().filter(srManager::isMasterOf).forEach(location -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, true)
             );
@@ -378,20 +379,9 @@ public class HostHandler {
 
         log.info("{} routing rule for {} at {}", revoke ? "Revoking" : "Populating", ip, location);
         if (revoke) {
-            srManager.routingRulePopulator.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            srManager.defaultRoutingHandler.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
         } else {
-            srManager.routingRulePopulator.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            srManager.defaultRoutingHandler.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
         }
-    }
-
-    /**
-     * Determine if current instance is the master of given connect point.
-     *
-     * @param cp connect point
-     * @return true if current instance is the master of given connect point
-     */
-    private boolean isMasterOf(ConnectPoint cp) {
-        log.debug(NOT_MASTER, cp);
-        return srManager.mastershipService.isLocalMaster(cp.deviceId());
     }
 }

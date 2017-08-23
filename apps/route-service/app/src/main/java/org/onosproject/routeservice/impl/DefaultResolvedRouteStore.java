@@ -143,7 +143,7 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
                                 immutableAlternatives);
                     } else {
                         return new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route,
-                                oldRoute, immutableAlternatives);
+                                oldRoute, immutableAlternatives, oldRoutes);
                     }
                 }
 
@@ -185,11 +185,11 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
                 String key = createBinaryString(prefix);
 
                 ResolvedRoute route = routeTable.getValueForExactKey(key);
-                alternativeRoutes.remove(prefix);
+                Set<ResolvedRoute> alternatives = alternativeRoutes.remove(prefix);
 
                 if (route != null) {
                     routeTable.remove(key);
-                    return new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route);
+                    return new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route, alternatives);
                 }
                 return null;
             }

@@ -16,6 +16,7 @@
 
 package org.onosproject.routeservice.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Before;
@@ -212,7 +213,8 @@ public class RouteManagerTest {
     private void verifyRouteAdd(Route route, ResolvedRoute resolvedRoute) {
         reset(routeListener);
 
-        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute));
+        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute, null,
+                Sets.newHashSet(resolvedRoute), null));
 
         replay(routeListener);
 
@@ -267,7 +269,8 @@ public class RouteManagerTest {
         addRoute(original);
 
         routeListener.event(event(RouteEvent.Type.ROUTE_UPDATED,
-                updatedResolvedRoute, resolvedRoute));
+                updatedResolvedRoute, resolvedRoute,
+                Sets.newHashSet(updatedResolvedRoute), Sets.newHashSet(resolvedRoute)));
         expectLastCall().once();
 
         replay(routeListener);
@@ -304,7 +307,7 @@ public class RouteManagerTest {
         addRoute(route);
 
         RouteEvent withdrawRouteEvent = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                removedResolvedRoute);
+                removedResolvedRoute, Sets.newHashSet(removedResolvedRoute));
 
         reset(routeListener);
         routeListener.event(withdrawRouteEvent);
@@ -342,8 +345,9 @@ public class RouteManagerTest {
 
         // Now when we send the event, we expect the FIB update to be sent
         reset(routeListener);
-        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED,
-                new ResolvedRoute(route, MAC1, CP1)));
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
+        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute, null,
+                Sets.newHashSet(resolvedRoute), null));
         replay(routeListener);
 
         Host host = createHost(MAC1, V4_NEXT_HOP1);
@@ -362,12 +366,10 @@ public class RouteManagerTest {
         verify(routeListener);
     }
 
-    private static RouteEvent event(RouteEvent.Type type, ResolvedRoute subject) {
-        return event(type, subject, null);
-    }
-
-    private static RouteEvent event(RouteEvent.Type type, ResolvedRoute subject, ResolvedRoute prevSubject) {
-        return new RouteEvent(type, subject, prevSubject, Collections.singleton(subject));
+    private static RouteEvent event(RouteEvent.Type type, ResolvedRoute subject, ResolvedRoute prevSubject,
+                                    Collection<ResolvedRoute> alternatives,
+                                    Collection<ResolvedRoute> prevAlternatives) {
+        return new RouteEvent(type, subject, prevSubject, alternatives, prevAlternatives);
     }
 
     /**
