@@ -50,8 +50,6 @@ import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.driver.TestBehaviourImpl;
 import org.onosproject.net.driver.TestBehaviourTwoImpl;
@@ -202,31 +200,7 @@ public class OpticalCircuitIntentCompilerTest extends AbstractIntentTest {
     /**
      * Mocks the driver service so it will appear supporting TributarySlotQuery Behaviour in the test.
      */
-    private static class MockDriverServiceWithTs implements DriverService {
-        @Override
-        public Driver getDriver(String driverName) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Set<Driver> getDrivers() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Driver getDriver(String mfr, String hw, String sw) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
+    private static class MockDriverServiceWithTs extends DriverServiceAdapter {
         @Override
         public Driver getDriver(DeviceId deviceId) {
             DefaultDriver ddp = new DefaultDriver("foo.base", new ArrayList<>(), "Circus", "lux", "1.2a",
@@ -237,43 +211,12 @@ public class OpticalCircuitIntentCompilerTest extends AbstractIntentTest {
                     ImmutableMap.of("foo", "bar"));
             return ddp;
         }
-
-        @Override
-        public DriverHandler createHandler(DeviceId deviceId,
-                String... credentials) {
-            // TODO Auto-generated method stub
-            return null;
-        }
     }
 
     /**
      * Mocks the driver service so it will appear not-supporting TributarySlotQuery Behaviour in the test.
      */
-    private static class MockDriverServiceNoTs implements DriverService {
-        @Override
-        public Driver getDriver(String driverName) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Set<Driver> getDrivers() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Driver getDriver(String mfr, String hw, String sw) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
+    private static class MockDriverServiceNoTs extends DriverServiceAdapter {
         @Override
         public Driver getDriver(DeviceId deviceId) {
             DefaultDriver ddp = new DefaultDriver("foo.base", new ArrayList<>(), "Circus", "lux", "1.2a",
@@ -281,13 +224,6 @@ public class OpticalCircuitIntentCompilerTest extends AbstractIntentTest {
                                     TestBehaviourImpl.class),
                     ImmutableMap.of("foo", "bar"));
             return ddp;
-        }
-
-        @Override
-        public DriverHandler createHandler(DeviceId deviceId,
-                String... credentials) {
-            // TODO Auto-generated method stub
-            return null;
         }
     }
 

@@ -53,4 +53,12 @@ public class DriverAdminServiceAdapter implements DriverAdminService {
     public Set<Driver> getDrivers() {
         return null;
     }
+
+    @Override
+    public void addListener(DriverListener listener) {
+    }
+
+    @Override
+    public void removeListener(DriverListener listener) {
+    }
 }

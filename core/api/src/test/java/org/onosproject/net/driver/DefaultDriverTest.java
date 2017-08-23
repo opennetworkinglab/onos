@@ -28,14 +28,14 @@ import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.driver.DefaultDriverDataTest.DEVICE_ID;
 
 public class DefaultDriverTest {
-    private static final String MFR = "mfr";
-    private static final String HW = "hw";
-    private static final String SW = "sw";
-    private static final String KEY = "key";
-    private static final String VALUE = "value";
-    private static final String ROOT = "rootDriver";
-    private static final String CHILD = "childDriver";
-    private static final String GRAND_CHILD = "grandChilDriver";
+    public static final String MFR = "mfr";
+    public static final String HW = "hw";
+    public static final String SW = "sw";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
+    public static final String ROOT = "rootDriver";
+    public static final String CHILD = "childDriver";
+    public static final String GRAND_CHILD = "grandChildDriver";
 
     @Test
     public void basics() {

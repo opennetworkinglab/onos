@@ -31,6 +31,7 @@ import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverRegistry;
 import org.onosproject.net.driver.DriverService;
 import org.slf4j.Logger;
@@ -129,4 +130,13 @@ public class DriverManager implements DriverService {
         return new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
     }
 
+    @Override
+    public void addListener(DriverListener listener) {
+        registry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(DriverListener listener) {
+        registry.removeListener(listener);
+    }
 }

@@ -28,11 +28,15 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.component.ComponentService;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverProvider;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
+import org.onosproject.net.driver.DriverEvent;
+import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -47,6 +51,8 @@ import java.util.Set;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onosproject.net.driver.DriverEvent.Type.DRIVER_ENHANCED;
+import static org.onosproject.net.driver.DriverEvent.Type.DRIVER_REDUCED;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.DRIVER_READ;
 
@@ -76,6 +82,8 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentService componenService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
 
     private static final String DEFAULT_REQUIRED_DRIVERS = "default";
     @Property(name = "requiredDrivers", value = DEFAULT_REQUIRED_DRIVERS,
@@ -87,11 +95,16 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     private Map<String, Driver> driverByKey = Maps.newConcurrentMap();
     private Map<String, Class<? extends Behaviour>> classes = Maps.newConcurrentMap();
 
+    private ListenerRegistry<DriverEvent, DriverListener> listenerRegistry;
+
+
     private boolean isStarted = false;
 
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
+        listenerRegistry = new ListenerRegistry<>();
+        eventDispatcher.addSink(DriverEvent.class, listenerRegistry);
         modified(context);
         log.info("Started");
     }
@@ -99,6 +112,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     @Deactivate
     protected void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
+        eventDispatcher.removeSink(DriverEvent.class);
         providers.clear();
         driverByKey.clear();
         classes.clear();
@@ -134,6 +148,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
                 classes.put(b.getName(), b);
                 classes.put(implementation.getName(), implementation);
             });
+            post(new DriverEvent(DRIVER_ENHANCED, driver));
         });
         providers.add(provider);
         checkRequiredDrivers();
@@ -146,6 +161,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
             driverByKey.remove(key(driver.manufacturer(),
                                    driver.hwVersion(),
                                    driver.swVersion()));
+            post(new DriverEvent(DRIVER_REDUCED, driver));
         });
         providers.remove(provider);
         checkRequiredDrivers();
@@ -225,4 +241,22 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     static String key(String mfr, String hw, String sw) {
         return String.format("%s-%s-%s", mfr, hw, sw);
     }
+
+    @Override
+    public void addListener(DriverListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(DriverListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
+    // Safely posts the specified event to the local event dispatcher.
+    private void post(DriverEvent event) {
+        if (eventDispatcher != null) {
+            eventDispatcher.post(event);
+        }
+    }
+
 }
