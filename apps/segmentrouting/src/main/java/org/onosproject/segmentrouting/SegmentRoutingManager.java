@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,6 +51,8 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -84,6 +87,7 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.RouteEvent;
 import org.onosproject.routeservice.RouteListener;
 import org.onosproject.routeservice.RouteService;
@@ -693,6 +697,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
+    }
+
+    /**
+     * Returns locations of given resolved route.
+     *
+     * @param resolvedRoute resolved route
+     * @return locations of nexthop. Might be empty if next hop is not found
+     */
+    Set<ConnectPoint> nextHopLocations(ResolvedRoute resolvedRoute) {
+        HostId hostId = HostId.hostId(resolvedRoute.nextHopMac(), resolvedRoute.nextHopVlan());
+        return Optional.ofNullable(hostService.getHost(hostId))
+                .map(Host::locations).orElse(Sets.newHashSet())
+                .stream().map(l -> (ConnectPoint) l).collect(Collectors.toSet());
     }
 
     /**

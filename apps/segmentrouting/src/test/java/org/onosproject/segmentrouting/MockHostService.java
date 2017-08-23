@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostServiceAdapter;
 
 import java.util.Set;
@@ -35,5 +36,10 @@ public class MockHostService extends HostServiceAdapter {
     @Override
     public Set<Host> getHosts() {
         return hosts;
+    }
+
+    @Override
+    public Host getHost(HostId hostId) {
+        return hosts.stream().filter(host -> hostId.equals(host.id())).findFirst().orElse(null);
     }
 }

@@ -29,7 +29,6 @@ import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.neighbour.NeighbourMessageType;
-import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -165,12 +164,15 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         //       The source might be an indirectly attached host (e.g. behind a router)
         //       Lookup the route store for the nexthop instead.
         if (destRouterAddress == null) {
-            Optional<ResolvedRoute> nexthop = srManager.routeService.longestPrefixLookup(destIpAddress);
-            if (nexthop.isPresent()) {
+            Optional<DeviceId> deviceId = srManager.routeService
+                    .longestPrefixLookup(destIpAddress).map(srManager::nextHopLocations)
+                    .flatMap(locations -> locations.stream().findFirst())
+                    .map(ConnectPoint::deviceId);
+            if (deviceId.isPresent()) {
                 try {
-                    destRouterAddress = config.getRouterIpv4(nexthop.get().location().deviceId());
+                    destRouterAddress = config.getRouterIpv4(deviceId.get());
                 } catch (DeviceConfigNotFoundException e) {
-                    log.warn("Device config not found. Abort ICMP processing");
+                    log.warn("Device config for {} not found. Abort ICMP processing", deviceId);
                     return;
                 }
             }
@@ -240,12 +242,15 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         //       The source might be an indirect host behind a router.
         //       Lookup the route store for the nexthop instead.
         if (destRouterAddress == null) {
-            Optional<ResolvedRoute> nexthop = srManager.routeService.longestPrefixLookup(destIpAddress);
-            if (nexthop.isPresent()) {
+            Optional<DeviceId> deviceId = srManager.routeService
+                    .longestPrefixLookup(destIpAddress).map(srManager::nextHopLocations)
+                    .flatMap(locations -> locations.stream().findFirst())
+                    .map(ConnectPoint::deviceId);
+            if (deviceId.isPresent()) {
                 try {
-                    destRouterAddress = config.getRouterIpv6(nexthop.get().location().deviceId());
+                    destRouterAddress = config.getRouterIpv6(deviceId.get());
                 } catch (DeviceConfigNotFoundException e) {
-                    log.warn("Device config not found. Abort ICMPv6 processing");
+                    log.warn("Device config for {} not found. Abort ICMPv6 processing", deviceId);
                     return;
                 }
             }
