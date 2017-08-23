@@ -16,7 +16,6 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -31,7 +30,6 @@ import org.onosproject.net.ConnectPoint;
  * protocol-agnostic interface, as well as mechanisms to perform an action in
  * response to the incoming message.</p>
  */
-@Beta
 public interface NeighbourMessageContext {
     /**
      * Gets the port where the packet came in to the network.

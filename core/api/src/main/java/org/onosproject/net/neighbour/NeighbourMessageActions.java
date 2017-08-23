@@ -16,7 +16,6 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
@@ -24,7 +23,6 @@ import org.onosproject.net.ConnectPoint;
 /**
  * Performs actions on a neighbour message contexts.
  */
-@Beta
 public interface NeighbourMessageActions {
 
     /**

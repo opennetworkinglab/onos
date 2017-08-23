@@ -16,12 +16,9 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
-
 /**
  * Neighbour message type.
  */
-@Beta
 public enum NeighbourMessageType {
     /**
      * Request message.

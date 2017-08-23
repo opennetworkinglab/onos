@@ -16,7 +16,6 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
@@ -27,7 +26,6 @@ import java.util.Map;
 /**
  * Provides a means of registering logic for handling neighbour messages.
  */
-@Beta
 public interface NeighbourResolutionService {
 
     /**
