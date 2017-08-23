@@ -32,6 +32,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
 
     private final ResolvedRoute prevSubject;
     private final Collection<ResolvedRoute> alternativeRoutes;
+    private final Collection<ResolvedRoute> prevAlternativeRoutes;
 
     /**
      * Route event type.
@@ -109,8 +110,8 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
     protected RouteEvent(Type type, ResolvedRoute subject, long time) {
         super(type, subject, time);
         this.prevSubject = null;
-
         this.alternativeRoutes = Collections.emptySet();
+        this.prevAlternativeRoutes = null;
     }
 
     /**
@@ -134,9 +135,25 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
      */
     public RouteEvent(Type type, ResolvedRoute subject, ResolvedRoute prevSubject,
                       Collection<ResolvedRoute> alternatives) {
+        this(type, subject, prevSubject, alternatives, null);
+    }
+
+    /**
+     * Creates a new route event with a previous subject, alternative routes and previous alternative
+     * routes.
+     *
+     * @param type event type
+     * @param subject event subject
+     * @param prevSubject previous subject
+     * @param alternatives alternative routes for subject's prefix
+     * @param prevAlternatives previous alternative routes for subject's prefix
+     */
+    public RouteEvent(Type type, ResolvedRoute subject, ResolvedRoute prevSubject,
+                      Collection<ResolvedRoute> alternatives, Collection<ResolvedRoute> prevAlternatives) {
         super(type, subject);
         this.prevSubject = prevSubject;
         this.alternativeRoutes = alternatives;
+        this.prevAlternativeRoutes = prevAlternatives;
     }
 
     /**
@@ -157,9 +174,18 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
         return alternativeRoutes;
     }
 
+    /**
+     * Returns the set of previous alternative routes for the subject's prefix.
+     *
+     * @return previous alternative routes
+     */
+    public Collection<ResolvedRoute> prevAlternatives() {
+        return prevAlternativeRoutes;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(subject(), type(), prevSubject(), alternativeRoutes);
+        return Objects.hash(subject(), type(), prevSubject(), alternativeRoutes, prevAlternativeRoutes);
     }
 
     @Override
@@ -177,7 +203,8 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
         return Objects.equals(this.subject(), that.subject()) &&
                 Objects.equals(this.type(), that.type()) &&
                 Objects.equals(this.prevSubject, that.prevSubject) &&
-                Objects.equals(this.alternativeRoutes, that.alternativeRoutes);
+                Objects.equals(this.alternativeRoutes, that.alternativeRoutes) &&
+                Objects.equals(this.prevAlternativeRoutes, that.prevAlternativeRoutes);
     }
 
     @Override
@@ -188,6 +215,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
                 .add("subject", subject())
                 .add("prevSubject", prevSubject)
                 .add("alternatives", alternativeRoutes)
+                .add("prevAlternatives", prevAlternativeRoutes)
                 .toString();
     }
 }

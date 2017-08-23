@@ -149,7 +149,7 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
 
                 if (!immutableAlternatives.equals(oldRoutes)) {
                     return new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED,
-                            route, immutableAlternatives);
+                            route, null, immutableAlternatives, oldRoutes);
                 }
 
                 return null;
