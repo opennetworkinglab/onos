@@ -11,13 +11,13 @@ node=$(find_node ${1:-$OCI})
 
 remote=$ONOS_USER@$node
 
-ssh -t -t $remote "
-    # Wait until we reach the run-level 100
-    for i in {1..90}; do
-        $ONOS_INSTALL_DIR/bin/onos bundle:list 2>/dev/null | \
-            grep -q 'START LEVEL 100' && break || sleep 2
-    done
+# Wait until we reach the run-level 100
+for i in {1..90}; do
+    $ONOS_ROOT/tools/test/bin/onos $node bundle:list 2>/dev/null | \
+        grep -q 'START LEVEL 100' && break || sleep 2
+done
 
+ssh -t -t $remote "
     # Wait until ApplicationManager is available
     for i in {1..10}; do
         grep -q \" ApplicationManager .* Started\" \
