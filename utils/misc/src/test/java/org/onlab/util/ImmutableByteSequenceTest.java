@@ -17,6 +17,7 @@
 package org.onlab.util;
 
 import com.google.common.testing.EqualsTester;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Random;
 
+import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -124,59 +126,59 @@ public class ImmutableByteSequenceTest {
     public void testBitSetMethods() throws Exception {
         // All zeros tests
         assertThat("3 bytes, all 0's",
-                ImmutableByteSequence.ofZeros(3),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, 0}))));
+                   ImmutableByteSequence.ofZeros(3),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, 0}))));
         assertThat("3 bytes, all 0's via prefix",
-                ImmutableByteSequence.prefixZeros(3, 3 * Byte.SIZE),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, 0}))));
+                   ImmutableByteSequence.prefixZeros(3, 3 * Byte.SIZE),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, 0}))));
 
         // All ones tests
         assertThat("3 bytes, all 1's",
-                ImmutableByteSequence.ofZeros(3),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, 0}))));
+                   ImmutableByteSequence.ofZeros(3),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, 0}))));
         assertThat("3 bytes, all 1's via prefix",
-                ImmutableByteSequence.prefixOnes(3, 3 * Byte.SIZE),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff}))));
+                   ImmutableByteSequence.prefixOnes(3, 3 * Byte.SIZE),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff}))));
 
         // Zero prefix tests
         assertThat("2 bytes, prefixed with 5 0's",
-                ImmutableByteSequence.prefix(2, 5, (byte) 0),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0x7, (byte) 0xff}))));
+                   ImmutableByteSequence.prefix(2, 5, (byte) 0),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0x7, (byte) 0xff}))));
         assertThat("4 bytes, prefixed with 16 0's",
-                ImmutableByteSequence.prefix(4, 16, (byte) 0),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, (byte) 0xff, (byte) 0xff}))));
+                   ImmutableByteSequence.prefix(4, 16, (byte) 0),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, (byte) 0xff, (byte) 0xff}))));
         assertThat("4 bytes, prefixed with 20 0's",
-                ImmutableByteSequence.prefix(4, 20, (byte) 0),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, (byte) 0x0f, (byte) 0xff}))));
+                   ImmutableByteSequence.prefix(4, 20, (byte) 0),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, (byte) 0x0f, (byte) 0xff}))));
         assertThat("8 bytes, prefixed with 36 0's",
-                ImmutableByteSequence.prefixZeros(8, 38),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{0, 0, 0, 0, (byte) 0x03, (byte) 0xff, (byte) 0xff, (byte) 0xff}))));
+                   ImmutableByteSequence.prefixZeros(8, 38),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{0, 0, 0, 0, (byte) 0x03, (byte) 0xff, (byte) 0xff, (byte) 0xff}))));
 
         // Ones prefix tests
         assertThat("2 bytes, prefixed with 5 1's",
-                ImmutableByteSequence.prefix(2, 5, (byte) 0xff),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0xf8, 0}))));
+                   ImmutableByteSequence.prefix(2, 5, (byte) 0xff),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0xf8, 0}))));
         assertThat("4 bytes, prefixed with 16 1's",
-                ImmutableByteSequence.prefix(4, 16, (byte) 0xff),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0xff, (byte) 0xff, 0, 0}))));
+                   ImmutableByteSequence.prefix(4, 16, (byte) 0xff),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0xff, (byte) 0xff, 0, 0}))));
         assertThat("4 bytes, prefixed with 20 1's",
-                ImmutableByteSequence.prefix(4, 20, (byte) 0xff),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xf0, 0}))));
+                   ImmutableByteSequence.prefix(4, 20, (byte) 0xff),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xf0, 0}))));
         assertThat("8 bytes, prefixed with 10 1's",
-                ImmutableByteSequence.prefixOnes(8, 10),
-                is(equalTo(ImmutableByteSequence.copyFrom(
-                        new byte[]{(byte) 0xff, (byte) 0xc0, 0, 0, 0, 0, 0, 0}))));
+                   ImmutableByteSequence.prefixOnes(8, 10),
+                   is(equalTo(ImmutableByteSequence.copyFrom(
+                           new byte[]{(byte) 0xff, (byte) 0xc0, 0, 0, 0, 0, 0, 0}))));
     }
 
     @Test
@@ -185,5 +187,62 @@ public class ImmutableByteSequenceTest {
         thrown.reportMissingExceptionWithMessage(
                 "Expect IllegalArgumentException due to val = 0x7");
         ImmutableByteSequence.prefix(5, 10, (byte) 0x7);
+    }
+
+    @Test
+    public void testMsbIndex() {
+        assertThat("Value 0 should have MSB index -1",
+                   ImmutableByteSequence.copyFrom(0).msbIndex(), is(-1));
+        for (int i = 0; i < 63; i++) {
+            long value = (long) Math.pow(2, i);
+            assertThat(format("Value %d should have MSB index %d", value, i),
+                       ImmutableByteSequence.copyFrom(value).msbIndex(), is(i));
+        }
+    }
+
+    private void checkIllegalFit(ImmutableByteSequence bytes, int bitWidth) {
+        try {
+            ImmutableByteSequence.fit(bytes, bitWidth);
+            Assert.fail(format("Except ByteSequenceTrimException due to value = %s and bitWidth %d",
+                               bytes.toString(), bitWidth));
+        } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+            // We expect this.
+        }
+    }
+
+    private void checkLegalFit(ImmutableByteSequence bytes, int bitWidth)
+            throws ImmutableByteSequence.ByteSequenceTrimException {
+        ImmutableByteSequence fitBytes = ImmutableByteSequence.fit(bytes, bitWidth);
+        ImmutableByteSequence sameBytes = ImmutableByteSequence.fit(fitBytes, bytes.size() * 8);
+        assertThat(format("Fitted value %s (re-extended to %s) not equal to original value %s",
+                          fitBytes, sameBytes, bytes),
+                   sameBytes,
+                   is(equalTo(bytes)));
+    }
+
+    @Test
+    public void testFit() throws ImmutableByteSequence.ByteSequenceTrimException {
+        // Test fit by forcing a given MSB index.
+        for (int msbIndex = 0; msbIndex < 32; msbIndex++) {
+            long value = (long) Math.pow(2, msbIndex);
+            ImmutableByteSequence bytes = ImmutableByteSequence.copyFrom(value);
+            checkLegalFit(bytes, msbIndex + 1);
+            if (msbIndex != 0) {
+                checkIllegalFit(bytes, msbIndex);
+            }
+        }
+    }
+
+    @Test
+    public void testRandomFit() throws ImmutableByteSequence.ByteSequenceTrimException {
+        // Test fit against the computed MSB index.
+        Random random = new Random();
+        for (int i = 0; i < 1000; i++) {
+            ImmutableByteSequence bytes = ImmutableByteSequence.copyFrom((long) Math.abs(random.nextInt()));
+            int msbIndex = bytes.msbIndex();
+            checkIllegalFit(bytes, msbIndex - random.nextInt(16));
+            checkLegalFit(bytes, msbIndex + 2 + random.nextInt(16));
+            checkLegalFit(bytes, msbIndex + 1);
+        }
     }
 }

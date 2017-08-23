@@ -78,8 +78,8 @@ public final class ImmutableByteSequence {
      * the passed byte array, from/to the given indexes (inclusive).
      *
      * @param original a byte array value
-     * @param fromIdx starting index
-     * @param toIdx ending index
+     * @param fromIdx  starting index
+     * @param toIdx    ending index
      * @return a new immutable byte sequence
      */
     public static ImmutableByteSequence copyFrom(byte[] original, int fromIdx, int toIdx) {
@@ -190,9 +190,9 @@ public final class ImmutableByteSequence {
      * Creates a new byte sequence that is prefixed with specified number of
      * zeros if val = 0 or ones if val = 0xff.
      *
-     * @param size number of total bytes
+     * @param size       number of total bytes
      * @param prefixBits number of bits in prefix
-     * @param val 0 for prefix of zeros; 0xff for prefix of ones
+     * @param val        0 for prefix of zeros; 0xff for prefix of ones
      * @return new immutable byte sequence
      */
     static ImmutableByteSequence prefix(int size, long prefixBits, byte val) {
@@ -212,7 +212,7 @@ public final class ImmutableByteSequence {
     /**
      * Creates a new byte sequence that is prefixed with specified number of zeros.
      *
-     * @param size number of total bytes
+     * @param size       number of total bytes
      * @param prefixBits number of bits in prefix
      * @return new immutable byte sequence
      */
@@ -223,7 +223,7 @@ public final class ImmutableByteSequence {
     /**
      * Creates a new byte sequence that is prefixed with specified number of ones.
      *
-     * @param size number of total bytes
+     * @param size       number of total bytes
      * @param prefixBits number of bits in prefix
      * @return new immutable byte sequence
      */
@@ -283,15 +283,51 @@ public final class ImmutableByteSequence {
         return Objects.equal(this.value, other.value);
     }
 
+    /**
+     * Returns the index of the most significant bit (MSB), assuming a bit numbering scheme of type "LSB 0", i.e. the
+     * bit numbering starts at zero for the least significant bit (LSB). The MSB index of a byte sequence of zeros will
+     * be -1.
+     * <p>
+     * As an example, the following conditions always hold true:
+     * {@code
+     * ImmutableByteSequence.copyFrom(0).msbIndex() == -1
+     * ImmutableByteSequence.copyFrom(1).msbIndex() == 0
+     * ImmutableByteSequence.copyFrom(2).msbIndex() == 1
+     * ImmutableByteSequence.copyFrom(3).msbIndex() == 1
+     * ImmutableByteSequence.copyFrom(4).msbIndex() == 2
+     * ImmutableByteSequence.copyFrom(512).msbIndex() == 9
+     * }
+     *
+     * @return index of the MSB, -1 if the sequence has all bytes set to 0
+     */
+    public int msbIndex() {
+        int index = (size() * 8) - 1;
+        byteLoop:
+        for (int i = 0; i < size(); i++) {
+            byte b = value.get(i);
+            if (b != 0) {
+                for (int j = 7; j >= 0; j--) {
+                    byte mask = (byte) ((1 << j) - 1);
+                    if ((b & ~mask) != 0) {
+                        break byteLoop;
+                    }
+                    index--;
+                }
+            }
+            index -= 8;
+        }
+        return index;
+    }
+
     @Override
     public String toString() {
         return HexString.toHexString(value.array());
     }
 
     /**
-     * Trims or expands the given byte sequence so to fit a given bit-width. When trimming, the
-     * operations is deemed to be safe only if the trimmed bits are zero, otherwise an exception
-     * will be thrown. When expanding, the sequence will be padded with zeros. The returned byte
+     * Trims or expands the given byte sequence so to fit a given bit-width. When trimming, the operations is deemed to
+     * be safe only if the trimmed bits are zero, i.e. it is safe to trim only when {@code bitWidth > msbIndex()},
+     * otherwise an exception will be thrown. When expanding, the sequence will be padded with zeros. The returned byte
      * sequence will have minimum size to contain the given bit-width.
      *
      * @param original a byte sequence
@@ -307,51 +343,43 @@ public final class ImmutableByteSequence {
 
         int newByteWidth = (int) Math.ceil((double) bitWidth / 8);
 
-        byte[] originalBytes = original.asArray();
+        if (bitWidth == original.size() * 8) {
+            // No need to fit.
+            return original;
+        }
+
+        ByteBuffer newBuffer = ByteBuffer.allocate(newByteWidth);
 
         if (newByteWidth > original.size()) {
-            // pad missing bytes with zeros
-            return ImmutableByteSequence.copyFrom(Arrays.copyOf(originalBytes, newByteWidth));
-        }
-
-        byte[] newBytes = new byte[newByteWidth];
-        // ImmutableByteSequence is always big-endian, hence check the array in reverse order
-        int diff = originalBytes.length - newByteWidth;
-        for (int i = originalBytes.length - 1; i >= 0; i--) {
-            byte ob = originalBytes[i]; // original byte
-            byte nb; // new byte
-            if (i > diff) {
-                // no need to truncate, copy as is
-                nb = ob;
-            } else if (i == diff) {
-                // truncate this byte, check if we're loosing something
-                byte mask = (byte) ((1 >> ((bitWidth % 8) + 1)) - 1);
-                if ((ob & ~mask) != 0) {
-                    throw new ByteSequenceTrimException(originalBytes, bitWidth);
-                } else {
-                    nb = (byte) (ob & mask);
+            // Pad extra bytes with 0's.
+            int numPadBytes = newByteWidth - original.size();
+            for (int i = 0; i < numPadBytes; i++) {
+                newBuffer.put((byte) 0x00);
+            }
+            newBuffer.put(original.asReadOnlyBuffer());
+        } else {
+            // Trim sequence.
+            if (bitWidth > original.msbIndex()) {
+                int diff = original.size() - newByteWidth;
+                ByteBuffer originalBuffer = original.asReadOnlyBuffer();
+                for (int i = diff; i < original.size(); i++) {
+                    newBuffer.put(originalBuffer.get(i));
                 }
             } else {
-                // drop this byte, check if we're loosing something
-                if (originalBytes[i] != 0) {
-                    throw new ByteSequenceTrimException(originalBytes, bitWidth);
-                } else {
-                    continue;
-                }
+                throw new ByteSequenceTrimException(original, bitWidth);
             }
-            newBytes[i - diff] = nb;
         }
 
-        return ImmutableByteSequence.copyFrom(newBytes);
+        return new ImmutableByteSequence(newBuffer);
     }
 
     /**
      * Signals that a byte sequence cannot be trimmed.
      */
     public static class ByteSequenceTrimException extends Exception {
-        ByteSequenceTrimException(byte[] bytes, int bitWidth) {
-            super(format("cannot trim %s into a %d long bits value",
-                         HexString.toHexString(bytes), bitWidth));
+        ByteSequenceTrimException(ImmutableByteSequence original, int bitWidth) {
+            super(format("cannot trim %s into a %d bits long value",
+                         original, bitWidth));
         }
     }
 }
