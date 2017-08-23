@@ -18,7 +18,7 @@ package org.onosproject.store.cluster.messaging;
 /**
  * Interface for handling cluster messages.
  *
- * @deprecated since 1.12
+ * @deprecated since 1.11 ("Loon")
  */
 @Deprecated
 public interface ClusterMessageHandler {
