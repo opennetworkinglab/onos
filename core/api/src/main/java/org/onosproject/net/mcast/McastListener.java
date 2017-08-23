@@ -15,12 +15,13 @@
  */
 package org.onosproject.net.mcast;
 
-import com.google.common.annotations.Beta;
 import org.onosproject.event.EventListener;
 
 /**
  * A listener interface for multicast events.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
-@Beta
+@Deprecated
 public interface McastListener extends EventListener<McastEvent> {
 }

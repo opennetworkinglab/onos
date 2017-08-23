@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.mcast;
 
-import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,8 +22,10 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * An entity representing a multicast event. Event either add or remove
  * sinks or sources.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
-@Beta
+@Deprecated
 public class McastEvent extends AbstractEvent<McastEvent.Type, McastRouteInfo> {
 
 

@@ -22,7 +22,11 @@ import java.util.Set;
 
 /**
  * Entity responsible for storing multicast state information.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
+
+@Deprecated
 public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
 
     enum Type {
