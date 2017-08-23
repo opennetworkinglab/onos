@@ -32,6 +32,8 @@ import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Strings.emptyToNull;
@@ -80,6 +83,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String HW = "hw";
     private static final String SW = "sw";
     private static final String PROTOCOL = "protocol";
+    private static final String PIPECONF = "pipeconf";
     private static final String MASTER_ID = "masterid";
     private static final String CHASSIS_ID = "chassisid";
     private static final String SERIAL = "serial";
@@ -202,6 +206,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             data.put(CHASSIS_ID, device.chassisId().toString());
             data.put(MASTER_ID, masterFor != null ? masterFor.toString() : NONE);
             data.put(PROTOCOL, deviceProtocol(device));
+            data.put(PIPECONF, devicePipeconf(device));
 
             ArrayNode ports = arrayNode();
 
@@ -257,8 +262,17 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
             return port;
         }
-    }
 
+        private String devicePipeconf(Device device) {
+            PiPipeconfService service = get(PiPipeconfService.class);
+            Optional<PiPipeconfId> pipeconfId = service.ofDevice(device.id());
+            if (pipeconfId.isPresent()) {
+                return pipeconfId.get().id();
+            } else {
+                return NONE;
+            }
+        }
+    }
 
     // handler for changing device friendly name
     private final class NameChangeHandler extends RequestHandler {

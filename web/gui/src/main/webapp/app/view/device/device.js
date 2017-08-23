@@ -40,6 +40,8 @@
         ctnrPdg = 24,
         scrollSize = 17,
         portsTblPdg = 50,
+        defaultLabelWidth = 110,
+        defaultValueWidth  = 80,
 
         pName = 'device-details-panel',
         detailsReq = 'deviceDetailsRequest',
@@ -49,6 +51,7 @@
         friendlyProps = [
             'URI', 'Type', 'Master ID', 'Chassis ID',
             'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #',
+            'Pipeconf',
         ],
         portCols = [
             'enabled', 'id', 'speed', 'type', 'elinks_dest', 'name',
@@ -150,11 +153,11 @@
     function addProp(tbody, index, value) {
         var tr = tbody.append('tr');
 
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).text(txt);
+        function addCell(cls, txt, width) {
+            tr.append('td').attr('class', cls).attr('width', width).text(txt);
         }
-        addCell('label', friendlyProps[index] + ' :');
-        addCell('value', value);
+        addCell('label', friendlyProps[index] + ' :', defaultLabelWidth);
+        addCell('value', value, defaultValueWidth);
     }
 
     function populateTop(tblDiv, details) {
@@ -173,11 +176,12 @@
         addProp(leftTbl, 1, device.type);
         addProp(leftTbl, 2, details['masterid']);
         addProp(leftTbl, 3, details['chassid']);
-        addProp(rightTbl, 4, device.mfr);
+        addProp(leftTbl, 4, device.mfr);
         addProp(rightTbl, 5, device.hw);
         addProp(rightTbl, 6, device.sw);
         addProp(rightTbl, 7, details['protocol']);
         addProp(rightTbl, 8, device.serial);
+        addProp(rightTbl, 9, details['pipeconf']);
     }
 
     function addPortRow(tbody, port) {
