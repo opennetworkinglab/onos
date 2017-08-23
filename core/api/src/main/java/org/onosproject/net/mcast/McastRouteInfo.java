@@ -27,7 +27,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Multicast information as stored in the store.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
+
+@Deprecated
 public final class McastRouteInfo {
 
     private static final String ROUTE_NOT_NULL = "Route cannot be null";

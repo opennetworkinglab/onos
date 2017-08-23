@@ -20,6 +20,10 @@ import org.onosproject.store.StoreDelegate;
 
 /**
  * Mcast store delegate abstraction.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
+
+@Deprecated
 public interface McastStoreDelegate extends StoreDelegate<McastEvent> {
 }

@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.mcast;
 
-import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onlab.packet.IpAddress;
 
@@ -25,8 +24,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An entity representing a multicast route consisting of a source
  * and a multicast group address.
+ *
+ * @deprecated in 1.11 ("Loon") release. To be moved into an app.
  */
-@Beta
+@Deprecated
 public class McastRoute {
 
     public enum Type {
