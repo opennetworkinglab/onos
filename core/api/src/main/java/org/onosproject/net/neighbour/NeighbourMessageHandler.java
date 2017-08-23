@@ -16,7 +16,6 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
 import org.onosproject.net.host.HostService;
 
 /**
@@ -25,7 +24,6 @@ import org.onosproject.net.host.HostService;
  * <p>An application may implement this interface in order to provide their own
  * logic for handling particular neighbour messages.</p>
  */
-@Beta
 public interface NeighbourMessageHandler {
 
     /**

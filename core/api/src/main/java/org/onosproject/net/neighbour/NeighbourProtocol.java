@@ -16,12 +16,9 @@
 
 package org.onosproject.net.neighbour;
 
-import com.google.common.annotations.Beta;
-
 /**
  * Enumerates protocols used for neighbour discover/address resolution.
  */
-@Beta
 public enum NeighbourProtocol {
 
     /**
