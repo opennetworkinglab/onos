@@ -65,7 +65,7 @@ public class BgpKeepAliveTimer {
                 handler.sendKeepAliveMessage();
                 handler.getBgpPacketStats().addOutPacket();
             } catch (Exception e) {
-                log.info("Exception occured while sending keepAlive message" + e.toString());
+                log.info("Exception occurred while sending keepAlive message" + e.toString());
             }
         }
     }

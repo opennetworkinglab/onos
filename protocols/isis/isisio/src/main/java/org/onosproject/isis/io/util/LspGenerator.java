@@ -149,7 +149,7 @@ public class LspGenerator {
         result[2] = (byte) (ipAddress[2] & networkmass[2]);
         result[3] = (byte) (ipAddress[3] & networkmass[3]);
         metricOfIntRea.setIpAddress(Ip4Address.valueOf(result));
-        metricOfIntRea.setSubnetAddres(Ip4Address.valueOf(isisInterface.networkMask()));
+        metricOfIntRea.setSubnetAddress(Ip4Address.valueOf(isisInterface.networkMask()));
         ipInterReacTlv.addInternalReachabilityMetric(metricOfIntRea);
         lsp.addTlv(ipInterReacTlv);
 

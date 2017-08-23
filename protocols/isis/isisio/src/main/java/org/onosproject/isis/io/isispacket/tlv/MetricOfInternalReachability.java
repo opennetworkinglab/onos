@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class MetricOfInternalReachability {
     private Ip4Address ipAddress;
-    private Ip4Address subnetAddres;
+    private Ip4Address subnetAddress;
     private byte defaultMetric;
     private byte delayMetric;
     private byte expenseMetric;
@@ -64,19 +64,19 @@ public class MetricOfInternalReachability {
     /**
      * Returns the subnet address of metric of internal reachability.
      *
-     * @return subnetAddres subnet address of metric of internal reachability
+     * @return subnetAddress subnet address of metric of internal reachability
      */
-    public Ip4Address getSubnetAddres() {
-        return subnetAddres;
+    public Ip4Address getSubnetAddress() {
+        return subnetAddress;
     }
 
     /**
      * Sets the subnet address for metric of internal reachability.
      *
-     * @param subnetAddres subnet address
+     * @param subnetAddress subnet address
      */
-    public void setSubnetAddres(Ip4Address subnetAddres) {
-        this.subnetAddres = subnetAddres;
+    public void setSubnetAddress(Ip4Address subnetAddress) {
+        this.subnetAddress = subnetAddress;
     }
 
     /**
@@ -365,7 +365,7 @@ public class MetricOfInternalReachability {
 
         tempByteArray = new byte[IsisUtil.FOUR_BYTES];
         channelBuffer.readBytes(tempByteArray, 0, IsisUtil.FOUR_BYTES);
-        this.setSubnetAddres(Ip4Address.valueOf(tempByteArray));
+        this.setSubnetAddress(Ip4Address.valueOf(tempByteArray));
     }
 
     /**
@@ -425,7 +425,7 @@ public class MetricOfInternalReachability {
         bytes.add((byte) Integer.parseInt(binary, 2));
 
         bytes.addAll(Bytes.asList(this.getIpAddress().toOctets()));
-        bytes.addAll(Bytes.asList(this.getSubnetAddres().toOctets()));
+        bytes.addAll(Bytes.asList(this.getSubnetAddress().toOctets()));
         return Bytes.toArray(bytes);
     }
 
@@ -434,7 +434,7 @@ public class MetricOfInternalReachability {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
                 .add("ipAddress", ipAddress)
-                .add("subnetAddres", subnetAddres)
+                .add("subnetAddress", subnetAddress)
                 .add("defaultMetric", defaultMetric)
                 .add("delayMetric", delayMetric)
                 .add("expenseMetric", expenseMetric)

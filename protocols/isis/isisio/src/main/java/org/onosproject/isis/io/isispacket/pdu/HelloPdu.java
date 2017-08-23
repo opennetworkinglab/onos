@@ -145,7 +145,7 @@ public abstract class HelloPdu extends IsisHeader {
     /**
      * Sets the PDU length.
      *
-     * @param pduLength PDU lenght
+     * @param pduLength PDU length
      */
     public void setPduLength(int pduLength) {
         this.pduLength = pduLength;

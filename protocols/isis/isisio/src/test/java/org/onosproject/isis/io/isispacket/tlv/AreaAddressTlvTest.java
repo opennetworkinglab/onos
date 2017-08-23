@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class AreaAddressTlvTest {
 
-    private final String areaAddres = "490001";
+    private final String areaAddress = "490001";
     private final byte[] tlv = {1, 49};
     private AreaAddressTlv areaAddressTlv;
     private TlvHeader tlvHeader;
@@ -59,7 +59,7 @@ public class AreaAddressTlvTest {
      */
     @Test
     public void testAddAddress() throws Exception {
-        areaAddressTlv.addAddress(areaAddres);
+        areaAddressTlv.addAddress(areaAddress);
         result = areaAddressTlv.areaAddress();
         assertThat(result.size(), is(1));
     }
@@ -69,7 +69,7 @@ public class AreaAddressTlvTest {
      */
     @Test
     public void testSetAreaAddress() throws Exception {
-        areaAddressTlv.addAddress(areaAddres);
+        areaAddressTlv.addAddress(areaAddress);
         result = areaAddressTlv.areaAddress();
         assertThat(result.size(), is(1));
     }

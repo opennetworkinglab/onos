@@ -74,7 +74,7 @@ public class GrpcRemoteServiceTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final ProviderId PID = new ProviderId("test", "com.exmaple.test");
+    private static final ProviderId PID = new ProviderId("test", "com.example.test");
 
     private static final URI DURI = URI.create("dev:000001");
 

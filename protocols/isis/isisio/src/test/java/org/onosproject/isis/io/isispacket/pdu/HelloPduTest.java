@@ -170,7 +170,7 @@ public class HelloPduTest {
     }
 
     /**
-     * Tests areaAddres()  method.
+     * Tests areaAddress()  method.
      */
     @Test
     public void testAreaAddress() throws Exception {

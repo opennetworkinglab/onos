@@ -288,7 +288,7 @@ public class DhcpRelayManagerTest {
     @Test
     public void testArpRequest() throws Exception {
         packetService.processPacket(new TestArpRequestPacketContext(CLIENT_INTERFACE));
-        OutboundPacket outboundPacket = packetService.emitedPacket;
+        OutboundPacket outboundPacket = packetService.emittedPacket;
         byte[] outPacketData = outboundPacket.data().array();
         Ethernet eth = Ethernet.deserializer().deserialize(outPacketData, 0, outPacketData.length);
 
@@ -436,7 +436,7 @@ public class DhcpRelayManagerTest {
 
     private class MockPacketService extends PacketServiceAdapter {
         Set<PacketProcessor> packetProcessors = Sets.newHashSet();
-        OutboundPacket emitedPacket;
+        OutboundPacket emittedPacket;
 
         @Override
         public void addProcessor(PacketProcessor processor, int priority) {
@@ -449,7 +449,7 @@ public class DhcpRelayManagerTest {
 
         @Override
         public void emit(OutboundPacket packet) {
-            this.emitedPacket = packet;
+            this.emittedPacket = packet;
         }
     }
 

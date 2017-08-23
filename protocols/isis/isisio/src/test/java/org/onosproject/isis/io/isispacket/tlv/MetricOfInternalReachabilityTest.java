@@ -76,22 +76,22 @@ public class MetricOfInternalReachabilityTest {
     }
 
     /**
-     * Tests getSubnetAddres() getter method.
+     * Tests getSubnetAddress() getter method.
      */
     @Test
     public void testGetSubnetAddres() throws Exception {
-        reachability.setSubnetAddres(ip4Address);
-        result = reachability.getSubnetAddres();
+        reachability.setSubnetAddress(ip4Address);
+        result = reachability.getSubnetAddress();
         assertThat(result, is(ip4Address));
     }
 
     /**
-     * Tests setSubnetAddres() setter method.
+     * Tests setSubnetAddress() setter method.
      */
     @Test
     public void testSetSubnetAddres() throws Exception {
-        reachability.setSubnetAddres(ip4Address);
-        result = reachability.getSubnetAddres();
+        reachability.setSubnetAddress(ip4Address);
+        result = reachability.getSubnetAddress();
         assertThat(result, is(ip4Address));
     }
 

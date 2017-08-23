@@ -38,7 +38,7 @@ public interface IpDeviceDescription extends Description {
     URI deviceUri();
 
     /**
-     * Returns the type of the ip device. For ex: Psuedo or actual
+     * Returns the type of the ip device. For ex: Pseudo or actual
      *
      * @return type of the device
      */

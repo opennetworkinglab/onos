@@ -280,7 +280,7 @@ public final class TsLoopPacket implements NetworkAnomaly {
     /**
      * Returns true if the packet passed through the specific device.
      *
-     * @param deviceId identify of the divice to test
+     * @param deviceId identify of the device to test
      * @return true if packet passed through the specific device;
      *         false otherwise
      */

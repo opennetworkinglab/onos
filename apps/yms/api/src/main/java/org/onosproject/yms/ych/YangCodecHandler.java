@@ -118,7 +118,7 @@ public interface YangCodecHandler {
      * The protocols can have a logical root node which acts as a container
      * of applications module node.  For example in RESTCONF, it could be
      * RootResource/data, etc. There is no validation done on the value
-     * of this parameter. It is upto the protocol to use it. It is a
+     * of this parameter. It is up to the protocol to use it. It is a
      * mandatory parameter and protocols must pass this parameter.
      * <p>
      * The resource to be operated upon in the device is identified in a

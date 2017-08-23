@@ -111,7 +111,7 @@ public class TlvsToBytesTest {
         metricOfIntRea.setErrorMetricSupported(false);
         metricOfIntRea.setExpenseIsInternal(true);
         metricOfIntRea.setIpAddress(ip4Address);
-        metricOfIntRea.setSubnetAddres(ip4Address);
+        metricOfIntRea.setSubnetAddress(ip4Address);
         ipInterReacTlv.addInternalReachabilityMetric(metricOfIntRea);
         tlv = TlvsToBytes.tlvToBytes(ipInterReacTlv);
         assertThat(tlv, is(notNullValue()));

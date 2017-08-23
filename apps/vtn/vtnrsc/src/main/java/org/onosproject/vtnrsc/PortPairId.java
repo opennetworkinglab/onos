@@ -55,7 +55,7 @@ public final class PortPairId extends Identifier<UUID> {
     }
 
     /**
-     * Returns teh value of port pair id.
+     * Returns the value of port pair id.
      *
      * @return port pair id
      */

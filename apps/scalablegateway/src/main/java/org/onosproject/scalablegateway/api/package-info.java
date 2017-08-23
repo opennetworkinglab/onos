@@ -15,6 +15,6 @@
  */
 
 /**
- * Application api for Scaleable Gateway management.
+ * Application api for Scalable Gateway management.
  */
 package org.onosproject.scalablegateway.api;

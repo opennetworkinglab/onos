@@ -84,7 +84,7 @@ public class DynamicDeviceConfigServiceViewTest {
             .addBranchPointSchema("intf", "test")
             .build();
 
-        final CountDownLatch recieved = new CountDownLatch(1);
+        final CountDownLatch received = new CountDownLatch(1);
 
         DynamicConfigListener lsnr = new DynamicConfigListener() {
 
@@ -97,14 +97,14 @@ public class DynamicDeviceConfigServiceViewTest {
             @Override
             public void event(DynamicConfigEvent event) {
                 viewEvent = event;
-                recieved.countDown();
+                received.countDown();
             }
         };
         view.addListener(lsnr);
 
         service.post(new DynamicConfigEvent(Type.NODE_ADDED, realIntf));
 
-        assertTrue(recieved.await(5, TimeUnit.SECONDS));
+        assertTrue(received.await(5, TimeUnit.SECONDS));
 
         assertFalse("Expect relative path but was" + viewRelevantEvent.subject(),
                     ResourceIds.isPrefix(rid, viewRelevantEvent.subject()));
