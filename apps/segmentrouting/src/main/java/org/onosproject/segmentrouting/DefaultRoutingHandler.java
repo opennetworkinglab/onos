@@ -27,11 +27,14 @@ import org.joda.time.DateTime;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
@@ -238,7 +241,8 @@ public class DefaultRoutingHandler {
      *
      * @param cpts connect point(s) of the subnets being added
      * @param subnets subnets being added
-     */ //XXX refactor
+     */
+    // XXX refactor
     protected void populateSubnet(Set<ConnectPoint> cpts, Set<IpPrefix> subnets) {
         lastRoutingChange = DateTime.now();
         statusLock.lock();
@@ -250,7 +254,8 @@ public class DefaultRoutingHandler {
             }
             populationStatus = Status.STARTED;
             rulePopulator.resetCounter();
-            log.info("Starting to populate routing rules for added routes");
+            log.info("Starting to populate routing rules for added routes, subnets={}, cpts={}",
+                    subnets, cpts);
             // Take snapshots of the topology
             updatedEcmpSpgMap = new HashMap<>();
             Set<EdgePair> edgePairs = new HashSet<>();
@@ -968,6 +973,40 @@ public class DefaultRoutingHandler {
             return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
         } finally {
             statusLock.unlock();
+        }
+    }
+
+    /**
+     * Populates IP rules for a route that has direct connection to the switch
+     * if the current instance is the master of the switch.
+     *
+     * @param deviceId device ID of the device that next hop attaches to
+     * @param prefix IP prefix of the route
+     * @param hostMac MAC address of the next hop
+     * @param hostVlanId Vlan ID of the nexthop
+     * @param outPort port where the next hop attaches to
+     */
+    void populateRoute(DeviceId deviceId, IpPrefix prefix,
+                       MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+        if (srManager.mastershipService.isLocalMaster(deviceId)) {
+            srManager.routingRulePopulator.populateRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
+        }
+    }
+
+    /**
+     * Removes IP rules for a route when the next hop is gone.
+     * if the current instance is the master of the switch.
+     *
+     * @param deviceId device ID of the device that next hop attaches to
+     * @param prefix IP prefix of the route
+     * @param hostMac MAC address of the next hop
+     * @param hostVlanId Vlan ID of the nexthop
+     * @param outPort port that next hop attaches to
+     */
+    void revokeRoute(DeviceId deviceId, IpPrefix prefix,
+                     MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+        if (srManager.mastershipService.isLocalMaster(deviceId)) {
+            srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
         }
     }
 

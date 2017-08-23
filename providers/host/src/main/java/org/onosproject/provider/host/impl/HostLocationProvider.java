@@ -434,6 +434,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 MacAddress probeMac = providerService.addPendingHostLocation(host.id(), location);
 
                 host.ipAddresses().stream().findFirst().ifPresent(ip -> {
+                    log.debug("Probing host {} with {}", host.id(), ip);
                     Ethernet probe;
                     if (ip.isIp4()) {
                         probe = ARP.buildArpRequest(probeMac.toBytes(), Ip4Address.ZERO.toOctets(),

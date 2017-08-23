@@ -60,6 +60,7 @@ public class HostHandlerTest {
             Maps.newConcurrentMap();
     private static final Map<MockRoutingTableKey, MockRoutingTableValue> ROUTING_TABLE =
             Maps.newConcurrentMap();
+    private static final Map<ConnectPoint, Set<IpPrefix>> SUBNET_TABLE = Maps.newConcurrentMap();
     // Mocked Next Id
     private static final Map<Integer, TrafficTreatment> NEXT_TABLE = Maps.newConcurrentMap();
 
@@ -191,6 +192,7 @@ public class HostHandlerTest {
         srManager.deviceConfiguration = new DeviceConfiguration(srManager);
         srManager.flowObjectiveService = new MockFlowObjectiveService(BRIDGING_TABLE, NEXT_TABLE);
         srManager.routingRulePopulator = new MockRoutingRulePopulator(srManager, ROUTING_TABLE);
+        srManager.defaultRoutingHandler = new MockDefaultRoutingHandler(srManager, SUBNET_TABLE);
         srManager.interfaceService = new MockInterfaceService(INTERFACES);
         srManager.mastershipService = new MockMastershipService(LOCAL_DEVICES);
         srManager.hostService = new MockHostService(HOSTS);

@@ -130,6 +130,7 @@ import static org.onlab.util.Tools.groupedThreads;
 public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
+    private static final String NOT_MASTER = "Current instance is not the master of {}. Ignore.";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ComponentConfigService compCfgService;
@@ -697,6 +698,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
+    }
+
+    /**
+     * Determine if current instance is the master of given connect point.
+     *
+     * @param cp connect point
+     * @return true if current instance is the master of given connect point
+     */
+    boolean isMasterOf(ConnectPoint cp) {
+        boolean isMaster = mastershipService.isLocalMaster(cp.deviceId());
+        if (!isMaster) {
+            log.debug(NOT_MASTER, cp);
+        }
+        return isMaster;
     }
 
     /**
@@ -1539,6 +1554,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     break;
                 case HOST_MOVED:
                     hostHandler.processHostMovedEvent(event);
+                    routeHandler.processHostMovedEvent(event);
                     break;
                 case HOST_REMOVED:
                     hostHandler.processHostRemovedEvent(event);
@@ -1586,6 +1602,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     break;
                 case ROUTE_REMOVED:
                     routeHandler.processRouteRemoved(event);
+                    break;
+                case ALTERNATIVE_ROUTES_CHANGED:
+                    routeHandler.processAlternativeRoutesChanged(event);
                     break;
                 default:
                     break;

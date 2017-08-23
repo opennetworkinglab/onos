@@ -36,6 +36,15 @@ public class MockDefaultRoutingHandler extends DefaultRoutingHandler {
 
     @Override
     protected void populateSubnet(Set<ConnectPoint> cpts, Set<IpPrefix> subnets) {
+        subnetTable.forEach((k, v) -> {
+            if (!cpts.contains(k)) {
+                subnetTable.get(k).removeAll(subnets);
+                if (subnetTable.get(k).isEmpty()) {
+                    subnetTable.remove(k);
+                }
+            }
+        });
+
         cpts.forEach(cpt -> subnetTable.put(cpt, subnets));
     }
 
