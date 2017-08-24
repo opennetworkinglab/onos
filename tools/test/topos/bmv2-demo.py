@@ -40,6 +40,7 @@ from mininet.net import Mininet
 from mininet.node import RemoteController, Host
 from mininet.topo import Topo
 
+
 class ClosTopo(Topo):
     "2 stage Clos topology"
 
@@ -51,7 +52,7 @@ class ClosTopo(Topo):
         bmv2Switches = {}
 
         for switchId in bmv2SwitchIds:
-            deviceId=int(switchId[1:])
+            deviceId = int(switchId[1:])
             # Use first number in device id to calculate latitude (row number)
             latitude = SWITCH_BASE_LATITUDE + (deviceId // 10) * BASE_SHIFT
 
@@ -143,8 +144,9 @@ class DemoHost(Host):
     def getCmdBg(self, cmd, logfile="/dev/null"):
         return "{} > {} 2>&1 &".format(cmd, logfile)
 
-def generateNetcfg(onosIp, net):
-    netcfg = { 'devices': {}, 'links': {}, 'hosts': {}}
+
+def generateNetcfg(onosIp, net, args):
+    netcfg = {'devices': {}, 'links': {}, 'hosts': {}}
     # Device configs
     for sw in net.switches:
         srcIp = sw.getSourceIp(onosIp)
@@ -154,8 +156,8 @@ def generateNetcfg(onosIp, net):
     # Link configs
     for link in net.links:
         switchPort = link.intf1.name.split('-')
-        sw1Name = switchPort[0] # s11
-        port1Name = switchPort[1] # eth0
+        sw1Name = switchPort[0]  # s11
+        port1Name = switchPort[1]  # eth0
         port1 = port1Name[3:]
         switchPort = link.intf2.name.split('-')
         sw2Name = switchPort[0]
@@ -207,10 +209,10 @@ def generateNetcfg(onosIp, net):
 
     print "Writing network config to %s" % TEMP_NETCFG_FILE
     with open(TEMP_NETCFG_FILE, 'w') as tempFile:
-        json.dump(netcfg, tempFile)
+        json.dump(netcfg, tempFile, indent=4)
+
 
 def main(args):
-    setLogLevel('debug')
     if not args.onos_ip:
         controller = ONOSCluster('c0', 3)
         onosIp = controller.nodes()[0].IP()
@@ -244,7 +246,7 @@ def main(args):
     # print "Starting traffic from h1 to h3..."
     # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
 
-    generateNetcfg(onosIp, net)
+    generateNetcfg(onosIp, net, args)
 
     print "Uploading netcfg..."
     call(("%s/onos-netcfg" % RUN_PACK_PATH, onosIp, TEMP_NETCFG_FILE))
