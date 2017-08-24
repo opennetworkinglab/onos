@@ -22,10 +22,10 @@ osgi_jar(
 
 onos_app (
     app_name = 'org.onosproject.drivers.bmv2',
-    title = 'BMv2 Device Drivers',
+    title = 'BMv2 Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS BMv2 device drivers application.',
+    description = 'Adds support for BMv2 P4 devices.',
     included_bundles = BUNDLES,
     required_apps = [
         'org.onosproject.generaldeviceprovider',

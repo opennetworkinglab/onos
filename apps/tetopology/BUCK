@@ -5,7 +5,7 @@ BUNDLES = [
 
 onos_app (
     app_name = 'org.onosproject.tetopology',
-    title = 'TE Topology Core App',
+    title = 'TE Topology Core',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'Application to create and manage hierarchical TE topologies.',

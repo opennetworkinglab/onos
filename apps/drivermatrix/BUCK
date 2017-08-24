@@ -15,6 +15,7 @@ onos_app (
     title = 'Driver Support Matrix',
     category = 'Utility',
     url = 'http://onosproject.org',
-    description = 'Driver behaviour support matrix.',
+    description = 'Extends the ONOS GUI with a view that allows the operator to visualize ' +
+        'the currently loaded drivers.',
 )
 

@@ -12,8 +12,8 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-  title = 'Scalable GW App',
-  category = 'Utility',
+  title = 'Scalable Gateway',
+  category = 'Traffic Steering',
   url = 'http://onosproject.org',
   description = 'Scalable gateway service',
 )

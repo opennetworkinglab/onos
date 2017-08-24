@@ -27,7 +27,7 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name='org.onosproject.pce.app',
-    title = 'PCE App',
+    title = 'PCE',
     category = 'default',
     url = 'http://onosproject.org',
     description = 'PCE as centeral controller App.',

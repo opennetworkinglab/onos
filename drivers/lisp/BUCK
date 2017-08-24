@@ -31,10 +31,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.lisp',
-    title = 'LISP Device Drivers',
+    title = 'Generic LISP Drivers',
     category = 'Drivers',
     url = 'https://wiki.onosproject.org/display/ONOS/LISP+as+SBI',
-    description = 'ONOS LISP Device Drivers application.',
+    description = 'Adds support for devices using LISP.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.lisp' ],
 )

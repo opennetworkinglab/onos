@@ -19,9 +19,9 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.flowspec',
-    title = 'Flow specification Device Drivers',
+    title = 'Generic Flow Spec Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS flow specification device drivers application.',
+    description = 'Adds support for devices using flow specs.',
     required_apps = [ 'org.onosproject.drivers'],
 )

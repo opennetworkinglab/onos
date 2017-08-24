@@ -6,10 +6,10 @@ APPS = [
 
 onos_app (
     app_name = 'org.onosproject.openflow',
-    title = 'OpenFlow Meta App',
+    title = 'OpenFlow Provider Suite',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'OpenFlow southbound meta application.',
+    description = 'Suite of the OpenFlow base providers bundled together with ARP/NDP host location provider and LLDP link provider.',
     included_bundles = [ '//utils/osgi:onlab-osgi' ],  # FIXME to allow hollow oar files
     required_apps = APPS,
 )

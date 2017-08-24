@@ -7,8 +7,10 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Mastership Load Balancer App',
+    title = 'Mastership Load Balancer',
     category = 'Utility',
     url = 'http://onosproject.org',
-    description = 'Application that balances mastership among nodes.',
+    description = 'Monitors distribution of mastership of network devices between the ONOS cluster ' +
+        'nodes and periodically re-assigns the mastership to achieve balanced distribution when ' +
+        'necessary and possible.',
 )

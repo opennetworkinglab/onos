@@ -15,8 +15,8 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Virtual Broadband Gateway App',
-    category = 'Utility',
+    title = 'Virtual Broadband Gateway',
+    category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'A virtual Broadband Network Gateway(BNG) application.',
 )

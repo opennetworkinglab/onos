@@ -172,6 +172,8 @@ def onos_app(
     args += [ '-b $(maven_coords %s)' % b for b in included_bundles ]
     args += [ '-e $(maven_coords %s)' % b for b in excluded_bundles ]
     args += [ '-d %s' % a for a in required_apps ]
+    if description is not None:
+        args += [ '-D "%s"' % description ]
 
     # cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
     # genrule(

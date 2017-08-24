@@ -16,7 +16,7 @@ osgi_jar (
 )
 
 onos_app (
-    title = 'BGP Router App',
+    title = 'BGP Router',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'BGP router application.',

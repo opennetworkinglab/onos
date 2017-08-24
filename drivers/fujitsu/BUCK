@@ -28,10 +28,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.fujitsu',
-    title = 'Fujitsu device drivers',
+    title = 'Fujitsu Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Fujitsu device drivers application.',
+    description = 'Adds support for Fujitsu devices.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.netconf', 'org.onosproject.optical-model', 'org.onosproject.drivers.optical' ],
 )

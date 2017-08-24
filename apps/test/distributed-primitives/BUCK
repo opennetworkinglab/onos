@@ -14,8 +14,8 @@ osgi_jar (
 
 onos_app (
     app_name = 'org.onosproject.distributedprimitives',
-    title = 'Distributed Primitives Test App',
-    category = 'Test',
+    title = 'Distributed Primitives Test',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
     description = 'ONOS app to test distributed primitives.',
 )

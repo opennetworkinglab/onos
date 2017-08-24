@@ -11,6 +11,8 @@ onos_app (
     title = 'Network Config Host Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'Host provider that uses network config service to discover hosts.',
+    description = 'Allows operator to prescribe information about known hosts and their locations ' +
+        'using the network configuration subsystem. Such information takes precedence over ' +
+        'information discovered through other host location providers.',
 )
 

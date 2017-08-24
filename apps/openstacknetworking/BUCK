@@ -22,15 +22,15 @@ osgi_jar_with_tests (
   deps = COMPILE_DEPS,
   test_deps = TEST_DEPS,
   web_context = '/onos/openstacknetworking',
-  api_title = 'OpenStack Networking App API',
+  api_title = 'OpenStack Networking API',
   api_version = '1.0',
-  api_description = 'REST API for OpenStack Networking App',
+  api_description = 'REST API for OpenStack Networking',
   api_package = 'org.onosproject.openstacknetworking.web',
 )
 
 onos_app (
   app_name = 'org.onosproject.openstacknetworking',
-  title = 'OpenStack Networking App',
+  title = 'OpenStack Networking',
   category = 'Utility',
   url = 'http://onosproject.org',
   description = 'OpenStack Networking application.',

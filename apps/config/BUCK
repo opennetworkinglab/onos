@@ -16,9 +16,12 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Dynamic Config App',
+    title = 'Dynamic Configuration',
     category = 'Utility',
     url = 'http://onosproject.org',
-    description = 'Application to support the Dynamic configuration service and store.',
+    description = 'Provides means to track and distribute service and device configuration data ' +
+        'throughout the ONOS cluster. It works with the YANG runtime to ensure that the tracked ' +
+        'data adheres to the registered YANG models. Applications can traverse and access this ' +
+        'data which is organized in a logically unified tree.<p/>(Under development)',
     required_apps = APPS,
 )

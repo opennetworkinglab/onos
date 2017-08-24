@@ -11,15 +11,15 @@ COMPILE_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     web_context = '/onos/demo',
-    api_title = 'Flow Throughput Demo App',
+    api_title = 'Flow Throughput Demo',
     api_version = '1.0',
-    api_description = 'REST API for Demo App',
+    api_description = 'REST API for Demo',
     api_package = 'org.onosproject.demo',
 )
 
 onos_app (
-    title = 'Flow Throughput Demo App',
-    category = 'Test',
+    title = 'Flow Throughput Demo',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
     description = 'APIs for interacting with the flow throughput test application.',
 )

@@ -21,9 +21,9 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.hp',
-    title = 'HP driver',
+    title = 'HP Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS HP device drivers application.',
+    description = 'Adds support for HP devices.',
     required_apps = [ 'org.onosproject.openflow' ],
 )

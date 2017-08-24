@@ -21,7 +21,7 @@ onos_app (
     # Is there a way to change BUCK target name properly?
     #name = 'onos-optical-model',
     feature_coords = 'org.onosproject:onos-optical-model:%s' % (ONOS_VERSION),
-    title = 'Optical information model',
+    title = 'Optical Network Model',
     category = 'Optical',
     url = 'https://wiki.onosproject.org/x/C4m',
     description = 'ONOS optical information model.',

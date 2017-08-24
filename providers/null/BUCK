@@ -13,8 +13,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Null Southbound Provider',
-    category = 'Provider',
+    title = 'Null Provider Suite',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
-    description = 'ONOS null southbound provider.',
+    description = 'Suite of device, link, host, flow and packet providers that allow the operator ' +
+        'to test ONOS against completely fictional network topology. This is useful for conducting ' +
+        'ONOS core performance tests and for developing features that require only control plane ' +
+        '- and not data plane - functionality. ',
 )

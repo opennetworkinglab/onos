@@ -22,9 +22,9 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/openstacknode',
-    api_title = 'OpenStack Node App API',
+    api_title = 'OpenStack Node API',
     api_version = '1.0',
-    api_description = 'REST API for OpenStack Node App',
+    api_description = 'REST API for OpenStack Node',
     api_package = 'org.onosproject.openstacknode.web',
 )
 

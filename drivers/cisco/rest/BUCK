@@ -27,10 +27,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.cisco.rest',
-    title = 'Cisco REST device drivers',
+    title = 'Cisco REST Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Cisco REST device drivers application.',
+    description = 'Adds support for Cisco devices using REST.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.restsb' ],
 )

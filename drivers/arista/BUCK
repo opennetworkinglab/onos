@@ -27,10 +27,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.arista',
-    title = 'Arista Device Drivers',
+    title = 'Arista Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Arista Device Drivers application.',
+    description = 'Adds support for Arista devices.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.restsb' ],
 )

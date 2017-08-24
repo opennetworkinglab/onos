@@ -8,7 +8,7 @@ osgi_jar (
 )
 
 onos_app (
-    title = 'Proxy ARP/NDP App',
+    title = 'Proxy ARP/NDP',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'Proxy ARP/NDP application.',

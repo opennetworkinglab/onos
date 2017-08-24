@@ -17,10 +17,10 @@ osgi_jar_with_tests (
 
 onos_app (
   app_name = 'org.onosproject.drivers.juniper',
-  title = 'Juniper Device Drivers',
+  title = 'Juniper Drivers',
   category = 'Drivers',
   url = 'http://onosproject.org',
-  description = 'ONOS Juniper Device Drivers application.',
+  description = 'Adds support for Juniper devices.',
   included_bundles = BUNDLES,
   required_apps = [ 'org.onosproject.netconf' ],
 )

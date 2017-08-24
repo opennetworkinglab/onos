@@ -16,8 +16,8 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/mappingmanagement',
-    api_title = 'Mapping Management App API',
+    api_title = 'Mapping Management API',
     api_version = '1.0',
-    api_description = 'REST API for ONOS Mapping Management App',
+    api_description = 'REST API for ONOS Mapping Management',
     api_package = 'org.onosproject.mapping.web.api',
 )

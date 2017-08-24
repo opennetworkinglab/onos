@@ -7,7 +7,7 @@ BUNDLES = [
 ]
 
 onos_app(
-  title = 'YANG Management System App',
+  title = 'YANG Management System',
   category = 'Utility',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,

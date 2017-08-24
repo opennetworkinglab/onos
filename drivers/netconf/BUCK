@@ -23,10 +23,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.netconf',
-    title = 'NETCONF Device Drivers',
+    title = 'Generic NETCONF Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS NETCONF Device Drivers application.',
+    description = 'Adds support for devices using NETCONF.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.netconf' ],
 )

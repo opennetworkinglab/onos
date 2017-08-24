@@ -33,7 +33,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'InfluxDB Report and Query App',
+    title = 'InfluxDB Report and Query',
     category = 'Monitoring',
     url = 'http://onosproject.org',
     description = 'Performance metric service reporter and retriever for influxDB.',

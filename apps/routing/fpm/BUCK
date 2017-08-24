@@ -28,7 +28,7 @@ BUNDLES = [
 
 onos_app (
     app_name = 'org.onosproject.fpm',
-    title = 'FIB Push Manager (FPM) route reciever',
+    title = 'FIB Push Manager (FPM) Route Receiver',
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Receives routes from external routing daemon over FPM protocol',

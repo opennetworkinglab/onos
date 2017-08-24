@@ -13,8 +13,10 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Event History App',
-    category = 'Utility',
+    title = 'Event History',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
-    description = 'App to display ONOS event history.',
+    description = 'Allows recording and tracking of otherwise ephemeral ONOS core events. ' +
+        'It is primarily aimed for supporting various system tests and to assure that expected ' +
+        'events are raised and broadcast to applications that have requested them.',
 )

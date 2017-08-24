@@ -29,7 +29,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Segment Routing App',
+    title = 'Segment Routing',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,

@@ -6,7 +6,7 @@ BUNDLES = [
 ]
 
 onos_app (
-  title = 'Fault Management App',
+  title = 'Fault Management',
   description = 'ONOS fault management application',
   category = 'Monitoring',
   url = 'https://wiki.onosproject.org/display/ONOS/Fault+Management',

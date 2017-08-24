@@ -4,7 +4,7 @@ BUNDLES = [
 ]
 
 onos_app (
-  title = 'DHCP Server App',
+  title = 'DHCP Server',
   category = 'Utility',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,

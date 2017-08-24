@@ -44,7 +44,10 @@ onos_app(
   title = 'YANG Compiler and Runtime',
   category = 'Utility',
   url = 'http://onosproject.org',
-  description = 'Base application to bring in the YANG libraries and assemble them for other apps to use.',
+  description = 'Provides ability to register compiled YANG models or even to compile YANG source ' +
+    'files on the fly. Registering YANG models allows other ONOS subsystems to interact with ' +
+    'orchestrators or individual network devices using XML or JSON data structured in accordance ' +
+    'with those models.',
   included_bundles = BUNDLES,
   excluded_bundles = EXCLUDED_BUNDLES,
 )

@@ -28,14 +28,14 @@ osgi_jar_with_tests (
   deps = COMPILE_DEPS,
   test_deps = TEST_DEPS,
   web_context = '/onos/castor',
-  api_title = 'Castor App',
+  api_title = 'Castor',
   api_version = '1.0',
-  api_description = 'REST API for Castor App',
+  api_description = 'REST API for Castor',
   api_package = 'org.onosproject.castor',
 )
 
 onos_app (
-  title = 'Castor App',
+  title = 'Castor',
   category = 'Utility',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,

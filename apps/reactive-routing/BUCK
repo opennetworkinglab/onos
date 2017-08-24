@@ -13,7 +13,7 @@ osgi_jar (
 )
 
 onos_app (
-    title = 'SDN-IP Reactive Routing App',
+    title = 'SDN-IP Reactive Routing',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'SDN-IP reactive routing application.',

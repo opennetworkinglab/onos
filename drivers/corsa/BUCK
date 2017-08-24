@@ -21,9 +21,9 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.corsa',
-    title = 'Corsa device drivers',
+    title = 'Corsa Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Corsa device drivers application.',
+    description = 'Adds support for Corsa devices.',
     required_apps = [ 'org.onosproject.openflow' ],
 )

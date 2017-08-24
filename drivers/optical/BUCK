@@ -23,9 +23,9 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.optical',
-    title = 'Other optical Device Drivers',
+    title = 'Basic Optical Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS other optical Device Drivers application.',
+    description = 'Suite of basic optical device drivers.',
     required_apps = [ 'org.onosproject.drivers', 'org.onosproject.optical-model' ],
 )

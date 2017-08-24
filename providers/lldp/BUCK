@@ -26,7 +26,7 @@ onos_app (
     title = 'LLDP Link Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'ONOS LLDP Link provider.',
+    description = 'Provides link discovery to the ONOS core by eavesdropping on the LLDP control packets.',
     included_bundles = BUNDLES,
 )
 
