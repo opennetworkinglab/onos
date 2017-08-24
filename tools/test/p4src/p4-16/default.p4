@@ -34,7 +34,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     direct_counter(CounterType.packets) table0_counter;
     direct_counter(CounterType.packets) ecmp_counter;
 
-    action do_ecmp(inout metadata_t meta, ecmp_group_id_t ecmp_group_id) {
+    action do_ecmp(ecmp_group_id_t ecmp_group_id) {
         meta.ecmp_group_id = ecmp_group_id;
     }
 
@@ -53,16 +53,16 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
         actions = {
             set_egress_port(standard_metadata);
             send_to_cpu(standard_metadata);
-            do_ecmp(meta);
+            do_ecmp();
             drop(standard_metadata);
         }
         counters = table0_counter;
+        default_action = drop(standard_metadata);
     }
 
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
     table ecmp {
         support_timeout = false;
-
         key = {
             meta.ecmp_group_id             : exact;
             // Not for matching.

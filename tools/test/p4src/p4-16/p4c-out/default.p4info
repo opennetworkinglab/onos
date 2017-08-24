@@ -40,10 +40,6 @@ tables {
   action_refs {
     id: 16793508
   }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
   direct_resource_ids: 301990488
   size: 1024
 }
