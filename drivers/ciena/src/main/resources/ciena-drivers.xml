@@ -21,6 +21,8 @@
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.ciena.CienaWaveserverDeviceDescription"/>
+        <behaviour api="org.onosproject.net.behaviour.PortAdmin"
+                   impl="org.onosproject.drivers.ciena.CienaWaveserverPortAdmin"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
     </driver>

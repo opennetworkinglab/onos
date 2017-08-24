@@ -40,8 +40,8 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
@@ -64,11 +64,13 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
     private static final String PORT_IN = "properties.line-system.cmd.port-in";
     private static final String PORT_OUT = "properties.line-system.cmd.port-out";
 
-    private static final ArrayList<String> LINESIDE_PORT_ID = Lists.newArrayList(
-            "4", "48");
+    private static final String CHANNEL_ID =
+            "properties.transmitter.line-system-channel-number";
 
     private static final String PORT_REQUEST =
             "ciena-ws-ptp:ws-ptps?config=true&format=xml&depth=unbounded";
+    private static final ArrayList<String> LINESIDE_PORT_ID = Lists.newArrayList(
+            "4", "48");
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
@@ -102,6 +104,18 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
     }
 
     private List<PortDescription> getPorts() {
+        /*
+         * Relationship between ptp-index and port number shown in Ciena Wave Server
+         * CLI:
+         *      ptp-index = 4 * port_number (without decimal) + decimal
+         *      e.g
+         *          if port_number is 5 then ptp-index = 5 * 4 + 0 = 20
+         *          if port_number is 5.1 then ptp-index = 5 * 4 + 1 = 21
+         *
+         * Relationship between channelId and in/out port:
+         *      in_port = channelId * 2
+         *      out_port = channelId * 2 -1
+         */
         List<PortDescription> ports = Lists.newArrayList();
         RestSBController controller = checkNotNull(handler().get(RestSBController.class));
         DeviceId deviceId = handler().data().deviceId();
@@ -113,17 +127,18 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
         portsConfig.forEach(sub -> {
             String portId = sub.getString(PORT_ID);
             DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
-
             if (LINESIDE_PORT_ID.contains(portId)) {
-                // TX port
+                // TX/OUT port
+                annotations.set(AnnotationKeys.CHANNEL_ID, sub.getString(CHANNEL_ID));
                 annotations.set(AnnotationKeys.PORT_NAME, portId + " TX");
                 ports.add(parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_OUT),
                         sub,
                         annotations.build()));
 
-                // RX port
+                // RX/IN port
                 annotations.set(AnnotationKeys.PORT_NAME, portId + " RX");
+                annotations.set(AnnotationKeys.CHANNEL_ID, sub.getString(CHANNEL_ID));
                 ports.add(parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_IN),
                         sub,

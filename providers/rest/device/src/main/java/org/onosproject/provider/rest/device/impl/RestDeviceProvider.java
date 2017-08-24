@@ -28,6 +28,7 @@ import org.onlab.util.SharedScheduledExecutorService;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.behaviour.PortAdmin;
 import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -80,6 +81,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
@@ -495,6 +497,29 @@ public class RestDeviceProvider extends AbstractProvider
     @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
-        // TODO if required
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null) {
+            if (device.is(PortAdmin.class)) {
+                PortAdmin portAdmin = device.as(PortAdmin.class);
+                CompletableFuture<Boolean> modified;
+                if (enable) {
+                    modified = portAdmin.enable(portNumber);
+                } else {
+                    modified = portAdmin.disable(portNumber);
+                }
+                modified.thenAcceptAsync(result -> {
+                    if (!result) {
+                        log.warn("Device {} port {} state can't be changed to {}",
+                                 deviceId, portNumber, enable);
+                    }
+                });
+
+            } else {
+                log.warn("Device {} does not support PortAdmin behavior", deviceId);
+            }
+        } else {
+            log.warn("unable to get the device {}, port {} state can't be changed to {}",
+                     deviceId, portNumber, enable);
+        }
     }
 }
