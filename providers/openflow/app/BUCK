@@ -9,7 +9,8 @@ onos_app (
     title = 'OpenFlow Provider Suite',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'Suite of the OpenFlow base providers bundled together with ARP/NDP host location provider and LLDP link provider.',
+    description = 'Suite of the OpenFlow base providers bundled together with ARP/NDP host ' +
+        'location provider and LLDP link provider.',
     included_bundles = [ '//utils/osgi:onlab-osgi' ],  # FIXME to allow hollow oar files
     required_apps = APPS,
 )

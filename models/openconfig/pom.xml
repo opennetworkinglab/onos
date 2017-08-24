@@ -26,12 +26,12 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-models-openroadm</artifactId>
+    <artifactId>onos-models-openconfig</artifactId>
     <packaging>bundle</packaging>
-    <description>Open ROADM YANG models (1.2.1)</description>
+    <description>OpenConfig YANG models</description>
 
     <properties>
-        <onos.app.name>org.onosproject.models.openroadm</onos.app.name>
+        <onos.app.name>org.onosproject.models.openconfig</onos.app.name>
     </properties>
 
     <dependencies>
