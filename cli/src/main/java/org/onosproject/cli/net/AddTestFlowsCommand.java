@@ -55,7 +55,7 @@ import com.google.common.collect.Streams;
          description = "Installs a number of test flow rules - for testing only")
 public class AddTestFlowsCommand extends AbstractShellCommand {
 
-    private static final int MAX_OUT_PORT = 65279;
+    private static final int MAX_OUT_PORT = 254;
 
     private CountDownLatch latch;
 
