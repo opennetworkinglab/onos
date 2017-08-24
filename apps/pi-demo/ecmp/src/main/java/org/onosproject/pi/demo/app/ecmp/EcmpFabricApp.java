@@ -21,6 +21,8 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Component;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
+import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
@@ -73,13 +75,14 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     private static final String APP_NAME = "org.onosproject.pi-ecmp-fabric";
     private static final String MODEL_NAME = "ECMP";
     private static final String PIPECONF_ID = "org.project.pipeconf.ecmp";
-    private static final URL P4INFO_URL = EcmpFabricApp.class.getResource("ecmp.p4info");
-    private static final URL JSON_URL = EcmpFabricApp.class.getResource("ecmp.json");
+    private static final URL P4INFO_URL = EcmpFabricApp.class.getResource("/ecmp.p4info");
+    private static final URL JSON_URL = EcmpFabricApp.class.getResource("/ecmp.json");
 
     private static final PiPipeconf ECMP_PIPECONF = DefaultPiPipeconf.builder()
             .withId(new PiPipeconfId(PIPECONF_ID))
             .withPipelineModel(Bmv2PipelineModelParser.parse(JSON_URL))
             .addBehaviour(PiPipelineInterpreter.class, EcmpInterpreter.class)
+            .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
             .addExtension(P4_INFO_TEXT, P4INFO_URL)
             .addExtension(BMV2_JSON, JSON_URL)
             .build();

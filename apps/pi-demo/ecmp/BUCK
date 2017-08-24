@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//lib:minimal-json',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
     '//apps/pi-demo/common:onos-apps-pi-demo-common',
+    '//drivers/default:onos-drivers-default',
 ]
 
 osgi_jar (
@@ -12,6 +13,7 @@ osgi_jar (
 BUNDLES = [
     '//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp',
     '//apps/pi-demo/common:onos-apps-pi-demo-common',
+    '//drivers/default:onos-drivers-default',
 ]
 
 onos_app (
