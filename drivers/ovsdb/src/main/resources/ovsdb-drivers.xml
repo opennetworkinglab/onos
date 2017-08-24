@@ -17,8 +17,6 @@
 <drivers>
     <driver name="default"
             manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
-        <behaviour api="org.onosproject.net.behaviour.TunnelConfig"
-                   impl="org.onosproject.drivers.ovsdb.OvsdbTunnelConfig"/>
         <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
                    impl="org.onosproject.drivers.ovsdb.OvsdbBridgeConfig"/>
         <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
