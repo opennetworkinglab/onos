@@ -675,23 +675,24 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
      * @return true if the host is directly connected to the network; false otherwise
      */
     private boolean directlyConnected(DHCP dhcpPayload) {
-        DhcpOption relayAgentOption = dhcpPayload.getOption(OptionCode_CircuitID);
+        DhcpRelayAgentOption relayAgentOption =
+                (DhcpRelayAgentOption) dhcpPayload.getOption(OptionCode_CircuitID);
 
         // Doesn't contains relay option
         if (relayAgentOption == null) {
             return true;
         }
 
-        IpAddress gatewayIp = IpAddress.valueOf(dhcpPayload.getGatewayIPAddress());
-        Set<Interface> gatewayInterfaces = interfaceService.getInterfacesByIp(gatewayIp);
+        // check circuit id, if circuit id is invalid, we say it is an indirect host
+        DhcpOption circuitIdOpt = relayAgentOption.getSubOption(CIRCUIT_ID.getValue());
 
-        // Contains relay option, and added by ONOS
-        if (!gatewayInterfaces.isEmpty()) {
+        try {
+            CircuitId.deserialize(circuitIdOpt.getData());
             return true;
+        } catch (Exception e) {
+            // invalid circuit id
+            return false;
         }
-
-        // Relay option added by other relay agent
-        return false;
     }
 
 

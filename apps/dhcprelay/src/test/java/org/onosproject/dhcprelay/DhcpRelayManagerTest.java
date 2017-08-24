@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.io.Charsets;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -159,6 +160,7 @@ public class DhcpRelayManagerTest {
             CLIENT2_INTERFACE,
             SERVER_INTERFACE
     );
+    private static final String NON_ONOS_CID = "Non-ONOS circuit ID";
 
     private DhcpRelayManager manager;
     private MockPacketService packetService;
@@ -576,8 +578,8 @@ public class DhcpRelayManagerTest {
             if (withNonOnosRelayInfo) {
                 DhcpRelayAgentOption relayOption = new DhcpRelayAgentOption();
                 DhcpOption circuitIdOption = new DhcpOption();
-                CircuitId circuitId = new CircuitId("Custom cid", VlanId.NONE);
-                byte[] cid = circuitId.serialize();
+                String circuitId = NON_ONOS_CID;
+                byte[] cid = circuitId.getBytes(Charsets.US_ASCII);
                 circuitIdOption.setCode(DhcpRelayAgentOption.RelayAgentInfoOptions.CIRCUIT_ID.getValue());
                 circuitIdOption.setLength((byte) cid.length);
                 circuitIdOption.setData(cid);
