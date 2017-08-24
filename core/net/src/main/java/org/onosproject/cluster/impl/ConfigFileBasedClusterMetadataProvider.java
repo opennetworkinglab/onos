@@ -21,9 +21,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -130,7 +129,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         checkState(isAvailable());
         synchronized (this) {
             if (cachedMetadata.get() == null) {
-                cachedMetadata.set(fetchMetadata(metadataUrl));
+                cachedMetadata.set(blockForMetadata(metadataUrl));
             }
             return cachedMetadata.get();
         }
@@ -169,17 +168,29 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
             if ("file".equals(url.getProtocol())) {
                 File file = new File(metadataUrl.replaceFirst("file://", ""));
                 return file.exists();
-            } else if ("http".equals(url.getProtocol())) {
-                try (InputStream file = url.openStream()) {
-                    return true;
-                }
             } else {
-                // Unsupported protocol
-                return false;
+                // Return true for HTTP URLs since we allow blocking until HTTP servers come up
+                return "http".equals(url.getProtocol());
             }
         } catch (Exception e) {
             log.warn("Exception accessing metadata file at {}:", metadataUrl, e);
             return false;
+        }
+    }
+
+    private Versioned<ClusterMetadata> blockForMetadata(String metadataUrl) {
+        int iterations = 0;
+        for (;;) {
+            Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);
+            if (metadata != null) {
+                return metadata;
+            }
+
+            try {
+                Thread.sleep(Math.min((int) Math.pow(2, ++iterations) * 10, 1000));
+            } catch (InterruptedException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 
@@ -193,13 +204,30 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 version = file.lastModified();
                 metadata = mapper.readValue(new FileInputStream(file), ClusterMetadata.class);
             } else if ("http".equals(url.getProtocol())) {
-                URLConnection conn = url.openConnection();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                    log.warn("Could not reach metadata URL {}. Retrying...", url);
+                    return null;
+                }
+                if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+                    return null;
+                }
                 version = conn.getLastModified();
                 metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
             }
+
             if (null == metadata) {
                 log.warn("Metadata is null in the function fetchMetadata");
                 throw new NullPointerException();
+            }
+
+            // If the configured partitions are empty then return a null metadata to indicate that the configuration
+            // needs to be polled until the partitions are populated.
+            if (metadata.getPartitions().isEmpty() || metadata.getPartitions().stream()
+                    .map(partition -> partition.getMembers().size())
+                    .reduce(Math::min)
+                    .orElse(0) == 0) {
+                return null;
             }
             return new Versioned<>(new ClusterMetadata(PROVIDER_ID,
                                                        metadata.getName(),
@@ -222,7 +250,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static class PartitionIdSerializer extends JsonSerializer<PartitionId> {
         @Override
         public void serialize(PartitionId partitionId, JsonGenerator jgen, SerializerProvider provider)
-          throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
             jgen.writeNumber(partitionId.asInt());
         }
     }
@@ -230,7 +258,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private class PartitionIdDeserializer extends JsonDeserializer<PartitionId> {
         @Override
         public PartitionId deserialize(JsonParser jp, DeserializationContext ctxt)
-          throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
             JsonNode node = jp.getCodec().readTree(jp);
             return new PartitionId(node.asInt());
         }
@@ -239,7 +267,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static class ControllerNodeSerializer extends JsonSerializer<ControllerNode> {
         @Override
         public void serialize(ControllerNode node, JsonGenerator jgen, SerializerProvider provider)
-          throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
             jgen.writeStartObject();
             jgen.writeStringField(ID, node.id().toString());
             jgen.writeStringField(IP, node.ip().toString());
@@ -263,7 +291,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static class NodeIdSerializer extends JsonSerializer<NodeId> {
         @Override
         public void serialize(NodeId nodeId, JsonGenerator jgen, SerializerProvider provider)
-          throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
             jgen.writeString(nodeId.toString());
         }
     }
@@ -271,7 +299,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private class NodeIdDeserializer extends JsonDeserializer<NodeId> {
         @Override
         public NodeId deserialize(JsonParser jp, DeserializationContext ctxt)
-          throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
             JsonNode node = jp.getCodec().readTree(jp);
             return new NodeId(node.asText());
         }
@@ -284,7 +312,8 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         // TODO: We are merely polling the url.
         // This can be easily addressed for files. For http urls we need to move to a push style protocol.
         Versioned<ClusterMetadata> latestMetadata = fetchMetadata(metadataUrl);
-        if (cachedMetadata.get() != null && cachedMetadata.get().version() < latestMetadata.version()) {
+        if (cachedMetadata.get() != null && latestMetadata != null
+                && cachedMetadata.get().version() < latestMetadata.version()) {
             cachedMetadata.set(latestMetadata);
             providerService.clusterMetadataChanged(latestMetadata);
         }
