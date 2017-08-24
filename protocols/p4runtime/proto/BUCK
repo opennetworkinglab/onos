@@ -5,7 +5,7 @@ include_defs(
 PROTOBUF_VER = '3.0.2'
 GRPC_VER = '1.3.0'
 
-PI_COMMIT = '8051d54c9c3415ca800db232a226189fd17ad60a'
+PI_COMMIT = '1202bfc3d76d88e274c7ec3156a06d206e0ee068'
 PI_BASEURL = 'https://github.com/p4lang/PI.git'
 
 # Wondering which .proto files to build? Check p4runtime's Makefile:

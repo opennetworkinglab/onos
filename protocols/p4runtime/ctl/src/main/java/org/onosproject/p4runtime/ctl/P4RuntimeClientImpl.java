@@ -296,7 +296,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private Collection<PiTableEntry> doDumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
 
-        log.info("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
+        log.debug("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         int tableId;
@@ -333,7 +333,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .map(Entity::getTableEntry)
                 .collect(Collectors.toList());
 
-        log.info("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
+        log.debug("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
 
         return TableEntryEncoder.decode(tableEntryMsgs, pipeconf);
     }
