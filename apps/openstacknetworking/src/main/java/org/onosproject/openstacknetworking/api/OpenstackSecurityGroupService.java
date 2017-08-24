@@ -40,4 +40,18 @@ public interface OpenstackSecurityGroupService
      * @return security group
      */
     SecurityGroup securityGroup(String sgId);
+
+    /**
+     * Returns whether security group is enabled or not.
+     *
+     * @return true security group is enabled, false otherwise
+     */
+    boolean isSecurityGroupEnabled();
+
+    /**
+     * Sets security group enable option.
+     *
+     * @param option security group enable option
+     */
+    void setSecurityGroupEnabled(boolean option);
 }

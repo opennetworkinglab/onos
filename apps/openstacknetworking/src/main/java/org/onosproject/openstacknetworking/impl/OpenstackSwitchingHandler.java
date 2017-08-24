@@ -43,6 +43,7 @@ import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
@@ -54,7 +55,6 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
@@ -107,6 +107,9 @@ public final class OpenstackSwitchingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackSecurityGroupService securityGroupService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -254,17 +257,19 @@ public final class OpenstackSwitchingHandler {
                 RulePopulatorUtil.niciraConnTrackTreatmentBuilder(driverService, instPort.deviceId())
                         .commit(true).build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder()
                 .setTunnelId(getVni(instPort))
-                .transition(ACL_TABLE)
-                .extension(ctTreatment, instPort.deviceId())
-                .build();
+                .transition(ACL_TABLE);
+
+        if (securityGroupService.isSecurityGroupEnabled()) {
+            tb.extension(ctTreatment, instPort.deviceId());
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
-                treatment,
+                tb.build(),
                 PRIORITY_TUNNEL_TAG_RULE,
                 SRC_VNI_TABLE,
                 install);

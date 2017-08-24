@@ -129,6 +129,7 @@ public class OpenstackSecurityGroupHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -206,6 +207,7 @@ public class OpenstackSecurityGroupHandler {
                     useSecurityGroup ? "enabled" : "disabled");
         }
 
+        securityGroupService.setSecurityGroupEnabled(useSecurityGroup);
         resetSecurityGroupRules();
     }
 

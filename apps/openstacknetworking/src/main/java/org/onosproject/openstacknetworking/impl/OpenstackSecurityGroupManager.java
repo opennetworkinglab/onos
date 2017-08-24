@@ -70,6 +70,8 @@ public class OpenstackSecurityGroupManager
     private static final String ERR_NOT_FOUND = "not found";
     private static final String ERR_DUPLICATE = "already exist";
 
+    private boolean useSecurityGroup = false;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -186,6 +188,16 @@ public class OpenstackSecurityGroupManager
     public SecurityGroup securityGroup(String sgId) {
         checkArgument(!Strings.isNullOrEmpty(sgId), ERR_NULL_SG_ID);
         return osSecurityGroupStore.securityGroup(sgId);
+    }
+
+    @Override
+    public boolean isSecurityGroupEnabled() {
+        return useSecurityGroup;
+    }
+
+    @Override
+    public void setSecurityGroupEnabled(boolean option) {
+        useSecurityGroup = option;
     }
 
     @Override
