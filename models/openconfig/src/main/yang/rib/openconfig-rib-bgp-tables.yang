@@ -1,0 +1,646 @@
+submodule openconfig-rib-bgp-tables {
+
+  belongs-to openconfig-rib-bgp {
+    prefix "oc-rib-bgp";
+  }
+
+
+  // import some basic types
+  import ietf-inet-types { prefix inet; }
+  import openconfig-extensions { prefix oc-ext; }
+  import openconfig-policy-types { prefix oc-pol-types; }
+
+  include openconfig-rib-bgp-attributes;
+  include openconfig-rib-bgp-shared-attributes;
+  include openconfig-rib-bgp-table-attributes;
+
+  // meta
+  organization "OpenConfig working group";
+
+  contact
+    "OpenConfig working group
+    www.openconfig.net";
+
+  description
+    "This submodule contains structural data definitions for
+    BGP routing tables.";
+
+
+  oc-ext:openconfig-version "0.3.0";
+
+  revision "2016-10-17" {
+    description
+      "OpenConfig BGP RIB refactor";
+    reference "0.3.0";
+  }
+
+
+  grouping bgp-adj-rib-common-attr-refs {
+    description
+      "Definitions of common references to attribute sets for
+      multiple AFI-SAFIs for Adj-RIB tables";
+
+    leaf attr-index {
+      type leafref {
+        path "../../../../../../../../../../attr-sets/attr-set/" +
+          "state/index";
+      }
+      description
+        "Reference to the common attribute group for the
+        route";
+    }
+
+    leaf community-index {
+      type leafref {
+        path "../../../../../../../../../../communities/community/" +
+          "state/index";
+      }
+      description
+        "Reference to the community attribute for the route";
+    }
+
+    leaf ext-community-index {
+      type leafref {
+        path "../../../../../../../../../../ext-communities/" +
+          "ext-community/state/index";
+      }
+      description
+        "Reference to the extended community attribute for the
+        route";
+    }
+  }
+
+  grouping bgp-loc-rib-common-attr-refs {
+    description
+      "Definitions of common references to attribute sets for
+      multiple AFI-SAFIs for LOC-RIB tables";
+
+    leaf attr-index {
+      type leafref {
+        path "../../../../../../../../attr-sets/attr-set/" +
+          "state/index";
+      }
+      description
+        "Reference to the common attribute group for the
+        route";
+    }
+
+    leaf community-index {
+      type leafref {
+        path "../../../../../../../../communities/community/" +
+          "state/index";
+      }
+      description
+        "Reference to the community attribute for the route";
+    }
+
+    leaf ext-community-index {
+      type leafref {
+        path "../../../../../../../../ext-communities/" +
+          "ext-community/state/index";
+      }
+      description
+        "Reference to the extended community attribute for the
+        route";
+    }
+  }
+
+  grouping bgp-loc-rib-common-keys {
+    description
+      "Common references used in keys for IPv4 and IPv6
+      LOC-RIB entries";
+
+    leaf origin {
+      type union {
+        type inet:ip-address-no-zone;
+        type identityref {
+          base oc-pol-types:INSTALL_PROTOCOL_TYPE;
+        }
+      }
+      description
+        "Indicates the origin of the route.  If the route is learned
+        from a neighbor, this value is the neighbor address.  If
+        the route was injected or redistributed from another
+        protocol, the origin indicates the source protocol for the
+        route.";
+    }
+
+    leaf path-id {
+      type uint32;
+      default 0;
+      description
+        "If the route is learned from a neighbor, the path-id
+        corresponds to the path-id for the route in the
+        corresponding adj-rib-in-post table.  If the route is
+        injected from another protocol, or the neighbor does not
+        support BGP add-paths, the path-id should be set
+        to zero, also the default value.";
+    }
+  }
+
+  grouping bgp-loc-rib-key-refs {
+    description
+      "Key references to support operational state structure for
+      the BGP LOC-RIB table";
+
+    leaf prefix {
+      type leafref {
+        path "../state/prefix";
+      }
+      description
+        "Reference to the prefix list key";
+    }
+
+    leaf origin {
+      type leafref {
+        path "../state/origin";
+      }
+      description
+        "Reference to the origin list key";
+    }
+
+    leaf path-id {
+      type leafref {
+        path "../state/path-id";
+      }
+      description
+        "Reference to the path-id list key";
+    }
+  }
+
+  grouping ipv4-loc-rib-top {
+    description
+      "Top-level grouping for IPv4 routing tables";
+
+    container loc-rib {
+      config false;
+      description
+        "Container for the IPv4 BGP LOC-RIB data";
+
+      uses bgp-common-table-attrs-top;
+
+      container routes {
+        description
+          "Enclosing container for list of routes in the routing
+          table.";
+
+        list route {
+          key "prefix origin path-id";
+
+          description
+            "List of routes in the table, keyed by the route
+            prefix, the route origin, and path-id.  The route
+            origin can be either the neighbor address from which
+            the route was learned, or the source protocol that
+            injected the route.  The path-id distinguishes routes
+            for the same prefix received from a neighbor (e.g.,
+            if add-paths is eanbled).";
+
+          uses bgp-loc-rib-key-refs;
+
+          container state {
+            description
+              "Operational state data for route entries in the
+              BGP LOC-RIB";
+
+            leaf prefix {
+              type inet:ipv4-prefix;
+              description
+                "The IPv4 prefix corresponding to the route";
+            }
+
+            uses bgp-loc-rib-common-keys;
+
+            uses bgp-loc-rib-common-attr-refs;
+
+            uses bgp-loc-rib-attr-state;
+
+            uses bgp-common-route-annotations-state;
+            uses bgp-loc-rib-route-annotations-state;
+
+           }
+
+           uses bgp-unknown-attr-top;
+
+        }
+      }
+    }
+  }
+
+
+  grouping ipv6-loc-rib-top {
+    description
+      "Top-level grouping for IPv6 routing tables";
+
+    container loc-rib {
+      config false;
+      description
+        "Container for the IPv6 BGP LOC-RIB data";
+
+      uses bgp-common-table-attrs-top;
+
+
+      container routes {
+        description
+          "Enclosing container for list of routes in the routing
+          table.";
+
+        list route {
+          key "prefix origin path-id";
+
+          description
+            "List of routes in the table, keyed by the route
+            prefix, the route origin, and path-id.  The route
+            origin can be either the neighbor address from which
+            the route was learned, or the source protocol that
+            injected the route.  The path-id distinguishes routes
+            for the same prefix received from a neighbor (e.g.,
+            if add-paths is eanbled).";
+
+          uses bgp-loc-rib-key-refs;
+
+          container state {
+            description
+              "Operational state data for route entries in the
+              BGP LOC-RIB";
+
+            leaf prefix {
+              type inet:ipv6-prefix;
+              description
+                "The IPv6 prefix corresponding to the route";
+            }
+
+            uses bgp-loc-rib-common-keys;
+
+            uses bgp-loc-rib-common-attr-refs;
+
+            uses bgp-loc-rib-attr-state;
+
+            uses bgp-common-route-annotations-state;
+            uses bgp-loc-rib-route-annotations-state;
+
+          }
+
+          uses bgp-unknown-attr-top;
+        }
+      }
+    }
+  }
+
+  grouping bgp-adj-rib-key-refs {
+    description
+      "Key references to support operational state structure for
+      the BGP Adj-RIB tables";
+
+    leaf prefix {
+      type leafref {
+        path "../state/prefix";
+      }
+      description
+        "Reference to the prefix list key";
+    }
+
+    leaf path-id {
+      type leafref {
+        path "../state/path-id";
+      }
+      description
+        "Reference to the path-id list key";
+    }
+  }
+
+  grouping ipv4-adj-rib-common {
+    description
+      "Common structural grouping for each IPv4 adj-RIB table";
+
+    uses bgp-common-table-attrs-top;
+
+    container routes {
+      config false;
+      description
+        "Enclosing container for list of routes in the routing
+        table.";
+
+      list route {
+        key "prefix path-id";
+
+        description
+          "List of routes in the table, keyed by a combination of
+          the route prefix and path-id to distinguish multiple
+          routes received from a neighbor for the same prefix,
+          e.g., when BGP add-paths is enabled.";
+
+        uses bgp-adj-rib-key-refs;
+
+        container state {
+          description
+            "Operational state data for BGP Adj-RIB entries";
+
+          leaf prefix {
+            type inet:ipv4-prefix;
+            description
+              "Prefix for the route";
+          }
+
+          uses bgp-adj-rib-attr-state;
+
+          uses bgp-adj-rib-common-attr-refs;
+
+          uses bgp-common-route-annotations-state;
+        }
+
+        uses bgp-unknown-attr-top;
+
+      }
+    }
+  }
+
+  grouping ipv4-adj-rib-in-post {
+    description
+      "Common structural grouping for the IPv4 adj-rib-in
+      post-policy table";
+
+    uses bgp-common-table-attrs-top;
+
+    container routes {
+      config false;
+      description
+        "Enclosing container for list of routes in the routing
+        table.";
+
+      list route {
+        key "prefix path-id";
+
+        description
+          "List of routes in the table, keyed by a combination of
+          the route prefix and path-id to distinguish multiple
+          routes received from a neighbor for the same prefix,
+          e.g., when BGP add-paths is enabled.";
+
+        uses bgp-adj-rib-key-refs;
+
+        container state {
+          description
+            "Operational state data for BGP Adj-RIB entries";
+
+          leaf prefix {
+            type inet:ipv4-prefix;
+            description
+              "Prefix for the route";
+          }
+
+          uses bgp-adj-rib-attr-state;
+
+          uses bgp-adj-rib-common-attr-refs;
+
+          uses bgp-common-route-annotations-state;
+
+          uses bgp-adj-rib-in-post-route-annotations-state;
+        }
+
+        uses bgp-unknown-attr-top;
+      }
+    }
+  }
+
+
+  grouping ipv4-adj-rib-top {
+    description
+      "Top-level grouping for Adj-RIB table";
+
+    container neighbors {
+      config false;
+      description
+        "Enclosing container for neighbor list";
+
+      list neighbor {
+        key "neighbor-address";
+        description
+          "List of neighbors (peers) of the local BGP speaker";
+
+        leaf neighbor-address {
+          type leafref {
+            path "../state/neighbor-address";
+          }
+          description
+            "Reference to the list key";
+        }
+
+        container state {
+          description
+            "Operational state for each neighbor BGP Adj-RIB";
+
+          leaf neighbor-address {
+            type inet:ip-address-no-zone;
+            description
+              "IP address of the BGP neighbor or peer";
+          }
+        }
+
+        container adj-rib-in-pre {
+          description
+            "Per-neighbor table containing the NLRI updates
+            received from the neighbor before any local input
+            policy rules or filters have been applied.  This can
+            be considered the 'raw' updates from the neighbor.";
+
+          uses ipv4-adj-rib-common;
+
+        }
+
+        container adj-rib-in-post {
+          description
+            "Per-neighbor table containing the paths received from
+            the neighbor that are eligible for best-path selection
+            after local input policy rules have been applied.";
+
+          uses ipv4-adj-rib-in-post;
+        }
+
+        container adj-rib-out-pre {
+          description
+            "Per-neighbor table containing paths eligble for
+            sending (advertising) to the neighbor before output
+            policy rules have been applied";
+
+          uses ipv4-adj-rib-common;
+
+        }
+
+        container adj-rib-out-post {
+          description
+            "Per-neighbor table containing paths eligble for
+            sending (advertising) to the neighbor after output
+            policy rules have been applied";
+
+          uses ipv4-adj-rib-common;
+
+        }
+      }
+    }
+  }
+
+  grouping ipv6-adj-rib-common {
+    description
+      "Common structural grouping for each IPv6 adj-RIB table";
+
+    uses bgp-common-table-attrs-state;
+
+    container routes {
+      config false;
+      description
+        "Enclosing container for list of routes in the routing
+        table.";
+
+      list route {
+        key "prefix path-id";
+
+        description
+          "List of routes in the table";
+
+        uses bgp-adj-rib-key-refs;
+
+        container state {
+          description
+            "Operational state data for BGP Adj-RIB entries";
+
+          leaf prefix {
+            type inet:ipv6-prefix;
+            description
+              "Prefix for the route";
+          }
+
+          uses bgp-adj-rib-attr-state;
+
+          uses bgp-adj-rib-common-attr-refs;
+
+          uses bgp-common-route-annotations-state;
+        }
+
+        uses bgp-unknown-attr-top;
+      }
+    }
+  }
+
+  grouping ipv6-adj-rib-in-post {
+    description
+      "Common structural grouping for the IPv6 adj-rib-in
+      post-policy table";
+
+    uses bgp-common-table-attrs-state;
+
+    container routes {
+      config false;
+      description
+        "Enclosing container for list of routes in the routing
+        table.";
+
+      list route {
+        key "prefix path-id";
+
+        description
+          "List of routes in the table";
+
+        uses bgp-adj-rib-key-refs;
+
+        container state {
+          description
+            "Operational state data for BGP Adj-RIB entries";
+
+          leaf prefix {
+            type inet:ipv6-prefix;
+            description
+              "Prefix for the route";
+          }
+
+          uses bgp-adj-rib-attr-state;
+
+          uses bgp-adj-rib-common-attr-refs;
+
+          uses bgp-common-route-annotations-state;
+
+          uses bgp-adj-rib-in-post-route-annotations-state;
+        }
+
+        uses bgp-unknown-attr-top;
+      }
+    }
+  }
+
+  grouping ipv6-adj-rib-top {
+    description
+      "Top-level grouping for Adj-RIB table";
+
+    container neighbors {
+      config false;
+      description
+        "Enclosing container for neighbor list";
+
+      list neighbor {
+        key "neighbor-address";
+        description
+          "List of neighbors (peers) of the local BGP speaker";
+
+        leaf neighbor-address {
+          type leafref {
+            path "../state/neighbor-address";
+          }
+          description
+            "Reference to the list key";
+        }
+
+        container state {
+          description
+            "Operational state for each neighbor BGP Adj-RIB";
+
+          leaf neighbor-address {
+            type inet:ip-address-no-zone;
+            description
+              "IP address of the BGP neighbor or peer";
+          }
+        }
+
+        container adj-rib-in-pre {
+          description
+            "Per-neighbor table containing the NLRI updates
+            received from the neighbor before any local input
+            policy rules or filters have been applied.  This can
+            be considered the 'raw' updates from the neighbor.";
+
+          uses ipv6-adj-rib-common;
+
+        }
+
+        container adj-rib-in-post {
+          description
+            "Per-neighbor table containing the paths received from
+            the neighbor that are eligible for best-path selection
+            after local input policy rules have been applied.";
+
+          uses ipv6-adj-rib-in-post;
+        }
+
+        container adj-rib-out-pre {
+          description
+            "Per-neighbor table containing paths eligble for
+            sending (advertising) to the neighbor before output
+            policy rules have been applied";
+
+          uses ipv6-adj-rib-common;
+
+        }
+
+        container adj-rib-out-post {
+          description
+            "Per-neighbor table containing paths eligble for
+            sending (advertising) to the neighbor after output
+            policy rules have been applied";
+
+          uses ipv6-adj-rib-common;
+
+        }
+      }
+    }
+  }
+
+}
