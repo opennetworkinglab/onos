@@ -17,6 +17,7 @@
 package org.onlab.packet.dhcp;
 
 import com.google.common.collect.Lists;
+import com.google.common.primitives.UnsignedLongs;
 import org.onlab.packet.VlanId;
 
 import java.nio.charset.StandardCharsets;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class CircuitId {
     private static final String SEPARATOR = ":";
     private static final String CIRCUIT_ID_FORMAT = "%s" + SEPARATOR + "%s";
+    private static final String DEVICE_PORT_SEPARATOR = "/";
     private String connectPoint;
     private VlanId vlanId;
 
@@ -65,11 +67,22 @@ public class CircuitId {
      */
     public static CircuitId deserialize(byte[] circuitId) {
         String cIdString = new String(circuitId, StandardCharsets.US_ASCII);
-        List<String> split = Lists.newArrayList(cIdString.split(SEPARATOR));
-        checkArgument(split.size() > 1, "Illegal circuit id.");
+        List<String> splittedCircuitId = Lists.newArrayList(cIdString.split(SEPARATOR));
+        checkArgument(splittedCircuitId.size() > 1, "Illegal circuit id.");
         // remove last element (vlan id)
-        String vlanId = split.remove(split.size() - 1);
-        String connectPoint = String.join(SEPARATOR, split);
+        String vlanId = splittedCircuitId.remove(splittedCircuitId.size() - 1);
+
+        // Reconstruct device Id
+        String connectPoint = String.join(SEPARATOR, splittedCircuitId);
+
+        String[] splittedConnectPoint = connectPoint.split(DEVICE_PORT_SEPARATOR);
+        // Check connect point is valid or not
+        checkArgument(splittedConnectPoint.length == 2,
+                      "Connect point must be in \"deviceUri/portNumber\" format");
+
+        // Check the port number is a number or not
+        UnsignedLongs.decode(splittedConnectPoint[1]);
+
         return new CircuitId(connectPoint, VlanId.vlanId(vlanId));
     }
 
