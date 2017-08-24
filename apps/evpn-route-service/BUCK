@@ -4,7 +4,7 @@ BUNDLES = [
 ]
 
 onos_app (
-    title = 'EVPN Routing App',
+    title = 'EVPN Routing',
     category = 'Utility',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,

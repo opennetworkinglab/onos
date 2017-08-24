@@ -7,7 +7,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Host Mobility App',
+    title = 'Host Mobility',
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Host mobility application.',

@@ -18,5 +18,5 @@ onos_app (
     title = 'Host Location Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'ONOS host location provider.',
+    description = 'Provides host discovery and location to the ONOS core by eavesdropping on the ARP and NDP packets.',
 )

@@ -1,5 +1,5 @@
 
 yang_model (
   app_name = 'org.onosproject.models.huawei',
-  title = 'Huawei YANG Model',
+  title = 'Huawei YANG Models',
 )

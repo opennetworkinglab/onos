@@ -23,10 +23,10 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.lumentum',
-    title = 'Lumentum Device Drivers',
+    title = 'Lumentum Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Lumentum Device Drivers application.',
+    description = 'Adds support for Lumentum devices.',
     required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model',
      'org.onosproject.tl1', 'org.onosproject.drivers.optical'],
 )

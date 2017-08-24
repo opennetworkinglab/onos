@@ -7,8 +7,8 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'Network Configuration Monitor Test App',
-    category = 'Test',
+    title = 'Network Configuration Monitor Test',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
     description = 'Network configuration monitor test application.',
 )

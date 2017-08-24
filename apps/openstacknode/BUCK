@@ -4,7 +4,7 @@ BUNDLES = [
 ]
 
 onos_app (
-    title = 'OpenStack Node Bootstrap App',
+    title = 'OpenStack Node Bootstrap',
     category = 'Utility',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,

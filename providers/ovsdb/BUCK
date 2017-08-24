@@ -5,7 +5,7 @@ APPS = [
 
 onos_app (
     app_name = 'org.onosproject.ovsdb',
-    title = 'OVSDB Southbound Meta App',
+    title = 'OVSDB Southbound Meta',
     category = 'Provider',
     url = 'http://onosproject.org',
     description = 'ONOS OVSDB southbound meta application',

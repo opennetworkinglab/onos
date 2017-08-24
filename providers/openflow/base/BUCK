@@ -15,10 +15,10 @@ APPS = [
 
 onos_app (
     app_name = 'org.onosproject.openflow-base',
-    title = 'OpenFlow Provider',
+    title = 'OpenFlow Base Provider',
     category = 'Provider',
     url = 'http://onosproject.org',
-    description = 'OpenFlow protocol southbound providers.',
+    description = 'Provides the base suite of device, flow and packet providers that rely OpenFlow protocol to interact with network devices.',
     included_bundles = BUNDLES,
     required_apps = APPS,
 )

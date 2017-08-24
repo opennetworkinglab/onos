@@ -139,6 +139,7 @@ if __name__ == '__main__':
     parser.add_option("-v", "--version",  dest="version",      help="Version")
     parser.add_option("-t", "--title",    dest="title",        help="Title")
     parser.add_option("-r", "--repo",     dest="repo_name",    help="Repo Name")
+    parser.add_option('-D', '--desc',     dest='desc',         help='Application description')
 
     parser.add_option('-b', '--bundle',
                       action="append", dest='included_bundles',
@@ -188,6 +189,9 @@ if __name__ == '__main__':
         bundles += options.included_bundles
     if options.excluded_bundles:
         bundles += options.excluded_bundles
+    if options.desc:
+        values['description'] = options.desc
+
     feature = generateFeature(bundles=bundles,
                               features=options.features,
                               **values)
