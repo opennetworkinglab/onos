@@ -30,6 +30,7 @@
     <description>ONOS YANG models</description>
 
     <modules>
+        <module>microsemi</module>
         <module>openroadm</module>
         <module>l3vpn</module>
     </modules>

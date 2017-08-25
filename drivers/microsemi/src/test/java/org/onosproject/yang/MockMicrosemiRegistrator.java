@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.fail;
 import static org.onosproject.yang.compiler.tool.YangCompilerManager.deSerializeDataModel;
 import static org.onosproject.yang.compiler.tool.YangCompilerManager.getYangNodes;
 import static org.onosproject.yang.compiler.tool.YangCompilerManager.processYangModel;
@@ -58,6 +59,7 @@ public class MockMicrosemiRegistrator extends MicrosemiModelRegistrator {
             modelRegistry.registerModel(registrationParam);
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            fail();
         }
     }
 
