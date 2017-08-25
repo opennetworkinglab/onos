@@ -58,7 +58,6 @@ import org.onosproject.net.topology.TopologyVertex;
 import org.slf4j.Logger;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,6 +71,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.onlab.util.Tools.groupedThreads;
@@ -87,8 +87,8 @@ public abstract class AbstractUpgradableFabricApp {
 
     private static final Map<String, AbstractUpgradableFabricApp> APP_HANDLES = Maps.newConcurrentMap();
 
-    private static final int NUM_LEAFS = 3;
-    private static final int NUM_SPINES = 3;
+    private static final int NUM_LEAFS = 2;
+    private static final int NUM_SPINES = 2;
     private static final int FLOW_PRIORITY = 100;
 
     private static final int CLEANUP_SLEEP = 2000;
@@ -103,7 +103,6 @@ public abstract class AbstractUpgradableFabricApp {
             .newFixedThreadPool(8, groupedThreads("onos/pi-demo-app", "pi-app-task", log));
 
     private final String appName;
-    private final String configurationName;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
@@ -126,6 +125,8 @@ public abstract class AbstractUpgradableFabricApp {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
 
+    private boolean withImbalancedStriping = false;
+
     private boolean appActive = false;
     private boolean appFreezed = false;
 
@@ -135,7 +136,7 @@ public abstract class AbstractUpgradableFabricApp {
     private boolean flowRuleGenerated = false;
     private ApplicationId appId;
 
-    private PiPipeconf pipeconf;
+    private PiPipeconf appPipeconf;
 
     private Set<DeviceId> leafSwitches;
     private Set<DeviceId> spineSwitches;
@@ -150,13 +151,11 @@ public abstract class AbstractUpgradableFabricApp {
      * Creates a new PI fabric app.
      *
      * @param appName           app name
-     * @param configurationName a common name for the P4 program / PI configuration used by this app
-     * @param pipeconf a P4Runtime device context to be used on devices
+     * @param appPipeconf       a P4Runtime device context to be used on devices
      */
-    protected AbstractUpgradableFabricApp(String appName, String configurationName, PiPipeconf pipeconf) {
+    protected AbstractUpgradableFabricApp(String appName, PiPipeconf appPipeconf) {
         this.appName = checkNotNull(appName);
-        this.configurationName = checkNotNull(configurationName);
-        this.pipeconf = checkNotNull(pipeconf);
+        this.appPipeconf = checkNotNull(appPipeconf);
     }
 
     @Activate
@@ -183,7 +182,7 @@ public abstract class AbstractUpgradableFabricApp {
         topologyService.addListener(topologyListener);
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
-        piPipeconfService.register(pipeconf);
+        piPipeconfService.register(appPipeconf);
 
         init();
 
@@ -204,7 +203,7 @@ public abstract class AbstractUpgradableFabricApp {
         topologyService.removeListener(topologyListener);
         hostService.removeListener(hostListener);
         flowRuleService.removeFlowRulesById(appId);
-        piPipeconfService.remove(pipeconf.id());
+        piPipeconfService.remove(appPipeconf.id());
 
         appActive = false;
         APP_HANDLES.remove(appName);
@@ -306,10 +305,13 @@ public abstract class AbstractUpgradableFabricApp {
         try {
             // Set pipeconfflag if not already done.
             if (!pipeconfFlags.getOrDefault(deviceId, false)) {
-                if (pipeconf.id().equals(piPipeconfService.ofDevice(deviceId))) {
+                if (piPipeconfService.ofDevice(deviceId).isPresent() &&
+                        appPipeconf.id().equals(piPipeconfService.ofDevice(deviceId).get())) {
                     pipeconfFlags.put(device.id(), true);
                 } else {
-                    log.warn("No pipeconf can be associated to the device {}.", deviceId);
+                    log.warn("Wrong pipeconf for {}, expecting {}, but found {}, aborting deploy",
+                             deviceId, appPipeconf.id(), piPipeconfService.ofDevice(deviceId).get());
+                    return;
                 }
             }
 
@@ -319,13 +321,11 @@ public abstract class AbstractUpgradableFabricApp {
             }
 
             // Install rules.
-            if (!ruleFlags.getOrDefault(deviceId, false)) {
-                List<FlowRule> rules = deviceFlowRules.getOrDefault(deviceId, Collections.emptyList());
-                if (rules.size() > 0) {
-                    log.info("Installing rules for {}...", deviceId);
-                    installFlowRules(rules);
-                    ruleFlags.put(deviceId, true);
-                }
+            if (!ruleFlags.getOrDefault(deviceId, false) &&
+                    deviceFlowRules.containsKey(deviceId)) {
+                log.info("Installing rules for {}...", deviceId);
+                installFlowRules(deviceFlowRules.get(deviceId));
+                ruleFlags.put(deviceId, true);
             }
         } finally {
             lock.unlock();
@@ -350,7 +350,7 @@ public abstract class AbstractUpgradableFabricApp {
     }
 
     /**
-     * Generates the flow rules to provide host-to-host connectivity for the given topology and hosts.
+     * Generates flow rules to provide host-to-host connectivity for the given topology and hosts.
      *
      * @param topo  a topology
      * @param hosts a collection of hosts
@@ -379,8 +379,9 @@ public abstract class AbstractUpgradableFabricApp {
 
         for (DeviceId did : spines) {
             int portCount = deviceService.getPorts(did).size();
-            // Expected port count: num leafs + 1 redundant leaf link
-            if (portCount != (NUM_LEAFS + 1)) {
+            // Expected port count: num leafs + 1 redundant leaf link (if imbalanced)
+            int expectedSpinePortCount = NUM_LEAFS + (withImbalancedStriping ? 1 : 0);
+            if (portCount != expectedSpinePortCount) {
                 log.info("Invalid port count for spine, aborting... > deviceId={}, portCount={}", did, portCount);
                 return;
             }
@@ -388,7 +389,8 @@ public abstract class AbstractUpgradableFabricApp {
         for (DeviceId did : leafs) {
             int portCount = deviceService.getPorts(did).size();
             // Expected port count: num spines + host port + 1 redundant spine link
-            if (portCount != (NUM_SPINES + 2)) {
+            int expectedLeafPortCount = NUM_LEAFS + (withImbalancedStriping ? 2 : 1);
+            if (portCount != expectedLeafPortCount) {
                 log.info("Invalid port count for leaf, aborting... > deviceId={}, portCount={}", did, portCount);
                 return;
             }
@@ -414,7 +416,7 @@ public abstract class AbstractUpgradableFabricApp {
                 newFlowRules.addAll(generateSpineRules(deviceId, hosts, topo));
             }
         } catch (FlowRuleGeneratorException e) {
-            log.warn("Exception while executing flow rule generator: ", e.toString());
+            log.warn("Exception while executing flow rule generator: {}", e.toString());
             return;
         }
 
@@ -455,20 +457,16 @@ public abstract class AbstractUpgradableFabricApp {
      */
     protected FlowRule.Builder flowRuleBuilder(DeviceId did, String tableName) throws FlowRuleGeneratorException {
 
-        final PiPipelineInterpreter interpreter;
-        try {
-            interpreter = (PiPipelineInterpreter) pipeconf.implementation(PiPipelineInterpreter.class)
-                    .orElse(null)
-                    .newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new FlowRuleGeneratorException("Unable to instantiate interpreter of pipeconf " + pipeconf.id());
+        final Device device = deviceService.getDevice(did);
+        if (!device.is(PiPipelineInterpreter.class)) {
+            throw new FlowRuleGeneratorException(format("Device %s has no PiPipelineInterpreter", did));
         }
-
-        int flowRuleTableId;
+        final PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
+        final int flowRuleTableId;
         if (interpreter.mapPiTableId(PiTableId.of(tableName)).isPresent()) {
-            flowRuleTableId = interpreter.mapPiTableId(PiTableId.of(tableName)).get().intValue();
+            flowRuleTableId = interpreter.mapPiTableId(PiTableId.of(tableName)).get();
         } else {
-            throw new FlowRuleGeneratorException("Unknown table " + tableName);
+            throw new FlowRuleGeneratorException(format("Unknown table %s in interpreter", tableName));
         }
 
         return DefaultFlowRule.builder()
@@ -512,11 +510,9 @@ public abstract class AbstractUpgradableFabricApp {
         public boolean isRelevant(TopologyEvent event) {
             return !appFreezed &&
                     // If at least one reason is of type DEVICE_ADDED.
-                    event.reasons().stream().
-                            filter(r -> r instanceof DeviceEvent)
-                            .filter(r -> ((DeviceEvent) r).type() == DEVICE_ADDED)
-                            .findAny()
-                            .isPresent();
+                    event.reasons().stream()
+                            .filter(r -> r instanceof DeviceEvent)
+                            .anyMatch(r -> ((DeviceEvent) r).type() == DEVICE_ADDED);
         }
     }
 

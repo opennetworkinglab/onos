@@ -441,14 +441,16 @@ public class GeneralDeviceProvider extends AbstractProvider
 
         if (pipeconfId == null) {
             log.warn("Device {} is pipeline programmable but no pipeconf can be associated to it.", deviceId);
-            return true;
+            return false;
+        }
+
+        if (!piPipeconfService.getPipeconf(pipeconfId).isPresent()) {
+            log.warn("Pipeconf {} is not registered", pipeconfId);
+            return false;
         }
 
 
-        PiPipeconf pipeconf = piPipeconfService.getPipeconf(pipeconfId).orElseThrow(
-                () -> new IllegalStateException("Pipeconf is not registered: " + pipeconfId)
-        );
-
+        PiPipeconf pipeconf = piPipeconfService.getPipeconf(pipeconfId).get();
 
         try {
             if (!pipelineProg.deployPipeconf(pipeconf).get()) {

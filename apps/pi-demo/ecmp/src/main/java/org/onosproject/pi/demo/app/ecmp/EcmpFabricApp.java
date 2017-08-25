@@ -73,8 +73,7 @@ import static org.onosproject.pi.demo.app.ecmp.EcmpInterpreter.*;
 public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
     private static final String APP_NAME = "org.onosproject.pi-ecmp-fabric";
-    private static final String MODEL_NAME = "ECMP";
-    private static final String PIPECONF_ID = "org.project.pipeconf.ecmp";
+    private static final String PIPECONF_ID = "pi-demo-ecmp";
     private static final URL P4INFO_URL = EcmpFabricApp.class.getResource("/ecmp.p4info");
     private static final URL JSON_URL = EcmpFabricApp.class.getResource("/ecmp.json");
 
@@ -90,7 +89,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     private static final Map<DeviceId, Map<Set<PortNumber>, Short>> DEVICE_GROUP_ID_MAP = Maps.newHashMap();
 
     public EcmpFabricApp() {
-        super(APP_NAME, MODEL_NAME, ECMP_PIPECONF);
+        super(APP_NAME, ECMP_PIPECONF);
     }
 
     @Override
