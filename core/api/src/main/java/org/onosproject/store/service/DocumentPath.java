@@ -45,6 +45,9 @@ public class DocumentPath implements Comparable<DocumentPath> {
     private static String pathSeparator = DEFAULT_SEPARATOR;
     private static String pathSeparatorRE = DEFAULT_SEPARATOR_RE;
 
+    /** Root document tree path. */
+    public static final DocumentPath ROOT = DocumentPath.from("root");
+
     private final List<String> pathElements = Lists.newArrayList();
 
     /**
