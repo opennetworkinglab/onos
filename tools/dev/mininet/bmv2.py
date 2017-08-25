@@ -5,7 +5,7 @@ import json
 import urllib2
 
 from mininet.log import info, warn, error
-from mininet.node import Switch
+from mininet.node import Switch, Host
 
 if 'ONOS_ROOT' not in os.environ:
     error("ERROR: environment var $ONOS_ROOT not set")
@@ -14,6 +14,23 @@ if 'ONOS_ROOT' not in os.environ:
 BMV2_TARGET = 'simple_switch_grpc'
 ONOS_ROOT = os.environ["ONOS_ROOT"]
 CPU_PORT = 255
+PKT_BYTES_TO_DUMP = 80
+
+
+class ONOSHost(Host):
+    def __init__(self, name, inNamespace=True, **params):
+        Host.__init__(self, name, inNamespace=inNamespace, **params)
+
+    def config(self, **params):
+        r = super(Host, self).config(**params)
+        for off in ["rx", "tx", "sg"]:
+            cmd = "/sbin/ethtool --offload %s %s off" % (self.defaultIntf(), off)
+            self.cmd(cmd)
+        # disable IPv6
+        self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
+        self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
+        self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
+        return r
 
 
 class ONOSBmv2Switch(Switch):
@@ -24,7 +41,7 @@ class ONOSBmv2Switch(Switch):
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn", elogger=False,
                  persistent=False, grpcPort=None, thriftPort=None, netcfg=True,
-                 pipeconfId="", **kwargs):
+                 pipeconfId="", pktdump=False, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
         self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
@@ -38,6 +55,7 @@ class ONOSBmv2Switch(Switch):
         self.loglevel = loglevel
         self.logfile = '/tmp/bmv2-%d.log' % self.deviceId
         self.elogger = elogger
+        self.pktdump = pktdump
         self.persistent = persistent
         self.netcfg = netcfg
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
@@ -102,19 +120,19 @@ class ONOSBmv2Switch(Switch):
             basicCfg["latitude"] = self.latitude
 
         cfgData = {
-                "generalprovider": {
-                    "p4runtime": {
-                        "ip": srcIP,
-                        "port": self.grpcPort,
-                        "deviceId": self.deviceId,
-                        "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
-                    }
-                },
-                "piPipeconf": {
-                    "piPipeconfId": self.pipeconfId
-                },
-                "basic": basicCfg,
-                "ports": portData
+            "generalprovider": {
+                "p4runtime": {
+                    "ip": srcIP,
+                    "port": self.grpcPort,
+                    "deviceId": self.deviceId,
+                    "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
+                }
+            },
+            "piPipeconf": {
+                "piPipeconfId": self.pipeconfId
+            },
+            "basic": basicCfg,
+            "ports": portData
         }
 
         return cfgData
@@ -161,6 +179,8 @@ class ONOSBmv2Switch(Switch):
         if self.debugger:
             args.append('--debugger')
         args.append('--log-console')
+        if self.pktdump:
+            args.append('--pcap --dump-packet-data %d' % PKT_BYTES_TO_DUMP)
         args.append('-L%s' % self.loglevel)
         args.append('--thrift-port %d' % self.thriftPort)
         if not self.json:
@@ -206,3 +226,4 @@ class ONOSBmv2Switch(Switch):
 
 # Exports for bin/mn
 switches = {'onosbmv2': ONOSBmv2Switch}
+hosts = {'onoshost': ONOSHost}

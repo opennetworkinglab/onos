@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import argparse
+from collections import OrderedDict
 
 TEMP_NETCFG_FILE = '/tmp/bmv2-demo-cfg.json'
 BASE_LONGITUDE = -115
@@ -27,7 +28,7 @@ else:
     RUN_PACK_PATH = os.environ["RUN_PACK_PATH"]
 
 from onos import ONOSCluster, ONOSCLI
-from bmv2 import ONOSBmv2Switch
+from bmv2 import ONOSBmv2Switch, ONOSHost
 
 from itertools import combinations
 from time import sleep
@@ -44,11 +45,15 @@ from mininet.topo import Topo
 class ClosTopo(Topo):
     "2 stage Clos topology"
 
-    def __init__(self, pipeconfId="", **opts):
+    def __init__(self, args, **opts):
         # Initialize topology and default options
         Topo.__init__(self, **opts)
 
-        bmv2SwitchIds = ["s11", "s12", "s13", "s21", "s22", "s23"]
+        bmv2SwitchIds = []
+        for row in (1, 2):
+            for col in range(1, args.size + 1):
+                bmv2SwitchIds.append("s%d%d" % (row, col))
+
         bmv2Switches = {}
 
         for switchId in bmv2SwitchIds:
@@ -65,21 +70,22 @@ class ClosTopo(Topo):
                                                     netcfg=False,
                                                     longitude=longitude,
                                                     latitude=latitude,
-                                                    pipeconfId=pipeconfId)
+                                                    pipeconfId=args.pipeconf_id)
 
-        for i in (1, 2, 3):
-            for j in (1, 2, 3):
+        for i in range(1, args.size + 1):
+            for j in range(1, args.size + 1):
                 if i == j:
                     # 2 links
                     self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
                                  cls=TCLink, bw=DEFAULT_SW_BW)
-                    self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
-                                 cls=TCLink, bw=DEFAULT_SW_BW)
+                    if args.with_imbalanced_striping:
+                        self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
+                                     cls=TCLink, bw=DEFAULT_SW_BW)
                 else:
                     self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
                                  cls=TCLink, bw=DEFAULT_SW_BW)
 
-        for hostId in (1, 2, 3):
+        for hostId in range(1, args.size + 1):
             host = self.addHost("h%d" % hostId,
                                 cls=DemoHost,
                                 ip="10.0.0.%d/24" % hostId,
@@ -87,27 +93,13 @@ class ClosTopo(Topo):
             self.addLink(host, bmv2Switches["s1%d" % hostId], cls=TCLink, bw=DEFAULT_HOST_BW)
 
 
-class DemoHost(Host):
+class DemoHost(ONOSHost):
     "Demo host"
 
-    def __init__(self, name, inNamespace=True, **params):
-        Host.__init__(self, name, inNamespace=inNamespace, **params)
+    def __init__(self, name, **params):
+        ONOSHost.__init__(self, name, **params)
         self.exectoken = "/tmp/mn-exec-token-host-%s" % name
         self.cmd("touch %s" % self.exectoken)
-
-    def config(self, **params):
-        r = super(Host, self).config(**params)
-
-        for off in ["rx", "tx", "sg"]:
-            cmd = "/sbin/ethtool --offload %s %s off" % (self.defaultIntf(), off)
-            self.cmd(cmd)
-
-        # disable IPv6
-        self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
-        self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
-        self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
-
-        return r
 
     def startPingBg(self, h):
         self.cmd(self.getInfiniteCmdBg("ping -i0.5 %s" % h.IP()))
@@ -146,7 +138,10 @@ class DemoHost(Host):
 
 
 def generateNetcfg(onosIp, net, args):
-    netcfg = {'devices': {}, 'links': {}, 'hosts': {}}
+    netcfg = OrderedDict()
+    netcfg['devices'] = {}
+    netcfg['links'] = {}
+    netcfg['hosts'] = {}
     # Device configs
     for sw in net.switches:
         srcIp = sw.getSourceIp(onosIp)
@@ -177,13 +172,14 @@ def generateNetcfg(onosIp, net, args):
             hostLocations[sw2.name] = '%s/%s' % (sw1.onosDeviceId, port1)
             continue
 
-        linkId = '%s/%s-%s/%s' % (sw1.onosDeviceId, port1, sw2.onosDeviceId, port2)
-        netcfg['links'][linkId] = {
-            'basic': {
-                'type': 'DIRECT',
-                'bandwidth': 50
+        for linkId in ('%s/%s-%s/%s' % (sw1.onosDeviceId, port1, sw2.onosDeviceId, port2),
+                       '%s/%s-%s/%s' % (sw2.onosDeviceId, port2, sw1.onosDeviceId, port1)):
+            netcfg['links'][linkId] = {
+                'basic': {
+                    'type': 'DIRECT',
+                    'bandwidth': DEFAULT_SW_BW
+                }
             }
-        }
 
     # Host configs
     longitude = BASE_LONGITUDE
@@ -207,6 +203,14 @@ def generateNetcfg(onosIp, net, args):
         }
         netcfg['hosts'][hostId] = hostConfig
 
+    netcfg["apps"] = {
+        "org.onosproject.core": {
+            "core": {
+                "linkDiscoveryMode": "STRICT"
+            }
+        }
+    }
+
     print "Writing network config to %s" % TEMP_NETCFG_FILE
     with open(TEMP_NETCFG_FILE, 'w') as tempFile:
         json.dump(netcfg, tempFile, indent=4)
@@ -220,7 +224,7 @@ def main(args):
         controller = RemoteController('c0', ip=args.onos_ip)
         onosIp = args.onos_ip
 
-    topo = ClosTopo(pipeconfId=args.pipeconf_id)
+    topo = ClosTopo(args)
 
     net = Mininet(topo=topo, build=False, controller=[controller])
 
@@ -265,6 +269,10 @@ if __name__ == '__main__':
         description='BMv2 mininet demo script (2-stage Clos topology)')
     parser.add_argument('--onos-ip', help='ONOS-BMv2 controller IP address',
                         type=str, action="store", required=False)
+    parser.add_argument('--size', help='Number of leaf/spine switches',
+                        type=int, action="store", required=False, default=2)
+    parser.add_argument('--with-imbalanced-striping', help='Topology with imbalanced striping',
+                        type=bool, action="store", required=False, default=False)
     parser.add_argument('--pipeconf-id', help='Pipeconf ID for switches',
                         type=str, action="store", required=False, default='')
     args = parser.parse_args()
