@@ -15,6 +15,12 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
+
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -34,15 +40,10 @@ import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -141,7 +142,15 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
 
     @Override
     public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer, Ordering ordering) {
-        return getCreator(name).newAsyncDocumentTree(name, serializer, ordering);
+        checkNotNull(name);
+        checkNotNull(serializer);
+        Map<PartitionId, AsyncDocumentTree<V>> trees =
+                Maps.transformValues(members, partition -> partition.<V>newAsyncDocumentTree(name, serializer));
+        Hasher<DocumentPath> hasher = key -> {
+            int bucket = Math.abs(Hashing.murmur3_32().hashUnencodedChars(key.toString()).asInt()) % buckets;
+            return sortedMemberPartitionIds.get(Hashing.consistentHash(bucket, sortedMemberPartitionIds.size()));
+        };
+        return new PartitionedAsyncDocumentTree<>(name, trees, hasher);
     }
 
     @Override

@@ -103,7 +103,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
 
     @Override
     public DocumentPath root() {
-        return DocumentPath.from("root");
+        return DocumentPath.ROOT;
     }
 
     @Override
