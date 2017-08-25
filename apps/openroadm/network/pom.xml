@@ -44,7 +44,7 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-openroadm-yangmodel</artifactId>
+            <artifactId>onos-models-openroadm</artifactId>
             <version>${project.version}</version>
         </dependency>
 
