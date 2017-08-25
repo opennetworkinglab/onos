@@ -6,11 +6,12 @@ package core;
 import "core/ApplicationIdProto.proto";
 import "app/ApplicationEnumsProto.proto";
 import "security/PermissionProto.proto";
+import "core/VersionProto.proto";
 
 // Corresponds to org.onosproject.core.Application.
 message ApplicationProto {
     core.ApplicationIdProto app_id = 1;
-    string version = 2;
+    core.VersionProto version = 2;
     string title = 3;
     string description = 4;
     string category = 5;

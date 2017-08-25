@@ -1,0 +1,56 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.app";
+
+package nb.app;
+
+import "core/ApplicationProto.proto";
+import "core/ApplicationIdProto.proto";
+import "app/ApplicationEnumsProto.proto";
+import "security/PermissionProto.proto";
+
+message getApplicationsRequest {
+}
+
+message getApplicationsReply {
+    repeated .core.ApplicationProto application = 1;
+}
+
+message getIdRequest {
+    string name = 1;
+}
+
+message getIdReply {
+    .core.ApplicationIdProto application_id = 1;
+}
+
+message getApplicationRequest {
+    .core.ApplicationIdProto application_id = 1;
+}
+
+message getApplicationReply {
+    .core.ApplicationProto application = 1;
+}
+
+message getStateRequest {
+    .core.ApplicationIdProto application_id = 1;
+}
+
+message getStateReply {
+    .app.ApplicationStateProto state = 1;
+}
+
+message getPermissionsRequest {
+    .core.ApplicationIdProto application_id = 1;
+}
+
+message getPermissionsReply {
+    repeated .security.PermissionProto permission = 1;
+}
+
+service ApplicationService {
+    rpc getApplications(getApplicationsRequest) returns (getApplicationsReply) {}
+    rpc getId(getIdRequest) returns (getIdReply) {}
+    rpc getApplication(getApplicationRequest) returns (getApplicationReply) {}
+    rpc getState(getStateRequest) returns (getStateReply) {}
+    rpc getPermissions(getPermissionsRequest) returns (getPermissionsReply) {}
+}

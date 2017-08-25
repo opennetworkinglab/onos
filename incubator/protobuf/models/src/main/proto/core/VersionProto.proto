@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.core.models";
+
+package core;
+
+// Corresponds to org.onosproject.core.
+message VersionProto {
+    int32 major = 1;
+    int32 minor = 2;
+    string patch = 3;
+    string build = 4;
+}
