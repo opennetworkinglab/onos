@@ -16,8 +16,11 @@
 <scenario name="net-pingall" description="Network pingall test">
     <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
     <group name="Net-Pingall">
+        <!-- FIXME - this is a hack to get around failures in pingall with large
+             clusters. Investigate why this is needed sometimes. -->
+        <step name="sleep" exec="sleep 5" requires="Check-Fwd-Apps-Activated"/>
 
-        <step name="Ping-All" requires="Check-Fwd-Apps-Activated"
+        <step name="Ping-All" requires="sleep"
               exec="onos-mininet sendAndExpect pingall --expect ${OPALL}/${OPALL} received"/>
 
         <step name="Check-Summary-For-Hosts" requires="~Ping-All"
