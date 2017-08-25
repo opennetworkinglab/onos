@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 
-import org.apache.commons.io.Charsets;
 import org.junit.Test;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.Ethernet;
@@ -32,6 +31,7 @@ import org.onlab.packet.UDP;
 
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.junit.Assert.*;
 
 /**
@@ -89,7 +89,7 @@ public class Dhcp6RelayTest {
         Dhcp6Option option = relayMsg.getOptions().get(0);
         assertEquals(option.getCode(), DHCP6.OptionCode.SUBSCRIBER_ID.value());
         assertEquals(option.getLength(), 10);
-        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(US_ASCII));
 
         option = relayMsg.getOptions().get(1);
         assertEquals(option.getCode(), DHCP6.OptionCode.RELAY_MSG.value());
@@ -205,7 +205,7 @@ public class Dhcp6RelayTest {
         Dhcp6Option subscriberId = new Dhcp6Option();
         subscriberId.setCode(DHCP6.OptionCode.SUBSCRIBER_ID.value());
         subscriberId.setLength((short) 10);
-        subscriberId.setData(SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+        subscriberId.setData(SERVER_IP.toString().getBytes(US_ASCII));
 
         relayMsg.setOptions(ImmutableList.of(subscriberId, relayOption));
 
@@ -408,7 +408,7 @@ public class Dhcp6RelayTest {
         Dhcp6Option option = relayMsg.getOptions().get(0);
         assertEquals(option.getCode(), DHCP6.OptionCode.SUBSCRIBER_ID.value());
         assertEquals(option.getLength(), 10);
-        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+        assertArrayEquals(option.getData(), SERVER_IP.toString().getBytes(US_ASCII));
 
         option = relayMsg.getOptions().get(1);
         assertEquals(option.getCode(), DHCP6.OptionCode.RELAY_MSG.value());
@@ -550,7 +550,7 @@ public class Dhcp6RelayTest {
         Dhcp6Option subscriberId = new Dhcp6Option();
         subscriberId.setCode(DHCP6.OptionCode.SUBSCRIBER_ID.value());
         subscriberId.setLength((short) 10);
-        subscriberId.setData(SERVER_IP.toString().getBytes(Charsets.US_ASCII));
+        subscriberId.setData(SERVER_IP.toString().getBytes(US_ASCII));
 
         Dhcp6RelayOption relayOption = new Dhcp6RelayOption();
         relayOption.setPayload(relaiedDhcp6);
