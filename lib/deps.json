@@ -220,7 +220,7 @@
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.19",
-    "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.8-offline-20170202.tar.gz",
+    "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.8-offline-20170825.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "bndexe": "http://onlab.vicci.org/onos/third-party/biz.aQute.bnd-3.1.0.jar",
     "libthrift": "mvn:org.apache.thrift:libthrift:0.9.3",
