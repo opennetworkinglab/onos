@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.pi.runtime.PiTableEntry;
 
 /**
  * A wrapper for a ONOS flow rule installed on a P4Runtime device.
@@ -28,17 +29,20 @@ import org.onosproject.net.flow.FlowRule;
 public final class P4RuntimeFlowRuleWrapper {
 
     private final FlowRule rule;
+    private final PiTableEntry piTableEntry;
     private final long installedOnMillis;
 
     /**
      * Creates a new flow rule wrapper.
      *
      * @param rule              a flow rule
+     * @param piTableEntry      PI table entry
      * @param installedOnMillis the time (in milliseconds, since January 1, 1970 UTC) when the flow rule was installed
      *                          on the device
      */
-    public P4RuntimeFlowRuleWrapper(FlowRule rule, long installedOnMillis) {
+    public P4RuntimeFlowRuleWrapper(FlowRule rule, PiTableEntry piTableEntry, long installedOnMillis) {
         this.rule = rule;
+        this.piTableEntry = piTableEntry;
         this.installedOnMillis = installedOnMillis;
     }
 
@@ -49,6 +53,15 @@ public final class P4RuntimeFlowRuleWrapper {
      */
     public FlowRule rule() {
         return rule;
+    }
+
+    /**
+     * Returns the PI table entry defined by this wrapper.
+     *
+     * @return table entry
+     */
+    public PiTableEntry piTableEntry() {
+        return piTableEntry;
     }
 
     /**

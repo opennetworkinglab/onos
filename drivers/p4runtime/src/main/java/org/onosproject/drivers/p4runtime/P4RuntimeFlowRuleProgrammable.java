@@ -55,13 +55,25 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.*;
 
 /**
  * Implementation of the flow rule programmable behaviour for BMv2.
  */
 public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
+
+    // TODO: make this attribute configurable by child drivers (e.g. BMv2 or Tofino)
+    /*
+    When updating an existing rule, if true, we issue a DELETE operation before inserting the new one, otherwise we
+    issue a MODIFY operation. This is useful fore devices that do not support MODIFY operations for table entries.
+     */
+    private boolean deleteEntryBeforeUpdate = true;
+
+    // TODO: can remove this check as soon as the multi-apply-per-same-flow rule bug is fixed.
+    /*
+    If true, we ignore re-installing rules that are already known in the ENTRY_STORE, i.e. same match key and action.
+     */
+    private boolean checkEntryStoreBeforeUpdate = true;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -145,7 +157,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
             for (PiTableEntry installedEntry : installedEntries) {
 
                 P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId, piTableId,
-                        installedEntry.matchKey());
+                                                                                         installedEntry.matchKey());
 
                 P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
 
@@ -161,14 +173,14 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
                 long packets = 0L;
 
                 FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
-                        packets, bytes);
+                                                       packets, bytes);
                 resultBuilder.add(entry);
             }
         }
 
         if (inconsistentEntries.size() > 0) {
             log.warn("Found {} entries in {} that are not known by table entry service," +
-                    " removing them", inconsistentEntries.size(), deviceId);
+                             " removing them", inconsistentEntries.size(), deviceId);
             inconsistentEntries.forEach(entry -> log.debug(entry.toString()));
             // Async remove them.
             client.writeTableEntries(inconsistentEntries, DELETE, pipeconf);
@@ -211,7 +223,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
 
             PiTableId tableId = piTableEntry.table();
             P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId,
-                    tableId, piTableEntry.matchKey());
+                                                                                     tableId, piTableEntry.matchKey());
 
             Lock lock = ENTRY_LOCKS.computeIfAbsent(entryRef, k -> new ReentrantLock());
             lock.lock();
@@ -219,37 +231,62 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
             try {
 
                 P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+                WriteOperationType opType = null;
+                boolean doApply = true;
 
-                WriteOperationType opType;
                 if (operation == APPLY) {
-                    opType = INSERT;
-                    if (frWrapper != null) {
-                        // We've seen some strange error when trying to modify existing flow rules.
-                        // Remove before re-adding the modified one.
-                        try {
-                            if (client.writeTableEntries(newArrayList(piTableEntry), DELETE, pipeconf).get()) {
-                                frWrapper = null;
+                    if (frWrapper == null) {
+                        // Entry is first-timer.
+                        opType = INSERT;
+                    } else {
+                        // This match key already exists in the device.
+                        if (checkEntryStoreBeforeUpdate &&
+                                piTableEntry.action().equals(frWrapper.piTableEntry().action())) {
+                            doApply = false;
+                            log.debug("Ignoring re-apply of existing entry: {}", piTableEntry);
+                        }
+                        if (doApply) {
+                            if (deleteEntryBeforeUpdate) {
+                                // We've seen some strange error when trying to modify existing flow rules.
+                                // Remove before re-adding the modified one.
+                                try {
+                                    if (client.writeTableEntries(newArrayList(piTableEntry), DELETE, pipeconf).get()) {
+                                        frWrapper = null;
+                                    } else {
+                                        log.warn("Unable to DELETE table entry (before re-adding) in {}: {}",
+                                                 deviceId, piTableEntry);
+                                    }
+                                } catch (InterruptedException | ExecutionException e) {
+                                    log.warn("Exception while deleting table entry:", operation.name(), e);
+                                }
+                                opType = INSERT;
                             } else {
-                                log.warn("Unable to DELETE table entry (before re-adding) in {}: {}",
-                                        deviceId, piTableEntry);
+                                opType = MODIFY;
                             }
-                        } catch (InterruptedException | ExecutionException e) {
-                            log.warn("Exception while deleting table entry:", operation.name(), e);
                         }
                     }
                 } else {
                     opType = DELETE;
                 }
 
-                try {
-                    if (client.writeTableEntries(newArrayList(piTableEntry), opType, pipeconf).get()) {
-                        processedFlowRuleListBuilder.add(rule);
-                        frWrapper = new P4RuntimeFlowRuleWrapper(rule, System.currentTimeMillis());
-                    } else {
-                        log.warn("Unable to {} table entry in {}: {}", opType.name(), deviceId, piTableEntry);
+                if (doApply) {
+                    try {
+                        if (client.writeTableEntries(newArrayList(piTableEntry), opType, pipeconf).get()) {
+                            processedFlowRuleListBuilder.add(rule);
+                            if (operation == APPLY) {
+                                frWrapper = new P4RuntimeFlowRuleWrapper(rule, piTableEntry,
+                                                                         System.currentTimeMillis());
+                            } else {
+                                frWrapper = null;
+                            }
+                        } else {
+                            log.warn("Unable to {} table entry in {}: {}", opType.name(), deviceId, piTableEntry);
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        log.warn("Exception while performing {} table entry operation:", operation.name(), e);
                     }
-                } catch (InterruptedException | ExecutionException e) {
-                    log.warn("Exception while performing {} table entry operation:", operation.name(), e);
+                } else {
+                    processedFlowRuleListBuilder.add(rule);
                 }
 
                 // Update entryRef binding in table entry service.
