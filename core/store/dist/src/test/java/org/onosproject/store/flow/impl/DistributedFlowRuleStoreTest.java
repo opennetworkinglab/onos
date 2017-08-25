@@ -42,11 +42,9 @@ import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.service.AsyncDocumentTree;
-import org.onosproject.store.service.AsyncDocumentTreeAdapter;
-import org.onosproject.store.service.DocumentTree;
 import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.TestDocumentTree;
+import org.onosproject.store.service.TestAsyncDocumentTree;
 import org.onosproject.store.service.TestStorageService;
 import org.onosproject.store.service.TestTopic;
 import org.onosproject.store.service.Topic;
@@ -145,13 +143,7 @@ public class DistributedFlowRuleStoreTest {
                 @Override
                 @SuppressWarnings("unchecked")
                 public AsyncDocumentTree<V> build() {
-                    String name = name();
-                    return new AsyncDocumentTreeAdapter() {
-                        @Override
-                        public DocumentTree asDocumentTree() {
-                            return new TestDocumentTree(name);
-                        }
-                    };
+                    return new TestAsyncDocumentTree<>(name());
                 }
             };
         }
