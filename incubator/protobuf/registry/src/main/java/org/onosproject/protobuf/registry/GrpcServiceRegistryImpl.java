@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.onlab.util.Tools.get;
 
@@ -52,6 +53,7 @@ public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
 
     private static final int DEFAULT_SERVER_PORT = 64000;
     private static final int DEFAULT_SHUTDOWN_TIME = 1;
+    private static final AtomicBoolean SERVICES_MODIFIED_SINCE_START = new AtomicBoolean(false);
 
     private static final String PORT_PROPERTY_NAME = "listeningPort";
 
