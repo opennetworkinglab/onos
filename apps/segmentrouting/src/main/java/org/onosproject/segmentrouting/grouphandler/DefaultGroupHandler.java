@@ -1016,10 +1016,61 @@ public class DefaultGroupHandler {
             );
         NextObjective nextObj = nextObjBuilder.add(context);
         flowObjectiveService.next(deviceId, nextObj);
-        log.debug("createBcastGroupFromVlan: Submited next objective {} in device {}",
+        log.debug("createBcastGroupFromVlan: Submitted next objective {} in device {}",
                   nextId, deviceId);
 
         vlanNextObjStore.put(key, nextId);
+    }
+
+    /**
+     * Removes a single broadcast group from a given vlan id.
+     * The group should be empty.
+     * @param deviceId device Id to remove the group
+     * @param portNum port number related to the group
+     * @param vlanId vlan id of the broadcast group to remove
+     * @param popVlan true if the TrafficTreatment involves pop vlan tag action
+     */
+    public void removeBcastGroupFromVlan(DeviceId deviceId, PortNumber portNum,
+                                         VlanId vlanId, boolean popVlan) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+
+        if (!vlanNextObjStore.containsKey(key)) {
+            log.debug("Broadcast group for device {} and subnet {} does not exist",
+                      deviceId, vlanId);
+            return;
+        }
+
+        TrafficSelector metadata =
+                DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
+
+        int nextId = vlanNextObjStore.get(key);
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                .withMeta(metadata);
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        if (popVlan) {
+            tBuilder.popVlan();
+        }
+        tBuilder.setOutput(portNum);
+        nextObjBuilder.addTreatment(tBuilder.build());
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.debug("removeBroadcastGroupFromVlan removed "
+                                          + "NextObj {} on {}", nextId, deviceId),
+                (objective, error) ->
+                        log.warn("removeBroadcastGroupFromVlan failed to remove "
+                                         + " NextObj {} on {}: {}", nextId, deviceId, error)
+        );
+        NextObjective nextObj = nextObjBuilder.remove(context);
+        flowObjectiveService.next(deviceId, nextObj);
+        log.debug("removeBcastGroupFromVlan: Submited next objective {} in device {}",
+                  nextId, deviceId);
+
+        vlanNextObjStore.remove(key, nextId);
     }
 
     /**
@@ -1073,6 +1124,48 @@ public class DefaultGroupHandler {
     }
 
     /**
+     * Removes simple next objective for a single port.
+     *
+     * @param deviceId device id that has the port to deal with
+     * @param portNum the outgoing port on the device
+     * @param vlanId vlan id associated with the port
+     * @param popVlan true if POP_VLAN action is applied on the packets, false otherwise
+     */
+    public void removePortNextObjective(DeviceId deviceId, PortNumber portNum, VlanId vlanId, boolean popVlan) {
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+        mbuilder.matchVlanId(vlanId);
+
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.immediate().setOutput(portNum);
+        if (popVlan) {
+            tbuilder.immediate().popVlan();
+        }
+
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, portNum,
+                                                             tbuilder.build(), mbuilder.build(), false);
+
+        PortNextObjectiveStoreKey key = new PortNextObjectiveStoreKey(
+                deviceId, portNum, tbuilder.build(), mbuilder.build());
+        if (portNextObjId != -1 && portNextObjStore.containsKey(key)) {
+            NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                    .builder().withId(portNextObjId)
+                    .withType(NextObjective.Type.SIMPLE).fromApp(appId);
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("removePortNextObjective removes NextObj {} on {}",
+                                             portNextObjId, deviceId),
+                    (objective, error) ->
+                            log.warn("removePortNextObjective failed to remove NextObj {} on {}: {}",
+                                     portNextObjId, deviceId, error));
+            NextObjective nextObjective = nextObjBuilder.remove(context);
+            log.info("**removePortNextObjective: Submitted "
+                             + "next objective {} in device {}",
+                     portNextObjId, deviceId);
+            flowObjectiveService.next(deviceId, nextObjective);
+
+            portNextObjStore.remove(key);
+        }
+    }
+    /**
      * Removes groups for the next objective ID given.
      *
      * @param objectiveId next objective ID to remove
@@ -1105,6 +1198,42 @@ public class DefaultGroupHandler {
 
         return false;
     }
+    /**
+     * Remove simple next objective for a single port. The treatments can include
+     * all outgoing actions that need to happen on the packet.
+     *
+     * @param portNum  the outgoing port on the device
+     * @param treatment the actions applied on the packets (should include outport)
+     * @param meta optional data to pass to the driver
+     */
+    public void removeGroupFromPort(PortNumber portNum, TrafficTreatment treatment,
+                                    TrafficSelector meta) {
+        PortNextObjectiveStoreKey key = new PortNextObjectiveStoreKey(
+                deviceId, portNum, treatment, meta);
+        Integer nextId = portNextObjStore.get(key);
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.SIMPLE)
+                .addTreatment(treatment)
+                .fromApp(appId)
+                .withMeta(meta);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.info("removeGroupFromPort installed "
+                                          + "NextObj {} on {}", nextId, deviceId),
+                (objective, error) ->
+                        log.warn("removeGroupFromPort failed to install"
+                                         + " NextObj {} on {}: {}", nextId, deviceId, error)
+        );
+        NextObjective nextObj = nextObjBuilder.remove(context);
+        flowObjectiveService.next(deviceId, nextObj);
+        log.info("removeGroupFromPort: Submitted next objective {} in device {} "
+                          + "for port {}", nextId, deviceId, portNum);
+
+        portNextObjStore.remove(key);
+    }
 
     /**
      * Removes all groups from all next objective stores.
@@ -1133,6 +1262,40 @@ public class DefaultGroupHandler {
         bc.run();
     }
 
+    public void updateGroupFromVlanConfiguration(PortNumber portNumber, Collection<VlanId> vlanIds,
+                                                 int nextId, boolean install) {
+        vlanIds.forEach(vlanId -> updateGroupFromVlanInternal(vlanId, portNumber, nextId, install));
+    }
+
+    private void updateGroupFromVlanInternal(VlanId vlanId, PortNumber portNum, int nextId, boolean install) {
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        if (toPopVlan(portNum, vlanId)) {
+            tBuilder.popVlan();
+        }
+        tBuilder.setOutput(portNum);
+
+        TrafficSelector metadata =
+                DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                .addTreatment(tBuilder.build())
+                .withMeta(metadata);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("port {} successfully removedFrom NextObj {} on {}",
+                                         portNum, nextId, deviceId),
+                (objective, error) ->
+                        log.warn("port {} failed to removedFrom NextObj {} on {}: {}",
+                                 portNum, nextId, deviceId, error));
+
+        if (install) {
+            flowObjectiveService.next(deviceId, nextObjBuilder.addToExisting(context));
+        } else {
+            flowObjectiveService.next(deviceId, nextObjBuilder.removeFromExisting(context));
+        }
+    }
 
     /**
      * Performs bucket verification operation for all hash groups in this device.

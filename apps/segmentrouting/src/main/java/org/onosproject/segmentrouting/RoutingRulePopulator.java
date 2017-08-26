@@ -767,6 +767,23 @@ public class RoutingRulePopulator {
         return true;
     }
 
+    /**
+     * Updates filtering objectives for a single port. Should only be called by
+     * the master for a switch
+     * @param deviceId device identifier
+     * @param portNum  port identifier for port to be filtered
+     * @param pushVlan true to push vlan, false otherwise
+     * @param vlanId vlan identifier
+     * @param install true to install the filtering objective, false to remove
+     */
+    void updateSinglePortFilters(DeviceId deviceId, PortNumber portNum,
+                                 boolean pushVlan, VlanId vlanId, boolean install) {
+        if (!processSinglePortFiltersInternal(deviceId, portNum, pushVlan, vlanId, install)) {
+            log.warn("Failed to update FilteringObjective for {}/{} with vlan {}",
+                     deviceId, portNum, vlanId);
+        }
+    }
+
     private boolean processSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
                                                       boolean pushVlan, VlanId vlanId, boolean install) {
         FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
@@ -774,7 +791,7 @@ public class RoutingRulePopulator {
             // error encountered during build
             return false;
         }
-        log.debug("{} filtering objectives for dev/port:{}/{}",
+        log.debug("{} filtering objectives for dev/port: {}/{}",
                  install ? "Installing" : "Removing", deviceId, portnum);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Filter for {}/{} {}", deviceId, portnum,
@@ -856,11 +873,44 @@ public class RoutingRulePopulator {
             allIps.add(pairRouterIpv6);
         }
         for (IpAddress ipaddr : allIps) {
-            TrafficSelector.Builder sbuilder = buildIpSelectorFromIpAddress(ipaddr);
-            Optional<DeviceId> optDeviceId = Optional.of(deviceId);
+            populateSingleIpPunts(deviceId, ipaddr);
+        }
+    }
 
-            srManager.packetService.requestPackets(sbuilder.build(),
-                    PacketPriority.CONTROL, srManager.appId, optDeviceId);
+    /**
+     * Creates a forwarding objective to punt all IP packets, destined to the
+     * specified IP address, which should be router's port IP address.
+     *
+     * @param deviceId the switch dpid for the router
+     * @param ipAddress the IP address of the router's port
+     */
+    void populateSingleIpPunts(DeviceId deviceId, IpAddress ipAddress) {
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpAddress(ipAddress);
+        Optional<DeviceId> optDeviceId = Optional.of(deviceId);
+
+        srManager.packetService.requestPackets(sbuilder.build(),
+                                               PacketPriority.CONTROL, srManager.appId, optDeviceId);
+    }
+
+    /**
+     * Removes a forwarding objective to punt all IP packets, destined to the
+     * specified IP address, which should be router's port IP address.
+     *
+     * @param deviceId the switch dpid for the router
+     * @param ipAddress the IP address of the router's port
+     */
+    void revokeSingleIpPunts(DeviceId deviceId, IpAddress ipAddress) {
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpAddress(ipAddress);
+        Optional<DeviceId> optDeviceId = Optional.of(deviceId);
+
+        try {
+            if (!ipAddress.equals(config.getRouterIpv4(deviceId)) &&
+                    !ipAddress.equals(config.getRouterIpv6(deviceId))) {
+                srManager.packetService.cancelPackets(sbuilder.build(),
+                                                      PacketPriority.CONTROL, srManager.appId, optDeviceId);
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting revokeSingleIpPunts");
         }
     }
 
@@ -1033,38 +1083,122 @@ public class RoutingRulePopulator {
      */
     void populateSubnetBroadcastRule(DeviceId deviceId) {
         srManager.getVlanPortMap(deviceId).asMap().forEach((vlanId, ports) -> {
-            int nextId = srManager.getVlanNextObjectiveId(deviceId, vlanId);
-
-            if (nextId < 0) {
-                log.error("Cannot install vlan {} broadcast rule in dev:{} due"
-                        + "to vlanId:{} or nextId:{}", vlanId, deviceId, vlanId, nextId);
-                return;
-            }
-
-            // Driver should treat objective with MacAddress.NONE as the
-            // subnet broadcast rule
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            sbuilder.matchVlanId(vlanId);
-            sbuilder.matchEthDst(MacAddress.NONE);
-
-            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
-            fob.withFlag(Flag.SPECIFIC)
-                    .withSelector(sbuilder.build())
-                    .nextStep(nextId)
-                    .withPriority(SegmentRoutingService.FLOOD_PRIORITY)
-                    .fromApp(srManager.appId)
-                    .makePermanent();
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Vlan broadcast rule for {} populated", vlanId),
-                    (objective, error) ->
-                            log.warn("Failed to populate vlan broadcast rule for {}: {}", vlanId, error));
-            srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+            updateSubnetBroadcastRule(deviceId, vlanId, true);
         });
+    }
+
+    /**
+     * Creates or removes a forwarding objective to broadcast packets to its subnet.
+     * @param deviceId switch ID to set the rule
+     * @param vlanId vlan ID to specify the subnet
+     * @param install true to install the rule, false to revoke the rule
+     */
+    void updateSubnetBroadcastRule(DeviceId deviceId, VlanId vlanId, boolean install) {
+        int nextId = srManager.getVlanNextObjectiveId(deviceId, vlanId);
+
+        if (nextId < 0) {
+            log.error("Cannot install vlan {} broadcast rule in dev:{} due"
+                              + " to vlanId:{} or nextId:{}", vlanId, deviceId, vlanId, nextId);
+            return;
+        }
+
+        // Driver should treat objective with MacAddress.NONE as the
+        // subnet broadcast rule
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchVlanId(vlanId);
+        sbuilder.matchEthDst(MacAddress.NONE);
+
+        ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
+        fob.withFlag(Flag.SPECIFIC)
+                .withSelector(sbuilder.build())
+                .nextStep(nextId)
+                .withPriority(SegmentRoutingService.FLOOD_PRIORITY)
+                .fromApp(srManager.appId)
+                .makePermanent();
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Vlan broadcast rule for {} populated", vlanId),
+                (objective, error) ->
+                        log.warn("Failed to populate vlan broadcast rule for {}: {}", vlanId, error));
+
+        if (install) {
+            srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+        } else {
+            srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+        }
     }
 
     private int getPriorityFromPrefix(IpPrefix prefix) {
         return (prefix.isIp4()) ?
                 2000 * prefix.prefixLength() + SegmentRoutingService.MIN_IP_PRIORITY :
                 500 * prefix.prefixLength() + SegmentRoutingService.MIN_IP_PRIORITY;
+    }
+
+    /**
+     * Update Forwarding objective for each host and IP address connected to given port.
+     * And create corresponding Simple Next objective if it does not exist.
+     * Applied only when populating Forwarding objective
+     * @param deviceId switch ID to set the rule
+     * @param portNumber port number
+     * @param prefix IP prefix of the route
+     * @param hostMac MAC address of the next hop
+     * @param vlanId Vlan ID of the port
+     * @param popVlan true to pop vlan tag in TrafficTreatment
+     * @param install true to populate the forwarding objective, false to revoke
+     */
+    void updateFwdObj(DeviceId deviceId, PortNumber portNumber, IpPrefix prefix, MacAddress hostMac,
+                      VlanId vlanId, boolean popVlan, boolean install) {
+        ForwardingObjective.Builder fob;
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
+        MacAddress deviceMac;
+        try {
+            deviceMac = config.getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting updateFwdObj.");
+            return;
+        }
+
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.deferred()
+                .setEthDst(hostMac)
+                .setEthSrc(deviceMac)
+                .setOutput(portNumber);
+
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+
+        if (!popVlan) {
+            tbuilder.setVlanId(vlanId);
+        } else {
+            mbuilder.matchVlanId(vlanId);
+        }
+
+        // if the objective is to revoke an existing rule, and for some reason
+        // the next-objective does not exist, then a new one should not be created
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, portNumber,
+                                                             tbuilder.build(), mbuilder.build(), install);
+        if (portNextObjId == -1) {
+            // Warning log will come from getPortNextObjective method
+            return;
+        }
+
+        fob = DefaultForwardingObjective.builder().withSelector(sbuilder.build())
+                .nextStep(portNextObjId).fromApp(srManager.appId).makePermanent()
+                .withPriority(getPriorityFromPrefix(prefix)).withFlag(ForwardingObjective.Flag.SPECIFIC);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for route {} {}", prefix, install ? "installed" : "revoked"),
+                (objective, error) ->
+                        log.warn("Failed to {} IP rule for route {}: {}",
+                                 install ? "install" : "revoke", prefix, error));
+        srManager.flowObjectiveService.forward(deviceId, install ? fob.add(context) : fob.remove(context));
+
+        if (!install) {
+            DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
+            if (grpHandler == null) {
+                log.warn("updateFwdObj: groupHandler for device {} not found", deviceId);
+            } else {
+                // Remove L3UG for the given port and host
+                grpHandler.removeGroupFromPort(portNumber, tbuilder.build(), mbuilder.build());
+            }
+        }
     }
 }
