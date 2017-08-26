@@ -20,7 +20,10 @@ import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
  * Behaviour for handling various drivers for l3vpn configurations.
+ *
+ * @deprecated in 1.110 (Loon) release
  */
+@Deprecated
 public interface L3VpnConfig extends HandlerBehaviour {
 
     /**
