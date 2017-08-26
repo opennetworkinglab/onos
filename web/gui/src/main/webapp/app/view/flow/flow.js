@@ -273,7 +273,10 @@
 
                     function selCb($event, row) {
                         if ($scope.selId) {
-                            wss.sendEvent(detailsReq, { flowId: row.id, appId: row.appId });
+                            wss.sendEvent(detailsReq, {
+                                flowId: row.id,
+                                appId: row.appId
+                            });
                         } else {
                             $scope.hidePanel();
                         }
@@ -301,65 +304,67 @@
 
         .directive('flowDetailsPanel',
             ['$rootScope', '$window', '$timeout', 'KeyService',
-                function ($rootScope, $window, $timeout, ks) {
-                    return function (scope) {
-                        var unbindWatch;
+            function ($rootScope, $window, $timeout, ks) {
+                return function (scope) {
+                    var unbindWatch;
 
-                        function heightCalc() {
-                            pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
-                                + mast.mastHeight() + topPdg;
-                            wSize = fs.windowSize(pStartY);
-                            pHeight = wSize.height;
-                        }
+                    function heightCalc() {
+                        var tabhead = d3.select('.tabular-header');
 
-                        function initPanel() {
-                            heightCalc();
-                            createDetailsPane();
-                        }
+                        pStartY = fs.noPxStyle(tabhead, 'height') +
+                            mast.mastHeight() + topPdg;
+                        wSize = fs.windowSize(pStartY);
+                        pHeight = wSize.height;
+                    }
 
-                        // Safari has a bug where it renders the fixed-layout table wrong
-                        // if you ask for the window's size too early
-                        if (scope.onos.browser === 'safari') {
-                            $timeout(initPanel);
-                        } else {
-                            initPanel();
+                    function initPanel() {
+                        heightCalc();
+                        createDetailsPane();
+                    }
+
+                    // Safari has a bug where it renders the fixed-layout
+                    // table wrong if you ask for the window's size too early
+                    if (scope.onos.browser === 'safari') {
+                        $timeout(initPanel);
+                    } else {
+                        initPanel();
+                    }
+                    // create key bindings to handle panel
+                    ks.keyBindings({
+                        esc: [handleEscape, 'Close the details panel'],
+                        _helpFormat: ['esc'],
+                    });
+                    ks.gestureNotes([
+                        ['click', 'Select a row to show cluster node details'],
+                        ['scroll down', 'See available cluster nodes'],
+                    ]);
+                    // if the panelData changes
+                    scope.$watch('panelData', function () {
+                        if (!fs.isEmptyObject(scope.panelData)) {
+                            populateDetails(scope.panelData);
+                            detailsPanel.show();
                         }
-                        // create key bindings to handle panel
-                        ks.keyBindings({
-                            esc: [handleEscape, 'Close the details panel'],
-                            _helpFormat: ['esc'],
-                        });
-                        ks.gestureNotes([
-                            ['click', 'Select a row to show cluster node details'],
-                            ['scroll down', 'See available cluster nodes'],
-                        ]);
-                        // if the panelData changes
-                        scope.$watch('panelData', function () {
+                    });
+                    // if the window size changes
+                    unbindWatch = $rootScope.$watchCollection(
+                        function () {
+                            return {
+                                h: $window.innerHeight,
+                                w: $window.innerWidth,
+                            };
+                        }, function () {
                             if (!fs.isEmptyObject(scope.panelData)) {
+                                heightCalc();
                                 populateDetails(scope.panelData);
-                                detailsPanel.show();
                             }
-                        });
-                        // if the window size changes
-                        unbindWatch = $rootScope.$watchCollection(
-                            function () {
-                                return {
-                                    h: $window.innerHeight,
-                                    w: $window.innerWidth,
-                                };
-                            }, function () {
-                                if (!fs.isEmptyObject(scope.panelData)) {
-                                    heightCalc();
-                                    populateDetails(scope.panelData);
-                                }
-                            }
-                        );
+                        }
+                    );
 
-                        scope.$on('$destroy', function () {
-                            unbindWatch();
-                            ps.destroyPanel(pName);
-                        });
-                    };
-                }]);
+                    scope.$on('$destroy', function () {
+                        unbindWatch();
+                        ps.destroyPanel(pName);
+                    });
+                };
+            }]);
 
 }());

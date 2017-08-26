@@ -23,6 +23,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
+    '//drivers/default:onos-drivers-default',
 ]
 
 RESOURCES = {

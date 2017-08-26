@@ -95,6 +95,14 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String ONOS_PREFIX = "org.onosproject.";
     private static final String ONOS_MARKER = "*";
 
+    // json structure keys
+    private static final String IMMED = "immed";
+    private static final String DEFER = "defer";
+    private static final String METER = "meter";
+    private static final String TABLE = "table";
+    private static final String META = "meta";
+    private static final String CLEARDEF = "clearDef";
+
     // TODO: replace the use of the following constants with localized text
     private static final String MSG_NO_SELECTOR =
             "(No traffic selector criteria for this flow)";
@@ -344,7 +352,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             if (!instructs.isEmpty()) {
                 sb.append(type).append(SQUARE_O);
                 for (Instruction i : instructs) {
-                    sb.append(i).append(COMMA);
+                    sb.append(renderInstructionForDisplay(i)).append(COMMA);
                 }
                 removeTrailingComma(sb);
                 sb.append(SQUARE_C).append(COMMA);
@@ -456,17 +464,25 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         private ArrayNode jsonInstrList(List<Instruction> instructions) {
             ArrayNode array = arrayNode();
             for (Instruction i : instructions) {
-                array.add(i.toString());
+                array.add(renderInstructionForDisplay(i));
             }
             return array;
         }
     }
 
-    // json structure keys
-    private static final String IMMED = "immed";
-    private static final String DEFER = "defer";
-    private static final String METER = "meter";
-    private static final String TABLE = "table";
-    private static final String META = "meta";
-    private static final String CLEARDEF = "clearDef";
+    // package private to allow unit test access...
+    String renderInstructionForDisplay(Instruction instr) {
+
+        // special handling for Extension Instruction Wrappers...
+        if (instr instanceof Instructions.ExtensionInstructionWrapper) {
+            Instructions.ExtensionInstructionWrapper wrap =
+                    (Instructions.ExtensionInstructionWrapper) instr;
+            return wrap.type() + COLON + wrap.extensionInstruction();
+        }
+
+        // special handling of other instruction classes could be placed here
+
+        // default to the natural string representation otherwise
+        return instr.toString();
+    }
 }
