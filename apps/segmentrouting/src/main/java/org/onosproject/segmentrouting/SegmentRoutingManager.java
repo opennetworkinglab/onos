@@ -15,6 +15,8 @@
  */
 package org.onosproject.segmentrouting;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,6 +42,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -56,6 +59,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -72,6 +76,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkEvent;
@@ -751,7 +756,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the next objective ID for the given subnet prefix. It is expected
      * Returns the next objective ID for the given vlan id. It is expected
      * that the next-objective has been pre-created from configuration.
      *
@@ -1485,6 +1489,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     case CONFIG_UPDATED:
                         log.info("Interface Config updated for {}", event.subject());
                         createOrUpdateDeviceConfiguration();
+
+                        // Following code will be uncommented when [CORD-634] is fully implemented.
+                        // [CORD-634] Add dynamic config support for interfaces
+                        updateInterface((InterfaceConfig) event.config().get(),
+                                        (InterfaceConfig) event.prevConfig().get());
                         // TODO support dynamic configuration
                         break;
                     default:
@@ -1618,4 +1627,197 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    private void updateInterface(InterfaceConfig conf, InterfaceConfig prevConf) {
+        try {
+            Set<Interface> intfs = conf.getInterfaces();
+            Set<Interface> prevIntfs = prevConf.getInterfaces();
+
+            // Now we only handle one interface config at each port.
+            if (intfs.size() != 1 || prevIntfs.size() != 1) {
+                log.warn("Interface update aborted - one at a time is allowed, " +
+                                 "but {} / {}(prev) received.", intfs.size(), prevIntfs.size());
+                return;
+            }
+
+            Interface intf = intfs.stream().findFirst().get();
+            Interface prevIntf = prevIntfs.stream().findFirst().get();
+
+            DeviceId deviceId = intf.connectPoint().deviceId();
+            PortNumber portNum = intf.connectPoint().port();
+
+            if (!mastershipService.isLocalMaster(deviceId)) {
+                log.debug("CONFIG_UPDATED event for interfaces should be " +
+                                  "handled by master node for device {}", deviceId);
+                return;
+            }
+
+            removeSubnetConfig(prevIntf.connectPoint(),
+                               Sets.difference(new HashSet<>(prevIntf.ipAddressesList()),
+                                               new HashSet<>(intf.ipAddressesList())));
+
+            if (prevIntf.vlanNative() != VlanId.NONE && !intf.vlanNative().equals(prevIntf.vlanNative())) {
+                // RemoveVlanNative
+                updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanNative(), true, false);
+            }
+
+            if (!prevIntf.vlanTagged().isEmpty() && !intf.vlanTagged().equals(prevIntf.vlanTagged())) {
+                // RemoveVlanTagged
+                prevIntf.vlanTagged().stream().filter(i -> !intf.vlanTagged().contains(i)).forEach(
+                        vlanId -> updateVlanConfigInternal(deviceId, portNum, vlanId, false, false)
+                );
+            }
+
+            if (prevIntf.vlanUntagged() != VlanId.NONE && !intf.vlanUntagged().equals(prevIntf.vlanUntagged())) {
+                // RemoveVlanUntagged
+                updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanUntagged(), true, false);
+            }
+
+            if (intf.vlanNative() != VlanId.NONE && !prevIntf.vlanNative().equals(intf.vlanNative())) {
+                // AddVlanNative
+                updateVlanConfigInternal(deviceId, portNum, intf.vlanNative(), true, true);
+            }
+
+            if (!intf.vlanTagged().isEmpty() && !intf.vlanTagged().equals(prevIntf.vlanTagged())) {
+                // AddVlanTagged
+                intf.vlanTagged().stream().filter(i -> !prevIntf.vlanTagged().contains(i)).forEach(
+                        vlanId -> updateVlanConfigInternal(deviceId, portNum, vlanId, false, true)
+                );
+            }
+
+            if (intf.vlanUntagged() != VlanId.NONE && !prevIntf.vlanUntagged().equals(intf.vlanUntagged())) {
+                // AddVlanUntagged
+                updateVlanConfigInternal(deviceId, portNum, intf.vlanUntagged(), true, true);
+            }
+            addSubnetConfig(prevIntf.connectPoint(),
+                            Sets.difference(new HashSet<>(intf.ipAddressesList()),
+                                            new HashSet<>(prevIntf.ipAddressesList())));
+        } catch (ConfigException e) {
+            log.error("Error in configuration");
+        }
+    }
+
+    private void updateVlanConfigInternal(DeviceId deviceId, PortNumber portNum,
+                                          VlanId vlanId, boolean pushVlan, boolean install) {
+        DefaultGroupHandler grpHandler = getGroupHandler(deviceId);
+        if (grpHandler == null) {
+            log.warn("Failed to retrieve group handler for device {}", deviceId);
+            return;
+        }
+
+        // Update filtering objective for a single port
+        routingRulePopulator.updateSinglePortFilters(deviceId, portNum, pushVlan, vlanId, install);
+
+        // Update filtering objective for multicast ingress port
+        mcastHandler.updateFilterToDevice(deviceId, portNum, vlanId, install);
+
+        int nextId = getVlanNextObjectiveId(deviceId, vlanId);
+
+        if (nextId != -1 && !install) {
+            // Update next objective for a single port as an output port
+            // Remove a single port from L2FG
+            grpHandler.updateGroupFromVlanConfiguration(portNum, Collections.singleton(vlanId), nextId, install);
+            // Remove L2 Bridging rule and L3 Unicast rule to the host
+            hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum, vlanId, pushVlan, install);
+            // Remove broadcast forwarding rule and corresponding L2FG for VLAN
+            // only if there is no port configured on that VLAN ID
+            if (!getVlanPortMap(deviceId).containsKey(vlanId)) {
+                // Remove broadcast forwarding rule for the VLAN
+                routingRulePopulator.updateSubnetBroadcastRule(deviceId, vlanId, install);
+                // Remove L2FG for VLAN
+                grpHandler.removeBcastGroupFromVlan(deviceId, portNum, vlanId, pushVlan);
+            } else {
+                // Remove L2IG of the port
+                grpHandler.removePortNextObjective(deviceId, portNum, vlanId, pushVlan);
+            }
+        } else if (install) {
+            if (nextId != -1) {
+                // Add a single port to L2FG
+                grpHandler.updateGroupFromVlanConfiguration(portNum, Collections.singleton(vlanId), nextId, install);
+            } else {
+                // Create L2FG for VLAN
+                grpHandler.createBcastGroupFromVlan(vlanId, Collections.singleton(portNum));
+                routingRulePopulator.updateSubnetBroadcastRule(deviceId, vlanId, install);
+            }
+            hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum, vlanId, pushVlan, install);
+        } else {
+            log.warn("Failed to retrieve next objective for vlan {} in device {}:{}", vlanId, deviceId, portNum);
+        }
+    }
+
+    private void removeSubnetConfig(ConnectPoint cp, Set<InterfaceIpAddress> ipAddressSet) {
+        Set<IpPrefix> ipPrefixSet = ipAddressSet.stream().
+                map(InterfaceIpAddress::subnetAddress).collect(Collectors.toSet());
+
+        Set<InterfaceIpAddress> deviceIntfIpAddrs = interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(cp.deviceId()))
+                .filter(intf -> !intf.connectPoint().equals(cp))
+                .flatMap(intf -> intf.ipAddressesList().stream())
+                .collect(Collectors.toSet());
+        // 1. Partial subnet population
+        // Remove routing rules for removed subnet from previous configuration,
+        // which does not also exist in other interfaces in the same device
+        Set<IpPrefix> deviceIpPrefixSet = deviceIntfIpAddrs.stream()
+                .map(InterfaceIpAddress::subnetAddress)
+                .collect(Collectors.toSet());
+
+        defaultRoutingHandler.revokeSubnet(
+                ipPrefixSet.stream()
+                        .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
+                        .collect(Collectors.toSet()));
+
+        // 2. Interface IP punts
+        // Remove IP punts for old Intf address
+        Set<IpAddress> deviceIpAddrs = deviceIntfIpAddrs.stream()
+                .map(InterfaceIpAddress::ipAddress)
+                .collect(Collectors.toSet());
+        ipAddressSet.stream()
+                .map(InterfaceIpAddress::ipAddress)
+                .filter(interfaceIpAddress -> !deviceIpAddrs.contains(interfaceIpAddress))
+                .forEach(interfaceIpAddress ->
+                                 routingRulePopulator.revokeSingleIpPunts(
+                                         cp.deviceId(), interfaceIpAddress));
+
+        // 3. Host unicast routing rule
+        // Remove unicast routing rule
+        hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, false);
+    }
+
+    private void addSubnetConfig(ConnectPoint cp, Set<InterfaceIpAddress> ipAddressSet) {
+        Set<IpPrefix> ipPrefixSet = ipAddressSet.stream().
+                map(InterfaceIpAddress::subnetAddress).collect(Collectors.toSet());
+
+        Set<InterfaceIpAddress> deviceIntfIpAddrs = interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(cp.deviceId()))
+                .filter(intf -> !intf.connectPoint().equals(cp))
+                .flatMap(intf -> intf.ipAddressesList().stream())
+                .collect(Collectors.toSet());
+        // 1. Partial subnet population
+        // Add routing rules for newly added subnet, which does not also exist in
+        // other interfaces in the same device
+        Set<IpPrefix> deviceIpPrefixSet = deviceIntfIpAddrs.stream()
+                .map(InterfaceIpAddress::subnetAddress)
+                .collect(Collectors.toSet());
+
+        defaultRoutingHandler.populateSubnet(
+                Collections.singleton(cp),
+                ipPrefixSet.stream()
+                        .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
+                        .collect(Collectors.toSet()));
+
+        // 2. Interface IP punts
+        // Add IP punts for new Intf address
+        Set<IpAddress> deviceIpAddrs = deviceIntfIpAddrs.stream()
+                .map(InterfaceIpAddress::ipAddress)
+                .collect(Collectors.toSet());
+        ipAddressSet.stream()
+                .map(InterfaceIpAddress::ipAddress)
+                .filter(interfaceIpAddress -> !deviceIpAddrs.contains(interfaceIpAddress))
+                .forEach(interfaceIpAddress ->
+                                 routingRulePopulator.populateSingleIpPunts(
+                                         cp.deviceId(), interfaceIpAddress));
+
+        // 3. Host unicast routing rule
+        // Add unicast routing rule
+        hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, true);
+    }
 }

@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
@@ -399,5 +400,126 @@ public class HostHandler {
         } else {
             srManager.defaultRoutingHandler.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
         }
+    }
+
+    /**
+     * Populate or revoke a bridging rule on given deviceId that matches given vlanId,
+     * and hostMAC connected to given port, and output to given port only when
+     * vlan information is valid.
+     *
+     * @param deviceId device ID that host attaches to
+     * @param portNum port number that host attaches to
+     * @param hostMac mac address of the host connected to the switch port
+     * @param vlanId Vlan ID configured on the switch port
+     * @param popVlan true to pop Vlan tag at TrafficTreatment, false otherwise
+     * @param install true to populate the objective, false to revoke
+     */
+    private void updateBridgingRule(DeviceId deviceId, PortNumber portNum, MacAddress hostMac,
+                            VlanId vlanId, boolean popVlan, boolean install) {
+        // Create host selector
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchEthDst(hostMac);
+
+        // Create host meta
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+
+        sbuilder.matchVlanId(vlanId);
+        mbuilder.matchVlanId(vlanId);
+
+        // Create host treatment
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.immediate().setOutput(portNum);
+
+        if (popVlan) {
+            tbuilder.immediate().popVlan();
+        }
+
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, portNum,
+                                                             tbuilder.build(), mbuilder.build(), install);
+        if (portNextObjId != -1) {
+            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                    .withSelector(sbuilder.build())
+                    .nextStep(portNextObjId)
+                    .withPriority(100)
+                    .fromApp(srManager.appId)
+                    .makePermanent();
+
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Brigding rule for {}/{} {}", hostMac, vlanId,
+                                             install ? "populated" : "revoked"),
+                    (objective, error) -> log.warn("Failed to {} bridging rule for {}/{}: {}",
+                                                   install ? "populate" : "revoke", hostMac, vlanId, error));
+            flowObjectiveService.forward(deviceId, install ? fob.add(context) : fob.remove(context));
+        } else {
+            log.warn("Failed to retrieve next objective for {}/{}", hostMac, vlanId);
+        }
+    }
+
+    /**
+     * Update forwarding objective for unicast bridging and unicast routing.
+     * Also check the validity of updated interface configuration on VLAN.
+     *
+     * @param deviceId device ID that host attaches to
+     * @param portNum port number that host attaches to
+     * @param vlanId Vlan ID configured on the switch port
+     * @param popVlan true to pop Vlan tag at TrafficTreatment, false otherwise
+     * @param install true to populate the objective, false to revoke
+     */
+    void processIntfVlanUpdatedEvent(DeviceId deviceId, PortNumber portNum, VlanId vlanId,
+                                 boolean popVlan, boolean install) {
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, portNum);
+        Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
+
+        if (hosts == null || hosts.size() == 0) {
+            return;
+        }
+
+        hosts.forEach(host -> {
+            MacAddress mac = host.mac();
+            VlanId hostVlanId = host.vlan();
+
+            // Check whether the host vlan is valid for new interface configuration
+            if ((!popVlan && hostVlanId.equals(vlanId)) ||
+                    (popVlan && hostVlanId.equals(VlanId.NONE))) {
+                updateBridgingRule(deviceId, portNum, mac, vlanId, popVlan, install);
+                // Update Forwarding objective and corresponding simple Next objective
+                // for each host and IP address connected to given port
+                host.ipAddresses().forEach(ipAddress ->
+                    srManager.routingRulePopulator.updateFwdObj(deviceId, portNum, ipAddress.toIpPrefix(),
+                                                                mac, vlanId, popVlan, install)
+                );
+            }
+        });
+    }
+
+    /**
+     * Populate or revoke routing rule for each host, according to the updated
+     * subnet configuration on the interface.
+     * @param cp connect point of the updated interface
+     * @param ipPrefixSet IP Prefixes added or removed
+     * @param install true if IP Prefixes added, false otherwise
+     */
+    void processIntfIpUpdatedEvent(ConnectPoint cp, Set<IpPrefix> ipPrefixSet, boolean install) {
+        Set<Host> hosts = hostService.getConnectedHosts(cp);
+
+        if (hosts == null || hosts.size() == 0) {
+            log.warn("processIntfIpUpdatedEvent: No hosts connected to {}", cp);
+            return;
+        }
+
+        // Check whether the host IP address is in the interface's subnet
+        hosts.forEach(host ->
+            host.ipAddresses().forEach(hostIpAddress -> {
+                ipPrefixSet.forEach(ipPrefix -> {
+                    if (install && ipPrefix.contains(hostIpAddress)) {
+                            srManager.routingRulePopulator.populateRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
+                                                                         host.mac(), host.vlan(), cp.port());
+                    } else if (!install && ipPrefix.contains(hostIpAddress)) {
+                            srManager.routingRulePopulator.revokeRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
+                                                                       host.mac(), host.vlan(), cp.port());
+                    }
+                });
+            }));
     }
 }

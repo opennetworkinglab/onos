@@ -806,4 +806,55 @@ public class McastHandler {
         }
         return null;
     }
+
+    /**
+     * Removes filtering objective for given device and port.
+     *
+     * @param deviceId device ID
+     * @param port ingress port number
+     * @param assignedVlan assigned VLAN ID
+     * @param mcastIp multicast IP address
+     */
+    private void removeFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan, IpAddress mcastIp) {
+        // Do nothing if the port is configured as suppressed
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
+        SegmentRoutingAppConfig appConfig = srManager.cfgService
+                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+        if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+            log.info("Ignore suppressed port {}", connectPoint);
+            return;
+        }
+
+        FilteringObjective.Builder filtObjBuilder =
+                filterObjBuilder(deviceId, port, assignedVlan, mcastIp);
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Successfully removed filter on {}/{}, vlan {}",
+                                         deviceId, port.toLong(), assignedVlan),
+                (objective, error) ->
+                        log.warn("Failed to remove filter on {}/{}, vlan {}: {}",
+                                 deviceId, port.toLong(), assignedVlan, error));
+        srManager.flowObjectiveService.filter(deviceId, filtObjBuilder.remove(context));
+    }
+
+    /**
+     * Adds or removes filtering objective for given device and port.
+     *
+     * @param deviceId device ID
+     * @param portNum ingress port number
+     * @param vlanId assigned VLAN ID
+     * @param install true to add, false to remove
+     */
+    protected void updateFilterToDevice(DeviceId deviceId, PortNumber portNum,
+                                        VlanId vlanId, boolean install) {
+        srManager.multicastRouteService.getRoutes().forEach(mcastRoute -> {
+            ConnectPoint source = srManager.multicastRouteService.fetchSource(mcastRoute);
+            if (source.deviceId().equals(deviceId) && source.port().equals(portNum)) {
+                if (install) {
+                    addFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group());
+                } else {
+                    removeFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group());
+                }
+            }
+        });
+    }
 }
