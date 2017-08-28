@@ -13,7 +13,8 @@ onos_app (
     app_name = 'org.onosproject.snmp',
     title = 'SNMP Provider',
     category = 'Provider',
-    url = 'http://onosproject.org',
+    url = 'https://wiki.onosproject.org/display/ONOS/SNMP',
     included_bundles = BUNDLES,
-    description = 'SNMP providers.',
+    description = 'Provides means for ONOS to discover and trigger the initial handshake procedure ' +
+        'with SNMP enabled devices from information given by network configuration.',
 )

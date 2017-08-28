@@ -5,8 +5,8 @@ BUNDLES = [
 ]
 
 onos_app (
-  title = 'Network Trouble-Shooter',
-  description = 'ONOS Network Trouble-Shooting utility',
+  title = 'Network Troubleshooter',
+  description = 'Provides various network troubleshooting utilities.',
   category = 'Utility',
   url = 'https://wiki.onosproject.org/display/ONOS/Network+TroubleShooting+Module',
   included_bundles = BUNDLES,

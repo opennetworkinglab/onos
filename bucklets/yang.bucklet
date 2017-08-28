@@ -69,7 +69,7 @@ def yang_model(
     onos_app (
       app_name = app_name,
       title = title,
-      category = 'Model',
+      category = 'Models',
       url = url,
       description = description,
       required_apps = [ 'org.onosproject.yang' ],

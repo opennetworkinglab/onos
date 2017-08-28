@@ -17,7 +17,7 @@ osgi_jar(
 
 onos_app (
     app_name = 'org.onosproject.drivers.p4runtime',
-    title = 'P4 Runtime Drivers',
+    title = 'P4Runtime Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'Adds support for devices using P4 Runtime protocol.',

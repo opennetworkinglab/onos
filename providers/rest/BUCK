@@ -12,8 +12,9 @@ onos_app (
     app_name = 'org.onosproject.restsb',
     title = 'REST Provider',
     category = 'Provider',
-    url = 'http://onosproject.org',
+    url = 'https://wiki.onosproject.org/display/ONOS/REST',
     included_bundles = BUNDLES,
-    description = 'REST protocol southbound providers.',
+    description = 'Provides means for ONOS to discover the existence of a REST API enabled device ' +
+        'or proxy for multiple devices from information given by network configuration.',
 )
 

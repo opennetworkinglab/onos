@@ -7,7 +7,8 @@ onos_app (
     app_name = 'org.onosproject.tl1',
     title = 'TL1 Provider',
     category = 'Provider',
-    url = 'http://onosproject.org',
+    url = 'https://wiki.onosproject.org/display/ONOS/TL1',
     included_bundles = BUNDLES,
-    description = 'TL1 protocol southbound providers.',
+    description = 'Provides means for ONOS to discover and trigger the initial handshake procedure ' +
+        'with TL1 enable devices from information given by network configuration.',
 )
