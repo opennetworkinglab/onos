@@ -42,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers</artifactId>
+            <artifactId>onos-drivers-default</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

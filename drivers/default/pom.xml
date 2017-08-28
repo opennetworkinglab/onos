@@ -26,8 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <description>Default device drivers</description>
-    <!--should be onos-drivers-default for clarity but left as onos-drivers for compatibility-->
-    <artifactId>onos-drivers</artifactId>
+    <artifactId>onos-drivers-default</artifactId>
     <packaging>bundle</packaging>
 
     <properties>

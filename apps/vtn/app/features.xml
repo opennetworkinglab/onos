@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <feature>onos-drivers</feature>
+        <feature>onos-drivers-default</feature>
         <bundle>mvn:${project.groupId}/onos-app-vtn-mgr/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-sfc-mgr/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</bundle>
