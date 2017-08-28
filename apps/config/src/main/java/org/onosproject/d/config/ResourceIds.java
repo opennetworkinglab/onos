@@ -22,9 +22,7 @@ import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafListKey;
 import org.onosproject.yang.model.ListKey;
-import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.ResourceId.Builder;
 import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 
@@ -106,7 +104,7 @@ public abstract class ResourceIds {
 
 
     /**
-     * Returns {@code child} ad relative ResourceId against {@code base}.
+     * Returns {@code child} as relative ResourceId against {@code base}.
      *
      * @param base ResourceId
      * @param child ResourceId to relativize
@@ -118,32 +116,8 @@ public abstract class ResourceIds {
         checkArgument(base.nodeKeys().equals(child.nodeKeys().subList(0, base.nodeKeys().size())),
                       "%s is not a prefix of %s", child, base);
 
-        // FIXME waiting for Yang tools 2.2.0-b4 or later
-//        return ResourceId.builder().append(child.nodeKeys().subList(base.nodeKeys().size(),
-//                                                                    child.nodeKeys().size())).build();
-
-        Builder builder = ResourceId.builder();
-        for (NodeKey nodeKey : child.nodeKeys().subList(base.nodeKeys().size(),
-                                                        child.nodeKeys().size())) {
-            if (nodeKey instanceof ListKey) {
-                ListKey listKey = (ListKey) nodeKey;
-                for (KeyLeaf keyLeaf : listKey.keyLeafs()) {
-                    builder.addKeyLeaf(keyLeaf.leafSchema().name(),
-                                       keyLeaf.leafSchema().namespace(),
-                                       keyLeaf.leafValAsString());
-                }
-            } else if (nodeKey instanceof LeafListKey) {
-                LeafListKey llKey = (LeafListKey) nodeKey;
-                builder.addLeafListBranchPoint(llKey.schemaId().name(),
-                                               llKey.schemaId().namespace(),
-                                               llKey.value());
-
-            } else {
-                builder.addBranchPointSchema(nodeKey.schemaId().name(),
-                                             nodeKey.schemaId().namespace());
-            }
-        }
-        return builder.build();
+        return ResourceId.builder().append(child.nodeKeys().subList(base.nodeKeys().size(),
+                                                                    child.nodeKeys().size())).build();
     }
 
     /**
