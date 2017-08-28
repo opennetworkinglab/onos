@@ -9,7 +9,7 @@ set -e
 . $ONOS_ROOT/tools/build/envDefaults
 
 user=${1:-${WIKI_USER:-$USER}}
-remote=$user@wiki.onosproject.org
+remote=$user@api.onosproject.org
 
 docs=$(onos-buck build //docs:external --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
 

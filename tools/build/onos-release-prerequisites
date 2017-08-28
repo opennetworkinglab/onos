@@ -96,7 +96,7 @@ function testGerritAccess {
 function testWikiAccess {
     trap "echo 'FAILED'" ERR
     printf "Checking Wiki access... "
-    ssh $WIKI_USER@wiki.onosproject.org "test -w /var/www/api/index.html"
+    ssh $WIKI_USER@api.onosproject.org "test -w /var/www/api/index.html"
     echo "OK"
 }
 
