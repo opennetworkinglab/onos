@@ -313,7 +313,7 @@ public class NettyMessagingManager implements MessagingService {
     @Override
     public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
         checkPermission(CLUSTER_WRITE);
-        Long messageId = messageIdGenerator.incrementAndGet();
+        long messageId = messageIdGenerator.incrementAndGet();
         InternalRequest message = new InternalRequest(preamble,
                 clockService.timeNow(),
                 messageId,
