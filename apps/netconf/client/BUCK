@@ -1,28 +1,29 @@
 APPS = [
-  'org.onosproject.yang',
-  'org.onosproject.config',
-  'org.onosproject.netconf',
+    'org.onosproject.yang',
+    'org.onosproject.config',
+    'org.onosproject.netconf',
 ]
 
 COMPILE_DEPS = [
-  '//lib:CORE_DEPS',
-  '//lib:onos-yang-model',
-  '//lib:onos-yang-runtime',
-  '//apps/config:onos-apps-config',
-  '//utils/misc:onlab-misc',
-  '//protocols/netconf/api:onos-protocols-netconf-api',
-  '//utils/osgi:onlab-osgi',
+    '//lib:CORE_DEPS',
+    '//lib:onos-yang-model',
+    '//lib:onos-yang-runtime',
+    '//apps/config:onos-apps-config',
+    '//utils/misc:onlab-misc',
+    '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//utils/osgi:onlab-osgi',
 ]
 
 osgi_jar_with_tests(
-  deps = COMPILE_DEPS,
+    deps = COMPILE_DEPS,
 )
 
 onos_app(
-  app_name = 'org.onosproject.netconfsb',
-  title = 'NETCONF Device Configuration',
-  category = 'Protocol',
-  url = 'http://onosproject.org',
-  description = 'Extension to allow ONOS to configure NETCONF devices.',
-  required_apps = APPS,
+    app_name = 'org.onosproject.netconfsb',
+    title = 'NETCONF Protocol Subsystem',
+    category = 'Protocol',
+    url = 'http://onosproject.org',
+    description = 'Exposes APIs to establish NETCONF connections to devices and to send and receive ' +
+        'messages and asynchronous notifications over such connection.',
+    required_apps = APPS,
 )

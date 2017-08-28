@@ -5,10 +5,11 @@ BUNDLES = [
     '//apps/faultmanagement/fmweb:onos-apps-faultmanagement-fmweb',
 ]
 
-onos_app (
-  title = 'Fault Management',
-  description = 'ONOS fault management application',
-  category = 'Monitoring',
-  url = 'https://wiki.onosproject.org/display/ONOS/Fault+Management',
-  included_bundles = BUNDLES,
+onos_app(
+    title = 'Fault Management',
+    description = 'Provides managements of alarms. Stores retrieved alarms from devices. ' +
+        'Offers CLI, UI and REST integration to obtain and display them from ONOS.',
+    category = 'Monitoring',
+    url = 'https://wiki.onosproject.org/display/ONOS/Fault+Management',
+    included_bundles = BUNDLES,
 )

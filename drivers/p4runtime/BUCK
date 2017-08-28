@@ -1,0 +1,30 @@
+GRPC_VER = '1.3.0'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
+]
+
+BUNDLES = [
+    ':onos-drivers-p4runtime',
+]
+
+osgi_jar(
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.p4runtime',
+    title = 'P4Runtime Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'Adds support for devices using P4 Runtime protocol.',
+    included_bundles = BUNDLES,
+    required_apps = [
+        'org.onosproject.generaldeviceprovider',
+        'org.onosproject.protocols.p4runtime',
+        'org.onosproject.p4runtime',
+    ],
+)
