@@ -20,6 +20,7 @@ import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
+import org.onosproject.store.service.AsyncDocumentTree;
 
 import java.util.function.Function;
 
@@ -184,6 +185,17 @@ public final class DistributedPrimitives {
                                                         keyDecoder,
                                                         valueDecoder,
                                                         valueEncoder);
+    }
+
+    /**
+     * Creates an instance of {@code AsyncDocumentTree} that caches values on get.
+     *
+     * @param tree backing tree
+     * @return caching tree
+     * @param <V> tree value type
+     */
+    public static <V> AsyncDocumentTree<V> newCachingDocumentTree(AsyncDocumentTree<V> tree) {
+        return new CachingAsyncDocumentTree<V>(tree);
     }
 
 }

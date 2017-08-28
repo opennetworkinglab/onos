@@ -47,6 +47,8 @@ public class DefaultDocumentTreeBuilder<V> extends DocumentTreeBuilder<V> {
     @Deprecated
     @Override
     public AsyncDocumentTree<V> build() {
-        return primitiveCreator.newAsyncDocumentTree(name(), serializer(), ordering());
+        AsyncDocumentTree<V> tree = primitiveCreator.newAsyncDocumentTree(name(), serializer(), ordering());
+        tree = relaxedReadConsistency() ? DistributedPrimitives.newCachingDocumentTree(tree) : tree;
+        return tree;
     }
 }
