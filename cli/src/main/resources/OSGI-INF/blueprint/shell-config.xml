@@ -26,6 +26,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.PrettyXml"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.SummaryCommand"/>
         </command>
         <command>
