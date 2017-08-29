@@ -144,7 +144,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     public void install(SnapshotReader reader) {
         listeners = new LinkedHashMap<>();
         for (Long sessionId : reader.<Set<Long>>readObject(serializer()::decode)) {
-            listeners.put(sessionId, getSessions().getSession(sessionId));
+            listeners.put(sessionId, sessions().getSession(sessionId));
         }
         preparedKeys = reader.readObject(serializer()::decode);
         map = reader.readObject(serializer()::decode);
@@ -730,7 +730,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
                 return PrepareResult.OK;
             }
         } catch (Exception e) {
-            getLogger().warn("Failure applying {}", commit, e);
+            logger().warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
         }
     }
@@ -752,7 +752,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             this.currentVersion = commit.index();
             return commitTransaction(transactionScope);
         } catch (Exception e) {
-            getLogger().warn("Failure applying {}", commit, e);
+            logger().warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
         } finally {
             discardTombstones();

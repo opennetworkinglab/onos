@@ -90,7 +90,7 @@ public class AtomixWorkQueueService extends AbstractRaftService {
     public void install(SnapshotReader reader) {
         registeredWorkers = Maps.newHashMap();
         for (Long sessionId : reader.<Set<Long>>readObject(SERIALIZER::decode)) {
-            registeredWorkers.put(sessionId, getSessions().getSession(sessionId));
+            registeredWorkers.put(sessionId, sessions().getSession(sessionId));
         }
         assignments = reader.readObject(SERIALIZER::decode);
         unassignedTasks = reader.readObject(SERIALIZER::decode);
@@ -168,7 +168,7 @@ public class AtomixWorkQueueService extends AbstractRaftService {
                     })
                     .collect(Collectors.toCollection(ArrayList::new));
         } catch (Exception e) {
-            getLogger().warn("State machine update failed", e);
+            logger().warn("State machine update failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -185,7 +185,7 @@ public class AtomixWorkQueueService extends AbstractRaftService {
                 }
             });
         } catch (Exception e) {
-            getLogger().warn("State machine update failed", e);
+            logger().warn("State machine update failed", e);
             throw Throwables.propagate(e);
         }
     }
