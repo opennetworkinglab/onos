@@ -4,6 +4,8 @@ import re
 import json
 import urllib2
 
+import time
+
 from mininet.log import info, warn, error
 from mininet.node import Switch, Host
 
@@ -15,6 +17,15 @@ BMV2_TARGET = 'simple_switch_grpc'
 ONOS_ROOT = os.environ["ONOS_ROOT"]
 CPU_PORT = 255
 PKT_BYTES_TO_DUMP = 80
+VALGRIND_PREFIX = 'valgrind --leak-check=yes'
+VALGRIND_SLEEP = 10  # seconds
+
+
+def parseBoolean(value):
+    if value in ['1', 1, 'true', 'True']:
+        return True
+    else:
+        return False
 
 
 class ONOSHost(Host):
@@ -40,8 +51,8 @@ class ONOSBmv2Switch(Switch):
     instanceCount = 0
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn", elogger=False,
-                 persistent=False, grpcPort=None, thriftPort=None, netcfg=True,
-                 pipeconfId="", pktdump=False, **kwargs):
+                 persistent=False, grpcPort=None, thriftPort=None, netcfg=True, dryrun=False,
+                 pipeconfId="", pktdump=False, valgrind=False, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
         self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
@@ -51,13 +62,15 @@ class ONOSBmv2Switch(Switch):
             self.deviceId = ONOSBmv2Switch.deviceId
             ONOSBmv2Switch.deviceId += 1
         self.json = json
-        self.debugger = debugger
+        self.debugger = parseBoolean(debugger)
         self.loglevel = loglevel
         self.logfile = '/tmp/bmv2-%d.log' % self.deviceId
-        self.elogger = elogger
-        self.pktdump = pktdump
-        self.persistent = persistent
-        self.netcfg = netcfg
+        self.elogger = parseBoolean(elogger)
+        self.pktdump = parseBoolean(pktdump)
+        self.persistent = parseBoolean(persistent)
+        self.netcfg = parseBoolean(netcfg)
+        self.dryrun = parseBoolean(dryrun)
+        self.valgrind = parseBoolean(valgrind)
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
         self.pipeconfId = pipeconfId
         if persistent:
@@ -153,6 +166,11 @@ class ONOSBmv2Switch(Switch):
         }
         with open(self.netcfgfile, 'w') as fp:
             json.dump(cfgData, fp, indent=4)
+
+        if not self.netcfg:
+            # Do not push config to ONOS.
+            return
+
         # Build netcfg URL
         url = 'http://%s:8181/onos/v1/network/configuration/' % controllerIP
         # Instantiate password manager for HTTP auth
@@ -194,7 +212,11 @@ class ONOSBmv2Switch(Switch):
         args.append('--grpc-server-addr 0.0.0.0:%d' % self.grpcPort)
 
         bmv2cmd = " ".join(args)
-        info("\nStarting BMv2 target: %s\n" % bmv2cmd)
+        if self.valgrind:
+            bmv2cmd = "%s %s" % (VALGRIND_PREFIX, bmv2cmd)
+        if self.dryrun:
+            info("\n*** DRY RUN (not executing bmv2)")
+        info("\nStarting BMv2 target: %s" % bmv2cmd)
 
         if self.persistent:
             # Bash loop to re-exec the switch if it crashes.
@@ -203,18 +225,23 @@ class ONOSBmv2Switch(Switch):
         cmdStr = "{} > {} 2>&1 &".format(bmv2cmd, self.logfile)
 
         # Starts the switch.
-        out = self.cmd(cmdStr)
-        if out:
-            print out
+        if not self.dryrun:
+            out = self.cmd(cmdStr)
+            if out:
+                print out
+            if self.valgrind:
+                # With valgrind, it takes some time before the gRPC server is available.
+                # Wait before pushing the netcfg.
+                info("\n*** Waiting %d seconds before pushing the config to ONOS...\n" % VALGRIND_SLEEP)
+                time.sleep(VALGRIND_SLEEP)
 
-        if self.netcfg:
-            try:  # onos.py
-                clist = controllers[0].nodes()
-            except AttributeError:
-                clist = controllers
-            assert len(clist) > 0
-            cip = clist[0].IP()
-            self.doOnosNetcfg(cip)
+        try:  # onos.py
+            clist = controllers[0].nodes()
+        except AttributeError:
+            clist = controllers
+        assert len(clist) > 0
+        cip = clist[0].IP()
+        self.doOnosNetcfg(cip)
 
     def stop(self, deleteIntfs=True):
         """Terminate switch."""
