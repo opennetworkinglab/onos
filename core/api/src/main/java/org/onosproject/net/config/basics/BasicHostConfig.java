@@ -16,6 +16,7 @@
 package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
@@ -40,7 +41,7 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
         this.locations();
         this.ipAddresses();
         return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
-                GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
+                             GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
     }
 
     @Override
@@ -57,21 +58,29 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
     /**
      * Returns the location of the host.
      *
-     * @return location of the host
-     * @throws IllegalArgumentException if not specified with correct format
+     * @return location of the host or null if none specified
+     * @throws IllegalArgumentException if locations are set but empty or not
+     *                                  specified with correct format
      */
     public Set<HostLocation> locations() {
-        HashSet<HostLocation> locations = new HashSet<>();
-        if (object.has(LOCATIONS)) {
-            ArrayNode locationNodes = (ArrayNode) object.path(LOCATIONS);
-            locationNodes.forEach(n -> {
-                ConnectPoint cp = ConnectPoint.deviceConnectPoint((n.asText()));
-                locations.add(new HostLocation(cp, 0));
-            });
+        if (!object.has(LOCATIONS)) {
+            return null; //no locations are specified
         }
+
+        ImmutableSet.Builder<HostLocation> locationsSetBuilder = ImmutableSet.<HostLocation>builder();
+
+        ArrayNode locationNodes = (ArrayNode) object.path(LOCATIONS);
+        locationNodes.forEach(n -> {
+            ConnectPoint cp = ConnectPoint.deviceConnectPoint((n.asText()));
+            locationsSetBuilder.add(new HostLocation(cp, 0));
+        });
+
+
+        Set<HostLocation> locations = locationsSetBuilder.build();
         if (locations.isEmpty()) {
             throw new IllegalArgumentException("Host should have at least one location");
         }
+
         return locations;
     }
 
