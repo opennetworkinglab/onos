@@ -103,7 +103,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
 
                 @Override
                 public Listener read(Kryo kryo, Input input, Class<Listener> type) {
-                    return new Listener(getSessions().getSession(input.readLong()),
+                    return new Listener(sessions().getSession(input.readLong()),
                             kryo.readObjectOrNull(input, DocumentPath.class));
                 }
             }, Listener.class)
@@ -273,7 +273,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
         } catch (NoSuchDocumentPathException e) {
             result = DocumentTreeResult.invalidPath();
         } catch (Exception e) {
-            getLogger().error("Failed to apply {} to state machine", commit.value(), e);
+            logger().error("Failed to apply {} to state machine", commit.value(), e);
             throw Throwables.propagate(e);
         }
         return result;
@@ -365,7 +365,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
                 return PrepareResult.OK;
             }
         } catch (Exception e) {
-            getLogger().warn("Failure applying {}", commit, e);
+            logger().warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
         }
     }
@@ -409,7 +409,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             try {
                 previousValue = docTree.removeNode(path);
             } catch (NoSuchDocumentPathException e) {
-                getLogger().info("Value is being inserted first time");
+                logger().info("Value is being inserted first time");
             }
 
             if (record.value() != null) {
@@ -454,7 +454,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
         try {
             return commitTransaction(transactionScope);
         } catch (Exception e) {
-            getLogger().warn("Failure applying {}", commit, e);
+            logger().warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
         }
     }

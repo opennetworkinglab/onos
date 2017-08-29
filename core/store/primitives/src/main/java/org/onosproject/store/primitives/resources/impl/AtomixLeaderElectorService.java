@@ -88,18 +88,18 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
         writer.writeObject(Sets.newHashSet(listeners.keySet()), SERIALIZER::encode);
         writer.writeObject(termCounters, SERIALIZER::encode);
         writer.writeObject(elections, SERIALIZER::encode);
-        getLogger().debug("Took state machine snapshot");
+        logger().debug("Took state machine snapshot");
     }
 
     @Override
     public void install(SnapshotReader reader) {
         listeners = new LinkedHashMap<>();
         for (Long sessionId : reader.<Set<Long>>readObject(SERIALIZER::decode)) {
-            listeners.put(sessionId, getSessions().getSession(sessionId));
+            listeners.put(sessionId, sessions().getSession(sessionId));
         }
         termCounters = reader.readObject(SERIALIZER::decode);
         elections = reader.readObject(SERIALIZER::decode);
-        getLogger().debug("Reinstated state machine from snapshot");
+        logger().debug("Reinstated state machine from snapshot");
     }
 
     @Override
@@ -176,7 +176,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             }
             return newLeadership;
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -196,7 +196,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
                 notifyLeadershipChange(oldLeadership, newLeadership);
             }
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -221,7 +221,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
                     electionState.leader() != null &&
                     commit.value().nodeId().equals(electionState.leader().nodeId()));
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -246,7 +246,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             }
             return true;
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -270,7 +270,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             });
             notifyLeadershipChanges(changes);
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -285,7 +285,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
         try {
             return leadership(topic);
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -303,7 +303,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
                 return leader != null && leader.nodeId().equals(nodeId);
             }).keySet());
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }
@@ -319,7 +319,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             result.putAll(Maps.transformEntries(elections, (k, v) -> leadership(k)));
             return result;
         } catch (Exception e) {
-            getLogger().error("State machine operation failed", e);
+            logger().error("State machine operation failed", e);
             throw Throwables.propagate(e);
         }
     }

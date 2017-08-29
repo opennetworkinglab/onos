@@ -130,7 +130,7 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
 
         listeners = new LinkedHashMap<>();
         for (Long sessionId : reader.<Set<Long>>readObject(serializer::decode)) {
-            listeners.put(sessionId, getSessions().getSession(sessionId));
+            listeners.put(sessionId, sessions().getSession(sessionId));
         }
 
         backingMap = reader.readObject(serializer::decode);
