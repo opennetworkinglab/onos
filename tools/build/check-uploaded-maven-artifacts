@@ -49,7 +49,8 @@ def checkArtifact(localPath, remoteUrl):
         sha1 = repoResponse.headers['x-checksum-sha1']
 
     if sha1 != expectedSha1:
-        print 'SHA1 hash is wrong expected ' + expectedSha1 + ' but found ' + sha1
+        print 'SHA1 hash is wrong for ' + remoteUrl + ' expected ' + \
+              expectedSha1 + ' but found ' + sha1
         sys.exit(1)
 
 def checkArtifactsForComponent(version, name, component, buildRoot, repoRoot):
