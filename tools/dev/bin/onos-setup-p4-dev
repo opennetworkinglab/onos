@@ -15,8 +15,8 @@
 set -e
 
 BUILD_DIR=~/p4tools
-BMV2_COMMIT="0f7f05e6ad88640f68b34cd0cae50214bb4140c5"
-PI_COMMIT="1202bfc3d76d88e274c7ec3156a06d206e0ee068"
+BMV2_COMMIT="1683392d8859907b8367cc0188d3d4ed8bea268c"
+PI_COMMIT="b7053f7ad32eb8cddab2ed1f4a7e1e6a30fc5e57"
 P4C_COMMIT="55067fd0e5f9e25fef06e58e49033da3493f796d"
 PROTOBUF_COMMIT="tags/v3.0.2"
 GRPC_COMMIT="tags/v1.3.0"
@@ -150,7 +150,7 @@ function do_p4runtime {
     git submodule update --init --recursive
 
     ./autogen.sh
-    ./configure --with-proto 'CXXFLAGS=-O0 -ggdb'
+    ./configure --with-proto 'CXXFLAGS=-O0 -g'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -176,7 +176,7 @@ function do_bmv2 {
     sudo rm -rf $tmpdir
 
     ./autogen.sh
-    ./configure --enable-debugger --with-pi 'CXXFLAGS=-O0 -ggdb'
+    ./configure --enable-debugger --with-pi 'CXXFLAGS=-O0 -g'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -184,7 +184,7 @@ function do_bmv2 {
     # Simple_switch_grpc target
     cd targets/simple_switch_grpc
     ./autogen.sh
-    ./configure 'CXXFLAGS=-O0 -ggdb'
+    ./configure 'CXXFLAGS=-O0 -g'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
