@@ -364,6 +364,7 @@ public class DistributedApplicationStore extends ApplicationArchive
                     (k, v) -> new InternalApplicationHolder(
                             v.app(), ACTIVATED, v.permissions()));
             appActivationTopic.publish(vAppHolder.value().app());
+            appActivationTopic.publish(null); // FIXME: Once ONOS-6977 is fixed
         }
     }
 
@@ -439,10 +440,12 @@ public class DistributedApplicationStore extends ApplicationArchive
     private class AppActivator implements Consumer<Application> {
         @Override
         public void accept(Application app) {
-            String appName = app.id().name();
-            installAppIfNeeded(app);
-            setActive(appName);
-            notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
+            if (app != null) { // FIXME: Once ONOS-6977 is fixed
+                String appName = app.id().name();
+                installAppIfNeeded(app);
+                setActive(appName);
+                notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
+            }
         }
     }
 
