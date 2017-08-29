@@ -19,9 +19,13 @@
 #include "include/defines.p4"
 #include "include/headers.p4"
 
+struct ecmp_metadata_t {
+    ecmp_group_id_t ecmp_group_id;
+}
+
 struct metadata_t {
     intrinsic_metadata_t intrinsic_metadata;
-    ecmp_group_id_t ecmp_group_id;
+    ecmp_metadata_t ecmp_metadata;
 }
 
 #include "include/parsers.p4"
@@ -35,7 +39,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     direct_counter(CounterType.packets) ecmp_counter;
 
     action do_ecmp(ecmp_group_id_t ecmp_group_id) {
-        meta.ecmp_group_id = ecmp_group_id;
+        meta.ecmp_metadata.ecmp_group_id = ecmp_group_id;
     }
 
     table table0 {
@@ -64,7 +68,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     table ecmp {
         support_timeout = false;
         key = {
-            meta.ecmp_group_id             : exact;
+            meta.ecmp_metadata.ecmp_group_id             : exact;
             // Not for matching.
             // Inputs to the hash function of the action selector.
             hdr.ipv4.srcAddr               : selector;

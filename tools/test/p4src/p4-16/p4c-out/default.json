@@ -10,8 +10,7 @@
       "id" : 0,
       "fields" : [
         ["tmp", 32, false],
-        ["tmp_0", 32, false],
-        ["metadata_t.ecmp_group_id", 8, false]
+        ["tmp_0", 32, false]
       ]
     },
     {
@@ -117,6 +116,13 @@
         ["mcast_grp", 16, false],
         ["egress_rid", 16, false]
       ]
+    },
+    {
+      "name" : "ecmp_metadata_t",
+      "id" : 9,
+      "fields" : [
+        ["ecmp_group_id", 8, false]
+      ]
     }
   ],
   "headers" : [
@@ -210,6 +216,13 @@
       "header_type" : "intrinsic_metadata_t",
       "metadata" : true,
       "pi_omit" : true
+    },
+    {
+      "name" : "ecmp_metadata",
+      "id" : 13,
+      "header_type" : "ecmp_metadata_t",
+      "metadata" : true,
+      "pi_omit" : true
     }
   ],
   "header_stacks" : [],
@@ -218,12 +231,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5]
   ],
   "enums" : [],
   "parsers" : [
@@ -3173,7 +3186,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "metadata_t.ecmp_group_id"]
+              "value" : ["ecmp_metadata", "ecmp_group_id"]
             },
             {
               "type" : "runtime_data",
@@ -3182,9 +3195,9 @@
           ],
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 38,
+            "line" : 42,
             "column" : 8,
-            "source_fragment" : "meta.ecmp_group_id = ecmp_group_id"
+            "source_fragment" : "meta.ecmp_metadata.ecmp_group_id = ecmp_group_id"
           }
         }
       ]
@@ -3382,7 +3395,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "default.p4",
-        "line" : 33,
+        "line" : 37,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -3416,7 +3429,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 41,
+            "line" : 45,
             "column" : 10,
             "source_fragment" : "table0"
           },
@@ -3468,14 +3481,14 @@
           "id" : 2,
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 64,
+            "line" : 68,
             "column" : 10,
             "source_fragment" : "ecmp"
           },
           "key" : [
             {
               "match_type" : "exact",
-              "target" : ["scalars", "metadata_t.ecmp_group_id"],
+              "target" : ["ecmp_metadata", "ecmp_group_id"],
               "mask" : null
             }
           ],
@@ -3589,7 +3602,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "default.p4",
-            "line" : 90,
+            "line" : 94,
             "column" : 13,
             "source_fragment" : "hdr.packet_out.isValid()"
           },
@@ -3643,7 +3656,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "default.p4",
-        "line" : 102,
+        "line" : 106,
         "column" : 8,
         "source_fragment" : "egress"
       },

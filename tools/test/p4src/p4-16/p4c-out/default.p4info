@@ -51,7 +51,7 @@ tables {
   }
   match_fields {
     id: 1
-    name: "meta.ecmp_group_id"
+    name: "meta.ecmp_metadata.ecmp_group_id"
     bitwidth: 8
     match_type: EXACT
   }
