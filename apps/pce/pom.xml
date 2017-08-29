@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-pce</artifactId>
+    <artifactId>onos-apps-pce</artifactId>
 
     <packaging>pom</packaging>
     <description>PCE as central controller</description>

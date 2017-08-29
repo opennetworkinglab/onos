@@ -23,7 +23,7 @@
     <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcepio/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</artifact>
@@ -31,8 +31,8 @@
     <artifact>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgpcep-provider-flow/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pceweb/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pcerest/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-app/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-pceweb/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-pcerest/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-bandwidthmgmt/${project.version}</artifact>
 </app>

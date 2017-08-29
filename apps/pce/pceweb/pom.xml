@@ -21,11 +21,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-pce</artifactId>
+        <artifactId>onos-apps-pce</artifactId>
         <version>1.12.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-pceweb</artifactId>
+    <artifactId>onos-apps-pce-pceweb</artifactId>
     <packaging>bundle</packaging>
 
     <description>PCE web application</description>
@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-pce</artifactId>
+            <artifactId>onos-apps-pce-app</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

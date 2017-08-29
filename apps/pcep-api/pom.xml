@@ -23,7 +23,7 @@
         <artifactId>onos-apps</artifactId>
         <version>1.12.0-SNAPSHOT</version>
     </parent>
-    <artifactId>onos-app-pcep-api</artifactId>
+    <artifactId>onos-apps-pcep-api</artifactId>
     <packaging>bundle</packaging>
 
     <description>PCEP protocol API</description>

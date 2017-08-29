@@ -27,11 +27,11 @@
     <artifact>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-provider-cli/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcepio/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pceweb/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-pcerest/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-app/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-pceweb/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-pce-pcerest/${project.version}</artifact>
 </app>

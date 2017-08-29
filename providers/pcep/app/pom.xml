@@ -31,7 +31,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-pcep-api</artifactId>
+            <artifactId>onos-apps-pcep-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

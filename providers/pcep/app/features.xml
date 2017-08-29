@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</bundle>
     <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</bundle>
