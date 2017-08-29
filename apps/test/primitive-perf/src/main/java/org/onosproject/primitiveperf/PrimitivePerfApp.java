@@ -235,9 +235,11 @@ public class PrimitivePerfApp {
         }
 
         // Create a worker pool and start the workers for this node.
-        workers = Executors.newFixedThreadPool(workerCount, groupedThreads("onos/primitive-perf", "worker-%d"));
-        for (int i = 0; i < workerCount; i++) {
-            workers.submit(new Runner(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+        if (workerCount > 0) {
+            workers = Executors.newFixedThreadPool(workerCount, groupedThreads("onos/primitive-perf", "worker-%d"));
+            for (int i = 0; i < workerCount; i++) {
+                workers.submit(new Runner(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+            }
         }
         log.info("Started test run");
     }
@@ -248,10 +250,13 @@ public class PrimitivePerfApp {
             reporterTask = null;
         }
 
-        try {
-            workers.awaitTermination(10, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            log.warn("Failed to stop worker", e);
+        if (workers != null) {
+            workers.shutdown();
+            try {
+                workers.awaitTermination(10, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                log.warn("Failed to stop worker", e);
+            }
         }
 
         sampleCollector.recordSample(0, 0);
