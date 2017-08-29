@@ -56,7 +56,7 @@ public class AppUiTopovOverlay extends UiTopoOverlay {
     @Override
     public void modifySummary(PropertyPanel pp) {
         pp.title(MY_TITLE)
-                .typeId(GlyphConstants.CROWN)
+                .glyphId(GlyphConstants.CROWN)
                 .removeProps(
                         TOPOLOGY_SSCS,
                         INTENTS,
