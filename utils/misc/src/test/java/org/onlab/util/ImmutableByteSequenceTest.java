@@ -26,12 +26,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Random;
 
+import static java.lang.Integer.max;
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class ImmutableByteSequenceTest {
+    public static final int MIN_RAND_FIT_VALUE = 0xf;
+    public static final int MAX_RAND_FIT_VALUE = 0x7fffffff;
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -238,10 +241,14 @@ public class ImmutableByteSequenceTest {
         // Test fit against the computed MSB index.
         Random random = new Random();
         for (int i = 0; i < 1000; i++) {
-            ImmutableByteSequence bytes = ImmutableByteSequence.copyFrom((long) Math.abs(random.nextInt()));
+            int randValue = random.nextInt((MAX_RAND_FIT_VALUE - MIN_RAND_FIT_VALUE) + 1) + MIN_RAND_FIT_VALUE;
+            ImmutableByteSequence bytes = ImmutableByteSequence.copyFrom((long) randValue);
             int msbIndex = bytes.msbIndex();
-            checkIllegalFit(bytes, msbIndex - random.nextInt(16));
-            checkLegalFit(bytes, msbIndex + 2 + random.nextInt(16));
+            // Truncate.
+            checkIllegalFit(bytes, max(msbIndex - random.nextInt(16), 1));
+            // Expand.
+            checkLegalFit(bytes, msbIndex + 2 + random.nextInt(128));
+            // Fit to same bit-width of original value.
             checkLegalFit(bytes, msbIndex + 1);
         }
     }
