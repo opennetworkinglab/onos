@@ -51,7 +51,7 @@ export BMV2_MN_PY=$ONOS_ROOT/tools/dev/mininet/bmv2.py
 # e.g. 'o api', 'o dev', 'o'
 function o {
     cd $(find $ONOS_ROOT/ -type d -and \( -name 'buck-out' -o -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
-        egrep "${1:-$ONOS_ROOT}" | head -n 1)
+        egrep "${1:-$ONOS_ROOT}" | awk '{print length($1)"\t"$1}'  | sort -n | cut -f2 | head -n 1)
 }
 
 # Buck (if "buck" is not on the PATH)
