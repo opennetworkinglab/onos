@@ -94,7 +94,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     private final Logger log = getLogger(getClass());
 
     private final DeviceId deviceId;
-    private final int p4DeviceId;
+    private final long p4DeviceId;
     private final P4RuntimeControllerImpl controller;
     private final P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub;
     private final Context.CancellableContext cancellableContext;
@@ -104,7 +104,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     private final StreamObserver<StreamMessageRequest> streamRequestObserver;
 
 
-    P4RuntimeClientImpl(DeviceId deviceId, int p4DeviceId, ManagedChannel channel, P4RuntimeControllerImpl controller) {
+    P4RuntimeClientImpl(DeviceId deviceId, long p4DeviceId, ManagedChannel channel,
+                        P4RuntimeControllerImpl controller) {
         this.deviceId = deviceId;
         this.p4DeviceId = p4DeviceId;
         this.controller = controller;
@@ -391,7 +392,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
      *
      * @return P4 device ID
      */
-    public int p4DeviceId() {
+    public long p4DeviceId() {
         return p4DeviceId;
     }
 

@@ -81,7 +81,7 @@ public class P4RuntimeControllerImpl
 
 
     @Override
-    public boolean createClient(DeviceId deviceId, int p4DeviceId, ManagedChannelBuilder channelBuilder) {
+    public boolean createClient(DeviceId deviceId, long p4DeviceId, ManagedChannelBuilder channelBuilder) {
         checkNotNull(deviceId);
         checkNotNull(channelBuilder);
 
@@ -101,7 +101,7 @@ public class P4RuntimeControllerImpl
         }
     }
 
-    private boolean doCreateClient(DeviceId deviceId, int p4DeviceId, ManagedChannelBuilder channelBuilder) {
+    private boolean doCreateClient(DeviceId deviceId, long p4DeviceId, ManagedChannelBuilder channelBuilder) {
 
         GrpcChannelId channelId = GrpcChannelId.of(deviceId, "p4runtime");
 

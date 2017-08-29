@@ -55,7 +55,7 @@ public class P4RuntimeHandshaker extends AbstractHandlerBehaviour
 
         String serverAddr = data.value("p4runtime_ip");
         int serverPort = Integer.valueOf(data.value("p4runtime_port"));
-        int p4DeviceId = Integer.valueOf(data.value("p4runtime_deviceId"));
+        long p4DeviceId = Long.parseUnsignedLong(data.value("p4runtime_deviceId"));
 
         ManagedChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)

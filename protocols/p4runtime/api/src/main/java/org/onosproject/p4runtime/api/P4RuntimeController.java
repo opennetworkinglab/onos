@@ -39,7 +39,7 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
      * @return true if the client was created and the channel to the device is open
      * @throws IllegalStateException if a client already exists for the given device identifier
      */
-    boolean createClient(DeviceId deviceId, int p4DeviceId, ManagedChannelBuilder channelBuilder);
+    boolean createClient(DeviceId deviceId, long p4DeviceId, ManagedChannelBuilder channelBuilder);
 
     /**
      * Returns a client to operate on the given device.
@@ -69,7 +69,7 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
     /**
      * Returns true if the P4Runtime server running on the given device is reachable, i.e. the channel is open and the
      * server is able to respond to RPCs, false otherwise. Reachability can be tested only if a client was previously
-     * created using {@link #createClient(DeviceId, int, ManagedChannelBuilder)}, otherwise this method returns false.
+     * created using {@link #createClient(DeviceId, long, ManagedChannelBuilder)}, otherwise this method returns false.
      *
      * @param deviceId device identifier.
      * @return true if a client was created and is able to contact the P4Runtime server, false otherwise.
