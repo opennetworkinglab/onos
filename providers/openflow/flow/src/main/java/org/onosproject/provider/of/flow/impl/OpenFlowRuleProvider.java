@@ -36,6 +36,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultTableStatisticsEntry;
@@ -435,12 +439,12 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 case FLOW_REMOVED:
                     OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                    FlowEntry fr = new FlowEntryBuilder(deviceId, removed, driverService).build();
+                    FlowEntry fr = new FlowEntryBuilder(deviceId, removed, getDriver(deviceId)).build();
                     providerService.flowRemoved(fr);
                     break;
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW) {
-                        pushFlowMetrics(dpid, (OFFlowStatsReply) msg);
+                        pushFlowMetrics(dpid, (OFFlowStatsReply) msg, getDriver(deviceId));
                     } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.TABLE) {
                         pushTableStatistics(dpid, (OFTableStatsReply) msg);
                     } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW_LIGHTWEIGHT) {
@@ -515,7 +519,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
                     if (entry != null)  {
                         OFFlowMod ofFlowMod = (OFFlowMod) ofMessage;
-                        entry.appendFailure(new FlowEntryBuilder(deviceId, ofFlowMod, driverService).build());
+                        entry.appendFailure(new FlowEntryBuilder(deviceId, ofFlowMod, getDriver(deviceId)).build());
                     } else {
                       log.error("No matching batch for this error: {}", error);
                     }
@@ -611,14 +615,20 @@ public class OpenFlowRuleProvider extends AbstractProvider
             // Do nothing here for now.
         }
 
-        private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies) {
+        private DriverHandler getDriver(DeviceId devId) {
+            Driver driver = driverService.getDriver(devId);
+            DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, devId));
+            return handler;
+        }
+
+        private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies, DriverHandler handler) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
             NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
 
             if (adaptiveFlowSampling && afsc != null)  {
                 List<FlowEntry> flowEntries = replies.getEntries().stream()
-                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).withSetAfsc(afsc).build())
+                        .map(entry -> new FlowEntryBuilder(did, entry, handler).withSetAfsc(afsc).build())
                         .collect(Collectors.toList());
 
                 // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
@@ -639,7 +649,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 }
             } else {
                 List<FlowEntry> flowEntries = replies.getEntries().stream()
-                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
+                        .map(entry -> new FlowEntryBuilder(did, entry, handler).build())
                         .collect(Collectors.toList());
 
                 // call existing entire flow stats update with flowMissing synchronization

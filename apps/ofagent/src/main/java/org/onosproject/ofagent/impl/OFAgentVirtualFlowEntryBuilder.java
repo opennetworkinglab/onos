@@ -33,14 +33,14 @@ public class OFAgentVirtualFlowEntryBuilder extends FlowEntryBuilder {
     private static final Logger log = LoggerFactory.getLogger(OFAgentVirtualFlowEntryBuilder.class);
     private static final String DRIVER_NAME = "ovs";
 
-    private final DriverService driverService;
+    private final DriverHandler driverHandler;
 
     public OFAgentVirtualFlowEntryBuilder(DeviceId deviceId, OFFlowMod fm, DriverService driverService) {
         super(deviceId, fm, driverService);
-        this.driverService = driverService;
+        this.driverHandler = getDriver(deviceId, driverService);
     }
 
-    protected DriverHandler getDriver(DeviceId devId) {
+    protected static DriverHandler getDriver(DeviceId devId, DriverService driverService) {
         log.debug("calling getDriver for {}", devId);
         Driver driver = driverService.getDriver(DRIVER_NAME);
         DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, devId));

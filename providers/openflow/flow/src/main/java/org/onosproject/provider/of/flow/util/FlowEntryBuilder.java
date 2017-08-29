@@ -141,13 +141,13 @@ public class FlowEntryBuilder {
 
     private final FlowType type;
 
-    private final DriverService driverService;
+    private DriverHandler driverHandler;
 
     // NewAdaptiveFlowStatsCollector for AdaptiveFlowSampling mode,
     // null is not AFM mode, namely SimpleStatsCollector mode
     private NewAdaptiveFlowStatsCollector afsc;
 
-    public FlowEntryBuilder(DeviceId deviceId, OFFlowStatsEntry entry, DriverService driverService) {
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowStatsEntry entry, DriverHandler driverHandler) {
         this.stat = entry;
         this.match = entry.getMatch();
         this.instructions = getInstructions(entry);
@@ -155,7 +155,7 @@ public class FlowEntryBuilder {
         this.removed = null;
         this.flowMod = null;
         this.type = FlowType.STAT;
-        this.driverService = driverService;
+        this.driverHandler = driverHandler;
         this.afsc = null;
         this.lightWeightStat = null;
     }
@@ -169,12 +169,12 @@ public class FlowEntryBuilder {
         this.removed = null;
         this.flowMod = null;
         this.type = FlowType.LIGHTWEIGHT_STAT;
-        this.driverService = driverService;
+        this.driverHandler = getDriver(deviceId, driverService);
         this.afsc = null;
         this.lightWeightStat = lightWeightStat;
     }
 
-    public FlowEntryBuilder(DeviceId deviceId, OFFlowRemoved removed, DriverService driverService) {
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowRemoved removed, DriverHandler driverHandler) {
         this.match = removed.getMatch();
         this.removed = removed;
         this.deviceId = deviceId;
@@ -182,12 +182,12 @@ public class FlowEntryBuilder {
         this.stat = null;
         this.flowMod = null;
         this.type = FlowType.REMOVED;
-        this.driverService = driverService;
+        this.driverHandler = driverHandler;
         this.afsc = null;
         this.lightWeightStat = null;
     }
 
-    public FlowEntryBuilder(DeviceId deviceId, OFFlowMod fm, DriverService driverService) {
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowMod fm, DriverHandler driverHandler) {
         this.match = fm.getMatch();
         this.deviceId = deviceId;
         this.instructions = getInstructions(fm);
@@ -195,9 +195,21 @@ public class FlowEntryBuilder {
         this.flowMod = fm;
         this.stat = null;
         this.removed = null;
-        this.driverService = driverService;
+        this.driverHandler = driverHandler;
         this.afsc = null;
         this.lightWeightStat = null;
+    }
+
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowStatsEntry entry, DriverService driverService) {
+        this(deviceId, entry, getDriver(deviceId, driverService));
+    }
+
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowRemoved removed, DriverService driverService) {
+        this(deviceId, removed, getDriver(deviceId, driverService));
+    }
+
+    public FlowEntryBuilder(DeviceId deviceId, OFFlowMod fm, DriverService driverService) {
+        this(deviceId, fm, getDriver(deviceId, driverService));
     }
 
     public FlowEntryBuilder withSetAfsc(NewAdaptiveFlowStatsCollector afsc) {
@@ -631,8 +643,6 @@ public class FlowEntryBuilder {
 
     private TrafficTreatment.Builder buildActions(List<OFAction> actions,
                                                   TrafficTreatment.Builder builder) {
-        DriverHandler driverHandler = getDriver(deviceId);
-
         return configureTreatmentBuilder(actions, builder, driverHandler, deviceId);
     }
 
@@ -858,7 +868,6 @@ public class FlowEntryBuilder {
         Ip6Prefix ip6Prefix;
         Ip4Address ip;
 
-        DriverHandler driverHandler = getDriver(deviceId);
         ExtensionSelectorInterpreter selectorInterpreter;
         if (driverHandler.hasBehaviour(ExtensionSelectorInterpreter.class)) {
             selectorInterpreter = driverHandler.behaviour(ExtensionSelectorInterpreter.class);
@@ -1288,9 +1297,10 @@ public class FlowEntryBuilder {
      * Retrieves the driver handler for the specified device.
      *
      * @param deviceId device identifier
+     * @param driverService service handle for the driver service
      * @return driver handler
      */
-    protected DriverHandler getDriver(DeviceId deviceId) {
+    protected static DriverHandler getDriver(DeviceId deviceId, DriverService driverService) {
         Driver driver = driverService.getDriver(deviceId);
         DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
         return handler;
