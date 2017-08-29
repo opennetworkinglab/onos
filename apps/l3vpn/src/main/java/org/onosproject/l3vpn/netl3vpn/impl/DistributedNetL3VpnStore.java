@@ -32,6 +32,7 @@ import org.onosproject.l3vpn.netl3vpn.InterfaceInfo;
 import org.onosproject.l3vpn.netl3vpn.NetL3VpnStore;
 import org.onosproject.l3vpn.netl3vpn.ProtocolInfo;
 import org.onosproject.l3vpn.netl3vpn.RouteProtocol;
+import org.onosproject.l3vpn.netl3vpn.TunnelInfo;
 import org.onosproject.l3vpn.netl3vpn.VpnConfig;
 import org.onosproject.l3vpn.netl3vpn.VpnInstance;
 import org.onosproject.l3vpn.netl3vpn.VpnType;
@@ -81,6 +82,7 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
                            .register(BgpInfo.class)
                            .register(RouteProtocol.class)
                            .register(ProtocolInfo.class)
+                           .register(TunnelInfo.class)
                            .build());
 
     private static final String FREE_ID_NULL = "Free ID cannot be null";
@@ -116,6 +118,11 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
      */
     private ConsistentMap<BgpInfo, DeviceId> bgpInfoMap;
 
+    /**
+     * Map of device id and tunnel count.
+     */
+    private ConsistentMap<DeviceId, Integer> tunnelInfoMap;
+
     @Activate
     protected void activate() {
         vpnInsMap = storageService.<String, VpnInstance>consistentMapBuilder()
@@ -131,6 +138,11 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
 
         bgpInfoMap = storageService.<BgpInfo, DeviceId>consistentMapBuilder()
                 .withName("onos-l3vpn-bgp-info-map")
+                .withSerializer(L3VPN_SERIALIZER)
+                .build();
+
+        tunnelInfoMap = storageService.<DeviceId, Integer>consistentMapBuilder()
+                .withName("onos-l3vpn-tnl-info-map")
                 .withSerializer(L3VPN_SERIALIZER)
                 .build();
 
@@ -175,6 +187,13 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
     }
 
     @Override
+    public Map<DeviceId, Integer> getTunnelInfo() {
+        return tunnelInfoMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()
+                        .value()));
+    }
+
+    @Override
     public void addIdToFreeList(Long id) {
         checkNotNull(id, FREE_ID_NULL);
         freedIdList.add(id);
@@ -203,9 +222,15 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
 
     @Override
     public void addBgpInfo(BgpInfo bgpInfo, DeviceId devId) {
-        checkNotNull(devId, BGP_INFO_NULL);
+        checkNotNull(bgpInfo, BGP_INFO_NULL);
         checkNotNull(devId, DEV_ID_NULL);
         bgpInfoMap.put(bgpInfo, devId);
+    }
+
+    @Override
+    public void addTunnelInfo(DeviceId devId, Integer count) {
+        checkNotNull(devId, DEV_ID_NULL);
+        tunnelInfoMap.put(devId, count);
     }
 
     @Override
@@ -251,6 +276,17 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
         if (bgpInfoMap.remove(bgpInfo) == null) {
             log.error("Device id deletion for BGP info {} has failed.",
                       bgpInfo.toString());
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean removeTunnelInfo(DeviceId id) {
+        checkNotNull(id, DEV_ID_NULL);
+
+        if (tunnelInfoMap.remove(id) == null) {
+            log.error("Device id deletion in tunnel info has failed.");
             return false;
         }
         return true;

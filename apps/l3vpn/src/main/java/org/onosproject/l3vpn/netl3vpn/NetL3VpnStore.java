@@ -55,6 +55,13 @@ public interface NetL3VpnStore {
     Map<AccessInfo, InterfaceInfo> getInterfaceInfo();
 
     /**
+     * Returns the tunnel information map available in the store, for a device.
+     *
+     * @return tunnel info map
+     */
+    Map<DeviceId, Integer> getTunnelInfo();
+
+    /**
      * Adds freed id to the freed list in the store.
      *
      * @param id id
@@ -95,6 +102,14 @@ public interface NetL3VpnStore {
     void addBgpInfo(BgpInfo bgpInfo, DeviceId devId);
 
     /**
+     * Adds the device id and the number of tunnels created for that device.
+     *
+     * @param devId device id
+     * @param count number of tunnels
+     */
+    void addTunnelInfo(DeviceId devId, Integer count);
+
+    /**
      * Removes the interface info with the key access info from the store.
      *
      * @param accessInfo access info
@@ -127,4 +142,13 @@ public interface NetL3VpnStore {
      * @return true if removed; false otherwise
      */
     boolean removeBgpInfo(BgpInfo bgpInfo);
+
+    /**
+     * Removes the device id from the store with the value count of number of
+     * tunnels.
+     *
+     * @param id device id
+     * @return true if removed; false otherwise
+     */
+    boolean removeTunnelInfo(DeviceId id);
 }

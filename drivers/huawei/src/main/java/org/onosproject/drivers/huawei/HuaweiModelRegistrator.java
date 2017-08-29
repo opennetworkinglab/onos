@@ -24,6 +24,8 @@ import org.onosproject.yang.gen.v1.nebgpcommtype.rev20141225.NeBgpcommType;
 import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.NeL3VpnApi;
 import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.NeL3Vpncomm;
 import org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.NeL3VpncommType;
+import org.onosproject.yang.gen.v1.netnlm.rev20141225.NeTnlm;
+import org.onosproject.yang.gen.v1.netnlmtype.rev20141225.NeTnlmType;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;
@@ -58,6 +60,10 @@ public class HuaweiModelRegistrator extends AbstractYangModelRegistrator {
                     new DefaultAppModuleInfo(NeL3Vpncomm.class, null));
         appInfo.put(new DefaultYangModuleId("ne-l3vpncomm-type", "2014-00-25"),
                     new DefaultAppModuleInfo(NeL3VpncommType.class, null));
+        appInfo.put(new DefaultYangModuleId("ne-tnlm", "2014-00-25"),
+                    new DefaultAppModuleInfo(NeTnlm.class, null));
+        appInfo.put(new DefaultYangModuleId("ne-tnlm-type", "2014-00-25"),
+                    new DefaultAppModuleInfo(NeTnlmType.class, null));
         return ImmutableMap.copyOf(appInfo);
     }
 }

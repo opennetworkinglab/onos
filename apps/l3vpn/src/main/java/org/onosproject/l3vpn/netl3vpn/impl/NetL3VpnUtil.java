@@ -46,10 +46,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.DEVICE;
-import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.DEVICES;
-import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.ROOT;
-import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.VPN;
+import static org.onosproject.l3vpn.netl3vpn.ModelIdLevel.DEVICE;
+import static org.onosproject.l3vpn.netl3vpn.ModelIdLevel.DEVICES;
+import static org.onosproject.l3vpn.netl3vpn.ModelIdLevel.ROOT;
+import static org.onosproject.l3vpn.netl3vpn.ModelIdLevel.VPN;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.ANY_TO_ANY;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.HUB;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.SPOKE;
@@ -112,6 +112,11 @@ public final class NetL3VpnUtil {
     static final String IP = "ipaddress";
 
     /**
+     * Static constant value for lsr id.
+     */
+    static final String LSR_ID = "lsrId";
+
+    /**
      * Error message for VPN type being not supported.
      */
     static final String VPN_TYPE_UNSUPPORTED = "The VPN type is not supported";
@@ -169,11 +174,17 @@ public final class NetL3VpnUtil {
      */
     static final String EVENT_NULL = "Event cannot be null";
 
+    /**
+     * Unique tunnel name for net-l3VPN.
+     */
+    static final String NEW_NAME = "onos-netl3vpn";
+
     private static final String SITE_ROLE_INVALID = "The given site role is " +
             "invalid";
     private static final String ANY_TO_ANY_ROLE = "AnyToAnyRole";
     private static final String HUB_ROLE = "HubRole";
     private static final String SPOKE_ROLE = "SpokeRole";
+    private static final String COLON = ":";
 
     // No instantiation.
     private NetL3VpnUtil() {
@@ -514,5 +525,43 @@ public final class NetL3VpnUtil {
             driInfo = new BgpDriverInfo(DEVICES, id);
         }
         return driInfo;
+    }
+
+    /**
+     * Returns the device id whose management ip address or lsr ID matches with
+     * the ip or lsr ID received respectively.
+     *
+     * @param ip      value of ip or lsr id
+     * @param isIp    if ip or lsr id
+     * @param devices available devices
+     * @return device id
+     */
+    static DeviceId getId(String ip, boolean isIp,
+                          Iterable<org.onosproject.net.Device> devices) {
+        for (org.onosproject.net.Device device : devices) {
+            String val;
+            if (isIp) {
+                val = device.annotations().value(IP);
+            } else {
+                val = device.annotations().value(LSR_ID);
+            }
+            if (ip.equals(val)) {
+                return device.id();
+            }
+        }
+        throw new NetL3VpnException(getMgmtIpUnAvailErr(ip));
+    }
+
+    /**
+     * Returns ip address from the device id by parsing.
+     *
+     * @param devId device id
+     * @return ip address
+     */
+    static String getIpFromDevId(DeviceId devId) {
+        String devKey = devId.toString();
+        int firstInd = devKey.indexOf(COLON);
+        int secInd = devKey.indexOf(COLON, firstInd + 1);
+        return devKey.substring(firstInd + 1, secInd);
     }
 }

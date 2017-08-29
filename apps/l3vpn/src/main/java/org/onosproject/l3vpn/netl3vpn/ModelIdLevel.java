@@ -17,10 +17,10 @@
 package org.onosproject.l3vpn.netl3vpn;
 
 /**
- * Represents the model id level of BGP information to be added to store.
- * //TODO: Further more levels of BGP addition has to be added.
+ * Represents the model id level to add it in the store.
+ * //TODO: Further levels has to be added.
  */
-public enum BgpModelIdLevel {
+public enum ModelIdLevel {
 
     /**
      * Requested model id level is not present, representing top node.
@@ -40,5 +40,20 @@ public enum BgpModelIdLevel {
     /**
      * Requested model id level is VPN list.
      */
-    VPN
+    VPN,
+
+    /**
+     * Requested model id level is tunnel manager.
+     */
+    TNL_M,
+
+    /**
+     * Requested model id level is tunnel policy.
+     */
+    TNL_POL,
+
+    /**
+     * Requested model id level is tunnel hop.
+     */
+    TP_HOP
 }

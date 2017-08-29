@@ -57,6 +57,9 @@ module ne-l3vpn-api {
                                         type "string";
                                         description "route-distinguisher.";
                                     }
+                                    leaf tnlPolicyName {
+                                        type "string";
+                                    }
                                     container vpnTargets {
                                         description "";
                                         list vpnTarget {

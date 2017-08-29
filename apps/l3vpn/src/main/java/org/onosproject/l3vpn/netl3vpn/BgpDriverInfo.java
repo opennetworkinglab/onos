@@ -24,7 +24,7 @@ public class BgpDriverInfo {
     /**
      * Model id level of the BGP information that needed to be added in store.
      */
-    private BgpModelIdLevel modIdLevel;
+    private ModelIdLevel modIdLevel;
 
     /**
      * Device id required for the creation of driver model object data.
@@ -37,7 +37,7 @@ public class BgpDriverInfo {
      * @param m model id level for BGP
      * @param d device id
      */
-    public BgpDriverInfo(BgpModelIdLevel m, String d) {
+    public BgpDriverInfo(ModelIdLevel m, String d) {
         modIdLevel = m;
         devId = d;
     }
@@ -47,7 +47,7 @@ public class BgpDriverInfo {
      *
      * @return model id level
      */
-    public BgpModelIdLevel modIdLevel() {
+    public ModelIdLevel modIdLevel() {
         return modIdLevel;
     }
 

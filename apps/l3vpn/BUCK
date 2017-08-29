@@ -7,6 +7,8 @@ COMPILE_DEPS = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-runtime',
     '//apps/yang:onos-apps-yang',
+    '//apps/pce/app:onos-apps-pce-app',
+    '//incubator/api:onos-incubator-api'
 ]
 
 TEST_DEPS = [

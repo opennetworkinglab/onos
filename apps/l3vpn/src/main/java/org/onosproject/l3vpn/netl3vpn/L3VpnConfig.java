@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.behaviour;
+package org.onosproject.l3vpn.netl3vpn;
 
 import org.onosproject.net.driver.HandlerBehaviour;
+import org.onosproject.yang.model.ModelObjectData;
 
 /**
  * Behaviour for handling various drivers for l3vpn configurations.
- *
- * @deprecated in 1.11.0 ("Loon") release
  */
-@Deprecated
 public interface L3VpnConfig extends HandlerBehaviour {
 
     /**
@@ -33,7 +31,7 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param objectData standard device model object data
      * @return device model object data
      */
-    Object createInstance(Object objectData);
+    ModelObjectData createInstance(ModelObjectData objectData);
 
     /**
      * Binds requested virtual routing forwarding instance to interface on the
@@ -42,7 +40,7 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param objectData standard device model object data
      * @return device model object data
      */
-    Object bindInterface(Object objectData);
+    ModelObjectData bindInterface(ModelObjectData objectData);
 
     /**
      * Deletes virtual routing forwarding instance on requested device with
@@ -51,7 +49,7 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param objectData standard device model object data
      * @return device model object data
      */
-    Object deleteInstance(Object objectData);
+    ModelObjectData deleteInstance(ModelObjectData objectData);
 
     /**
      * Unbinds requested virtual routing forwarding instance to interface on the
@@ -60,7 +58,15 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param objectData standard device model object data
      * @return device model object data
      */
-    Object unbindInterface(Object objectData);
+    ModelObjectData unbindInterface(ModelObjectData objectData);
+
+    /**
+     * Deletes tunnel on requested device with the given tunnel info.
+     *
+     * @param tnlInfo tunnel info
+     * @return device model object data
+     */
+    ModelObjectData deleteTnl(TunnelInfo tnlInfo);
 
     /**
      * Creates BGP routing protocol info on requested device with given
@@ -70,7 +76,7 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param bgpConfig BGP driver config
      * @return device model object data
      */
-    Object createBgpInfo(Object bgpInfo, Object bgpConfig);
+    ModelObjectData createBgpInfo(BgpInfo bgpInfo, BgpDriverInfo bgpConfig);
 
     /**
      * Deletes BGP routing protocol info on requested device with given
@@ -80,5 +86,38 @@ public interface L3VpnConfig extends HandlerBehaviour {
      * @param bgpConfig BGP driver config
      * @return device model object data
      */
-    Object deleteBgpInfo(Object bgpInfo, Object bgpConfig);
+    ModelObjectData deleteBgpInfo(BgpInfo bgpInfo, BgpDriverInfo bgpConfig);
+
+    /**
+     * Creates device and devices level on requested device for tunnel creation.
+     *
+     * @param tnlInfo tunnel info
+     * @return device model object data
+     */
+    ModelObjectData createTnlDev(TunnelInfo tnlInfo);
+
+    /**
+     * Creates tunnel policy on requested device with given tunnel info.
+     *
+     * @param tnlInfo tunnel info
+     * @return device model object data
+     */
+    ModelObjectData createTnlPol(TunnelInfo tnlInfo);
+
+    /**
+     * Creates tunnel on requested device with given tunnel info.
+     *
+     * @param tnlInfo tunnel info
+     * @return device model object data
+     */
+    ModelObjectData createTnl(TunnelInfo tnlInfo);
+
+    /**
+     * Binds requested tunnel policy name to the VPN to the requested device
+     * with given tunnel info.
+     *
+     * @param tnlInfo tunnel info
+     * @return device model object data
+     */
+    ModelObjectData bindTnl(TunnelInfo tnlInfo);
 }

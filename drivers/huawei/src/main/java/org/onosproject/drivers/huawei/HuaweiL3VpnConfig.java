@@ -21,7 +21,8 @@ import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.l3vpn.netl3vpn.BgpDriverInfo;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
-import org.onosproject.net.behaviour.L3VpnConfig;
+import org.onosproject.l3vpn.netl3vpn.L3VpnConfig;
+import org.onosproject.l3vpn.netl3vpn.TunnelInfo;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ModelObjectData;
@@ -37,6 +38,11 @@ import static org.onosproject.drivers.huawei.DriverUtil.SLASH;
 import static org.onosproject.drivers.huawei.InsConstructionUtil.getCreateVpnIns;
 import static org.onosproject.drivers.huawei.InsConstructionUtil.getDeleteVpnIns;
 import static org.onosproject.drivers.huawei.IntConstructionUtil.getCreateInt;
+import static org.onosproject.drivers.huawei.TnlConstructionUtil.getBindTnl;
+import static org.onosproject.drivers.huawei.TnlConstructionUtil.getCreateTnl;
+import static org.onosproject.drivers.huawei.TnlConstructionUtil.getCreateTnlDev;
+import static org.onosproject.drivers.huawei.TnlConstructionUtil.getCreateTnlPol;
+import static org.onosproject.drivers.huawei.TnlConstructionUtil.getDeleteTnl;
 
 /**
  * Configures l3vpn on Huawei devices.
@@ -74,39 +80,64 @@ public class HuaweiL3VpnConfig extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Object createInstance(Object objectData) {
+    public ModelObjectData createInstance(ModelObjectData objectData) {
         if (modelRegistry == null) {
             init();
         }
-        return getCreateVpnIns((ModelObjectData) objectData,
-                               isDevicesPresent());
+        return getCreateVpnIns(objectData, isDevicesPresent());
     }
 
     @Override
-    public Object bindInterface(Object objectData) {
-        return getCreateInt((ModelObjectData) objectData);
+    public ModelObjectData bindInterface(ModelObjectData objectData) {
+        return getCreateInt(objectData);
     }
 
     @Override
-    public Object createBgpInfo(Object bgpInfo, Object bgpConfig) {
-        return getCreateBgp((BgpInfo) bgpInfo, (BgpDriverInfo) bgpConfig);
-    }
-
-
-    @Override
-    public Object deleteInstance(Object objectData) {
-        return getDeleteVpnIns((ModelObjectData) objectData);
+    public ModelObjectData createBgpInfo(BgpInfo bgpInfo,
+                                         BgpDriverInfo bgpConfig) {
+        return getCreateBgp(bgpInfo, bgpConfig);
     }
 
     @Override
-    public Object unbindInterface(Object objectData) {
+    public ModelObjectData createTnlDev(TunnelInfo tnlInfo) {
+        return getCreateTnlDev(tnlInfo);
+    }
+
+    @Override
+    public ModelObjectData createTnlPol(TunnelInfo tnlInfo) {
+        return getCreateTnlPol(tnlInfo);
+    }
+
+    @Override
+    public ModelObjectData createTnl(TunnelInfo tnlInfo) {
+        return getCreateTnl(tnlInfo);
+    }
+
+    @Override
+    public ModelObjectData bindTnl(TunnelInfo tnlInfo) {
+        return getBindTnl(tnlInfo);
+    }
+
+    @Override
+    public ModelObjectData deleteInstance(ModelObjectData objectData) {
+        return getDeleteVpnIns(objectData);
+    }
+
+    @Override
+    public ModelObjectData unbindInterface(ModelObjectData objectData) {
         //TODO:To be committed.
         return null;
     }
 
     @Override
-    public Object deleteBgpInfo(Object bgpInfo, Object bgpConfig) {
-        return getDeleteBgp((BgpInfo) bgpInfo, (BgpDriverInfo) bgpConfig);
+    public ModelObjectData deleteTnl(TunnelInfo tnlInfo) {
+        return getDeleteTnl(tnlInfo);
+    }
+
+    @Override
+    public ModelObjectData deleteBgpInfo(BgpInfo bgpInfo,
+                                         BgpDriverInfo bgpConfig) {
+        return getDeleteBgp(bgpInfo, bgpConfig);
     }
 
     /**

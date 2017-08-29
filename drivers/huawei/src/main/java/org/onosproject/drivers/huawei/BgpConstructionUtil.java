@@ -18,7 +18,7 @@ package org.onosproject.drivers.huawei;
 
 import org.onosproject.l3vpn.netl3vpn.BgpDriverInfo;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
-import org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel;
+import org.onosproject.l3vpn.netl3vpn.ModelIdLevel;
 import org.onosproject.l3vpn.netl3vpn.ProtocolInfo;
 import org.onosproject.l3vpn.netl3vpn.RouteProtocol;
 import org.onosproject.yang.gen.v1.nebgpcomm.rev20141225.nebgpcomm.DefaultDevices;
@@ -91,7 +91,7 @@ public final class BgpConstructionUtil {
     static ModelObjectData getCreateBgp(BgpInfo bgpInfo,
                                         BgpDriverInfo config) {
         String devId = config.devId();
-        BgpModelIdLevel modIdLevel = config.modIdLevel();
+        ModelIdLevel modIdLevel = config.modIdLevel();
 
         Bgp bgp = new DefaultBgp();
         Bgpcomm bgpBuilder = new DefaultBgpcomm();
@@ -246,7 +246,7 @@ public final class BgpConstructionUtil {
      * @param route      import route object
      * @return model object data
      */
-    public static ModelObjectData getModObjData(BgpModelIdLevel modIdLevel,
+    public static ModelObjectData getModObjData(ModelIdLevel modIdLevel,
                                                 Bgp bgp, String devId,
                                                 BgpVrf bgpVrf, ImportRoute route) {
         switch (modIdLevel) {
@@ -371,7 +371,7 @@ public final class BgpConstructionUtil {
      */
     static ModelObjectData getDeleteBgp(BgpInfo bgpInfo,
                                         BgpDriverInfo bgpConfig) {
-        BgpModelIdLevel modIdLvl = bgpConfig.modIdLevel();
+        ModelIdLevel modIdLvl = bgpConfig.modIdLevel();
         switch (modIdLvl) {
             case ROOT:
                 return getDelRootModObj();
