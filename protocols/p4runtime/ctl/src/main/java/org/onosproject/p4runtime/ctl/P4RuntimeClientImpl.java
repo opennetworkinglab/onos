@@ -389,16 +389,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         return p4DeviceId;
     }
 
-    /**
-     * For testing purpose only. TODO: remove before release.
-     *
-     * @return blocking stub
-     */
-    public P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub() {
-        return this.blockingStub;
-    }
-
-
     @Override
     public void shutdown() {
 
