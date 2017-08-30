@@ -15,6 +15,12 @@ COMPILE_DEPS = [
     '//lib:openflowj',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
+    '//providers/openflow/flow:onos-providers-openflow-flow',
+]
+
+BUNDLES = [
+    '//apps/ofagent:onos-apps-ofagent',
+    '//providers/openflow/flow:onos-providers-openflow-flow',
 ]
 
 TEST_DEPS = [
@@ -41,5 +47,6 @@ onos_app (
     title = 'OpenFlow Agent',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
     description = 'OpenFlow agent application for virtualization subsystem.',
 )

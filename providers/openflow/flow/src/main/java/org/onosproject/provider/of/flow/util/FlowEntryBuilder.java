@@ -1121,9 +1121,15 @@ public class FlowEntryBuilder {
         return obj.getVersion().wireVersion >= OFVersion.OF_13.wireVersion;
     }
 
-    private DriverHandler getDriver(DeviceId devId) {
-        Driver driver = driverService.getDriver(devId);
-        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, devId));
+    /**
+     * Retrieves the driver handler for the specified device.
+     *
+     * @param deviceId device identifier
+     * @return driver handler
+     */
+    protected DriverHandler getDriver(DeviceId deviceId) {
+        Driver driver = driverService.getDriver(deviceId);
+        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
         return handler;
     }
 }

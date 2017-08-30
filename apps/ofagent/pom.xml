@@ -172,6 +172,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Flow Entry building dependencies -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-providers-openflow-flow</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -191,6 +198,9 @@
                             *,org.glassfish.jersey.servlet
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
+                        <Private-Package>
+                            org.onosproject.provider.of.flow.util
+                        </Private-Package>
                     </instructions>
                 </configuration>
             </plugin>

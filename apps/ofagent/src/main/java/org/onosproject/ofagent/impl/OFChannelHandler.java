@@ -128,6 +128,13 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
                         // TODO: check if this is lldp - ignore if it is not lldp
                         handler.ofSwitch.processLldp(handler.channel, msg);
                         break;
+                    case FLOW_MOD:
+                    case PORT_MOD:
+                    case GROUP_MOD:
+                    case METER_MOD:
+                    case TABLE_MOD:
+                        handler.ofSwitch.processControllerCommand(handler.channel, msg);
+                        break;
                     case ERROR:
                         handler.logErrorClose((OFErrorMsg) msg);
                         break;

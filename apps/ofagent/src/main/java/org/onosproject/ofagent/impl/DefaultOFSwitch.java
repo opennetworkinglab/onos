@@ -20,13 +20,16 @@ import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.packet.InboundPacket;
@@ -34,6 +37,7 @@ import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
 import org.onosproject.ofagent.api.OFSwitchService;
 import org.projectfloodlight.openflow.protocol.OFActionType;
+import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierReply;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFBucketCounter;
@@ -43,6 +47,7 @@ import org.projectfloodlight.openflow.protocol.OFEchoRequest;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
@@ -55,6 +60,7 @@ import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketInReason;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortMod;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFPortStatsRequest;
@@ -69,6 +75,7 @@ import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
@@ -103,6 +110,8 @@ public final class DefaultOFSwitch implements OFSwitch {
     private final Logger log;
 
     private final OFSwitchService ofSwitchService;
+    private final FlowRuleService flowRuleService;
+    private final DriverService driverService;
 
     private final DatapathId dpId;
     private final OFSwitchCapabilities capabilities;
@@ -121,12 +130,15 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     private DefaultOFSwitch(DatapathId dpid, OFSwitchCapabilities capabilities,
                             NetworkId networkId, DeviceId deviceId,
-                            OFSwitchService ofSwitchService) {
+                            ServiceDirectory serviceDirectory) {
         this.dpId = dpid;
         this.capabilities = capabilities;
         this.networkId = networkId;
         this.deviceId = deviceId;
-        this.ofSwitchService = ofSwitchService;
+        this.ofSwitchService = serviceDirectory.get(OFSwitchService.class);
+        this.driverService = serviceDirectory.get(DriverService.class);
+        VirtualNetworkService virtualNetworkService = serviceDirectory.get(VirtualNetworkService.class);
+        this.flowRuleService = virtualNetworkService.get(networkId, FlowRuleService.class);
         log = LoggerFactory.getLogger(getClass().getName() + " : " + dpid);
     }
 
@@ -135,8 +147,7 @@ public final class DefaultOFSwitch implements OFSwitch {
                                      ServiceDirectory serviceDirectory) {
         checkNotNull(dpid, "DPID cannot be null");
         checkNotNull(capabilities, "OF capabilities cannot be null");
-        return new DefaultOFSwitch(dpid, capabilities, networkId, deviceId,
-                                   serviceDirectory.get(OFSwitchService.class));
+        return new DefaultOFSwitch(dpid, capabilities, networkId, deviceId, serviceDirectory);
     }
 
     @Override
@@ -224,10 +235,53 @@ public final class DefaultOFSwitch implements OFSwitch {
         log.debug("processPacketIn: Functionality not yet supported for {}", packet);
     }
 
+    private void processPortMod(OFPortMod portMod) {
+//        PortNumber portNumber = PortNumber.portNumber(portMod.getPortNo().getPortNumber());
+        log.debug("processPortMod: {} not yet supported for {}",
+                  portMod.getType(), portMod);
+    }
+
+    private void processFlowMod(OFFlowMod flowMod) {
+        // convert OFFlowMod to FLowRule object
+        OFAgentVirtualFlowEntryBuilder flowEntryBuilder =
+                new OFAgentVirtualFlowEntryBuilder(deviceId, flowMod, driverService);
+        FlowEntry flowEntry = flowEntryBuilder.build();
+        flowRuleService.applyFlowRules(flowEntry);
+    }
+
     @Override
     public void processControllerCommand(Channel channel, OFMessage msg) {
-        // TODO process controller command
-        log.debug("processControllerCommand: Functionality not yet supported for {}", msg);
+
+        OFControllerRole myRole = role(channel);
+        if (OFControllerRole.ROLE_SLAVE.equals(myRole)) {
+            OFBadRequestErrorMsg errorMsg = FACTORY.errorMsgs()
+                    .buildBadRequestErrorMsg()
+                    .setXid(msg.getXid())
+                    .setCode(OFBadRequestCode.IS_SLAVE)
+                    .build();
+            channel.writeAndFlush(Collections.singletonList(errorMsg));
+            return;
+        }
+
+        switch (msg.getType()) {
+            case PORT_MOD:
+                OFPortMod portMod = (OFPortMod) msg;
+                processPortMod(portMod);
+                break;
+            case FLOW_MOD:
+                OFFlowMod flowMod = (OFFlowMod) msg;
+                processFlowMod(flowMod);
+                break;
+            case GROUP_MOD:
+            case METER_MOD:
+            case TABLE_MOD:
+                log.debug("processControllerCommand: {} not yet supported for {}",
+                          msg.getType(), msg);
+                break;
+            default:
+                log.warn("Unexpected message {} received for switch {}",
+                         msg.getType(), this);
+        }
     }
 
     private void sendPortStatus(Port port, OFPortReason ofPortReason) {
