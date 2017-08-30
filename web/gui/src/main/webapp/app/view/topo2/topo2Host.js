@@ -49,7 +49,8 @@
     .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
         'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService', 'PrefsService',
-        function (_c_, NodeModel, _t2vs_, is, zs, t2hds, ps) {
+        'Topo2PrefsService',
+        function (_c_, NodeModel, _t2vs_, is, zs, t2hds, ps, t2ps) {
 
             Collection = _c_;
 
@@ -76,8 +77,18 @@
                     var type = this.get('type');
                     return remappedDeviceTypes[type] || type || 'm_endstation';
                 },
+                labelIndex: function () {
+                    return t2ps.get('hlbls');
+                },
                 label: function () {
-                    return this.get('ips')[0] || 'unknown';
+                    var props = this.get('props'),
+                        id = this.get('ips')[0] || 'unknown',
+                        friendlyName = props && props.name ? props.name : id,
+                        labels = ['', friendlyName || id, id, this.get('id')],
+                        nli = this.labelIndex(),
+                        idx = (nli < labels.length) ? nli : 0;
+
+                    return labels[idx];
                 },
                 setScale: function () {
 

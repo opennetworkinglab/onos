@@ -35,6 +35,7 @@
             H: [toggleHosts, 'Toggle host visibility'],
             M: [toggleOfflineDevices, 'Toggle offline visibility'],
             dot: [toggleToolbar, 'Toggle Toolbar'],
+            'shift-L': [cycleHostLabels, 'Cycle host labels'],
 
             esc: handleEscape,
 
@@ -114,6 +115,15 @@
         }
     }
 
+    function hostLabelFlashMessage(index) {
+        switch (index) {
+            case 0: return 'Hide host labels';
+            case 1: return 'Show friendly host labels';
+            case 2: return 'Show host IP labels';
+            case 3: return 'Show host MAC Address labels';
+        }
+    }
+
     function cycleDeviceLabels() {
         var deviceLabelIndex = t2ps.get('dlbls') + 1,
             newDeviceLabelIndex = deviceLabelIndex % 3;
@@ -121,6 +131,15 @@
         t2ps.set('dlbls', newDeviceLabelIndex);
         t2fs.updateNodes();
         flash.flash(deviceLabelFlashMessage(newDeviceLabelIndex));
+    }
+
+    function cycleHostLabels() {
+        var hostLabelIndex = t2ps.get('hlbls') + 1,
+            newHostLabelIndex = hostLabelIndex % 4;
+
+        t2ps.set('hlbls', newHostLabelIndex);
+        t2fs.updateNodes();
+        flash.flash(hostLabelFlashMessage(newHostLabelIndex));
     }
 
     function toggleBackground(x) {
