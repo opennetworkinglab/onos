@@ -173,7 +173,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     private boolean doInitStreamChannel() {
         // To listen for packets and other events, we need to start the RPC.
         // Here we do it by sending a master arbitration update.
-        log.info("initializing stream chanel on {}...", deviceId);
+        log.info("Initializing stream chanel on {}...", deviceId);
         if (!doArbitrationUpdate()) {
             log.warn("Unable to initialize stream channel for {}", deviceId);
             return false;
@@ -183,7 +183,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private boolean doArbitrationUpdate() {
-        log.info("Sending arbitration update to {}...", deviceId);
+        log.debug("Sending arbitration update to {}...", deviceId);
         StreamMessageRequest requestMsg = StreamMessageRequest.newBuilder()
                 .setArbitration(MasterArbitrationUpdate.newBuilder()
                                         .setDeviceId(p4DeviceId)
@@ -290,7 +290,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private Collection<PiTableEntry> doDumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
 
-        log.info("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
+        log.debug("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         int tableId;
@@ -327,7 +327,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .map(Entity::getTableEntry)
                 .collect(Collectors.toList());
 
-        log.info("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
+        log.debug("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
 
         return TableEntryEncoder.decode(tableEntryMsgs, pipeconf);
     }
@@ -434,7 +434,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         private void doNext(StreamMessageResponse message) {
             try {
-                log.info("Received message on stream channel from {}: {}", deviceId, message.getUpdateCase());
+                log.debug("Received message on stream channel from {}: {}", deviceId, message.getUpdateCase());
                 switch (message.getUpdateCase()) {
                     case PACKET:
                         // Packet-in
