@@ -61,7 +61,7 @@ public class PiFlowRuleTranslationServiceImpl implements PiFlowRuleTranslationSe
     public PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf)
             throws PiFlowRuleTranslationException {
 
-        Device device = deviceService.getDevice(rule.deviceId());
+        final Device device = deviceService.getDevice(rule.deviceId());
         if (device == null) {
             throw new PiFlowRuleTranslationException("Unable to get device " + rule.deviceId());
         }

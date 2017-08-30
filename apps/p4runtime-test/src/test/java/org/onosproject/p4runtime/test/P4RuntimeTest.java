@@ -23,13 +23,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
-import org.onosproject.drivers.bmv2.Bmv2DefaultInterpreter;
+import org.onosproject.drivers.bmv2.Bmv2DefaultPipeconfFactory;
 import org.onosproject.grpc.ctl.GrpcControllerImpl;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
@@ -54,7 +51,6 @@ import java.util.concurrent.ExecutionException;
 
 import static org.onlab.util.ImmutableByteSequence.*;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
-import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
 import static p4.P4RuntimeOuterClass.ActionProfileGroup.Type.SELECT;
 import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
@@ -81,13 +77,7 @@ public class P4RuntimeTest {
     private final URL p4InfoUrl = this.getClass().getResource("/bmv2/default.p4info");
     private final URL jsonUrl = this.getClass().getResource("/bmv2/default.json");
 
-    private final PiPipeconf bmv2DefaultPipeconf = DefaultPiPipeconf.builder()
-            .withId(new PiPipeconfId("mock-p4runtime"))
-            .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
-            .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
-            .addExtension(P4_INFO_TEXT, p4InfoUrl)
-            .addExtension(BMV2_JSON, jsonUrl)
-            .build();
+    private final PiPipeconf bmv2DefaultPipeconf = Bmv2DefaultPipeconfFactory.get();
     private final P4RuntimeControllerImpl controller = new P4RuntimeControllerImpl();
     private final GrpcControllerImpl grpcController = new GrpcControllerImpl();
     private final DeviceId deviceId = DeviceId.deviceId("dummy:1");

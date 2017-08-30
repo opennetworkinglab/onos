@@ -18,6 +18,7 @@ package org.onosproject.drivers.bmv2;
 
 import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
+import org.onosproject.drivers.p4runtime.DefaultP4Interpreter;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
@@ -33,7 +34,7 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT
 /**
  * Factory of pipeconf implementation for the default.p4 program on BMv2.
  */
-final class Bmv2DefaultPipeconfFactory {
+public final class Bmv2DefaultPipeconfFactory {
 
     private static final String PIPECONF_ID = "bmv2-default-pipeconf";
     private static final String JSON_PATH = "/default.json";
@@ -45,7 +46,7 @@ final class Bmv2DefaultPipeconfFactory {
         // Hides constructor.
     }
 
-    static PiPipeconf get() {
+    public static PiPipeconf get() {
         return PIPECONF;
     }
 
@@ -57,7 +58,7 @@ final class Bmv2DefaultPipeconfFactory {
         return DefaultPiPipeconf.builder()
                 .withId(new PiPipeconfId(PIPECONF_ID))
                 .withPipelineModel(Bmv2PipelineModelParser.parse(jsonUrl))
-                .addBehaviour(PiPipelineInterpreter.class, Bmv2DefaultInterpreter.class)
+                .addBehaviour(PiPipelineInterpreter.class, DefaultP4Interpreter.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addBehaviour(PortStatisticsDiscovery.class, Bmv2DefaultPortStatisticsDiscovery.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)

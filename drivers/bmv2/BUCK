@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
     '//drivers/default:onos-drivers-default',
+    '//drivers/p4runtime:onos-drivers-p4runtime',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
 ]

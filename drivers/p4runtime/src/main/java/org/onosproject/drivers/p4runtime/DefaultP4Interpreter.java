@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.drivers.p4runtime;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +33,12 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.pi.model.PiHeaderFieldModel;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
@@ -42,6 +47,7 @@ import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.nio.ByteBuffer;
@@ -49,40 +55,103 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
 
 /**
- * Interpreter implementation for the default pipeconf.
+ * Implementation of an interpreter that can be used for any P4 program based on default.p4 (i.e. those under
+ * onos/tools/test/p4src).
  */
-public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements PiPipelineInterpreter {
-    private static final String TABLE0 = "table0";
-    private static final String SEND_TO_CPU = "send_to_cpu";
-    private static final String PORT = "port";
-    private static final String DROP = "drop";
-    private static final String SET_EGRESS_PORT = "set_egress_port";
-    private static final String EGRESS_PORT = "egress_port";
-    private static final int PORT_NUMBER_BIT_WIDTH = 9;
+public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements PiPipelineInterpreter {
 
-    private static final PiHeaderFieldId IN_PORT_ID = PiHeaderFieldId.of("standard_metadata", "ingress_port");
-    private static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
-    private static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
-    private static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
+    // FIXME: Should move this class out of the p4runtime drivers.
+    // e.g. in a dedicated onos/pipeconf directory, along with any related P4 source code.
 
-    private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP =
-            new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()
-                    .put(Criterion.Type.IN_PORT, IN_PORT_ID)
-                    .put(Criterion.Type.ETH_DST, ETH_DST_ID)
-                    .put(Criterion.Type.ETH_SRC, ETH_SRC_ID)
-                    .put(Criterion.Type.ETH_TYPE, ETH_TYPE_ID)
-                    .build();
+    public static final String TABLE0 = "table0";
+    public static final String SEND_TO_CPU = "send_to_cpu";
+    public static final String PORT = "port";
+    public static final String DROP = "drop";
+    public static final String SET_EGRESS_PORT = "set_egress_port";
+    public static final String EGRESS_PORT = "egress_port";
+    public static final String INGRESS_PORT = "ingress_port";
+
+    protected static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
+    protected static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
+    protected static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
             0, PiTableId.of(TABLE0));
-    public static final String INGRESS_PORT = "ingress_port";
+
+    private boolean targetAttributesInitialized = false;
+
+    /*
+    The following attributes are target-specific, i.e. they might change from one target to another.
+     */
+    private ImmutableBiMap<Criterion.Type, PiHeaderFieldId> criterionMap;
+    private int portFieldBitWidth;
+
+    /**
+     * Populates target-specific attributes based on this device's pipeline model.
+     */
+    private synchronized void initTargetSpecificAttributes() {
+        if (targetAttributesInitialized) {
+            return;
+        }
+
+        DeviceId deviceId = this.handler().data().deviceId();
+        PiPipeconfService pipeconfService = this.handler().get(PiPipeconfService.class);
+        PiPipeconfId pipeconfId = pipeconfService.ofDevice(deviceId)
+                .orElseThrow(() -> new RuntimeException(format(
+                        "Unable to get current pipeconf for device %s", this.data().deviceId())));
+        PiPipeconf pipeconf = pipeconfService.getPipeconf(pipeconfId)
+                .orElseThrow(() -> new RuntimeException(format(
+                        "Pipeconf %s is not registered", pipeconfId)));
+        PiPipelineModel model = pipeconf.pipelineModel();
+
+        this.portFieldBitWidth = extractPortFieldBitWidth(model);
+        this.criterionMap = new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()
+                .put(Criterion.Type.IN_PORT, extractInPortFieldId(model))
+                .put(Criterion.Type.ETH_DST, ETH_DST_ID)
+                .put(Criterion.Type.ETH_SRC, ETH_SRC_ID)
+                .put(Criterion.Type.ETH_TYPE, ETH_TYPE_ID)
+                .build();
+
+        this.targetAttributesInitialized = true;
+    }
+
+    private static PiHeaderFieldId extractInPortFieldId(PiPipelineModel model) {
+        /*
+        For the targets we currently support, the field name is "ingress_port", but we miss the header name, which is
+        target-specific. We know table0 defines that field as a match key, we look for it and we get the header name.
+         */
+        PiTableModel tableModel = model.table(TABLE0).orElseThrow(() -> new RuntimeException(format(
+                "No such table '%s' in pipeline model", TABLE0)));
+        PiHeaderFieldModel fieldModel = tableModel.matchFields().stream()
+                .filter(m -> m.field().type().name().equals(INGRESS_PORT))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(format(
+                        "No such match field in table '%s' with name '%s'", TABLE0, INGRESS_PORT)))
+                .field();
+        return PiHeaderFieldId.of(fieldModel.header().name(), INGRESS_PORT);
+    }
+
+    private static int extractPortFieldBitWidth(PiPipelineModel model) {
+        /*
+        Get it form the set_egress_port action parameters.
+         */
+        return model
+                .action(SET_EGRESS_PORT).orElseThrow(() -> new RuntimeException(format(
+                        "No such action '%s' in pipeline model", SET_EGRESS_PORT)))
+                .param(PORT).orElseThrow(() -> new RuntimeException(format(
+                        "No such parameter '%s' of action '%s' in pipeline model", PORT, SET_EGRESS_PORT)))
+                .bitWidth();
+    }
 
 
     @Override
@@ -105,18 +174,17 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
                 if (!port.isLogical()) {
                     return PiAction.builder()
                             .withId(PiActionId.of(SET_EGRESS_PORT))
-                            .withParameter(new PiActionParam(PiActionParamId.of(PORT),
-                                    ImmutableByteSequence.copyFrom(port.toLong())))
+                            .withParameter(new PiActionParam(PiActionParamId.of(PORT), copyFrom(port.toLong())))
                             .build();
                 } else if (port.equals(CONTROLLER)) {
                     return actionWithName(SEND_TO_CPU);
                 } else {
-                    throw new PiInterpreterException("Egress on logical port not supported: " + port);
+                    throw new PiInterpreterException(format("Egress on logical port '%s' not supported", port));
                 }
             case NOACTION:
                 return actionWithName(DROP);
             default:
-                throw new PiInterpreterException("Instruction type not supported: " + instruction.type().name());
+                throw new PiInterpreterException(format("Instruction type '%s' not supported", instruction.type()));
         }
     }
 
@@ -133,18 +201,16 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
                 .collect(toList());
 
         if (treatment.allInstructions().size() != outInstructions.size()) {
-            // There are other instructions that are not of type OUTPUT
+            // There are other instructions that are not of type OUTPUT.
             throw new PiInterpreterException("Treatment not supported: " + treatment);
         }
 
         ImmutableList.Builder<PiPacketOperation> builder = ImmutableList.builder();
         for (Instructions.OutputInstruction outInst : outInstructions) {
             if (outInst.port().isLogical() && !outInst.port().equals(FLOOD)) {
-                throw new PiInterpreterException("Logical port not supported: " +
-                        outInst.port());
+                throw new PiInterpreterException(format("Output on logical port '%s' not supported", outInst.port()));
             } else if (outInst.port().equals(FLOOD)) {
-                //Since default.p4 does not support flood for each port of the device
-                // create a packet operation to send the packet out of that specific port
+                // Since default.p4 does not support flooding, we create a packet operation for each switch port.
                 for (Port port : handler().get(DeviceService.class).getPorts(packet.sendThrough())) {
                     builder.add(createPiPacketOperation(packet.data(), port.number().toLong()));
                 }
@@ -158,61 +224,47 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
     @Override
     public InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetIn)
             throws PiInterpreterException {
-
-        //We are assuming that the packet is ethernet type
+        // Assuming that the packet is ethernet, which is fine since default.p4 can deparse only ethernet packets.
         Ethernet ethPkt = new Ethernet();
 
         ethPkt.deserialize(packetIn.data().asArray(), 0, packetIn.data().size());
 
-        //Returns the ingress port packet metadata
+        // Returns the ingress port packet metadata.
         Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas()
                 .stream().filter(metadata -> metadata.id().name().equals(INGRESS_PORT))
                 .findFirst();
 
         if (packetMetadata.isPresent()) {
-
-            //Obtaining the ingress port as an immutable byte sequence
             ImmutableByteSequence portByteSequence = packetMetadata.get().value();
-
-            //Converting immutableByteSequence to short
             short s = portByteSequence.asReadOnlyBuffer().getShort();
-
             ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(s));
-
-            //FIXME should be optimizable with .asReadOnlyBytebuffer
             ByteBuffer rawData = ByteBuffer.wrap(packetIn.data().asArray());
             return new DefaultInboundPacket(receivedFrom, ethPkt, rawData);
-
         } else {
-            throw new PiInterpreterException("Can't get packet metadata for" + INGRESS_PORT);
+            throw new PiInterpreterException(format(
+                    "Missing metadata '%s' in packet-in received from '%s': %s", INGRESS_PORT, deviceId, packetIn));
         }
     }
 
     private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber) throws PiInterpreterException {
-        //create the metadata
         PiPacketMetadata metadata = createPacketMetadata(portNumber);
-
-        //Create the Packet operation
         return PiPacketOperation.builder()
                 .withType(PACKET_OUT)
-                .withData(ImmutableByteSequence.copyFrom(data))
+                .withData(copyFrom(data))
                 .withMetadatas(ImmutableList.of(metadata))
                 .build();
     }
 
     private PiPacketMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
-        ImmutableByteSequence portValue = ImmutableByteSequence.copyFrom(portNumber);
-        //FIXME remove hardcoded bitWidth and retrieve it from pipelineModel
+        initTargetSpecificAttributes();
         try {
-            portValue = ImmutableByteSequence.fit(portValue, PORT_NUMBER_BIT_WIDTH);
+            return PiPacketMetadata.builder()
+                    .withId(PiPacketMetadataId.of(EGRESS_PORT))
+                    .withValue(fit(copyFrom(portNumber), portFieldBitWidth))
+                    .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
-            throw new PiInterpreterException("Port number too big: {}" +
-                    portNumber + " causes " + e.getMessage());
+            throw new PiInterpreterException(format("Port number %d too big, %s", portNumber, e.getMessage()));
         }
-        return PiPacketMetadata.builder()
-                .withId(PiPacketMetadataId.of(EGRESS_PORT))
-                .withValue(portValue)
-                .build();
     }
 
     /**
@@ -224,12 +276,14 @@ public class Bmv2DefaultInterpreter extends AbstractHandlerBehaviour implements 
 
     @Override
     public Optional<PiHeaderFieldId> mapCriterionType(Criterion.Type type) {
-        return Optional.ofNullable(CRITERION_MAP.get(type));
+        initTargetSpecificAttributes();
+        return Optional.ofNullable(criterionMap.get(type));
     }
 
     @Override
     public Optional<Criterion.Type> mapPiHeaderFieldId(PiHeaderFieldId headerFieldId) {
-        return Optional.ofNullable(CRITERION_MAP.inverse().get(headerFieldId));
+        initTargetSpecificAttributes();
+        return Optional.ofNullable(criterionMap.inverse().get(headerFieldId));
     }
 
     @Override

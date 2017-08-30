@@ -81,18 +81,24 @@ final class PiFlowRuleTranslator {
         PiPipelineModel pipelineModel = pipeconf.pipelineModel();
 
         // Retrieve interpreter, if any.
-        // FIXME: get interpreter via driver once implemented.
-        // final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
-        //        ? device.as(PiPipelineInterpreter.class) : null;
-
         final PiPipelineInterpreter interpreter;
-        try {
-            interpreter = (PiPipelineInterpreter) pipeconf.implementation(PiPipelineInterpreter.class)
-                    .orElse(null)
-                    .newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new PiFlowRuleTranslationException(format(
-                    "Unable to instantiate interpreter of pipeconf %s", pipeconf.id()));
+
+        if (device != null) {
+            interpreter = device.is(PiPipelineInterpreter.class) ? device.as(PiPipelineInterpreter.class) : null;
+        } else {
+            // The case of device == null should be admitted only during unit testing.
+            // In any other case, the interpreter should be constructed using the device.as() method to make sure that
+            // behaviour's handler/data attributes are correctly populated.
+            // FIXME: modify test class PiFlowRuleTranslatorTest to avoid passing null device
+            // I.e. we need to create a device object that supports is/as method for obtaining the interpreter.
+            log.warn("translateFlowRule() called with device == null, is this a unit test?");
+            try {
+                interpreter = (PiPipelineInterpreter) pipeconf.implementation(PiPipelineInterpreter.class)
+                        .orElse(null)
+                        .newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(format("Unable to instantiate interpreter of pipeconf %s", pipeconf.id()));
+            }
         }
 
         PiTableId piTableId;
