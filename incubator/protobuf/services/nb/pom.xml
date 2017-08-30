@@ -41,9 +41,10 @@
             <artifactId>onos-incubator-protobuf-models</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-protobuf</artifactId>
+            <artifactId>onos-incubator-grpc-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -81,7 +82,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.onosproject.grpc.net,org.onosproject.incubator.protobuf.services.nb</Export-Package>
+                        <Export-Package>org.onosproject.grpc.net,org.onosproject.protobuf.services.nb</Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

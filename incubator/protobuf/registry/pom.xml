@@ -23,44 +23,57 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-incubator-protobuf-services</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-incubator-protobuf-registry</artifactId>
+    <packaging>bundle</packaging>
 
-    <modules>
-        <module>nb</module>
-    </modules>
+    <description>gRPC service registry</description>
+    <url>http://onosproject.org</url>
+
+    <properties>
+        <onos.app.name>org.onosproject.incubator.grpc.registry</onos.app.name>
+    </properties>
 
     <dependencies>
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-osgi</artifactId>
+            <artifactId>onos-incubator-grpc-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>
+
+    <build>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>

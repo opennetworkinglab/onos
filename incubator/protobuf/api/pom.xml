@@ -23,44 +23,41 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-incubator-protobuf-services</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-incubator-grpc-api</artifactId>
+    <packaging>bundle</packaging>
 
-    <modules>
-        <module>nb</module>
-    </modules>
+    <description>ONOS gRPC service registry API</description>
+    <url>http://onosproject.org</url>
 
-    <dependencies>
+    <properties>
+    </properties>
 
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-osgi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+    <build>
 
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
+        <plugins>
 
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
 
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
 
-    </dependencies>
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>
