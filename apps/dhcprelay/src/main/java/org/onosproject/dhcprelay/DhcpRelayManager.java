@@ -25,9 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,10 +36,11 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
-import org.onlab.packet.IPacket;
-import org.onlab.packet.IPv6;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -54,24 +52,16 @@ import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.Config;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.UdpPortCriterion;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -80,7 +70,17 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -92,7 +92,10 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 /**
@@ -454,7 +457,14 @@ public class DhcpRelayManager implements DhcpRelayService {
 
     @Override
     public Optional<MacAddress> getDhcpServerMacAddress() {
-        return v4Handler.getDhcpConnectMac();
+        // TODO: depreated it
+        DefaultDhcpRelayConfig config = cfgService.getConfig(appId, DefaultDhcpRelayConfig.class);
+        DhcpServerConfig serverConfig = config.dhcpServerConfigs().get(0);
+        Ip4Address serverip = serverConfig.getDhcpServerIp4().get();
+        return hostService.getHostsByIp(serverip)
+                .stream()
+                .map(Host::mac)
+                .findFirst();
     }
 
     /**

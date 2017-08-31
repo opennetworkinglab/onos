@@ -46,6 +46,7 @@ public interface DhcpHandler {
      * @return IP address of DHCP server; empty value if not exist
      * @deprecated 1.12 get the address from config service
      */
+    @Deprecated
     Optional<IpAddress> getDhcpServerIp();
 
     /**
@@ -61,7 +62,7 @@ public interface DhcpHandler {
      * Gets DHCP connect Mac address.
      *
      * @return the connect Mac address of server or gateway
-     * @deprecated 1.12 get host mac from host server
+     * @deprecated 1.12 get host mac from host service
      */
     @Deprecated
     Optional<MacAddress> getDhcpConnectMac();

@@ -66,6 +66,7 @@ public class DhcpRelayCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
+        // TODO: add indirect config
         DefaultDhcpRelayConfig cfg = CFG_SERVICE.getConfig(APP_ID, DefaultDhcpRelayConfig.class);
         if (cfg == null || cfg.dhcpServerConfigs().size() == 0) {
             print(MISSING_SERVER_CFG);
