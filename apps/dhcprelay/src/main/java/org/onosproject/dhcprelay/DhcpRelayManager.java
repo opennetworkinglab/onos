@@ -43,6 +43,7 @@ import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -59,6 +60,8 @@ import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.net.DeviceId;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
+import org.onosproject.net.Host;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
@@ -454,7 +457,14 @@ public class DhcpRelayManager implements DhcpRelayService {
 
     @Override
     public Optional<MacAddress> getDhcpServerMacAddress() {
-        return v4Handler.getDhcpConnectMac();
+        // TODO: depreated it
+        DefaultDhcpRelayConfig config = cfgService.getConfig(appId, DefaultDhcpRelayConfig.class);
+        DhcpServerConfig serverConfig = config.dhcpServerConfigs().get(0);
+        Ip4Address serverip = serverConfig.getDhcpServerIp4().get();
+        return hostService.getHostsByIp(serverip)
+                .stream()
+                .map(Host::mac)
+                .findFirst();
     }
 
     /**

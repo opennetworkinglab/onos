@@ -329,6 +329,8 @@ public class DhcpRelayManagerTest {
     public void testWithRelayAgentConfig() throws DeserializationException {
         manager.v4Handler
                 .setDefaultDhcpServerConfigs(ImmutableList.of(new MockDhcpServerConfig(RELAY_AGENT_IP)));
+        manager.v4Handler
+                .setIndirectDhcpServerConfigs(ImmutableList.of(new MockDhcpServerConfig(RELAY_AGENT_IP)));
         packetService.processPacket(new TestDhcpRequestPacketContext(CLIENT2_MAC,
                                                                      CLIENT2_VLAN,
                                                                      CLIENT2_CP,
