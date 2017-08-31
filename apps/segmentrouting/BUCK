@@ -26,6 +26,12 @@ TEST_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    # TODO Uncomment here when policy/tunnel are supported
+    #web_context = '/onos/segmentrouting',
+    #api_title = 'Segment Routing',
+    #api_version = '1.0',
+    #api_description = 'REST API for Segment Routing',
+    #api_package = 'org.onosproject.segmentrouting',
 )
 
 onos_app (
