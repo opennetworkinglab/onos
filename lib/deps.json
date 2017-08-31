@@ -237,9 +237,11 @@
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:2.11",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11",
     "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11",
+    // old version of YANG tools for YMS
     "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.11",
     "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.11",
     "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.11",
+    // Note: update BVER in tools/dev/bin/patch-yang-libs
     "onos-yang-model":"mvn:org.onosproject:onos-yang-model:2.2.0-b6",
     "onos-yang-compiler-api":"mvn:org.onosproject:onos-yang-compiler-api:2.2.0-b6",
     "onos-yang-runtime":"mvn:org.onosproject:onos-yang-runtime:2.2.0-b6",
