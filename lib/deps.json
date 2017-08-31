@@ -266,6 +266,8 @@
     "google-truth-0.28": "mvn:com.google.truth:truth:0.28",
     "google-code-findbugs-3.0.0": "mvn:com.google.code.findbugs:jsr305:3.0.0",
     "google-errorprone-2.0.19": "mvn:com.google.errorprone:error_prone_annotations:2.0.19",
-    "google-instrumentation-0.3.0": "mvn:com.google.instrumentation:instrumentation-api:0.3.0"
+    "google-instrumentation-0.3.0": "mvn:com.google.instrumentation:instrumentation-api:0.3.0",
+    "bcpkix-jdk15on": "mvn:org.bouncycastle:bcpkix-jdk15on:1.58",
+    "bcprov-jdk15on": "mvn:org.bouncycastle:bcprov-jdk15on:1.58"
   }
 }

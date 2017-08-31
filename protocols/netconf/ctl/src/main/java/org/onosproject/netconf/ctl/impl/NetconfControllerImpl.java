@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.AnnotationKeys;
@@ -49,6 +50,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Map;
@@ -128,6 +130,7 @@ public class NetconfControllerImpl implements NetconfController {
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         modified(context);
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         log.info("Started");
     }
 
@@ -140,6 +143,7 @@ public class NetconfControllerImpl implements NetconfController {
         cfgService.unregisterProperties(getClass(), false);
         netconfDeviceListeners.clear();
         netconfDeviceMap.clear();
+        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
         log.info("Stopped");
     }
 

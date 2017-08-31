@@ -28,6 +28,10 @@ import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
@@ -39,12 +43,11 @@ import org.onosproject.netconf.NetconfSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.io.CharArrayReader;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -208,23 +211,15 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         session = connectFuture.getSession();
         //Using the device ssh key if possible
         if (deviceInfo.getKey() != null) {
-            ByteBuffer buf = StandardCharsets.UTF_8.encode(CharBuffer.wrap(deviceInfo.getKey()));
-            byte[] byteKey = new byte[buf.limit()];
-            buf.get(byteKey);
-            PublicKey key;
+            PEMParser pemParser = new PEMParser(new CharArrayReader(deviceInfo.getKey()));
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
             try {
-                key = getPublicKey(byteKey, RSA);
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                try {
-                    key = getPublicKey(byteKey, DSA);
-                } catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
-                    throw new NetconfException("Failed to authenticate session with device " +
-                            deviceInfo + "check key to be the " +
-                            "proper DSA or RSA key", e1);
-                }
+                KeyPair kp = converter.getKeyPair((PEMKeyPair) pemParser.readObject());
+                session.addPublicKeyIdentity(kp);
+            } catch (java.io.IOException e) {
+                throw new NetconfException("Failed to authenticate session with device " +
+                                           deviceInfo + "check key to be a valid key", e);
             }
-            //privateKye can set tu null because is not used by the method.
-            session.addPublicKeyIdentity(new KeyPair(key, null));
         } else {
             session.addPasswordIdentity(deviceInfo.password());
         }

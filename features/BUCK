@@ -36,6 +36,8 @@ osgi_feature (
     '//lib:commons-io',
     '//lib:jersey-client',
     '//lib:mapdb',
+    '//lib:bcpkix-jdk15on',
+    '//lib:bcprov-jdk15on',
   ]
 )
 

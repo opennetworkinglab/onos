@@ -6,6 +6,8 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//lib:org.apache.karaf.shell.console',
     '//lib:sshd-core',
+    '//lib:bcpkix-jdk15on',
+    '//lib:bcprov-jdk15on',
 ]
 
 TEST_DEPS = [
