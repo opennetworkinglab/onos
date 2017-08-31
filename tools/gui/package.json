@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "./node_modules/gulp/bin/gulp.js build",
-    "dev": "./node_modules/gulp/bin/gulp.js --development"
+    "dev": "./node_modules/gulp/bin/gulp.js --development",
+    "postinstall": "ppid=$(ps -p ${1:-$$} -o ppid=;); ppid=$(echo ${ppid}|tr -d '[[:space:]]'); if [ -z ${npm_config_tmp} ]; then npm_config_tmp=/tmp; fi; rm -rf \"${npm_config_tmp}\"/npm-${ppid}*"
   },
   "author": "",
   "license": "ISC",
