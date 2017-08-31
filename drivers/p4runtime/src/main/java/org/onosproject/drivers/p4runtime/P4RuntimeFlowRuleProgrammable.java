@@ -19,29 +19,19 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
-import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiFlowRuleTranslationService;
-import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
-import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
-import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeFlowRuleWrapper;
 import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -58,9 +48,9 @@ import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.*;
 
 /**
- * Implementation of the flow rule programmable behaviour for BMv2.
+ * Implementation of the flow rule programmable behaviour for P4Runtime.
  */
-public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
+public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehaviour implements FlowRuleProgrammable {
 
     // TODO: make this attribute configurable by child drivers (e.g. BMv2 or Tofino)
     /*
@@ -75,8 +65,6 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
      */
     private boolean checkEntryStoreBeforeUpdate = true;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     // Needed to synchronize operations over the same table entry.
     private static final ConcurrentMap<P4RuntimeTableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
 
@@ -85,50 +73,31 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
     private static final ConcurrentMap<P4RuntimeTableEntryReference, P4RuntimeFlowRuleWrapper> ENTRY_STORE =
             Maps.newConcurrentMap();
 
-    private DeviceId deviceId;
-    private P4RuntimeClient client;
-    private PiPipeconf pipeconf;
     private PiPipelineModel pipelineModel;
     private PiPipelineInterpreter interpreter;
     private PiFlowRuleTranslationService piFlowRuleTranslationService;
 
-    private boolean init() {
+    @Override
+    protected boolean setupBehaviour() {
 
-        deviceId = handler().data().deviceId();
-
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        if (!controller.hasClient(deviceId)) {
-            log.warn("Unable to find client for {}, aborting flow rule operation", deviceId);
+        if (!super.setupBehaviour()) {
             return false;
         }
 
-        PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
-        if (!piPipeconfService.ofDevice(deviceId).isPresent() ||
-                !piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
-            log.warn("Unable to get the pipeconf of {}", deviceId);
-            return false;
-        }
-
-        DeviceService deviceService = handler().get(DeviceService.class);
-        Device device = deviceService.getDevice(deviceId);
         if (!device.is(PiPipelineInterpreter.class)) {
             log.warn("Unable to get interpreter of {}", deviceId);
             return false;
         }
-
-        client = controller.getClient(deviceId);
-        pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
-        pipelineModel = pipeconf.pipelineModel();
         interpreter = device.as(PiPipelineInterpreter.class);
+        pipelineModel = pipeconf.pipelineModel();
         piFlowRuleTranslationService = handler().get(PiFlowRuleTranslationService.class);
-
         return true;
     }
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
 
-        if (!init()) {
+        if (!setupBehaviour()) {
             return Collections.emptyList();
         }
 
@@ -201,7 +170,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractHandlerBehaviour impl
 
     private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules, Operation operation) {
 
-        if (!init()) {
+        if (!setupBehaviour()) {
             return Collections.emptyList();
         }
 

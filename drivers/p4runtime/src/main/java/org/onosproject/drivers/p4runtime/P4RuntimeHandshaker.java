@@ -16,27 +16,17 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.netty.NettyChannelBuilder;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceHandshaker;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.driver.DriverData;
 import org.onosproject.p4runtime.api.P4RuntimeController;
-import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
- * Implementation of DeviceHandshaker for BMv2.
+ * Implementation of DeviceHandshaker for P4Runtime.
  */
-public class P4RuntimeHandshaker extends AbstractHandlerBehaviour
-        implements DeviceHandshaker {
-
-    private final Logger log = getLogger(getClass());
+public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour implements DeviceHandshaker {
 
     // TODO: consider abstract class with empty connect method and  implementation into a protected one for reusability.
 
@@ -46,29 +36,7 @@ public class P4RuntimeHandshaker extends AbstractHandlerBehaviour
     }
 
     private boolean doConnect() {
-
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-
-        DeviceId deviceId = handler().data().deviceId();
-        // DeviceKeyService deviceKeyService = handler().get(DeviceKeyService.class);
-        DriverData data = data();
-
-        String serverAddr = data.value("p4runtime_ip");
-        int serverPort = Integer.valueOf(data.value("p4runtime_port"));
-        long p4DeviceId = Long.parseUnsignedLong(data.value("p4runtime_deviceId"));
-
-        ManagedChannelBuilder channelBuilder = NettyChannelBuilder
-                .forAddress(serverAddr, serverPort)
-                .usePlaintext(true);
-
-        if (!controller.createClient(deviceId, p4DeviceId, channelBuilder)) {
-            log.warn("Unable to create P4runtime client for {}", deviceId);
-            return false;
-        }
-
-        // TODO: gNMI handling
-
-        return true;
+        return super.createClient();
     }
 
     @Override

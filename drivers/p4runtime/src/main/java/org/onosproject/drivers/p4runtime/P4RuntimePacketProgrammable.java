@@ -16,57 +16,29 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketProgrammable;
-import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
-import org.onosproject.net.pi.runtime.PiPipeconfService;
-import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 /**
- * Packet Programmable behaviour for BMv2 devices.
+ * Implementation of PacketProgrammable behaviour for P4Runtime.
  */
-public class P4RuntimePacketProgrammable extends AbstractHandlerBehaviour implements PacketProgrammable {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+public class P4RuntimePacketProgrammable extends AbstractP4RuntimeHandlerBehaviour implements PacketProgrammable {
 
     @Override
     public void emit(OutboundPacket packet) {
 
-        DeviceId deviceId = handler().data().deviceId();
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        if (!controller.hasClient(deviceId)) {
-            log.warn("Unable to find client for {}, aborting the sending packet", deviceId);
+        if (!this.setupBehaviour()) {
             return;
         }
 
-        P4RuntimeClient client = controller.getClient(deviceId);
-        PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
-
-        final PiPipeconf pipeconf;
-        if (piPipeconfService.ofDevice(deviceId).isPresent() &&
-                piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).isPresent()) {
-            pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
-        } else {
-            log.warn("Unable to get the pipeconf of {}", deviceId);
-            return;
-        }
-
-        DeviceService deviceService = handler().get(DeviceService.class);
-        Device device = deviceService.getDevice(deviceId);
         final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
                 ? device.as(PiPipelineInterpreter.class) : null;
         if (!device.is(PiPipelineInterpreter.class)) {
-            log.warn("Device {} unable to instantiate interpreter of pipeconf {}", deviceId, pipeconf.id());
+            log.warn("Device {} with pipeconf {} has no interpreter, aborting emit operation", deviceId, pipeconf.id());
             return;
         }
 
