@@ -18,11 +18,15 @@ package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiCounterId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -72,7 +76,7 @@ public interface P4RuntimeClient {
                                                  PiPipeconf pipeconf);
 
     /**
-     * Dumps all entries currently installed in the given table.
+     * Dumps all entries currently installed in the given table, for the given pipeconf.
      *
      * @param tableId  table identifier
      * @param pipeconf pipeconf currently deployed on the device
@@ -81,13 +85,34 @@ public interface P4RuntimeClient {
     CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId tableId, PiPipeconf pipeconf);
 
     /**
-     * Executes a packet-out operation.
+     * Executes a packet-out operation for the given pipeconf.
      *
      * @param packet   packet-out operation to be performed by the device
      * @param pipeconf pipeconf currently deployed on the device
      * @return a completable future of a boolean, true if the operations was successful, false otherwise.
      */
     CompletableFuture<Boolean> packetOut(PiPacketOperation packet, PiPipeconf pipeconf);
+
+    /**
+     * Returns the value of all counter cells for the given set of counter identifiers and pipeconf.
+     *
+     * @param counterIds counter identifiers
+     * @param pipeconf   pipeconf
+     * @return collection of counter data
+     */
+    CompletableFuture<Collection<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
+                                                                         PiPipeconf pipeconf);
+
+    /**
+     * Returns a collection of counter data corresponding to the given set of counter cell identifiers, for the given
+     * pipeconf.
+     *
+     * @param cellIds set of counter cell identifiers
+     * @param pipeconf   pipeconf
+     * @return collection of counter data
+     */
+    CompletableFuture<Collection<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
+                                                                      PiPipeconf pipeconf);
 
     /**
      * Shutdown the client by terminating any active RPC such as the stream channel.
