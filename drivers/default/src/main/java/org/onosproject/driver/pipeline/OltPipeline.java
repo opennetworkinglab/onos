@@ -156,7 +156,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                     .findFirst().get();
 
             if (output == null || !output.port().equals(PortNumber.CONTROLLER)) {
-                log.error("OLT can only filter packet to controller");
+                log.warn("OLT can only filter packet to controller");
                 fail(filter, ObjectiveError.UNSUPPORTED);
                 return;
             }
@@ -183,6 +183,11 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
+            if (ipProto == null) {
+                log.warn("OLT can only filter IGMP and DHCP");
+                fail(filter, ObjectiveError.UNSUPPORTED);
+                return;
+            }
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
                 provisionIgmp(filter, ethType, ipProto, output);
             } else if (ipProto.protocol() == IPv4.PROTOCOL_UDP) {
@@ -193,16 +198,18 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                         filterForCriterion(filter.conditions(), Criterion.Type.UDP_DST);
 
                 if (udpSrcPort.udpPort().toInt() != 68 || udpDstPort.udpPort().toInt() != 67) {
-                    log.error("OLT can only filte DHCP, wrong UDP Src or Dst Port");
+                    log.warn("OLT can only filter DHCP, wrong UDP Src or Dst Port");
                     fail(filter, ObjectiveError.UNSUPPORTED);
                 }
                 provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
             } else {
-                log.error("OLT can only filter igmp and DHCP");
+                log.warn("OLT can only filter IGMP and DHCP");
                 fail(filter, ObjectiveError.UNSUPPORTED);
             }
         } else {
-            log.error("OLT can only filter eapol igmp");
+            log.warn("\nOnly the following are Supported in OLT for filter ->\n"
+                    + "ETH TYPE : EAPOL and IPV4\n"
+                    + "IPV4 TYPE: IGMP and UDP (for DHCP)");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
 
