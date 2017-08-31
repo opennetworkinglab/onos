@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.app;
 
+import com.google.common.io.ByteStreams;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.app.ApplicationAdminService;
@@ -38,9 +39,10 @@ public class ApplicationCommand extends AbstractShellCommand {
     static final String UNINSTALL = "uninstall";
     static final String ACTIVATE = "activate";
     static final String DEACTIVATE = "deactivate";
+    static final String DOWNLOAD = "download";
 
     @Argument(index = 0, name = "command",
-            description = "Command name (install|activate|deactivate|uninstall)",
+            description = "Command name (install|activate|deactivate|uninstall|download)",
             required = true, multiValued = false)
     String command = null;
 
@@ -58,14 +60,20 @@ public class ApplicationCommand extends AbstractShellCommand {
                 }
             }
 
-        } else {
+        } else if (command.equals(DOWNLOAD)) {
             for (String name : names) {
-                if (!manageApp(service, name)) {
+                if (!downloadApp(service, name)) {
                     return;
                 }
             }
+        } else {
+                for (String name : names) {
+                    if (!manageApp(service, name)) {
+                        return;
+                    }
+                }
+            }
         }
-    }
 
     // Installs the application from input of the specified URL
     private boolean installApp(ApplicationAdminService service, String url) {
@@ -77,6 +85,18 @@ public class ApplicationCommand extends AbstractShellCommand {
             }
         } catch (IOException e) {
             error("Unable to get URL: %s", url);
+            return false;
+        }
+        return true;
+    }
+
+    // Downloads the application bits to the standard output.
+    private boolean downloadApp(ApplicationAdminService service, String name) {
+        try {
+            ByteStreams.copy(service.getApplicationArchive(service.getId(name)),
+                             System.out);
+        } catch (IOException e) {
+            error("Unable to download bits for application %s", name);
             return false;
         }
         return true;

@@ -63,7 +63,7 @@ public class ApplicationNameCompleter extends AbstractCompleter {
 //            if (previousApps.contains(app.id().name())) {
 //                continue;
 //            }
-            if ("uninstall".equals(cmd) ||
+            if ("uninstall".equals(cmd) || "download".equals(cmd) ||
                     ("activate".equals(cmd) && state == INSTALLED) ||
                     ("deactivate".equals(cmd) && state == ACTIVE)) {
                 strings.add(app.id().name());

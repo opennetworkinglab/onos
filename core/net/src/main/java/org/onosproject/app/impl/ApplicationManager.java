@@ -179,6 +179,12 @@ public class ApplicationManager
         store.setPermissions(appId, permissions);
     }
 
+    @Override
+    public InputStream getApplicationArchive(ApplicationId appId) {
+        checkNotNull(appId, APP_ID_NULL);
+        return store.getApplicationArchive(appId);
+    }
+
     private void updateStoreAndWaitForNotificationHandling(ApplicationId appId,
                                                            Consumer<ApplicationId> storeUpdateTask) {
         CountDownLatch latch = new CountDownLatch(1);

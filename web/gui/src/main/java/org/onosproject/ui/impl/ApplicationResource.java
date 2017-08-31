@@ -58,6 +58,26 @@ public class ApplicationResource extends BaseResource {
         return Response.ok().build();
     }
 
+    /**
+     * Get application OAR/JAR file.
+     * Returns the OAR/JAR file used to install the specified application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("{name}/download")
+    public Response download(@PathParam("name") String name) {
+        ApplicationAdminService service = get(ApplicationAdminService.class);
+        ApplicationId appId = service.getId(name);
+        InputStream bits = service.getApplicationArchive(appId);
+        String fileName = appId.name() + ".oar";
+        return Response.ok(bits)
+                .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
+                .build();
+    }
+
     @Path("{name}/icon")
     @GET
     @Produces("image/png")

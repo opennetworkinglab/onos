@@ -437,6 +437,11 @@ public class DistributedApplicationStore extends ApplicationArchive
         }
     }
 
+    @Override
+    public InputStream getApplicationArchive(ApplicationId appId) {
+        return getApplicationInputStream(appId.name());
+    }
+
     private class AppActivator implements Consumer<Application> {
         @Override
         public void accept(Application app) {

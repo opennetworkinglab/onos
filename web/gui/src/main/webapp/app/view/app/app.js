@@ -45,8 +45,9 @@
         detailsResp = 'appDetailsResponse',
         fileUploadUrl = 'applications/upload',
         activateOption = '?activate=true',
-        iconUrlPrefix = 'rs/applications/',
+        appUrlPrefix = 'rs/applications/',
         iconUrlSuffix = '/icon',
+        downloadSuffix = '/download',
         dialogId = 'app-dialog',
         dialogOpts = {
             edge: 'right',
@@ -167,7 +168,7 @@
     }
 
     function addIcon(elem, value) {
-        elem.append('img').attr('src', iconUrlPrefix + value + iconUrlSuffix);
+        elem.append('img').attr('src', appUrlPrefix + value + iconUrlSuffix);
     }
 
     function populateTop(details) {
@@ -250,6 +251,7 @@
         $scope.activateTip = lion('tt_ctl_activate');
         $scope.deactivateTip = lion('tt_ctl_deactivate');
         $scope.uninstallTip = lion('tt_ctl_uninstall');
+        $scope.downloadTip = lion('tt_ctl_download');
 
 
         var handlers = {};
@@ -356,6 +358,12 @@
         $scope.appAction = function (action) {
             if ($scope.ctrlBtnState.selection) {
                 confirmAction(action);
+            }
+        };
+
+        $scope.downloadApp = function () {
+            if ($scope.ctrlBtnState.selection) {
+                window.location = appUrlPrefix + $scope.selId + downloadSuffix;
             }
         };
 

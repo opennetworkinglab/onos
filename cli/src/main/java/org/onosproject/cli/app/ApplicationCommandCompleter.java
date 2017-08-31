@@ -28,7 +28,7 @@ import static org.onosproject.cli.app.ApplicationCommand.*;
 public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {
-        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE);
+        return ImmutableList.of(INSTALL, UNINSTALL, ACTIVATE, DEACTIVATE, DOWNLOAD);
     }
 
 }

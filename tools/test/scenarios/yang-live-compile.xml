@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="yang-lve-compile" description="Live YANG compilation">
+<scenario name="yang-live-compile" description="Live YANG compilation">
     <group name="YANG-Live-Compile">
         <step name="Activate-YANG-Runtime" exec="onos ${OC1} app activate org.onosproject.yang"/>
         <step name="Pre-Cleanup-YANG-Model" exec="onos ${OC1} app uninstall l3vpn" env="~"/>

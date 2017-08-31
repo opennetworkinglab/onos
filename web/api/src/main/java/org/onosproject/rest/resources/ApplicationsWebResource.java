@@ -208,6 +208,23 @@ public class ApplicationsWebResource extends AbstractWebResource {
     }
 
     /**
+     * Get application OAR/JAR file.
+     * Returns the OAR/JAR file used to install the specified application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Path("{name}/bits")
+    public Response getAppBits(@PathParam("name") String name) {
+        ApplicationAdminService service = get(ApplicationAdminService.class);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_ID_NOT_FOUND);
+        InputStream bits = service.getApplicationArchive(appId);
+        return ok(bits).build();
+    }
+
+    /**
      * Gets applicationId entry by either id or name.
      *
      * @param id   id of application

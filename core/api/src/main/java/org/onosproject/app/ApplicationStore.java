@@ -105,4 +105,14 @@ public interface ApplicationStore extends Store<ApplicationEvent, ApplicationSto
      */
     void setPermissions(ApplicationId appId, Set<Permission> permissions);
 
+    /**
+     * Returns stream that contains the application OAR/JAR file contents.
+     *
+     * @param appId application identifier
+     * @return input stream containing the app OAR/JAR file
+     */
+    default InputStream getApplicationArchive(ApplicationId appId) {
+        return null;
+    }
+
 }

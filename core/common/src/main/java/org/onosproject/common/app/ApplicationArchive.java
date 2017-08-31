@@ -199,13 +199,11 @@ public class ApplicationArchive
             checkState(!appFile(desc.name(), APP_XML).exists(),
                     "Application %s already installed", desc.name());
 
-            boolean isSelfContainedJar = false;
-
             if (plainXml) {
                 expandPlainApplication(cache, desc);
             } else {
                 bis.reset();
-                isSelfContainedJar = expandZippedApplication(bis, desc);
+                boolean isSelfContainedJar = expandZippedApplication(bis, desc);
 
                 if (isSelfContainedJar) {
                     bis.reset();
@@ -254,7 +252,7 @@ public class ApplicationArchive
 
     /**
      * Returns application archive stream for the specified application. This
-     * will be either the application ZIP file or the application XML file.
+     * will be either the application OAR file, JAR file or the plain XML file.
      *
      * @param appName application name
      * @return application archive stream
