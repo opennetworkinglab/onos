@@ -38,4 +38,14 @@ public class FailedException extends RuntimeException {
     public FailedException(String message) {
         super(message);
     }
+
+    /**
+     * Constructs a new runtime exception with the given error message.
+     *
+     * @param message error message
+     * @param cause cause
+     */
+    public FailedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

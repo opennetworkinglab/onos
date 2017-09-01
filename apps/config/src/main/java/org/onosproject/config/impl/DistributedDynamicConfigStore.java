@@ -132,7 +132,7 @@ public class DistributedDynamicConfigStore
         }
         if (spath.compareTo(ResourceIdParser.ROOT) != 0) {
             if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
-                throw new FailedException("Node or parent doesnot exist");
+                throw new FailedException("Node or parent does not exist for " + spath);
             }
         }
         spath = ResourceIdParser.appendNodeKey(spath, node.key());
@@ -215,8 +215,9 @@ public class DistributedDynamicConfigStore
         CompletableFuture<Versioned<DataNode.Type>> ret = keystore.get(dpath);
         type = completeVersioned(ret);
         if (type == null) {
-            throw new FailedException("Requested node or some of the parents" +
-                                              "are not present in the requested path");
+            throw new FailedException("Requested node or some of the parents " +
+                                      "are not present in the requested path: " +
+                                      spath);
         }
         DataNode retVal = null;
         if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
@@ -486,20 +487,15 @@ public class DistributedDynamicConfigStore
             return future.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            if (e == null) {
-                throw new FailedException("Unknown Exception");
-            } else {
-                throw new FailedException(e.getCause().getMessage());
-            }
+            throw new FailedException(e.getCause().getMessage());
         } catch (ExecutionException e) {
-            if (e == null) {
-                throw new FailedException("Unknown Exception");
-            } else if (e.getCause() instanceof IllegalDocumentModificationException) {
-                throw new FailedException("Node or parent doesnot exist or is root or is not a Leaf Node");
+            if (e.getCause() instanceof IllegalDocumentModificationException) {
+                throw new FailedException("Node or parent doesnot exist or is root or is not a Leaf Node",
+                                          e.getCause());
             } else if (e.getCause() instanceof NoSuchDocumentPathException) {
-                throw new FailedException("Resource id does not exist");
+                throw new FailedException("Resource id does not exist", e.getCause());
             } else {
-                throw new FailedException("Datastore operation failed");
+                throw new FailedException("Datastore operation failed", e.getCause());
             }
         }
     }

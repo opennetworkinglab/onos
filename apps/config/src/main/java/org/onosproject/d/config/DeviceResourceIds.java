@@ -68,6 +68,12 @@ public abstract class DeviceResourceIds {
             .addBranchPointSchema(ROOT_NAME, DCS_NAMESPACE)
             .build();
 
+    public static final ResourceId DEVICES_ID = ResourceId.builder()
+            .addBranchPointSchema(ROOT_NAME, DCS_NAMESPACE)
+            .addBranchPointSchema(DEVICES_NAME, DCS_NAMESPACE)
+            .build();
+
+
     static final NodeKey<?> ROOT_NODE =
             NodeKey.builder().schemaId(ROOT_NAME, DCS_NAMESPACE).build();
 
