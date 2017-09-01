@@ -125,19 +125,18 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<Boolean>
     addNode(ResourceId complete, DataNode node) {
-        CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
         String spath = ResourceIdParser.parseResId(complete);
         if (spath == null) {
             throw new FailedException("Invalid RsourceId, cannot create Node");
         }
-        if (spath.compareTo(ResourceIdParser.ROOT) != 0) {
+        if (!spath.equals(ResourceIdParser.ROOT)) {
             if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
                 throw new FailedException("Node or parent does not exist for " + spath);
             }
         }
         spath = ResourceIdParser.appendNodeKey(spath, node.key());
         parseNode(spath, node);
-        return eventFuture;
+        return CompletableFuture.completedFuture(true);
     }
 
     private void parseNode(String path, DataNode node) {

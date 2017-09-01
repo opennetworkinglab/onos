@@ -74,8 +74,8 @@ public class DocumentPath implements Comparable<DocumentPath> {
     public DocumentPath(String nodeName, DocumentPath parentPath) {
         checkNotNull(nodeName, "Node name cannot be null");
         if (nodeName.contains(pathSeparator)) {
-            throw new IllegalDocumentNameException(
-                    "Periods are not allowed in names.");
+            throw new IllegalDocumentNameException("'" + pathSeparator + "'" +
+                    " are not allowed in names.");
         }
         if (parentPath != null) {
             pathElements.addAll(parentPath.pathElements());
