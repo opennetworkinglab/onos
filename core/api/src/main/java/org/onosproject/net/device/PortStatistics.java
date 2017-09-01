@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.device;
 
+import org.onosproject.net.PortNumber;
+
 /**
  * Statistics of a port.
  */
@@ -24,8 +26,17 @@ public interface PortStatistics {
      * Returns the port number.
      *
      * @return port number
+     * @deprecated ONOS 1.12 Magpie please use portNumber()
      */
+    @Deprecated
     int  port();
+
+    /**
+     * Returns the port number.
+     *
+     * @return port number
+     */
+    PortNumber portNumber();
 
     /**
      * Returns the number of packets received.
