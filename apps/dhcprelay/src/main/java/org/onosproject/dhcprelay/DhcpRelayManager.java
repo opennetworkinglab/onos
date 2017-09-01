@@ -90,6 +90,8 @@ public class DhcpRelayManager implements DhcpRelayService {
     public static final ProviderId PROVIDER_ID = new ProviderId("host", DHCP_RELAY_APP);
     public static final String HOST_LOCATION_PROVIDER =
             "org.onosproject.provider.host.impl.HostLocationProvider";
+    public static final String ROUTE_STORE_IMPL =
+            "org.onosproject.routeservice.store.RouteStoreImpl";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final InternalConfigListener cfgListener = new InternalConfigListener();
 
@@ -170,6 +172,9 @@ public class DhcpRelayManager implements DhcpRelayService {
         // disable dhcp from host location provider
         compCfgService.preSetProperty(HOST_LOCATION_PROVIDER,
                                       "useDhcp", Boolean.FALSE.toString());
+        // Enable distribute route store
+        compCfgService.preSetProperty(ROUTE_STORE_IMPL,
+                                      "distributed", Boolean.TRUE.toString());
         compCfgService.registerProperties(getClass());
         log.info("DHCP-RELAY Started");
     }
