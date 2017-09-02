@@ -17,12 +17,17 @@ package org.onosproject.dhcprelay;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -49,10 +54,20 @@ import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
@@ -92,6 +107,36 @@ public class DhcpRelayManager implements DhcpRelayService {
             "org.onosproject.provider.host.impl.HostLocationProvider";
     public static final String ROUTE_STORE_IMPL =
             "org.onosproject.routeservice.store.RouteStoreImpl";
+    private static final TrafficSelector DHCP_SERVER_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV4)
+            .matchIPProtocol(IPv4.PROTOCOL_UDP)
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
+            .build();
+    private static final TrafficSelector DHCP_CLIENT_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV4)
+            .matchIPProtocol(IPv4.PROTOCOL_UDP)
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
+            .build();
+    private static final TrafficSelector DHCP6_SERVER_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV6)
+            .matchIPProtocol(IPv4.PROTOCOL_UDP)
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
+            .build();
+    private static final TrafficSelector DHCP6_CLIENT_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV6)
+            .matchIPProtocol(IPv4.PROTOCOL_UDP)
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_CLIENT_PORT))
+            .build();
+    static final List<TrafficSelector> DHCP_SELECTORS = ImmutableList.of(
+            DHCP_SERVER_SELECTOR,
+            DHCP_CLIENT_SELECTOR,
+            DHCP6_SERVER_SELECTOR,
+            DHCP6_CLIENT_SELECTOR
+    );
+    private static final TrafficSelector ARP_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_ARP)
+            .build();
+    private static final int IGNORE_CONTROL_PRIORITY = PacketPriority.CONTROL.priorityValue() + 1000;
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final InternalConfigListener cfgListener = new InternalConfigListener();
 
@@ -112,6 +157,15 @@ public class DhcpRelayManager implements DhcpRelayService {
                 @Override
                 public IndirectDhcpRelayConfig createConfig() {
                     return new IndirectDhcpRelayConfig();
+                }
+            },
+            new ConfigFactory<ApplicationId, IgnoreDhcpConfig>(APP_SUBJECT_FACTORY,
+                                                               IgnoreDhcpConfig.class,
+                                                               IgnoreDhcpConfig.KEY,
+                                                               true) {
+                @Override
+                public IgnoreDhcpConfig createConfig() {
+                    return new IgnoreDhcpConfig();
                 }
             }
     );
@@ -137,6 +191,9 @@ public class DhcpRelayManager implements DhcpRelayService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService compCfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
                target = "(version=4)")
     protected DhcpHandler v4Handler;
@@ -149,6 +206,7 @@ public class DhcpRelayManager implements DhcpRelayService {
              label = "Enable Address resolution protocol")
     protected boolean arpEnabled = true;
 
+    protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ApplicationId appId;
 
@@ -218,13 +276,17 @@ public class DhcpRelayManager implements DhcpRelayService {
                 cfgService.getConfig(appId, DefaultDhcpRelayConfig.class);
         IndirectDhcpRelayConfig indirectConfig =
                 cfgService.getConfig(appId, IndirectDhcpRelayConfig.class);
+        IgnoreDhcpConfig ignoreDhcpConfig =
+                cfgService.getConfig(appId, IgnoreDhcpConfig.class);
 
         if (defaultConfig != null) {
             updateConfig(defaultConfig);
         }
-
         if (indirectConfig != null) {
             updateConfig(indirectConfig);
+        }
+        if (ignoreDhcpConfig != null) {
+            updateConfig(ignoreDhcpConfig);
         }
     }
 
@@ -233,12 +295,7 @@ public class DhcpRelayManager implements DhcpRelayService {
      *
      * @param config the configuration ot update
      */
-    private void updateConfig(Config config) {
-        if (config == null) {
-            // Ignore if config is not present
-            return;
-        }
-
+    protected void updateConfig(Config config) {
         if (config instanceof IndirectDhcpRelayConfig) {
             IndirectDhcpRelayConfig indirectConfig = (IndirectDhcpRelayConfig) config;
             v4Handler.setIndirectDhcpServerConfigs(indirectConfig.dhcpServerConfigs());
@@ -248,58 +305,141 @@ public class DhcpRelayManager implements DhcpRelayService {
             v4Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
             v6Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
         }
+        if (config instanceof IgnoreDhcpConfig) {
+            addIgnoreVlanRules((IgnoreDhcpConfig) config);
+        }
+    }
+
+    protected void removeConfig(Config config) {
+        if (config instanceof IndirectDhcpRelayConfig) {
+            v4Handler.setIndirectDhcpServerConfigs(Collections.emptyList());
+            v6Handler.setIndirectDhcpServerConfigs(Collections.emptyList());
+        } else if (config instanceof DefaultDhcpRelayConfig) {
+            v4Handler.setDefaultDhcpServerConfigs(Collections.emptyList());
+            v6Handler.setDefaultDhcpServerConfigs(Collections.emptyList());
+        }
+        if (config instanceof IgnoreDhcpConfig) {
+            ignoredVlans.forEach(this::removeIgnoreVlanRule);
+            ignoredVlans.clear();
+        }
+    }
+
+    private void addIgnoreVlanRules(IgnoreDhcpConfig config) {
+        config.ignoredVlans().forEach((deviceId, vlanId) -> {
+            if (ignoredVlans.get(deviceId).contains(vlanId)) {
+                // don't need to process if it already ignored
+                return;
+            }
+            installIgnoreVlanRule(deviceId, vlanId);
+            ignoredVlans.put(deviceId, vlanId);
+        });
+
+        Multimap<DeviceId, VlanId> removedVlans = HashMultimap.create();
+        ignoredVlans.forEach((deviceId, vlanId) -> {
+            if (!config.ignoredVlans().get(deviceId).contains(vlanId)) {
+                // not contains in new config, remove it
+                removeIgnoreVlanRule(deviceId, vlanId);
+                removedVlans.put(deviceId, vlanId);
+
+            }
+        });
+        removedVlans.forEach(ignoredVlans::remove);
+    }
+
+    private void installIgnoreVlanRule(DeviceId deviceId, VlanId vlanId) {
+        TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
+        dropTreatment.clearedDeferred();
+        DHCP_SELECTORS.forEach(trafficSelector -> {
+            UdpPortCriterion udpDst = (UdpPortCriterion) trafficSelector.getCriterion(Criterion.Type.UDP_DST);
+            TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
+                    .matchVlanId(vlanId)
+                    .build();
+
+            ForwardingObjective fwd = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withSelector(selector)
+                    .withPriority(IGNORE_CONTROL_PRIORITY)
+                    .withTreatment(dropTreatment)
+                    .fromApp(appId)
+                    .add(new ObjectiveContext() {
+                        @Override
+                        public void onSuccess(Objective objective) {
+                            log.info("Vlan id {} from device {} ignored (UDP port {})",
+                                     vlanId, deviceId, udpDst.udpPort().toInt());
+                        }
+
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            log.warn("Can't ignore vlan id {} from device {} due to {}",
+                                     vlanId, deviceId, error);
+                        }
+                    });
+            flowObjectiveService.apply(deviceId, fwd);
+        });
+    }
+
+    private void removeIgnoreVlanRule(DeviceId deviceId, VlanId vlanId) {
+        TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
+        dropTreatment.clearedDeferred();
+        DHCP_SELECTORS.forEach(trafficSelector -> {
+            UdpPortCriterion udpDst = (UdpPortCriterion) trafficSelector.getCriterion(Criterion.Type.UDP_DST);
+            TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
+                    .matchVlanId(vlanId)
+                    .build();
+
+            ForwardingObjective fwd = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withSelector(selector)
+                    .withPriority(IGNORE_CONTROL_PRIORITY)
+                    .withTreatment(dropTreatment)
+                    .fromApp(appId)
+                    .remove(new ObjectiveContext() {
+                        @Override
+                        public void onSuccess(Objective objective) {
+                            log.info("Vlan id {} from device {} ignore rule removed (UDP port {})",
+                                     vlanId, deviceId, udpDst.udpPort().toInt());
+                        }
+
+                        @Override
+                        public void onError(Objective objective, ObjectiveError error) {
+                            log.warn("Can't remove ignore rule of vlan id {} from device {} due to {}",
+                                     vlanId, deviceId, error);
+                        }
+                    });
+            flowObjectiveService.apply(deviceId, fwd);
+        });
     }
 
     /**
      * Request DHCP packet in via PacketService.
      */
     private void requestDhcpPackets() {
-        TrafficSelector.Builder selectorServer = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_SERVER_PORT));
-        packetService.requestPackets(selectorServer.build(), PacketPriority.CONTROL, appId);
-
-        TrafficSelector.Builder selectorClient = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT));
-        packetService.requestPackets(selectorClient.build(), PacketPriority.CONTROL, appId);
+        DHCP_SELECTORS.forEach(trafficSelector -> {
+            packetService.requestPackets(trafficSelector, PacketPriority.CONTROL, appId);
+        });
     }
 
     /**
      * Cancel requested DHCP packets in via packet service.
      */
     private void cancelDhcpPackets() {
-        TrafficSelector.Builder selectorServer = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_SERVER_PORT));
-        packetService.cancelPackets(selectorServer.build(), PacketPriority.CONTROL, appId);
-
-        TrafficSelector.Builder selectorClient = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT));
-        packetService.cancelPackets(selectorClient.build(), PacketPriority.CONTROL, appId);
+        DHCP_SELECTORS.forEach(trafficSelector -> {
+            packetService.cancelPackets(trafficSelector, PacketPriority.CONTROL, appId);
+        });
     }
 
     /**
      * Request ARP packet in via PacketService.
      */
     private void requestArpPackets() {
-        TrafficSelector.Builder selectorArpServer = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selectorArpServer.build(), PacketPriority.CONTROL, appId);
+        packetService.requestPackets(ARP_SELECTOR, PacketPriority.CONTROL, appId);
     }
 
     /**
      * Cancel requested ARP packets in via packet service.
      */
     private void cancelArpPackets() {
-        TrafficSelector.Builder selectorArpServer = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP);
-        packetService.cancelPackets(selectorArpServer.build(), PacketPriority.CONTROL, appId);
+        packetService.cancelPackets(ARP_SELECTOR, PacketPriority.CONTROL, appId);
     }
 
     @Override
@@ -449,20 +589,25 @@ public class DhcpRelayManager implements DhcpRelayService {
     private class InternalConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.type() != NetworkConfigEvent.Type.CONFIG_ADDED &&
-                    event.type() != NetworkConfigEvent.Type.CONFIG_UPDATED) {
-                // Ignore unhandled event type
-                return;
+            switch (event.type()) {
+                case CONFIG_UPDATED:
+                case CONFIG_ADDED:
+                    event.config().ifPresent(config -> {
+                        updateConfig(config);
+                        log.info("{} updated", config.getClass().getSimpleName());
+                    });
+                    break;
+                case CONFIG_REMOVED:
+                    event.prevConfig().ifPresent(config -> {
+                        removeConfig(config);
+                        log.info("{} removed", config.getClass().getSimpleName());
+                    });
+                    break;
+                default:
+                    log.warn("Unsupported event type {}", event.type());
+                    break;
             }
-            if (!event.configClass().equals(DefaultDhcpRelayConfig.class) &&
-                    !event.configClass().equals(IndirectDhcpRelayConfig.class)) {
-                // Ignore unhandled config type
-                return;
-            }
-            event.config().ifPresent(config -> {
-                updateConfig(config);
-                log.info("Reconfigured");
-            });
+
         }
     }
 }

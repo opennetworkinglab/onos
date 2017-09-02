@@ -15,12 +15,17 @@
  */
 package org.onosproject.dhcprelay;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
 import org.apache.commons.io.Charsets;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -45,12 +50,22 @@ import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
+import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpRelayStoreEvent;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceServiceAdapter;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteStoreAdapter;
 import org.onosproject.net.ConnectPoint;
@@ -86,8 +101,12 @@ import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_RELAY_APP;
 
 public class DhcpRelayManagerTest {
+    private static final String CONFIG_FILE_PATH = "dhcp-relay.json";
+    private static final DeviceId DEV_1_ID = DeviceId.deviceId("of:0000000000000001");
+    private static final DeviceId DEV_2_ID = DeviceId.deviceId("of:0000000000000002");
     // Ip address for interfaces
     private static final InterfaceIpAddress INTERFACE_IP = InterfaceIpAddress.valueOf("10.0.3.254/32");
     private static final List<InterfaceIpAddress> INTERFACE_IPS = ImmutableList.of(INTERFACE_IP);
@@ -165,6 +184,8 @@ public class DhcpRelayManagerTest {
             SERVER_INTERFACE
     );
     private static final String NON_ONOS_CID = "Non-ONOS circuit ID";
+    private static final VlanId IGNORED_VLAN = VlanId.vlanId("100");
+    private static final int IGNORE_CONTROL_PRIORITY = PacketPriority.CONTROL.priorityValue() + 1000;
 
     private DhcpRelayManager manager;
     private MockPacketService packetService;
@@ -204,6 +225,7 @@ public class DhcpRelayManagerTest {
         manager.dhcpRelayStore = mockDhcpRelayStore;
 
         manager.interfaceService = new MockInterfaceService();
+        manager.flowObjectiveService = EasyMock.niceMock(FlowObjectiveService.class);
 
         Dhcp4HandlerImpl v4Handler = new Dhcp4HandlerImpl();
         v4Handler.dhcpRelayStore = mockDhcpRelayStore;
@@ -331,6 +353,95 @@ public class DhcpRelayManagerTest {
         assertEquals(eth.getEtherType(), Ethernet.TYPE_ARP);
         ARP arp = (ARP) eth.getPayload();
         assertArrayEquals(arp.getSenderHardwareAddress(), CLIENT_INTERFACE.mac().toBytes());
+    }
+
+    /**
+     * Ignores specific vlans from specific devices if config.
+     *
+     * @throws Exception the exception from this test
+     */
+    @Test
+    public void testIgnoreVlan() throws Exception {
+        ObjectMapper om = new ObjectMapper();
+        JsonNode json = om.readTree(Resources.getResource(CONFIG_FILE_PATH));
+        IgnoreDhcpConfig config = new IgnoreDhcpConfig();
+        json = json.path("apps").path(DHCP_RELAY_APP).path(IgnoreDhcpConfig.KEY);
+        config.init(APP_ID, IgnoreDhcpConfig.KEY, json, om, null);
+
+        Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
+        expectLastCall().times(2);
+        Capture<Objective> capturedFromDev2 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_2_ID), capture(capturedFromDev2));
+        expectLastCall().times(2);
+        replay(manager.flowObjectiveService);
+        manager.updateConfig(config);
+        verify(manager.flowObjectiveService);
+
+        List<Objective> objectivesFromDev1 = capturedFromDev1.getValues();
+        List<Objective> objectivesFromDev2 = capturedFromDev2.getValues();
+
+        assertTrue(objectivesFromDev1.containsAll(objectivesFromDev2));
+        assertTrue(objectivesFromDev2.containsAll(objectivesFromDev1));
+        TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
+        dropTreatment.clearedDeferred();
+
+        for (int index = 0; index < objectivesFromDev1.size(); index++) {
+            TrafficSelector selector =
+                    DefaultTrafficSelector.builder(DhcpRelayManager.DHCP_SELECTORS.get(index))
+                    .matchVlanId(IGNORED_VLAN)
+                    .build();
+            ForwardingObjective fwd = (ForwardingObjective) objectivesFromDev1.get(index);
+            assertEquals(selector, fwd.selector());
+            assertEquals(dropTreatment, fwd.treatment());
+            assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
+            assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
+            assertEquals(Objective.Operation.ADD, fwd.op());
+        }
+
+        assertEquals(2, manager.ignoredVlans.size());
+    }
+
+    /**
+     * "IgnoreVlan" policy should be removed when the config removed.
+     */
+    @Test
+    public void testRemoveIgnoreVlan() {
+        manager.ignoredVlans.put(DEV_1_ID, IGNORED_VLAN);
+        manager.ignoredVlans.put(DEV_2_ID, IGNORED_VLAN);
+        IgnoreDhcpConfig config = new IgnoreDhcpConfig();
+
+        Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
+        expectLastCall().times(2);
+        Capture<Objective> capturedFromDev2 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_2_ID), capture(capturedFromDev2));
+        expectLastCall().times(2);
+        replay(manager.flowObjectiveService);
+        manager.removeConfig(config);
+        verify(manager.flowObjectiveService);
+
+        List<Objective> objectivesFromDev1 = capturedFromDev1.getValues();
+        List<Objective> objectivesFromDev2 = capturedFromDev2.getValues();
+
+        assertTrue(objectivesFromDev1.containsAll(objectivesFromDev2));
+        assertTrue(objectivesFromDev2.containsAll(objectivesFromDev1));
+        TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
+        dropTreatment.clearedDeferred();
+
+        for (int index = 0; index < objectivesFromDev1.size(); index++) {
+            TrafficSelector selector =
+                    DefaultTrafficSelector.builder(DhcpRelayManager.DHCP_SELECTORS.get(index))
+                    .matchVlanId(IGNORED_VLAN)
+                    .build();
+            ForwardingObjective fwd = (ForwardingObjective) objectivesFromDev1.get(index);
+            assertEquals(selector, fwd.selector());
+            assertEquals(dropTreatment, fwd.treatment());
+            assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
+            assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
+            assertEquals(Objective.Operation.REMOVE, fwd.op());
+        }
+        assertEquals(0, manager.ignoredVlans.size());
     }
 
     private static class MockDefaultDhcpRelayConfig extends DefaultDhcpRelayConfig {

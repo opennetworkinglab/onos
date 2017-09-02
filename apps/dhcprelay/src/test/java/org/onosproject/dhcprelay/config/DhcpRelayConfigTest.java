@@ -27,7 +27,6 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 
-
 import java.io.IOException;
 
 import static org.junit.Assert.*;
@@ -45,7 +44,6 @@ public class DhcpRelayConfigTest {
     private static final Ip4Address DEFAULT_GATEWAY_IP = Ip4Address.valueOf("192.168.10.254");
     private static final Ip6Address DEFAULT_SERVER_IP_V6 = Ip6Address.valueOf("2000::200:1");
     private static final Ip6Address DEFAULT_GATEWAY_IP_V6 = Ip6Address.valueOf("1000::100:1");
-
     private static final ConnectPoint INDIRECT_CONNECT_POINT = ConnectPoint.deviceConnectPoint("of:0000000000000002/3");
     private static final Ip4Address INDIRECT_SERVER_IP = Ip4Address.valueOf("172.168.10.3");
 

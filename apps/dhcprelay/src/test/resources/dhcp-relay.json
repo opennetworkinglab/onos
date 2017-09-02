@@ -15,6 +15,10 @@
           "serverIps": ["172.168.10.3"],
           "relayAgentIps": ["10.0.1.1"]
         }
+      ],
+      "ignoreDhcp": [
+        {"deviceId": "of:0000000000000001", "vlan": 100},
+        {"deviceId": "of:0000000000000002", "vlan": 100}
       ]
     }
   }
