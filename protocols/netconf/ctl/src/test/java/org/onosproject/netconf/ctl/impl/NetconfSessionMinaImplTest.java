@@ -195,7 +195,7 @@ public class NetconfSessionMinaImplTest {
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
             assertTrue("NETCONF edit-config command failed",
-                    session1.editConfig(RUNNING.toString(),
+                    session1.editConfig(RUNNING,
                             null, SAMPLE_REQUEST));
         } catch (NetconfException e) {
             e.printStackTrace();
@@ -211,7 +211,7 @@ public class NetconfSessionMinaImplTest {
         assertNotNull("Incorrect sessionId", session3.getSessionId());
         try {
             assertTrue("NETCONF edit-config command failed",
-                    session3.editConfig(RUNNING.toString(),
+                    session3.editConfig(RUNNING,
                             null, SAMPLE_REQUEST));
         } catch (NetconfException e) {
             e.printStackTrace();

@@ -18,14 +18,13 @@ package org.onosproject.drivers.fujitsu;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.netconf.TargetConfig;
-
+import org.onosproject.netconf.DatastoreId;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtilityMock.*;
-import static org.onosproject.netconf.TargetConfig.RUNNING;
+import static org.onosproject.netconf.DatastoreId.RUNNING;
 
 /**
  * Unit tests for methods of FujitsuVoltPonLinkConfig.
@@ -227,7 +226,7 @@ public class FujitsuVoltPonLinkConfigTest {
         }
 
         @Override
-        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
+        public boolean verifyEditConfig(DatastoreId target, String mode, String request) {
             boolean result;
 
             assertTrue("Incorrect target", target.equals(RUNNING));

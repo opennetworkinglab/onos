@@ -19,7 +19,7 @@ package org.onosproject.drivers.fujitsu;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.DatastoreId;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtilityMock.*;
-import static org.onosproject.netconf.TargetConfig.*;
+import static org.onosproject.netconf.DatastoreId.*;
 
 
 /**
@@ -232,11 +232,11 @@ public class FujitsuVoltAlertConfigTest {
 
         @Override
         public boolean verifyEditConfig(String targetConfiguration, String mode, String newConfiguration) {
-            return verifyEditConfig(TargetConfig.valueOf(targetConfiguration), mode, newConfiguration);
+            return verifyEditConfig(DatastoreId.datastore(targetConfiguration), mode, newConfiguration);
         }
 
         @Override
-        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
+        public boolean verifyEditConfig(DatastoreId target, String mode, String request) {
             boolean result;
 
             assertTrue("Incorrect target", target.equals(RUNNING));

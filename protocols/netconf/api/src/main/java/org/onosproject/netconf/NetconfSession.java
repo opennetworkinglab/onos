@@ -20,12 +20,8 @@ import com.google.common.annotations.Beta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * NETCONF session object that allows NETCONF operations on top with the physical
@@ -100,44 +96,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default String getConfig(DatastoreId netconfTargetConfig) throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return getConfig(netconfTargetConfig.id());
-    }
-
-    /**
-     * Retrieves the specified configuration.
-     *
-     * @param netconfTargetConfig the type of configuration to retrieve.
-     * @return specified configuration.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration parameter instead
-     */
-    @Deprecated
-    default String getConfig(TargetConfig netconfTargetConfig) throws NetconfException {
-        return getConfig(TargetConfig.toDatastoreId(netconfTargetConfig));
-    }
-
-    /**
-     * Retrieves the specified configuration.
-     *
-     * @param netconfTargetConfig the type of configuration to retrieve.
-     * @return specified configuration.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration parameter instead
-     */
-    @Deprecated
-    default String getConfig(String netconfTargetConfig) throws NetconfException {
-        return getConfig(TargetConfig.toDatastoreId(netconfTargetConfig));
-    }
-
+    String getConfig(DatastoreId netconfTargetConfig) throws NetconfException;
 
     /**
      * Retrieves part of the specified configuration based on the filterSchema.
@@ -149,55 +108,9 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default String getConfig(DatastoreId netconfTargetConfig,
+    String getConfig(DatastoreId netconfTargetConfig,
                              String configurationFilterSchema)
-            throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return getConfig(netconfTargetConfig.id(), configurationFilterSchema);
-    }
-
-
-    /**
-     * Retrieves part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig       the type of configuration to retrieve.
-     * @param configurationFilterSchema XML schema to filter the configuration
-     *                                  elements we are interested in
-     * @return device running configuration.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfig enum parameter instead
-     */
-    @Deprecated
-    default String getConfig(String netconfTargetConfig, String configurationFilterSchema)
-            throws NetconfException {
-        return getConfig(TargetConfig.toDatastoreId(netconfTargetConfig),
-                         configurationFilterSchema);
-    }
-
-    /**
-     * Retrieves part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig       the type of configuration to retrieve.
-     * @param configurationFilterSchema XML schema to filter the configuration
-     *                                  elements we are interested in
-     * @return device running configuration.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfig enum parameter instead
-     */
-    @Deprecated
-    default String getConfig(TargetConfig netconfTargetConfig, String configurationFilterSchema)
-            throws NetconfException {
-        return getConfig(TargetConfig.toDatastoreId(netconfTargetConfig),
-                         configurationFilterSchema);
-    }
-
+            throws NetconfException;
 
     /**
      * Retrieves part of the specified configuration based on the filterSchema.
@@ -207,7 +120,6 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-
     boolean editConfig(String newConfiguration) throws NetconfException;
 
     /**
@@ -220,54 +132,8 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean editConfig(DatastoreId netconfTargetConfig, String mode, String newConfiguration)
-            throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return editConfig(netconfTargetConfig.id(), mode, newConfiguration);
-    }
-
-    /**
-     * Retrieves part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig the targetConfiguration to change
-     * @param mode                selected mode to change the configuration
-     * @param newConfiguration    configuration to set
-     * @return true if the configuration was edited correctly
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration enum parameter instead
-     */
-    @Deprecated
-    default boolean editConfig(String netconfTargetConfig, String mode, String newConfiguration)
-            throws NetconfException {
-        return editConfig(TargetConfig.toDatastoreId(netconfTargetConfig),
-                          mode,
-                          newConfiguration);
-    }
-
-    /**
-     * Retrieves part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig the targetConfiguration to change
-     * @param mode                selected mode to change the configuration
-     * @param newConfiguration    configuration to set
-     * @return true if the configuration was edited correctly
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration enum parameter instead
-     */
-    @Deprecated
-    default boolean editConfig(TargetConfig netconfTargetConfig, String mode, String newConfiguration)
-            throws NetconfException {
-        return editConfig(TargetConfig.toDatastoreId(netconfTargetConfig),
-                          mode,
-                          newConfiguration);
-    }
+    boolean editConfig(DatastoreId netconfTargetConfig, String mode, String newConfiguration)
+            throws NetconfException;
 
     /**
      * Copies the configuration between configuration datastores.
@@ -280,14 +146,8 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean copyConfig(DatastoreId destination, DatastoreId source)
-            throws NetconfException {
-        // default implementation provided for backward compatibility
-        // but this API should be implemented overriding the default
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return copyConfig(destination.id(), source.id());
-    }
+    boolean copyConfig(DatastoreId destination, DatastoreId source)
+            throws NetconfException;
 
     /**
      * Copies the new configuration, an Url or a complete configuration xml tree
@@ -300,14 +160,8 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean copyConfig(DatastoreId netconfTargetConfig, String newConfiguration)
-            throws NetconfException {
-        // default implementation provided for backward compatibility
-        // but this API should be implemented overriding the default
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return copyConfig(netconfTargetConfig.id(), newConfiguration);
-    }
+     boolean copyConfig(DatastoreId netconfTargetConfig, String newConfiguration)
+            throws NetconfException;
 
     /**
      * Copies the new configuration, an Url or a complete configuration xml tree
@@ -324,25 +178,6 @@ public interface NetconfSession {
             throws NetconfException;
 
     /**
-     * Copies the new configuration, an Url or a complete configuration xml tree
-     * to the target configuration.
-     * The target configuration can't be the running one
-     *
-     * @param netconfTargetConfig the type of configuration to retrieve.
-     * @param newConfiguration    configuration to set
-     * @return true if the configuration was copied correctly
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration enum parameter instead
-     */
-    @Deprecated
-    default boolean copyConfig(TargetConfig netconfTargetConfig, String newConfiguration)
-            throws NetconfException {
-        return copyConfig(TargetConfig.toDatastoreId(netconfTargetConfig), newConfiguration);
-    }
-
-    /**
      * Deletes part of the specified configuration based on the filterSchema.
      *
      * @param netconfTargetConfig the name of the configuration to delete
@@ -350,43 +185,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean deleteConfig(DatastoreId netconfTargetConfig) throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return deleteConfig(netconfTargetConfig.id());
-    }
-
-    /**
-     * Deletes part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig the name of the configuration to delete
-     * @return true if the configuration was deleted correctly
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration enum parameter instead
-     */
-    @Deprecated
-    default boolean deleteConfig(String netconfTargetConfig) throws NetconfException {
-        return deleteConfig(TargetConfig.toDatastoreId(netconfTargetConfig));
-    }
-
-    /**
-     * Deletes part of the specified configuration based on the filterSchema.
-     *
-     * @param netconfTargetConfig the name of the configuration to delete
-     * @return true if the configuration was copied correctly
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration enum parameter instead
-     */
-    @Deprecated
-    default boolean deleteConfig(TargetConfig netconfTargetConfig) throws NetconfException {
-        return deleteConfig(TargetConfig.toDatastoreId(netconfTargetConfig));
-    }
+    boolean deleteConfig(DatastoreId netconfTargetConfig) throws NetconfException;
 
     /**
      * Starts subscription to the device's notifications.
@@ -419,28 +218,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean lock(DatastoreId datastore) throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return lock(datastore.id());
-    }
-
-    /**
-     * Locks the specified configuration.
-     *
-     * @param configType type of configuration to be locked
-     * @return true if successful.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration parameter instead
-     */
-    @Deprecated
-    default boolean lock(String configType) throws NetconfException {
-        return lock(TargetConfig.toDatastoreId(configType));
-    }
+    boolean lock(DatastoreId datastore) throws NetconfException;
 
     /**
      * Unlocks the specified configuration.
@@ -450,28 +228,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default boolean unlock(DatastoreId datastore) throws NetconfException {
-        // default implementation provided for backward compatibility
-        // this API is the one, which should be implemented
-        // TODO default implementation here should be removed after
-        // deprecation of the other 2 variants.
-        return unlock(datastore.id());
-    }
-
-    /**
-     * Unlocks the specified configuration.
-     *
-     * @param configType type of configuration to be locked
-     * @return true if successful.
-     * @throws NetconfException when there is a problem in the communication process on
-     * the underlying connection
-     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
-     * org.onosproject.netconf.TargetConfiguration parameter instead
-     */
-    @Deprecated
-    default boolean unlock(String configType) throws NetconfException {
-        return unlock(TargetConfig.toDatastoreId(configType));
-    }
+    boolean unlock(DatastoreId datastore) throws NetconfException;
 
     /**
      * Locks the running configuration.
@@ -519,40 +276,8 @@ public interface NetconfSession {
      * @return Network capabilities as strings in a Set.
      *
      * @since 1.10.0
-     * Note: default implementation provided with the interface
-     * will be removed when {@code getServerCapabilities()} reaches
-     * deprecation grace period.
      */
-    default Set<String> getDeviceCapabilitiesSet() {
-        // default implementation should be removed in the future
-        Set<String> capabilities = new LinkedHashSet<>();
-        Matcher capabilityMatcher =
-                Pattern.compile("<capability>\\s*(.*?)\\s*</capability>")
-                       .matcher(getServerCapabilities());
-        while (capabilityMatcher.find()) {
-            capabilities.add(capabilityMatcher.group(1));
-        }
-        return capabilities;
-    }
-
-    /**
-     * Gets the capabilities of the Netconf server (remote device) associated
-     * to this session.
-     *
-     * @return Network capabilities as a string.
-     * @deprecated 1.10.0 use {@link #getDeviceCapabilitiesSet()} instead
-     */
-    @Deprecated
-    String getServerCapabilities();
-
-    /**
-     * Sets the ONOS side capabilities.
-     *
-     * @param capabilities list of capabilities the device has.
-     * @deprecated 1.10.0 use {@link #setOnosCapabilities(Iterable)} instead
-     */
-    @Deprecated
-    void setDeviceCapabilities(List<String> capabilities);
+    Set<String> getDeviceCapabilitiesSet();
 
     /**
      * Checks the state of the underlying SSH session and connection

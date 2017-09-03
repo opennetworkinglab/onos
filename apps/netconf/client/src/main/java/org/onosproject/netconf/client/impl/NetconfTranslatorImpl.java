@@ -69,7 +69,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.netconf.TargetConfig.RUNNING;
+import static org.onosproject.netconf.DatastoreId.RUNNING;
 import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
 import static org.onosproject.yang.runtime.SerializerHelper.addDataNode;
 

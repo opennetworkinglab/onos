@@ -15,7 +15,6 @@
  */
 package org.onosproject.drivers.microsemi.yang;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -24,12 +23,11 @@ import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
-import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.NetconfSessionAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MockNetconfSessionEa1000 implements NetconfSession {
+public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
     private static final Logger log = LoggerFactory
             .getLogger(MockNetconfSessionEa1000.class);
 
@@ -822,7 +820,6 @@ public class MockNetconfSessionEa1000 implements NetconfSession {
         return reply;
     }
 
-
     @Override
     public String getConfig(DatastoreId targetConfiguration, String configurationSchema) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
@@ -888,7 +885,7 @@ public class MockNetconfSessionEa1000 implements NetconfSession {
 
     @Override
     public boolean copyConfig(String targetConfiguration, String newConfiguration) throws NetconfException {
-        return copyConfig(TargetConfig.valueOf(targetConfiguration), newConfiguration);
+        return copyConfig(DatastoreId.datastore(targetConfiguration), newConfiguration);
     }
 
     @Override
@@ -930,18 +927,6 @@ public class MockNetconfSessionEa1000 implements NetconfSession {
     @Override
     public String getSessionId() {
         return "mockSessionId";
-    }
-
-    @Override
-    public String getServerCapabilities() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setDeviceCapabilities(List<String> capabilities) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

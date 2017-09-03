@@ -15,7 +15,8 @@
  */
 package org.onosproject.netconf;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.onlab.util.Tools;
@@ -31,10 +32,6 @@ public class NetconfSessionAdapter implements NetconfSession {
 
     @Override
     public void startSubscription() throws NetconfException {
-    }
-
-    @Override
-    public void setDeviceCapabilities(List<String> capabilities) {
     }
 
     @Override
@@ -54,11 +51,6 @@ public class NetconfSessionAdapter implements NetconfSession {
 
     @Override
     public String getSessionId() {
-        return null;
-    }
-
-    @Override
-    public String getServerCapabilities() {
         return null;
     }
 
@@ -88,6 +80,19 @@ public class NetconfSessionAdapter implements NetconfSession {
     }
 
     @Override
+    public boolean copyConfig(DatastoreId destination, DatastoreId source)
+            throws NetconfException {
+        return true;
+    }
+
+    @Override
+    public boolean copyConfig(DatastoreId netconfTargetConfig,
+                              String newConfiguration)
+            throws NetconfException {
+        return true;
+    }
+
+    @Override
     public boolean copyConfig(String netconfTargetConfig,
                               String newConfiguration)
             throws NetconfException {
@@ -101,5 +106,46 @@ public class NetconfSessionAdapter implements NetconfSession {
 
     @Override
     public void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) {
+    }
+
+    @Override
+    public String getConfig(DatastoreId netconfTargetConfig)
+            throws NetconfException {
+        return null;
+    }
+
+    @Override
+    public String getConfig(DatastoreId netconfTargetConfig,
+                            String configurationFilterSchema)
+            throws NetconfException {
+        return null;
+    }
+
+    @Override
+    public boolean editConfig(DatastoreId netconfTargetConfig, String mode,
+                              String newConfiguration)
+            throws NetconfException {
+        return true;
+    }
+
+    @Override
+    public boolean deleteConfig(DatastoreId netconfTargetConfig)
+            throws NetconfException {
+        return true;
+    }
+
+    @Override
+    public boolean lock(DatastoreId datastore) throws NetconfException {
+        return true;
+    }
+
+    @Override
+    public boolean unlock(DatastoreId datastore) throws NetconfException {
+        return true;
+    }
+
+    @Override
+    public Set<String> getDeviceCapabilitiesSet() {
+        return Collections.emptySet();
     }
 }

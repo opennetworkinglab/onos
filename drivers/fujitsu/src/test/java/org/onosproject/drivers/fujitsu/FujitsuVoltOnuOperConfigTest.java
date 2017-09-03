@@ -18,7 +18,7 @@ package org.onosproject.drivers.fujitsu;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.DatastoreId;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -220,7 +220,7 @@ public class FujitsuVoltOnuOperConfigTest {
         }
 
         @Override
-        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
+        public boolean verifyEditConfig(DatastoreId target, String mode, String request) {
             return false;
         }
 

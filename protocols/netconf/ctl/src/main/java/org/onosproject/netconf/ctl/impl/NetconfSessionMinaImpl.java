@@ -846,18 +846,6 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         return Collections.unmodifiableSet(deviceCapabilities);
     }
 
-    @Deprecated
-    @Override
-    public String getServerCapabilities() {
-        return serverHelloResponseOld;
-    }
-
-    @Deprecated
-    @Override
-    public void setDeviceCapabilities(List<String> capabilities) {
-        onosCapabilities = capabilities;
-    }
-
     @Override
     public void setOnosCapabilities(Iterable<String> capabilities) {
         onosCapabilities = capabilities;

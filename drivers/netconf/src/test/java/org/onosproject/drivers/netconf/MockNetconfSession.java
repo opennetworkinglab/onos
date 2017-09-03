@@ -15,20 +15,19 @@
  */
 package org.onosproject.drivers.netconf;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
-import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.NetconfSessionAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MockNetconfSession implements NetconfSession {
+public class MockNetconfSession extends NetconfSessionAdapter {
     private static final Logger log = LoggerFactory
             .getLogger(MockNetconfSession.class);
 
@@ -158,23 +157,13 @@ public class MockNetconfSession implements NetconfSession {
 
 
     @Override
-    public String getConfig(String targetConfiguration, String configurationSchema) throws NetconfException {
-        return getConfig(TargetConfig.valueOf(targetConfiguration));
-    }
-
-    @Override
-    public String getConfig(String targetConfiguration) throws NetconfException {
-        return getConfig(TargetConfig.valueOf(targetConfiguration), null);
-    }
-
-    @Override
-    public String getConfig(TargetConfig netconfTargetConfig)
+    public String getConfig(DatastoreId netconfTargetConfig)
             throws NetconfException {
         return getConfig(netconfTargetConfig, null);
     }
 
     @Override
-    public String getConfig(TargetConfig netconfTargetConfig, String configurationFilterSchema)
+    public String getConfig(DatastoreId netconfTargetConfig, String configurationFilterSchema)
             throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc ");
@@ -201,7 +190,7 @@ public class MockNetconfSession implements NetconfSession {
     }
 
     @Override
-    public boolean editConfig(TargetConfig netconfTargetConfig, String mode, String newConfiguration)
+    public boolean editConfig(DatastoreId netconfTargetConfig, String mode, String newConfiguration)
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
         StringBuilder rpc = new StringBuilder(XML_HEADER);
@@ -234,17 +223,11 @@ public class MockNetconfSession implements NetconfSession {
 
     @Override
     public boolean editConfig(String newConfiguration) throws NetconfException {
-        return editConfig(TargetConfig.RUNNING, null, newConfiguration);
+        return editConfig(DatastoreId.RUNNING, null, newConfiguration);
     }
 
     @Override
-    public boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
-            throws NetconfException {
-        return editConfig(TargetConfig.valueOf(targetConfiguration), mode, newConfiguration);
-    }
-
-    @Override
-    public boolean copyConfig(TargetConfig netconfTargetConfig, String newConfiguration) throws NetconfException {
+    public boolean copyConfig(DatastoreId netconfTargetConfig, String newConfiguration) throws NetconfException {
         newConfiguration = newConfiguration.trim();
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append(RPC_OPEN);
@@ -271,11 +254,11 @@ public class MockNetconfSession implements NetconfSession {
 
     @Override
     public boolean copyConfig(String targetConfiguration, String newConfiguration) throws NetconfException {
-        return copyConfig(TargetConfig.valueOf(targetConfiguration), newConfiguration);
+        return copyConfig(DatastoreId.datastore(targetConfiguration), newConfiguration);
     }
 
     @Override
-    public boolean deleteConfig(TargetConfig netconfTargetConfig) throws NetconfException {
+    public boolean deleteConfig(DatastoreId netconfTargetConfig) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append(RPC_OPEN);
         rpc.append(MESSAGE_ID_STRING);
@@ -297,11 +280,6 @@ public class MockNetconfSession implements NetconfSession {
     }
 
     @Override
-    public boolean deleteConfig(String targetConfiguration) throws NetconfException {
-        return deleteConfig(TargetConfig.valueOf(targetConfiguration));
-    }
-
-    @Override
     public void startSubscription() throws NetconfException {
         // TODO Auto-generated method stub
 
@@ -317,18 +295,6 @@ public class MockNetconfSession implements NetconfSession {
     public void endSubscription() throws NetconfException {
         // TODO Auto-generated method stub
 
-    }
-
-    @Override
-    public boolean lock(String configType) throws NetconfException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean unlock(String configType) throws NetconfException {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     @Override
@@ -352,18 +318,6 @@ public class MockNetconfSession implements NetconfSession {
     @Override
     public String getSessionId() {
         return "mockSessionId";
-    }
-
-    @Override
-    public String getServerCapabilities() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void setDeviceCapabilities(List<String> capabilities) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

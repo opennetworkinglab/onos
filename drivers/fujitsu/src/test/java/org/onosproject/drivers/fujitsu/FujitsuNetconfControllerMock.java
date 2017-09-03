@@ -24,7 +24,7 @@ import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
-import org.onosproject.netconf.ctl.NetconfControllerImpl;
+import org.onosproject.netconf.ctl.impl.NetconfControllerImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;

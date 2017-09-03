@@ -24,6 +24,7 @@ import org.onosproject.net.behaviour.ControllerConfig;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 
@@ -35,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.onosproject.netconf.TargetConfig.RUNNING;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -59,7 +59,7 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         if (mastershipService.isLocalMaster(deviceId)) {
             try {
                 String reply = controller.getNetconfDevice(deviceId).getSession().
-                        getConfig(RUNNING);
+                        getConfig(DatastoreId.RUNNING);
                 log.debug("Reply XML {}", reply);
                 controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
                         loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
@@ -87,7 +87,7 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
                 String config = null;
 
                 try {
-                    String reply = device.getSession().getConfig(RUNNING);
+                    String reply = device.getSession().getConfig(DatastoreId.RUNNING);
                     log.info("reply XML {}", reply);
                     config = XmlConfigParser.createControllersConfig(
                             XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
