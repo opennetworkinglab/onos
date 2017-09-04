@@ -96,6 +96,7 @@
         <module>route-service</module>
         <module>evpn-route-service</module>
         <module>l3vpn</module>
+        <module>openstacknetworkingui</module>
     </modules>
 
     <properties>
