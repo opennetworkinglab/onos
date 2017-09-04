@@ -46,7 +46,7 @@ public class GatewayNodeConfig extends Config<ApplicationId> {
     /**
      * Returns the set of nodes read from network config.
      *
-     * @return set of OpensatckNodeConfig or null
+     * @return set of OpenstackNodeConfig or null
      */
     public Set<GatewayNode> gatewayNodes() {
 

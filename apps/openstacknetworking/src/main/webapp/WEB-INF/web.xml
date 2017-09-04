@@ -29,7 +29,7 @@
                 org.onosproject.openstacknetworking.web.OpenstackPortWebResource,
                 org.onosproject.openstacknetworking.web.OpenstackNetworkWebResource,
                 org.onosproject.openstacknetworking.web.OpenstackSubnetWebResource,
-                org.onosproject.openstacknetworking.web.OpensatckRouterWebResource,
+                org.onosproject.openstacknetworking.web.OpenstackRouterWebResource,
                 org.onosproject.openstacknetworking.web.OpenstackFloatingIpWebResource,
                 org.onosproject.openstacknetworking.web.OpenstackSecurityGroupWebResource,
                 org.onosproject.openstacknetworking.web.OpenstackSecurityGroupRuleWebResource

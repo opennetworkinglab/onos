@@ -49,7 +49,7 @@ import static javax.ws.rs.core.Response.status;
  */
 
 @Path("routers")
-public class OpensatckRouterWebResource extends AbstractWebResource {
+public class OpenstackRouterWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String MESSAGE_ROUTER = "Received router %s request";
