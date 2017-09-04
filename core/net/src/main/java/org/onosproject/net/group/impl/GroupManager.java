@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -54,6 +55,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.GROUP_READ;
 import static org.onosproject.security.AppPermission.Type.GROUP_WRITE;
@@ -76,6 +79,8 @@ public class GroupManager
     private final GroupStoreDelegate delegate = new InternalGroupStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
+    private final  GroupDriverProvider defaultProvider = new GroupDriverProvider();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GroupStore store;
 
@@ -85,10 +90,18 @@ public class GroupManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    private static final int DEFAULT_POLL_FREQUENCY = 30;
+    @Property(name = "fallbackGroupPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
+            label = "Frequency (in seconds) for polling groups via fallback provider")
+    private int fallbackGroupPollFrequency = DEFAULT_POLL_FREQUENCY;
+
     @Property(name = "purgeOnDisconnection", boolValue = false,
             label = "Purge entries associated with a device when the device goes offline")
     private boolean purgeOnDisconnection = false;
-    private final  GroupDriverProvider defaultProvider = new GroupDriverProvider();
+
 
     @Activate
     public void activate(ComponentContext context) {
@@ -114,7 +127,8 @@ public class GroupManager
         if (context != null) {
             readComponentConfiguration(context);
         }
-        defaultProvider.init(deviceService);
+        defaultProvider.init(deviceService, new InternalGroupProviderService(defaultProvider),
+                mastershipService, fallbackGroupPollFrequency);
     }
 
     @Override
@@ -139,6 +153,12 @@ public class GroupManager
             purgeOnDisconnection = flag;
             log.info("Configured. PurgeOnDisconnection is {}",
                     purgeOnDisconnection ? "enabled" : "disabled");
+        }
+        String s = get(properties, "fallbackGroupPollFrequency");
+        try {
+            fallbackGroupPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            fallbackGroupPollFrequency = DEFAULT_POLL_FREQUENCY;
         }
     }
 
