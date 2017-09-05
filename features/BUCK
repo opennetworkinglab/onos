@@ -133,14 +133,13 @@ osgi_feature (
   ]
 )
 
-#FIXME
-# osgi_feature (
-#   name = 'onos-security',
-#   title="Security-Mode ONOS",
-#   required_features = ['onos-api'],
-#   included_bundles = [
-#     'org.onosproject/org.apache.felix.framework.security/2.2.0.onos',
-#     'org.onosproject/onos-security/@ONOS-VERSION',
-#   ]
-# )
+osgi_feature (
+  name = 'onos-security',
+  title="Security-Mode ONOS",
+  required_features = ['onos-api'],
+  included_bundles = [
+    '//lib:org.apache.felix.framework.security',
+    '//core/security:onos-security',
+  ]
+)
 

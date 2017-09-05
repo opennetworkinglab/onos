@@ -10,7 +10,7 @@ FEATURES = [
   '//features:onos-rest',
   '//features:onos-gui',
   '//features:onos-cli',
-#'//features:onos-security',
+  '//features:onos-security',
 ]
 
 #TODO move to buck-tools
