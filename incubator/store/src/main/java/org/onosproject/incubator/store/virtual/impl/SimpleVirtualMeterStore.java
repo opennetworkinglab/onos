@@ -19,9 +19,11 @@ package org.onosproject.incubator.store.virtual.impl;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -53,7 +55,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the virtual meter store for a single instance.
  */
 //TODO: support distributed meter store for virtual networks
-
+@Component(immediate = true)
+@Service
 public class SimpleVirtualMeterStore
         extends AbstractVirtualStore<MeterEvent, MeterStoreDelegate>
         implements VirtualNetworkMeterStore {
