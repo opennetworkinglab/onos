@@ -105,7 +105,7 @@
     </driver>
 
     <driver name="accton-ofdpa3" extends="ofdpa3"
-            manufacturer="Accton Corp\." hwVersion=".*" swVersion="ofdpa 3.*">
+            manufacturer="Accton Corp\." hwVersion=".*" swVersion="ofdpa .*">
     </driver>
 
     <driver name="znyx-ofdpa" extends="ofdpa3"
