@@ -179,6 +179,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- GroupBucket building dependencies -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-protocols-openflow-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

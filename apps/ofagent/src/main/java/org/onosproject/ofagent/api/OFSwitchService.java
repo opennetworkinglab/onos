@@ -15,6 +15,7 @@
  */
 package org.onosproject.ofagent.api;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -111,4 +112,11 @@ public interface OFSwitchService {
      * @return connect point; null if none exists
      */
     ConnectPoint neighbour(NetworkId networkId, DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Returns application id.
+     *
+     * @return application id
+     */
+    ApplicationId appId();
 }

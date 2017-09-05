@@ -205,6 +205,11 @@ public class OFSwitchManager implements OFSwitchService {
     }
 
     @Override
+    public ApplicationId appId() {
+        return appId;
+    }
+
+    @Override
     public List<FlowEntry> getFlowEntries(NetworkId networkId, DeviceId deviceId) {
         FlowRuleService flowRuleService = virtualNetService.get(networkId, FlowRuleService.class);
         Iterable<FlowEntry> entries = flowRuleService.getFlowEntries(deviceId);

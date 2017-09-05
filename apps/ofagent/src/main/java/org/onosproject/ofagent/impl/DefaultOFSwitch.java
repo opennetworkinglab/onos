@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.net.ConnectPoint;
@@ -31,11 +32,25 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupService;
+import org.onosproject.net.meter.Band;
+import org.onosproject.net.meter.DefaultBand;
+import org.onosproject.net.meter.DefaultMeterRequest;
+import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
 import org.onosproject.ofagent.api.OFSwitchService;
+import org.onosproject.openflow.controller.Dpid;
 import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierReply;
@@ -50,12 +65,17 @@ import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGetConfigReply;
+import org.projectfloodlight.openflow.protocol.OFGroupAdd;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFGroupMod;
+import org.projectfloodlight.openflow.protocol.OFGroupModify;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
+import org.projectfloodlight.openflow.protocol.OFMeterMod;
+import org.projectfloodlight.openflow.protocol.OFMeterModFailedCode;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketInReason;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
@@ -76,9 +96,14 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
+import org.projectfloodlight.openflow.protocol.errormsg.OFMeterModFailedErrorMsg;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBand;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDrop;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDscpRemark;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandExperimenter;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -88,10 +113,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -112,6 +139,8 @@ public final class DefaultOFSwitch implements OFSwitch {
     private final OFSwitchService ofSwitchService;
     private final FlowRuleService flowRuleService;
     private final DriverService driverService;
+    private final GroupService groupService;
+    private final MeterService meterService;
 
     private final DatapathId dpId;
     private final OFSwitchCapabilities capabilities;
@@ -139,6 +168,8 @@ public final class DefaultOFSwitch implements OFSwitch {
         this.driverService = serviceDirectory.get(DriverService.class);
         VirtualNetworkService virtualNetworkService = serviceDirectory.get(VirtualNetworkService.class);
         this.flowRuleService = virtualNetworkService.get(networkId, FlowRuleService.class);
+        this.groupService = virtualNetworkService.get(networkId, GroupService.class);
+        this.meterService = virtualNetworkService.get(networkId, MeterService.class);
         log = LoggerFactory.getLogger(getClass().getName() + " : " + dpid);
     }
 
@@ -249,6 +280,140 @@ public final class DefaultOFSwitch implements OFSwitch {
         flowRuleService.applyFlowRules(flowEntry);
     }
 
+    // Methods that support GROUP_MOD
+
+    private GroupDescription.Type getGroupType(OFGroupType type) {
+        switch (type) {
+            case ALL:
+                return GroupDescription.Type.ALL;
+            case INDIRECT:
+                return GroupDescription.Type.INDIRECT;
+            case SELECT:
+                return GroupDescription.Type.SELECT;
+            case FF:
+                return GroupDescription.Type.FAILOVER;
+            default:
+                log.error("Unsupported OF group type : {}", type);
+                break;
+        }
+        return null;
+    }
+
+    private void processGroupMod(OFGroupMod groupMod) {
+        log.debug("processing GROUP_MOD {} message", groupMod.getCommand());
+
+        ApplicationId appId = ofSwitchService.appId();
+        GroupKey appCookie = new DefaultGroupKey(networkId.toString().getBytes());
+        switch (groupMod.getCommand()) {
+            case ADD:
+                // TODO return OFGroupModFailedCode.GROUP_EXISTS if group already exists
+                int groupId = groupMod.getGroup().getGroupNumber();
+                OFGroupAdd groupAdd = (OFGroupAdd) groupMod;
+                GroupBuckets groupAddBuckets = new OFAgentVirtualGroupBucketEntryBuilder(
+                        Dpid.dpid(Dpid.uri(dpid().getLong())),
+                        groupAdd.getBuckets(), groupAdd.getGroupType(), driverService)
+                        .build();
+                GroupDescription groupDescription = new DefaultGroupDescription(
+                        deviceId, getGroupType(groupAdd.getGroupType()), groupAddBuckets,
+                        appCookie, groupId, appId);
+                groupService.addGroup(groupDescription);
+                break;
+            case MODIFY:
+                // TODO return OFGroupModFailedCode.INVALID_GROUP if group does not exist
+                OFGroupModify groupModify = (OFGroupModify) groupMod;
+                GroupBuckets groupModifyBuckets = new OFAgentVirtualGroupBucketEntryBuilder(
+                        Dpid.dpid(Dpid.uri(dpid().getLong())),
+                        groupModify.getBuckets(), groupModify.getGroupType(), driverService)
+                        .build();
+                groupService.setBucketsForGroup(deviceId, appCookie, groupModifyBuckets,
+                                                appCookie, appId);
+                break;
+            case DELETE:
+                groupService.removeGroup(deviceId, appCookie, appId);
+                break;
+            default:
+                // INSERT_BUCKET, REMOVE_BUCKET are effective OF 1.5.  OFAgent supports 1.3.
+                log.warn("Unsupported GROUP_MOD {} message received for switch {}",
+                         groupMod.getCommand(), this);
+        }
+    }
+
+    // Methods that spport METER_MOD.
+
+    private Band band(OFMeterBand ofMeterBand) {
+        DefaultBand.Builder builder = DefaultBand.builder();
+        if (ofMeterBand instanceof OFMeterBandDrop) {
+            OFMeterBandDrop ofMeterBandDrop = (OFMeterBandDrop) ofMeterBand;
+            builder.ofType(Band.Type.DROP)
+                    .burstSize(ofMeterBandDrop.getBurstSize())
+                    .withRate(ofMeterBandDrop.getRate());
+        } else if (ofMeterBand instanceof OFMeterBandDscpRemark) {
+            OFMeterBandDscpRemark ofMeterBandDscpRemark = (OFMeterBandDscpRemark) ofMeterBand;
+            builder.ofType(Band.Type.REMARK)
+                    .burstSize(ofMeterBandDscpRemark.getBurstSize())
+                    .withRate(ofMeterBandDscpRemark.getRate())
+                    .dropPrecedence(ofMeterBandDscpRemark.getPrecLevel());
+        } else  if (ofMeterBand instanceof OFMeterBandExperimenter) {
+            OFMeterBandExperimenter ofMeterBandExperimenter = (OFMeterBandExperimenter) ofMeterBand;
+            builder.ofType(Band.Type.EXPERIMENTAL)
+                    .burstSize(ofMeterBandExperimenter.getBurstSize())
+                    .withRate(ofMeterBandExperimenter.getRate());
+        }
+        return builder.build();
+    }
+
+    private MeterRequest.Builder meterRequestBuilder(OFMeterMod meterMod) {
+        Collection<Band> bands = meterMod.getBands().stream()
+                .map(ofMeterBand -> band(ofMeterBand)).collect(Collectors.toList());
+        return DefaultMeterRequest.builder().forDevice(deviceId)
+                .withBands(bands).fromApp(ofSwitchService.appId());
+    }
+
+    private void meterModError(OFMeterMod meterMod, OFMeterModFailedCode code,
+                               Channel channel) {
+        OFMeterModFailedErrorMsg errorMsg = FACTORY.errorMsgs()
+                .buildMeterModFailedErrorMsg()
+                .setXid(meterMod.getXid())
+                .setCode(code)
+                .build();
+        channel.writeAndFlush(Collections.singletonList(errorMsg));
+        log.debug("Sent meterMod error {}", code);
+    }
+
+    private void processMeterMod(OFMeterMod meterMod, Channel channel) {
+        log.debug("processing METER_MOD {} message", meterMod.getCommand());
+
+        long meterModId = meterMod.getMeterId();
+        Meter existingMeter = meterService.getMeter(deviceId, MeterId.meterId(meterModId));
+        MeterRequest meterRequest = null;
+        switch (meterMod.getCommand()) {
+            case ADD:
+                if (existingMeter != null) {
+                    meterModError(meterMod, OFMeterModFailedCode.METER_EXISTS, channel);
+                    return;
+                }
+                meterRequest = meterRequestBuilder(meterMod).add();
+                break;
+            case MODIFY:
+                if (existingMeter == null) {
+                    meterModError(meterMod, OFMeterModFailedCode.UNKNOWN_METER, channel);
+                    return;
+                }
+                meterRequest = meterRequestBuilder(meterMod).add();
+                break;
+            case DELETE:
+                // non-existing meter id will not result in OFMeterModFailedErrorMsg
+                // being sent to the controller
+                meterRequest = meterRequestBuilder(meterMod).remove();
+                break;
+            default:
+                log.warn("Unexpected message {} received for switch {}",
+                         meterMod.getCommand(), this);
+                return;
+        }
+        meterService.submit(meterRequest);
+    }
+
     @Override
     public void processControllerCommand(Channel channel, OFMessage msg) {
 
@@ -273,7 +438,13 @@ public final class DefaultOFSwitch implements OFSwitch {
                 processFlowMod(flowMod);
                 break;
             case GROUP_MOD:
+                OFGroupMod groupMod = (OFGroupMod) msg;
+                processGroupMod(groupMod);
+                break;
             case METER_MOD:
+                OFMeterMod meterMod = (OFMeterMod) msg;
+                processMeterMod(meterMod, channel);
+                break;
             case TABLE_MOD:
                 log.debug("processControllerCommand: {} not yet supported for {}",
                           msg.getType(), msg);

@@ -16,11 +16,13 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
     '//providers/openflow/flow:onos-providers-openflow-flow',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
 ]
 
 BUNDLES = [
     '//apps/ofagent:onos-apps-ofagent',
     '//providers/openflow/flow:onos-providers-openflow-flow',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
 ]
 
 TEST_DEPS = [
