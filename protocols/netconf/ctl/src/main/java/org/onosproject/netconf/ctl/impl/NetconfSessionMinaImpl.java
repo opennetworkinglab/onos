@@ -211,14 +211,15 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         session = connectFuture.getSession();
         //Using the device ssh key if possible
         if (deviceInfo.getKey() != null) {
-            PEMParser pemParser = new PEMParser(new CharArrayReader(deviceInfo.getKey()));
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
-            try {
-                KeyPair kp = converter.getKeyPair((PEMKeyPair) pemParser.readObject());
-                session.addPublicKeyIdentity(kp);
-            } catch (java.io.IOException e) {
-                throw new NetconfException("Failed to authenticate session with device " +
-                                           deviceInfo + "check key to be a valid key", e);
+            try (PEMParser pemParser = new PEMParser(new CharArrayReader(deviceInfo.getKey()))) {
+                JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
+                try {
+                    KeyPair kp = converter.getKeyPair((PEMKeyPair) pemParser.readObject());
+                    session.addPublicKeyIdentity(kp);
+                } catch (IOException e) {
+                    throw new NetconfException("Failed to authenticate session with device " +
+                            deviceInfo + "check key to be a valid key", e);
+                }
             }
         } else {
             session.addPasswordIdentity(deviceInfo.password());
@@ -447,9 +448,11 @@ public class NetconfSessionMinaImpl implements NetconfSession {
      */
     private String formatChunkedMessage(String message) {
         if (message.endsWith(ENDPATTERN)) {
+            // message given had Netconf 1.0 EOM pattern -> remove
             message = message.substring(0, message.length() - ENDPATTERN.length());
         }
         if (!message.startsWith(LF + HASH)) {
+            // chunk encode message
             message = LF + HASH + message.getBytes(UTF_8).length + LF + message + LF + HASH + HASH + LF;
         }
         return message;
@@ -482,6 +485,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     }
 
     private String sendRequest(String request) throws NetconfException {
+        // FIXME probably chunk-encoding too early
         request = formatNetconfMessage(request);
         return sendRequest(request, false);
     }
@@ -492,6 +496,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         if (!isHello) {
             messageId = messageIdInteger.getAndIncrement();
         }
+        // FIXME potentially re-writing chunked encoded String?
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
         CompletableFuture<String> futureReply = request(request, messageId);
