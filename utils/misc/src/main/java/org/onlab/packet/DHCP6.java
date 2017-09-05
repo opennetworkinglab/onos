@@ -23,8 +23,10 @@ import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
 import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
 import org.onlab.packet.dhcp.Dhcp6IaNaOption;
 import org.onlab.packet.dhcp.Dhcp6IaTaOption;
+import org.onlab.packet.dhcp.Dhcp6IaPdOption;
 import org.onlab.packet.dhcp.Dhcp6Option;
 import org.onlab.packet.dhcp.Dhcp6RelayOption;
+import org.onlab.packet.dhcp.Dhcp6InterfaceIdOption;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -88,7 +90,8 @@ public class DHCP6 extends BasePacket {
         RELAY_MSG((short) 9), AUTH((short) 11), UNICAST((short) 12),
         STATUS_CODE((short) 13), RAPID_COMMIT((short) 14), USER_CLASS((short) 15),
         VENDOR_CLASS((short) 16), VENDOR_OPTS((short) 17), INTERFACE_ID((short) 18),
-        RECONF_MSG((short) 19), RECONF_ACCEPT((short) 20), SUBSCRIBER_ID((short) 38);
+        RECONF_MSG((short) 19), RECONF_ACCEPT((short) 20), IA_PD((short) 25), IAPREFIX((short) 26),
+        SUBSCRIBER_ID((short) 38);
 
         protected short value;
         OptionCode(final short value) {
@@ -100,11 +103,15 @@ public class DHCP6 extends BasePacket {
     }
 
     private static final Map<Short, Deserializer<Dhcp6Option>> OPT_DESERIALIZERS =
-            ImmutableMap.of(OptionCode.IA_NA.value, Dhcp6IaNaOption.deserializer(),
-                            OptionCode.IA_TA.value, Dhcp6IaTaOption.deserializer(),
-                            OptionCode.IAADDR.value, Dhcp6IaAddressOption.deserializer(),
-                            OptionCode.RELAY_MSG.value, Dhcp6RelayOption.deserializer(),
-                            OptionCode.CLIENTID.value, Dhcp6ClientIdOption.deserializer());
+            ImmutableMap.<Short, Deserializer<Dhcp6Option>>builder()
+                            .put(OptionCode.IA_NA.value, Dhcp6IaNaOption.deserializer())
+                            .put(OptionCode.IA_TA.value, Dhcp6IaTaOption.deserializer())
+                            .put(OptionCode.IAADDR.value, Dhcp6IaAddressOption.deserializer())
+                            .put(OptionCode.RELAY_MSG.value, Dhcp6RelayOption.deserializer())
+                            .put(OptionCode.CLIENTID.value, Dhcp6ClientIdOption.deserializer())
+                            .put(OptionCode.IA_PD.value, Dhcp6IaPdOption.deserializer())
+                            .put(OptionCode.INTERFACE_ID.value, Dhcp6InterfaceIdOption.deserializer())
+                    .build();
 
     // general field
     private byte msgType; // 1 byte
