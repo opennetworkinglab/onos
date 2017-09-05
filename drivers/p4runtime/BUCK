@@ -26,5 +26,6 @@ onos_app (
         'org.onosproject.generaldeviceprovider',
         'org.onosproject.protocols.p4runtime',
         'org.onosproject.p4runtime',
+        'org.onosproject.drivers',
     ],
 )

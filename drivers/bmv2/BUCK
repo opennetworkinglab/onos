@@ -14,7 +14,6 @@ COMPILE_DEPS = [
 BUNDLES = [
     ':onos-drivers-bmv2',
     '//incubator/bmv2/model:onos-incubator-bmv2-model',
-    '//drivers/default:onos-drivers-default',
 ]
 
 osgi_jar(
@@ -29,9 +28,6 @@ onos_app (
     description = 'Adds support for BMv2 P4 devices.',
     included_bundles = BUNDLES,
     required_apps = [
-        'org.onosproject.generaldeviceprovider',
-        'org.onosproject.protocols.p4runtime',
-        'org.onosproject.p4runtime',
-        'org.onosproject.drivers.p4runtime'
+        'org.onosproject.drivers.p4runtime',
     ],
 )
