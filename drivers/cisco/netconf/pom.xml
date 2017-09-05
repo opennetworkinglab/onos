@@ -49,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-netconf-api</artifactId>
+            <artifactId>onos-protocols-netconf-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

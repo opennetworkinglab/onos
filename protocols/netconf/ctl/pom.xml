@@ -20,11 +20,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-netconf</artifactId>
+        <artifactId>onos-protocols-netconf</artifactId>
         <version>1.12.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-netconf-ctl</artifactId>
+    <artifactId>onos-protocols-netconf-ctl</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS NETCONF plugin controller</description>
@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-netconf-api</artifactId>
+            <artifactId>onos-protocols-netconf-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -64,7 +64,6 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>1.4.0</version>
         </dependency>
 
         <dependency>
@@ -81,62 +80,13 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.58</version>
         </dependency>
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.58</version>
         </dependency>
 
     </dependencies>
 
-    <build>
-        <plugins>
-            <!--plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>ch.ethz.ganymed:ganymed-ssh2</artifact>
-                            <includes>
-                                <include>ch/ethz/ssh2/**</include>
-                            </includes>
-                        </filter>
-                        <filter>
-                            <artifact>org.jdom:jdom2</artifact>
-                            <includes>
-                                <include>org/jdom2/**</include>
-                            </includes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin-->
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <configuration>
-                    <instructions>
-                        <Private-Package>ch.ethz.ssh2.*</Private-Package>
-                        <Embed-Dependecy>ganymed-ssh2</Embed-Dependecy>
-                    </instructions>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

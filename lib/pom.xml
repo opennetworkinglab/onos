@@ -49,6 +49,7 @@
         <slf4j.version>1.7.21</slf4j.version>
         <guava.version>22.0</guava.version>
         <commons.io.version>2.4</commons.io.version>
+        <bouncycastle.version>1.58</bouncycastle.version>
         <!-- TODO argLine was originally added maven-surfire-plugin configuration
                   to fix locale errors for non-US developers. However, it breaks
                   SonarQube's test coverage, so moving here for now. -->
@@ -183,6 +184,25 @@
                 <version>3.4</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.apache.sshd</groupId>
+                <artifactId>sshd-core</artifactId>
+                <version>1.4.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
 
             <!-- Web related -->
             <dependency>

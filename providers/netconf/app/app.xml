@@ -20,8 +20,8 @@
      apps="org.onosproject.faultmanagement"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-netconf-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-netconf-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-netconf-ctl/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-netconf-provider-alarm/${project.version}</artifact>

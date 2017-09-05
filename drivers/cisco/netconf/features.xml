@@ -23,6 +23,6 @@
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-drivers-utilities/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-netconf-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-netconf-api/${project.version}</bundle>
     </feature>
 </features>

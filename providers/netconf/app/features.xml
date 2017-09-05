@@ -19,8 +19,8 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
-        <bundle>mvn:${project.groupId}/onos-netconf-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-netconf-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-netconf-ctl/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-netconf-provider-alarm/${project.version}</bundle>
