@@ -18,18 +18,7 @@ package org.onosproject.driver.pipeline.ofdpa;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.Collection;
-import org.onlab.packet.Ethernet;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Pipeliner for Broadcom OF-DPA 3.0 TTP, specifically for Qumran based switches.
@@ -46,51 +35,5 @@ public class Ofdpa3QmxPipeline extends Ofdpa3Pipeline {
     @Override
     protected boolean matchInPortTmacTable() {
         return false;
-    }
-
-    @Override
-    protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
-        TrafficSelector selector = fwd.selector();
-        EthTypeCriterion ethType =
-                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        //XXX remove when support is added to Qumran based OF-DPA
-        if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4 ||
-                ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
-            log.warn("Routing table is currently unsupported in dev:{}", deviceId);
-            return ImmutableSet.of();
-        }
-
-        return super.processEthTypeSpecific(fwd);
-    }
-
-    @Override
-    protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
-         EthTypeCriterion ethType =
-                 (EthTypeCriterion) fwd.selector().getCriterion(Criterion.Type.ETH_TYPE);
-         if (ethType == null) {
-             log.error("Versatile forwarding objective:{} must include ethType",
-                       fwd.id());
-             fail(fwd, ObjectiveError.BADPARAMS);
-             return ImmutableSet.of();
-         }
-         //XXX remove when support is added to Qumran based OF-DPA
-         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
-             log.warn("ACL table for IPv6 is currently unsupported in dev:{}", deviceId);
-             return ImmutableSet.of();
-         }
-
-         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
-             for (Criterion c : fwd.selector().criteria()) {
-                 if (c instanceof IPCriterion) {
-                     if (((IPCriterion) c).type() == Criterion.Type.IPV4_DST) {
-                         log.warn("ACL table for Dst IPv4 is currently "
-                                 + "unsupported in dev:{}", deviceId);
-                         return ImmutableSet.of();
-                     }
-                 }
-             }
-         }
-
-         return super.processVersatile(fwd);
     }
 }
