@@ -52,7 +52,7 @@ def yang_model(
     genrule(
       name = registrator,
       srcs = [ ':' + yangSrcs ],
-      cmd = '$(location //buck-tools:yang-registrator) $OUT app_name $SRCS',
+      cmd = '$(location //buck-tools:yang-registrator) $OUT ' + app_name + ' $SRCS',
       out = 'YangModelRegistrator.java'
     )
 
