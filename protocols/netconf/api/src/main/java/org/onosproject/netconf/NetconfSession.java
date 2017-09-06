@@ -45,6 +45,20 @@ public interface NetconfSession {
     @Deprecated
     CompletableFuture<String> request(String request) throws NetconfException;
 
+    /**
+     * Executes an asynchronous RPC request to the server and obtains a future
+     * for it's response.
+     *
+     * @param request the XML containing the RPC request for the server.
+     * @return Server response or ERROR
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @throws NetconfTransportException on secure transport-layer error
+     */
+    default CompletableFuture<String> rpc(String request) throws NetconfException {
+        return request(request);
+    }
+
 
     /**
      * Retrieves the requested configuration, different from get-config.
