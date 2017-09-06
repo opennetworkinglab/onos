@@ -38,11 +38,7 @@ tables {
     id: 16829080
   }
   action_refs {
-    id: 16793508
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
+    id: 16784184
   }
   direct_resource_ids: 301990488
   size: 1024
@@ -97,9 +93,9 @@ actions {
 }
 actions {
   preamble {
-    id: 16793508
-    name: "drop"
-    alias: "drop"
+    id: 16784184
+    name: "_drop"
+    alias: "_drop"
   }
 }
 actions {

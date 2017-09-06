@@ -50,7 +50,7 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
     static final String TABLE0 = "table0";
     static final String SEND_TO_CPU = "send_to_cpu";
     static final String PORT = "port";
-    static final String DROP = "drop";
+    static final String DROP = "_drop";
     static final String SET_EGRESS_PORT = "set_egress_port";
 
     static final PiHeaderFieldId IN_PORT_ID = PiHeaderFieldId.of("standard_metadata", "ingress_port");

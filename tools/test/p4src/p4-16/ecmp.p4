@@ -20,7 +20,13 @@
 #include "include/headers.p4"
 
 typedef bit<16> group_id_t;
-typedef bit<8> group_size_t;
+
+/*
+    Expected number of ports of an ECMP group.
+    This value is fixed, .i.e. we do not support ECMP over port groups of different size.
+    Due to hardware limitations, this value must be constant and a power of 2.
+*/
+#define ECMP_GROUP_SIZE 128w2
 
 struct ecmp_metadata_t {
     group_id_t group_id;
@@ -44,12 +50,11 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
     direct_counter(CounterType.packets) ecmp_group_table_counter;
     direct_counter(CounterType.packets) table0_counter;
 
-    action ecmp_group(group_id_t group_id, group_size_t groupSize) {
+    action ecmp_group(group_id_t group_id) {
         meta.ecmp_metadata.group_id = group_id;
-        hash(meta.ecmp_metadata.selector, HashAlgorithm.crc16, (bit<64>)0,
+        hash(meta.ecmp_metadata.selector, HashAlgorithm.crc32, (bit<64>)0,
         { hdr.ipv4.srcAddr, hdr.ipv4.dstAddr, hdr.ipv4.protocol, hdr.tcp.srcPort, hdr.tcp.dstPort, hdr.udp.srcPort,
-            hdr.udp.dstPort },
-        (bit<128>)groupSize);
+            hdr.udp.dstPort }, ECMP_GROUP_SIZE);
     }
 
     table ecmp_group_table {
@@ -69,7 +74,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             ecmp_group;
             set_egress_port(standard_metadata);
             send_to_cpu(standard_metadata);
-            drop(standard_metadata);
+            _drop(standard_metadata);
         }
         key = {
             standard_metadata.ingress_port: ternary;
@@ -78,6 +83,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             hdr.ethernet.etherType        : ternary;
         }
         counters = table0_counter;
+        default_action = _drop(standard_metadata);
     }
 
     PortCountersControl() port_counters_control;

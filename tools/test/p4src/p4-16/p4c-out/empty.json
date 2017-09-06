@@ -107,7 +107,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "empty.p4",
-        "line" : 44,
+        "line" : 60,
         "column" : 8,
         "source_fragment" : "DeparserImpl"
       },
@@ -145,7 +145,7 @@
           ],
           "source_info" : {
             "filename" : "empty.p4",
-            "line" : 23,
+            "line" : 39,
             "column" : 8,
             "source_fragment" : "meta.dummy_metadata.dummyField = 8w1"
           }
@@ -159,7 +159,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "empty.p4",
-        "line" : 21,
+        "line" : 37,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -170,7 +170,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "empty.p4",
-            "line" : 25,
+            "line" : 41,
             "column" : 10,
             "source_fragment" : "table0"
           },
@@ -210,7 +210,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "empty.p4",
-        "line" : 38,
+        "line" : 54,
         "column" : 8,
         "source_fragment" : "egress"
       },

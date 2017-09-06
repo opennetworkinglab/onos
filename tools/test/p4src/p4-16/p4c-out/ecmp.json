@@ -9,9 +9,8 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
-        ["tmp", 128, false],
-        ["tmp_0", 32, false],
-        ["tmp_1", 32, false]
+        ["tmp", 32, false],
+        ["tmp_0", 32, false]
       ]
     },
     {
@@ -419,7 +418,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parsers.p4",
-        "line" : 48,
+        "line" : 64,
         "column" : 8,
         "source_fragment" : "DeparserImpl"
       },
@@ -445,7 +444,7 @@
       "id" : 2,
       "source_info" : {
         "filename" : "include/port_counters.p4",
-        "line" : 6,
+        "line" : 22,
         "column" : 38,
         "source_fragment" : "egress_port_counter"
       },
@@ -457,7 +456,7 @@
       "id" : 3,
       "source_info" : {
         "filename" : "include/port_counters.p4",
-        "line" : 7,
+        "line" : 23,
         "column" : 38,
         "source_fragment" : "ingress_port_counter"
       },
@@ -470,7 +469,7 @@
     {
       "name" : "calc",
       "id" : 0,
-      "algo" : "crc16",
+      "algo" : "crc32",
       "input" : [
         {
           "type" : "field",
@@ -529,7 +528,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -548,7 +547,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -567,7 +566,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -586,7 +585,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -605,7 +604,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -624,7 +623,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -643,7 +642,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -662,7 +661,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -681,7 +680,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -700,7 +699,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -719,7 +718,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -738,7 +737,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -757,7 +756,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -776,7 +775,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -795,7 +794,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -814,7 +813,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -833,7 +832,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -852,7 +851,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 11,
+            "line" : 27,
             "column" : 4,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -871,7 +870,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -890,7 +889,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -909,7 +908,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -928,7 +927,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -947,7 +946,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -966,7 +965,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -985,7 +984,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1004,7 +1003,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1023,7 +1022,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1042,7 +1041,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1061,7 +1060,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1080,7 +1079,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1099,7 +1098,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1118,7 +1117,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1137,7 +1136,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1156,7 +1155,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1175,7 +1174,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1206,7 +1205,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1225,7 +1224,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1244,7 +1243,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1263,7 +1262,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1282,7 +1281,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1301,7 +1300,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1320,7 +1319,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1339,7 +1338,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1358,7 +1357,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1377,7 +1376,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1396,7 +1395,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1415,7 +1414,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1434,7 +1433,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1453,7 +1452,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1472,7 +1471,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1491,7 +1490,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1510,7 +1509,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1529,7 +1528,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 11,
+            "line" : 27,
             "column" : 4,
             "source_fragment" : "standard_metadata.egress_spec = port"
           }
@@ -1548,7 +1547,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1567,7 +1566,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1586,7 +1585,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1605,7 +1604,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1624,7 +1623,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1643,7 +1642,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1662,7 +1661,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1681,7 +1680,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1700,7 +1699,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1719,7 +1718,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1738,7 +1737,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1757,7 +1756,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1776,7 +1775,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1795,7 +1794,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1814,7 +1813,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1833,7 +1832,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1852,7 +1851,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 49,
             "source_fragment" : "standard_metadata, port_t port) { ..."
           }
@@ -1866,14 +1865,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
-      "id" : 3,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "send_to_cpu",
-      "id" : 4,
+      "id" : 3,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1890,7 +1883,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -1909,7 +1902,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -1928,7 +1921,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -1947,7 +1940,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -1966,7 +1959,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -1985,7 +1978,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2004,7 +1997,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2023,7 +2016,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2042,7 +2035,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2061,7 +2054,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2080,7 +2073,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2099,7 +2092,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2118,7 +2111,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2137,7 +2130,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2156,7 +2149,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2175,7 +2168,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2194,7 +2187,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2213,7 +2206,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 12,
+            "line" : 29,
             "column" : 24,
             "source_fragment" : "255; ..."
           }
@@ -2232,7 +2225,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2251,7 +2244,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2270,7 +2263,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2289,7 +2282,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2308,7 +2301,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2327,7 +2320,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2346,7 +2339,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2365,7 +2358,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2384,7 +2377,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2403,7 +2396,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2422,7 +2415,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2441,7 +2434,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2460,7 +2453,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2479,7 +2472,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2498,7 +2491,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2517,7 +2510,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2536,7 +2529,7 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 6,
+            "line" : 22,
             "column" : 45,
             "source_fragment" : "standard_metadata) { ..."
           }
@@ -2544,8 +2537,8 @@
       ]
     },
     {
-      "name" : "drop",
-      "id" : 5,
+      "name" : "_drop",
+      "id" : 4,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2562,8 +2555,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2581,8 +2574,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2600,8 +2593,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2619,8 +2612,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2638,8 +2631,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2657,8 +2650,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2676,8 +2669,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2695,8 +2688,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2714,8 +2707,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2733,8 +2726,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2752,8 +2745,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2771,8 +2764,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2790,8 +2783,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2809,8 +2802,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2828,8 +2821,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2847,8 +2840,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2866,8 +2859,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2885,7 +2878,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 13,
+            "line" : 30,
             "column" : 25,
             "source_fragment" : "511; ..."
           }
@@ -2904,8 +2897,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2923,8 +2916,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2942,8 +2935,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2961,8 +2954,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2980,8 +2973,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -2999,8 +2992,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3018,8 +3011,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3037,8 +3030,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3056,8 +3049,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3075,8 +3068,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3094,8 +3087,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3113,8 +3106,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3132,8 +3125,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3151,8 +3144,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3170,8 +3163,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3189,8 +3182,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         },
@@ -3208,8 +3201,8 @@
           ],
           "source_info" : {
             "filename" : "include/actions.p4",
-            "line" : 14,
-            "column" : 38,
+            "line" : 30,
+            "column" : 39,
             "source_fragment" : "standard_metadata) { ..."
           }
         }
@@ -3217,15 +3210,11 @@
     },
     {
       "name" : "ecmp_group",
-      "id" : 6,
+      "id" : 5,
       "runtime_data" : [
         {
           "name" : "group_id",
           "bitwidth" : 16
-        },
-        {
-          "name" : "groupSize",
-          "bitwidth" : 8
         }
       ],
       "primitives" : [
@@ -3243,36 +3232,10 @@
           ],
           "source_info" : {
             "filename" : "ecmp.p4",
-            "line" : 32,
+            "line" : 54,
             "column" : 8,
             "source_fragment" : "meta.ecmp_metadata.group_id = group_id"
           }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "tmp"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "&",
-                  "left" : {
-                    "type" : "local",
-                    "value" : 1
-                  },
-                  "right" : {
-                    "type" : "hexstr",
-                    "value" : "0xffffffffffffffffffffffffffffffff"
-                  }
-                }
-              }
-            }
-          ]
         },
         {
           "op" : "modify_field_with_hash_based_offset",
@@ -3290,22 +3253,22 @@
               "value" : "calc"
             },
             {
-              "type" : "field",
-              "value" : ["scalars", "tmp"]
+              "type" : "hexstr",
+              "value" : "0x00000000000000000000000000000002"
             }
           ],
           "source_info" : {
             "filename" : "ecmp.p4",
-            "line" : 33,
+            "line" : 55,
             "column" : 8,
-            "source_fragment" : "hash(meta.ecmp_metadata.selector, HashAlgorithm.crc16, (bit<64>)0, ..."
+            "source_fragment" : "hash(meta.ecmp_metadata.selector, HashAlgorithm.crc32, (bit<64>)0, ..."
           }
         }
       ]
     },
     {
       "name" : "act",
-      "id" : 7,
+      "id" : 6,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3331,7 +3294,7 @@
     },
     {
       "name" : "act_0",
-      "id" : 8,
+      "id" : 7,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3339,7 +3302,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp"]
             },
             {
               "type" : "expression",
@@ -3369,12 +3332,12 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp"]
             }
           ],
           "source_info" : {
             "filename" : "include/port_counters.p4",
-            "line" : 11,
+            "line" : 27,
             "column" : 12,
             "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
           }
@@ -3384,7 +3347,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_0"]
             },
             {
               "type" : "expression",
@@ -3414,12 +3377,12 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_0"]
             }
           ],
           "source_info" : {
             "filename" : "include/port_counters.p4",
-            "line" : 12,
+            "line" : 28,
             "column" : 12,
             "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
           }
@@ -3428,7 +3391,7 @@
     },
     {
       "name" : "act_1",
-      "id" : 9,
+      "id" : 8,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3469,7 +3432,7 @@
     },
     {
       "name" : "act_2",
-      "id" : 10,
+      "id" : 9,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3496,7 +3459,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "ecmp.p4",
-        "line" : 26,
+        "line" : 48,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -3512,14 +3475,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [7],
+          "action_ids" : [6],
           "actions" : ["act"],
           "base_default_next" : "node_4",
           "next_tables" : {
             "act" : "node_4"
           },
           "default_entry" : {
-            "action_id" : 7,
+            "action_id" : 6,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3530,7 +3493,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "ecmp.p4",
-            "line" : 50,
+            "line" : 71,
             "column" : 10,
             "source_fragment" : "table0"
           },
@@ -3561,18 +3524,17 @@
           "max_size" : 1024,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [6, 1, 4, 5, 3],
-          "actions" : ["ecmp_group", "set_egress_port", "send_to_cpu", "drop", "NoAction"],
+          "action_ids" : [5, 1, 3, 4],
+          "actions" : ["ecmp_group", "set_egress_port", "send_to_cpu", "_drop"],
           "base_default_next" : "node_7",
           "next_tables" : {
             "ecmp_group" : "ecmp_group_table",
             "set_egress_port" : "node_7",
             "send_to_cpu" : "node_7",
-            "drop" : "node_7",
-            "NoAction" : "node_7"
+            "_drop" : "node_7"
           },
           "default_entry" : {
-            "action_id" : 3,
+            "action_id" : 4,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3583,7 +3545,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "ecmp.p4",
-            "line" : 39,
+            "line" : 60,
             "column" : 10,
             "source_fragment" : "ecmp_group_table"
           },
@@ -3628,14 +3590,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [8],
+          "action_ids" : [7],
           "actions" : ["act_0"],
           "base_default_next" : null,
           "next_tables" : {
             "act_0" : null
           },
           "default_entry" : {
-            "action_id" : 8,
+            "action_id" : 7,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3675,7 +3637,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "ecmp.p4",
-            "line" : 72,
+            "line" : 94,
             "column" : 13,
             "source_fragment" : "hdr.packet_out.isValid()"
           },
@@ -3701,7 +3663,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "include/port_counters.p4",
-            "line" : 10,
+            "line" : 26,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec < 254"
           },
@@ -3729,7 +3691,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "ecmp.p4",
-        "line" : 83,
+        "line" : 105,
         "column" : 8,
         "source_fragment" : "egress"
       },
@@ -3745,14 +3707,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [10],
+          "action_ids" : [9],
           "actions" : ["act_2"],
           "base_default_next" : "node_12",
           "next_tables" : {
             "act_2" : "node_12"
           },
           "default_entry" : {
-            "action_id" : 10,
+            "action_id" : 9,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3768,14 +3730,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [9],
+          "action_ids" : [8],
           "actions" : ["act_1"],
           "base_default_next" : null,
           "next_tables" : {
             "act_1" : null
           },
           "default_entry" : {
-            "action_id" : 9,
+            "action_id" : 8,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true

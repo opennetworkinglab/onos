@@ -76,7 +76,7 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
     public static final String TABLE0 = "table0";
     public static final String SEND_TO_CPU = "send_to_cpu";
     public static final String PORT = "port";
-    public static final String DROP = "drop";
+    public static final String DROP = "_drop";
     public static final String SET_EGRESS_PORT = "set_egress_port";
     public static final String EGRESS_PORT = "egress_port";
     public static final String INGRESS_PORT = "ingress_port";

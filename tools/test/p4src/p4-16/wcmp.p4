@@ -64,7 +64,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             set_egress_port(standard_metadata);
             wcmp_group;
             send_to_cpu(standard_metadata);
-            drop(standard_metadata);
+            _drop(standard_metadata);
         }
         key = {
             standard_metadata.ingress_port: ternary;
@@ -73,6 +73,7 @@ control ingress(inout headers_t hdr, inout metadata_t meta, inout standard_metad
             hdr.ethernet.etherType        : ternary;
         }
         counters = table0_counter;
+        default_action = _drop(standard_metadata);
     }
 
     table wcmp_group_table {
