@@ -59,7 +59,7 @@
         <bundle>mvn:com.typesafe/config/1.2.1</bundle>
         <bundle>mvn:com.googlecode.concurrent-trees/concurrent-trees/2.6.0</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
-        <bundle>mvn:io.atomix/atomix/2.0.0</bundle>
+        <bundle>mvn:io.atomix/atomix/2.0.1</bundle>
 
         <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.25.1</bundle>
 
