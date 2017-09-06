@@ -23,9 +23,9 @@ import org.onosproject.drivers.fujitsu.behaviour.VoltOnuOperConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -88,7 +88,7 @@ public class FujitsuVoltOnuOperConfig extends AbstractHandlerBehaviour
                     .get(ncDeviceId)
                     .getSession()
                     .doWrappedRpc(request.toString());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
@@ -157,7 +157,7 @@ public class FujitsuVoltOnuOperConfig extends AbstractHandlerBehaviour
                     .get(ncDeviceId)
                     .getSession()
                     .doWrappedRpc(request.toString());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;

@@ -22,9 +22,9 @@ import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
@@ -138,7 +138,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
                         .get(ncDeviceId)
                         .getSession()
                         .get(request.toString(), REPORT_ALL);
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
@@ -186,7 +186,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
 
             result = controller.getDevicesMap().get(ncDeviceId).getSession().
                     editConfig(RUNNING, null, request.toString());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return result;

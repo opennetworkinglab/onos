@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class NetconfConfigSetter extends AbstractHandlerBehaviour
                     .get(deviceId)
                     .getSession()
                     .requestSync(request);
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Configuration could not be set", e);
         }
         return UNABLE_TO_SET_CONFIG;

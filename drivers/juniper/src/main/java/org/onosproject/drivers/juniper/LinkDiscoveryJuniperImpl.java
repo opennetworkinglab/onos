@@ -27,10 +27,10 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -66,7 +66,7 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         String reply;
         try {
             reply = session.get(requestBuilder(REQ_LLDP_NBR_INFO));
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.warn("Failed to retrieve ports for device {}", localDeviceId);
             return ImmutableSet.of();
         }

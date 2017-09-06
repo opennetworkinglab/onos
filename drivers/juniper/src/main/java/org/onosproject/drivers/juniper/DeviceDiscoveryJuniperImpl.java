@@ -25,10 +25,10 @@ import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -59,7 +59,7 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         try {
             sysInfo = session.get(requestBuilder(REQ_SYS_INFO));
             chassis = session.get(requestBuilder(REQ_MAC_ADD_INFO));
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.warn("Failed to retrieve device details for {}", devId);
             return null;
         }
@@ -80,7 +80,7 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         String reply;
         try {
             reply = session.get(requestBuilder(REQ_IF_INFO));
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.warn("Failed to retrieve ports for device {}", devId);
             return ImmutableList.of();
         }

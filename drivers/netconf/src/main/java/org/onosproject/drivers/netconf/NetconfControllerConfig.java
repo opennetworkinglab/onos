@@ -27,11 +27,10 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
-
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +62,7 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
                 log.debug("Reply XML {}", reply);
                 controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
                         loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
-            } catch (IOException e) {
+            } catch (NetconfException e) {
                 log.error("Cannot communicate with device {} ", deviceId, e);
             }
         } else {
@@ -95,14 +94,14 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
                                     new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))),
                             "running", "merge", "create", controllers
                     );
-                } catch (IOException e) {
+                } catch (NetconfException e) {
                     log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
                 }
                 device.getSession().editConfig(config.substring(config.indexOf("-->") + 3));
             } catch (NullPointerException e) {
                 log.warn("No NETCONF device with requested parameters " + e);
                 throw new NullPointerException("No NETCONF device with requested parameters " + e);
-            } catch (IOException e) {
+            } catch (NetconfException e) {
                 log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
             }
         } else {

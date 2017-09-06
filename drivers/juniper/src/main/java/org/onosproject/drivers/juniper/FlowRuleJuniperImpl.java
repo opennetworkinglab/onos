@@ -42,7 +42,6 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -100,7 +99,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         String reply;
         try {
             reply = session.get(routingTableBuilder());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
@@ -241,7 +240,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
                             type == ADD ? "added" : "removed", staticRoute);
                 }
             }
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
@@ -335,7 +334,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         String replay;
         try {
             replay = session.get(commitBuilder());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
@@ -355,7 +354,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         String replay;
         try {
             replay = session.get(rollbackBuilder(0));
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }

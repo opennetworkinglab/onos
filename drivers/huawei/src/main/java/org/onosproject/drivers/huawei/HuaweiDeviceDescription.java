@@ -33,7 +33,6 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -79,7 +78,7 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         String sysInfo;
         try {
             sysInfo = session.get(getVersionReq());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new IllegalArgumentException(
                     new NetconfException(DEV_INFO_FAILURE));
         }
@@ -191,7 +190,7 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         String interfaces = null;
         try {
             interfaces = session.get(getInterfacesReq());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.info("Failed to retrive interface {} ", e.getMessage());
         }
         return interfaces;

@@ -30,7 +30,6 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
-import java.io.IOException;
 import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -49,7 +48,7 @@ public class CiscoIosDeviceDescription extends AbstractHandlerBehaviour
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         try {
             version = session.get(showVersionRequestBuilder());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve version info.", e));
         }
 
@@ -71,7 +70,7 @@ public class CiscoIosDeviceDescription extends AbstractHandlerBehaviour
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         try {
             interfaces = session.get(showInterfacesRequestBuilder());
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Failed to retrieve Interfaces");
             return ImmutableList.of();
         }

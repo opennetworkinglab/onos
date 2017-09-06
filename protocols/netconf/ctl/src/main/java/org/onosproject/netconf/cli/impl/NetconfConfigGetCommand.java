@@ -18,14 +18,13 @@ package org.onosproject.netconf.cli.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.netconf.DatastoreId.datastore;
 
-import java.io.IOException;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
 /**
@@ -71,7 +70,7 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
         try {
             String res = session.getConfig(datastore(cfgType.toLowerCase()));
             print("%s", res);
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Configuration could not be retrieved", e);
             print("Error occurred retrieving configuration");
         }

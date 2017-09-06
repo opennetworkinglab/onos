@@ -361,7 +361,7 @@ public class NetconfSessionImpl implements NetconfSession {
             try {
                 log.debug("Trying to reopen the Sesion with {}", deviceInfo.getDeviceId());
                 startSshSession();
-            } catch (IOException | IllegalStateException e) {
+            } catch (NetconfException | IllegalStateException e) {
                 log.debug("Trying to reopen the Connection with {}", deviceInfo.getDeviceId());
                 try {
                     connectionActive = false;
@@ -372,7 +372,7 @@ public class NetconfSessionImpl implements NetconfSession {
                         subscriptionConnected = false;
                         startSubscription(notificationFilterSchema);
                     }
-                } catch (IOException e2) {
+                } catch (NetconfException e2) {
                     log.error("No connection {} for device {}", netconfConnection, e.getMessage());
                     throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
                 }

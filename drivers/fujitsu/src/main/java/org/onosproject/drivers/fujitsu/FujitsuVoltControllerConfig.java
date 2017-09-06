@@ -37,7 +37,6 @@ import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -110,7 +109,7 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
                 log.debug("Reply XML {}", reply);
                 controllers.addAll(parseStreamVoltControllers(XmlConfigParser.
                         loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8)))));
-            } catch (IOException e) {
+            } catch (NetconfException e) {
                 log.error("Cannot communicate to device {} ", ncDeviceId);
             }
         } else {

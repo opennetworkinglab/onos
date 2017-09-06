@@ -27,11 +27,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.mastership.MastershipService;
 
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.text.SimpleDateFormat;
@@ -138,7 +138,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
                 alarms = parseVoltActiveAlerts(XmlConfigParser.
                     loadXml(new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))));
             }
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Error reading alarms for device {} exception {}", ncDeviceId, e);
         }
 

@@ -23,9 +23,8 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
-
-import java.io.IOException;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -57,7 +56,7 @@ public class NetconfConfigGetter extends AbstractHandlerBehaviour
                     get(ofDeviceId).
                     getSession().
                     getConfig(DatastoreId.datastore(type));
-        } catch (IOException e) {
+        } catch (NetconfException e) {
             log.error("Configuration could not be retrieved {}",
                       e.getMessage());
         }
