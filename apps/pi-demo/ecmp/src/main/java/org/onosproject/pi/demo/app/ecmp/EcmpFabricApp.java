@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static org.onlab.packet.EthType.EtherType.IPV4;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
@@ -220,15 +221,19 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     }
 
     private Pair<PiTableAction, List<FlowRule>> provisionEcmpPiTableAction(DeviceId deviceId,
-                                                                            Set<PortNumber> fabricPorts)
+                                                                           Set<PortNumber> fabricPorts)
             throws FlowRuleGeneratorException {
 
         // Install ECMP group table entries that map from hash values to actual fabric ports...
         int groupId = groupIdOf(deviceId, fabricPorts);
-        int groupSize = fabricPorts.size();
+        if (fabricPorts.size() != HASHED_LINKS) {
+            throw new FlowRuleGeneratorException(format(
+                    "Invalid number of fabric ports for %s, expected %d but found %d",
+                    deviceId, HASHED_LINKS, fabricPorts.size()));
+        }
         Iterator<PortNumber> portIterator = fabricPorts.iterator();
         List<FlowRule> rules = Lists.newArrayList();
-        for (short i = 0; i < groupSize; i++) {
+        for (short i = 0; i < HASHED_LINKS; i++) {
             FlowRule rule = flowRuleBuilder(deviceId, EcmpInterpreter.ECMP_GROUP_TABLE)
                     .withSelector(
                             buildEcmpTrafficSelector(groupId, i))
@@ -240,19 +245,17 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
             rules.add(rule);
         }
 
-        PiTableAction piTableAction = buildEcmpPiTableAction(groupId, groupSize);
+        PiTableAction piTableAction = buildEcmpPiTableAction(groupId);
 
         return Pair.of(piTableAction, rules);
     }
 
-    private PiTableAction buildEcmpPiTableAction(int groupId, int groupSize) {
+    private PiTableAction buildEcmpPiTableAction(int groupId) {
 
         return PiAction.builder()
                 .withId(PiActionId.of(ECMP_GROUP_ACTION_NAME))
                 .withParameter(new PiActionParam(PiActionParamId.of(GROUP_ID),
                                                  ImmutableByteSequence.copyFrom(groupId)))
-                .withParameter(new PiActionParam(PiActionParamId.of(GROUP_SIZE),
-                                                 ImmutableByteSequence.copyFrom(groupSize)))
                 .build();
     }
 

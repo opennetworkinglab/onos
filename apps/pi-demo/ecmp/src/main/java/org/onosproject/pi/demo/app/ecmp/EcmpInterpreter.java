@@ -27,11 +27,10 @@ import java.util.Optional;
  */
 public class EcmpInterpreter extends DefaultP4Interpreter {
 
-    protected static final String ECMP_METADATA_HEADER_NAME = "ecmp_metadata_t";
+    protected static final String ECMP_METADATA_HEADER_NAME = "ecmp_metadata";
     protected static final String ECMP_GROUP_ACTION_NAME = "ecmp_group";
     protected static final String GROUP_ID = "group_id";
     protected static final String SELECTOR = "selector";
-    protected static final String GROUP_SIZE = "groupSize";
     protected static final String ECMP_GROUP_TABLE = "ecmp_group_table";
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = new ImmutableBiMap.Builder<Integer, PiTableId>()
