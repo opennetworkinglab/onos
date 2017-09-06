@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:JACKSON',
     '//protocols/ospf/api:onos-protocols-ospf-api',
 ]
 
