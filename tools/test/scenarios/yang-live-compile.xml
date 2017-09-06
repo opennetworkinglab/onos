@@ -21,11 +21,19 @@
               requires="Activate-YANG-Runtime"/>
         <step name="Compile-YANG-Model" exec="onos-compile-yang ${OC1} ${ONOS_ROOT}/tools/test/configs/yang"
               requires="Check-YANG-Runtime,Pre-Cleanup-YANG-Model"/>
-        <step name="Verify-YANG-Models" exec="onos ${OC1} models | grep l3vpn"
-              requires="Compile-YANG-Model"/>
-        <step name="Verify-YANG-Apps" exec="onos-check-apps ${OC1} drivers,yang,l3vpn includes"
-              requires="Compile-YANG-Model"/>
+
+        <group name="Verify-YANG-Models" requires="Compile-YANG-Model">
+            <parallel var="${OC#}">
+                <step name="Verify-Model-Registration-${#}"
+                      exec="onos ${OC#} models | grep l3vpn"/>
+                <step name="Verify-Model-Component-${#}"
+                      exec="onos-check-component ${OC#} yang.YangModelRegistrator ACTIVE"/>
+                <step name="Verify-YANG-Apps-${#}"
+                      exec="onos-check-apps ${OC#} drivers,yang,l3vpn includes"/>
+            </parallel>
+        </group>
+
         <step name="Cleanup-YANG-Model" exec="onos ${OC1} app uninstall l3vpn"
-              requires="Verify-YANG-Apps"/>
+              requires="Verify-YANG-Models"/>
     </group>
 </scenario>
