@@ -80,6 +80,9 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private static final Logger log = LoggerFactory
             .getLogger(NetconfSessionMinaImpl.class);
 
+    /**
+     * NC 1.0, RFC4742 EOM sequence.
+     */
     private static final String ENDPATTERN = "]]>]]>";
     private static final String MESSAGE_ID_STRING = "message-id";
     private static final String HELLO = "<hello";
@@ -101,6 +104,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private static final String EDIT_CONFIG_CLOSE = "</edit-config>";
     private static final String TARGET_OPEN = "<target>";
     private static final String TARGET_CLOSE = "</target>";
+    // FIXME hard coded namespace nc
     private static final String CONFIG_OPEN = "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
     private static final String CONFIG_CLOSE = "</config>";
     private static final String XML_HEADER =
@@ -109,6 +113,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
             "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"";
     private static final String NETCONF_WITH_DEFAULTS_NAMESPACE =
             "xmlns=\"urn:ietf:params:xml:ns:yang:ietf-netconf-with-defaults\"";
+    // FIXME hard coded namespace base10
     private static final String SUBSCRIPTION_SUBTREE_FILTER_OPEN =
             "<filter xmlns:base10=\"urn:ietf:params:xml:ns:netconf:base:1.0\" base10:type=\"subtree\">";
 
@@ -119,8 +124,6 @@ public class NetconfSessionMinaImpl implements NetconfSession {
 
     private static final String SESSION_ID_REGEX = "<session-id>\\s*(.*?)\\s*</session-id>";
     private static final Pattern SESSION_ID_REGEX_PATTERN = Pattern.compile(SESSION_ID_REGEX);
-    private static final String RSA = "RSA";
-    private static final String DSA = "DSA";
     private static final String HASH = "#";
     private static final String LF = "\n";
     private static final String MSGLEN_REGEX_PATTERN = "\n#\\d+\n";
@@ -133,11 +136,12 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private Iterable<String> onosCapabilities =
             ImmutableList.of(NETCONF_10_CAPABILITY, NETCONF_11_CAPABILITY);
 
-    /* NOTE: the "serverHelloResponseOld" is deprecated in 1.10.0 and should eventually be removed */
-    @Deprecated
-    private String serverHelloResponseOld;
     private final Set<String> deviceCapabilities = new LinkedHashSet<>();
     private NetconfStreamHandler streamHandler;
+    // FIXME ONOS-7019 key type should be revised to a String, see RFC6241
+    /**
+     * Message-ID and corresponding Future waiting for response.
+     */
     private Map<Integer, CompletableFuture<String>> replies;
     private List<String> errorReplies; // Not sure why we need this?
     private boolean subscriptionConnected = false;
@@ -350,13 +354,13 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     }
 
     private void sendHello() throws NetconfException {
-        serverHelloResponseOld = sendRequest(createHelloString(), true);
-        Matcher capabilityMatcher = CAPABILITY_REGEX_PATTERN.matcher(serverHelloResponseOld);
+        String serverHelloResponse = sendRequest(createHelloString(), true);
+        Matcher capabilityMatcher = CAPABILITY_REGEX_PATTERN.matcher(serverHelloResponse);
         while (capabilityMatcher.find()) {
             deviceCapabilities.add(capabilityMatcher.group(1));
         }
         sessionID = String.valueOf(-1);
-        Matcher sessionIDMatcher = SESSION_ID_REGEX_PATTERN.matcher(serverHelloResponseOld);
+        Matcher sessionIDMatcher = SESSION_ID_REGEX_PATTERN.matcher(serverHelloResponse);
         if (sessionIDMatcher.find()) {
             sessionID = sessionIDMatcher.group(1);
         } else {
@@ -423,8 +427,11 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     }
 
 
+    // FIXME rename to align with what it actually do
     /**
      * Validate and format netconf message.
+     * - NC1.0 if no EOM sequence present on {@code message}, append.
+     * - NC1.1 chunk-encode given message unless it already is chunk encoded
      *
      * @param message to format
      * @return formated message
@@ -433,11 +440,11 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         if (deviceCapabilities.contains(NETCONF_11_CAPABILITY)) {
             message = formatChunkedMessage(message);
         } else {
-            if (!message.contains(ENDPATTERN)) {
+            if (!message.endsWith(ENDPATTERN)) {
                 message = message + NEW_LINE + ENDPATTERN;
             }
         }
-        return  message;
+        return message;
     }
 
     /**
@@ -499,11 +506,11 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         // FIXME potentially re-writing chunked encoded String?
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
+        log.debug("Sending request to NETCONF with timeout {} for {}",
+                  replyTimeout, deviceInfo.name());
         CompletableFuture<String> futureReply = request(request, messageId);
         String rp;
         try {
-            log.debug("Sending request to NETCONF with timeout {} for {}",
-                    replyTimeout, deviceInfo.name());
             rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
             replies.remove(messageId); // Why here???
         } catch (InterruptedException e) {
@@ -539,6 +546,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     private String formatRequestMessageId(String request, int messageId) {
         if (request.contains(MESSAGE_ID_STRING)) {
             //FIXME if application provides his own counting of messages this fails that count
+            // FIXME assumes message-id is integer. RFC6241 allows anything as long as it is allowed in XML
             request = request.replaceFirst(MESSAGE_ID_STRING + EQUAL + NUMBER_BETWEEN_QUOTES_MATCHER,
                     MESSAGE_ID_STRING + EQUAL + "\"" + messageId + "\"");
         } else if (!request.contains(MESSAGE_ID_STRING) && !request.contains(HELLO)) {
@@ -546,11 +554,11 @@ public class NetconfSessionMinaImpl implements NetconfSession {
             request = request.replaceFirst(END_OF_RPC_OPEN_TAG, "\" " + MESSAGE_ID_STRING + EQUAL + "\""
                     + messageId + "\"" + ">");
         }
-        request = updateRequestLenght(request);
+        request = updateRequestLength(request);
         return request;
     }
 
-    private String updateRequestLenght(String request) {
+    private String updateRequestLength(String request) {
         if (request.contains(LF + HASH + HASH + LF)) {
             int oldLen = Integer.parseInt(request.split(HASH)[1].split(LF)[0]);
             String rpcWithEnding = request.substring(request.indexOf('<'));
@@ -564,8 +572,13 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         return request;
     }
 
+    /**
+     * Ensures xml start directive/declaration appears in the {@code request}.
+     * @param request RPC request message
+     * @return XML RPC message
+     */
     private String formatXmlHeader(String request) {
-        if (!request.contains(XML_HEADER)) {
+        if (!request.startsWith(XML_HEADER)) {
             //FIXME if application provides his own XML header of different type there is a clash
             if (request.startsWith(LF + HASH)) {
                 request = request.split("<")[0] + XML_HEADER + request.substring(request.split("<")[0].length());
@@ -864,7 +877,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         streamHandler.removeDeviceEventListener(listener);
     }
 
-    private boolean checkReply(String reply) throws NetconfException {
+    private boolean checkReply(String reply) {
         if (reply != null) {
             if (!reply.contains("<rpc-error>")) {
                 log.debug("Device {} sent reply {}", deviceInfo, reply);

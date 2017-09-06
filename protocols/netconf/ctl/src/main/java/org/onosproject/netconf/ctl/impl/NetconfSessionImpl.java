@@ -61,7 +61,10 @@ import java.util.regex.Matcher;
 
 /**
  * Implementation of a NETCONF session to talk to a device.
+ *
+ * @deprecated in 1.12.0 use {@link NetconfSessionMinaImpl}
  */
+@Deprecated
 public class NetconfSessionImpl implements NetconfSession {
 
     private static final Logger log = LoggerFactory

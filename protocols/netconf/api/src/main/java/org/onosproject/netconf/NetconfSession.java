@@ -286,7 +286,6 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in reestablishing
      * the connection or the session to the device.
      */
-
     default void checkAndReestablish() throws NetconfException {
         Logger log = LoggerFactory.getLogger(NetconfSession.class);
         log.error("Not implemented/exposed by the underlying session implementation");
