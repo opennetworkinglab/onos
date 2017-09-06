@@ -345,17 +345,22 @@ public class GeneralDeviceProvider extends AbstractProvider
         } else {
             log.info("Connecting to device {} with driver {}", deviceId, basicDeviceConfig.driver());
 
-            Driver driver = driverService.getDriver(basicDeviceConfig.driver());
+            Driver driver;
+            try {
+                driver = driverService.getDriver(basicDeviceConfig.driver());
+            } catch (ItemNotFoundException e) {
+                log.warn("The driver of {} is not found : {}", deviceId, e.getMessage());
+                return;
+            }
+
             DriverData driverData = new DefaultDriverData(driver, deviceId);
-
-            DeviceHandshaker handshaker =
-                    getBehaviour(driver, DeviceHandshaker.class, driverData);
-
+            DeviceHandshaker handshaker = getBehaviour(driver, DeviceHandshaker.class, driverData);
             if (handshaker == null) {
                 log.error("Device {}, with driver {} does not support DeviceHandshaker " +
                         "behaviour, {}", deviceId, driver.name(), driver.behaviours());
                 return;
             }
+
             //Storing deviceKeyId and all other config values
             // as data in the driver with protocol_<info>
             // name as the key. e.g protocol_ip
