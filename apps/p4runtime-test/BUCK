@@ -39,7 +39,8 @@ TEST_DEPS = [
     '//lib:minimal-json',
 ]
 
-osgi_jar_with_tests(
-    deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS,
+java_test(
+    name = "onos-apps-p4runtime-test-tests",
+    srcs = glob([ 'src/test/java/**/*.java' ]),
+    deps = COMPILE_DEPS + TEST_DEPS,
 )

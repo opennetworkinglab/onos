@@ -246,7 +246,7 @@ APP_JARS = [
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
-    '//apps/p4runtime-test:onos-apps-p4runtime-test',
+#   '//apps/p4runtime-test:onos-apps-p4runtime-test',
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PROTOCOL_APPS
