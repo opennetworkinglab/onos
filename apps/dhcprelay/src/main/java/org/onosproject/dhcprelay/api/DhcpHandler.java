@@ -26,6 +26,8 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.packet.PacketContext;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -47,7 +49,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 get the address from config service
      */
     @Deprecated
-    Optional<IpAddress> getDhcpServerIp();
+    default Optional<IpAddress> getDhcpServerIp() {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Gets DHCP gateway IP.
@@ -56,7 +60,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 get the address from config service
      */
     @Deprecated
-    Optional<IpAddress> getDhcpGatewayIp();
+    default Optional<IpAddress> getDhcpGatewayIp() {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Gets DHCP connect Mac address.
@@ -65,7 +71,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 get host mac from host service
      */
     @Deprecated
-    Optional<MacAddress> getDhcpConnectMac();
+    default Optional<MacAddress> getDhcpConnectMac() {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Sets DHCP gateway IP.
@@ -74,7 +82,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 use setDefaultDhcpServerConfigs or setindirectDhcpServerConfigs
      */
     @Deprecated
-    void setDhcpGatewayIp(IpAddress dhcpGatewayIp);
+    default void setDhcpGatewayIp(IpAddress dhcpGatewayIp) {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Sets DHCP connect vlan.
@@ -83,7 +93,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 use setDefaultDhcpServerConfigs or setindirectDhcpServerConfigs
      */
     @Deprecated
-    void setDhcpConnectVlan(VlanId dhcpConnectVlan);
+    default void setDhcpConnectVlan(VlanId dhcpConnectVlan) {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Sets DHCP connect Mac address.
@@ -92,7 +104,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 use setDefaultDhcpServerConfigs or setindirectDhcpServerConfigs
      */
     @Deprecated
-    void setDhcpConnectMac(MacAddress dhcpConnectMac);
+    default void setDhcpConnectMac(MacAddress dhcpConnectMac) {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Sets DHCP server connect point.
@@ -101,7 +115,9 @@ public interface DhcpHandler {
      * @deprecated 1.12 use setDefaultDhcpServerConfigs or setindirectDhcpServerConfigs
      */
     @Deprecated
-    void setDhcpServerConnectPoint(ConnectPoint dhcpServerConnectPoint);
+    default void setDhcpServerConnectPoint(ConnectPoint dhcpServerConnectPoint) {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
 
     /**
      * Sets DHCP server IP.
@@ -110,7 +126,27 @@ public interface DhcpHandler {
      * @deprecated 1.12 use setDefaultDhcpServerConfigs or setindirectDhcpServerConfigs
      */
     @Deprecated
-    void setDhcpServerIp(IpAddress dhcpServerIp);
+    default void setDhcpServerIp(IpAddress dhcpServerIp) {
+        throw new UnsupportedOperationException("Method deprecated");
+    }
+
+    /**
+     * Gets list of default DHCP server information.
+     *
+     * @return list of default DHCP server information
+     */
+    default List<DhcpServerInfo> getDefaultDhcpServerInfoList() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Gets list of indirect DHCP server information.
+     *
+     * @return list of indirect DHCP server information
+     */
+    default List<DhcpServerInfo> getIndirectDhcpServerInfoList() {
+        return Collections.emptyList();
+    }
 
     /**
      * Sets DHCP server config for default case.

@@ -19,6 +19,7 @@ package org.onosproject.dhcprelay.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Objects;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -35,13 +36,13 @@ public class DhcpServerConfig {
     private static final String DHCP_GATEWAY_IP = "gatewayIps";
     private static final String RELAY_AGENT_IP = "relayAgentIps";
 
-    private ConnectPoint connectPoint;
-    private Ip4Address serverIp4Addr;
-    private Ip4Address gatewayIp4Addr;
-    private Ip4Address relayAgentIp4Addr;
-    private Ip6Address serverIp6Addr;
-    private Ip6Address gatewayIp6Addr;
-    private Ip6Address relayAgentIp6Addr;
+    protected ConnectPoint connectPoint;
+    protected Ip4Address serverIp4Addr;
+    protected Ip4Address gatewayIp4Addr;
+    protected Ip4Address relayAgentIp4Addr;
+    protected Ip6Address serverIp6Addr;
+    protected Ip6Address gatewayIp6Addr;
+    protected Ip6Address relayAgentIp6Addr;
 
     protected DhcpServerConfig() {
         // empty config not allowed here
@@ -182,5 +183,30 @@ public class DhcpServerConfig {
      */
     public Optional<Ip6Address> getRelayAgentIp6() {
         return Optional.ofNullable(relayAgentIp6Addr);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DhcpServerConfig that = (DhcpServerConfig) o;
+        return Objects.equal(connectPoint, that.connectPoint) &&
+                Objects.equal(serverIp4Addr, that.serverIp4Addr) &&
+                Objects.equal(gatewayIp4Addr, that.gatewayIp4Addr) &&
+                Objects.equal(relayAgentIp4Addr, that.relayAgentIp4Addr) &&
+                Objects.equal(serverIp6Addr, that.serverIp6Addr) &&
+                Objects.equal(gatewayIp6Addr, that.gatewayIp6Addr) &&
+                Objects.equal(relayAgentIp6Addr, that.relayAgentIp6Addr);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(connectPoint, serverIp4Addr, gatewayIp4Addr,
+                                relayAgentIp4Addr, serverIp6Addr, gatewayIp6Addr,
+                                relayAgentIp6Addr);
     }
 }
