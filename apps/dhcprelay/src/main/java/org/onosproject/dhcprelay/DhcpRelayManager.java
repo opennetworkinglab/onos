@@ -55,6 +55,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
+import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
@@ -483,6 +484,22 @@ public class DhcpRelayManager implements DhcpRelayService {
                 .stream()
                 .map(Host::mac)
                 .findFirst();
+    }
+
+    @Override
+    public List<DhcpServerInfo> getDefaultDhcpServerInfoList() {
+        return ImmutableList.<DhcpServerInfo>builder()
+                .addAll(v4Handler.getDefaultDhcpServerInfoList())
+                .addAll(v6Handler.getDefaultDhcpServerInfoList())
+                .build();
+    }
+
+    @Override
+    public List<DhcpServerInfo> getIndirectDhcpServerInfoList() {
+        return ImmutableList.<DhcpServerInfo>builder()
+                .addAll(v4Handler.getIndirectDhcpServerInfoList())
+                .addAll(v6Handler.getIndirectDhcpServerInfoList())
+                .build();
     }
 
     /**

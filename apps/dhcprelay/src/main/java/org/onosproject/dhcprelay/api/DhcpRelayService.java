@@ -22,6 +22,7 @@ import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.net.HostId;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface DhcpRelayService {
@@ -44,6 +45,22 @@ public interface DhcpRelayService {
      * Gets mac address of DHCP server.
      *
      * @return the mac address of DHCP server; empty if not exist
+     * @deprecated 1.12, use get DHCP server configs method
      */
+    @Deprecated
     Optional<MacAddress> getDhcpServerMacAddress();
+
+    /**
+     * Gets list of default DHCP server information.
+     *
+     * @return list of default DHCP server information
+     */
+    List<DhcpServerInfo> getDefaultDhcpServerInfoList();
+
+    /**
+     * Gets list of indirect DHCP server information.
+     *
+     * @return list of indirect DHCP server information
+     */
+    List<DhcpServerInfo> getIndirectDhcpServerInfoList();
 }

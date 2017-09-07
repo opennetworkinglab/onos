@@ -17,9 +17,9 @@
 
 package org.onosproject.dhcprelay;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Component;
@@ -47,6 +47,7 @@ import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
 import org.onlab.packet.dhcp.Dhcp6IaPrefixOption;
 import org.onlab.util.HexString;
 import org.onosproject.dhcprelay.api.DhcpHandler;
+import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
@@ -83,6 +84,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -134,6 +136,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private Ip6Address indirectDhcpGatewayIp = null;
     private Ip6Address indirectRelayAgentIpFromCfg = null;
 
+    private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
+    private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
+
 
     // CLIENT message types
     public static final Set<Byte> MSG_TYPE_FROM_CLIENT =
@@ -159,113 +164,30 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected void deactivate() {
         providerRegistry.unregister(this);
         hostService.removeListener(hostListener);
-        this.dhcpConnectMac = null;
-        this.dhcpConnectVlan = null;
+        defaultServerInfoList.forEach(this::stopMonitoringIps);
+        defaultServerInfoList.clear();
+        indirectServerInfoList.forEach(this::stopMonitoringIps);
+        indirectServerInfoList.clear();
+    }
 
-        if (dhcpGatewayIp != null) {
-            hostService.stopMonitoringIp(dhcpGatewayIp);
-        } else if (dhcpServerIp != null) {
-            hostService.stopMonitoringIp(dhcpServerIp);
-        }
+    private void stopMonitoringIps(DhcpServerInfo serverInfo) {
+        serverInfo.getDhcpGatewayIp6().ifPresent(gatewayIp -> {
+            hostService.stopMonitoringIp(gatewayIp);
+        });
+        serverInfo.getDhcpServerIp6().ifPresent(serverIp -> {
+            hostService.stopMonitoringIp(serverIp);
+        });
     }
 
     @Override
-    public void setDhcpServerIp(IpAddress dhcpServerIp) {
-        checkNotNull(dhcpServerIp, "DHCP server IP can't be null");
-        checkState(dhcpServerIp.isIp6(), "Invalid server IP for DHCPv6 relay handler");
-        this.dhcpServerIp = dhcpServerIp.getIp6Address();
+    public List<DhcpServerInfo> getDefaultDhcpServerInfoList() {
+        return defaultServerInfoList;
     }
 
     @Override
-    public void setDhcpServerConnectPoint(ConnectPoint dhcpServerConnectPoint) {
-        checkNotNull(dhcpServerConnectPoint, "Server connect point can't null");
-        this.dhcpServerConnectPoint = dhcpServerConnectPoint;
+    public List<DhcpServerInfo> getIndirectDhcpServerInfoList() {
+        return indirectServerInfoList;
     }
-
-    @Override
-    public void setDhcpConnectMac(MacAddress dhcpConnectMac) {
-        this.dhcpConnectMac = dhcpConnectMac;
-    }
-
-    @Override
-    public void setDhcpConnectVlan(VlanId dhcpConnectVlan) {
-        this.dhcpConnectVlan = dhcpConnectVlan;
-    }
-
-    @Override
-    public void setDhcpGatewayIp(IpAddress dhcpGatewayIp) {
-        if (dhcpGatewayIp != null) {
-            checkState(dhcpGatewayIp.isIp6(), "Invalid gateway IP for DHCPv6 relay handler");
-            this.dhcpGatewayIp = dhcpGatewayIp.getIp6Address();
-        } else {
-            // removes gateway config
-            this.dhcpGatewayIp = null;
-        }
-    }
-    @Override
-    public Optional<IpAddress> getDhcpServerIp() {
-        return Optional.ofNullable(dhcpServerIp);
-    }
-
-    @Override
-    public Optional<IpAddress> getDhcpGatewayIp() {
-        return Optional.ofNullable(dhcpGatewayIp);
-    }
-
-    @Override
-    public Optional<MacAddress> getDhcpConnectMac() {
-        return Optional.ofNullable(dhcpConnectMac);
-    }
-
-    // Indirect DHCP server
-
-    public void setIndirectDhcpServerIp(IpAddress dhcpServerIp) {
-        checkNotNull(dhcpServerIp, "DHCP indirect server IP can't be null");
-        checkState(dhcpServerIp.isIp6(), "Invalid indirect server IP for DHCPv6 relay handler");
-        this.indirectDhcpServerIp = dhcpServerIp.getIp6Address();
-    }
-
-
-    public void setIndirectDhcpServerConnectPoint(ConnectPoint dhcpServerConnectPoint) {
-        checkNotNull(dhcpServerConnectPoint, "Indirect Server connect point can't null");
-        this.indirectDhcpServerConnectPoint = dhcpServerConnectPoint;
-    }
-
-
-    public void setIndirectDhcpConnectMac(MacAddress dhcpConnectMac) {
-        this.indirectDhcpConnectMac = dhcpConnectMac;
-    }
-
-
-    public void setIndirectDhcpConnectVlan(VlanId dhcpConnectVlan) {
-        this.indirectDhcpConnectVlan = dhcpConnectVlan;
-    }
-
-
-    public void setIndirectDhcpGatewayIp(IpAddress dhcpGatewayIp) {
-        if (dhcpGatewayIp != null) {
-            checkState(dhcpGatewayIp.isIp6(), "Invalid indirect gateway IP for DHCPv6 relay handler");
-            this.indirectDhcpGatewayIp = dhcpGatewayIp.getIp6Address();
-        } else {
-            // removes gateway config
-            this.indirectDhcpGatewayIp = null;
-        }
-    }
-
-    public Optional<IpAddress> getIndirectDhcpServerIp() {
-        return Optional.ofNullable(indirectDhcpServerIp);
-    }
-
-
-    public Optional<IpAddress> getIndirectDhcpGatewayIp() {
-        return Optional.ofNullable(indirectDhcpGatewayIp);
-    }
-
-
-    public Optional<MacAddress> getIndirectDhcpConnectMac() {
-        return Optional.ofNullable(indirectDhcpConnectMac);
-    }
-
 
     @Override
     public void processDhcpPacket(PacketContext context, BasePacket payload) {
@@ -323,12 +245,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @return true if all information we need have been initialized
      */
     public boolean configured() {
-        log.warn("dhcpServerConnectPoint {} dhcpServerIp {}," +
-                        "  indirectDhcpServerConnectPoint {} indirectDhcpServerIp {}",
-                this.dhcpServerConnectPoint, this.dhcpServerIp,
-                this.indirectDhcpServerConnectPoint, this.indirectDhcpServerIp);
-        return (this.dhcpServerConnectPoint != null && this.dhcpServerIp != null) ||
-                (this.indirectDhcpServerConnectPoint != null && this.indirectDhcpServerIp != null);
+        return !defaultServerInfoList.isEmpty();
     }
 
     @Override
@@ -950,7 +867,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      */
     private InternalPacket processDhcp6PacketFromServer(PacketContext context,
                                                         Ethernet receivedPacket, Set<Interface> recevingInterfaces) {
-
         // get dhcp6 header.
         Ethernet etherReply = receivedPacket.duplicate();
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
@@ -1056,7 +972,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         return new InternalPacket(etherReply, clientConnectionPoint);
     }
 
-    // Returns the first v4 interface ip out of a set of interfaces or null.
+    // Returns the first v6 interface ip out of a set of interfaces or null.
     // Checks all interfaces, and ignores v6 interface ips
     private Ip6Address getRelayAgentIPv6Address(Set<Interface> intfs) {
         for (Interface intf : intfs) {
@@ -1072,6 +988,17 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
     @Override
     public void setDefaultDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
+        setDhcpServerConfigs(configs, defaultServerInfoList);
+        reloadServerSettings();
+    }
+
+    @Override
+    public void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
+        setDhcpServerConfigs(configs, indirectServerInfoList);
+        reloadServerSettings();
+    }
+
+    public void setDhcpServerConfigs(Collection<DhcpServerConfig> configs, List<DhcpServerInfo> serverInfoList) {
         if (configs.size() == 0) {
             // no config to update
             return;
@@ -1080,111 +1007,62 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         // TODO: currently we pick up first DHCP server config.
         // Will use other server configs in the future for HA.
         DhcpServerConfig serverConfig = configs.iterator().next();
-        if (!serverConfig.getDhcpServerConnectPoint().isPresent()) {
-            log.warn("Connect point not exists");
-            return;
-        }
+
         if (!serverConfig.getDhcpServerIp6().isPresent()) {
-            log.warn("IP of DHCP6 server not exists");
-            return;
-        }
-        Ip6Address oldServerIp = this.dhcpServerIp;
-        Ip6Address oldGatewayIp = this.dhcpGatewayIp;
-
-        // stop monitoring gateway or server
-        if (oldGatewayIp != null) {
-            hostService.stopMonitoringIp(oldGatewayIp);
-        } else if (oldServerIp != null) {
-            hostService.stopMonitoringIp(oldServerIp);
-        }
-
-        this.dhcpServerConnectPoint = serverConfig.getDhcpServerConnectPoint().get();
-        this.dhcpServerIp = serverConfig.getDhcpServerIp6().get();
-        this.dhcpGatewayIp = serverConfig.getDhcpGatewayIp6().orElse(null);
-        this.relayAgentIpFromCfg = serverConfig.getRelayAgentIp6().orElse(null);
-
-
-        // reset server mac and vlan
-        this.dhcpConnectMac = null;
-        this.dhcpConnectVlan = null;
-
-        log.info("DHCP6 server connect point: " + this.dhcpServerConnectPoint);
-        log.info("DHCP6 server IP: " + this.dhcpServerIp);
-
-        IpAddress ipToProbe = MoreObjects.firstNonNull(this.dhcpGatewayIp, this.dhcpServerIp);
-        String hostToProbe = this.dhcpGatewayIp != null ? "gateway" : "DHCP6 server";
-
-        if (ipToProbe == null) {
-            log.warn("Server IP6 not set, can't probe it");
+            // not a DHCPv6 config
             return;
         }
 
-        log.info("Probing to resolve {} IP6 {}", hostToProbe, ipToProbe);
+        if (!serverInfoList.isEmpty()) {
+            // remove old server info
+            DhcpServerInfo oldServerInfo = serverInfoList.remove(0);
+
+            // stop monitoring gateway or server
+            oldServerInfo.getDhcpGatewayIp6().ifPresent(gatewayIp -> {
+                hostService.stopMonitoringIp(gatewayIp);
+            });
+            oldServerInfo.getDhcpServerIp6().ifPresent(serverIp -> {
+                hostService.stopMonitoringIp(serverIp);
+            });
+        }
+
+        // Create new server info according to the config
+        DhcpServerInfo newServerInfo = new DhcpServerInfo(serverConfig,
+                                                          DhcpServerInfo.Version.DHCP_V6);
+        checkState(newServerInfo.getDhcpServerConnectPoint().isPresent(),
+                   "Connect point not exists");
+        checkState(newServerInfo.getDhcpServerIp6().isPresent(),
+                   "IP of DHCP server not exists");
+
+        log.debug("DHCP server connect point: {}", newServerInfo.getDhcpServerConnectPoint().orElse(null));
+        log.debug("DHCP server IP: {}", newServerInfo.getDhcpServerIp6().orElse(null));
+
+        IpAddress ipToProbe;
+        if (newServerInfo.getDhcpGatewayIp6().isPresent()) {
+            ipToProbe = newServerInfo.getDhcpGatewayIp6().get();
+        } else {
+            ipToProbe = newServerInfo.getDhcpServerIp6().orElse(null);
+        }
+        String hostToProbe = newServerInfo.getDhcpGatewayIp6()
+                .map(ip -> "gateway").orElse("server");
+
+        log.debug("Probing to resolve {} IP {}", hostToProbe, ipToProbe);
         hostService.startMonitoringIp(ipToProbe);
 
         Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
         if (!hosts.isEmpty()) {
             Host host = hosts.iterator().next();
-            this.dhcpConnectVlan = host.vlan();
-            this.dhcpConnectMac = host.mac();
+            newServerInfo.setDhcpConnectVlan(host.vlan());
+            newServerInfo.setDhcpConnectMac(host.mac());
         }
+        // Add new server info
+        serverInfoList.add(0, newServerInfo);
 
-    }
-
-    @Override
-    public void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
-        if (configs.size() == 0) {
-            // no config to update
-            return;
-        }
-
-        // TODO: currently we pick up Second DHCP server config for indirect.
-        // Will use other server configs in the future for HA.
-        DhcpServerConfig serverConfig = configs.iterator().next();
-        checkState(serverConfig.getDhcpServerConnectPoint().isPresent(),
-                "Connect point not exists");
-        checkState(serverConfig.getDhcpServerIp6().isPresent(),
-                "IP of DHCP6 server not exists");
-        Ip6Address oldServerIp = this.indirectDhcpServerIp;
-        Ip6Address oldGatewayIp = this.indirectDhcpGatewayIp;
-
-        // stop monitoring gateway or server
-        if (oldGatewayIp != null) {
-            hostService.stopMonitoringIp(oldGatewayIp);
-        } else if (oldServerIp != null) {
-            hostService.stopMonitoringIp(oldServerIp);
-        }
-
-        this.indirectDhcpServerConnectPoint = serverConfig.getDhcpServerConnectPoint().get();
-        this.indirectDhcpServerIp = serverConfig.getDhcpServerIp6().get();
-        this.indirectDhcpGatewayIp = serverConfig.getDhcpGatewayIp6().orElse(null);
-        this.indirectRelayAgentIpFromCfg = serverConfig.getRelayAgentIp6().orElse(null);
-
-
-        // reset server mac and vlan
-        this.indirectDhcpConnectMac = null;
-        this.indirectDhcpConnectVlan = null;
-
-        log.info("DHCP6 server connect point: " + this.indirectDhcpServerConnectPoint);
-        log.info("DHCP6 server IP: " + this.indirectDhcpServerIp);
-
-        IpAddress ipToProbe = MoreObjects.firstNonNull(this.indirectDhcpGatewayIp, this.indirectDhcpServerIp);
-        String hostToProbe = this.indirectDhcpGatewayIp != null ? "gateway" : "DHCP6 server";
-
-        if (ipToProbe == null) {
-            log.warn("Server IP6 not set, can't probe it");
-            return;
-        }
-
-        log.info("Probing to resolve {} IP6 {}", hostToProbe, ipToProbe);
-        hostService.startMonitoringIp(ipToProbe);
-
-        Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
-        if (!hosts.isEmpty()) {
-            Host host = hosts.iterator().next();
-            this.indirectDhcpConnectVlan = host.vlan();
-            this.indirectDhcpConnectMac = host.mac();
-        }
+        // Remove duplicated server info
+        Set<DhcpServerInfo> nonDupServerInfoList = Sets.newLinkedHashSet();
+        nonDupServerInfoList.addAll(serverInfoList);
+        serverInfoList.clear();
+        serverInfoList.addAll(nonDupServerInfoList);
     }
 
     class InternalHostListener implements HostListener {
@@ -1215,37 +1093,62 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param host the host
      */
     private void hostMoved(Host host) {
-        if (this.dhcpServerConnectPoint == null && this.indirectDhcpServerConnectPoint == null) {
-            return;
-        }
-        if (this.dhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.dhcpGatewayIp) &&
-                    !host.locations().contains(this.dhcpServerConnectPoint)) {
-                this.dhcpConnectMac = null;
-                this.dhcpConnectVlan = null;
+        Set<ConnectPoint> hostConnectPoints = host.locations().stream()
+                .map(hl -> new ConnectPoint(hl.elementId(), hl.port()))
+                .collect(Collectors.toSet());
+        DhcpServerInfo serverInfo;
+        ConnectPoint dhcpServerConnectPoint;
+        Ip6Address dhcpGatewayIp;
+        Ip6Address dhcpServerIp;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            if (dhcpServerConnectPoint == null) {
+                return;
+            }
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp) &&
+                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
+            }
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp) &&
+                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
             }
         }
-        if (this.dhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.dhcpServerIp) &&
-                    !host.locations().contains(this.dhcpServerConnectPoint)) {
-                this.dhcpConnectMac = null;
-                this.dhcpConnectVlan = null;
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            if (dhcpServerConnectPoint == null) {
+                return;
+            }
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp) &&
+                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
+            }
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp) &&
+                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
             }
         }
-        if (this.indirectDhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpGatewayIp) &&
-                    !host.locations().contains(this.indirectDhcpServerConnectPoint)) {
-                this.indirectDhcpConnectMac = null;
-                this.indirectDhcpConnectVlan = null;
-            }
-        }
-        if (this.indirectDhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpServerIp) &&
-                    !host.locations().contains(this.indirectDhcpServerConnectPoint)) {
-                this.indirectDhcpConnectMac = null;
-                this.indirectDhcpConnectVlan = null;
-            }
-        }
+        reloadServerSettings();
     }
 
     /**
@@ -1255,30 +1158,45 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param host the host
      */
     private void hostUpdated(Host host) {
-        if (this.dhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.dhcpGatewayIp)) {
-                this.dhcpConnectMac = host.mac();
-                this.dhcpConnectVlan = host.vlan();
+        DhcpServerInfo serverInfo;
+        Ip6Address dhcpGatewayIp;
+        Ip6Address dhcpServerIp;
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp)) {
+                    serverInfo.setDhcpConnectMac(host.mac());
+                    serverInfo.setDhcpConnectVlan(host.vlan());
+                }
+            }
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp)) {
+                    serverInfo.setDhcpConnectMac(host.mac());
+                    serverInfo.setDhcpConnectVlan(host.vlan());
+                }
             }
         }
-        if (this.dhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.dhcpServerIp)) {
-                this.dhcpConnectMac = host.mac();
-                this.dhcpConnectVlan = host.vlan();
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp)) {
+                    serverInfo.setDhcpConnectMac(host.mac());
+                    serverInfo.setDhcpConnectVlan(host.vlan());
+                }
+            }
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp)) {
+                    serverInfo.setDhcpConnectMac(host.mac());
+                    serverInfo.setDhcpConnectVlan(host.vlan());
+                }
             }
         }
-        if (this.indirectDhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpGatewayIp)) {
-                this.indirectDhcpConnectMac = host.mac();
-                this.indirectDhcpConnectVlan = host.vlan();
-            }
-        }
-        if (this.indirectDhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpServerIp)) {
-                this.indirectDhcpConnectMac = host.mac();
-                this.indirectDhcpConnectVlan = host.vlan();
-            }
-        }
+        reloadServerSettings();
     }
 
     /**
@@ -1288,31 +1206,69 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param host the host
      */
     private void hostRemoved(Host host) {
-        if (this.dhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.dhcpGatewayIp)) {
-                this.dhcpConnectMac = null;
-                this.dhcpConnectVlan = null;
+        DhcpServerInfo serverInfo;
+        Ip6Address dhcpGatewayIp;
+        Ip6Address dhcpServerIp;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
             }
-            //return;
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
+            }
         }
-        if (this.dhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.dhcpServerIp)) {
-                this.dhcpConnectMac = null;
-                this.dhcpConnectVlan = null;
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+
+            if (dhcpGatewayIp != null) {
+                if (host.ipAddresses().contains(dhcpGatewayIp)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
+            }
+            if (dhcpServerIp != null) {
+                if (host.ipAddresses().contains(dhcpServerIp)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                }
             }
         }
-        if (this.indirectDhcpGatewayIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpGatewayIp)) {
-                this.indirectDhcpConnectMac = null;
-                this.indirectDhcpConnectVlan = null;
-            }
-            //return;
+        reloadServerSettings();
+    }
+
+    private void reloadServerSettings() {
+        DhcpServerInfo serverInfo;
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            this.dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            this.dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            this.dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            this.dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            this.dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
         }
-        if (this.indirectDhcpServerIp != null) {
-            if (host.ipAddresses().contains(this.indirectDhcpServerIp)) {
-                this.indirectDhcpConnectMac = null;
-                this.indirectDhcpConnectVlan = null;
-            }
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            this.indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            this.indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            this.indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            this.indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            this.indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+            this.indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6().orElse(null);
         }
     }
     /**
