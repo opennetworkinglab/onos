@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 /**
  * Self-registering REST API provider.
  */
-@Component(immediate = true, componentAbstract = true)
+@Component(immediate = true)
 public abstract class AbstractApiDocRegistrator {
 
     protected final ApiDocProvider provider;

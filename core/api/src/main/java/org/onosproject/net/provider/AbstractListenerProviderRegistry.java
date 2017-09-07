@@ -27,7 +27,7 @@ import org.onosproject.event.ListenerService;
 /**
  * Basis for components which need to export listener mechanism.
  */
-@Component(componentAbstract = true)
+@Component
 public abstract class AbstractListenerProviderRegistry<E extends Event, L extends EventListener<E>,
                                                        P extends Provider, S extends ProviderService<P>>
         extends AbstractProviderRegistry<P, S> implements ListenerService<E, L> {
