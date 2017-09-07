@@ -55,6 +55,8 @@
     }
 
     function render() {
+        var endedWithSeparator;
+
         summaryPanel.emptyRegions();
 
         var svg = summaryPanel.appendToHeader('div')
@@ -66,7 +68,8 @@
 
         title.text(summaryData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        ls.listProps(tbody, summaryData);
+        endedWithSeparator = ls.listProps(tbody, summaryData);
+        // TODO : review whether we need to use/store end-with-sep state
     }
 
     function handleSummaryData(data) {

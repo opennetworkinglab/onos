@@ -43,13 +43,19 @@
     }
 
     function listProps(el, data) {
+        var sepLast = false;
+
+        // note: track whether we end with a separator or not...
         data.propOrder.forEach(function (p) {
             if (p === '-') {
                 addSep(el);
+                sepLast = true;
             } else {
-                addProp(el, p, data.props[p]);
+                addProp(el, data.propLabels[p], data.propValues[p]);
+                sepLast = false;
             }
         });
+        return sepLast;
     }
 
     angular.module('onosWidget')

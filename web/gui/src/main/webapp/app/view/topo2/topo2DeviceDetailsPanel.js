@@ -101,6 +101,7 @@
     }
 
     function renderSingle(data) {
+        var endedWithSeparator;
 
         detailsPanel.emptyRegions();
 
@@ -120,12 +121,11 @@
         gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
 
-        if (!data.props.Latitude) {
-            var locationIndex = data.propOrder.indexOf('Latitude');
-            data.propOrder.splice(locationIndex - 1, 3);
-        }
+        // TODO: add navigation hot-link if defined
+        //  See topoPanel.js for equivalent code in "classic" topo
 
-        ls.listProps(tbody, data);
+        endedWithSeparator = ls.listProps(tbody, data);
+        // TODO : review whether we need to use/store end-with-sep state
         addBtnFooter();
     }
 
