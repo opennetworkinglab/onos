@@ -70,8 +70,8 @@ final class TableEntryEncoder {
     }
 
     /**
-     * Returns a collection of P4Runtime table entry protobuf messages, encoded from the given collection of PI
-     * table entries for the given pipeconf. If a PI table entry cannot be encoded, it is skipped, hence the returned
+     * Returns a collection of P4Runtime table entry protobuf messages, encoded from the given collection of PI table
+     * entries for the given pipeconf. If a PI table entry cannot be encoded, it is skipped, hence the returned
      * collection might have different size than the input one.
      * <p>
      * Please check the log for an explanation of any error that might have occurred.
@@ -100,6 +100,26 @@ final class TableEntryEncoder {
         }
 
         return tableEntryMsgListBuilder.build();
+    }
+
+    /**
+     * Same as {@link #encode(Collection, PiPipeconf)} but encodes only one entry.
+     *
+     * @param piTableEntry table entry
+     * @param pipeconf     pipeconf
+     * @return encoded table entry message
+     * @throws EncodeException                 if entry cannot be encoded
+     * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
+     */
+    static TableEntry encode(PiTableEntry piTableEntry, PiPipeconf pipeconf)
+            throws EncodeException, P4InfoBrowser.NotFoundException {
+
+        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        if (browser == null) {
+            throw new EncodeException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
+        }
+
+        return encodePiTableEntry(piTableEntry, browser);
     }
 
     /**
@@ -135,12 +155,63 @@ final class TableEntryEncoder {
         return piTableEntryListBuilder.build();
     }
 
+    /**
+     * Same as {@link #decode(Collection, PiPipeconf)} but decodes only one entry.
+     *
+     * @param tableEntryMsg table entry message
+     * @param pipeconf      pipeconf
+     * @return decoded PI table entry
+     * @throws EncodeException                 if message cannot be decoded
+     * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
+     */
+    static PiTableEntry decode(TableEntry tableEntryMsg, PiPipeconf pipeconf)
+            throws EncodeException, P4InfoBrowser.NotFoundException {
+
+        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        if (browser == null) {
+            throw new EncodeException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
+        }
+        return decodeTableEntryMsg(tableEntryMsg, browser);
+    }
+
+    /**
+     * Returns a table entry protobuf message, encoded from the given table id and match key, for the given pipeconf.
+     * The returned table entry message can be only used to reference an existing entry, i.e. a read operation, and not
+     * a write one wince it misses other fields (action, priority, etc.).
+     *
+     * @param tableId  table identifier
+     * @param matchKey match key
+     * @param pipeconf pipeconf
+     * @return table entry message
+     * @throws EncodeException                 if message cannot be encoded
+     * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
+     */
+    static TableEntry encode(PiTableId tableId, PiMatchKey matchKey, PiPipeconf pipeconf)
+            throws EncodeException, P4InfoBrowser.NotFoundException {
+
+        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
+
+        //FIXME this throws some kind of NPE
+        P4InfoOuterClass.Table tableInfo = browser.tables().getByName(tableId.id());
+
+        // Table id.
+        tableEntryMsgBuilder.setTableId(tableInfo.getPreamble().getId());
+
+        // Field matches.
+        for (PiFieldMatch piFieldMatch : matchKey.fieldMatches()) {
+            tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
+        }
+
+        return tableEntryMsgBuilder.build();
+    }
+
     private static TableEntry encodePiTableEntry(PiTableEntry piTableEntry, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException, EncodeException {
 
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
 
-        //FIXME this thorws some kind of NPE
+        //FIXME this throws some kind of NPE
         P4InfoOuterClass.Table tableInfo = browser.tables().getByName(piTableEntry.table().id());
 
         // Table id.
@@ -193,11 +264,7 @@ final class TableEntryEncoder {
         // FIXME: how to decode table entry messages with timeout, given that the timeout value is lost after encoding?
 
         // Match key for field matches.
-        PiMatchKey.Builder piMatchKeyBuilder = PiMatchKey.builder();
-        for (FieldMatch fieldMatchMsg : tableEntryMsg.getMatchList()) {
-            piMatchKeyBuilder.addFieldMatch(decodeFieldMatchMsg(fieldMatchMsg, tableInfo, browser));
-        }
-        piTableEntryBuilder.withMatchKey(piMatchKeyBuilder.build());
+        piTableEntryBuilder.withMatchKey(decodeFieldMatchMsgs(tableEntryMsg.getMatchList(), tableInfo, browser));
 
         return piTableEntryBuilder.build();
     }
@@ -278,6 +345,33 @@ final class TableEntryEncoder {
                 throw new EncodeException(format(
                         "Building of match type %s not implemented", piFieldMatch.type()));
         }
+    }
+
+    /**
+     * Returns a PI match key, decoded from the given table entry protobuf message, for the given pipeconf.
+     *
+     * @param tableEntryMsg table entry message
+     * @param pipeconf      pipeconf
+     * @return PI match key
+     * @throws EncodeException                 if message cannot be decoded
+     * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
+     */
+    static PiMatchKey decodeMatchKey(TableEntry tableEntryMsg, PiPipeconf pipeconf)
+            throws P4InfoBrowser.NotFoundException, EncodeException {
+        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        P4InfoOuterClass.Table tableInfo = browser.tables().getById(tableEntryMsg.getTableId());
+        return decodeFieldMatchMsgs(tableEntryMsg.getMatchList(), tableInfo, browser);
+    }
+
+    private static PiMatchKey decodeFieldMatchMsgs(Collection<FieldMatch> fieldMatchs, P4InfoOuterClass.Table tableInfo,
+                                                   P4InfoBrowser browser)
+            throws P4InfoBrowser.NotFoundException, EncodeException {
+        // Match key for field matches.
+        PiMatchKey.Builder piMatchKeyBuilder = PiMatchKey.builder();
+        for (FieldMatch fieldMatchMsg : fieldMatchs) {
+            piMatchKeyBuilder.addFieldMatch(decodeFieldMatchMsg(fieldMatchMsg, tableInfo, browser));
+        }
+        return piMatchKeyBuilder.build();
     }
 
     private static PiFieldMatch decodeFieldMatchMsg(FieldMatch fieldMatchMsg, P4InfoOuterClass.Table tableInfo,

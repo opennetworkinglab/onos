@@ -32,6 +32,7 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiCounterId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableId;
@@ -100,6 +101,11 @@ public class MockInterpreter extends AbstractHandlerBehaviour implements PiPipel
             default:
                 throw new PiInterpreterException("Instruction type not supported: " + instruction.type().name());
         }
+    }
+
+    @Override
+    public Optional<PiCounterId> mapTableCounter(PiTableId piTableId) {
+        return Optional.empty();
     }
 
     @Override

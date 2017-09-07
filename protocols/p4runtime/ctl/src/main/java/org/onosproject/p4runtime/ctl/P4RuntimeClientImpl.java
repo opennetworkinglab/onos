@@ -16,9 +16,9 @@
 
 package org.onosproject.p4runtime.ctl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
@@ -31,6 +31,8 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
+import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -39,7 +41,6 @@ import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.slf4j.Logger;
 import p4.P4RuntimeGrpc;
-import p4.P4RuntimeOuterClass.CounterEntry;
 import p4.P4RuntimeOuterClass.Entity;
 import p4.P4RuntimeOuterClass.ForwardingPipelineConfig;
 import p4.P4RuntimeOuterClass.MasterArbitrationUpdate;
@@ -77,7 +78,6 @@ import java.util.stream.StreamSupport;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.COUNTER_ENTRY;
 import static p4.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
 import static p4.P4RuntimeOuterClass.PacketOut;
 import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
@@ -86,11 +86,6 @@ import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.V
  * Implementation of a P4Runtime client.
  */
 public final class P4RuntimeClientImpl implements P4RuntimeClient {
-
-    private static final int DEADLINE_SECONDS = 15;
-
-    // FIXME: use static election ID, since mastership arbitration is not yet support on BMv2 or Tofino.
-    private static final int ELECTION_ID = 1;
 
     private static final Map<WriteOperationType, Update.Type> UPDATE_TYPES = ImmutableMap.of(
             WriteOperationType.UNSPECIFIED, Update.Type.UNSPECIFIED,
@@ -142,7 +137,11 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             try {
                 return supplier.get();
             } catch (Throwable ex) {
-                log.error("Exception in P4Runtime client of {}, executing {}", deviceId, opDescription, ex);
+                if (ex instanceof StatusRuntimeException) {
+                    log.warn("Unable to execute {} on {}: {}", opDescription, deviceId, ex.toString());
+                } else {
+                    log.error("Exception in client of {}, executing {}", deviceId, opDescription, ex);
+                }
                 throw ex;
             } finally {
                 writeLock.unlock();
@@ -187,10 +186,31 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Collection<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
                                                                                 PiPipeconf pipeconf) {
-        Set<PiCounterCellId> cellIds = counterIds.stream()
-                // Cell with index 0 means all cells.
-                .map(counterId -> PiCounterCellId.of(counterId, 0))
-                .collect(Collectors.toSet());
+
+        /*
+        From p4runtime.proto, the scope of a ReadRequest is defined as follows:
+        CounterEntry:
+            - All counter cells for all meters if counter_id = 0 (default).
+            - All counter cells for given counter_id if index = 0 (default).
+        DirectCounterEntry:
+            - All counter cells for all meters if counter_id = 0 (default).
+            - All counter cells for given counter_id if table_entry.match is empty.
+         */
+
+        Set<PiCounterCellId> cellIds = Sets.newHashSet();
+
+        for (PiCounterId counterId : counterIds) {
+            switch (counterId.type()) {
+                case INDIRECT:
+                    cellIds.add(PiIndirectCounterCellId.of(counterId, 0));
+                    break;
+                case DIRECT:
+                    cellIds.add(PiDirectCounterCellId.of(counterId, PiTableEntry.EMTPY));
+                    break;
+                default:
+                    log.warn("Unrecognized PI counter ID '{}'", counterId.type());
+            }
+        }
 
         return supplyInContext(() -> doReadCounterCells(cellIds, pipeconf),
                                "readAllCounterCells-" + cellIds.hashCode());
@@ -416,62 +436,32 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private Collection<PiCounterCellData> doReadCounterCells(Collection<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
 
-        // From p4runtime.proto:
-        // For ReadRequest, the scope is defined as follows:
-        // - All counter cells for all meters if counter_id = 0 (default).
-        // - All counter cells for given counter_id if index = 0 (default).
-
-        final ReadRequest.Builder requestBuilder = ReadRequest.newBuilder().setDeviceId(p4DeviceId);
-        final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        // We use this map to remember the original PI counter IDs of the returned response.
         final Map<Integer, PiCounterId> counterIdMap = Maps.newHashMap();
 
-        for (PiCounterCellId cellId : cellIds) {
-            int counterId;
-            try {
-                counterId = browser.counters().getByNameOrAlias(cellId.counterId().id()).getPreamble().getId();
-            } catch (P4InfoBrowser.NotFoundException e) {
-                log.warn("Skipping counter cell {}: {}", cellId, e.getMessage());
-                continue;
-            }
-            requestBuilder
-                    .addEntities(Entity.newBuilder()
-                                         .setCounterEntry(CounterEntry.newBuilder()
-                                                                  .setCounterId(counterId)
-                                                                  .setIndex(cellId.index())
-                                                                  .build()));
-            counterIdMap.put(counterId, cellId.counterId());
+        final ReadRequest request = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId)
+                .addAllEntities(CounterEntryCodec.encodePiCounterCellIds(cellIds, counterIdMap, pipeconf))
+                .build();
+
+        if (request.getEntitiesList().size() == 0) {
+            return Collections.emptyList();
         }
 
-        final Iterator<ReadResponse> responses;
+        final Iterable<ReadResponse> responses;
         try {
-            responses = blockingStub.read(requestBuilder.build());
+            responses = () -> blockingStub.read(request);
         } catch (StatusRuntimeException e) {
             log.warn("Unable to read counters: {}", e.getMessage());
             return Collections.emptyList();
         }
 
-        final Iterable<ReadResponse> responseIterable = () -> responses;
-        final ImmutableList.Builder<PiCounterCellData> piCounterEntryListBuilder = ImmutableList.builder();
-
-        StreamSupport
-                .stream(responseIterable.spliterator(), false)
+        List<Entity> entities = StreamSupport.stream(responses.spliterator(), false)
                 .map(ReadResponse::getEntitiesList)
                 .flatMap(List::stream)
-                .filter(entity -> entity.getEntityCase() == COUNTER_ENTRY)
-                .map(Entity::getCounterEntry)
-                .forEach(counterEntryMsg -> {
-                    if (!counterIdMap.containsKey(counterEntryMsg.getCounterId())) {
-                        log.warn("Unrecognized counter ID '{}', skipping", counterEntryMsg.getCounterId());
-                        return;
-                    }
-                    PiCounterCellId cellId = PiCounterCellId.of(counterIdMap.get(counterEntryMsg.getCounterId()),
-                                                                counterEntryMsg.getIndex());
-                    piCounterEntryListBuilder.add(new PiCounterCellData(cellId,
-                                                                        counterEntryMsg.getData().getPacketCount(),
-                                                                        counterEntryMsg.getData().getByteCount()));
-                });
+                .collect(Collectors.toList());
 
-        return piCounterEntryListBuilder.build();
+        return CounterEntryCodec.decodeCounterEntities(entities, counterIdMap, pipeconf);
     }
 
     /**

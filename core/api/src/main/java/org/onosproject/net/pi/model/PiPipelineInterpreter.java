@@ -24,6 +24,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiCounterId;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableId;
@@ -86,6 +87,15 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      */
     PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId)
             throws PiInterpreterException;
+
+    /**
+     * Returns a protocol-independent direct counter identifier for the given table, if present. If not present, it
+     * means that the given table does not support direct counters.
+     *
+     * @param piTableId table identifier
+     * @return optional direct counter identifier
+     */
+    Optional<PiCounterId> mapTableCounter(PiTableId piTableId);
 
     /**
      * Returns a collection of packet operations equivalent to the given OutboundPacket.

@@ -43,6 +43,8 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.runtime.PiCounterType;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketMetadataId;
@@ -74,6 +76,7 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
     // e.g. in a dedicated onos/pipeconf directory, along with any related P4 source code.
 
     public static final String TABLE0 = "table0";
+    public static final String TABLE0_COUNTER = "table0_counter";
     public static final String SEND_TO_CPU = "send_to_cpu";
     public static final String PORT = "port";
     public static final String DROP = "_drop";
@@ -81,12 +84,17 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
     public static final String EGRESS_PORT = "egress_port";
     public static final String INGRESS_PORT = "ingress_port";
 
+    private static final PiTableId TABLE0_ID = PiTableId.of(TABLE0);
+
     protected static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
     protected static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
     protected static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
-            0, PiTableId.of(TABLE0));
+            0, TABLE0_ID);
+
+    private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP = ImmutableBiMap.of(
+            TABLE0_ID, PiCounterId.of(TABLE0_COUNTER, PiCounterType.DIRECT));
 
     private boolean targetAttributesInitialized = false;
 
@@ -186,6 +194,11 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
             default:
                 throw new PiInterpreterException(format("Instruction type '%s' not supported", instruction.type()));
         }
+    }
+
+    @Override
+    public Optional<PiCounterId> mapTableCounter(PiTableId piTableId) {
+        return Optional.ofNullable(TABLE_COUNTER_MAP.get(piTableId));
     }
 
     @Override

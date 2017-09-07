@@ -24,13 +24,13 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Representation of all field matches of an entry of a match+action table of a protocol-independent pipeline.
  */
 @Beta
 public final class PiMatchKey {
+
+    public static final PiMatchKey EMPTY = builder().build();
 
     private final ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatches;
 
@@ -130,7 +130,6 @@ public final class PiMatchKey {
          */
         public PiMatchKey build() {
             ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatches = fieldMatchesBuilder.build();
-            checkArgument(fieldMatches.size() > 0, "Field matches cannot be empty");
             return new PiMatchKey(fieldMatches);
         }
     }

@@ -17,7 +17,7 @@
 package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
-import org.onlab.util.Identifier;
+import com.google.common.base.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -26,22 +26,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Identifier of a counter of a protocol-independent pipeline.
  */
 @Beta
-public final class PiCounterId extends Identifier<String> {
+public final class PiCounterId {
 
-    private PiCounterId(String name) {
-        super(name);
+    private final String name;
+    private final PiCounterType type;
+
+    private PiCounterId(String name, PiCounterType type) {
+        this.name = name;
+        this.type = type;
     }
 
     /**
-     * Returns a counter identifier for the given name.
+     * Returns a counter identifier for the given name and type.
      *
      * @param name counter name
+     * @param type counter type
      * @return counter identifier
      */
-    public static PiCounterId of(String name) {
+    public static PiCounterId of(String name, PiCounterType type) {
         checkNotNull(name);
-        checkArgument(!name.isEmpty(), "Name name can't be empty");
-        return new PiCounterId(name);
+        checkNotNull(type);
+        checkArgument(!name.isEmpty(), "Name can't be empty");
+        return new PiCounterId(name, type);
     }
 
     /**
@@ -50,6 +56,38 @@ public final class PiCounterId extends Identifier<String> {
      * @return counter name
      */
     public String name() {
-        return this.identifier;
+        return this.name;
+    }
+
+    /**
+     * Returns the type of the counter.
+     *
+     * @return counter type
+     */
+    public PiCounterType type() {
+        return this.type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PiCounterId)) {
+            return false;
+        }
+        PiCounterId that = (PiCounterId) o;
+        return Objects.equal(name, that.name) &&
+                type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, type);
+    }
+
+    @Override
+    public String toString() {
+        return type.name().toLowerCase() + ":" + name;
     }
 }

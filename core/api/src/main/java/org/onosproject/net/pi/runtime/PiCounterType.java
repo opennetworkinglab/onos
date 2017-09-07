@@ -17,21 +17,16 @@
 package org.onosproject.net.pi.runtime;
 
 /**
- * Identifier of a counter cell in a protocol-independent pipeline.
+ * Type of counter in a protocol-independent pipeline.
  */
-public interface PiCounterCellId {
+public enum PiCounterType {
+    /**
+     * Identifies a counter associated to a match-action table, where cells are directly associated to table entries.
+     */
+    DIRECT,
 
     /**
-     * Returns the identifier of the counter instance where this cell is contained.
-     *
-     * @return counter identifier
+     * Identifies a counter not associated with any other resource.
      */
-    PiCounterId counterId();
-
-    /**
-     * Returns the type of counter identified.
-     *
-     * @return counter type
-     */
-    PiCounterType type();
+    INDIRECT
 }

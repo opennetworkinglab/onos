@@ -24,6 +24,7 @@ import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +33,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.pi.runtime.PiCounterType.INDIRECT;
+
 /**
  * Implementation of a PortStatisticsBehaviour that can be used for any P4 program based on default.p4 (i.e. those
  * under onos/tools/test/p4src).
@@ -39,8 +42,8 @@ import java.util.stream.Collectors;
 public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBehaviour
         implements PortStatisticsDiscovery {
 
-    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("ingress_port_counter");
-    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("egress_port_counter");
+    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("ingress_port_counter", INDIRECT);
+    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("egress_port_counter", INDIRECT);
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
@@ -54,14 +57,14 @@ public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBe
         deviceService.getPorts(deviceId)
                 .forEach(p -> portStatBuilders.put(p.number().toLong(),
                                                    DefaultPortStatistics.builder()
-                                                           .setPort((int) p.number().toLong())
+                                                           .setPort(p.number())
                                                            .setDeviceId(deviceId)));
 
         Set<PiCounterCellId> counterCellIds = Sets.newHashSet();
         portStatBuilders.keySet().forEach(p -> {
             // Counter cell/index = port number.
-            counterCellIds.add(PiCounterCellId.of(INGRESS_COUNTER_ID, p));
-            counterCellIds.add(PiCounterCellId.of(EGRESS_COUNTER_ID, p));
+            counterCellIds.add(PiIndirectCounterCellId.of(INGRESS_COUNTER_ID, p));
+            counterCellIds.add(PiIndirectCounterCellId.of(EGRESS_COUNTER_ID, p));
         });
 
         Collection<PiCounterCellData> counterEntryResponse;
@@ -73,20 +76,25 @@ public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBe
             return Collections.emptyList();
         }
 
-        counterEntryResponse.forEach(counterEntry -> {
-            if (!portStatBuilders.containsKey(counterEntry.cellId().index())) {
-                log.warn("Unrecognized counter index {}, skipping", counterEntry);
+        counterEntryResponse.forEach(counterData -> {
+            if (counterData.cellId().type() != INDIRECT) {
+                log.warn("Invalid counter data type {}, skipping", counterData.cellId().type());
                 return;
             }
-            DefaultPortStatistics.Builder statsBuilder = portStatBuilders.get(counterEntry.cellId().index());
-            if (counterEntry.cellId().counterId().equals(INGRESS_COUNTER_ID)) {
-                statsBuilder.setPacketsReceived(counterEntry.packets());
-                statsBuilder.setBytesReceived(counterEntry.bytes());
-            } else if (counterEntry.cellId().counterId().equals(EGRESS_COUNTER_ID)) {
-                statsBuilder.setPacketsSent(counterEntry.packets());
-                statsBuilder.setBytesSent(counterEntry.bytes());
+            PiIndirectCounterCellId indCellId = (PiIndirectCounterCellId) counterData.cellId();
+            if (!portStatBuilders.containsKey(indCellId.index())) {
+                log.warn("Unrecognized counter index {}, skipping", counterData);
+                return;
+            }
+            DefaultPortStatistics.Builder statsBuilder = portStatBuilders.get(indCellId.index());
+            if (counterData.cellId().counterId().equals(INGRESS_COUNTER_ID)) {
+                statsBuilder.setPacketsReceived(counterData.packets());
+                statsBuilder.setBytesReceived(counterData.bytes());
+            } else if (counterData.cellId().counterId().equals(EGRESS_COUNTER_ID)) {
+                statsBuilder.setPacketsSent(counterData.packets());
+                statsBuilder.setBytesSent(counterData.bytes());
             } else {
-                log.warn("Unrecognized counter ID {}, skipping", counterEntry);
+                log.warn("Unrecognized counter ID {}, skipping", counterData);
             }
         });
 

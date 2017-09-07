@@ -19,6 +19,7 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.grpc.StatusRuntimeException;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
@@ -26,6 +27,10 @@ import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableModel;
+import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiFlowRuleTranslationService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
@@ -36,6 +41,8 @@ import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
@@ -71,6 +78,13 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
      */
     // TODO: can remove this check as soon as the BMv2 bug when reading ECMP entries is fixed.
     private boolean ignoreDeviceWhenGet = true;
+
+    /*
+    If true, we read all direct counters of a table with one request. Otherwise, send as many request as the number of
+    table entries.
+     */
+    // TODO: set to true as soon as the feature is implemented in P4Runtime.
+    private boolean readAllDirectCounters = false;
 
     // Needed to synchronize operations over the same table entry.
     private static final ConcurrentMap<P4RuntimeTableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
@@ -132,33 +146,70 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
 
             Collection<PiTableEntry> installedEntries;
             try {
+                // TODO: optimize by dumping entries and counters in parallel, from ALL tables with the same request.
                 installedEntries = client.dumpTable(piTableId, pipeconf).get();
             } catch (InterruptedException | ExecutionException e) {
-                log.error("Exception while dumping table {} of {}", piTableId, deviceId, e);
+                if (!(e.getCause() instanceof StatusRuntimeException)) {
+                    // gRPC errors are logged in the client.
+                    log.error("Exception while dumping table {} of {}", piTableId, deviceId, e);
+                }
                 return Collections.emptyList();
+            }
+
+            Map<PiTableEntry, PiCounterCellData> counterCellMap;
+            try {
+                if (interpreter.mapTableCounter(piTableId).isPresent()) {
+                    PiCounterId piCounterId = interpreter.mapTableCounter(piTableId).get();
+                    Collection<PiCounterCellData> cellDatas;
+                    if (readAllDirectCounters) {
+                        cellDatas = client.readAllCounterCells(Collections.singleton(piCounterId), pipeconf).get();
+                    } else {
+                        Set<PiCounterCellId> cellIds = installedEntries.stream()
+                                .map(entry -> PiDirectCounterCellId.of(piCounterId, entry))
+                                .collect(Collectors.toSet());
+                        cellDatas = client.readCounterCells(cellIds, pipeconf).get();
+                    }
+                    counterCellMap = cellDatas.stream()
+                            .collect(Collectors.toMap(c -> ((PiDirectCounterCellId) c.cellId()).tableEntry(), c -> c));
+                } else {
+                    counterCellMap = Collections.emptyMap();
+                }
+                installedEntries = client.dumpTable(piTableId, pipeconf).get();
+            } catch (InterruptedException | ExecutionException e) {
+                if (!(e.getCause() instanceof StatusRuntimeException)) {
+                    // gRPC errors are logged in the client.
+                    log.error("Exception while reading counters of table {} of {}", piTableId, deviceId, e);
+                }
+                counterCellMap = Collections.emptyMap();
             }
 
             for (PiTableEntry installedEntry : installedEntries) {
 
-                P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId, piTableId,
+                P4RuntimeTableEntryReference entryRef = new P4RuntimeTableEntryReference(deviceId,
+                                                                                         piTableId,
                                                                                          installedEntry.matchKey());
 
-                P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
-
-
-                if (frWrapper == null) {
+                if (!ENTRY_STORE.containsKey(entryRef)) {
                     // Inconsistent entry
                     inconsistentEntries.add(installedEntry);
                     continue; // next one.
                 }
 
-                // TODO: implement table entry counter retrieval.
+                P4RuntimeFlowRuleWrapper frWrapper = ENTRY_STORE.get(entryRef);
+
                 long bytes = 0L;
                 long packets = 0L;
+                if (counterCellMap.containsKey(installedEntry)) {
+                    PiCounterCellData counterCellData = counterCellMap.get(installedEntry);
+                    bytes = counterCellData.bytes();
+                    packets = counterCellData.packets();
+                }
 
-                FlowEntry entry = new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
-                                                       packets, bytes);
-                resultBuilder.add(entry);
+                resultBuilder.add(new DefaultFlowEntry(frWrapper.rule(),
+                                                       ADDED,
+                                                       frWrapper.lifeInSeconds(),
+                                                       packets,
+                                                       bytes));
             }
         }
 

@@ -27,29 +27,27 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onosproject.net.pi.runtime.PiConstantsTest.DROP;
-import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
-import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.*;
 
 /**
  * Unit tests for PiTableEntry class.
  */
 public class PiTableEntryTest {
-    final PiTableEntry piTableEntry1 = PiTableEntry.builder()
+    private final PiTableEntry piTableEntry1 = PiTableEntry.builder()
             .forTable(PiTableId.of("Table10"))
             .withCookie(0xac)
             .withPriority(10)
             .withAction(PiAction.builder().withId(PiActionId.of(DROP)).build())
             .withTimeout(100)
             .build();
-    final PiTableEntry sameAsPiTableEntry1 = PiTableEntry.builder()
+    private final PiTableEntry sameAsPiTableEntry1 = PiTableEntry.builder()
             .forTable(PiTableId.of("Table10"))
             .withCookie(0xac)
             .withPriority(10)
             .withAction(PiAction.builder().withId(PiActionId.of(DROP)).build())
             .withTimeout(100)
             .build();
-    final PiTableEntry piTableEntry2 = PiTableEntry.builder()
+    private final PiTableEntry piTableEntry2 = PiTableEntry.builder()
             .forTable(PiTableId.of("Table20"))
             .withCookie(0xac)
             .withPriority(10)
@@ -73,6 +71,16 @@ public class PiTableEntryTest {
         new EqualsTester()
                 .addEqualityGroup(piTableEntry1, sameAsPiTableEntry1)
                 .addEqualityGroup(piTableEntry2)
+                .testEquals();
+    }
+
+    /**
+     * Tests equality of the empty table entry.
+     */
+    @Test
+    public void testEmptyEquals() {
+        new EqualsTester()
+                .addEqualityGroup(PiTableEntry.EMTPY, PiTableEntry.EMTPY)
                 .testEquals();
     }
 
