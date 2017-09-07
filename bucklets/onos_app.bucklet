@@ -136,6 +136,7 @@ def onos_app(
         included_bundles = None,
         excluded_bundles = [],
         visibility = [ 'PUBLIC' ],
+        security = None,
         **kwargs):
     if name is None:
         name = _get_name()
@@ -174,6 +175,8 @@ def onos_app(
     args += [ '-d %s' % a for a in required_apps ]
     if description is not None:
         args += [ '-D "%s"' % description ]
+    if security is not None:
+        args += [ '-s "%s"' % security ]
 
     # cmd = '$(exe //buck-tools:onos-app-writer) -F ' + ' '.join(args) + ' > $OUT'
     # genrule(
