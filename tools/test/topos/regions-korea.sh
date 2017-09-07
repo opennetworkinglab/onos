@@ -98,6 +98,15 @@ null-create-link direct Incheon Goyang
 null-create-link direct Goyang Suwon
 null-create-link direct Seongnam Suwon
 
+# -- GG peers
+
+region-add-peer-loc rGG rGW 37.7252   127.6672
+region-add-peer-loc rGG rCC 37.0227   127.3566
+region-add-peer-loc rGG rGS 37.1117   127.7196
+region-add-peer-loc rGG rJL 36.9509   127.1277
+region-add-peer-loc rGG rJJ 36.9232   126.8540
+
+
 # -- GW devices
 
 null-create-device switch Wonju             ${nports} 37.3422190 127.9201620
@@ -116,6 +125,15 @@ region-add-devices rGW \
 null-create-link direct Wonju Chuncheon
 null-create-link direct Wonju Gangneung
 null-create-link direct Gangneung Chuncheon
+
+# -- GW peers
+
+region-add-peer-loc rGW rGG 37.8043   127.0020
+region-add-peer-loc rGW rCC 36.8942   127.0999
+region-add-peer-loc rGW rGS 36.9275   129.1693
+region-add-peer-loc rGW rJL 36.8730   128.4439
+region-add-peer-loc rGW rJJ 36.7671   127.7459
+
 
 # -- CC devices
 
@@ -140,6 +158,15 @@ null-create-link direct Daejeon Chungju
 null-create-link direct Chungju Cheongju
 null-create-link direct Asan Cheongju
 
+# -- CC peers
+
+region-add-peer-loc rCC rGW 37.2499   128.0815
+region-add-peer-loc rCC rGG 37.0604   127.2840
+region-add-peer-loc rCC rGS 36.9256   128.5413
+region-add-peer-loc rCC rJL 36.0471   127.2376
+region-add-peer-loc rCC rJJ 35.9449   127.0086
+
+
 # -- GS devices
 
 null-create-device switch Busan         ${nports} 35.1795540 129.0756420
@@ -162,6 +189,15 @@ null-create-link direct Busan Ulsan
 null-create-link direct Busan Pohang
 null-create-link direct Daegu Pohang
 null-create-link direct Pohang Ulsan
+
+# -- GS peers
+
+region-add-peer-loc rGS rGG 36.1994   127.9788
+region-add-peer-loc rGS rGW 36.1775   128.7119
+region-add-peer-loc rGS rCC 35.9361   127.6306
+region-add-peer-loc rGS rJL 35.0274   127.4704
+region-add-peer-loc rGS rJJ 34.7682   128.0892
+
 
 # -- JL devices
 
@@ -190,6 +226,16 @@ null-create-link direct Yeosu Suncheon
 null-create-link direct Jeonju Iksan
 null-create-link direct Jeonju Yeosu
 
+# -- JL peers
+
+region-add-peer-loc rJL rCC 36.0736   126.7974
+region-add-peer-loc rJL rGG 36.1204   127.3223
+region-add-peer-loc rJL rGW 36.0254   127.8910
+region-add-peer-loc rJL rGS 35.5403   127.8257
+region-add-peer-loc rJL rJJ 34.5884   127.1328
+
+# {"lng":9731256818,"lat":4647468107}}}
+
 # -- JJ devices
 
 null-create-device switch Jeju          ${nports} 33.4890110 126.4983020
@@ -204,6 +250,15 @@ region-add-devices rJJ \
 # -- JJ connectivity
 
 null-create-link direct Jeju Seogwipo
+
+# -- JJ peers
+
+region-add-peer-loc rJJ rGW 34.0295   126.8138
+region-add-peer-loc rJJ rGG 33.9136   126.6015
+region-add-peer-loc rJJ rCC 33.7931   126.4294
+region-add-peer-loc rJJ rGS 33.6874   127.0029
+region-add-peer-loc rJJ rJL 33.6607   126.3719
+
 
 ### Set up debug log messages for classes we care about
 onos ${host} <<-EOF
