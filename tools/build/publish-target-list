@@ -1,26 +1,40 @@
 # Targets placed in this list will be published as Maven artifacts
-    //utils/osgi:onlab-osgi
-    //utils/junit:onlab-junit
-    //utils/misc:onlab-misc
-    //utils/rest:onlab-rest
+    //apps/newoptical:onos-apps-newoptical
+    //apps/optical-model:onos-apps-optical-model
+    //apps/restconf/api:onos-apps-restconf-api
+    //apps/routing-api:onos-apps-routing-api
+    //cli:onos-cli
     //core/api:onos-api
-    //incubator/api:onos-incubator-api
-    //core/net:onos-core-net
     //core/common:onos-core-common
+    //core/net:onos-core-net
     //core/store/dist:onos-core-dist
-    //core/store/serializers:onos-core-serializers
     //core/store/persistence:onos-core-persistence
+    //core/store/serializers:onos-core-serializers
+    //incubator/api:onos-incubator-api
     //incubator/net:onos-incubator-net
-    //incubator/core:onos-incubator-core
     //incubator/rpc:onos-incubator-rpc
     //incubator/store:onos-incubator-store
-    //cli:onos-cli
+    //protocols/bgp/api:onos-protocols-bgp-api
+    //protocols/bgp/bgpio:onos-protocols-bgp-bgpio
+    //protocols/isis/api:onos-protocols-isis-api
+    //protocols/lisp/api:onos-protocols-lisp-api
+    //protocols/lisp/msg:onos-protocols-lisp-msg
+    //protocols/netconf/api:onos-protocols-netconf-api
     //protocols/openflow/api:onos-protocols-openflow-api
     //protocols/openflow/ctl:onos-protocols-openflow-ctl
-    //apps/optical:onos-apps-optical
-    //apps/optical-model:onos-apps-optical-model
-    //apps/newoptical:onos-apps-newoptical
-    //web/api:onos-rest
-    //protocols/netconf/api:onos-protocols-netconf-api
-    //apps/routing-api:onos-apps-routing-api
+    //protocols/ospf/api:onos-protocols-ospf-api
+    //protocols/ospf/protocol:onos-protocols-ospf-protocol
+    //protocols/ovsdb/api:onos-protocols-ovsdb-api
+    //protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl
+    //protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc
+    //protocols/pcep/api:onos-protocols-pcep-api
+    //protocols/pcep/pcepio:onos-protocols-pcep-pcepio
+    //protocols/rest/api:onos-protocols-rest-api
+    //protocols/restconf/client/api:onos-protocols-restconf-client-api
+    //protocols/snmp/api:onos-protocols-snmp-api
     //tools/build/conf:onos-build-conf
+    //utils/junit:onlab-junit
+    //utils/misc:onlab-misc
+    //utils/osgi:onlab-osgi
+    //utils/rest:onlab-rest
+    //web/api:onos-rest
