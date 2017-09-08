@@ -154,12 +154,12 @@ public final class RestconfUtils {
 
     private static String getRawUriPath(URI uri) {
         String path = uri.getRawPath();
-        if (path.equals("/restconf/data")) {
+        if (path.equals("/onos/restconf/data")) {
             return null;
         }
 
-
-        return path.replaceAll("^/restconf/data/", "").replaceAll("^/restconf/operations/", "");
+        return path.replaceAll("^/onos/restconf/data/", "")
+                .replaceAll("^/onos/restconf/operations/", "");
     }
 
     /**
