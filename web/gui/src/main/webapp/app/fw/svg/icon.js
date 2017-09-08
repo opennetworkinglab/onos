@@ -37,6 +37,7 @@
         play: 'play',
         stop: 'stop',
 
+        download: 'download',
         delta: 'delta',
         nonzero: 'nonzero',
         close: 'xClose',
