@@ -118,7 +118,7 @@
             table = detailsPanel.appendToBody('table'),
             tbody = table.append('tbody');
 
-        gs.addGlyph(svg, (data.type || 'unknown'), 26);
+        gs.addGlyph(svg, (data.glyphId || 'm_unknown'), 26);
         title.text(data.title);
 
         // TODO: add navigation hot-link if defined
