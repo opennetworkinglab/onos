@@ -196,10 +196,14 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         // TODO: currently we pick up first DHCP server config.
         // Will use other server configs in the future for HA.
         DhcpServerConfig serverConfig = configs.iterator().next();
-        checkState(serverConfig.getDhcpServerConnectPoint().isPresent(),
-                   "Connect point not exists");
-        checkState(serverConfig.getDhcpServerIp4().isPresent(),
-                   "IP of DHCP server not exists");
+        if (!serverConfig.getDhcpServerConnectPoint().isPresent()) {
+            log.warn("Connect point from server config not exists");
+            return;
+        }
+        if (!serverConfig.getDhcpServerIp4().isPresent()) {
+            log.warn("IP from DHCP server config not exists");
+            return;
+        }
         Ip4Address oldServerIp = this.dhcpServerIp;
         Ip4Address oldGatewayIp = this.dhcpGatewayIp;
 
