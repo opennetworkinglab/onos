@@ -34,4 +34,4 @@ _EOF_
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
 
-ssh -p 8101 -o StrictHostKeyChecking=no $OCI "$@"
+ssh -q -p 8101 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $OCI "$@"
