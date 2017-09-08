@@ -37,6 +37,7 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.ui.table.cell.DefaultCellFormatter;
 import org.onosproject.ui.table.cell.EnumFormatter;
 import org.onosproject.ui.table.cell.HexLongFormatter;
 import org.onosproject.ui.table.cell.NumberFormatter;
@@ -69,7 +70,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String APP_ID = "appId";
     private static final String APP_NAME = "appName";
     private static final String GROUP_ID = "groupId";
-    private static final String TABLE_ID = "tableId";
+    private static final String TABLE_NAME = "tableName";
     private static final String PRIORITY = "priority";
     private static final String SELECTOR_C = "selector_c"; // for table column
     private static final String SELECTOR = "selector";
@@ -128,7 +129,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             PACKETS,
             DURATION,
             PRIORITY,
-            TABLE_ID,
+            TABLE_NAME,
             APP_ID,
             APP_NAME,
 
@@ -206,6 +207,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             tm.setFormatter(SELECTOR, new SelectorFormatter());
             tm.setFormatter(TREATMENT_C, new TreatmentShortFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
+            tm.setFormatter(TABLE_NAME, DefaultCellFormatter.INSTANCE);
             return tm;
         }
 
@@ -231,7 +233,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                     .cell(PACKETS, flow.packets())
                     .cell(DURATION, flow.life())
                     .cell(PRIORITY, flow.priority())
-                    .cell(TABLE_ID, flow.tableId())
+                    .cell(TABLE_NAME, flow.table())
                     .cell(APP_ID, flow.appId())
                     .cell(APP_NAME, makeAppName(flow.appId(), lookup))
 
@@ -407,7 +409,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 data.put(DURATION, NumberFormatter.INTEGER.format(flow.life()));
 
                 data.put(FLOW_PRIORITY, flow.priority());
-                data.put(TABLE_ID, flow.tableId());
+                data.put(TABLE_NAME, flow.table().toString());
                 data.put(APP_ID, flow.appId());
                 // NOTE: horribly inefficient... make a map and retrieve a single value...
                 data.put(APP_NAME, makeAppName(flow.appId(), appShortMap()));

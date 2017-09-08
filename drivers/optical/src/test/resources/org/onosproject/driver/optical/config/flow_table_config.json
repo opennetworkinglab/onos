@@ -7,6 +7,7 @@
           {
             "id": "3",
             "tableId": 0,
+            "tableName": "0",
             "appId": "test",
             "priority": 4,
             "timeout": 0,

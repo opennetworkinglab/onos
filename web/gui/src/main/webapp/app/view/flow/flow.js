@@ -54,7 +54,7 @@
             'duration',
 
             'priority',
-            'tableId',
+            'tableName',
             'appName',
             'appId',
 
@@ -71,7 +71,7 @@
             'Duration',
 
             'Flow Priority',
-            'Table ID',
+            'Table Name',
             'App Name',
             'App ID',
 
