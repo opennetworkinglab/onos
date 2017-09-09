@@ -151,13 +151,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private boolean requestIpv6ND = false;
 
     @Property(name = "useDhcp", boolValue = false,
-            label = "Use DHCP for neighbor discovery by the " +
-                    "Host Location Provider; default is false")
+            label = "Use DHCP to update IP address of the host; default is false")
     private boolean useDhcp = false;
 
     @Property(name = "useDhcp6", boolValue = false,
-            label = "Use DHCPv6 for neighbor discovery by the " +
-                    "Host Location Provider; default is false")
+            label = "Use DHCPv6 to update IP address of the host; default is false")
     private boolean useDhcp6 = false;
 
     @Property(name = "requestInterceptsEnabled", boolValue = true,
@@ -541,25 +539,18 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
             // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                DHCP dhcp = findDhcp(eth).orElse(null);
-                if (dhcp != null) {
-                    if (useDhcp) {
-                        // learn host (server or client) MAC address
-                        createOrUpdateHost(hid, srcMac, vlan, hloc, null);
-
-                        // DHCP ACK: additionally update IP of DHCP client
-                        if (dhcp.getPacketType().equals(DHCP.MsgType.DHCPACK)) {
-                            MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
-                            VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
-                            HostId hostId = HostId.hostId(hostMac, hostVlan);
-                            updateHostIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
-                        }
+                // Update host location
+                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+                if (useDhcp) {
+                    DHCP dhcp = findDhcp(eth).orElse(null);
+                    // DHCP ACK: additionally update IP of DHCP client
+                    if (dhcp != null  && dhcp.getPacketType().equals(DHCP.MsgType.DHCPACK)) {
+                        MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
+                        VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
+                        HostId hostId = HostId.hostId(hostMac, hostVlan);
+                        updateHostIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
                     }
-                } else {
-                    // learn host MAC address
-                    createOrUpdateHost(hid, srcMac, vlan, hloc, null);
                 }
-            //
             // NeighborAdvertisement and NeighborSolicitation: possible
             // new hosts, update both location and IP.
             //
@@ -605,8 +596,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     }
                 }
 
-                // multicast
-                if (eth.isMulticast()) {
+                // multicast, exclude DHCPv6
+                if (eth.isMulticast() && dhcp6 == null) {
                     return;
                 }
 

@@ -115,8 +115,6 @@ import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 public class DhcpRelayManager implements DhcpRelayService {
     public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
     public static final ProviderId PROVIDER_ID = new ProviderId("host", DHCP_RELAY_APP);
-    public static final String HOST_LOCATION_PROVIDER =
-            "org.onosproject.provider.host.impl.HostLocationProvider";
     public static final String ROUTE_STORE_IMPL =
             "org.onosproject.routeservice.store.RouteStoreImpl";
     private static final TrafficSelector DHCP_SERVER_SELECTOR = DefaultTrafficSelector.builder()
@@ -243,9 +241,6 @@ public class DhcpRelayManager implements DhcpRelayService {
         requestDhcpPackets();
         modified(context);
 
-        // disable dhcp from host location provider
-        compCfgService.preSetProperty(HOST_LOCATION_PROVIDER,
-                                      "useDhcp", Boolean.FALSE.toString());
         // Enable distribute route store
         compCfgService.preSetProperty(ROUTE_STORE_IMPL,
                                       "distributed", Boolean.TRUE.toString());

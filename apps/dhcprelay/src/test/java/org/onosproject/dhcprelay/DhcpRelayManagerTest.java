@@ -76,6 +76,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceServiceAdapter;
 import org.onosproject.net.packet.PacketPriority;
@@ -87,9 +88,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.host.HostDescription;
-import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostStoreAdapter;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -98,7 +97,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketContextAdapter;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
-import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.StoreDelegate;
 import org.osgi.service.component.ComponentContext;
 import org.onlab.packet.DHCP6;
@@ -138,11 +136,27 @@ public class DhcpRelayManagerTest {
     private static final VlanId CLIENT_VLAN = VlanId.vlanId("100");
     private static final ConnectPoint CLIENT_CP = ConnectPoint.deviceConnectPoint("of:0000000000000001/1");
     private static final MacAddress CLIENT_IFACE_MAC = MacAddress.valueOf("00:00:00:00:11:01");
+    private static final HostLocation CLIENT_LOCATION = new HostLocation(CLIENT_CP, 0);
+    private static final HostId CLIENT_HOST_ID = HostId.hostId(CLIENT_MAC, CLIENT_VLAN);
+    private static final Ip6Address CLIENT_LL_IP_V6 = Ip6Address.valueOf("fe80::200:00ff:fe00:0001");
+    private static final Host EXISTS_HOST = new DefaultHost(DhcpRelayManager.PROVIDER_ID,
+                                                            CLIENT_HOST_ID, CLIENT_MAC, CLIENT_VLAN,
+                                                            CLIENT_LOCATION, ImmutableSet.of(CLIENT_LL_IP_V6));
     private static final Interface CLIENT_INTERFACE = new Interface("C1",
                                                                     CLIENT_CP,
                                                                     INTERFACE_IPS,
                                                                     CLIENT_IFACE_MAC,
                                                                     CLIENT_VLAN);
+
+    // Dual homing test
+    private static final ConnectPoint CLIENT_DH_CP = ConnectPoint.deviceConnectPoint("of:0000000000000001/3");
+    private static final HostLocation CLIENT_DH_LOCATION = new HostLocation(CLIENT_DH_CP, 0);
+    private static final Interface CLIENT_DH_INTERFACE = new Interface("C1-DH",
+                                                                       CLIENT_DH_CP,
+                                                                       INTERFACE_IPS,
+                                                                       CLIENT_IFACE_MAC,
+                                                                       CLIENT_VLAN);
+
 
     // DHCP client 2 (will send with option 82, so the vlan should equals to vlan from server)
     private static final MacAddress CLIENT2_MAC = MacAddress.valueOf("00:00:00:00:00:01");
@@ -208,7 +222,8 @@ public class DhcpRelayManagerTest {
     private static final Set<Interface> INTERFACES = ImmutableSet.of(
             CLIENT_INTERFACE,
             CLIENT2_INTERFACE,
-            SERVER_INTERFACE
+            SERVER_INTERFACE,
+            CLIENT_DH_INTERFACE
     );
     private static final String NON_ONOS_CID = "Non-ONOS circuit ID";
     private static final VlanId IGNORED_VLAN = VlanId.vlanId("100");
@@ -216,9 +231,9 @@ public class DhcpRelayManagerTest {
 
     private DhcpRelayManager manager;
     private MockPacketService packetService;
-    private MockHostStore mockHostStore;
     private MockRouteStore mockRouteStore;
     private MockDhcpRelayStore mockDhcpRelayStore;
+    private HostProviderService mockHostProviderService;
 
     @Before
     public void setup() {
@@ -254,20 +269,17 @@ public class DhcpRelayManagerTest {
         expect(manager.deviceService.getDevice(DEV_2_ID)).andReturn(device).anyTimes();
         replay(manager.deviceService, device);
 
-        mockHostStore = new MockHostStore();
         mockRouteStore = new MockRouteStore();
         mockDhcpRelayStore = new MockDhcpRelayStore();
         manager.dhcpRelayStore = mockDhcpRelayStore;
 
         manager.interfaceService = new MockInterfaceService();
         manager.flowObjectiveService = EasyMock.niceMock(FlowObjectiveService.class);
-
-
-
+        mockHostProviderService = createNiceMock(HostProviderService.class);
         Dhcp4HandlerImpl v4Handler = new Dhcp4HandlerImpl();
+        v4Handler.providerService = mockHostProviderService;
         v4Handler.dhcpRelayStore = mockDhcpRelayStore;
         v4Handler.hostService = manager.hostService;
-        v4Handler.hostStore = mockHostStore;
         v4Handler.interfaceService = manager.interfaceService;
         v4Handler.packetService = manager.packetService;
         v4Handler.routeStore = mockRouteStore;
@@ -278,10 +290,10 @@ public class DhcpRelayManagerTest {
         Dhcp6HandlerImpl v6Handler = new Dhcp6HandlerImpl();
         v6Handler.dhcpRelayStore = mockDhcpRelayStore;
         v6Handler.hostService = manager.hostService;
-        v6Handler.hostStore = mockHostStore;
         v6Handler.interfaceService = manager.interfaceService;
         v6Handler.packetService = manager.packetService;
         v6Handler.routeStore = mockRouteStore;
+        v6Handler.providerService = mockHostProviderService;
         manager.v6Handler = v6Handler;
 
         // properties
@@ -306,33 +318,36 @@ public class DhcpRelayManagerTest {
      */
     @Test
     public void relayDhcpWithoutAgentInfo() {
+        replay(mockHostProviderService);
         // send request
         packetService.processPacket(new TestDhcpRequestPacketContext(CLIENT_MAC,
                                                                      CLIENT_VLAN,
                                                                      CLIENT_CP,
                                                                      INTERFACE_IP.ipAddress().getIp4Address(),
                                                                      false));
+        // won't trigger the host provider service
+        verify(mockHostProviderService);
+        reset(mockHostProviderService);
 
-        Set<Host> hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
         assertEquals(0, mockRouteStore.routes.size());
 
+        HostId expectHostId = HostId.hostId(CLIENT_MAC, CLIENT_VLAN);
+        Capture<HostDescription> capturedHostDesc = newCapture();
+        mockHostProviderService.hostDetected(eq(expectHostId), capture(capturedHostDesc), eq(false));
+        replay(mockHostProviderService);
         // send ack
         packetService.processPacket(new TestDhcpAckPacketContext(CLIENT_CP, CLIENT_MAC,
                                                                  CLIENT_VLAN, INTERFACE_IP.ipAddress().getIp4Address(),
                                                                  false));
-        hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(1, hosts.size());
+        verify(mockHostProviderService);
         assertEquals(0, mockRouteStore.routes.size());
 
-        Host host = hosts.iterator().next();
-        assertEquals(CLIENT_MAC, host.mac());
-        assertEquals(CLIENT_VLAN, host.vlan());
+        HostDescription host = capturedHostDesc.getValue();
+        assertEquals(false, host.configured());
         assertEquals(CLIENT_CP.deviceId(), host.location().elementId());
         assertEquals(CLIENT_CP.port(), host.location().port());
-        assertEquals(1, host.ipAddresses().size());
-        assertEquals(IP_FOR_CLIENT, host.ipAddresses().iterator().next());
-        assertEquals(HostId.hostId(CLIENT_MAC, CLIENT_VLAN), host.id());
+        assertEquals(1, host.ipAddress().size());
+        assertEquals(IP_FOR_CLIENT, host.ipAddress().iterator().next());
     }
 
     /**
@@ -340,6 +355,7 @@ public class DhcpRelayManagerTest {
      */
     @Test
     public void relayDhcpWithAgentInfo() {
+        replay(mockHostProviderService);
         // Assume outer dhcp relay agent exists in store already
         // send request
         packetService.processPacket(new TestDhcpRequestPacketContext(CLIENT2_MAC,
@@ -347,11 +363,8 @@ public class DhcpRelayManagerTest {
                                                                      CLIENT2_CP,
                                                                      INTERFACE_IP.ipAddress().getIp4Address(),
                                                                      true));
-
-        Set<Host> hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
+        // No routes
         assertEquals(0, mockRouteStore.routes.size());
-
         // send ack
         packetService.processPacket(new TestDhcpAckPacketContext(CLIENT2_CP,
                                                                  CLIENT2_MAC,
@@ -359,8 +372,10 @@ public class DhcpRelayManagerTest {
                                                                  INTERFACE_IP.ipAddress().getIp4Address(),
                                                                  true));
 
-        hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
+        // won't trigger the host provider service
+        verify(mockHostProviderService);
+        reset(mockHostProviderService);
+
         assertEquals(1, mockRouteStore.routes.size());
 
         Route route = mockRouteStore.routes.get(0);
@@ -562,6 +577,7 @@ public class DhcpRelayManagerTest {
      */
     @Test
     public void relayDhcp6WithoutAgentInfo() {
+        replay(mockHostProviderService);
         // send request
         packetService.processPacket(new TestDhcp6RequestPacketContext(CLIENT_MAC,
                                                                      VlanId.NONE,
@@ -569,27 +585,28 @@ public class DhcpRelayManagerTest {
                                                                      INTERFACE_IP_V6.ipAddress().getIp6Address(),
                                                                      0));
 
-        Set<Host> hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
+        verify(mockHostProviderService);
+        reset(mockHostProviderService);
         assertEquals(0, mockRouteStore.routes.size());
 
+        Capture<HostDescription> capturedHostDesc = newCapture();
+        mockHostProviderService.hostDetected(eq(HostId.hostId(CLIENT_MAC, CLIENT_VLAN)),
+                                             capture(capturedHostDesc), eq(false));
+        replay(mockHostProviderService);
         // send reply
         packetService.processPacket(new TestDhcp6ReplyPacketContext(CLIENT_CP, CLIENT_MAC,
                                                                     CLIENT_VLAN,
                                                                     INTERFACE_IP_V6.ipAddress().getIp6Address(),
                                                                     0));
-        hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(1, hosts.size());
+        verify(mockHostProviderService);
         assertEquals(0, mockRouteStore.routes.size());
 
-        Host host = hosts.iterator().next();
-        assertEquals(CLIENT_MAC, host.mac());
+        HostDescription host = capturedHostDesc.getValue();
         assertEquals(CLIENT_VLAN, host.vlan());
         assertEquals(CLIENT_CP.deviceId(), host.location().elementId());
         assertEquals(CLIENT_CP.port(), host.location().port());
-        assertEquals(1, host.ipAddresses().size());
-        assertEquals(IP_FOR_CLIENT_V6, host.ipAddresses().iterator().next());
-        assertEquals(HostId.hostId(CLIENT_MAC, CLIENT_VLAN), host.id());
+        assertEquals(1, host.ipAddress().size());
+        assertEquals(IP_FOR_CLIENT_V6, host.ipAddress().iterator().next());
     }
 
     /**
@@ -597,6 +614,7 @@ public class DhcpRelayManagerTest {
      */
     @Test
     public void relayDhcp6WithAgentInfo() {
+        replay(mockHostProviderService);
         // Assume outer dhcp6 relay agent exists in store already
         // send request
         packetService.processPacket(new TestDhcp6RequestPacketContext(CLIENT2_MAC,
@@ -605,8 +623,6 @@ public class DhcpRelayManagerTest {
                 INTERFACE_IP_V6.ipAddress().getIp6Address(),
                 1));
 
-        Set<Host> hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
         assertEquals(0, mockRouteStore.routes.size());
 
         // send reply
@@ -616,8 +632,9 @@ public class DhcpRelayManagerTest {
                 INTERFACE_IP_V6.ipAddress().getIp6Address(),
                 1));
 
-        hosts = ImmutableSet.copyOf(mockHostStore.getHosts());
-        assertEquals(0, hosts.size());
+        // won't trigger the host provider service
+        verify(mockHostProviderService);
+        reset(mockHostProviderService);
         assertEquals(2, mockRouteStore.routes.size()); // ipAddress and prefix
 
         Route route = mockRouteStore.routes.get(0);
@@ -625,6 +642,64 @@ public class DhcpRelayManagerTest {
         assertEquals(IP_FOR_CLIENT_V6.toIpPrefix(), route.prefix());
         assertEquals(Route.Source.STATIC, route.source());
     }
+
+    @Test
+    public void testDhcp4DualHome() {
+        PacketContext packetContext =
+                new TestDhcpAckPacketContext(CLIENT_DH_CP, CLIENT_MAC, CLIENT_VLAN,
+                                             INTERFACE_IP.ipAddress().getIp4Address(),
+                                             false);
+        reset(manager.hostService);
+        expect(manager.hostService.getHost(CLIENT_HOST_ID)).andReturn(EXISTS_HOST).anyTimes();
+        Capture<HostDescription> capturedHostDesc = newCapture();
+        mockHostProviderService.hostDetected(eq(CLIENT_HOST_ID), capture(capturedHostDesc), eq(false));
+        replay(mockHostProviderService, manager.hostService);
+        packetService.processPacket(packetContext);
+        verify(mockHostProviderService);
+
+        HostDescription hostDesc = capturedHostDesc.getValue();
+        Set<HostLocation> hostLocations = hostDesc.locations();
+        assertEquals(2, hostLocations.size());
+        assertTrue(hostLocations.contains(CLIENT_LOCATION));
+        assertTrue(hostLocations.contains(CLIENT_DH_LOCATION));
+    }
+
+    @Test
+    public void testDhcp6DualHome() {
+        PacketContext packetContext =
+                new TestDhcp6ReplyPacketContext(CLIENT_DH_CP, CLIENT_MAC, CLIENT_VLAN,
+                                                INTERFACE_IP_V6.ipAddress().getIp6Address(),
+                                                0);
+        reset(manager.hostService);
+        expect(manager.hostService.getHostsByIp(CLIENT_LL_IP_V6)).andReturn(ImmutableSet.of(EXISTS_HOST)).anyTimes();
+
+        // FIXME: currently DHCPv6 has a bug, we can't get correct vlan of client......
+        // XXX: The vlan relied from DHCP6 handler might be wrong, do hack here
+        HostId hostId = HostId.hostId(CLIENT_MAC, VlanId.NONE);
+        expect(manager.hostService.getHost(hostId)).andReturn(EXISTS_HOST).anyTimes();
+
+        // XXX: sometimes this will work, sometimes not
+         expect(manager.hostService.getHost(CLIENT_HOST_ID)).andReturn(EXISTS_HOST).anyTimes();
+
+        Capture<HostDescription> capturedHostDesc = newCapture();
+
+        // XXX: also a hack here
+        mockHostProviderService.hostDetected(eq(hostId), capture(capturedHostDesc), eq(false));
+        expectLastCall().anyTimes();
+
+        mockHostProviderService.hostDetected(eq(CLIENT_HOST_ID), capture(capturedHostDesc), eq(false));
+        expectLastCall().anyTimes();
+        replay(mockHostProviderService, manager.hostService);
+        packetService.processPacket(packetContext);
+        verify(mockHostProviderService);
+
+        HostDescription hostDesc = capturedHostDesc.getValue();
+        Set<HostLocation> hostLocations = hostDesc.locations();
+        assertEquals(2, hostLocations.size());
+        assertTrue(hostLocations.contains(CLIENT_LOCATION));
+        assertTrue(hostLocations.contains(CLIENT_DH_LOCATION));
+    }
+
     private static class MockDefaultDhcpRelayConfig extends DefaultDhcpRelayConfig {
         @Override
         public boolean isValid() {
@@ -689,36 +764,6 @@ public class DhcpRelayManagerTest {
         @Override
         public Optional<Ip6Address> getDhcpGatewayIp6() {
             return Optional.of(GATEWAY_IP_V6);
-        }
-    }
-
-    private class MockHostStore extends HostStoreAdapter {
-
-        private final Map<HostId, HostDescription> hosts = Maps.newHashMap();
-
-        @Override
-        public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                            HostDescription hostDescription,
-                                            boolean replaceIps) {
-            hosts.put(hostId, hostDescription);
-
-            // not necessary to return host event in this test.
-            return null;
-        }
-
-        public HostDescription hostDesc(HostId hostId) {
-            return hosts.get(hostId);
-        }
-
-        @Override
-        public Iterable<Host> getHosts() {
-            return hosts.values().stream()
-                    .map(hd -> new DefaultHost(DhcpRelayManager.PROVIDER_ID,
-                                               HostId.hostId(hd.hwAddress(), hd.vlan()),
-                                               hd.hwAddress(),
-                                               hd.vlan(), hd.locations(),
-                                               hd.ipAddress(), false))
-                    .collect(Collectors.toList());
         }
     }
 
@@ -1231,10 +1276,10 @@ public class DhcpRelayManagerTest {
             byte[] interfaceId = buildInterfaceId(clientMac, clientCp);
             DHCP6 dhcp6 = new DHCP6();
             buildRelayMsg(dhcp6, DHCP6.MsgType.RELAY_REPL.value(),
-                    INTERFACE_IP_V6.ipAddress().getIp6Address(),
-                    OUTER_RELAY_IP_V6,
-                    (byte) 0, interfaceId,
-                    dhcp6Payload);
+                          INTERFACE_IP_V6.ipAddress().getIp6Address(),
+                          CLIENT_LL_IP_V6,
+                          (byte) 0, interfaceId,
+                          dhcp6Payload);
 
             DHCP6 dhcp6Parent = null;
             DHCP6 dhcp6Child = dhcp6;

@@ -439,18 +439,6 @@ public class HostLocationProviderTest {
     }
 
     /**
-     * The host store should not updated when we disabled "useDhcp".
-     */
-    @Test
-    public void receiveDhcpButNotEnabled() {
-        TestUtils.setField(provider, "useDhcp", false);
-        // DHCP Request
-        testProcessor.process(new TestDhcpRequestPacketContext(DEV1, VLAN));
-        assertThat("receiveDhcpButNotEnabled. No host description expected",
-                   providerService.descriptions.size(), is(0));
-    }
-
-    /**
      * When receiving NeighborAdvertisement, updates location and IP.
      */
     @Test
