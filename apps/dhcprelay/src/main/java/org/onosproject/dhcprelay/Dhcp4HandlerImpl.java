@@ -44,8 +44,12 @@ import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteStore;
 import org.onosproject.net.ConnectPoint;
@@ -57,7 +61,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -85,7 +88,7 @@ import static org.onlab.packet.dhcp.DhcpRelayAgentOption.RelayAgentInfoOptions.C
 @Component
 @Service
 @Property(name = "version", value = "4")
-public class Dhcp4HandlerImpl implements DhcpHandler {
+public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
     private static Logger log = LoggerFactory.getLogger(Dhcp4HandlerImpl.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -93,9 +96,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostStore hostStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteStore routeStore;
@@ -106,6 +106,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostProviderRegistry providerRegistry;
+
+    protected HostProviderService providerService;
     private InternalHostListener hostListener = new InternalHostListener();
 
     private Ip4Address dhcpServerIp = null;
@@ -130,10 +134,16 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
     @Activate
     protected void activate() {
         hostService.addListener(hostListener);
+        providerService = providerRegistry.register(this);
     }
 
     @Deactivate
     protected void deactivate() {
+        providerRegistry.unregister(this);
+        hostService.removeListener(hostListener);
+        this.dhcpConnectMac = null;
+        this.dhcpConnectVlan = null;
+
         if (dhcpGatewayIp != null) {
             hostService.stopMonitoringIp(dhcpGatewayIp);
         }
@@ -337,11 +347,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         checkNotNull(incomingPacketType, "Can't get message type from DHCP payload {}", dhcpPayload);
         switch (incomingPacketType) {
             case DHCPDISCOVER:
-                // Try update host if it is directly connected.
-                if (directlyConnected(dhcpPayload)) {
-                    updateHost(context, dhcpPayload);
-                }
-
                 // Add the gateway IP as virtual interface IP for server to understand
                 // the lease to be assigned and forward the packet to dhcp server.
                 Ethernet ethernetPacketDiscover =
@@ -384,22 +389,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
             default:
                 break;
         }
-    }
-
-    /**
-     * Updates host to host store according to DHCP payload.
-     *
-     * @param context the packet context
-     * @param dhcpPayload the DHCP payload
-     */
-    private void updateHost(PacketContext context, DHCP dhcpPayload) {
-        ConnectPoint location = context.inPacket().receivedFrom();
-        HostLocation hostLocation = new HostLocation(location, System.currentTimeMillis());
-        MacAddress macAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
-        VlanId vlanId = VlanId.vlanId(context.inPacket().parsed().getVlanID());
-        HostId hostId = HostId.hostId(macAddress, vlanId);
-        HostDescription desc = new DefaultHostDescription(macAddress, vlanId, hostLocation);
-        hostStore.createOrUpdateHost(DhcpRelayManager.PROVIDER_ID, hostId, desc, false);
     }
 
     /**
@@ -847,11 +836,18 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
         if (directlyConnected(dhcpPayload)) {
             // Add to host store if it connect to network directly
             Set<IpAddress> ips = Sets.newHashSet(ip);
-            HostDescription desc = new DefaultHostDescription(macAddress, vlanId,
-                                                              hostLocation, ips);
+            Host host = hostService.getHost(hostId);
 
-            // Replace the ip when dhcp server give the host new ip address
-            hostStore.createOrUpdateHost(DhcpRelayManager.PROVIDER_ID, hostId, desc, false);
+            Set<HostLocation> hostLocations = Sets.newHashSet(hostLocation);
+            if (host != null) {
+                // Dual homing support:
+                // if host exists, use old locations and new location
+                hostLocations.addAll(host.locations());
+            }
+            HostDescription desc = new DefaultHostDescription(macAddress, vlanId,
+                                                              hostLocations, ips, false);
+            // Add IP address when dhcp server give the host new ip address
+            providerService.hostDetected(hostId, desc, false);
         } else {
             // Add to route store if it does not connect to network directly
             // Get gateway host IP according to host mac address
@@ -1008,6 +1004,16 @@ public class Dhcp4HandlerImpl implements DhcpHandler {
                       outIface.vlan());
         }
         packetService.emit(o);
+    }
+
+    @Override
+    public void triggerProbe(Host host) {
+        // Do nothing here
+    }
+
+    @Override
+    public ProviderId id() {
+        return DhcpRelayManager.PROVIDER_ID;
     }
 
     class InternalHostListener implements HostListener {

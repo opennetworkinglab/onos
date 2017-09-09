@@ -48,7 +48,9 @@ import org.onlab.packet.dhcp.Dhcp6IaPrefixOption;
 import org.onlab.util.HexString;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
-import org.onosproject.net.host.HostStore;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
@@ -57,6 +59,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteStore;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
@@ -88,7 +91,7 @@ import static com.google.common.base.Preconditions.checkState;
 @Component
 @Service
 @Property(name = "version", value = "6")
-public class Dhcp6HandlerImpl implements DhcpHandler {
+public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private static Logger log = LoggerFactory.getLogger(Dhcp6HandlerImpl.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -96,9 +99,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostStore hostStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteStore routeStore;
@@ -109,8 +109,11 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    private InternalHostListener hostListener = new InternalHostListener();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostProviderRegistry providerRegistry;
 
+    private InternalHostListener hostListener = new InternalHostListener();
+    protected HostProviderService providerService;
     private Ip6Address dhcpServerIp = null;
     // dhcp server may be connected directly to the SDN network or
     // via an external gateway. When connected directly, the dhcpConnectPoint, dhcpConnectMac,
@@ -146,11 +149,13 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
 
     @Activate
     protected void activate() {
+        providerService = providerRegistry.register(this);
         hostService.addListener(hostListener);
     }
 
     @Deactivate
     protected void deactivate() {
+        providerRegistry.unregister(this);
         hostService.removeListener(hostListener);
         this.dhcpConnectMac = null;
         this.dhcpConnectVlan = null;
@@ -161,7 +166,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
             hostService.stopMonitoringIp(dhcpServerIp);
         }
     }
-
 
     @Override
     public void setDhcpServerIp(IpAddress dhcpServerIp) {
@@ -320,6 +324,16 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
         log.warn("dhcpServerConnectPoint {} dhcpServerIp {}",
                 this.dhcpServerConnectPoint, this.dhcpServerIp);
         return this.dhcpServerConnectPoint != null && this.dhcpServerIp != null;
+    }
+
+    @Override
+    public ProviderId id() {
+        return DhcpRelayManager.PROVIDER_ID;
+    }
+
+    @Override
+    public void triggerProbe(Host host) {
+        // Do nothing here
     }
 
     // the new class the contains Ethernet packet and destination port, kind of like adding
@@ -631,9 +645,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
 
                     log.debug("client mac {} client vlan {}", HexString.toHexString(clientMac.toBytes(), ":"), vlanId);
 
-
                     // Remove host's ip of  when dhcp release msg is received
-                    hostStore.removeIp(hostId, ip);
+                    providerService.removeIpFromHost(hostId, ip);
                 } else {
                     log.debug("ipAddress not found. Do not add Host for directly connected.");
                 }
@@ -690,19 +703,30 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
                 ip = extractIpAddress(embeddedDhcp6);
                 if (ip != null) {
                     Set<IpAddress> ips = Sets.newHashSet(ip);
+
+                    // FIXME: we should use vlan id from original packet (solicit, request)
                     VlanId vlanId = clientInterfaces.iterator().next().vlan();
                     HostId hostId = HostId.hostId(clientMac, vlanId);
+                    Host host = hostService.getHost(hostId);
                     HostLocation hostLocation = new HostLocation(clientInterfaces.iterator().next().connectPoint(),
-                            System.currentTimeMillis());
+                                                                 System.currentTimeMillis());
+                    Set<HostLocation> hostLocations = Sets.newHashSet(hostLocation);
+
+                    if (host != null) {
+                        // Dual homing support:
+                        // if host exists, use old locations and new location
+                        hostLocations.addAll(host.locations());
+                    }
                     HostDescription desc = new DefaultHostDescription(clientMac, vlanId,
-                            hostLocation, ips);
+                                                                      hostLocations, ips,
+                                                                      false);
                     log.debug("adding Host for directly connected.");
                     log.debug("client mac {} client vlan {} hostlocation {}",
                             HexString.toHexString(clientMac.toBytes(), ":"),
                             vlanId, hostLocation.toString());
 
                     // Replace the ip when dhcp server give the host new ip address
-                    hostStore.createOrUpdateHost(DhcpRelayManager.PROVIDER_ID, hostId, desc, true);
+                    providerService.hostDetected(hostId, desc, false);
                 } else {
                     log.warn("ipAddress not found. Do not add Host for directly connected.");
                 }
@@ -935,7 +959,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler {
 
         // find destMac
         MacAddress clientMac = null;
-        Set<Host> clients = hostService.getHostsByIp(Ip6Address.valueOf(dhcp6Relay.getPeerAddress()));
+        Ip6Address peerAddress = Ip6Address.valueOf(dhcp6Relay.getPeerAddress());
+        Set<Host> clients = hostService.getHostsByIp(peerAddress);
         if (clients.isEmpty()) {
             log.warn("There's no host found for this address {}",
                     HexString.toHexString(dhcp6Relay.getPeerAddress(), ":"));
