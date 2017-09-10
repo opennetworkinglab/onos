@@ -130,7 +130,7 @@ public class NetconfControllerImpl implements NetconfController {
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         modified(context);
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleProvider());
         log.info("Started");
     }
 

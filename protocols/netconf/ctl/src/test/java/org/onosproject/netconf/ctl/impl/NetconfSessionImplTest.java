@@ -65,9 +65,8 @@ import org.slf4j.LoggerFactory;
  */
 public class NetconfSessionImplTest {
     private static final Logger log = LoggerFactory
-            .getLogger(NetconfStreamThread.class);
+            .getLogger(NetconfSessionImplTest.class);
 
-    private static final int PORT_NUMBER = TestTools.findAvailablePort(50830);
     private static final String TEST_USERNAME = "netconf";
     private static final String TEST_PASSWORD = "netconf123";
     private static final String TEST_HOSTNAME = "127.0.0.1";
@@ -99,6 +98,7 @@ public class NetconfSessionImplTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        int portNumber = TestTools.findAvailablePort(50830);
         sshServerNetconf = SshServer.setUpDefaultServer();
         sshServerNetconf.setPasswordAuthenticator(
                 new PasswordAuthenticator() {
@@ -110,14 +110,14 @@ public class NetconfSessionImplTest {
                         return TEST_USERNAME.equals(username) && TEST_PASSWORD.equals(password);
                     }
                 });
-        sshServerNetconf.setPort(PORT_NUMBER);
+        sshServerNetconf.setPort(portNumber);
         SimpleGeneratorHostKeyProvider provider = new SimpleGeneratorHostKeyProvider();
         provider.setFile(new File(TEST_SERFILE));
         sshServerNetconf.setKeyPairProvider(provider);
         sshServerNetconf.setSubsystemFactories(
                 Arrays.<NamedFactory<Command>>asList(new NetconfSshdTestSubsystem.Factory()));
         sshServerNetconf.open();
-        log.info("SSH Server opened on port {}", PORT_NUMBER);
+        log.info("SSH Server opened on port {}", portNumber);
 
         NetconfController netconfCtl = new NetconfControllerImpl();
         NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
@@ -125,7 +125,7 @@ public class NetconfSessionImplTest {
         NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
 
         NetconfDeviceInfo deviceInfo1 = new NetconfDeviceInfo(
-                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
+                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), portNumber);
 
         session1 = new NetconfSessionImpl(deviceInfo1, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
@@ -135,7 +135,7 @@ public class NetconfSessionImplTest {
                 NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES.toArray()));
 
         NetconfDeviceInfo deviceInfo2 = new NetconfDeviceInfo(
-                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
+                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), portNumber);
         deviceInfo2.setConnectTimeoutSec(OptionalInt.of(11));
         deviceInfo2.setReplyTimeoutSec(OptionalInt.of(10));
         deviceInfo2.setIdleTimeoutSec(OptionalInt.of(12));

@@ -22,6 +22,7 @@ import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -63,9 +65,8 @@ import static org.onosproject.netconf.DatastoreId.STARTUP;
  */
 public class NetconfSessionMinaImplTest {
     private static final Logger log = LoggerFactory
-            .getLogger(NetconfStreamThread.class);
+            .getLogger(NetconfSessionMinaImplTest.class);
 
-    private static final int PORT_NUMBER = TestTools.findAvailablePort(50830);
     private static final String TEST_USERNAME = "netconf";
     private static final String TEST_PASSWORD = "netconf123";
     private static final String TEST_HOSTNAME = "127.0.0.1";
@@ -123,6 +124,8 @@ public class NetconfSessionMinaImplTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
+        int portNumber = TestTools.findAvailablePort(50830);
         sshServerNetconf = SshServer.setUpDefaultServer();
         sshServerNetconf.setPasswordAuthenticator(
                 new PasswordAuthenticator() {
@@ -134,17 +137,17 @@ public class NetconfSessionMinaImplTest {
                         return TEST_USERNAME.equals(username) && TEST_PASSWORD.equals(password);
                     }
                 });
-        sshServerNetconf.setPort(PORT_NUMBER);
+        sshServerNetconf.setPort(portNumber);
         SimpleGeneratorHostKeyProvider provider = new SimpleGeneratorHostKeyProvider();
         provider.setFile(new File(TEST_SERFILE));
         sshServerNetconf.setKeyPairProvider(provider);
         sshServerNetconf.setSubsystemFactories(
                 Arrays.<NamedFactory<Command>>asList(new NetconfSshdTestSubsystem.Factory()));
         sshServerNetconf.open();
-        log.info("SSH Server opened on port {}", PORT_NUMBER);
+        log.info("SSH Server opened on port {}", portNumber);
 
         NetconfDeviceInfo deviceInfo = new NetconfDeviceInfo(
-                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
+                TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), portNumber);
 
         session1 = new NetconfSessionMinaImpl(deviceInfo, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
