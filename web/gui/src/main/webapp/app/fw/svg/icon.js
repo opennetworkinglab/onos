@@ -63,6 +63,7 @@
         portTable: 'portTable',
         groupTable: 'groupTable',
         meterTable: 'meterTable',
+        pipeconfTable: 'pipeconfTable',
 
         hostIcon_endstation: 'endstation',
         hostIcon_router: 'router',

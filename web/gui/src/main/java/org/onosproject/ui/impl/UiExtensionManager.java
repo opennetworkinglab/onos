@@ -194,6 +194,7 @@ public class UiExtensionManager
                 new UiViewHidden("port"),
                 new UiViewHidden("group"),
                 new UiViewHidden("meter"),
+                new UiViewHidden("pipeconf"),
 
                 mkView(NETWORK, "link", "nav_links"),
                 mkView(NETWORK, "host", "nav_hosts"),
@@ -221,7 +222,8 @@ public class UiExtensionManager
                         new ClusterViewMessageHandler(),
                         new ProcessorViewMessageHandler(),
                         new TunnelViewMessageHandler(),
-                        new PartitionViewMessageHandler()
+                        new PartitionViewMessageHandler(),
+                        new PipeconfViewMessageHandler()
                 );
 
         UiTopoOverlayFactory topoOverlayFactory =

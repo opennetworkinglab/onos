@@ -1,0 +1,163 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* Base */
+#pipeconf-info h2 {
+    display: inline-block;
+    margin: 10px 0 10px 0;
+}
+
+#pipeconf-info h3 {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+#pipeconf-info {
+    height: inherit;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-left: 16px;
+    padding-right: 20px;
+}
+
+#pipeconf-info::-webkit-scrollbar {
+    display: none;
+}
+
+/* Table */
+.pipeconf-table {
+    width: 100%;
+}
+
+.pipeconf-table tr {
+    transition: background-color 500ms;
+    text-align: left;
+    padding: 8px 4px;
+}
+
+.pipeconf-table .selected {
+    background-color: #dbeffc !important;
+}
+
+.pipeconf-table tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+
+.pipeconf-table tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+
+.pipeconf-table tr th {
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    letter-spacing: 0.02em;
+}
+
+.pipeconf-table tr td {
+    padding: 4px;
+    text-align: left;
+    word-wrap: break-word;
+    font-size: 10pt;
+}
+
+.pipeconf-table tr td p {
+    margin: 5px 0;
+}
+
+/* Detail panel */
+.container {
+    padding: 10px;
+    overflow: hidden;
+}
+
+.container .top, .bottom {
+    padding: 15px;
+}
+.container .bottom {
+    overflow-y: scroll;
+}
+
+.container .bottom h2 {
+    margin: 0;
+}
+
+.container .top .detail-panel-header {
+    display: inline-block;
+    margin: 0 0 10px;
+}
+
+
+.detail-panel-table {
+    width: 100%;
+    overflow-y: hidden;
+}
+
+.detail-panel-table td, th {
+    text-align: left;
+    padding: 6px 12px;
+}
+
+.top-info {
+    font-size: 12pt;
+}
+
+.top-info .label {
+    font-weight: bold;
+    text-align: right;
+    display: inline-block;
+    margin: 0;
+    padding-right:6px;
+}
+
+.top-info .value {
+    margin: 0;
+    text-align: left;
+    display: inline-block;
+}
+
+/* Widgets */
+#ov-pipeconf h2 {
+    display: inline-block;
+}
+
+.collapse-btn {
+    cursor: pointer;
+    display: inline-block;
+    max-height: 30px;
+    overflow-y: hidden;
+    position: relative;
+    top: 8px;
+}
+
+.close-btn {
+    display: inline-block;
+    float: right;
+    margin: 0.1em;
+    cursor: pointer;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.no-data {
+    text-align: center !important;
+    font-style: italic;
+}

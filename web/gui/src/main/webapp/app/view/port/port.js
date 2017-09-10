@@ -90,6 +90,7 @@
                 $scope.flowTip = 'Show flow view for this device';
                 $scope.groupTip = 'Show group view for this device';
                 $scope.meterTip = 'Show meter view for selected device';
+                $scope.pipeconfTip = 'Show pipeconf view for selected device';
                 $scope.toggleDeltaTip = 'Toggle port delta statistics';
                 $scope.toggleNZTip = 'Toggle non zero port statistics';
 

@@ -40,6 +40,7 @@
             $scope.flowTip = 'Show flow view for this device';
             $scope.portTip = 'Show port view for this device';
             $scope.groupTip = 'Show group view for this device';
+            $scope.pipeconfTip = 'Show pipeconf view for selected device';
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {

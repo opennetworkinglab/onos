@@ -85,6 +85,15 @@ import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.packet.PacketRequest;
+import org.onosproject.net.pi.model.PiActionModel;
+import org.onosproject.net.pi.model.PiActionParamModel;
+import org.onosproject.net.pi.model.PiHeaderFieldTypeModel;
+import org.onosproject.net.pi.model.PiHeaderModel;
+import org.onosproject.net.pi.model.PiHeaderTypeModel;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableMatchFieldModel;
+import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.net.topology.Topology;
@@ -176,6 +185,15 @@ public class CodecManager implements CodecService {
         registerCodec(FilteredConnectPoint.class, new FilteredConnectPointCodec());
         registerCodec(TransportEndpointDescription.class, new TransportEndpointDescriptionCodec());
         registerCodec(PacketRequest.class, new PacketRequestCodec());
+        registerCodec(PiActionModel.class, new PiActionModelCodec());
+        registerCodec(PiHeaderModel.class, new PiHeaderModelCodec());
+        registerCodec(PiPipelineModel.class, new PiPipelineModelCodec());
+        registerCodec(PiPipeconf.class, new PiPipeconfCodec());
+        registerCodec(PiTableModel.class, new PiTableModelCodec());
+        registerCodec(PiTableMatchFieldModel.class, new PiTableMatchFieldModelCodec());
+        registerCodec(PiHeaderFieldTypeModel.class, new PiHeaderFieldTypeModelCodec());
+        registerCodec(PiHeaderTypeModel.class, new PiHeaderTypeModelCodec());
+        registerCodec(PiActionParamModel.class, new PiActionParamModelCodec());
         log.info("Started");
     }
 

@@ -41,6 +41,7 @@
             $scope.flowTip = 'Show flow view for this device';
             $scope.portTip = 'Show port view for this device';
             $scope.meterTip = 'Show meter view for selected device';
+            $scope.pipeconfTip = 'Show pipeconf view for selected device';
             $scope.briefTip = 'Switch to brief view';
             $scope.detailTip = 'Switch to detailed view';
             $scope.brief = true;

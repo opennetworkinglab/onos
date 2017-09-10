@@ -229,6 +229,7 @@
             $scope.portTip = 'Show port view for selected device';
             $scope.groupTip = 'Show group view for selected device';
             $scope.meterTip = 'Show meter view for selected device';
+            $scope.pipeconfTip = 'Show pipeconf view for selected device';
 
             // details panel handlers
             // handlers[detailsResp] = respDetailsCb;

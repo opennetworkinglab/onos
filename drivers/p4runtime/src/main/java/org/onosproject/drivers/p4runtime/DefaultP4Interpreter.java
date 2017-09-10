@@ -77,6 +77,7 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
 
     public static final String TABLE0 = "table0";
     public static final String TABLE0_COUNTER = "table0_counter";
+    public static final String ECMP = "ecmp";
     public static final String SEND_TO_CPU = "send_to_cpu";
     public static final String PORT = "port";
     public static final String DROP = "_drop";
@@ -85,13 +86,15 @@ public class DefaultP4Interpreter extends AbstractHandlerBehaviour implements Pi
     public static final String INGRESS_PORT = "ingress_port";
 
     private static final PiTableId TABLE0_ID = PiTableId.of(TABLE0);
+    private static final PiTableId ECMP_ID = PiTableId.of(ECMP);
 
     protected static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of("ethernet", "dstAddr");
     protected static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of("ethernet", "srcAddr");
     protected static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of("ethernet", "etherType");
 
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP = ImmutableBiMap.of(
-            0, TABLE0_ID);
+            0, TABLE0_ID,
+            1, ECMP_ID);
 
     private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP = ImmutableBiMap.of(
             TABLE0_ID, PiCounterId.of(TABLE0_COUNTER, PiCounterType.DIRECT));
