@@ -244,6 +244,11 @@ public class DefaultRoutingHandler {
      */
     // XXX refactor
     protected void populateSubnet(Set<ConnectPoint> cpts, Set<IpPrefix> subnets) {
+        if (cpts == null || cpts.size() < 1 || cpts.size() > 2) {
+            log.warn("Skipping populateSubnet due to illegal size of connect points. {}", cpts);
+            return;
+        }
+
         lastRoutingChange = DateTime.now();
         statusLock.lock();
         try {
