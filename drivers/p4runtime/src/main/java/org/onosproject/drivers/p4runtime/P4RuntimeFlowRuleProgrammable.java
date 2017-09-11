@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
@@ -52,18 +53,24 @@ import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.*
  */
 public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehaviour implements FlowRuleProgrammable {
 
-    // TODO: make this attribute configurable by child drivers (e.g. BMv2 or Tofino)
     /*
     When updating an existing rule, if true, we issue a DELETE operation before inserting the new one, otherwise we
     issue a MODIFY operation. This is useful fore devices that do not support MODIFY operations for table entries.
      */
+    // TODO: make this attribute configurable by child drivers (e.g. BMv2 or Tofino)
     private boolean deleteEntryBeforeUpdate = true;
 
-    // TODO: can remove this check as soon as the multi-apply-per-same-flow rule bug is fixed.
     /*
     If true, we ignore re-installing rules that are already known in the ENTRY_STORE, i.e. same match key and action.
      */
+    // TODO: can remove this check as soon as the multi-apply-per-same-flow rule bug is fixed.
     private boolean checkEntryStoreBeforeUpdate = true;
+
+    /*
+    If true, we avoid querying the device and return the content of the ENTRY_STORE.
+     */
+    // TODO: can remove this check as soon as the BMv2 bug when reading ECMP entries is fixed.
+    private boolean ignoreDeviceWhenGet = true;
 
     // Needed to synchronize operations over the same table entry.
     private static final ConcurrentMap<P4RuntimeTableEntryReference, Lock> ENTRY_LOCKS = Maps.newConcurrentMap();
@@ -99,6 +106,14 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
 
         if (!setupBehaviour()) {
             return Collections.emptyList();
+        }
+
+        if (ignoreDeviceWhenGet) {
+            return ENTRY_STORE.values().stream()
+                    .filter(frWrapper -> frWrapper.rule().deviceId().equals(this.deviceId))
+                    .map(frWrapper -> new DefaultFlowEntry(frWrapper.rule(), ADDED, frWrapper.lifeInSeconds(),
+                                                           0, 0))
+                    .collect(Collectors.toList());
         }
 
         ImmutableList.Builder<FlowEntry> resultBuilder = ImmutableList.builder();
