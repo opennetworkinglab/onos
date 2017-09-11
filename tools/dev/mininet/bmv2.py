@@ -216,7 +216,7 @@ class ONOSBmv2Switch(Switch):
             bmv2cmd = "%s %s" % (VALGRIND_PREFIX, bmv2cmd)
         if self.dryrun:
             info("\n*** DRY RUN (not executing bmv2)")
-        info("\nStarting BMv2 target: %s" % bmv2cmd)
+        info("\nStarting BMv2 target: %s\n" % bmv2cmd)
 
         if self.persistent:
             # Bash loop to re-exec the switch if it crashes.
@@ -229,7 +229,7 @@ class ONOSBmv2Switch(Switch):
             out = self.cmd(cmdStr)
             if out:
                 print out
-            if self.valgrind:
+            if self.netcfg and self.valgrind:
                 # With valgrind, it takes some time before the gRPC server is available.
                 # Wait before pushing the netcfg.
                 info("\n*** Waiting %d seconds before pushing the config to ONOS...\n" % VALGRIND_SLEEP)

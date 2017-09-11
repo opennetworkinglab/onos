@@ -16,6 +16,7 @@
 
 package org.onosproject.pi.demo.app.common;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -44,6 +45,7 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableId;
@@ -67,6 +69,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -134,7 +137,7 @@ public abstract class AbstractUpgradableFabricApp {
     private boolean flowRuleGenerated = false;
     private ApplicationId appId;
 
-    private PiPipeconf appPipeconf;
+    private Collection<PiPipeconf> appPipeconfs;
 
     private Set<DeviceId> leafSwitches;
     private Set<DeviceId> spineSwitches;
@@ -149,11 +152,12 @@ public abstract class AbstractUpgradableFabricApp {
      * Creates a new PI fabric app.
      *
      * @param appName     app name
-     * @param appPipeconf a P4Runtime device context to be used on devices
+     * @param appPipeconfs collection of compatible pipeconfs
      */
-    protected AbstractUpgradableFabricApp(String appName, PiPipeconf appPipeconf) {
+    protected AbstractUpgradableFabricApp(String appName, Collection<PiPipeconf> appPipeconfs) {
         this.appName = checkNotNull(appName);
-        this.appPipeconf = checkNotNull(appPipeconf);
+        this.appPipeconfs = checkNotNull(appPipeconfs);
+        checkArgument(appPipeconfs.size() > 0, "appPipeconfs cannot have size 0");
     }
 
     @Activate
@@ -177,7 +181,7 @@ public abstract class AbstractUpgradableFabricApp {
 
         appId = coreService.registerApplication(appName);
         deviceService.addListener(deviceListener);
-        piPipeconfService.register(appPipeconf);
+        appPipeconfs.forEach(piPipeconfService::register);
 
         init();
 
@@ -197,7 +201,9 @@ public abstract class AbstractUpgradableFabricApp {
         scheduledExecutorService.shutdown();
         deviceService.removeListener(deviceListener);
         flowRuleService.removeFlowRulesById(appId);
-        piPipeconfService.remove(appPipeconf.id());
+        appPipeconfs.stream()
+                .map(PiPipeconf::id)
+                .forEach(piPipeconfService::remove);
 
         appActive = false;
         APP_HANDLES.remove(appName);
@@ -287,6 +293,11 @@ public abstract class AbstractUpgradableFabricApp {
                 .forEach(device -> spawnTask(() -> deployDevice(device)));
     }
 
+    private boolean matchPipeconf(PiPipeconfId piPipeconfId) {
+        return appPipeconfs.stream()
+                .anyMatch(p -> p.id().equals(piPipeconfId));
+    }
+
     /**
      * Executes a device deploy.
      *
@@ -304,11 +315,12 @@ public abstract class AbstractUpgradableFabricApp {
             // Set pipeconf flag if not already done.
             if (!pipeconfFlags.getOrDefault(deviceId, false)) {
                 if (piPipeconfService.ofDevice(deviceId).isPresent() &&
-                        appPipeconf.id().equals(piPipeconfService.ofDevice(deviceId).get())) {
+                        matchPipeconf(piPipeconfService.ofDevice(deviceId).get())) {
                     pipeconfFlags.put(device.id(), true);
                 } else {
                     log.warn("Wrong pipeconf for {}, expecting {}, but found {}, aborting deploy",
-                             deviceId, appPipeconf.id(), piPipeconfService.ofDevice(deviceId).get());
+                             deviceId, MoreObjects.toStringHelper(appPipeconfs),
+                             piPipeconfService.ofDevice(deviceId).get());
                     return;
                 }
             }

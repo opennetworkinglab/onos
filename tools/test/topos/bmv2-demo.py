@@ -106,14 +106,14 @@ class DemoHost(ONOSHost):
         self.cmd(self.getInfiniteCmdBg("arping -w5000000 %s" % h.IP()))
 
     def startIperfServer(self):
-        self.cmd(self.getInfiniteCmdBg("iperf3 -s"))
+        self.cmd(self.getInfiniteCmdBg("iperf -s -u"))
 
     def startIperfClient(self, h, flowBw="512k", numFlows=5, duration=5):
-        iperfCmd = "iperf3 -c{} -b{} -P{} -t{}".format(h.IP(), flowBw, numFlows, duration)
+        iperfCmd = "iperf -c{} -u -b{} -P{} -t{}".format(h.IP(), flowBw, numFlows, duration)
         self.cmd(self.getInfiniteCmdBg(iperfCmd, sleep=0))
 
     def stop(self):
-        self.cmd("killall iperf3")
+        self.cmd("killall iperf")
         self.cmd("killall ping")
         self.cmd("killall arping")
 
@@ -252,7 +252,11 @@ def main(args):
 
     generateNetcfg(onosIp, net, args)
 
-    print "Uploading netcfg..."
+    if args.netcfg_sleep > 0:
+        print "Waiting %d seconds before pushing config to ONOS..." % args.netcfg_sleep
+        sleep(args.netcfg_sleep)
+
+    print "Pushing config to ONOS..."
     call(("%s/onos-netcfg" % RUN_PACK_PATH, onosIp, TEMP_NETCFG_FILE))
 
     if not args.onos_ip:
@@ -275,6 +279,8 @@ if __name__ == '__main__':
                         type=bool, action="store", required=False, default=False)
     parser.add_argument('--pipeconf-id', help='Pipeconf ID for switches',
                         type=str, action="store", required=False, default='')
+    parser.add_argument('--netcfg-sleep', help='Seconds to wait before pushing config to ONOS',
+                        type=int, action="store", required=False, default=5)
     args = parser.parse_args()
     setLogLevel('info')
     main(args)
