@@ -31,6 +31,7 @@ import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.neighbour.NeighbourMessageType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
@@ -204,21 +205,31 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         IPv6 ipv6Packet = (IPv6) eth.getPayload();
         Ip6Address destinationAddress = Ip6Address.valueOf(ipv6Packet.getDestinationAddress());
         Set<IpAddress> gatewayIpAddresses = config.getPortIPs(deviceId);
+        MacAddress interfaceMac;
         IpAddress routerIp;
+
         try {
             routerIp = config.getRouterIpv6(deviceId);
+            Optional<MacAddress> macAddress = srManager.interfaceService.getInterfacesByPort(inPort).stream()
+                    .map(Interface::mac)
+                    .findFirst();
+            if (!macAddress.isPresent()) {
+                log.warn("Failed in fetching MAC address of {}. Aborting ICMP6 processing.", inPort);
+                return;
+            }
+            interfaceMac = MacAddress.valueOf(macAddress.get().toBytes());
+
+            // Ensure ICMP to the router IP, gateway IP or link-local EUI-64
+            ICMP6 icmp6 = (ICMP6) ipv6Packet.getPayload();
+            if (icmp6.getIcmpType() == ICMP6.ECHO_REQUEST && (destinationAddress.equals(routerIp.getIp6Address()) ||
+                    destinationAddress.equals(Ip6Address.valueOf(IPv6.getLinkLocalAddress(interfaceMac.toBytes()))) ||
+                    gatewayIpAddresses.contains(destinationAddress))) {
+                sendIcmpv6Response(eth, inPort);
+            } else {
+                log.trace("Ignore ICMPv6 that targets for {}", destinationAddress);
+            }
         } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting processPacketIn.");
-            return;
-        }
-        ICMP6 icmp6 = (ICMP6) ipv6Packet.getPayload();
-        // ICMP to the router IP or gateway IP
-        if (icmp6.getIcmpType()  == ICMP6.ECHO_REQUEST &&
-                (destinationAddress.equals(routerIp.getIp6Address()) ||
-                        gatewayIpAddresses.contains(destinationAddress))) {
-            sendIcmpv6Response(eth, inPort);
-        } else {
-            log.trace("Ignore ICMPv6 that targets for {}", destinationAddress);
+            log.warn(e.getMessage() + " Ignore ICMPv6 that targets to {}.", destinationAddress);
         }
     }
 
@@ -256,11 +267,15 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
             }
         }
 
-        int sid = config.getIPv6SegmentId(destRouterAddress);
-        if (sid < 0) {
-            log.warn("Failed to lookup SID of the switch that {} attaches to. " +
-                    "Unable to process ICMPv6 request.", destIpAddress);
-            return;
+        // Search SID only if store lookup is success otherwise proceed with "sid=-1"
+        int sid = -1;
+        if (destRouterAddress !=  null) {
+            sid = config.getIPv6SegmentId(destRouterAddress);
+            if (sid < 0) {
+                log.warn("Failed to lookup SID of the switch that {} attaches to. " +
+                        "Unable to process ICMPv6 request.", destIpAddress);
+                return;
+            }
         }
         sendPacketOut(outport, ethReply, sid, destIpAddress, icmpReplyIpv6.getHopLimit());
     }
@@ -301,16 +316,39 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
 
     /**
      * Helper method to handle the ndp requests.
-     *
      * @param pkt the ndp packet request and context information
      * @param hostService the host service
      */
     private void handleNdpRequest(NeighbourMessageContext pkt, HostService hostService) {
         // ND request for the gateway. We have to reply on behalf of the gateway.
         if (isNdpForGateway(pkt)) {
-            log.trace("Sending NDP reply on behalf of gateway IP for pkt: {}", pkt);
-            sendResponse(pkt, config.getRouterMacForAGatewayIp(pkt.target()), hostService);
+            log.trace("Sending NDP reply on behalf of gateway IP for pkt: {}", pkt.target());
+            MacAddress routerMac = config.getRouterMacForAGatewayIp(pkt.target());
+            sendResponse(pkt, routerMac, hostService);
         } else {
+
+            // Process NDP targets towards EUI-64 address.
+            try {
+                DeviceId deviceId = pkt.inPort().deviceId();
+                Optional<MacAddress> macAddress = srManager.interfaceService.getInterfacesByPort(pkt.inPort())
+                        .stream()
+                        .map(Interface::mac)
+                        .findFirst();
+                if (!macAddress.isPresent()) {
+                    log.warn("Failed in fetching MAC address of {}. Aborting NDP processing.", pkt.inPort());
+                    return;
+                }
+                MacAddress interfaceMac = MacAddress.valueOf(macAddress.get().toBytes());
+                Ip6Address interfaceLinkLocalIP = Ip6Address.valueOf(IPv6.getLinkLocalAddress(interfaceMac.toBytes()));
+                if (pkt.target().equals(interfaceLinkLocalIP)) {
+                    MacAddress routerMac = config.getDeviceMac(deviceId);
+                    sendResponse(pkt, routerMac, hostService);
+                }
+            } catch (DeviceConfigNotFoundException e) {
+                log.warn(e.getMessage() + " Unable to handle NDP packet to {}. Aborting.", pkt.target());
+                return;
+            }
+
             // NOTE: Ignore NDP packets except those target for the router
             //       We will reconsider enabling this when we have host learning support
             /*
@@ -376,6 +414,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
     private boolean isNdpForGateway(NeighbourMessageContext pkt) {
         DeviceId deviceId = pkt.inPort().deviceId();
         Set<IpAddress> gatewayIpAddresses = null;
+
         try {
             if (pkt.target().equals(config.getRouterIpv6(deviceId))) {
                 return true;
@@ -383,14 +422,13 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
             gatewayIpAddresses = config.getPortIPs(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting check for router IP in processing ndp");
+            return false;
         }
-
         return gatewayIpAddresses != null && gatewayIpAddresses.stream()
                 .filter(IpAddress::isIp6)
                 .anyMatch(gatewayIp -> gatewayIp.equals(pkt.target()) ||
                         Arrays.equals(IPv6.getSolicitNodeAddress(gatewayIp.toOctets()),
-                                pkt.target().toOctets())
-        );
+                                pkt.target().toOctets()));
     }
 
     /**

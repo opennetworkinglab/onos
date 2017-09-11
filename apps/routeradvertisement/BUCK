@@ -1,0 +1,15 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api'
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'IPv6 RA Generator',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Application for generating IPv6 RAs',
+)

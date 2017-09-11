@@ -224,6 +224,7 @@ ONOS_APPS = [
     '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar',
     '//apps/p4-tutorial/icmpdropper:onos-apps-p4-tutorial-icmpdropper-oar',
     '//apps/cfm:onos-apps-cfm-oar',
+    '//apps/routeradvertisement:onos-apps-routeradvertisement-oar',
 ]
 
 PROTOCOL_APPS = [
