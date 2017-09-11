@@ -93,6 +93,7 @@
         <module>evpnopenflow</module>
         <module>route-service</module>
         <module>evpn-route-service</module>
+        <module>routeradvertisement</module>
     </modules>
 
     <properties>
