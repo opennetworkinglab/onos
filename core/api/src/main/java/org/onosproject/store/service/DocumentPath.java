@@ -16,6 +16,7 @@
 
 package org.onosproject.store.service;
 
+import com.google.common.collect.Comparators;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
@@ -24,6 +25,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -233,19 +235,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
 
     @Override
     public int compareTo(DocumentPath that) {
-        int shorterLength = this.pathElements.size() > that.pathElements.size()
-                ? that.pathElements.size() : this.pathElements.size();
-        for (int i = 0; i < shorterLength; i++) {
-            if (this.pathElements.get(i).compareTo(that.pathElements.get(i)) != 0) {
-                return this.pathElements.get(i).compareTo(that.pathElements.get(i));
-            }
-        }
-        if (this.pathElements.size() > that.pathElements.size()) {
-            return 1;
-        } else if (that.pathElements.size() > this.pathElements.size()) {
-            return -1;
-        } else {
-            return 0;
-        }
+        return Comparators.lexicographical(Comparator.<String>naturalOrder())
+                .compare(this.pathElements, that.pathElements);
     }
 }

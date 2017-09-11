@@ -16,8 +16,13 @@
 
 package org.onosproject.store.service;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -73,10 +78,10 @@ public class DocumentPathTest {
         DocumentPath one = path("root");
         DocumentPath four = path("root.a.b.c.d");
         DocumentPath difFour = path("root.e.c.b.a");
-        assertEquals(-1, one.compareTo(four));
-        assertEquals(1, four.compareTo(one));
-        assertEquals(4, difFour.compareTo(four));
-        assertEquals(0, difFour.compareTo(difFour));
+        assertThat(one.compareTo(four), is(lessThan(0)));
+        assertThat(four.compareTo(one), is(greaterThan(0)));
+        assertThat(difFour.compareTo(four), is(greaterThan(0)));
+        assertThat(difFour.compareTo(difFour), is(equalTo(0)));
     }
 
     private static DocumentPath exceptions(String nodeName, DocumentPath path) {
