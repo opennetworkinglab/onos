@@ -110,7 +110,7 @@ public class PartitionedAsyncDocumentTree<V> implements AsyncDocumentTree<V> {
         // TODO: This operation is not atomic
         return partition(path.parent()).get(path).thenCompose(parentValue -> {
             if (parentValue == null) {
-                return Tools.exceptionalFuture(new NoSuchDocumentPathException(path.parent().toString()));
+                return Tools.exceptionalFuture(new NoSuchDocumentPathException(String.valueOf(path.parent())));
             } else {
                 return partition(path).createRecursive(path, value);
             }
