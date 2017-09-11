@@ -186,6 +186,7 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
+import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
@@ -590,6 +591,7 @@ public final class KryoNamespaces {
             .register(MarkerResource.class)
             .register(new BitSetSerializer(), BitSet.class)
             .register(DomainIntent.class)
+            .register(DomainConstraint.class)
             .register(
                     // PI model
                     PiMatchType.class,
