@@ -14,18 +14,18 @@ class DualTopo( Topo ):
         Topo.__init__( self )
 
         # add nodes, switches first...
-        LONDON = self.addSwitch( 's1' )
-        BRISTL = self.addSwitch( 's2' )
+        SWA = self.addSwitch( 's1' )
+        SWB = self.addSwitch( 's2' )
 
         # ... and now hosts
-        LONDON_host = self.addHost( 'h1' )
+        HOSTX = self.addHost( 'h1' )
 
         # add edges between switch and corresponding host
-        self.addLink( LONDON, LONDON_host )
-        self.addLink( BRISTL, LONDON_host )
+        self.addLink( SWA, HOSTX )
+        self.addLink( SWB, HOSTX )
 
         # add edges between switches
-        self.addLink( LONDON, BRISTL, bw=10, delay='1.0ms')
+        self.addLink( SWA, SWB, bw=10, delay='1.0ms' )
 
 
 topos = { 'dual': ( lambda: DualTopo() ) }
