@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
@@ -59,10 +60,15 @@ import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.net.Host;
+import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.config.Config;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -98,6 +104,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableSet;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
+import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
+
 /**
  * DHCP Relay Agent Application Component.
  */
@@ -197,19 +206,23 @@ public class DhcpRelayManager implements DhcpRelayService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
-               target = "(version=4)")
+            target = "(version=4)")
     protected DhcpHandler v4Handler;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
-               target = "(version=6)")
+            target = "(version=6)")
     protected DhcpHandler v6Handler;
 
     @Property(name = "arpEnabled", boolValue = true,
-             label = "Enable Address resolution protocol")
+            label = "Enable Address resolution protocol")
     protected boolean arpEnabled = true;
 
     protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
+    protected DeviceListener deviceListener = new InternalDeviceListener();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ApplicationId appId;
 
@@ -237,6 +250,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         compCfgService.preSetProperty(ROUTE_STORE_IMPL,
                                       "distributed", Boolean.TRUE.toString());
         compCfgService.registerProperties(getClass());
+
+        deviceService.addListener(deviceListener);
         log.info("DHCP-RELAY Started");
     }
 
@@ -247,8 +262,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         packetService.removeProcessor(dhcpRelayPacketProcessor);
         cancelDhcpPackets();
         cancelArpPackets();
-
         compCfgService.unregisterProperties(getClass(), false);
+        deviceService.removeListener(deviceListener);
         log.info("DHCP-RELAY Stopped");
     }
 
@@ -309,7 +324,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             v6Handler.setDefaultDhcpServerConfigs(defaultConfig.dhcpServerConfigs());
         }
         if (config instanceof IgnoreDhcpConfig) {
-            addIgnoreVlanRules((IgnoreDhcpConfig) config);
+            updateIgnoreVlanRules((IgnoreDhcpConfig) config);
         }
     }
 
@@ -322,93 +337,103 @@ public class DhcpRelayManager implements DhcpRelayService {
             v6Handler.setDefaultDhcpServerConfigs(Collections.emptyList());
         }
         if (config instanceof IgnoreDhcpConfig) {
-            ignoredVlans.forEach(this::removeIgnoreVlanRule);
-            ignoredVlans.clear();
+            ignoredVlans.forEach(((deviceId, vlanId) -> {
+                processIgnoreVlanRule(deviceId, vlanId, REMOVE);
+            }));
         }
     }
 
-    private void addIgnoreVlanRules(IgnoreDhcpConfig config) {
+    private void updateIgnoreVlanRules(IgnoreDhcpConfig config) {
         config.ignoredVlans().forEach((deviceId, vlanId) -> {
             if (ignoredVlans.get(deviceId).contains(vlanId)) {
                 // don't need to process if it already ignored
                 return;
             }
-            installIgnoreVlanRule(deviceId, vlanId);
-            ignoredVlans.put(deviceId, vlanId);
+            processIgnoreVlanRule(deviceId, vlanId, ADD);
         });
 
-        Multimap<DeviceId, VlanId> removedVlans = HashMultimap.create();
         ignoredVlans.forEach((deviceId, vlanId) -> {
             if (!config.ignoredVlans().get(deviceId).contains(vlanId)) {
                 // not contains in new config, remove it
-                removeIgnoreVlanRule(deviceId, vlanId);
-                removedVlans.put(deviceId, vlanId);
-
+                processIgnoreVlanRule(deviceId, vlanId, REMOVE);
             }
         });
-        removedVlans.forEach(ignoredVlans::remove);
     }
 
-    private void installIgnoreVlanRule(DeviceId deviceId, VlanId vlanId) {
+    /**
+     * Process the ignore rules.
+     *
+     * @param deviceId the device id
+     * @param vlanId the vlan to be ignored
+     * @param op the operation, ADD to install; REMOVE to uninstall rules
+     */
+    private void processIgnoreVlanRule(DeviceId deviceId, VlanId vlanId, Objective.Operation op) {
         TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
         dropTreatment.clearedDeferred();
+        AtomicInteger installedCount = new AtomicInteger(DHCP_SELECTORS.size());
         DHCP_SELECTORS.forEach(trafficSelector -> {
             UdpPortCriterion udpDst = (UdpPortCriterion) trafficSelector.getCriterion(Criterion.Type.UDP_DST);
+            int udpDstPort = udpDst.udpPort().toInt();
             TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
                     .matchVlanId(vlanId)
                     .build();
 
-            ForwardingObjective fwd = DefaultForwardingObjective.builder()
+            ForwardingObjective.Builder builder = DefaultForwardingObjective.builder()
                     .withFlag(ForwardingObjective.Flag.VERSATILE)
                     .withSelector(selector)
                     .withPriority(IGNORE_CONTROL_PRIORITY)
                     .withTreatment(dropTreatment)
-                    .fromApp(appId)
-                    .add(new ObjectiveContext() {
-                        @Override
-                        public void onSuccess(Objective objective) {
-                            log.info("Vlan id {} from device {} ignored (UDP port {})",
-                                     vlanId, deviceId, udpDst.udpPort().toInt());
-                        }
+                    .fromApp(appId);
 
-                        @Override
-                        public void onError(Objective objective, ObjectiveError error) {
-                            log.warn("Can't ignore vlan id {} from device {} due to {}",
-                                     vlanId, deviceId, error);
-                        }
-                    });
-            flowObjectiveService.apply(deviceId, fwd);
-        });
-    }
 
-    private void removeIgnoreVlanRule(DeviceId deviceId, VlanId vlanId) {
-        TrafficTreatment dropTreatment = DefaultTrafficTreatment.emptyTreatment();
-        dropTreatment.clearedDeferred();
-        DHCP_SELECTORS.forEach(trafficSelector -> {
-            UdpPortCriterion udpDst = (UdpPortCriterion) trafficSelector.getCriterion(Criterion.Type.UDP_DST);
-            TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
-                    .matchVlanId(vlanId)
-                    .build();
+            ObjectiveContext objectiveContext = new ObjectiveContext() {
+                @Override
+                public void onSuccess(Objective objective) {
+                    log.info("Ignore rule {} (Vlan id {}, device {}, UDP dst {})",
+                             op, vlanId, deviceId, udpDstPort);
+                    int countDown = installedCount.decrementAndGet();
+                    if (countDown != 0) {
+                        return;
+                    }
+                    switch (op) {
+                        case ADD:
 
-            ForwardingObjective fwd = DefaultForwardingObjective.builder()
-                    .withFlag(ForwardingObjective.Flag.VERSATILE)
-                    .withSelector(selector)
-                    .withPriority(IGNORE_CONTROL_PRIORITY)
-                    .withTreatment(dropTreatment)
-                    .fromApp(appId)
-                    .remove(new ObjectiveContext() {
-                        @Override
-                        public void onSuccess(Objective objective) {
-                            log.info("Vlan id {} from device {} ignore rule removed (UDP port {})",
-                                     vlanId, deviceId, udpDst.udpPort().toInt());
-                        }
+                            ignoredVlans.put(deviceId, vlanId);
+                            break;
+                        case REMOVE:
+                            ignoredVlans.remove(deviceId, vlanId);
+                            break;
+                        default:
+                            log.warn("Unsupported objective operation {}", op);
+                            break;
+                    }
+                }
 
-                        @Override
-                        public void onError(Objective objective, ObjectiveError error) {
-                            log.warn("Can't remove ignore rule of vlan id {} from device {} due to {}",
-                                     vlanId, deviceId, error);
-                        }
-                    });
+                @Override
+                public void onError(Objective objective, ObjectiveError error) {
+                    log.warn("Can't {} ignore rule (vlan id {}, udp dst {}, device {}) due to {}",
+                             op, vlanId, udpDstPort, deviceId, error);
+                }
+            };
+
+            ForwardingObjective fwd;
+            switch (op) {
+                case ADD:
+                    fwd = builder.add(objectiveContext);
+                    break;
+                case REMOVE:
+                    fwd = builder.remove(objectiveContext);
+                    break;
+                default:
+                    log.warn("Unsupported objective operation {}", op);
+                    return;
+            }
+
+            Device device = deviceService.getDevice(deviceId);
+            if (device == null || !device.is(Pipeliner.class)) {
+                log.warn("Device {} is not available now, wait until device is available", deviceId);
+                return;
+            }
             flowObjectiveService.apply(deviceId, fwd);
         });
     }
@@ -618,6 +643,43 @@ public class DhcpRelayManager implements DhcpRelayService {
                     break;
             }
 
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    deviceAdd(device.id());
+                    break;
+                case DEVICE_REMOVED:
+                    ignoredVlans.removeAll(device.id());
+                    break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    deviceAvailabilityChanged(device);
+
+                default:
+                    break;
+            }
+        }
+
+        private void deviceAvailabilityChanged(Device device) {
+            if (deviceService.isAvailable(device.id())) {
+                deviceAdd(device.id());
+            } else {
+                ignoredVlans.removeAll(device.id());
+            }
+        }
+
+        private void deviceAdd(DeviceId deviceId) {
+            IgnoreDhcpConfig config = cfgService.getConfig(appId, IgnoreDhcpConfig.class);
+            Collection<VlanId> vlanIds = config.ignoredVlans().get(deviceId);
+            vlanIds.forEach(vlanId -> {
+                processIgnoreVlanRule(deviceId, vlanId, ADD);
+            });
         }
     }
 }

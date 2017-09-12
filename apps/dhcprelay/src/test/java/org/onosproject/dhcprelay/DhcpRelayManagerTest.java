@@ -64,7 +64,11 @@ import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpRelayStoreEvent;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -100,6 +104,7 @@ import org.osgi.service.component.ComponentContext;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.IPv6;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -113,6 +118,7 @@ import java.util.stream.Collectors;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_RELAY_APP;
+import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_SELECTORS;
 
 public class DhcpRelayManagerTest {
     private static final String CONFIG_FILE_PATH = "dhcp-relay.json";
@@ -239,6 +245,14 @@ public class DhcpRelayManagerTest {
         packetService = new MockPacketService();
         manager.packetService = packetService;
         manager.compCfgService = createNiceMock(ComponentConfigService.class);
+        manager.deviceService = createNiceMock(DeviceService.class);
+
+        Device device = createNiceMock(Device.class);
+        expect(device.is(Pipeliner.class)).andReturn(true).anyTimes();
+
+        expect(manager.deviceService.getDevice(DEV_1_ID)).andReturn(device).anyTimes();
+        expect(manager.deviceService.getDevice(DEV_2_ID)).andReturn(device).anyTimes();
+        replay(manager.deviceService, device);
 
         mockHostStore = new MockHostStore();
         mockRouteStore = new MockRouteStore();
@@ -247,6 +261,8 @@ public class DhcpRelayManagerTest {
 
         manager.interfaceService = new MockInterfaceService();
         manager.flowObjectiveService = EasyMock.niceMock(FlowObjectiveService.class);
+
+
 
         Dhcp4HandlerImpl v4Handler = new Dhcp4HandlerImpl();
         v4Handler.dhcpRelayStore = mockDhcpRelayStore;
@@ -400,10 +416,10 @@ public class DhcpRelayManagerTest {
 
         Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
         manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
-        expectLastCall().times(2);
+        expectLastCall().times(DHCP_SELECTORS.size());
         Capture<Objective> capturedFromDev2 = newCapture(CaptureType.ALL);
         manager.flowObjectiveService.apply(eq(DEV_2_ID), capture(capturedFromDev2));
-        expectLastCall().times(2);
+        expectLastCall().times(DHCP_SELECTORS.size());
         replay(manager.flowObjectiveService);
         manager.updateConfig(config);
         verify(manager.flowObjectiveService);
@@ -427,8 +443,11 @@ public class DhcpRelayManagerTest {
             assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
             assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
             assertEquals(Objective.Operation.ADD, fwd.op());
+            fwd.context().ifPresent(ctx -> {
+                ctx.onSuccess(fwd);
+            });
         }
-
+        objectivesFromDev2.forEach(obj -> obj.context().ifPresent(ctx -> ctx.onSuccess(obj)));
         assertEquals(2, manager.ignoredVlans.size());
     }
 
@@ -443,10 +462,10 @@ public class DhcpRelayManagerTest {
 
         Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
         manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
-        expectLastCall().times(2);
+        expectLastCall().times(DHCP_SELECTORS.size());
         Capture<Objective> capturedFromDev2 = newCapture(CaptureType.ALL);
         manager.flowObjectiveService.apply(eq(DEV_2_ID), capture(capturedFromDev2));
-        expectLastCall().times(2);
+        expectLastCall().times(DHCP_SELECTORS.size());
         replay(manager.flowObjectiveService);
         manager.removeConfig(config);
         verify(manager.flowObjectiveService);
@@ -470,8 +489,71 @@ public class DhcpRelayManagerTest {
             assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
             assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
             assertEquals(Objective.Operation.REMOVE, fwd.op());
+            fwd.context().ifPresent(ctx -> {
+                ctx.onSuccess(fwd);
+            });
         }
+        objectivesFromDev2.forEach(obj -> obj.context().ifPresent(ctx -> ctx.onSuccess(obj)));
         assertEquals(0, manager.ignoredVlans.size());
+    }
+
+    /**
+     * Should ignore ignore rules installation when device not available.
+     */
+    @Test
+    public void testIgnoreUnknownDevice() throws IOException {
+        reset(manager.deviceService);
+        Device device = createNiceMock(Device.class);
+        expect(device.is(Pipeliner.class)).andReturn(true).anyTimes();
+
+        expect(manager.deviceService.getDevice(DEV_1_ID)).andReturn(device).anyTimes();
+        expect(manager.deviceService.getDevice(DEV_2_ID)).andReturn(null).anyTimes();
+
+        ObjectMapper om = new ObjectMapper();
+        JsonNode json = om.readTree(Resources.getResource(CONFIG_FILE_PATH));
+        IgnoreDhcpConfig config = new IgnoreDhcpConfig();
+        json = json.path("apps").path(DHCP_RELAY_APP).path(IgnoreDhcpConfig.KEY);
+        config.init(APP_ID, IgnoreDhcpConfig.KEY, json, om, null);
+
+        Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
+        expectLastCall().times(DHCP_SELECTORS.size());
+        replay(manager.flowObjectiveService, manager.deviceService, device);
+
+        manager.updateConfig(config);
+        capturedFromDev1.getValues().forEach(obj -> obj.context().ifPresent(ctx -> ctx.onSuccess(obj)));
+
+        assertEquals(1, manager.ignoredVlans.size());
+    }
+
+    /**
+     * Should try install ignore rules when device comes up.
+     */
+    @Test
+    public void testInstallIgnoreRuleWhenDeviceComesUp() throws IOException {
+        ObjectMapper om = new ObjectMapper();
+        JsonNode json = om.readTree(Resources.getResource(CONFIG_FILE_PATH));
+        IgnoreDhcpConfig config = new IgnoreDhcpConfig();
+        json = json.path("apps").path(DHCP_RELAY_APP).path(IgnoreDhcpConfig.KEY);
+        config.init(APP_ID, IgnoreDhcpConfig.KEY, json, om, null);
+
+        reset(manager.cfgService, manager.flowObjectiveService, manager.deviceService);
+        expect(manager.cfgService.getConfig(APP_ID, IgnoreDhcpConfig.class))
+                .andReturn(config).anyTimes();
+
+        Device device = createNiceMock(Device.class);
+        expect(device.is(Pipeliner.class)).andReturn(true).anyTimes();
+        expect(device.id()).andReturn(DEV_1_ID).anyTimes();
+        expect(manager.deviceService.getDevice(DEV_1_ID)).andReturn(device).anyTimes();
+        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, device);
+        Capture<Objective> capturedFromDev1 = newCapture(CaptureType.ALL);
+        manager.flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
+        expectLastCall().times(DHCP_SELECTORS.size());
+        replay(manager.cfgService, manager.flowObjectiveService, manager.deviceService, device);
+        assertEquals(0, manager.ignoredVlans.size());
+        manager.deviceListener.event(event);
+        capturedFromDev1.getValues().forEach(obj -> obj.context().ifPresent(ctx -> ctx.onSuccess(obj)));
+        assertEquals(1, manager.ignoredVlans.size());
     }
 
     /**
