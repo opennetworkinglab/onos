@@ -15,6 +15,9 @@
  */
 package org.onosproject.segmentrouting.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
@@ -136,6 +139,7 @@ public class DeviceConfiguration implements DeviceProperties {
                 ConnectPoint connectPoint = networkInterface.connectPoint();
                 DeviceId dpid = connectPoint.deviceId();
                 PortNumber port = connectPoint.port();
+                MacAddress mac = networkInterface.mac();
                 SegmentRouterInfo info = deviceConfigMap.get(dpid);
 
                 // skip if there is no corresponding device for this ConenctPoint
@@ -158,6 +162,16 @@ public class DeviceConfiguration implements DeviceProperties {
                             info.subnets.put(port, interfaceAddress.subnetAddress());
                         }
                     });
+
+                    // Override interface mac with router mac
+                    if (!mac.equals(info.mac)) {
+                        ArrayNode array = (ArrayNode) config.node();
+                        for (JsonNode intfNode : array) {
+                            ObjectNode objNode = (ObjectNode) intfNode;
+                            objNode.put(InterfaceConfig.MAC, info.mac.toString());
+                        }
+                        srManager.cfgService.applyConfig(connectPoint, InterfaceConfig.class, array);
+                    }
                 }
             });
             // We register the connect point with the NRS.
