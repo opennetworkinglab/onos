@@ -58,6 +58,16 @@
     display: inline-block;
     margin: 8px 0;
     padding-left: 6px;
+    font-size: 16pt;
+    font-weight: lighter;
+}
+
+#yang-model-details-panel h3 {
+    display: inline-block;
+    margin: 8px 0;
+    padding-left: 6px;
+    font-size: 13pt;
+    font-weight: lighter;
 }
 
 #yang-model-details-panel .src-frame {

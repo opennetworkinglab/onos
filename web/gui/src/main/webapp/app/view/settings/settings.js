@@ -38,7 +38,7 @@
         topPdg = 60,
         propOrder = ['fqComponent', 'prop', 'type', 'value', 'defValue', 'desc'],
         friendlyProps = [
-            'Component', 'Property', 'Type', 'Value', 'Default Value',
+            'Component', 'Property', 'Type', 'Value', 'Default',
             'Description',
         ];
 
@@ -110,7 +110,7 @@
     }
 
     function populateTop(details) {
-        var propsBody = top.select('.settings-props').append('tbody');
+        var propsBody = top.select('.settings-props table').append('tbody');
 
         top.select('.settings-title-1').text(details.component);
         top.select('.settings-title-2').text(details.prop);

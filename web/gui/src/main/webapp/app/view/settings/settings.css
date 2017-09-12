@@ -45,7 +45,7 @@
 
 #settings-details-panel .top .settings-title-1 {
     width: 90%;
-    height: 28px;
+    height: 20px;
     font-size: 14pt;
     font-weight: lighter;
     overflow: hidden;
@@ -58,7 +58,7 @@
 #settings-details-panel .top .settings-title-2 {
     width: 90%;
     height: 52px;
-    font-size: 20pt;
+    font-size: 18pt;
     font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;
@@ -70,7 +70,7 @@
 #settings-details-panel td.label {
     font-weight: bold;
     text-align: right;
-    font-size: 12pt;
+    font-size: 10pt;
     padding-right: 6px;
     vertical-align: top;
     width: 120px;

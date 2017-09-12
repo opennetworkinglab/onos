@@ -52,10 +52,12 @@ div.summary-list td {
     padding: 4px;
     text-align: left;
     word-wrap: break-word;
-    font-size: 12pt;
+    font-size: 10pt;
 }
 
 div.summary-list td.table-icon {
+    padding-top: 4px;
+    padding-bottom: 0px;
     padding-left: 4px;
     text-align: center;
 }
@@ -64,10 +66,9 @@ div.summary-list .table-header td {
     font-weight: bold;
     font-variant: small-caps;
     text-transform: uppercase;
-    font-size: 11pt;
-    padding-top: 14px;
-    padding-bottom: 14px;
-
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
     letter-spacing: 0.02em;
     cursor: pointer;
 }
