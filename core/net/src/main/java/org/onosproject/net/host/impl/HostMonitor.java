@@ -18,6 +18,8 @@ package org.onosproject.net.host.impl;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -194,28 +196,26 @@ public class HostMonitor implements Runnable {
             intf.ipAddressesList().stream()
                     .filter(ia -> ia.subnetAddress().contains(targetIp))
                     .forEach(ia -> {
-                        log.debug("Sending probe for target:{} out of intf:{} vlan:{}",
-                                targetIp, intf.connectPoint(), intf.vlan());
-                        sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
-                                intf.mac(), intf.vlan());
+                        MacAddress probeMac = intf.mac();
+                        IpAddress probeIp = !probeMac.equals(MacAddress.ONOS) ?
+                                ia.ipAddress() :
+                                (ia.ipAddress().isIp4() ? Ip4Address.ZERO : Ip6Address.ZERO);
+                        sendProbe(intf.connectPoint(), targetIp, probeIp, probeMac, intf.vlan());
+
                         // account for use-cases where tagged-vlan config is used
                         if (!intf.vlanTagged().isEmpty()) {
                             intf.vlanTagged().forEach(tag -> {
-                                log.debug("Sending probe for target:{} out of intf:{} vlan:{}",
-                                        targetIp, intf.connectPoint(), tag);
-                                sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
-                                        intf.mac(), tag);
+                                sendProbe(intf.connectPoint(), targetIp, probeIp, probeMac, tag);
                             });
                         }
                     });
         });
     }
 
-    public void sendProbe(ConnectPoint connectPoint,
-                          IpAddress targetIp,
-                          IpAddress sourceIp,
-                          MacAddress sourceMac,
-                          VlanId vlan) {
+    public void sendProbe(ConnectPoint connectPoint, IpAddress targetIp, IpAddress sourceIp,
+                          MacAddress sourceMac, VlanId vlan) {
+        log.debug("Sending probe for target:{} out of intf:{} vlan:{}", targetIp, connectPoint, vlan);
+
         Ethernet probePacket;
 
         if (targetIp.isIp4()) {

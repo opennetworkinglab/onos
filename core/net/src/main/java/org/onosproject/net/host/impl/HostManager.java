@@ -29,6 +29,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.edge.EdgePortService;
@@ -63,7 +64,6 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
-import static org.onosproject.net.link.ProbedLinkProvider.DEFAULT_MAC;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.HOST_EVENT;
 import static org.onosproject.security.AppPermission.Type.HOST_READ;
@@ -349,7 +349,7 @@ public class HostManager
 
             // Greedy learning of IPv6 host. We have to disable the greedy
             // learning of configured hosts. Validate hosts each time will
-            // overwrite the learnt information with the configured informations.
+            // overwrite the learnt information with the configured information.
             if (greedyLearningIpv6) {
                 // Auto-generation of the IPv6 link local address
                 // using the mac address
@@ -365,19 +365,18 @@ public class HostManager
                     }
                     // Host does not exist in the store or the target is not known
                     if ((host == null || !host.ipAddresses().contains(targetIp6Address))) {
-                        // We generate ONOS ip from the ONOS default mac
-                        // We could use the mac generated for the link
-                        // discovery but maybe does not worth
-                        MacAddress onosMacAddress = MacAddress.valueOf(DEFAULT_MAC);
-                        Ip6Address onosIp6Address = Ip6Address.valueOf(
-                                getLinkLocalAddress(onosMacAddress.toBytes())
-                        );
+                        // Use DAD to probe if interface MAC is not specified
+                        MacAddress probeMac = interfaceService.getInterfacesByPort(hostDescription.location())
+                                .stream().map(Interface::mac).findFirst().orElse(MacAddress.ONOS);
+                        Ip6Address probeIp = !probeMac.equals(MacAddress.ONOS) ?
+                                Ip6Address.valueOf(getLinkLocalAddress(probeMac.toBytes())) :
+                                Ip6Address.ZERO;
                         // We send a probe using the monitoring service
                         monitor.sendProbe(
                                 hostDescription.location(),
                                 targetIp6Address,
-                                onosIp6Address,
-                                onosMacAddress,
+                                probeIp,
+                                probeMac,
                                 hostId.vlanId()
                         );
                     }
