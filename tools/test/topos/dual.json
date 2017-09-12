@@ -1,7 +1,19 @@
 {
   "devices": {
-    "of:0000000000000001": { "basic": { "name": "SW-A" }},
-    "of:0000000000000002": { "basic": { "name": "SW-B" }}
+    "of:0000000000000001": {
+      "basic": {
+        "name": "SW-A",
+        "latitude": 43.3700,
+        "longitude": -104.6572
+      }
+    },
+    "of:0000000000000002": {
+      "basic": {
+        "name": "SW-B",
+        "latitude": 38.5189,
+        "longitude": -109.2781
+      }
+    }
   },
 
   "hosts": {
@@ -14,7 +26,9 @@
         "ips": [
           "10.0.0.1"
         ],
-        "name": "Host-X"
+        "name": "Host-X",
+        "latitude": 39.9444,
+        "longitude":  -91.7822
       }
     }
   }
