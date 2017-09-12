@@ -341,14 +341,17 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
-                .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
-                .put("ingress", compactLinkString(edgeLink(host, true)))
-                .put("egress", compactLinkString(edgeLink(host, false)));
+                .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType);
 
+        // set most recent connect point (and previous if we know it)
         payload.set("cp", hostConnect(host.location()));
         if (prevHost != null && prevHost.location() != null) {
             payload.set("prevCp", hostConnect(prevHost.location()));
         }
+
+        // set ALL connect points
+        addAllCps(host.locations(), payload);
+
         payload.set("labels", labels(nameForHost(host), ip, host.mac().toString()));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
@@ -356,6 +359,12 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         String type = HOST_EVENT.get(event.type());
         return JsonUtils.envelope(type, payload);
+    }
+
+    private void addAllCps(Set<HostLocation> locations, ObjectNode payload) {
+        ArrayNode cps = arrayNode();
+        locations.forEach(loc -> cps.add(hostConnect(loc)));
+        payload.set("allCps", cps);
     }
 
     // Encodes the specified host location into a JSON object.
