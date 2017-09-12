@@ -158,11 +158,9 @@
         return node;
     }
 
-    function createHostLink(host) {
-        var src = host.id,
-            dst = host.cp.device,
-            id = host.ingress,
-            lnk = linkEndPoints(src, dst);
+    function createHostLink(hostId, devId, devPort) {
+        var linkKey = hostId + '/0-' + devId + '/' + devPort,
+            lnk = linkEndPoints(hostId, devId);
 
         if (!lnk) {
             return null;
@@ -170,10 +168,10 @@
 
         // Synthesize link ...
         angular.extend(lnk, {
-            key: id,
+            key: linkKey,
             class: 'link',
             // NOTE: srcPort left undefined (host end of the link)
-            tgtPort: host.cp.port,
+            tgtPort: devPort,
 
             type: function () { return 'hostLink'; },
             expected: function () { return true; },

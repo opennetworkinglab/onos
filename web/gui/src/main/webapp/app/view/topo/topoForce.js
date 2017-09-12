@@ -160,7 +160,7 @@
 
     function addHost(data) {
         var id = data.id,
-            d, lnk;
+            d;
 
         // although this is an add host event, if we already have the
         //  host, treat it as an update instead..
@@ -174,12 +174,28 @@
         lu[id] = d;
         updateNodes();
 
-        lnk = tms.createHostLink(data);
-        if (lnk) {
-            d.linkData = lnk; // cache ref on its host
-            network.links.push(lnk);
-            lu[d.ingress] = lnk;
-            lu[d.egress] = lnk;
+        function mkLinkKey(devId, devPort) {
+            return id + '/0-' + devId + '/' + devPort;
+        }
+
+        // need to handle possible multiple links (multi-homed host)
+        d.links = [];
+        data.allCps.forEach(function (cp) {
+            var linkData = {
+                key: mkLinkKey(cp.device, cp.port),
+                dst: cp.device,
+                dstPort: cp.port,
+            };
+            d.links.push(linkData);
+
+            var lnk = tms.createHostLink(id, cp.device, cp.port);
+            if (lnk) {
+                network.links.push(lnk);
+                lu[linkData.key] = lnk;
+            }
+        });
+
+        if (d.links.length) {
             updateLinks();
         }
         fStart();
@@ -201,8 +217,10 @@
         var id = data.id,
             d = lu[id],
             lnk;
+
         if (d) {
             // first remove the old host link
+            // FIXME: what if the host has multiple links??????
             removeLinkElement(d.linkData);
 
             // merge new data
@@ -212,12 +230,17 @@
             }
 
             // now create a new host link
-            lnk = tms.createHostLink(data);
+            // TODO: verify this is the APPROPRIATE host link
+            lnk = tms.createHostLink(id, data.cp.device, data.cp.port);
             if (lnk) {
-                d.linkData = lnk;
                 network.links.push(lnk);
-                lu[d.ingress] = lnk;
-                lu[d.egress] = lnk;
+                lu[lnk.key] = lnk;
+
+                d.links.push({
+                    key: id + '/0-' + cp.device + '/' + cp.port,
+                    dst: data.cp.device,
+                    dstPort: data.cp.port,
+                });
             }
 
             updateNodes();

@@ -197,17 +197,15 @@
         // special handling for links...
         if (itemClass === 'link') {
             payload.key = data.key;
+            payload.sourceId = data.source.id;
+            payload.targetId = data.target.id;
+            payload.targetPort = data.tgtPort;
+
             if (data.source.class === 'host') {
                 payload.isEdgeLink = true;
-                payload.sourceId = data.source.id;
-                payload.targetId = data.source.cp.device;
-                payload.targetPort = data.source.cp.port;
             } else {
                 payload.isEdgeLink = false;
-                payload.sourceId = data.source.id;
                 payload.sourcePort = data.srcPort;
-                payload.targetId = data.target.id;
-                payload.targetPort = data.tgtPort;
             }
         }
 

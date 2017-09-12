@@ -1,0 +1,4 @@
+# Simple Dual topology recipe
+export OTD=2
+export OTL=1
+export OTH=1
