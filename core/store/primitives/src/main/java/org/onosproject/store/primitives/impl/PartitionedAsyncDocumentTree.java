@@ -107,11 +107,16 @@ public class PartitionedAsyncDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Boolean> create(DocumentPath path, V value) {
+        if (path.parent() == null) {
+            // create value on root
+            return partition(path).createRecursive(path, value);
+        }
         // TODO: This operation is not atomic
-        return partition(path.parent()).get(path).thenCompose(parentValue -> {
+        return partition(path.parent()).get(path.parent()).thenCompose(parentValue -> {
             if (parentValue == null) {
                 return Tools.exceptionalFuture(new NoSuchDocumentPathException(String.valueOf(path.parent())));
             } else {
+                // not atomic: parent did exist at some point, so moving forward
                 return partition(path).createRecursive(path, value);
             }
         });
