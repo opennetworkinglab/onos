@@ -144,7 +144,7 @@
     }
 
     function populateTop(details) {
-        var tab = top.select('.top-tables').append('tbody');
+        var tab = top.select('.top-tables').append('table').append('tbody');
 
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
         top.select('h2').text(details.name);

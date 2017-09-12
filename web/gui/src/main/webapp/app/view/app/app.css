@@ -55,7 +55,6 @@
 /* -- Details Panel -- */
 #application-details-panel.floatpanel {
     z-index: 0;
-    font-size: 12pt;
 }
 
 #application-details-panel.floatpanel a {
@@ -83,7 +82,7 @@
 #application-details-panel h2 {
     display: inline-block;
     margin: 12px 0 6px 0;
-    font-size: 13pt;
+    font-size: 11pt;
     font-variant: small-caps;
     text-transform: uppercase;
 }
@@ -91,7 +90,7 @@
 #application-details-panel .top .app-title {
     width: 90%;
     height: 62px;
-    font-size: 20pt;
+    font-size: 16pt;
     font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;
@@ -115,8 +114,7 @@
 #application-details-panel .app-url i {
     font-weight: bold;
     text-align: right;
-    font-size: 12pt;
-
+    font-size: 10pt;
     padding-right: 6px;
 }
 
@@ -127,6 +125,7 @@
 #application-details-panel .app-url {
     padding: 10px 6px 6px;
     overflow: hidden;
+    clear: left;
 }
 
 #application-details-panel hr {
@@ -139,7 +138,7 @@
 }
 
 #application-details-panel .bottom {
-    padding: 12px 0 0 6px;
+    padding: 0px;
 }
 
 #application-details-panel .bottom table {

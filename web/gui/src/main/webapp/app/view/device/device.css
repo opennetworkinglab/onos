@@ -62,7 +62,8 @@
 }
 
 #device-details-panel .top-tables {
-    font-size: 12pt;
+    font-size: 10pt;
+    white-space: nowrap;
 }
 
 #device-details-panel .top div.left {

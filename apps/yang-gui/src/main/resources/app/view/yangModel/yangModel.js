@@ -89,7 +89,7 @@
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').text('YANG Source');
+        bottom.append('h3').text('YANG Source');
 
         srcFrame = bottom.append('div').classed('src-frame', true);
         srcDiv = srcFrame.append('div').classed('module-source', true);
