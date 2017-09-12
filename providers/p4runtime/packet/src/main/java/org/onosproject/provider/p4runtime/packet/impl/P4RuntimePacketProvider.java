@@ -149,25 +149,42 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
         @Override
         public void event(P4RuntimeEvent event) {
             P4RuntimePacketIn eventSubject = (P4RuntimePacketIn) event.subject();
-            if (deviceService.getDevice(eventSubject.deviceId()).is(PiPipelineInterpreter.class)) {
-                PiPacketOperation operation = eventSubject.packetOperation();
-                try {
-                    InboundPacket inPkt = deviceService.getDevice(eventSubject.deviceId())
-                            .as(PiPipelineInterpreter.class)
-                            .mapInboundPacket(eventSubject.deviceId(), operation);
-                    //Creating the corresponding outbound Packet
-                    //FIXME Wrapping of bytebuffer might be optimized with .asReadOnlyByteBuffer()
-                    OutboundPacket outPkt = new DefaultOutboundPacket(eventSubject.deviceId(), null,
-                            ByteBuffer.wrap(operation.data().asArray()));
-                    log.debug("Processing inbound packet: {}", inPkt.toString());
-                    //Creating PacketContext
-                    PacketContext pktCtx = new P4RuntimePacketContext(System.currentTimeMillis(), inPkt, outPkt, false);
-                    //Sendign the ctx up for processing.
-                    providerService.processPacket(pktCtx);
-                } catch (PiPipelineInterpreter.PiInterpreterException e) {
-                    log.error("Can't properly interpret the packetIn", e);
-                }
+            DeviceId deviceId = eventSubject.deviceId();
+
+            Device device = deviceService.getDevice(eventSubject.deviceId());
+            if (device == null) {
+                log.warn("Unable to process packet-in from {}, device is null in the core", deviceId);
+                return;
             }
+
+            if (!device.is(PiPipelineInterpreter.class)) {
+                log.warn("Unable to process packet-in from {}, device has no PiPipelineInterpreter behaviour",
+                         deviceId);
+                return;
+            }
+
+            PiPacketOperation operation = eventSubject.packetOperation();
+            InboundPacket inPkt;
+            try {
+                inPkt = device.as(PiPipelineInterpreter.class).mapInboundPacket(eventSubject.deviceId(), operation);
+            } catch (PiPipelineInterpreter.PiInterpreterException e) {
+                log.warn("Unable to interpret inbound packet from {}: {}", deviceId, e.getMessage());
+                return;
+            }
+
+            if (inPkt == null) {
+                log.debug("Received null inbound packet. Ignoring.");
+                return;
+            }
+
+            log.debug("Processing inbound packet: {}", inPkt.toString());
+
+            OutboundPacket outPkt = new DefaultOutboundPacket(eventSubject.deviceId(), null,
+                                                              operation.data().asReadOnlyBuffer());
+            PacketContext pktCtx = new P4RuntimePacketContext(System.currentTimeMillis(), inPkt, outPkt, false);
+
+            // Pushing the packet context up for processing.
+            providerService.processPacket(pktCtx);
         }
     }
 }
