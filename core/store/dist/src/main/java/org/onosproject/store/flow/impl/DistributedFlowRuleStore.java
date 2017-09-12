@@ -78,6 +78,7 @@ import org.onosproject.store.service.DocumentTree;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.IllegalDocumentModificationException;
 import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageException;
@@ -661,18 +662,26 @@ public class DistributedFlowRuleStore
     @Override
     public void purgeFlowRule(DeviceId deviceId) {
         DocumentPath path = getPathFor(deviceId);
-        try {
-            for (String flowId : flows.getChildren(path).keySet()) {
-                flows.removeNode(DocumentPath.from("root", deviceId.toString(), flowId));
+        retryUntilSuccess(() -> {
+            try {
+                for (String flowId : flows.getChildren(path).keySet()) {
+                    flows.removeNode(DocumentPath.from("root", deviceId.toString(), flowId));
+                }
+            } catch (NoSuchDocumentPathException e) {
+                // Do nothing. There are no flows for the device.
             }
-        } catch (NoSuchDocumentPathException e) {
-            // Do nothing
-        }
-        try {
-            flows.removeNode(path);
-        } catch (NoSuchDocumentPathException e) {
-            // Do nothing
-        }
+
+            // New children may have been created since they were removed above. Catch
+            // IllegalDocumentModificationException and retry if necessary.
+            try {
+                flows.removeNode(path);
+            } catch (NoSuchDocumentPathException e) {
+                return null;
+            } catch (IllegalDocumentModificationException e) {
+                return retry();
+            }
+            return null;
+        });
     }
 
     @Override
@@ -682,7 +691,7 @@ public class DistributedFlowRuleStore
                 purgeFlowRule(DeviceId.deviceId(deviceId));
             }
         } catch (NoSuchDocumentPathException e) {
-            // Do nothing
+            // Do nothing if no children exist.
         }
     }
 
