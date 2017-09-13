@@ -96,7 +96,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +113,6 @@ import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 @Service
 public class DhcpRelayManager implements DhcpRelayService {
     public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
-    public static final ProviderId PROVIDER_ID = new ProviderId("host", DHCP_RELAY_APP);
     public static final String ROUTE_STORE_IMPL =
             "org.onosproject.routeservice.store.RouteStoreImpl";
     private static final TrafficSelector DHCP_SERVER_SELECTOR = DefaultTrafficSelector.builder()
