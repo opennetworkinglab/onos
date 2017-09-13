@@ -90,6 +90,9 @@ import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.Set;
 
@@ -447,7 +450,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                 IPv6.getMCastMacAddress(ip.getIp6Address().toOctets()),
                                 host.id().vlanId());
                     }
-                    sendProbe(probe, location);
+
+                    // NOTE: delay the probe a little bit to wait for the store synchronization is done
+                    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+                    executorService.schedule(() -> sendProbe(probe, location), 1000, TimeUnit.MILLISECONDS);
                 });
             });
         }
