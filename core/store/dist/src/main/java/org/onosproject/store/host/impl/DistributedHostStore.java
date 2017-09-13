@@ -117,8 +117,9 @@ public class DistributedHostStore
                     case EXPIRED:
                         PendingHostLocation expired = notification.getValue();
                         if (expired != null) {
-                            log.info("Evict timeout probe {} from pendingHostLocations", notification.getValue());
-                            timeoutPendingHostLocation(notification.getKey());
+                            if (timeoutPendingHostLocation(notification.getKey())) {
+                                log.info("Evict {} from pendingHosts due to probe timeout", notification.getValue());
+                            }
                         }
                         break;
                     case EXPLICIT:
@@ -401,11 +402,12 @@ public class DistributedHostStore
         pendingHosts.remove(probeMac);
     }
 
-    private void timeoutPendingHostLocation(MacAddress probeMac) {
-        pendingHosts.computeIfPresent(probeMac, (k, v) -> {
+    private boolean timeoutPendingHostLocation(MacAddress probeMac) {
+        PendingHostLocation phl = pendingHosts.computeIfPresent(probeMac, (k, v) -> {
             v.setExpired(true);
             return v;
         });
+        return phl != null;
     }
 
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {
