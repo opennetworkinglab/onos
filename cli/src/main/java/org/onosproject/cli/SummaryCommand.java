@@ -18,6 +18,7 @@ package org.onosproject.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreService;
@@ -64,11 +65,13 @@ public class SummaryCommand extends AbstractShellCommand {
         int numScc = get(TopologyService.class).currentTopology().clusterCount();
         int numFlows = get(FlowRuleService.class).getFlowRuleCount();
         long numIntents = get(IntentService.class).getIntentCount();
+        String clusterId = get(ClusterMetadataService.class).getClusterMetadata().getName();
 
         if (outputJson()) {
             print("%s", new ObjectMapper().createObjectNode()
                     .put("node", nodeIp.toString())
                     .put("version", version.toString())
+                    .put("clusterId", clusterId)
                     .put("nodes", numNodes)
                     .put("devices", numDevices)
                     .put("links", numLinks)
@@ -77,7 +80,7 @@ public class SummaryCommand extends AbstractShellCommand {
                     .put("flows", numFlows)
                     .put("intents", numIntents));
         } else {
-            print("node=%s, version=%s", nodeIp, version);
+            print("node=%s, version=%s clusterId=%s", nodeIp, version, clusterId);
             print("nodes=%d, devices=%d, links=%d, hosts=%d, SCC(s)=%s, flows=%d, intents=%d",
                   numNodes, numDevices, numLinks, numHosts, numScc, numFlows, numIntents);
         }
