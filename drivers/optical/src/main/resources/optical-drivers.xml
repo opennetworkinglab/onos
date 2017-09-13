@@ -94,7 +94,7 @@
     </driver>
 
     <driver name="polatis" extends="default"
-            manufacturer="Polatis" hwVersion="N-VST-48x48-HU1-DMHNV-805" swVersion="6.6.1.7">
+            manufacturer="Polatis" hwVersion=".*" swVersion=".*">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
