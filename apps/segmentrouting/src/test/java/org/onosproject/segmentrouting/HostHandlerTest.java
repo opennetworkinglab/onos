@@ -77,6 +77,7 @@ public class HostHandlerTest {
     private static final IpAddress HOST_IP12 = IpAddress.valueOf("10.0.1.2");
     private static final IpAddress HOST_IP13 = IpAddress.valueOf("10.0.1.3");
     private static final IpAddress HOST_IP14 = IpAddress.valueOf("10.0.1.4");
+    private static final IpAddress HOST_IP32 = IpAddress.valueOf("10.0.3.2");
     // Device
     private static final DeviceId DEV1 = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DEV2 = DeviceId.deviceId("of:0000000000000002");
@@ -103,6 +104,8 @@ public class HostHandlerTest {
     // Connect Point for dual-homed host failover
     private static final ConnectPoint CP31 = new ConnectPoint(DEV3, P1);
     private static final HostLocation HOST_LOC31 = new HostLocation(CP31, 0);
+    private static final ConnectPoint CP32 = new ConnectPoint(DEV3, P2);
+    private static final HostLocation HOST_LOC32 = new HostLocation(CP32, 0);
     private static final ConnectPoint CP41 = new ConnectPoint(DEV4, P1);
     private static final HostLocation HOST_LOC41 = new HostLocation(CP41, 0);
     private static final ConnectPoint CP39 = new ConnectPoint(DEV3, P9);
@@ -118,13 +121,17 @@ public class HostHandlerTest {
     private static final VlanId INTF_VLAN_NATIVE = VlanId.vlanId((short) 30);
     private static final Set<VlanId> INTF_VLAN_PAIR = Sets.newHashSet(VlanId.vlanId((short) 10),
             VlanId.vlanId((short) 20), VlanId.vlanId((short) 30));
+    private static final VlanId INTF_VLAN_OTHER = VlanId.vlanId((short) 40);
     // Interface subnet
     private static final IpPrefix INTF_PREFIX1 = IpPrefix.valueOf("10.0.1.254/24");
     private static final IpPrefix INTF_PREFIX2 = IpPrefix.valueOf("10.0.2.254/24");
+    private static final IpPrefix INTF_PREFIX3 = IpPrefix.valueOf("10.0.3.254/24");
     private static final InterfaceIpAddress INTF_IP1 =
             new InterfaceIpAddress(INTF_PREFIX1.address(), INTF_PREFIX1);
     private static final InterfaceIpAddress INTF_IP2 =
             new InterfaceIpAddress(INTF_PREFIX2.address(), INTF_PREFIX2);
+    private static final InterfaceIpAddress INTF_IP3 =
+            new InterfaceIpAddress(INTF_PREFIX3.address(), INTF_PREFIX3);
     // Interfaces
     private static final Interface INTF11 =
             new Interface(null, CP11, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
@@ -144,6 +151,9 @@ public class HostHandlerTest {
     private static final Interface INTF31 =
             new Interface(null, CP31, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                     INTF_VLAN_UNTAGGED, null, null);
+    private static final Interface INTF32 =
+            new Interface(null, CP32, Lists.newArrayList(INTF_IP3), MacAddress.NONE, null,
+                    INTF_VLAN_OTHER, null, null);
     private static final Interface INTF39 =
             new Interface(null, CP39, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                     null, INTF_VLAN_PAIR, null);
@@ -164,7 +174,7 @@ public class HostHandlerTest {
     private static final Set<DeviceId> LOCAL_DEVICES = Sets.newHashSet(DEV1, DEV2, DEV3, DEV4);
     // A set of interfaces
     private static final Set<Interface> INTERFACES = Sets.newHashSet(INTF11, INTF12, INTF13, INTF21,
-            INTF22, INTF31, INTF39, INTF41, INTF49);
+            INTF22, INTF31, INTF32, INTF39, INTF41, INTF49);
 
     @Before
     public void setUp() throws Exception {
@@ -294,6 +304,48 @@ public class HostHandlerTest {
         assertEquals(2, BRIDGING_TABLE.size());
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)));
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)));
+    }
+
+    @Test
+    public void testSingleHomedHostAddedOnPairLeaf() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC32), Sets.newHashSet(HOST_IP32), false);
+
+        // Add a single-homed host with one location
+        // Expect: the pair link should not be utilized
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(1, ROUTING_TABLE.size());
+        assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP32.toIpPrefix())).portNumber);
+        assertEquals(1, BRIDGING_TABLE.size());
+        assertEquals(P2, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_OTHER)).portNumber);
+    }
+
+    @Test
+    public void testDualHomedHostAddedOneByOne() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(HOST_IP11), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+
+        // Add a dual-homed host with one location
+        // Expect: the pair link is utilized temporarily before the second location is discovered
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Add the second location of dual-homed host
+        // Expect: no longer use the pair link
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
     }
 
     @Test

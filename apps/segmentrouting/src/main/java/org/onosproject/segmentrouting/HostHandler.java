@@ -86,20 +86,36 @@ public class HostHandler {
     void processHostAddedAtLocation(Host host, HostLocation location) {
         checkArgument(host.locations().contains(location), "{} is not a location of {}", location, host);
 
-        if (!srManager.isMasterOf(location)) {
-            return;
-        }
-
-        MacAddress mac = host.mac();
-        VlanId vlanId = host.vlan();
+        MacAddress hostMac = host.mac();
+        VlanId hostVlanId = host.vlan();
         Set<HostLocation> locations = host.locations();
         Set<IpAddress> ips = host.ipAddresses();
-        log.info("Host {}/{} is added at {}", mac, vlanId, locations);
+        log.info("Host {}/{} is added at {}", hostMac, hostVlanId, locations);
 
-        processBridgingRule(location.deviceId(), location.port(), mac, vlanId, false);
-        ips.forEach(ip ->
-                processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, false)
-        );
+        if (srManager.isMasterOf(location)) {
+            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, false);
+            ips.forEach(ip ->
+                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
+            );
+        }
+
+        // Use the pair link temporarily before the second location of a dual-homed host shows up.
+        // This do not affect single-homed hosts since the flow will be blocked in
+        // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
+        srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
+            if (srManager.mastershipService.isLocalMaster(pairDeviceId) &&
+                    host.locations().stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
+                srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
+                    // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
+                    //       when the host is untagged
+                    VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+
+                    processBridgingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, false);
+                    ips.forEach(ip -> processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId,
+                                    ip, false));
+                });
+            }
+        });
     }
 
     void processHostRemovedEvent(HostEvent event) {
