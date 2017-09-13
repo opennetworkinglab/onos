@@ -108,7 +108,7 @@ public class DistributedHostStore
     private Consumer<Status> statusChangeListener;
 
     // TODO make this configurable
-    private static final int PROBE_TIMEOUT_MS = 1000;
+    private static final int PROBE_TIMEOUT_MS = 1500;
 
     private Cache<MacAddress, PendingHostLocation> pendingHostsCache = CacheBuilder.newBuilder()
             .expireAfterWrite(PROBE_TIMEOUT_MS, TimeUnit.MILLISECONDS)
