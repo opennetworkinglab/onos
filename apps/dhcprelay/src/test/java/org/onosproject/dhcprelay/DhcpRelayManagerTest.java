@@ -139,7 +139,7 @@ public class DhcpRelayManagerTest {
     private static final HostLocation CLIENT_LOCATION = new HostLocation(CLIENT_CP, 0);
     private static final HostId CLIENT_HOST_ID = HostId.hostId(CLIENT_MAC, CLIENT_VLAN);
     private static final Ip6Address CLIENT_LL_IP_V6 = Ip6Address.valueOf("fe80::200:00ff:fe00:0001");
-    private static final Host EXISTS_HOST = new DefaultHost(DhcpRelayManager.PROVIDER_ID,
+    private static final Host EXISTS_HOST = new DefaultHost(Dhcp4HandlerImpl.PROVIDER_ID,
                                                             CLIENT_HOST_ID, CLIENT_MAC, CLIENT_VLAN,
                                                             CLIENT_LOCATION, ImmutableSet.of(CLIENT_LL_IP_V6));
     private static final Interface CLIENT_INTERFACE = new Interface("C1",
@@ -178,7 +178,7 @@ public class DhcpRelayManagerTest {
     private static final ConnectPoint OUTER_RELAY_CP = ConnectPoint.deviceConnectPoint("of:0000000000000001/2");
     private static final HostLocation OUTER_REPLAY_HL = new HostLocation(OUTER_RELAY_CP, 0);
     private static final HostId OUTER_RELAY_HOST_ID = HostId.hostId(OUTER_RELAY_MAC, OUTER_RELAY_VLAN);
-    private static final Host OUTER_RELAY_HOST = new DefaultHost(DhcpRelayManager.PROVIDER_ID,
+    private static final Host OUTER_RELAY_HOST = new DefaultHost(Dhcp4HandlerImpl.PROVIDER_ID,
                                                                  OUTER_RELAY_HOST_ID,
                                                                  OUTER_RELAY_MAC,
                                                                  OUTER_RELAY_VLAN,
@@ -199,7 +199,7 @@ public class DhcpRelayManagerTest {
     private static final Ip6Address SERVER_IP_V6_MCAST = Ip6Address.valueOf("ff02::1:2");
     private static final Set<IpAddress> DHCP_SERVER_IPS = ImmutableSet.of(SERVER_IP, SERVER_IP_V6);
     private static final HostId SERVER_HOST_ID = HostId.hostId(SERVER_MAC, SERVER_VLAN);
-    private static final Host SERVER_HOST = new DefaultHost(DhcpRelayManager.PROVIDER_ID,
+    private static final Host SERVER_HOST = new DefaultHost(Dhcp4HandlerImpl.PROVIDER_ID,
                                                             SERVER_HOST_ID,
                                                             SERVER_MAC,
                                                             SERVER_VLAN,

@@ -92,6 +92,8 @@ import static com.google.common.base.Preconditions.checkState;
 @Service
 @Property(name = "version", value = "6")
 public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
+    public static final String DHCP_V6_RELAY_APP = "org.onosproject.Dhcp6HandlerImpl";
+    public static final ProviderId PROVIDER_ID = new ProviderId("dhcp4", DHCP_V6_RELAY_APP);
     private static Logger log = LoggerFactory.getLogger(Dhcp6HandlerImpl.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -328,7 +330,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
     @Override
     public ProviderId id() {
-        return DhcpRelayManager.PROVIDER_ID;
+        return PROVIDER_ID;
     }
 
     @Override
