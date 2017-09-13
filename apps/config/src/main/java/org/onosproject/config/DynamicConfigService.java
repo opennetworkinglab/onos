@@ -32,6 +32,12 @@ import java.util.concurrent.CompletableFuture;
 public interface DynamicConfigService
         extends ListenerService<DynamicConfigEvent, DynamicConfigListener> {
 
+    // FIXME revisit and verify ResourceId documentation.
+    // it is likely that it actually is not expecting absolute ResourceId
+
+    // TODO revisit which path ResourceId these API should accepting.
+    // there is inconsistency, some expect parent, some expect node itself
+
     /**
      * Creates a new node in the dynamic config store.
      * This method would throw an exception if there is a node with the same
@@ -39,11 +45,11 @@ public interface DynamicConfigService
      * nodes were not present in the path leading up to the requested node.
      * Failure reason will be the error message in the exception.
      *
-     * @param path data structure with absolute path to the parent
+     * @param parent data structure with absolute path to the parent
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the new node could not be created
      */
-    void createNode(ResourceId path, DataNode node);
+    void createNode(ResourceId parent, DataNode node);
 
     /**
      * Reads the requested node form the dynamic config store.
@@ -76,11 +82,11 @@ public interface DynamicConfigService
      * parent nodes in the path were not present.
      * Failure reason will be the error message in the exception.
      *
-     * @param path data structure with absolute path to the parent
+     * @param parent data structure with absolute path to the parent
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the update request failed for any reason
      */
-    void updateNode(ResourceId path, DataNode node);
+    void updateNode(ResourceId parent, DataNode node);
 
     /**
      * Replaces nodes in the dynamic config store.
@@ -89,11 +95,11 @@ public interface DynamicConfigService
      * the requested node or any of the parent nodes in the path were not
      * present. Failure reason will be the error message in the exception.
      *
-     * @param path data structure with absolute path to the parent
+     * @param parent data structure with absolute path to the parent
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the replace request failed
      */
-    void replaceNode(ResourceId path, DataNode node);
+    void replaceNode(ResourceId parent, DataNode node);
 
     /**
      * Removes a node from the dynamic config store.

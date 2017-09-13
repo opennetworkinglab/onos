@@ -23,6 +23,8 @@ import com.google.common.annotations.Beta;
 @Beta
 public class FailedException extends RuntimeException {
 
+    private static final long serialVersionUID = 266049754055616595L;
+
     /**
      * Constructs a new runtime exception with no error message.
      */

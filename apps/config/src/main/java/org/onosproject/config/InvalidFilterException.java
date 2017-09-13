@@ -23,6 +23,8 @@ import com.google.common.annotations.Beta;
 @Beta
 public class InvalidFilterException extends RuntimeException {
 
+    private static final long serialVersionUID = 7270417891847061766L;
+
     /**
      * Constructs a new runtime exception with no error message.
      */
@@ -38,4 +40,6 @@ public class InvalidFilterException extends RuntimeException {
     public InvalidFilterException(String message) {
         super(message);
     }
+
+    // TODO add constructor with cause
 }

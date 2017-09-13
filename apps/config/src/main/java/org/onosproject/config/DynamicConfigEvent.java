@@ -67,4 +67,17 @@ public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, R
     public DynamicConfigEvent(Type type, ResourceId path) {
         super(type, path);
     }
+
+    /**
+     * Returns ResourceId relative to root node.
+     * (=root will not be part of ResourceId returned)
+     *
+     * @return resource Id
+     */
+    @Override
+    public ResourceId subject() {
+        return super.subject();
+    }
+
+    // TODO add DataNode as event payload
 }

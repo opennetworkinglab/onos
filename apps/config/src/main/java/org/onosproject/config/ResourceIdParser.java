@@ -26,6 +26,8 @@ import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 
+import com.google.common.annotations.Beta;
+
 // FIXME add non-trivial examples
 /**
  * Utilities to work on the ResourceId.
@@ -38,6 +40,7 @@ import org.onosproject.yang.model.ResourceId;
  *
  */
 //FIXME add javadocs
+@Beta
 public final class ResourceIdParser {
 
     /**
@@ -129,6 +132,7 @@ public final class ResourceIdParser {
     }
 
     public static String appendNodeKey(String path, NodeKey key) {
+        // FIXME this is not handling root path exception
         return (path + EL_SEP + key.schemaId().name() + NM_SEP + key.schemaId().namespace());
     }
 
@@ -199,7 +203,8 @@ public final class ResourceIdParser {
         while (itr.hasNext()) {
             nodeKeyList.add(itr.next());
         }
-        if (nodeKeyList.get(0).schemaId().name().compareTo("/") == 0) {
+        // exception for dealing with root
+        if (nodeKeyList.get(0).schemaId().name().equals("/")) {
             nodeKeyList.remove(0);
         }
         for (NodeKey key : nodeKeyList) {
