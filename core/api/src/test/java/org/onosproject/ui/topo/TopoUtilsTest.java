@@ -207,9 +207,9 @@ public class TopoUtilsTest extends AbstractUiTest {
 
     @Test
     public void formatClippedBitsGigaExceedThreshold() {
-        vl = TopoUtils.formatClippedBitRate(5_000_000_000L);
-        // approx. 37.25 Gbps
-        assertEquals(AM_WL, "10 Gbps", vl.toString());
+        vl = TopoUtils.formatClippedBitRate(15_000_000_000L);
+        // approx. 111.75 Gbps
+        assertEquals(AM_WL, "100 Gbps", vl.toString());
         assertTrue(AM_NCL, vl.clipped());
     }
 
