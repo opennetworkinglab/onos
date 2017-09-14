@@ -24,8 +24,10 @@ control PortCountersControl(inout headers_t hdr, inout metadata_t meta, inout st
 
     apply {
         if (standard_metadata.egress_spec < MAX_PORTS) {
-            ingress_port_counter.count((bit<32>)standard_metadata.ingress_port);
             egress_port_counter.count((bit<32>)standard_metadata.egress_spec);
+        }
+        if (standard_metadata.ingress_port < MAX_PORTS) {
+            ingress_port_counter.count((bit<32>)standard_metadata.ingress_port);
         }
     }
 }

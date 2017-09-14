@@ -393,7 +393,7 @@
           "parser_ops" : [],
           "transitions" : [
             {
-              "value" : "0xff",
+              "value" : "0x00ff",
               "mask" : null,
               "next_state" : "parse_packet_out"
             },
@@ -449,7 +449,7 @@
         "column" : 38,
         "source_fragment" : "egress_port_counter"
       },
-      "size" : 254,
+      "size" : 255,
       "is_direct" : false
     },
     {
@@ -461,7 +461,7 @@
         "column" : 38,
         "source_fragment" : "ingress_port_counter"
       },
-      "size" : 254,
+      "size" : 255,
       "is_direct" : false
     }
   ],
@@ -3422,51 +3422,6 @@
                   "op" : "&",
                   "left" : {
                     "type" : "field",
-                    "value" : ["standard_metadata", "ingress_port"]
-                  },
-                  "right" : {
-                    "type" : "hexstr",
-                    "value" : "0xffffffff"
-                  }
-                }
-              }
-            }
-          ]
-        },
-        {
-          "op" : "count",
-          "parameters" : [
-            {
-              "type" : "counter_array",
-              "value" : "port_counters_control.ingress_port_counter"
-            },
-            {
-              "type" : "field",
-              "value" : ["scalars", "tmp"]
-            }
-          ],
-          "source_info" : {
-            "filename" : "include/port_counters.p4",
-            "line" : 27,
-            "column" : 12,
-            "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "tmp_0"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "&",
-                  "left" : {
-                    "type" : "field",
                     "value" : ["standard_metadata", "egress_spec"]
                   },
                   "right" : {
@@ -3487,12 +3442,12 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp"]
             }
           ],
           "source_info" : {
             "filename" : "include/port_counters.p4",
-            "line" : 28,
+            "line" : 27,
             "column" : 12,
             "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
           }
@@ -3502,6 +3457,58 @@
     {
       "name" : "act_1",
       "id" : 9,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_0"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "ingress_port"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xffffffff"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "op" : "count",
+          "parameters" : [
+            {
+              "type" : "counter_array",
+              "value" : "port_counters_control.ingress_port_counter"
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp_0"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 30,
+            "column" : 12,
+            "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_2",
+      "id" : 10,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3541,8 +3548,8 @@
       ]
     },
     {
-      "name" : "act_2",
-      "id" : 10,
+      "name" : "act_3",
+      "id" : 11,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3725,12 +3732,35 @@
           "direct_meters" : null,
           "action_ids" : [8],
           "actions" : ["act_0"],
-          "base_default_next" : null,
+          "base_default_next" : "node_10",
           "next_tables" : {
-            "act_0" : null
+            "act_0" : "node_10"
           },
           "default_entry" : {
             "action_id" : 8,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_1",
+          "id" : 5,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [9],
+          "actions" : ["act_1"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "act_1" : null
+          },
+          "default_entry" : {
+            "action_id" : 9,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3798,7 +3828,7 @@
             "filename" : "include/port_counters.p4",
             "line" : 26,
             "column" : 12,
-            "source_fragment" : "standard_metadata.egress_spec < 254"
+            "source_fragment" : "standard_metadata.egress_spec < 255"
           },
           "expression" : {
             "type" : "expression",
@@ -3810,12 +3840,38 @@
               },
               "right" : {
                 "type" : "hexstr",
-                "value" : "0x00fe"
+                "value" : "0x00ff"
+              }
+            }
+          },
+          "true_next" : "tbl_act_0",
+          "false_next" : "node_10"
+        },
+        {
+          "name" : "node_10",
+          "id" : 3,
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 29,
+            "column" : 12,
+            "source_fragment" : "standard_metadata.ingress_port < 255"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "<",
+              "left" : {
+                "type" : "field",
+                "value" : ["standard_metadata", "ingress_port"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x00ff"
               }
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_0"
+          "true_next" : "tbl_act_1"
         }
       ]
     },
@@ -3828,31 +3884,8 @@
         "column" : 8,
         "source_fragment" : "egress"
       },
-      "init_table" : "tbl_act_1",
+      "init_table" : "tbl_act_2",
       "tables" : [
-        {
-          "name" : "tbl_act_1",
-          "id" : 5,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [10],
-          "actions" : ["act_2"],
-          "base_default_next" : "node_13",
-          "next_tables" : {
-            "act_2" : "node_13"
-          },
-          "default_entry" : {
-            "action_id" : 10,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
         {
           "name" : "tbl_act_2",
           "id" : 6,
@@ -3863,14 +3896,37 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [9],
-          "actions" : ["act_1"],
-          "base_default_next" : null,
+          "action_ids" : [11],
+          "actions" : ["act_3"],
+          "base_default_next" : "node_15",
           "next_tables" : {
-            "act_1" : null
+            "act_3" : "node_15"
           },
           "default_entry" : {
-            "action_id" : 9,
+            "action_id" : 11,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_3",
+          "id" : 7,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [10],
+          "actions" : ["act_2"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "act_2" : null
+          },
+          "default_entry" : {
+            "action_id" : 10,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3880,8 +3936,8 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_13",
-          "id" : 3,
+          "name" : "node_15",
+          "id" : 4,
           "source_info" : {
             "filename" : "include/packet_io.p4",
             "line" : 31,
@@ -3903,7 +3959,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_2"
+          "true_next" : "tbl_act_3"
         }
       ]
     }

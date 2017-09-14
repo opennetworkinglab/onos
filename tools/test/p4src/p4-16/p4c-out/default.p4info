@@ -130,7 +130,7 @@ counters {
   spec {
     unit: PACKETS
   }
-  size: 254
+  size: 255
 }
 counters {
   preamble {
@@ -141,7 +141,7 @@ counters {
   spec {
     unit: PACKETS
   }
-  size: 254
+  size: 255
 }
 direct_counters {
   preamble {

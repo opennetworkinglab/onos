@@ -76,8 +76,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
     /*
     If true, we avoid querying the device and return the content of the ENTRY_STORE.
      */
-    // TODO: can remove this check as soon as the BMv2 bug when reading ECMP entries is fixed.
-    private boolean ignoreDeviceWhenGet = true;
+    private boolean ignoreDeviceWhenGet = false;
 
     /*
     If true, we read all direct counters of a table with one request. Otherwise, send as many request as the number of

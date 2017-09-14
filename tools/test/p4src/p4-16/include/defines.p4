@@ -17,7 +17,7 @@
 #ifndef DEFINES
 #define DEFINES
 
-#define MAX_PORTS 254
+#define MAX_PORTS 255
 
 #define ETH_TYPE_IPV4 16w0x800
 #define IP_TYPE_TCP 8w6
