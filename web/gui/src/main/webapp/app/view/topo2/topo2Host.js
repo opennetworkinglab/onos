@@ -27,6 +27,7 @@
     var hostIconDim = 15,
         hostIconDimMin = 8,
         hostIconDimMax = 15,
+        labelPadding = 20,
         remappedDeviceTypes = {};
 
     function createHostCollection(data, region) {
@@ -90,6 +91,20 @@
 
                     return labels[idx];
                 },
+                updateLabel: function () {
+                    var node = this.el,
+                        label = this.trimLabel(this.label()),
+                        labelWidth;
+
+                    node.select('text').text(label);
+                    labelWidth = !_.isEmpty(this.label()) ? this.computeLabelWidth(node) + (labelPadding * 2) : 0;
+
+                    node.select('rect')
+                        .transition()
+                        .attr({
+                            width: labelWidth,
+                        });
+                },
                 setScale: function () {
 
                     if (!this.el) return;
@@ -114,12 +129,20 @@
                     var node = d3.select(el),
                         icon = this.icon(),
                         textDy = 5,
-                        textDx = (hostIconDim * 2) + 20;
+                        textDx = (hostIconDim * 2);
 
                     this.el = node;
 
                     var g = node.append('g')
                         .attr('class', 'svgIcon hostIcon');
+
+                    // Add Label background to host
+
+                    var rect = g.append('rect').attr({
+                        width: 0,
+                        height: hostIconDim * 2,
+                        y: - hostIconDim,
+                    });
 
                     g.append('circle').attr('r', hostIconDim);
 
@@ -138,11 +161,14 @@
                         .text(labelText)
                         .attr('dy', textDy)
                         .attr('dx', textDx)
-                        .attr('text-anchor', 'middle');
+                        .attr('text-anchor', 'left');
 
                     this.setScale();
                     this.setUpEvents();
                     this.setVisibility();
+
+                    var labelWidth = !_.isEmpty(this.label()) ? this.computeLabelWidth(node) + (labelPadding * 2) : 0;
+                    rect.attr({ width: labelWidth });
                 },
             });
 

@@ -42,6 +42,7 @@ const serve = () => {
             ws: true,
             middleware: [
                 proxy(['**/*.js', '!/onos/ui/onos.js'], { target: 'http://localhost:8189' }),
+                proxy(['**/*.css'], { target: 'http://localhost:8189' }),
                 proxy('**/*.js.map', {
                     target: 'http://localhost:8189',
                     changeOrigin: true,

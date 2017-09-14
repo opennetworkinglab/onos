@@ -258,7 +258,7 @@
 
 #ov-topo2 svg .node.host text {
     stroke: none;
-    font: 9pt sans-serif;
+    font-size: 13px;
     fill: #846;
 }
 
@@ -266,6 +266,7 @@
     stroke: #a3a596;
     fill: #e0dfd6;
 }
+
 #ov-topo2 svg .node.host.selected .hostIcon > circle {
     stroke-width: 2.0;
     stroke: #009fdb;
@@ -273,6 +274,10 @@
 
 #ov-topo2 svg .node.host use {
     fill: #3c3a3a;
+}
+
+#ov-topo2 svg .node.host rect {
+    fill: #ffffff;
 }
 
 /* --- Topo Links --- */
@@ -633,7 +638,7 @@
 
 .dark #ov-topo2 svg .node.host text {
     stroke: none;
-    font: 9pt sans-serif;
+    font-size: 13px;
     fill: #ad5781;
 }
 
@@ -641,6 +646,11 @@
     stroke: #a3a596;
     fill: #8f8272;
 }
+
+.dark #ov-topo2 svg .node.host rect {
+    fill: #525660;
+}
+
 .dark #ov-topo2 svg .node.host.selected .hostIcon > circle {
     stroke-width: 2.0;
     stroke: #009fdb;
