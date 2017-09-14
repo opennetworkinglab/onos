@@ -65,3 +65,18 @@
     text-align: right;
     padding-right: 6px;
 }
+
+#cluster-details-panel .bottom table {
+    border-spacing: 0;
+}
+
+#cluster-details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#cluster-details-panel .bottom th,
+#cluster-details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+    white-space: nowrap;
+}
