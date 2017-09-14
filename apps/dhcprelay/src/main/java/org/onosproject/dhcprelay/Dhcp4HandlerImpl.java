@@ -722,7 +722,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
         } else {
             // forward to another dhcp relay
-            udpPacket.setDestinationPort(UDP.DHCP_SERVER_PORT);
+            // FIXME: Currently we assume the DHCP comes from a L2 relay with
+            // Option 82, this might not work if DHCP message comes from
+            // L3 relay.
+            udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
         }
 
         udpPacket.setPayload(dhcpPayload);
