@@ -464,10 +464,13 @@ public class HostManager
             store.removePendingHostLocation(probeMac);
         }
 
+        /**
+         * Providers should only be able to remove a host that is provided by itself,
+         * or a host that is not configured.
+         */
         private boolean allowedToChange(HostId hostId) {
-            // Disallow removing inexistent host or host provided by others
             Host host = store.getHost(hostId);
-            return host != null && host.providerId().equals(provider().id());
+            return host == null || !host.configured() || host.providerId().equals(provider().id());
         }
     }
 

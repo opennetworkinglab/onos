@@ -106,6 +106,7 @@ public class SimpleHostStore
                                             descr.vlan(),
                                             descr.location(),
                                             ImmutableSet.copyOf(descr.ipAddress()),
+                                            descr.configured(),
                                             descr.annotations());
         synchronized (this) {
             hosts.put(hostId, newhost);
@@ -141,6 +142,7 @@ public class SimpleHostStore
         StoredHost updated = new StoredHost(providerId, host.id(),
                                             host.mac(), host.vlan(),
                                             descr.location(), addresses,
+                                            descr.configured(),
                                             annotations);
         event = new HostEvent(HOST_UPDATED, updated);
         synchronized (this) {
@@ -257,8 +259,8 @@ public class SimpleHostStore
          */
         public StoredHost(ProviderId providerId, HostId id,
                           MacAddress mac, VlanId vlan, HostLocation location,
-                          Set<IpAddress> ips, Annotations... annotations) {
-            super(providerId, id, mac, vlan, location, ips, annotations);
+                          Set<IpAddress> ips, boolean configured, Annotations... annotations) {
+            super(providerId, id, mac, vlan, location, ips, configured, annotations);
             this.location = location;
         }
 
