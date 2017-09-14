@@ -68,7 +68,7 @@ public class Bmv2PipelineModel implements PiPipelineModel {
         Map<String, PiHeaderModel> headerModelMap = Maps.newHashMap();
         headerModels.stream()
                 .filter(Objects::nonNull)
-                .forEach(hm -> headerModelMap.put(hm.type().name(), hm));
+                .forEach(hm -> headerModelMap.put(hm.name(), hm));
         this.headerModels = ImmutableMap.copyOf(headerModelMap);
 
         Map<String, PiActionModel> actionModelMap = Maps.newHashMap();
