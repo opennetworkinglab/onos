@@ -68,7 +68,7 @@
     }
 
     function addCloseBtn(div) {
-        is.loadEmbeddedIcon(div, 'close', 26);
+        is.loadEmbeddedIcon(div, 'close', 20);
         div.on('click', closePanel);
     }
 
