@@ -259,7 +259,8 @@ public class HostManagerTest {
     }
 
     /**
-     * Providers should only be able to remove a host provided by itself.
+     * Providers should only be able to remove a host that is provided by itself,
+     * or a host that is not configured.
      */
     @Test
     public void hostVanishedWithMultipleProviders() {
@@ -267,16 +268,15 @@ public class HostManagerTest {
         configured(HID2, MAC2, VLAN2, LOC2, IP2);
 
         providerService2.hostVanished(HID1);
-        assertNotNull("host should not be removed", mgr.getHost(HID1));
+        assertNull("Should be able to remove learnt host", mgr.getHost(HID1));
 
         providerService.hostVanished(HID2);
-        assertNotNull("host should not be removed", mgr.getHost(HID2));
-
-        providerService.hostVanished(HID1);
-        assertNull("host should be removed", mgr.getHost(HID1));
+        assertNotNull("Should not be able to remove configured host since the provider is different",
+                mgr.getHost(HID2));
 
         providerService2.hostVanished(HID2);
-        assertNull("host should be removed", mgr.getHost(HID2));
+        assertNull("Should be able to remove configured host when provider is the same",
+                mgr.getHost(HID2));
     }
 
     private void validateHosts(
