@@ -669,6 +669,11 @@ public class DhcpRelayManager implements DhcpRelayService {
 
         private void deviceAdd(DeviceId deviceId) {
             IgnoreDhcpConfig config = cfgService.getConfig(appId, IgnoreDhcpConfig.class);
+            if (config == null) {
+                log.debug("No ignoreVlan config found for {}. Do nothing.", deviceId);
+                return;
+            }
+
             Collection<VlanId> vlanIds = config.ignoredVlans().get(deviceId);
             vlanIds.forEach(vlanId -> {
                 processIgnoreVlanRule(deviceId, vlanId, ADD);
