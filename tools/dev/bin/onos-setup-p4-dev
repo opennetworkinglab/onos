@@ -74,6 +74,8 @@ function do_requirements {
         tcpdump \
         wget \
         unzip
+
+    sudo pip install setuptools cffi
 }
 
 function do_requirements_1404 {
@@ -139,6 +141,30 @@ function do_grpc {
     unset LDFLAGS
 }
 
+function checkout_bmv2 {
+    cd ${BUILD_DIR}
+    if [ ! -d bmv2 ]; then
+        git clone https://github.com/p4lang/behavioral-model.git bmv2
+    fi
+    cd bmv2
+    git fetch
+    git checkout ${BMV2_COMMIT}
+}
+
+function do_pi_bmv2_deps {
+    checkout_bmv2
+    # From bmv2's install_deps.sh.
+    # Nanomsg is required also by p4runtime.
+    tmpdir=`mktemp -d -p .`
+    cd ${tmpdir}
+    bash ../travis/install-thrift.sh
+    bash ../travis/install-nanomsg.sh
+    sudo ldconfig
+    bash ../travis/install-nnpy.sh
+    cd ..
+    sudo rm -rf $tmpdir
+}
+
 function do_p4runtime {
     cd ${BUILD_DIR}
     if [ ! -d p4runtime ]; then
@@ -157,23 +183,7 @@ function do_p4runtime {
 }
 
 function do_bmv2 {
-    cd ${BUILD_DIR}
-    if [ ! -d bmv2 ]; then
-        git clone https://github.com/p4lang/behavioral-model.git bmv2
-    fi
-    cd bmv2
-    git fetch
-    git checkout ${BMV2_COMMIT}
-
-    # From bmv2's install_deps.sh
-    tmpdir=`mktemp -d -p .`
-    cd ${tmpdir}
-    bash ../travis/install-thrift.sh
-    bash ../travis/install-nanomsg.sh
-    sudo ldconfig
-    bash ../travis/install-nnpy.sh
-    cd ..
-    sudo rm -rf $tmpdir
+    checkout_bmv2
 
     ./autogen.sh
     ./configure --enable-debugger --with-pi 'CXXFLAGS=-O0 -g'
@@ -234,9 +244,10 @@ function check_and_do {
     commit_id="$1"
     proj_dir="$2"
     func_name="$3"
+    simple_name="$4"
     if ${MUST_DO_ALL} = true || check_commit ${commit_id} ${proj_dir}/.last_built_commit; then
         echo "#"
-        echo "# Building ${proj_dir} (${commit_id})"
+        echo "# Building ${simple_name} (${commit_id})"
         echo "#"
         # Print commands used to install to aid debugging
         set -x
@@ -268,10 +279,11 @@ function check_and_do {
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 # In dependency order.
-check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf
-check_and_do ${GRPC_COMMIT} grpc do_grpc
-check_and_do ${PI_COMMIT} p4runtime do_p4runtime
-check_and_do ${BMV2_COMMIT} bmv2 do_bmv2
-check_and_do ${P4C_COMMIT} p4c do_p4c
+check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf protobuf
+check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
+check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
+check_and_do ${PI_COMMIT} p4runtime do_p4runtime p4runtime
+check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
+check_and_do ${P4C_COMMIT} p4c do_p4c p4c
 
 echo "Done!"
