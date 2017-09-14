@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+BUNDLES = [
+    '//apps/p4-tutorial/icmpdropper:onos-apps-p4-tutorial-icmpdropper',
+]
+
+onos_app (
+    app_name = 'org.onosproject.p4tutorial.icmpdropper',
+    title = 'ICMP Dropper (P4 Tutorial)',
+    category = 'Security',
+    url = 'http://onosproject.org',
+    description = 'Inhibits forwarding of ICMP packets for PI-enabled devices using the ' +
+                    'p4-tutorial-pipeconf.',
+    included_bundles = BUNDLES,
+    required_apps = [
+        'org.onosproject.p4tutorial.pipeconf',
+    ]
+)

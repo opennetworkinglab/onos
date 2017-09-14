@@ -342,7 +342,7 @@ public final class PiCriterion implements Criterion {
          *
          * @return PiCriterion
          */
-        public Criterion build() {
+        public PiCriterion build() {
             ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatchMap = fieldMatchMapBuilder.build();
             checkArgument(fieldMatchMap.size() > 0, "Cannot build PI criterion with 0 field matches");
             return new PiCriterion(fieldMatchMap);
