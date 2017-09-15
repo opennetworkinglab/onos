@@ -174,26 +174,8 @@
         lu[id] = d;
         updateNodes();
 
-        function mkLinkKey(devId, devPort) {
-            return id + '/0-' + devId + '/' + devPort;
-        }
-
         // need to handle possible multiple links (multi-homed host)
-        d.links = [];
-        data.allCps.forEach(function (cp) {
-            var linkData = {
-                key: mkLinkKey(cp.device, cp.port),
-                dst: cp.device,
-                dstPort: cp.port,
-            };
-            d.links.push(linkData);
-
-            var lnk = tms.createHostLink(id, cp.device, cp.port);
-            if (lnk) {
-                network.links.push(lnk);
-                lu[linkData.key] = lnk;
-            }
-        });
+        createHostLinks(data.allCps, d);
 
         if (d.links.length) {
             updateLinks();
@@ -213,15 +195,30 @@
         }
     }
 
+    function createHostLinks(cps, model) {
+        model.links = [];
+        cps.forEach(function (cp) {
+            var linkData = {
+                key: model.id + '/0-' + cp.device + '/' + cp.port,
+                dst: cp.device,
+                dstPort: cp.port,
+            };
+            model.links.push(linkData);
+
+            var lnk = tms.createHostLink(model.id, cp.device, cp.port);
+            if (lnk) {
+                network.links.push(lnk);
+                lu[linkData.key] = lnk;
+            }
+        });
+    }
+
     function moveHost(data) {
         var id = data.id,
-            d = lu[id],
-            lnk;
+            d = lu[id];
 
         if (d) {
-            // first remove the old host link
-            // FIXME: what if the host has multiple links??????
-            removeLinkElement(d.linkData);
+            removeAllLinkElements(d.links);
 
             // merge new data
             angular.extend(d, data);
@@ -229,19 +226,8 @@
                 sendUpdateMeta(d);
             }
 
-            // now create a new host link
-            // TODO: verify this is the APPROPRIATE host link
-            lnk = tms.createHostLink(id, data.cp.device, data.cp.port);
-            if (lnk) {
-                network.links.push(lnk);
-                lu[lnk.key] = lnk;
-
-                d.links.push({
-                    key: id + '/0-' + cp.device + '/' + cp.port,
-                    dst: data.cp.device,
-                    dstPort: data.cp.port,
-                });
-            }
+            // now create new host link(s)
+            createHostLinks(data.allCps, d);
 
             updateNodes();
             updateLinks();
@@ -389,6 +375,12 @@
                 .attr('stroke-width', linkScale(lw))
                 .attr('stroke', linkConfig[th].baseColor);
         }
+    }
+
+    function removeAllLinkElements(links) {
+        links.forEach(function (lnk) {
+            removeLinkElement(lnk);
+        });
     }
 
     function removeLinkElement(d) {

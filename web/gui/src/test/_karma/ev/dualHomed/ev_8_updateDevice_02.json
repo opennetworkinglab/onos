@@ -1,0 +1,28 @@
+{
+  "event": "updateDevice",
+  "payload": {
+    "id": "of:0000000000000002",
+    "type": "switch",
+    "online": true,
+    "master": "127.0.0.1",
+    "labels": [
+      "",
+      "SW-B",
+      "of:0000000000000002"
+    ],
+    "props": {
+      "managementAddress": "192.168.36.101",
+      "protocol": "OF_13",
+      "latitude": "38.5189",
+      "name": "SW-B",
+      "locType": "geo",
+      "channelId": "192.168.36.101:55712",
+      "longitude": "-109.2781"
+    },
+    "location": {
+      "locType": "geo",
+      "latOrY": 38.5189,
+      "longOrX": -109.2781
+    }
+  }
+}

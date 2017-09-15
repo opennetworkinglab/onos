@@ -1,0 +1,14 @@
+{
+  "event": "addLink",
+  "payload": {
+    "id": "of:0000000000000002/2-of:0000000000000001/2",
+    "type": "direct",
+    "expected": false,
+    "online": true,
+    "linkWidth": 1.2,
+    "src": "of:0000000000000002",
+    "srcPort": "2",
+    "dst": "of:0000000000000001",
+    "dstPort": "2"
+  }
+}
