@@ -35,12 +35,12 @@ public class ResourceIdsTest {
                                   DCS_NAMESPACE)
             .build();
 
-        assertEquals(DEVICES, ResourceIds.concat(DeviceResourceIds.ROOT_ID, devices));
+        assertEquals(DEVICES, ResourceIds.concat(ResourceIds.ROOT_ID, devices));
     }
 
     @Test
     public void testRelativize() {
-        ResourceId relDevices = ResourceIds.relativize(DeviceResourceIds.ROOT_ID, DEVICES);
+        ResourceId relDevices = ResourceIds.relativize(ResourceIds.ROOT_ID, DEVICES);
         assertEquals(DeviceResourceIds.DEVICES_NAME,
                      relDevices.nodeKeys().get(0).schemaId().name());
         assertEquals(DCS_NAMESPACE,

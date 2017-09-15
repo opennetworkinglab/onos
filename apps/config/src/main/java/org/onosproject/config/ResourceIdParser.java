@@ -15,6 +15,7 @@
  */
 package org.onosproject.config;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 import java.util.LinkedList;
@@ -25,6 +26,8 @@ import org.onosproject.yang.model.LeafListKey;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.Beta;
 
@@ -42,6 +45,8 @@ import com.google.common.annotations.Beta;
 //FIXME add javadocs
 @Beta
 public final class ResourceIdParser {
+
+    private static final Logger log = LoggerFactory.getLogger(ResourceIdParser.class);
 
     /**
      * root node name.
@@ -117,10 +122,14 @@ public final class ResourceIdParser {
         return (path + leaf.substring(leaf.indexOf(KEY_SEP)));
     }
 
+    // 1.12.0 - not used by anyone
+    @Deprecated
     public static String appendKeyLeaf(String path, String key) {
         return (path + EL_SEP + key);
     }
 
+    // 1.12.0 - not used by anyone
+    @Deprecated
     public static String appendKeyLeaf(String path, KeyLeaf key) {
         StringBuilder bldr = new StringBuilder();
         bldr.append(key.leafSchema().name());
@@ -161,6 +170,8 @@ public final class ResourceIdParser {
         return (path + bldr.toString());
     }
 
+    // 1.12.0 - not used by anyone
+    @Deprecated
     public static String parseNodeKey(NodeKey key) {
         if (key == null) {
             return null;
@@ -269,6 +280,7 @@ public final class ResourceIdParser {
         while (itr.hasNext()) {
             String name = itr.next();
             if (name.contains(VAL_SEP)) {
+                // dead branch? VAL_SEP never used in parseResId
                 resBldr.addLeafListBranchPoint(name.substring(0, name.indexOf(NM_SEP)),
                         name.substring(name.indexOf(NM_SEP) + 1, name.indexOf(VAL_SEP)),
                         name.substring(name.indexOf(VAL_SEP) + 1));
@@ -282,7 +294,15 @@ public final class ResourceIdParser {
                     if (el.length != 3) {
                         throw new FailedException("Malformed event subject, cannot parse");
                     }
+                    try {
                     resBldr.addKeyLeaf(el[0], el[1], el[2]);
+                    } catch (Exception e) {
+                        log.error("dpath={}", dpath);
+                        log.error("name={}", name);
+                        log.error("key={}", key);
+                        log.error("el={}", Arrays.asList(el));
+                        throw e;
+                    }
                 }
             } else {
                 resBldr.addBranchPointSchema(name.substring(0, name.indexOf(NM_SEP)),

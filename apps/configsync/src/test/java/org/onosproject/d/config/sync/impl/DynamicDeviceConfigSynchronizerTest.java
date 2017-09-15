@@ -16,6 +16,7 @@
 package org.onosproject.d.config.sync.impl;
 
 import static org.junit.Assert.*;
+import static org.onosproject.d.config.ResourceIds.ROOT_ID;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +62,9 @@ public class DynamicDeviceConfigSynchronizerTest {
 
     CountDownLatch providerCalled = new CountDownLatch(1);
 
+    /**
+     * DynamicConfigService.readNode(ResourceId, Filter) stub.
+     */
     BiFunction<ResourceId, Filter, DataNode> onDcsRead;
 
     BiFunction<DeviceId, SetRequest, CompletableFuture<SetResponse>> onSetConfiguration;
@@ -89,12 +93,13 @@ public class DynamicDeviceConfigSynchronizerTest {
         ResourceId devicePath = DeviceResourceIds.toResourceId(DID);
         ResourceId cfgPath = REL_INTERFACES;
         ResourceId absPath = ResourceIds.concat(devicePath, cfgPath);
-        DynamicConfigEvent event = new DynamicConfigEvent(DynamicConfigEvent.Type.NODE_REPLACED, absPath);
+        ResourceId evtPath = ResourceIds.relativize(ROOT_ID, absPath);
+        DynamicConfigEvent event = new DynamicConfigEvent(DynamicConfigEvent.Type.NODE_REPLACED, evtPath);
 
         // assertions
         onDcsRead = (path, filter) -> {
             assertTrue(filter.isEmptyFilter());
-            assertEquals("DCS get access by absolute RID", absPath, path);
+            assertEquals("DCService get access by root relative RID", evtPath, path);
             return deviceConfigNode();
         };
 

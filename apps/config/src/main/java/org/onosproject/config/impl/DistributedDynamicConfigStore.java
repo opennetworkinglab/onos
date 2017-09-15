@@ -167,7 +167,6 @@ public class DistributedDynamicConfigStore
         if (node.type() == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
             addLeaf(path, (LeafNode) node);
         } else if (node.type() == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
-            path = ResourceIdParser.appendLeafList(path, (LeafListKey) node.key());
             if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
                                                   " store, please use an update method");
@@ -176,7 +175,6 @@ public class DistributedDynamicConfigStore
         } else if (node.type() == DataNode.Type.SINGLE_INSTANCE_NODE) {
             traverseInner(path, (InnerNode) node);
         } else if (node.type() == DataNode.Type.MULTI_INSTANCE_NODE) {
-            path = ResourceIdParser.appendKeyList(path, (ListKey) node.key());
             if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
                                                   " store, please use an update method");

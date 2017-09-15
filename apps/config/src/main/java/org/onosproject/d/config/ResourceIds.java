@@ -18,10 +18,14 @@ package org.onosproject.d.config;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Iterator;
+import java.util.Objects;
+
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafListKey;
 import org.onosproject.yang.model.ListKey;
+import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
@@ -35,6 +39,14 @@ import com.google.common.annotations.Beta;
 public abstract class ResourceIds {
 
     private static final Logger log = getLogger(ResourceIds.class);
+
+    /**
+     * Absolute ResourceId pointing at root node.
+     */
+    public static final ResourceId ROOT_ID = ResourceId.builder()
+            .addBranchPointSchema(DeviceResourceIds.ROOT_NAME,
+                                  DeviceResourceIds.DCS_NAMESPACE)
+            .build();
 
     /**
      * Builds the ResourceId of specified {@code node}.
@@ -113,8 +125,20 @@ public abstract class ResourceIds {
     public static ResourceId relativize(ResourceId base, ResourceId child) {
         checkArgument(child.nodeKeys().size() >= base.nodeKeys().size(),
                       "%s path must be deeper than base prefix %s", child, base);
-        checkArgument(base.nodeKeys().equals(child.nodeKeys().subList(0, base.nodeKeys().size())),
-                      "%s is not a prefix of %s", child, base);
+        @SuppressWarnings("rawtypes")
+        Iterator<NodeKey> bIt = base.nodeKeys().iterator();
+        @SuppressWarnings("rawtypes")
+        Iterator<NodeKey> cIt = child.nodeKeys().iterator();
+        while (bIt.hasNext()) {
+            NodeKey<?> b = bIt.next();
+            NodeKey<?> c = cIt.next();
+
+            checkArgument(Objects.equals(b, c),
+                          "%s is not a prefix of %s.\n" +
+                          "b:%s != c:%s",
+                          base, child,
+                          b, c);
+        }
 
         return ResourceId.builder().append(child.nodeKeys().subList(base.nodeKeys().size(),
                                                                     child.nodeKeys().size())).build();
@@ -131,6 +155,11 @@ public abstract class ResourceIds {
 
         return child.nodeKeys().size() >= prefix.nodeKeys().size() &&
                prefix.nodeKeys().equals(child.nodeKeys().subList(0, prefix.nodeKeys().size()));
+    }
+
+    public static boolean startsWithRootNode(ResourceId path) {
+        return !path.nodeKeys().isEmpty() &&
+                DeviceResourceIds.ROOT_NAME.equals(path.nodeKeys().get(0).schemaId().name());
     }
 
 }

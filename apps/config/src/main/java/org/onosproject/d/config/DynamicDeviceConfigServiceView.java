@@ -17,6 +17,7 @@ package org.onosproject.d.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.d.config.ResourceIds.ROOT_ID;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -51,6 +52,7 @@ public class DynamicDeviceConfigServiceView
 
     private final DeviceId deviceId;
 
+    // absolute ResourceId
     private ResourceId deviceRoot;
 
     /**
@@ -136,10 +138,16 @@ public class DynamicDeviceConfigServiceView
     }
 
     private ResourceId toDeviceRelativeId(ResourceId path) {
-        checkArgument(path.nodeKeys().contains(DeviceResourceIds.ROOT_NODE),
-                      "%s was not absolute path", path);
-
-        return ResourceIds.relativize(deviceRoot, path);
+        // case: absolute
+        if (ResourceIds.startsWithRootNode(path)) {
+            return ResourceIds.relativize(deviceRoot, path);
+        }
+        // case: root relative
+        if (DeviceResourceIds.isUnderDeviceRootNode(path)) {
+            //                                        TODO not efficient
+            return ResourceIds.relativize(deviceRoot, ResourceIds.concat(ROOT_ID, path));
+        }
+        throw new IllegalArgumentException(path + " was not absolute device path");
     }
 
     class DynamicDeviceConfigListener implements DynamicConfigListener {

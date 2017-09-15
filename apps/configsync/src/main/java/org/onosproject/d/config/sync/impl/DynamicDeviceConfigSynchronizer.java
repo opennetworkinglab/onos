@@ -169,8 +169,9 @@ public class DynamicDeviceConfigSynchronizer
             DeviceId deviceId = DeviceResourceIds.toDeviceId(path);
             ResourceId deviceRootPath = DeviceResourceIds.toResourceId(deviceId);
 
-            ResourceId relPath = ResourceIds.relativize(deviceRootPath, path);
-            // FIXME figure out how to express give me everything Filter
+            ResourceId absPath = ResourceIds.concat(ResourceIds.ROOT_ID, path);
+            ResourceId relPath = ResourceIds.relativize(deviceRootPath, absPath);
+            // give me everything Filter
             Filter giveMeEverything = Filter.builder().build();
 
             DataNode node = dynConfigService.readNode(path, giveMeEverything);

@@ -23,6 +23,7 @@ import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.SchemaId;
 
 import com.google.common.annotations.Beta;
 
@@ -38,7 +39,6 @@ public abstract class DeviceResourceIds {
     //         +- device (=device root node:ListKey)
 
 
-    // FIXME randomly defined namespace, replace with something appropriate
     /**
      * SchemaId namespace for DCS defined nodes.
      */
@@ -52,22 +52,27 @@ public abstract class DeviceResourceIds {
      * SchemaId name for devices node.
      */
     public static final String DEVICES_NAME = "devices";
+    public static final SchemaId DEVICES_SCHEMA = new SchemaId(DEVICES_NAME, DCS_NAMESPACE);
     /**
      * SchemaId name for device node.
      */
     public static final String DEVICE_NAME = "device";
+    public static final SchemaId DEVICE_SCHEMA = new SchemaId(DEVICE_NAME, DCS_NAMESPACE);
     /**
      * KeyLeaf {@code name}, which holds DeviceId information on device node.
      */
     public static final String DEVICE_ID_KL_NAME = "device-id";
 
     /**
-     * ResourceId pointing at root node.
+     * Absolute ResourceId pointing at root node.
+     * @deprecated Use {@link ResourceIds#ROOT_ID} instead
      */
-    public static final ResourceId ROOT_ID = ResourceId.builder()
-            .addBranchPointSchema(ROOT_NAME, DCS_NAMESPACE)
-            .build();
+    @Deprecated
+    public static final ResourceId ROOT_ID = ResourceIds.ROOT_ID;
 
+    /**
+     * Absolute ResourceId pointing at 'devices' node.
+     */
     public static final ResourceId DEVICES_ID = ResourceId.builder()
             .addBranchPointSchema(ROOT_NAME, DCS_NAMESPACE)
             .addBranchPointSchema(DEVICES_NAME, DCS_NAMESPACE)
@@ -80,15 +85,30 @@ public abstract class DeviceResourceIds {
     /**
      * nodeKeys index for root node.
      */
+    @Deprecated
     static final int ROOT_INDEX = 0;
     /**
-     * nodeKeys index for devices node.
+     * nodeKeys index relative from root for devices node.
      */
     static final int DEVICES_INDEX = 1;
     /**
-     * nodeKeys index for device node.
+     * nodeKeys index relative from root for device node.
      */
     static final int DEVICE_INDEX = 2;
+
+    /**
+     * Converts root relative ResourceId used by DynamicConfigEvent.
+     *
+     * @param rootRelative resource Id
+     * @return absolute ResourceId.
+     */
+    @Beta
+    public static ResourceId toAbsolute(ResourceId rootRelative) {
+        if (ResourceIds.startsWithRootNode(rootRelative)) {
+            return rootRelative;
+        }
+        return ResourceIds.concat(ResourceIds.ROOT_ID, rootRelative);
+    }
 
     /**
      * Tests if specified path points to root node of a Device.
@@ -97,25 +117,27 @@ public abstract class DeviceResourceIds {
      * @return true if path points to root node of a Device.
      */
     public static boolean isDeviceRootNode(ResourceId path) {
-        return path.nodeKeys().size() == 3 &&
-               isUnderDeviceRootNode(path);
+        if (ResourceIds.startsWithRootNode(path)) {
+            return path.nodeKeys().size() == 3 &&
+                    isUnderDeviceRootNode(path);
+        } else {
+            return path.nodeKeys().size() == 2 &&
+                    isUnderDeviceRootNode(path);
+        }
     }
 
     /**
-     * Tests if specified path points to root node of a Device.
+     * Tests if specified path points to root node of a Device or it's subtree.
      *
      * @param path to test.
      * @return true if path points to root node of a Device.
      */
     public static boolean isUnderDeviceRootNode(ResourceId path) {
-        return path.nodeKeys().size() >= 3 &&
-                // TODO Would be better to test whole schemeId
-                DEVICE_NAME.equals(path.nodeKeys().get(DEVICE_INDEX).schemaId().name()) &&
-                (path.nodeKeys().get(DEVICE_INDEX) instanceof ListKey) &&
-                // TODO Would be better to test whole schemeId
-                DEVICES_NAME.equals(path.nodeKeys().get(DEVICES_INDEX).schemaId().name()) &&
-                ROOT_NODE.equals(path.nodeKeys().get(ROOT_INDEX));
-    }
+        int rootIdx = ResourceIds.startsWithRootNode(path) ? 0 : -1;
+        return path.nodeKeys().size() >= rootIdx + 3 &&
+                DEVICE_SCHEMA.equals(path.nodeKeys().get(rootIdx + DEVICE_INDEX).schemaId()) &&
+                (path.nodeKeys().get(rootIdx + DEVICE_INDEX) instanceof ListKey) &&
+                DEVICES_SCHEMA.equals(path.nodeKeys().get(rootIdx + DEVICES_INDEX).schemaId());    }
 
     /**
      * Tests if specified path points to root or devices node.
@@ -129,10 +151,9 @@ public abstract class DeviceResourceIds {
     }
 
     public static boolean isDevicesNode(ResourceId path) {
-        return path.nodeKeys().size() == 2 &&
-                // TODO Would be better to test whole schemeId
-                DEVICES_NAME.equals(path.nodeKeys().get(DEVICES_INDEX).schemaId().name()) &&
-                ROOT_NODE.equals(path.nodeKeys().get(ROOT_INDEX));
+        int rootIdx = ResourceIds.startsWithRootNode(path) ? 0 : -1;
+        return path.nodeKeys().size() == rootIdx + 2 &&
+                DEVICES_SCHEMA.equals(path.nodeKeys().get(rootIdx + DEVICES_INDEX).schemaId());
     }
 
     public static boolean isRootNode(ResourceId path) {
@@ -151,7 +172,8 @@ public abstract class DeviceResourceIds {
         checkArgument(isUnderDeviceRootNode(path), path);
         // FIXME if we decide to drop any of intermediate nodes
         //        "/" - "devices" - "device"
-        return toDeviceId(path.nodeKeys().get(DEVICE_INDEX));
+        int rootIdx = ResourceIds.startsWithRootNode(path) ? 0 : -1;
+        return toDeviceId(path.nodeKeys().get(rootIdx + DEVICE_INDEX));
     }
 
     /**
@@ -162,8 +184,7 @@ public abstract class DeviceResourceIds {
      * @throws IllegalArgumentException if not a device node
      */
     public static DeviceId toDeviceId(NodeKey<?> deviceRoot) {
-        // TODO Would be better to test whole schemeId
-        if (!DEVICE_NAME.equals(deviceRoot.schemaId().name())) {
+        if (!DEVICE_SCHEMA.equals(deviceRoot.schemaId())) {
             throw new IllegalArgumentException(deviceRoot + " is not a device node");
         }
 
@@ -189,7 +210,7 @@ public abstract class DeviceResourceIds {
      * Transforms DeviceId into a ResourceId pointing to device root node.
      *
      * @param deviceId to transform
-     * @return ResourceId
+     * @return absolute ResourceId
      */
     public static ResourceId toResourceId(DeviceId deviceId) {
         return ResourceId.builder()
