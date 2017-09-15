@@ -1,0 +1,41 @@
+{
+  "event": "moveHost",
+  "payload": {
+    "id": "00:00:00:00:00:01/None",
+    "type": "endstation",
+    "cp": {
+      "device": "of:0000000000000001",
+      "port": 1
+    },
+    "prevCp": {
+      "device": "of:0000000000000001",
+      "port": 1
+    },
+    "allCps": [
+      {
+        "device": "of:0000000000000001",
+        "port": 1
+      },
+      {
+        "device": "of:0000000000000002",
+        "port": 1
+      }
+    ],
+    "labels": [
+      "Host-X",
+      "10.0.0.1",
+      "00:00:00:00:00:01"
+    ],
+    "props": {
+      "name": "Host-X",
+      "locType": "geo",
+      "latitude": "39.9444",
+      "longitude": "-91.7822"
+    },
+    "location": {
+      "locType": "geo",
+      "latOrY": 39.9444,
+      "longOrX": -91.7822
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000002",
+    "type": "switch",
+    "online": true,
+    "master": "127.0.0.1",
+    "labels": [
+      "",
+      "of:0000000000000002",
+      "of:0000000000000002"
+    ],
+    "props": {
+      "managementAddress": "192.168.36.101",
+      "protocol": "OF_13",
+      "channelId": "192.168.36.101:55712"
+    }
+  }
+}
