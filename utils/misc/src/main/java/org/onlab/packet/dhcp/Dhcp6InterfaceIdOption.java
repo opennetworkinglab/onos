@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.DeserializationException;
+import org.onlab.packet.VlanId;
 
 
 import java.nio.ByteBuffer;
@@ -32,6 +33,8 @@ import java.nio.ByteBuffer;
 public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
     private MacAddress peerMacAddr;
     private byte[] inPort;
+    private short vlanId;
+
     @Override
     public short getCode() {
         return DHCP6.OptionCode.INTERFACE_ID.value();
@@ -71,6 +74,7 @@ public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
         this.peerMacAddr = macAddress;
     }
 
+
     /**
      * Gets Mac address.
      *
@@ -99,6 +103,25 @@ public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
     }
 
     /**
+     * Sets the vlan id of interface id.
+     *
+     * @param vlanId the vlanid of client packet
+     */
+    public void setVlanId(short vlanId) {
+        this.vlanId = vlanId;
+    }
+
+    /**
+     * Gets the vlan id of interface id.
+     *
+     * @return the vlan id
+     *
+     */
+    public short getVlanId() {
+        return vlanId;
+    }
+
+    /**
      * Gets deserializer for DHCPv6 relay option.
      *
      * @return the deserializer
@@ -111,16 +134,20 @@ public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
             }
             Dhcp6InterfaceIdOption interfaceIdOption = new Dhcp6InterfaceIdOption(dhcp6Option);
             byte[] optionData = interfaceIdOption.getData();
-            if (optionData.length >= 28) {
+            if (optionData.length >= 31) {
                 ByteBuffer bb = ByteBuffer.wrap(optionData);
 
                 byte[] macAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
                 byte[] port = new byte[21];
+                short vlan;
                 bb.get(macAddr);
-                bb.get();  // separator
+                bb.get();  // separator "-"
                 bb.get(port);
+                bb.get(); // separator ":"
+                vlan = bb.getShort();
                 interfaceIdOption.setMacAddress(MacAddress.valueOf(macAddr));
                 interfaceIdOption.setInPort(port);
+                interfaceIdOption.setVlanId(vlan > VlanId.MAX_VLAN ? VlanId.UNTAGGED : vlan);
             }
             return interfaceIdOption;
         };
