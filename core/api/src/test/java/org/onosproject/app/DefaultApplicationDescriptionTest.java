@@ -29,6 +29,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 
 /**
@@ -53,12 +54,34 @@ public class DefaultApplicationDescriptionTest {
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
     public static final List<String> APPS = ImmutableList.of("fifi");
 
+    /**
+     * Checks that the DefaultApplicationDescription class is immutable.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultApplicationDescription.class);
+    }
+
     @Test
     public void basics() {
         ApplicationDescription app =
-                new DefaultApplicationDescription(APP_NAME, VER, TITLE, DESC, ORIGIN,
-                                                  CATEGORY, URL, README, ICON,
-                                                  ROLE, PERMS, FURL, FEATURES, APPS);
+            DefaultApplicationDescription.builder()
+                .withName(APP_NAME)
+                .withVersion(VER)
+                .withTitle(TITLE)
+                .withDescription(DESC)
+                .withOrigin(ORIGIN)
+                .withCategory(CATEGORY)
+                .withUrl(URL)
+                .withReadme(README)
+                .withIcon(ICON)
+                .withRole(ROLE)
+                .withPermissions(PERMS)
+                .withFeaturesRepo(FURL)
+                .withFeatures(FEATURES)
+                .withRequiredApps(APPS)
+                .build();
+
         assertEquals("incorrect id", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect title", TITLE, app.title());

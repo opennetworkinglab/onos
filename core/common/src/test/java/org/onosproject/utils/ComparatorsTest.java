@@ -161,9 +161,22 @@ public class ComparatorsTest {
     }
 
     private Application app(int id, String name) {
-        return new DefaultApplication(new DefaultApplicationId(id, name), VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, ICON, ROLE,
-                PERMS, Optional.of(FURL), FEATURES, APPS);
+        return DefaultApplication.builder()
+                .withAppId(new DefaultApplicationId(id, name))
+                .withVersion(VER)
+                .withTitle(TITLE)
+                .withDescription(DESC)
+                .withOrigin(ORIGIN)
+                .withCategory(CATEGORY)
+                .withUrl(URL)
+                .withReadme(README)
+                .withIcon(ICON)
+                .withRole(ROLE)
+                .withPermissions(PERMS)
+                .withFeaturesRepo(Optional.of(FURL))
+                .withFeatures(FEATURES)
+                .withRequiredApps(APPS)
+                .build();
     }
 
     @Test

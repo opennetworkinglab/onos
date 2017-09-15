@@ -15,14 +15,16 @@
  */
 package org.onosproject.app;
 
-import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.Version;
-import org.onosproject.security.Permission;
-
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import org.onosproject.core.ApplicationRole;
+import org.onosproject.core.Version;
+import org.onosproject.security.Permission;
+
+import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -31,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of network control/management application descriptor.
  */
-public class DefaultApplicationDescription implements ApplicationDescription {
+public final class DefaultApplicationDescription implements ApplicationDescription {
 
     private final String name;
     private final Version version;
@@ -47,6 +49,14 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     private final Optional<URI> featuresRepo;
     private final List<String> features;
     private final List<String> requiredApps;
+
+    /**
+     * Default constructor is hidden to prevent calls to new.
+     */
+    private DefaultApplicationDescription() {
+        //  Should not happen
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Creates a new application descriptor using the supplied data.
@@ -66,27 +76,26 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param features     application features
      * @param requiredApps list of required application names
      */
-    public DefaultApplicationDescription(String name, Version version, String title,
-                                         String description, String origin, String category,
-                                         String url, String readme, byte[] icon,
-                                         ApplicationRole role, Set<Permission> permissions,
-                                         URI featuresRepo, List<String> features,
-                                         List<String> requiredApps) {
-        this.name = checkNotNull(name, "Name cannot be null");
-        this.version = checkNotNull(version, "Version cannot be null");
-        this.title = checkNotNull(title, "Title cannot be null");
-        this.description = checkNotNull(description, "Description cannot be null");
-        this.origin = checkNotNull(origin, "Origin cannot be null");
-        this.category = checkNotNull(category, "Category cannot be null");
+    private DefaultApplicationDescription(String name, Version version, String title,
+                                          String description, String origin, String category,
+                                          String url, String readme, byte[] icon,
+                                          ApplicationRole role, Set<Permission> permissions,
+                                          URI featuresRepo, List<String> features,
+                                          List<String> requiredApps) {
+        this.name = name;
+        this.version = version;
+        this.title = title;
+        this.description = description;
+        this.origin = origin;
+        this.category = category;
         this.url = url;
-        this.readme = checkNotNull(readme, "Readme cannot be null");
+        this.readme = readme;
         this.icon = icon;
-        this.role = checkNotNull(role, "Role cannot be null");
-        this.permissions = checkNotNull(permissions, "Permissions cannot be null");
+        this.role = role;
+        this.permissions = permissions;
         this.featuresRepo = Optional.ofNullable(featuresRepo);
-        this.features = checkNotNull(features, "Features cannot be null");
-        this.requiredApps = checkNotNull(requiredApps, "Required apps cannot be null");
-        checkArgument(!features.isEmpty(), "There must be at least one feature");
+        this.features = ImmutableList.copyOf(features);
+        this.requiredApps = ImmutableList.copyOf(requiredApps);
     }
 
     @Override
@@ -176,5 +185,221 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                 .add("features", features)
                 .add("requiredApps", requiredApps)
                 .toString();
+    }
+
+    /**
+     * Returns a default application description builder.
+     *
+     * @return builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Default application description builder.
+     */
+    public static final class Builder {
+
+        private String name;
+        private Version version;
+        private String title;
+        private String description;
+        private String category;
+        private String url;
+        private String readme;
+        private byte[] icon;
+        private String origin;
+        private ApplicationRole role;
+        private Set<Permission> permissions;
+        private URI featuresRepo;
+        private List<String> features;
+        private List<String> requiredApps;
+
+        /**
+         * Default constructor for the builder.
+         */
+        public Builder() {}
+
+        /**
+         * Adds an application id.
+         *
+         * @param name application name
+         * @return builder
+         */
+        public Builder withName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * Adds a version string.
+         *
+         * @param version version string
+         * @return builder
+         */
+        public Builder withVersion(Version version) {
+            this.version = version;
+            return this;
+        }
+
+        /**
+         * Adds a title string.
+         *
+         * @param title title string
+         * @return builder
+         */
+        public Builder withTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        /**
+         * Adds a description string.
+         *
+         * @param description description string
+         * @return builder
+         */
+        public Builder withDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        /**
+         * Adds a category string.
+         *
+         * @param category category string
+         * @return builder
+         */
+        public Builder withCategory(String category) {
+            this.category = category;
+            return this;
+        }
+
+        /**
+         * Adds a URL string.
+         *
+         * @param url url string
+         * @return builder
+         */
+        public Builder withUrl(String url) {
+            this.url = url;
+            return this;
+        }
+
+        /**
+         * Adds a readme string.
+         *
+         * @param readme readme string
+         * @return builder
+         */
+        public Builder withReadme(String readme) {
+            this.readme = readme;
+            return this;
+        }
+
+        /**
+         * Adds an icon.
+         *
+         * @param icon icon data
+         * @return builder
+         */
+        public Builder withIcon(byte[] icon) {
+            this.icon = icon;
+            return this;
+        }
+
+        /**
+         * Adds an origin string.
+         *
+         * @param origin origin string
+         * @return builder
+         */
+        public Builder withOrigin(String origin) {
+            this.origin = origin;
+            return this;
+        }
+
+        /**
+         * Adds an application role.
+         *
+         * @param role application role
+         * @return builder
+         */
+        public Builder withRole(ApplicationRole role) {
+            this.role = role;
+            return this;
+        }
+
+        /**
+         * Adds a permissions set.
+         *
+         * @param permissions permissions set
+         * @return builder
+         */
+        public Builder withPermissions(Set<Permission> permissions) {
+            this.permissions = permissions;
+            return this;
+        }
+
+        /**
+         * Adds a URI for a features repository.
+         *
+         * @param featuresRepo Optional URI for a features repository
+         * @return builder
+         */
+        public Builder withFeaturesRepo(URI featuresRepo) {
+            this.featuresRepo = featuresRepo;
+            return this;
+        }
+
+        /**
+         * Adds a features list.
+         *
+         * @param features features list
+         * @return builder
+         */
+        public Builder withFeatures(List<String> features) {
+            this.features = features;
+            return this;
+        }
+
+        /**
+         * Adds a list of required applications.
+         *
+         * @param requiredApps List of name strings of required applications
+         * @return builder
+         */
+        public Builder withRequiredApps(List<String> requiredApps) {
+            this.requiredApps = requiredApps;
+            return this;
+        }
+
+        /**
+         * Builds a default application object from the gathered parameters.
+         *
+         * @return new default application
+         */
+        public DefaultApplicationDescription build() {
+            checkNotNull(name, "Name cannot be null");
+            checkNotNull(version, "Version cannot be null");
+            checkNotNull(title, "Title cannot be null");
+            checkNotNull(description, "Description cannot be null");
+            checkNotNull(origin, "Origin cannot be null");
+            checkNotNull(category, "Category cannot be null");
+            checkNotNull(readme, "Readme cannot be null");
+            checkNotNull(role, "Role cannot be null");
+            checkNotNull(permissions, "Permissions cannot be null");
+            checkNotNull(features, "Features cannot be null");
+            checkNotNull(requiredApps, "Required apps cannot be null");
+            checkArgument(!features.isEmpty(), "There must be at least one feature");
+
+            return new DefaultApplicationDescription(name, version, title,
+                                          description, origin, category,
+                                          url, readme, icon,
+                                          role, permissions,
+                                          featuresRepo, features,
+                                          requiredApps);
+        }
     }
 }

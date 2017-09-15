@@ -23,7 +23,6 @@ import org.onosproject.grpc.core.models.ApplicationProtoOuterClass.ApplicationPr
 import org.onosproject.incubator.protobuf.models.security.PermissionProtoTranslator;
 import org.onosproject.security.Permission;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.grpc.core.models.ApplicationProtoOuterClass.ApplicationProto.getDefaultInstance;
@@ -46,12 +45,21 @@ public final class ApplicationProtoTranslator {
         app.getPermissionsList().forEach(p ->
                 permissions.add(PermissionProtoTranslator.translate(p)));
 
-        return new DefaultApplication(ApplicationIdProtoTranslator.translate(app.getAppId()),
-                VersionProtoTranslator.translate(app.getVersion()), app.getTitle(),
-                app.getDescription(), app.getOrigin(), app.getCategory(), app.getUrl(),
-                app.getReadme(), app.toByteArray(),
-                (ApplicationRole) ApplicationEnumsProtoTranslator.translate(app.getRole()).get(),
-                permissions, Optional.empty(), app.getFeaturesList(), app.getRequiredAppsList());
+        return DefaultApplication.builder()
+                .withAppId(ApplicationIdProtoTranslator.translate(app.getAppId()))
+                .withVersion(VersionProtoTranslator.translate(app.getVersion()))
+                .withTitle(app.getTitle())
+                .withDescription(app.getDescription())
+                .withOrigin(app.getOrigin())
+                .withCategory(app.getCategory())
+                .withUrl(app.getUrl())
+                .withReadme(app.getReadme())
+                .withIcon(app.toByteArray())
+                .withRole((ApplicationRole) ApplicationEnumsProtoTranslator.translate(app.getRole()).get())
+                .withPermissions(permissions)
+                .withFeatures(app.getFeaturesList())
+                .withRequiredApps(app.getRequiredAppsList())
+                .build();
     }
 
     /**

@@ -79,11 +79,22 @@ public class DistributedSecurityModeStoreTest {
         testFeatures.add("testFeature");
         testRequiredApps = new ArrayList<String>();
         testRequiredApps.add("testRequiredApp");
-        app = new DefaultApplication(appId, Version.version(1, 1, "patch", "build"), "testTitle",
-                "testDes", "testOri", "testCT",
-                "testurl", "test", null,
-                ApplicationRole.ADMIN, testPermissions,
-                Optional.ofNullable(null), testFeatures, testRequiredApps);
+        app = DefaultApplication.builder()
+                        .withAppId(appId)
+                        .withVersion(Version.version(1, 1, "patch", "build"))
+                        .withTitle("testTitle")
+                        .withDescription("testDes")
+                        .withOrigin("testOri")
+                        .withCategory("testCT")
+                        .withUrl("testurl")
+                        .withReadme("test")
+                        .withIcon(null)
+                        .withRole(ApplicationRole.ADMIN)
+                        .withPermissions(testPermissions)
+                        .withFeaturesRepo(Optional.ofNullable(null))
+                        .withFeatures(testFeatures)
+                        .withRequiredApps(testRequiredApps)
+                        .build();
 
         testLocations = new HashSet<String>();
         testLocations.add("locationA");

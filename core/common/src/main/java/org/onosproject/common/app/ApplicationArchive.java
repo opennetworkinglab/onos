@@ -328,10 +328,22 @@ public class ApplicationArchive
         // put short description to description field
         String desc = compactDescription(readme);
 
-        return new DefaultApplicationDescription(name, version, title, desc, origin,
-                                                 category, url, readme, icon,
-                                                 role, perms, featuresRepo,
-                                                 features, requiredApps);
+        return DefaultApplicationDescription.builder()
+            .withName(name)
+            .withVersion(version)
+            .withTitle(title)
+            .withDescription(desc)
+            .withOrigin(origin)
+            .withCategory(category)
+            .withUrl(url)
+            .withReadme(readme)
+            .withIcon(icon)
+            .withRole(role)
+            .withPermissions(perms)
+            .withFeaturesRepo(featuresRepo)
+            .withFeatures(features)
+            .withRequiredApps(requiredApps)
+            .build();
     }
 
     // Expands the specified ZIP stream into app-specific directory.

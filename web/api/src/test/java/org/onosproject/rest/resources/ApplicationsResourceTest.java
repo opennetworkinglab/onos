@@ -107,30 +107,55 @@ public class ApplicationsResourceTest extends ResourceTest {
     private static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     private static final Version VER = Version.version(1, 2, "a", null);
 
+    private DefaultApplication.Builder baseBuilder = DefaultApplication.builder()
+                .withVersion(VER)
+                .withIcon(new byte[0])
+                .withRole(ApplicationRole.ADMIN)
+                .withPermissions(ImmutableSet.of())
+                .withFeaturesRepo(Optional.of(FURL))
+                .withFeatures(ImmutableList.of("My Feature"))
+                .withRequiredApps(ImmutableList.of());
+
     private Application app1 =
-            new DefaultApplication(id1, VER, "title1",
-                    "desc1", "origin1", "category1", "url1",
-                    "readme1", new byte[0], ApplicationRole.ADMIN,
-                    ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableList.of("My Feature"), ImmutableList.of());
+            DefaultApplication.builder(baseBuilder)
+                .withAppId(id1)
+                .withTitle("title1")
+                .withDescription("desc1")
+                .withOrigin("origin1")
+                .withCategory("category1")
+                .withUrl("url1")
+                .withReadme("readme1")
+                .build();
     private Application app2 =
-            new DefaultApplication(id2, VER, "title2",
-                    "desc2", "origin2", "category2", "url2",
-                    "readme2", new byte[0], ApplicationRole.ADMIN,
-                    ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableList.of("My Feature"), ImmutableList.of());
+            DefaultApplication.builder(baseBuilder)
+                    .withAppId(id2)
+                    .withTitle("title2")
+                    .withDescription("desc2")
+                    .withOrigin("origin2")
+                    .withCategory("category2")
+                    .withUrl("url2")
+                    .withReadme("readme2")
+                    .build();
     private Application app3 =
-            new DefaultApplication(id3, VER, "title3",
-                    "desc3", "origin3", "category3", "url3",
-                    "readme3", new byte[0], ApplicationRole.ADMIN,
-                    ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableList.of("My Feature"), ImmutableList.of());
+            DefaultApplication.builder(baseBuilder)
+                    .withAppId(id3)
+                    .withTitle("title3")
+                    .withDescription("desc3")
+                    .withOrigin("origin3")
+                    .withCategory("category3")
+                    .withUrl("url3")
+                    .withReadme("readme3")
+                    .build();
     private Application app4 =
-            new DefaultApplication(id4, VER, "title4",
-                    "desc4", "origin4", "category4", "url4",
-                    "readme4", new byte[0], ApplicationRole.ADMIN,
-                    ImmutableSet.of(), Optional.of(FURL),
-                    ImmutableList.of("My Feature"), ImmutableList.of());
+            DefaultApplication.builder(baseBuilder)
+                    .withAppId(id4)
+                    .withTitle("title4")
+                    .withDescription("desc4")
+                    .withOrigin("origin4")
+                    .withCategory("category4")
+                    .withUrl("url4")
+                    .withReadme("readme4")
+                    .build();
 
     /**
      * Hamcrest matcher to check that an application representation in JSON matches

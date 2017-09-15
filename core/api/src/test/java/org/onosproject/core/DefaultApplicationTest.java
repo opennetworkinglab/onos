@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.core.DefaultApplication.Builder;
+
 import static org.junit.Assert.*;
 import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
@@ -36,13 +39,35 @@ import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
  */
 public class DefaultApplicationTest {
 
+    /**
+     * Checks that the DefaultApplication class is immutable.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultApplication.class);
+    }
+
     public static final ApplicationId APP_ID = new DefaultApplicationId(2, APP_NAME);
+    private Builder baseBuilder = DefaultApplication.builder()
+                .withAppId(APP_ID)
+                .withVersion(VER)
+                .withTitle(TITLE)
+                .withDescription(DESC)
+                .withOrigin(ORIGIN)
+                .withCategory(CATEGORY)
+                .withUrl(URL)
+                .withReadme(README)
+                .withIcon(ICON)
+                .withRole(ROLE)
+                .withPermissions(PERMS)
+                .withFeaturesRepo(Optional.of(FURL))
+                .withFeatures(FEATURES)
+                .withRequiredApps(APPS);
 
     @Test
     public void basics() {
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                                                 CATEGORY, URL, README, ICON, ROLE,
-                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
+        Application app = baseBuilder.build();
+
         assertEquals("incorrect id", APP_ID, app.id());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect title", TITLE, app.title());
@@ -62,20 +87,20 @@ public class DefaultApplicationTest {
 
     @Test
     public void testEquality() {
-        Application a1 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                                                CATEGORY, URL, README, ICON, ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a2 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                                                CATEGORY, URL, README, ICON, ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a3 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                                                CATEGORY, URL, README, ICON, ROLE,
-                                                PERMS, Optional.empty(), FEATURES, APPS);
-        Application a4 = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN + "asd",
-                                                CATEGORY, URL, README, ICON, ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES, APPS);
-        new EqualsTester().addEqualityGroup(a1, a2)
-                .addEqualityGroup(a3).addEqualityGroup(a4).testEquals();
+        Application a1 = baseBuilder.build();
+        Application a2 = DefaultApplication.builder(a1)
+                .build();
+        Application a3 = DefaultApplication.builder(baseBuilder)
+                .withFeaturesRepo(Optional.empty())
+                .build();
+        Application a4 = DefaultApplication.builder(baseBuilder)
+                .withOrigin(ORIGIN + "asd")
+                .build();
+        new EqualsTester()
+                .addEqualityGroup(a1, a2)
+                .addEqualityGroup(a3)
+                .addEqualityGroup(a4)
+                .testEquals();
     }
 
 
@@ -85,9 +110,8 @@ public class DefaultApplicationTest {
     public void immutableIcon() {
         byte[] iconSourceData = ICON_ORIG.clone();
 
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, iconSourceData, ROLE,
-                PERMS, Optional.of(FURL), FEATURES, APPS);
+        Application app = DefaultApplication.builder(baseBuilder)
+                .withIcon(iconSourceData).build();
 
         // can we modify the icon after getting a reference to the app?
         byte[] icon = app.icon();
@@ -126,9 +150,7 @@ public class DefaultApplicationTest {
 //        Set<Permission> p = PERMS_ORIG;
         Set<Permission> p = PERMS_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, ICON, ROLE,
-                p, Optional.of(FURL), FEATURES, APPS);
+        Application app = baseBuilder.build();
 
         Set<Permission> perms = app.permissions();
         try {
@@ -168,9 +190,7 @@ public class DefaultApplicationTest {
 //        List<String> f = FEATURES_ORIG;
         List<String> f = FEATURES_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, ICON, ROLE,
-                PERMS, Optional.of(FURL), f, APPS);
+        Application app = DefaultApplication.builder(baseBuilder).withFeatures(f).build();
 
         List<String> features = app.features();
         try {
@@ -188,9 +208,7 @@ public class DefaultApplicationTest {
 //        List<String> ra = REQ_APPS_ORIG;
         List<String> ra = REQ_APPS_UNSAFE;
 
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, ICON, ROLE,
-                PERMS, Optional.of(FURL), FEATURES, ra);
+        Application app = DefaultApplication.builder(baseBuilder).withRequiredApps(ra).build();
 
         List<String> reqApps = app.requiredApps();
         try {
@@ -204,9 +222,7 @@ public class DefaultApplicationTest {
 
     @Test
     public void nullIcon() {
-        Application app = new DefaultApplication(APP_ID, VER, TITLE, DESC, ORIGIN,
-                CATEGORY, URL, README, null, ROLE,
-                PERMS, Optional.of(FURL), FEATURES, APPS);
+        Application app = DefaultApplication.builder(baseBuilder).withIcon(null).build();
         byte[] icon = app.icon();
         assertNotNull("null icon", icon);
         assertEquals("unexpected size", 0, icon.length);

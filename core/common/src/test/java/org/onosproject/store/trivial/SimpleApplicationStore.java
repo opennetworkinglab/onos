@@ -76,20 +76,11 @@ public class SimpleApplicationStore extends ApplicationArchive
             ApplicationId appId = idStore.registerApplication(name);
             ApplicationDescription appDesc = getApplicationDescription(name);
             DefaultApplication app =
-                    new DefaultApplication(appId,
-                            appDesc.version(),
-                            appDesc.title(),
-                            appDesc.description(),
-                            appDesc.origin(),
-                            appDesc.category(),
-                            appDesc.url(),
-                            appDesc.readme(),
-                            appDesc.icon(),
-                            appDesc.role(),
-                            appDesc.permissions(),
-                            appDesc.featuresRepo(),
-                            appDesc.features(),
-                            appDesc.requiredApps());
+                DefaultApplication
+                    .builder(appDesc)
+                    .withAppId(appId)
+                    .build();
+
             apps.put(appId, app);
             states.put(appId, isActive(name) ? INSTALLED : ACTIVE);
             // load app permissions
@@ -129,20 +120,11 @@ public class SimpleApplicationStore extends ApplicationArchive
         ApplicationDescription appDesc = saveApplication(appDescStream);
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         DefaultApplication app =
-                new DefaultApplication(appId,
-                        appDesc.version(),
-                        appDesc.title(),
-                        appDesc.description(),
-                        appDesc.origin(),
-                        appDesc.category(),
-                        appDesc.url(),
-                        appDesc.readme(),
-                        appDesc.icon(),
-                        appDesc.role(),
-                        appDesc.permissions(),
-                        appDesc.featuresRepo(),
-                        appDesc.features(),
-                        appDesc.requiredApps());
+            DefaultApplication
+                .builder(appDesc)
+                .withAppId(appId)
+                .build();
+
         apps.put(appId, app);
         states.put(appId, INSTALLED);
         delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
