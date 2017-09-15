@@ -19,7 +19,7 @@
     <parent>
         <artifactId>onos-incubator-protobuf</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.11.1</version>
+        <version>1.11.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -34,13 +34,13 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-protobuf-models</artifactId>
-            <version>1.11.1</version>
+            <version>1.11.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
-            <version>1.11.1</version>
+            <version>1.11.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
