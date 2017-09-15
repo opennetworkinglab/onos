@@ -397,12 +397,8 @@
     }
 
     function removeHostElement(d, upd) {
-        // first, remove associated hostLink...
-        removeLinkElement(d.linkData);
-
-        // remove hostLink bindings
-        delete lu[d.ingress];
-        delete lu[d.egress];
+        // first, remove associated hostLink(s)...
+        removeAllLinkElements(d.links);
 
         // remove from lookup cache
         delete lu[d.id];
