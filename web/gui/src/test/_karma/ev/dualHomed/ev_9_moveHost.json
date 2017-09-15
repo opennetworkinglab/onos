@@ -1,41 +1,39 @@
 {
   "event": "moveHost",
   "payload": {
-    "id": "00:00:00:00:00:01/None",
+    "id": "3C:FD:FE:9E:6E:D0/None",
     "type": "endstation",
     "cp": {
-      "device": "of:0000000000000001",
-      "port": 1
+      "device": "of:0000000000000206",
+      "port": 54
     },
     "prevCp": {
-      "device": "of:0000000000000001",
-      "port": 1
+      "device": "of:0000000000000205",
+      "port": 54
     },
     "allCps": [
       {
-        "device": "of:0000000000000001",
-        "port": 1
+        "device": "of:0000000000000206",
+        "port": 54
       },
       {
-        "device": "of:0000000000000002",
-        "port": 1
+        "device": "of:0000000000000205",
+        "port": 77
       }
     ],
     "labels": [
-      "Host-X",
-      "10.0.0.1",
-      "00:00:00:00:00:01"
+      "fe80::3efd:feff:fe9e:6ed0",
+      "fe80::3efd:feff:fe9e:6ed0",
+      "3C:FD:FE:9E:6E:D0"
     ],
-    "props": {
-      "name": "Host-X",
-      "locType": "geo",
-      "latitude": "39.9444",
-      "longitude": "-91.7822"
-    },
-    "location": {
-      "locType": "geo",
-      "latOrY": 39.9444,
-      "longOrX": -91.7822
+    "props": {},
+    "metaUi": {
+      "x": 771.2614872361207,
+      "y": 870.9614439514203,
+      "equivLoc": {
+        "lng": -86.82423167773878,
+        "lat": 27.650078076056364
+      }
     }
   }
 }

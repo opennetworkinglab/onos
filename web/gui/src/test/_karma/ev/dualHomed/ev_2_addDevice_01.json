@@ -1,19 +1,36 @@
 {
   "event": "addDevice",
   "payload": {
-    "id": "of:0000000000000001",
+    "id": "of:0000000000000205",
     "type": "switch",
     "online": true,
-    "master": "127.0.0.1",
+    "master": "10.128.0.218",
     "labels": [
       "",
-      "of:0000000000000001",
-      "of:0000000000000001"
+      "of:0000000000000205",
+      "of:0000000000000205"
     ],
     "props": {
-      "managementAddress": "192.168.36.101",
+      "managementAddress": "10.128.0.205",
       "protocol": "OF_13",
-      "channelId": "192.168.36.101:55710"
+      "latitude": "34.1202",
+      "name": "of:0000000000000205",
+      "locType": "geo",
+      "channelId": "10.128.0.205:46174",
+      "longitude": "-90.4754"
+    },
+    "location": {
+      "locType": "geo",
+      "latOrY": 34.1202,
+      "longOrX": -90.4754
+    },
+    "metaUi": {
+      "x": 661.5106105366713,
+      "y": 644.1330453927671,
+      "equivLoc": {
+        "lng": -90.4754,
+        "lat": 34.12019999999999
+      }
     }
   }
 }

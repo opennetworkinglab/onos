@@ -1,5 +1,5 @@
 {
-  "event": "addHost",
+  "event": "removeHost",
   "payload": {
     "id": "3C:FD:FE:9E:6E:D0/None",
     "type": "endstation",
@@ -7,14 +7,14 @@
       "device": "of:0000000000000206",
       "port": 54
     },
-    "prevCp": {
-      "device": "of:0000000000000205",
-      "port": 54
-    },
     "allCps": [
       {
         "device": "of:0000000000000206",
         "port": 54
+      },
+      {
+        "device": "of:0000000000000205",
+        "port": 77
       }
     ],
     "labels": [

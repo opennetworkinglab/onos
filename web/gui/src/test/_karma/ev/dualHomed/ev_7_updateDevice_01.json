@@ -1,10 +1,10 @@
 {
   "event": "updateDevice",
   "payload": {
-    "id": "of:0000000000000001",
+    "id": "of:0000000000000205",
     "type": "switch",
     "online": true,
-    "master": "127.0.0.1",
+    "master": "10.128.0.218",
     "labels": [
       "",
       "SW-A",

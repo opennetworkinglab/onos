@@ -7,10 +7,6 @@
       "device": "of:0000000000000206",
       "port": 54
     },
-    "prevCp": {
-      "device": "of:0000000000000205",
-      "port": 54
-    },
     "allCps": [
       {
         "device": "of:0000000000000206",
@@ -18,8 +14,8 @@
       }
     ],
     "labels": [
-      "fe80::3efd:feff:fe9e:6ed0",
-      "fe80::3efd:feff:fe9e:6ed0",
+      "10.0.5.55",
+      "10.0.5.55",
       "3C:FD:FE:9E:6E:D0"
     ],
     "props": {},
