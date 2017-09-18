@@ -79,6 +79,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -516,12 +517,17 @@ public class GeneralDeviceProvider extends AbstractProvider
     }
 
     private void updatePortStatistics(DeviceId deviceId) {
-        Collection<PortStatistics> statistics = deviceService.getDevice(deviceId)
-                .as(PortStatisticsDiscovery.class)
-                .discoverPortStatistics();
-        //updating statistcs only if not empty
-        if (!statistics.isEmpty()) {
-            providerService.updatePortStatistics(deviceId, statistics);
+        Device device = deviceService.getDevice(deviceId);
+        if (!Objects.isNull(device) && deviceService.isAvailable(deviceId) &&
+                device.is(PortStatisticsDiscovery.class)) {
+            Collection<PortStatistics> statistics = device.as(PortStatisticsDiscovery.class)
+                    .discoverPortStatistics();
+            //updating statistcs only if not empty
+            if (!statistics.isEmpty()) {
+                providerService.updatePortStatistics(deviceId, statistics);
+            }
+        } else {
+            log.debug("Can't update port statistics for device {}", deviceId);
         }
     }
 
@@ -544,7 +550,7 @@ public class GeneralDeviceProvider extends AbstractProvider
                 log.debug("{} is not my scheme, skipping", deviceId);
                 return;
             }
-            if (deviceService.getDevice(deviceId) != null || deviceService.isAvailable(deviceId)) {
+            if (deviceService.getDevice(deviceId) != null && deviceService.isAvailable(deviceId)) {
                 log.info("Device {} is already connected to ONOS and is available", deviceId);
                 return;
             }
@@ -633,19 +639,17 @@ public class GeneralDeviceProvider extends AbstractProvider
         @Override
         public void event(DeviceEvent event) {
             Type type = event.type();
+            DeviceId deviceId = event.subject().id();
             if (type.equals((Type.DEVICE_ADDED))) {
 
                 //For now this is scheduled periodically, when streaming API will
                 // be available we check and base it on the streaming API (e.g. gNMI)
-                if (deviceService.getDevice(event.subject().id()).
-                        is(PortStatisticsDiscovery.class)) {
-                    scheduledTasks.put(event.subject().id(), schedulePolling(event.subject().id(), false));
-                    updatePortStatistics(event.subject().id());
-                }
+                scheduledTasks.put(deviceId, schedulePolling(deviceId, false));
+                updatePortStatistics(deviceId);
 
             } else if (type.equals(Type.DEVICE_REMOVED)) {
                 connectionExecutor.submit(exceptionSafe(() ->
-                        disconnectDevice(event.subject().id())));
+                        disconnectDevice(deviceId)));
             }
         }
 
