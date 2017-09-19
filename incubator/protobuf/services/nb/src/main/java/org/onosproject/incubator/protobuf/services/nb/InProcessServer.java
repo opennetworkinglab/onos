@@ -60,7 +60,7 @@ public class InProcessServer<T extends io.grpc.BindableService> {
         });
     }
 
-    void stop() {
+    public void stop() {
         if (server != null) {
             server.shutdown();
         }
