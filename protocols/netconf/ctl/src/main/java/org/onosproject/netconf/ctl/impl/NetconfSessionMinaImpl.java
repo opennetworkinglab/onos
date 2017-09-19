@@ -578,7 +578,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
      * @return XML RPC message
      */
     private String formatXmlHeader(String request) {
-        if (!request.startsWith(XML_HEADER)) {
+        if (!request.contains(XML_HEADER)) {
             //FIXME if application provides his own XML header of different type there is a clash
             if (request.startsWith(LF + HASH)) {
                 request = request.split("<")[0] + XML_HEADER + request.substring(request.split("<")[0].length());

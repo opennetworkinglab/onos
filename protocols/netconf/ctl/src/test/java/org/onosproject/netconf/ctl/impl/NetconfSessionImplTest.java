@@ -667,7 +667,7 @@ public class NetconfSessionImplTest {
                     Pattern.DOTALL);
 
     public static final Pattern HELLO_REQ_PATTERN_1_1 =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                             + "(<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                             + "( *)(<capabilities>)\\R?"
                             + "( *)(<capability>urn:ietf:params:netconf:base:1.0</capability>)\\R?"
@@ -677,7 +677,7 @@ public class NetconfSessionImplTest {
                     Pattern.DOTALL);
 
     public static final Pattern EDIT_CONFIG_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc message-id=\")[0-9]*(\") *(xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + "(<edit-config>)\\R?"
                     + "(<target>\\R?((<" + DatastoreId.CANDIDATE.toString() + "/>)|"
@@ -689,7 +689,7 @@ public class NetconfSessionImplTest {
 
 
     public static final Pattern LOCK_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
                     + "message-id=\")[0-9]*(\">)\\R?"
                     + "(<lock>)\\R?"
@@ -699,7 +699,7 @@ public class NetconfSessionImplTest {
                     + "(</lock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 
     public static final Pattern UNLOCK_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
                     + "message-id=\")[0-9]*(\">)\\R?"
                     + "(<unlock>)\\R?"
@@ -709,7 +709,7 @@ public class NetconfSessionImplTest {
                     + "(</unlock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 
     public static final Pattern COPY_CONFIG_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" message-id=\")[0-9]*(\">)\\R?"
                     + "(<copy-config>)\\R?"
                     + "(<target>\\R?"
@@ -730,7 +730,7 @@ public class NetconfSessionImplTest {
                     + "(</copy-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 
     public static final Pattern GET_CONFIG_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc message-id=\")[0-9]*(\"  xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + "(<get-config>)\\R?" + "(<source>)\\R?((<"
                     + DatastoreId.CANDIDATE.toString()
@@ -743,7 +743,7 @@ public class NetconfSessionImplTest {
 
 
     public static final Pattern GET_REQ_PATTERN =
-            Pattern.compile("(<\\?xml).*"
+            Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
                     + "(<rpc message-id=\")[0-9]*(\"  xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + "(<get>)\\R?"
                     + "(<filter type=\"subtree\">).*(</filter>)\\R?"
