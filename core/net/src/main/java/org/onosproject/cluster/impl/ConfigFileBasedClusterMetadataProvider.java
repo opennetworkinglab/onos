@@ -204,16 +204,21 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 version = file.lastModified();
                 metadata = mapper.readValue(new FileInputStream(file), ClusterMetadata.class);
             } else if ("http".equals(url.getProtocol())) {
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                        log.warn("Could not reach metadata URL {}. Retrying...", url);
+                        return null;
+                    }
+                    if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+                        return null;
+                    }
+                    version = conn.getLastModified();
+                    metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
+                } catch (IOException e) {
                     log.warn("Could not reach metadata URL {}. Retrying...", url);
                     return null;
                 }
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
-                    return null;
-                }
-                version = conn.getLastModified();
-                metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
             }
 
             if (null == metadata) {
