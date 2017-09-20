@@ -76,7 +76,7 @@ def defaultUser():
 
 # Module vars, initialized below
 HOME = ONOS_ROOT = ONOS_USER = None
-ONOS_APPS = ONOS_WEB_USER = ONOS_WEB_PASS = ONOS_TAR = None
+ONOS_APPS = ONOS_WEB_USER = ONOS_WEB_PASS = ONOS_TAR = JAVA_OPTS = None
 
 def initONOSEnv():
     """Initialize ONOS environment (and module) variables
@@ -99,6 +99,7 @@ def initONOSEnv():
     ONOS_USER = sd( 'ONOS_USER', defaultUser() )
     ONOS_APPS = sd( 'ONOS_APPS',
                      'drivers,openflow,fwd,proxyarp,mobility' )
+    JAVA_OPTS = sd( 'JAVA_OPTS', '-Xms128m -Xmx512m' )
     # ONOS_WEB_{USER,PASS} isn't respected by onos-karaf:
     environ.update( ONOS_WEB_USER='karaf', ONOS_WEB_PASS='karaf' )
     ONOS_WEB_USER = sd( 'ONOS_WEB_USER', 'karaf' )
