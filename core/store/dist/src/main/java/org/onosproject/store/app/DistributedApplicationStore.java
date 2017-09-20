@@ -554,7 +554,7 @@ public class DistributedApplicationStore extends ApplicationArchive
                             log.warn("Unable to fetch bits for application {} from node {}",
                                      app.id().name(), node.id());
                         }
-                    }, executor);
+                    }, messageHandlingExecutor);
         }
 
         try {
