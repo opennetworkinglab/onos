@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.SparseAnnotations;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -58,6 +59,26 @@ public final class DefaultPatchDescription extends AbstractDescription
     @Override
     public String peer() {
         return peerName;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceId, ifaceName, peerName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultPatchDescription) {
+            final DefaultPatchDescription that = (DefaultPatchDescription) obj;
+            return this.getClass() == that.getClass() &&
+                    Objects.equals(this.deviceId, that.deviceId) &&
+                    Objects.equals(this.ifaceName, that.ifaceName) &&
+                    Objects.equals(this.peerName, that.peerName);
+        }
+        return false;
     }
 
     @Override
