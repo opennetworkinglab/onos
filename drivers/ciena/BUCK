@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//protocols/rest/api:onos-protocols-rest-api',
     '//apps/optical-model:onos-apps-optical-model',
     '//lib:javax.ws.rs-api',
+    '//drivers/optical:onos-drivers-optical',
 ]
 
 TEST_DEPS = [

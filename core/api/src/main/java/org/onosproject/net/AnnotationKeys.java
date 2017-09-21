@@ -122,6 +122,16 @@ public final class AnnotationKeys {
     public static final String PORT_NAME = "portName";
 
     /**
+     * Annotation key for the optical channel receiving/in port (RX).
+     */
+    public static final String PORT_IN = "portIn";
+
+    /**
+     * Annotation key for the optical channel port transmitting/out port (TX).
+     */
+
+    public static final String PORT_OUT = "portOut";
+    /**
      * Annotation key for the port mac.
      */
     public static final String PORT_MAC = "portMac";

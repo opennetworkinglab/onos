@@ -51,6 +51,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Discovers the ports from a Ciena WaveServer Rest device.
  */
+//TODO: Use CienaRestDevice
 public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
         implements DeviceDescriptionDiscovery {
 
@@ -128,21 +129,15 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
             String portId = sub.getString(PORT_ID);
             DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
             if (LINESIDE_PORT_ID.contains(portId)) {
-                // TX/OUT port
                 annotations.set(AnnotationKeys.CHANNEL_ID, sub.getString(CHANNEL_ID));
-                annotations.set(AnnotationKeys.PORT_NAME, portId + " TX");
+                // TX/OUT and RX/IN ports
+                annotations.set(AnnotationKeys.PORT_OUT, sub.getString(PORT_OUT));
+                annotations.set(AnnotationKeys.PORT_IN, sub.getString(PORT_IN));
                 ports.add(parseWaveServerCienaOchPorts(
-                        sub.getLong(PORT_OUT),
+                        Long.valueOf(portId),
                         sub,
                         annotations.build()));
 
-                // RX/IN port
-                annotations.set(AnnotationKeys.PORT_NAME, portId + " RX");
-                annotations.set(AnnotationKeys.CHANNEL_ID, sub.getString(CHANNEL_ID));
-                ports.add(parseWaveServerCienaOchPorts(
-                        sub.getLong(PORT_IN),
-                        sub,
-                        annotations.build()));
             } else if (!portId.equals("5") && !portId.equals("49")) {
                 DefaultAnnotations.builder()
                         .set(AnnotationKeys.PORT_NAME, portId);
@@ -182,6 +177,10 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
 
         return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, OduSignalType.ODU4, isTunable,
                                   new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
+    }
+
+    public static ArrayList<String> getLinesidePortId() {
+        return LINESIDE_PORT_ID;
     }
 
     //FIXME remove when all optical types have two way information methods, see jira tickets

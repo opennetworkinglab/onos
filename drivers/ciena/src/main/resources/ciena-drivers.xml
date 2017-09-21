@@ -23,6 +23,8 @@
                    impl="org.onosproject.drivers.ciena.CienaWaveserverDeviceDescription"/>
         <behaviour api="org.onosproject.net.behaviour.PortAdmin"
                    impl="org.onosproject.drivers.ciena.CienaWaveserverPortAdmin"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.ciena.CienaFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
     </driver>
