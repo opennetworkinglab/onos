@@ -101,7 +101,7 @@ function do_requirements_1604 {
         ca-certificates \
         cmake \
         g++ \
-        libboost-iostreams1.58-dev
+        libboost-iostreams-dev
 }
 
 function do_protobuf {
