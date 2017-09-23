@@ -15,15 +15,16 @@
  */
 package org.onosproject.store.service;
 
-import com.google.common.collect.ImmutableList;
-
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+import org.onosproject.cluster.PartitionId;
 
 /**
  * Contains information about a database partition.
  */
 public class PartitionInfo {
-    private final String name;
+    private final PartitionId partitionId;
     private final long term;
     private final List<String> members;
     private final String leader;
@@ -31,25 +32,25 @@ public class PartitionInfo {
     /**
      * Class constructor.
      *
-     * @param name partition name
+     * @param partitionId partition identifier
      * @param term term number
      * @param members partition members
      * @param leader leader name
      */
-    public PartitionInfo(String name, long term, List<String> members, String leader) {
-        this.name = name;
+    public PartitionInfo(PartitionId partitionId, long term, List<String> members, String leader) {
+        this.partitionId = partitionId;
         this.term = term;
         this.members = ImmutableList.copyOf(members);
         this.leader = leader;
     }
 
     /**
-     * Returns the name of the partition.
+     * Returns the partition ID.
      *
-     * @return partition name
+     * @return partition ID
      */
-    public String name() {
-        return name;
+    public PartitionId id() {
+        return partitionId;
     }
 
     /**

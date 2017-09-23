@@ -56,8 +56,8 @@ import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
 import io.atomix.protocols.raft.session.SessionId;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicator;
 import org.onosproject.store.service.Serializer;
 
 /**
@@ -66,10 +66,10 @@ import org.onosproject.store.service.Serializer;
 public class RaftServerCommunicator extends RaftCommunicator implements RaftServerProtocol {
 
     public RaftServerCommunicator(
-            PartitionId partitionId,
+            String prefix,
             Serializer serializer,
-            ClusterCommunicationService clusterCommunicator) {
-        super(new RaftMessageContext(String.format("partition-%d", partitionId.id())), serializer, clusterCommunicator);
+            ClusterCommunicator clusterCommunicator) {
+        super(new RaftMessageContext(prefix), serializer, clusterCommunicator);
     }
 
     @Override

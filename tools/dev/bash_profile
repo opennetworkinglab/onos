@@ -174,6 +174,25 @@ function setPrimaryInstance {
     echo $OCI
 }
 
+# Sets minority (OCMI) and majority (OCMA) variables
+function setMinorityMajority {
+    nodes=($(env | grep 'OC[0-9]*=' | sort | cut -d= -f2))
+    middle=$(expr "${#nodes[@]}" / "2")
+    index=0
+    min=1
+    maj=1
+    for node in "${nodes[@]}"; do
+        if [ "$index" -gt "$middle" ]; then
+            export OCMI${min}=${node}
+            min=$(expr $min + 1)
+        else
+            export OCMA${maj}=${node}
+            maj=$(expr $maj + 1)
+        fi
+        index=$(expr $index + 1)
+    done
+}
+
 # ON.Lab shared test cell warden address
 export CELL_WARDEN="10.254.1.19"
 export CELL_SLAVES="$CELL_WARDEN 10.254.1.18 10.254.1.17"
@@ -184,6 +203,8 @@ function clearCell {
     unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
     unset ONOS_USER ONOS_GROUP ONOS_WEB_USER ONOS_WEB_PASS
     unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+    unset $(env | sed -n 's:\(^OCMI[0-9]\{1,\}\)=.*:\1 :g p')
+    unset $(env | sed -n 's:\(^OCMA[0-9]\{1,\}\)=.*:\1 :g p')
 }
 
 # Applies the settings in the specified cell file or lists current cell definition
@@ -204,6 +225,7 @@ function cell {
         . $aux
         rm -f $aux
         setPrimaryInstance 1 >/dev/null
+        setMinorityMajority >/dev/null
         onos-verify-cell
         topo default >/dev/null
         ;;

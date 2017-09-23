@@ -16,11 +16,11 @@
 package org.onosproject.store.primitives.impl;
 
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.MembershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicator;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 
@@ -38,8 +38,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class EventuallyConsistentMapBuilderImpl<K, V>
         implements EventuallyConsistentMapBuilder<K, V> {
-    private final ClusterService clusterService;
-    private final ClusterCommunicationService clusterCommunicator;
+    private final MembershipService clusterService;
+    private final ClusterCommunicator clusterCommunicator;
 
     private String name;
     private KryoNamespace serializer;
@@ -64,8 +64,8 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
      * @param clusterCommunicator cluster communication service
      * @param persistenceService persistence service
      */
-    public EventuallyConsistentMapBuilderImpl(ClusterService clusterService,
-                                              ClusterCommunicationService clusterCommunicator,
+    public EventuallyConsistentMapBuilderImpl(MembershipService clusterService,
+                                              ClusterCommunicator clusterCommunicator,
                                               PersistenceService persistenceService) {
         this.persistenceService = persistenceService;
         this.clusterService = checkNotNull(clusterService);

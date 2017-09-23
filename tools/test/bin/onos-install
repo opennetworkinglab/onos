@@ -36,7 +36,7 @@ _EOF_
 
 onos-check-bits
 
-while getopts fnm: o; do
+while getopts fnvm: o; do
     case "$o" in
         f) uninstall=true;;
         u) noupstart=true; noinitd=true; nosysd=true;;
@@ -44,6 +44,7 @@ while getopts fnm: o; do
         s) nosysd=true;;
         n) nostart=true;;
         m) mvn_settings=$OPTARG;;
+        v) upgrade=true;;
     esac
 done
 let OPC=$OPTIND-1
@@ -60,7 +61,7 @@ $(dirname $0)/onos-push-bits $node
 [ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote:/tmp/settings.xml
 
 ssh -tt $remote "
-    [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
+    [ -z "$upgrade" ] && [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
 
     # Prepare a landing zone and unroll the bits
     sudo mkdir -p $ONOS_INSTALL_DIR && sudo chown ${ONOS_USER}:${ONOS_GROUP} $ONOS_INSTALL_DIR
@@ -80,6 +81,12 @@ ssh -tt $remote "
 
     # Set up correct user to run onos-service
     echo 'export ONOS_USER=$ONOS_USER' >> $ONOS_INSTALL_DIR/options
+
+    # If the upgrade flag is set, append ".upgrade" to the version string.
+    if [ ! -z "$upgrade" ]
+    then
+        echo '.upgrade' >> $ONOS_INSTALL_DIR/VERSION
+    fi
 
     # Remove any previous ON.Lab bits from ~/.m2 repo.
     rm -fr ~/.m2/repository/org/onosproject

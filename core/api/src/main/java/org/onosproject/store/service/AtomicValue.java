@@ -22,6 +22,11 @@ package org.onosproject.store.service;
  */
 public interface AtomicValue<V> extends DistributedPrimitive  {
 
+    @Override
+    default Type primitiveType() {
+        return Type.VALUE;
+    }
+
     /**
      * Atomically sets the value to the given updated value if the current value is equal to the expected value.
      * <p>

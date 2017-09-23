@@ -25,6 +25,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class PartitionId extends Identifier<Integer> implements Comparable<PartitionId> {
 
     /**
+     * The {@code PartitionId} for the shared coordination partition.
+     */
+    public static final PartitionId SHARED = PartitionId.from(0);
+
+    /**
      * Creates a partition identifier from an integer.
      *
      * @param id input integer

@@ -250,6 +250,7 @@ import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.WorkQueueStats;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
+import org.onosproject.upgrade.Upgrade;
 
 import java.net.URI;
 import java.time.Duration;
@@ -627,6 +628,8 @@ public final class KryoNamespaces {
                     PiCriterion.class,
                     PiInstruction.class
             )
+            .register(Upgrade.class)
+            .register(Upgrade.Status.class)
             .build("API");
 
     /**

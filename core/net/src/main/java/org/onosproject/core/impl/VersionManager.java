@@ -54,6 +54,7 @@ public class VersionManager implements VersionService {
             // version file not found, using default
             log.trace("Version file not found", e);
         }
+        log.info("Started");
     }
 
     @Override

@@ -99,7 +99,7 @@ public class StoragePartitionDetails {
     public PartitionInfo toPartitionInfo() {
         Function<RaftMember, String> memberToString =
                 m -> m == null ? "none" : m.memberId().toString();
-        return new PartitionInfo(partitionId.toString(),
+        return new PartitionInfo(partitionId,
                 leaderTerm,
                 activeMembers.stream().map(memberToString).collect(Collectors.toList()),
                 memberToString.apply(leader));

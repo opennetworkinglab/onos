@@ -29,11 +29,12 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import io.atomix.protocols.raft.cluster.MemberId;
 import io.atomix.protocols.raft.service.RaftService;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.MembershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.core.Version;
+import org.onosproject.store.cluster.messaging.UnifiedClusterCommunicationService;
 import org.onosproject.store.primitives.resources.impl.AtomixAtomicCounterMapService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapService;
@@ -53,8 +54,11 @@ import org.onosproject.store.service.Serializer;
 public class StoragePartition implements Managed<StoragePartition> {
 
     private final AtomicBoolean isOpened = new AtomicBoolean(false);
-    private final ClusterCommunicationService clusterCommunicator;
-    private final File logFolder;
+    private final UnifiedClusterCommunicationService clusterCommunicator;
+    private final MembershipService clusterService;
+    private final Version version;
+    private final Version source;
+    private final File dataFolder;
     private Partition partition;
     private NodeId localNodeId;
     private StoragePartitionServer server;
@@ -77,14 +81,20 @@ public class StoragePartition implements Managed<StoragePartition> {
                             () -> new AtomixDocumentTreeService(Ordering.INSERTION))
                     .build();
 
-    public StoragePartition(Partition partition,
-            ClusterCommunicationService clusterCommunicator,
-            ClusterService clusterService,
-            File logFolder) {
+    public StoragePartition(
+            Partition partition,
+            Version version,
+            Version source,
+            UnifiedClusterCommunicationService clusterCommunicator,
+            MembershipService clusterService,
+            File dataFolder) {
         this.partition = partition;
+        this.version = version;
+        this.source = source;
         this.clusterCommunicator = clusterCommunicator;
+        this.clusterService = clusterService;
         this.localNodeId = clusterService.getLocalNode().id();
-        this.logFolder = logFolder;
+        this.dataFolder = dataFolder;
     }
 
     /**
@@ -97,7 +107,12 @@ public class StoragePartition implements Managed<StoragePartition> {
 
     @Override
     public CompletableFuture<Void> open() {
-        if (partition.getMembers().contains(localNodeId)) {
+        if (source != null) {
+            return forkServer(source)
+                    .thenCompose(v -> openClient())
+                    .thenAccept(v -> isOpened.set(true))
+                    .thenApply(v -> null);
+        } else if (partition.getMembers().contains(localNodeId)) {
             return openServer()
                     .thenCompose(v -> openClient())
                     .thenAccept(v -> isOpened.set(true))
@@ -113,6 +128,43 @@ public class StoragePartition implements Managed<StoragePartition> {
         // We do not explicitly close the server and instead let the cluster
         // deal with this as an unclean exit.
         return closeClient();
+    }
+
+    /**
+     * Returns the partition name.
+     *
+     * @return the partition name
+     */
+    public String getName() {
+        return getName(version);
+    }
+
+    /**
+     * Returns the partition name for the given version.
+     *
+     * @param version the version for which to return the partition name
+     * @return the partition name for the given version
+     */
+    String getName(Version version) {
+        return version != null ? String.format("partition-%d-%s", partition.getId().id(), version) : "partition-core";
+    }
+
+    /**
+     * Returns the partition version.
+     *
+     * @return the partition version
+     */
+    public Version getVersion() {
+        return version;
+    }
+
+    /**
+     * Returns the partition data folder.
+     *
+     * @return the partition data folder
+     */
+    public File getDataFolder() {
+        return dataFolder;
     }
 
     /**
@@ -136,7 +188,23 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return partition member identifiers
      */
     public Collection<MemberId> getMemberIds() {
-        return Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
+        return source != null ?
+                clusterService.getNodes()
+                        .stream()
+                        .map(node -> MemberId.from(node.id().id()))
+                        .collect(Collectors.toList()) :
+                Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
+    }
+
+    Collection<MemberId> getMemberIds(Version version) {
+        if (source == null || version.equals(source)) {
+            return Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
+        } else {
+            return clusterService.getNodes()
+                    .stream()
+                    .map(node -> MemberId.from(node.id().id()))
+                    .collect(Collectors.toList());
+        }
     }
 
     /**
@@ -144,17 +212,34 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return future that is completed after the operation is complete
      */
     private CompletableFuture<Void> openServer() {
-        if (!partition.getMembers().contains(localNodeId) || server != null) {
-            return CompletableFuture.completedFuture(null);
-        }
-        StoragePartitionServer server = new StoragePartitionServer(this,
+        StoragePartitionServer server = new StoragePartitionServer(
+                this,
                 MemberId.from(localNodeId.id()),
-                () -> new RaftServerCommunicator(
-                        partition.getId(),
-                        Serializer.using(StorageNamespaces.RAFT_PROTOCOL),
-                        clusterCommunicator),
-                logFolder);
+                clusterCommunicator);
         return server.open().thenRun(() -> this.server = server);
+    }
+
+    /**
+     * Forks the server from the given version.
+     *
+     * @return future to be completed once the server has been forked
+     */
+    private CompletableFuture<Void> forkServer(Version version) {
+        StoragePartitionServer server = new StoragePartitionServer(
+                this,
+                MemberId.from(localNodeId.id()),
+                clusterCommunicator);
+
+        CompletableFuture<Void> future;
+        if (clusterService.getNodes().size() == 1) {
+            future = server.fork(version);
+        } else {
+            future = server.join(clusterService.getNodes().stream()
+                    .filter(node -> !node.id().equals(localNodeId))
+                    .map(node -> MemberId.from(node.id().id()))
+                    .collect(Collectors.toList()));
+        }
+        return future.thenRun(() -> this.server = server);
     }
 
     /**
@@ -168,11 +253,7 @@ public class StoragePartition implements Managed<StoragePartition> {
                  .collect(Collectors.toSet());
         StoragePartitionServer server = new StoragePartitionServer(this,
                 MemberId.from(localNodeId.id()),
-                () -> new RaftServerCommunicator(
-                        partition.getId(),
-                        Serializer.using(StorageNamespaces.RAFT_PROTOCOL),
-                        clusterCommunicator),
-                logFolder);
+                clusterCommunicator);
         return server.join(Collections2.transform(otherMembers, n -> MemberId.from(n.id())))
                 .thenRun(() -> this.server = server);
     }
@@ -181,7 +262,7 @@ public class StoragePartition implements Managed<StoragePartition> {
         client = new StoragePartitionClient(this,
                 MemberId.from(localNodeId.id()),
                 new RaftClientCommunicator(
-                        partition.getId(),
+                        getName(),
                         Serializer.using(StorageNamespaces.RAFT_PROTOCOL),
                         clusterCommunicator));
         return client.open().thenApply(v -> client);

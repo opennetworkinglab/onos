@@ -98,7 +98,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.impl.RaftClientCommunicator;
 import org.onosproject.store.primitives.impl.RaftServerCommunicator;
 import org.onosproject.store.service.Serializer;
@@ -382,7 +381,7 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
         RaftServer.Builder builder = RaftServer.newBuilder(member.memberId())
                 .withType(member.getType())
                 .withProtocol(new RaftServerCommunicator(
-                        PartitionId.from(1),
+                        "partition-1",
                         PROTOCOL_SERIALIZER,
                         communicationServiceFactory.newCommunicationService(NodeId.nodeId(member.memberId().id()))))
                 .withStorage(RaftStorage.newBuilder()
@@ -406,7 +405,7 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
         RaftClient client = RaftClient.newBuilder()
                 .withMemberId(memberId)
                 .withProtocol(new RaftClientCommunicator(
-                        PartitionId.from(1),
+                        "partition-1",
                         PROTOCOL_SERIALIZER,
                         communicationServiceFactory.newCommunicationService(NodeId.nodeId(memberId.id()))))
                 .build();

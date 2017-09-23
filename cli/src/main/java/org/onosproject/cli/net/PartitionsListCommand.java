@@ -66,7 +66,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
             boolean first = true;
             for (String member : Ordering.natural().sortedCopy(info.members())) {
                 if (first) {
-                    print(SERVER_FMT, info.name(), info.term(), member,
+                    print(SERVER_FMT, info.id(), info.term(), member,
                             member.equals(info.leader()) ? "*" : "");
                     first = false;
                 } else {
@@ -130,7 +130,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
             info.members().forEach(members::add);
 
             // Complete the partition attributes and add it to the array
-            partition.put("name", info.name())
+            partition.put("name", info.id().toString())
                     .put("term", info.term())
                     .put("leader", info.leader());
             partitions.add(partition);

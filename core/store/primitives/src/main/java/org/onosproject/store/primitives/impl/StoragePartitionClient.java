@@ -92,7 +92,6 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 log.info("Failed to start client for partition {}", partition.getId(), e);
             }
         }).thenApply(v -> null);
-
     }
 
     @Override
@@ -316,7 +315,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private RaftClient newRaftClient(RaftClientProtocol protocol) {
         return RaftClient.newBuilder()
                 .withClientId("partition-" + partition.getId())
-                .withMemberId(MemberId.from(localMemberId.id()))
+                .withMemberId(localMemberId)
                 .withProtocol(protocol)
                 .build();
     }

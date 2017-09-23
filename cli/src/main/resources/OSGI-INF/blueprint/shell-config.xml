@@ -32,6 +32,11 @@
         <command>
             <action class="org.onosproject.cli.SummaryCommand"/>
         </command>
+
+        <command>
+            <action class="org.onosproject.cli.IssuCommand"/>
+        </command>
+
         <command>
             <action class="org.onosproject.cli.security.ReviewCommand"/>
             <completers>

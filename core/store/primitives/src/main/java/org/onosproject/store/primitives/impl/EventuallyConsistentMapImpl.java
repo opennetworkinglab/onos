@@ -25,13 +25,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.SlidingWindowCounter;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.MembershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.LogicalTimestamp;
 import org.onosproject.store.Timestamp;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicator;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedPrimitive;
@@ -86,8 +86,8 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final Map<K, MapValue<V>> items;
 
-    private final ClusterService clusterService;
-    private final ClusterCommunicationService clusterCommunicator;
+    private final MembershipService clusterService;
+    private final ClusterCommunicator clusterCommunicator;
     private final Serializer serializer;
     private final NodeId localNodeId;
     private final PersistenceService persistenceService;
@@ -162,8 +162,8 @@ public class EventuallyConsistentMapImpl<K, V>
      * @param persistenceService    persistence service
      */
     EventuallyConsistentMapImpl(String mapName,
-                                ClusterService clusterService,
-                                ClusterCommunicationService clusterCommunicator,
+                                MembershipService clusterService,
+                                ClusterCommunicator clusterCommunicator,
                                 KryoNamespace ns,
                                 BiFunction<K, V, Timestamp> timestampProvider,
                                 BiFunction<K, V, Collection<NodeId>> peerUpdateFunction,
