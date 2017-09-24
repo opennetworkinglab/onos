@@ -141,7 +141,6 @@ public interface MeterRequest {
          * @return a meter request
          */
         MeterRequest remove();
-
     }
 
 }

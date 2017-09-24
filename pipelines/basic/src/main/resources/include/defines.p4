@@ -27,4 +27,5 @@ typedef bit<16> next_hop_id_t;
 
 const port_t CPU_PORT = 255;
 
+enum MeterColor_t {GREEN, YELLOW, RED};
 #endif

@@ -43,5 +43,3 @@ public interface MeterProgrammable extends HandlerBehaviour {
      */
     CompletableFuture<Collection<Meter>> getMeters();
 }
-
-

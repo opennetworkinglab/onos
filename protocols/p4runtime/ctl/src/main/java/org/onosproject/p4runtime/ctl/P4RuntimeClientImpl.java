@@ -44,6 +44,10 @@ import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiEntity;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
+import org.onosproject.net.pi.model.PiMeterType;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiPipeconfService;
@@ -126,6 +130,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private Map<Uint128, CompletableFuture<Boolean>> arbitrationUpdateMap = Maps.newConcurrentMap();
     protected Uint128 p4RuntimeElectionId;
+
+    private static final long DEFAULT_INDEX = 0;
 
     /**
      * Default constructor.
@@ -274,6 +280,51 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Boolean> sendMasterArbitrationUpdate() {
         return supplyInContext(this::doArbitrationUpdate, "arbitrationUpdate");
+    }
+    public CompletableFuture<Boolean> writeMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
+
+        return supplyInContext(() -> doWriteMeterCells(cellIds, pipeconf),
+                               "writeMeterCells");
+    }
+
+    @Override
+    public CompletableFuture<Collection<PiMeterCellConfig>> readMeterCells(Set<PiMeterCellId> cellIds,
+                                                                           PiPipeconf pipeconf) {
+        return supplyInContext(() -> doReadMeterCells(cellIds, pipeconf),
+                               "readMeterCells-" + cellIds.hashCode());
+    }
+
+    @Override
+    public CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
+                                                                                PiPipeconf pipeconf) {
+
+        /*
+        From p4runtime.proto, the scope of a ReadRequest is defined as follows:
+        MeterEntry:
+            - All meter cells for all meters if meter_id = 0 (default).
+            - All meter cells for given meter_id if index = 0 (default).
+        DirectCounterEntry:
+            - All meter cells for all meters if meter_id = 0 (default).
+            - All meter cells for given meter_id if table_entry.match is empty.
+         */
+
+        Set<PiMeterCellId> cellIds = Sets.newHashSet();
+        for (PiMeterId meterId : meterIds) {
+            PiMeterType meterType = pipeconf.pipelineModel().meter(meterId).get().meterType();
+            switch (meterType) {
+                case INDIRECT:
+                    cellIds.add(PiMeterCellId.ofIndirect(meterId, DEFAULT_INDEX));
+                    break;
+                case DIRECT:
+                    cellIds.add(PiMeterCellId.ofDirect(meterId, PiTableEntry.EMTPY));
+                    break;
+                default:
+                    log.warn("Unrecognized PI meter type '{}'", meterType);
+            }
+        }
+
+        return supplyInContext(() -> doReadMeterCells(cellIds, pipeconf),
+                               "readAllMeterCells-" + cellIds.hashCode());
     }
 
     /* Blocking method implementations below */
@@ -734,6 +785,74 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             return true;
         } catch (StatusRuntimeException e) {
             logWriteErrors(Collections.singleton(group), e, opType, "group");
+            return false;
+        }
+    }
+
+    private Collection<PiMeterCellConfig> doReadMeterCells(Collection<PiMeterCellId> cellIds, PiPipeconf pipeconf) {
+
+        // We use this map to remember the original PI meter IDs of the returned response.
+        Map<Integer, PiMeterId> meterIdMap = Maps.newHashMap();
+        Collection<PiMeterCellConfig> piMeterCellConfigs = cellIds.stream()
+                .map(cellId -> PiMeterCellConfig.builder()
+                        .withMeterCellId(cellId).build())
+                .collect(Collectors.toList());
+
+        final ReadRequest request = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId)
+                .addAllEntities(MeterEntryCodec.encodePiMeterCellConfigs(piMeterCellConfigs, meterIdMap, pipeconf))
+                .build();
+
+        if (request.getEntitiesList().size() == 0) {
+            return Collections.emptyList();
+        }
+
+        final Iterable<ReadResponse> responses;
+        try {
+            responses = () -> blockingStub.read(request);
+        } catch (StatusRuntimeException e) {
+            log.warn("Unable to read meters config: {}", e.getMessage());
+            log.debug("exception", e);
+            return Collections.emptyList();
+        }
+
+        List<Entity> entities = StreamSupport.stream(responses.spliterator(), false)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        return MeterEntryCodec.decodeMeterEntities(entities, meterIdMap, pipeconf);
+    }
+
+    private boolean doWriteMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
+
+        final Map<Integer, PiMeterId> meterIdMap = Maps.newHashMap();
+        WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
+
+        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellIds, meterIdMap, pipeconf)
+                .stream()
+                .map(meterEntryMsg ->
+                             Update.newBuilder()
+                                     .setEntity(meterEntryMsg)
+                                     .setType(UPDATE_TYPES.get(WriteOperationType.MODIFY))
+                                     .build())
+                .collect(Collectors.toList());
+
+        if (updateMsgs.size() == 0) {
+            return true;
+        }
+
+        writeRequestBuilder
+                .setDeviceId(p4DeviceId)
+                .setElectionId(p4RuntimeElectionId)
+                .addAllUpdates(updateMsgs)
+                .build();
+        try {
+            blockingStub.write(writeRequestBuilder.build());
+            return true;
+        } catch (StatusRuntimeException e) {
+            log.warn("Unable to write meter entries : {}", e.getMessage());
+            log.debug("exception", e);
             return false;
         }
     }

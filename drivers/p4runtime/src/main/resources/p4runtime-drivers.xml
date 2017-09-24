@@ -24,6 +24,8 @@
                    impl="org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.group.GroupProgrammable"
                    impl="org.onosproject.drivers.p4runtime.P4RuntimeGroupProgrammable"/>
+        <behaviour api="org.onosproject.net.meter.MeterProgrammable"
+                   impl="org.onosproject.drivers.p4runtime.P4RuntimeMeterProgrammable"/>
         <property name="supportPacketRequest">true</property>
     </driver>
 </drivers>

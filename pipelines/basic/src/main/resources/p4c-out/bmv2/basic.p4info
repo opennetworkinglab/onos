@@ -76,6 +76,27 @@ tables {
 }
 tables {
   preamble {
+    id: 33597882
+    name: "host_meter_control.host_meter_table"
+    alias: "host_meter_table"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ethernet.src_addr"
+    bitwidth: 48
+    match_type: LPM
+  }
+  action_refs {
+    id: 16832719
+  }
+  action_refs {
+    id: 16800567
+  }
+  direct_resource_ids: 318776014
+  size: 1024
+}
+tables {
+  preamble {
     id: 33592597
     name: "wcmp_control.wcmp_table"
     alias: "wcmp_table"
@@ -142,6 +163,13 @@ actions {
     bitwidth: 16
   }
 }
+actions {
+  preamble {
+    id: 16832719
+    name: "host_meter_control.read_meter"
+    alias: "read_meter"
+  }
+}
 action_profiles {
   preamble {
     id: 285259294
@@ -195,6 +223,39 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33592597
+}
+meters {
+  preamble {
+    id: 318770010
+    name: "port_meters_ingress.ingress_port_meter"
+    alias: "ingress_port_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  size: 511
+}
+meters {
+  preamble {
+    id: 318779497
+    name: "port_meters_egress.egress_port_meter"
+    alias: "egress_port_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  size: 511
+}
+direct_meters {
+  preamble {
+    id: 318776014
+    name: "host_meter_control.host_meter"
+    alias: "host_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  direct_table_id: 33597882
 }
 controller_packet_metadata {
   preamble {

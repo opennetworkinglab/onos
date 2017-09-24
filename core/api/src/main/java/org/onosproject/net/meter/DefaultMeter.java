@@ -25,6 +25,7 @@ import java.util.Collection;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.meter.MeterCellId.MeterCellType.INDEX;
 
 /**
  * A default implementation of a meter.
@@ -32,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class DefaultMeter implements Meter, MeterEntry  {
 
 
-    private final MeterId id;
+    private final MeterCellId cellId;
     private final ApplicationId appId;
     private final Unit unit;
     private final boolean burst;
@@ -45,11 +46,10 @@ public final class DefaultMeter implements Meter, MeterEntry  {
     private long packets;
     private long bytes;
 
-    private DefaultMeter(DeviceId deviceId, MeterId id, ApplicationId appId,
-                        Unit unit, boolean burst,
-                        Collection<Band> bands) {
+    private DefaultMeter(DeviceId deviceId, MeterCellId cellId, ApplicationId appId,
+                         Unit unit, boolean burst, Collection<Band> bands) {
         this.deviceId = deviceId;
-        this.id = id;
+        this.cellId = cellId;
         this.appId = appId;
         this.unit = unit;
         this.burst = burst;
@@ -63,7 +63,16 @@ public final class DefaultMeter implements Meter, MeterEntry  {
 
     @Override
     public MeterId id() {
-        return id;
+        // Workaround until we remove this method. Deprecated in 1.13.
+        // Should use meterCellId() instead.
+        return cellId.type() == INDEX
+                ? (MeterId) cellId
+                : MeterId.meterId((cellId.hashCode()));
+    }
+
+    @Override
+    public MeterCellId meterCellId() {
+        return cellId;
     }
 
     @Override
@@ -144,7 +153,7 @@ public final class DefaultMeter implements Meter, MeterEntry  {
     public String toString() {
         return toStringHelper(this)
                 .add("device", deviceId)
-                .add("id", id)
+                .add("cellId", cellId)
                 .add("appId", appId.name())
                 .add("unit", unit)
                 .add("isBurst", burst)
@@ -161,7 +170,7 @@ public final class DefaultMeter implements Meter, MeterEntry  {
             return false;
         }
         DefaultMeter that = (DefaultMeter) o;
-        return Objects.equal(id, that.id) &&
+        return Objects.equal(cellId, that.cellId) &&
                 Objects.equal(appId, that.appId) &&
                 Objects.equal(unit, that.unit) &&
                 Objects.equal(deviceId, that.deviceId);
@@ -169,18 +178,17 @@ public final class DefaultMeter implements Meter, MeterEntry  {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, appId, unit, deviceId);
+        return Objects.hashCode(cellId, appId, unit, deviceId);
     }
 
     public static final class Builder implements Meter.Builder {
 
-        private MeterId id;
+        private MeterCellId cellId;
         private ApplicationId appId;
         private Unit unit = Unit.KB_PER_SEC;
         private boolean burst = false;
         private Collection<Band> bands;
         private DeviceId deviceId;
-
 
         @Override
         public Meter.Builder forDevice(DeviceId deviceId) {
@@ -190,7 +198,13 @@ public final class DefaultMeter implements Meter, MeterEntry  {
 
         @Override
         public Meter.Builder withId(MeterId id) {
-            this.id = id;
+            this.withCellId(id);
+            return this;
+        }
+
+        @Override
+        public Meter.Builder withCellId(MeterCellId cellId) {
+            this.cellId = cellId;
             return this;
         }
 
@@ -224,8 +238,8 @@ public final class DefaultMeter implements Meter, MeterEntry  {
             checkNotNull(bands, "Must have bands.");
             checkArgument(!bands.isEmpty(), "Must have at least one band.");
             checkNotNull(appId, "Must have an application id");
-            checkNotNull(id, "Must specify a meter id");
-            return new DefaultMeter(deviceId, id, appId, unit, burst, bands);
+            checkArgument(cellId != null, "Must specify a cell id.");
+            return new DefaultMeter(deviceId, cellId, appId, unit, burst, bands);
         }
 
 

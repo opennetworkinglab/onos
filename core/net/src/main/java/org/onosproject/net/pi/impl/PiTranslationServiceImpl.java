@@ -27,13 +27,17 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.meter.Meter;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiFlowRuleTranslationStore;
 import org.onosproject.net.pi.service.PiFlowRuleTranslator;
 import org.onosproject.net.pi.service.PiGroupTranslationStore;
 import org.onosproject.net.pi.service.PiGroupTranslator;
+import org.onosproject.net.pi.service.PiMeterTranslationStore;
+import org.onosproject.net.pi.service.PiMeterTranslator;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.net.pi.service.PiTranslationService;
 import org.slf4j.Logger;
@@ -59,13 +63,18 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiGroupTranslationStore groupTranslationStore;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private PiMeterTranslationStore meterTranslationStore;
+
     private PiFlowRuleTranslator flowRuleTranslator;
     private PiGroupTranslator groupTranslator;
+    private PiMeterTranslator meterTranslator;
 
     @Activate
     public void activate() {
         flowRuleTranslator = new InternalFlowRuleTranslator(flowRuleTranslationStore);
         groupTranslator = new InternalGroupTranslator(groupTranslationStore);
+        meterTranslator = new InternalMeterTranslator(meterTranslationStore);
         log.info("Started");
     }
 
@@ -73,6 +82,7 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     public void deactivate() {
         flowRuleTranslator = null;
         groupTranslator = null;
+        meterTranslator = null;
         log.info("Stopped");
     }
 
@@ -84,6 +94,11 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     @Override
     public PiGroupTranslator groupTranslator() {
         return groupTranslator;
+    }
+
+    @Override
+    public PiMeterTranslator meterTranslator() {
+        return meterTranslator;
     }
 
     private Device getDevice(DeviceId deviceId) throws PiTranslationException {
@@ -122,6 +137,22 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         public PiActionGroup translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
             return PiGroupTranslatorImpl
+                    .translate(original, pipeconf, getDevice(original.deviceId()));
+        }
+    }
+
+    private final class InternalMeterTranslator
+            extends AbstractPiTranslatorImpl<Meter, PiMeterCellConfig>
+            implements PiMeterTranslator {
+
+        private InternalMeterTranslator(PiMeterTranslationStore store) {
+            super(store);
+        }
+
+        @Override
+        public PiMeterCellConfig translate(Meter original, PiPipeconf pipeconf)
+                throws PiTranslationException {
+            return PiMeterTranslatorImpl
                     .translate(original, pipeconf, getDevice(original.deviceId()));
         }
     }

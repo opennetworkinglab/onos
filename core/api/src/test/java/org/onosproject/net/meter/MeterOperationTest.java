@@ -80,6 +80,11 @@ public class MeterOperationTest {
         }
 
         @Override
+        public MeterCellId meterCellId() {
+            return null;
+        }
+
+        @Override
         public ApplicationId appId() {
             return null;
         }

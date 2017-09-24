@@ -32,22 +32,22 @@ import org.onosproject.grpc.net.meter.models.MeterEnumsProto;
 import org.onosproject.grpc.net.meter.models.MeterProtoOuterClass;
 import org.onosproject.grpc.net.meter.models.MeterRequestProtoOuterClass;
 import org.onosproject.net.DeviceId;
-
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterId;
-import org.onosproject.net.meter.MeterService;
-import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterListener;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterService;
+import org.onosproject.net.meter.MeterState;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 
@@ -228,6 +228,11 @@ public class GrpcNbMeterServiceTest {
         @Override
         public MeterId id() {
             return this.meterId;
+        }
+
+        @Override
+        public MeterCellId meterCellId() {
+            return this.id();
         }
 
         @Override

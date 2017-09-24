@@ -23,6 +23,9 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.model.PiTableId;
@@ -150,6 +153,36 @@ public interface P4RuntimeClient {
      */
     CompletableFuture<Collection<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,
                                                             PiPipeconf pipeconf);
+
+    /**
+     * Returns the configuration of all meter cells for the given set of meter identifiers and pipeconf.
+     *
+     * @param meterIds   meter identifiers
+     * @param pipeconf   pipeconf
+     * @return collection of meter configurations
+     */
+    CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
+                                                                       PiPipeconf pipeconf);
+
+    /**
+     * Returns a collection of meter configurations corresponding to the given set of meter cell identifiers,
+     * for the given pipeconf.
+     *
+     * @param cellIds    set of meter cell identifiers
+     * @param pipeconf   pipeconf
+     * @return collection of meter configrations
+     */
+    CompletableFuture<Collection<PiMeterCellConfig>> readMeterCells(Set<PiMeterCellId> cellIds,
+                                                                    PiPipeconf pipeconf);
+
+    /**
+     * Performs a write operation for the given meter configurations and pipeconf.
+     *
+     * @param cellConfigs  meter cell configurations
+     * @param pipeconf     pipeconf currently deployed on the device
+     * @return true if the operation was successful, false otherwise.
+     */
+    CompletableFuture<Boolean> writeMeterCells(Collection<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf);
 
     /**
      * Shutdown the client by terminating any active RPC such as the stream channel.

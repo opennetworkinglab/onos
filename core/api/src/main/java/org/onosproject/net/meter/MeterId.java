@@ -20,15 +20,26 @@ import org.onlab.util.Identifier;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * A representation of a meter identifier.
- * Uniquely identifies a meter in the scope of a single device.
+ * A representation of a meter cell identifier. Uniquely identifies a meter cell
+ * in the scope of a single device.
  * <p>
- * The meter_id field uniquely identifies a meter within a switch. Meters are
- * defined starting with meter_id=1 up to the maximum number of meters that the
- * switch can support. The OpenFlow protocol also defines some additional
- * virtual meters that can not be associated with flows:
+ * This ID uniquely identifies a meter cell within in a switch that maintains
+ * only one meter instance. If a switch supports multiple meter instances (like
+ * in P4), then {@link org.onosproject.net.pi.runtime.PiMeterCellId} should be
+ * used. In this case, meter cells are defined starting with id=1 up to the
+ * maximum number of cells that the switch can support. The OpenFlow protocol
+ * also defines some additional virtual meter cells that can not be associated
+ * with flows.
  */
-public final class MeterId extends Identifier<Long> {
+public final class MeterId extends Identifier<Long> implements MeterCellId {
+
+    // TODO: should rename this class to SimpleMeterCellId to distinguish it
+    // from PiMeterId and PiMeterCellId. From ONOS-7051, to follow the P4
+    // abstraction there can be multiple instances of a meter in a data plane,
+    // each meter instance is made of multiple cells. This class is based on the
+    // OpenFlow abstraction where, following P4 terminology, the data plane
+    // maintains only one meter instance. What is described here as a MeterId is
+    // indeed the identifier of a meter cell.
 
     /**  Flow meters can use any number up to MAX. */
     public static final long MAX = 0xFFFF0000L;
@@ -62,5 +73,10 @@ public final class MeterId extends Identifier<Long> {
         checkArgument(id > 0, "id cannot be negative nor 0");
         checkArgument(id <= MAX, "id cannot be larger than {}", MAX);
         return new MeterId(id);
+    }
+
+    @Override
+    public MeterCellType type() {
+        return MeterCellType.INDEX;
     }
 }

@@ -14,35 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.service;
+package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
+import org.onosproject.net.pi.runtime.PiMeterHandle;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * Mirror of meters installed on a P4Runtime device.
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
-
-    /**
-     * Returns a meter translator.
-     *
-     * @return meter translator
-     */
-    PiMeterTranslator meterTranslator();
+public interface P4RuntimeMeterMirror
+        extends P4RuntimeMirror<PiMeterHandle, PiMeterCellConfig> {
 }

@@ -199,6 +199,8 @@ import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.ProtectionConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.meter.MeterCellId;
+import org.onosproject.net.meter.MeterCellId.MeterCellType;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
@@ -235,6 +237,7 @@ import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiHandle;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
+import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.service.PiPipeconfConfig;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
@@ -409,6 +412,8 @@ public final class KryoNamespaces {
                     Instructions.StatTriggerInstruction.class,
                     StatTriggerFlag.class,
                     StatTriggerField.class,
+                    MeterCellId.class,
+                    MeterCellType.class,
                     MeterId.class,
                     Version.class,
                     ControllerNode.State.class,
@@ -660,6 +665,7 @@ public final class KryoNamespaces {
                     PiMatchFieldId.class,
                     PiMatchType.class,
                     PiMeterId.class,
+                    PiMeterCellId.class,
                     PiMeterType.class,
                     PiPacketOperationType.class,
                     PiPipeconfId.class,

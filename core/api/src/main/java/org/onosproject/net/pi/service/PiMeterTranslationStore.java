@@ -17,32 +17,14 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.meter.Meter;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * A PI translation store that keeps track of which meters have been
+ * translated to which PI meters.
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
-
-    /**
-     * Returns a meter translator.
-     *
-     * @return meter translator
-     */
-    PiMeterTranslator meterTranslator();
+public interface PiMeterTranslationStore
+        extends PiTranslationStore<Meter, PiMeterCellConfig> {
 }

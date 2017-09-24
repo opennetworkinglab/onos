@@ -45,7 +45,14 @@ public interface Band {
         /**
          * Defines an experimental meter band.
          */
-        EXPERIMENTAL
+        EXPERIMENTAL,
+
+        /**
+         * Defines a meter band with no action, used to mark
+         * packets internally in the pipeline, i.e. without
+         * modifying the packet headers.
+         */
+        NONE,
     }
 
     /**

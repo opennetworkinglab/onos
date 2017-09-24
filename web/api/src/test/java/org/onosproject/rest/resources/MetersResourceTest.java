@@ -42,6 +42,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
@@ -135,6 +136,11 @@ public class MetersResourceTest extends ResourceTest {
         @Override
         public MeterId id() {
             return this.meterId;
+        }
+
+        @Override
+        public MeterCellId meterCellId() {
+            return this.id();
         }
 
         @Override

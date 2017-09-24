@@ -17,13 +17,14 @@ package org.onosproject.net.meter;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.service.PiTranslatable;
 
 import java.util.Collection;
 
 /**
- * Represents a generalized meter to be deployed on a device.
+ * Represents a generalized meter cell configuration to be deployed on a device.
  */
-public interface Meter {
+public interface Meter extends PiTranslatable {
 
     enum Unit {
         /**
@@ -48,8 +49,17 @@ public interface Meter {
      * This meters id.
      *
      * @return a meter id
+     * @deprecated in Nightingale release (version 1.13.0). Use {@link #meterCellId()} instead.
      */
+    @Deprecated
     MeterId id();
+
+    /**
+     * Returns the meter cell identifier of this meter.
+     *
+     * @return a meter identifier
+     */
+    MeterCellId meterCellId();
 
     /**
      * The id of the application which created this meter.
@@ -132,8 +142,19 @@ public interface Meter {
          *
          * @param id a e
          * @return this
+         * @deprecated in Nightingale release (version 1.13.0). Use {@link
+         * #withCellId(MeterCellId)} instead.
          */
+        @Deprecated
         Builder withId(MeterId id);
+
+        /**
+         * Assigns the id to this meter cell.
+         *
+         * @param meterId a meter cell identifier
+         * @return this
+         */
+        Builder withCellId(MeterCellId meterId);
 
         /**
          * Assigns the application that built this meter.

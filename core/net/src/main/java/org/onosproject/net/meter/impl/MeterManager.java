@@ -30,6 +30,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
+import org.onosproject.net.meter.MeterCellId.MeterCellType;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
@@ -132,10 +133,10 @@ public class MeterManager
                     }
                 });
 
-            };
+        };
 
         executorService = newFixedThreadPool(numThreads,
-                groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
+                                             groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
         modified(context);
         log.info("Started");
     }
@@ -146,7 +147,7 @@ public class MeterManager
             readComponentConfiguration(context);
         }
         defaultProvider.init(deviceService, createProviderService(defaultProvider),
-                mastershipService, fallbackMeterPollFrequency);
+                             mastershipService, fallbackMeterPollFrequency);
     }
 
     @Deactivate
@@ -289,7 +290,7 @@ public class MeterManager
                     // The meter is missing in the device. Reinstall!
                     log.debug("Adding meter missing in device {} {}", deviceId, m);
                     provider().performMeterOperation(deviceId,
-                            new MeterOperation(m, MeterOperation.Type.ADD));
+                                                     new MeterOperation(m, MeterOperation.Type.ADD));
                 }
             });
 
@@ -297,12 +298,19 @@ public class MeterManager
             meterEntriesMap.entrySet().stream()
                     .filter(md -> !allMeters.stream().anyMatch(m -> m.id().equals(md.getKey())))
                     .forEach(mio -> {
-                        // The meter is missin in onos. Uninstall!
-                        log.debug("Remove meter in device not in onos {} {}", deviceId, mio.getKey());
                         Meter meter = mio.getValue();
-                        provider().performMeterOperation(deviceId,
-                                new MeterOperation(meter, MeterOperation.Type.REMOVE));
-            });
+                        // FIXME: Removing a meter is meaningfull for OpenFlow, but not for P4Runtime.
+                        // In P4Runtime meter cells cannot be removed. For the
+                        // moment, we make the distinction between OpenFlow and
+                        // P4Runtime by looking at the MeterCellType (always
+                        // INDEX for OpenFlow).
+                        if (meter.meterCellId().type() == MeterCellType.INDEX) {
+                            // The meter is missing in onos. Uninstall!
+                            log.debug("Remove meter in device not in onos {} {}", deviceId, mio.getKey());
+                            provider().performMeterOperation(deviceId,
+                                                             new MeterOperation(meter, MeterOperation.Type.REMOVE));
+                        }
+                    });
 
             meterEntries.stream()
                     .filter(m -> allMeters.stream()
@@ -339,11 +347,11 @@ public class MeterManager
             switch (event.type()) {
                 case METER_ADD_REQ:
                     executorService.execute(new MeterInstaller(deviceId, event.subject(),
-                            MeterOperation.Type.ADD));
+                                                               MeterOperation.Type.ADD));
                     break;
                 case METER_REM_REQ:
                     executorService.execute(new MeterInstaller(deviceId, event.subject(),
-                            MeterOperation.Type.REMOVE));
+                                                               MeterOperation.Type.REMOVE));
                     break;
                 case METER_ADDED:
                     log.info("Meter added {}", event.subject());

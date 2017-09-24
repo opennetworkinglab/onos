@@ -36,5 +36,10 @@ public enum PiEntityType {
     /**
      * Action profile group member.
      */
-    GROUP_MEMBER
+    GROUP_MEMBER,
+
+    /**
+     * Meter config.
+     */
+    METER_CELL_CONFIG
 }

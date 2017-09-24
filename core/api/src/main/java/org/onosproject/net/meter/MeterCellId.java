@@ -14,35 +14,38 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.service;
+package org.onosproject.net.meter;
 
 import com.google.common.annotations.Beta;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * A representation of a meter cell identifier.
+ * Uniquely identifies a meter cell in the scope of a single device.
  */
 @Beta
-public interface PiTranslationService {
+public interface MeterCellId {
 
     /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
+     * Types of meter cell identifier.
      */
-    PiFlowRuleTranslator flowRuleTranslator();
+    enum MeterCellType {
+        /**
+         * Signifies that the meter cell can be identified with an integer index.
+         * Valid for pipelines that defines one global meter table, e.g. as with
+         * OpenFlow meters.
+         */
+        INDEX,
+
+        /**
+         * Signifies that the meter cell identifier is pipeline-independent.
+         */
+        PIPELINE_INDEPENDENT
+    }
 
     /**
-     * Returns a group translator.
+     * Return the type of this meter cell identifier.
      *
-     * @return group translator
+     * @return type
      */
-    PiGroupTranslator groupTranslator();
-
-    /**
-     * Returns a meter translator.
-     *
-     * @return meter translator
-     */
-    PiMeterTranslator meterTranslator();
+    MeterCellType type();
 }
