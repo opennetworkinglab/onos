@@ -22,9 +22,9 @@ import java.util.Objects;
  * Represents for source end point or destination end point of a tunnel. Maybe a tunnel
  * based on ConnectPoint, IpAddress, MacAddress and so on is built.
  */
-public class TunnelEndPoint<T> {
+public final class TunnelEndPoint<T> {
 
-    protected final T value;
+    private final T value;
 
     /**
      * Default constructor.

@@ -29,7 +29,7 @@ import java.util.Optional;
  * Default implementation of mirroring description entity.
  */
 @Beta
-public class DefaultMirroringDescription extends AbstractDescription
+public final class DefaultMirroringDescription extends AbstractDescription
     implements MirroringDescription {
 
     private final MirroringName mirroringName;
