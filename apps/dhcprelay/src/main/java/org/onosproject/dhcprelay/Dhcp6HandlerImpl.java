@@ -323,9 +323,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @return true if all information we need have been initialized
      */
     public boolean configured() {
-        log.warn("dhcpServerConnectPoint {} dhcpServerIp {}",
-                this.dhcpServerConnectPoint, this.dhcpServerIp);
-        return this.dhcpServerConnectPoint != null && this.dhcpServerIp != null;
+        log.warn("dhcpServerConnectPoint {} dhcpServerIp {}," +
+                        "  indirectDhcpServerConnectPoint {} indirectDhcpServerIp {}",
+                this.dhcpServerConnectPoint, this.dhcpServerIp,
+                this.indirectDhcpServerConnectPoint, this.indirectDhcpServerIp);
+        return (this.dhcpServerConnectPoint != null && this.dhcpServerIp != null) ||
+                (this.indirectDhcpServerConnectPoint != null && this.indirectDhcpServerIp != null);
     }
 
     @Override
@@ -788,7 +791,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         Ethernet etherReply = clientPacket.duplicate();
         etherReply.setSourceMACAddress(relayAgentMac);
 
-        if (directConnFlag && this.dhcpConnectMac == null) {
+        if ((directConnFlag && this.dhcpConnectMac == null)  ||
+                !directConnFlag && this.indirectDhcpConnectMac == null && this.dhcpConnectMac == null)   {
+            log.warn("Packet received from {} connected client.", directConnFlag ? "directly" : "indirectly");
             log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
                             + "packet processing from client on port: {}",
                     (this.dhcpGatewayIp == null) ? "server IP " + this.dhcpServerIp
@@ -798,19 +803,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             return null;
         }
 
-        if (!directConnFlag && this.indirectDhcpConnectMac == null) {
-            log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
-                            + "packet processing from client on port: {}",
-                    (this.indirectDhcpGatewayIp == null) ? "server IP " + this.indirectDhcpServerIp
-                            : "gateway IP " + this.indirectDhcpGatewayIp,
-                    clientInterfaces.iterator().next().connectPoint());
-
-            return null;
-
-        }
-
         if (this.dhcpServerConnectPoint == null) {
-            log.warn("DHCP6 server connection point is not set up yet");
+            log.warn("DHCP6 server connection point direct {} directConn {} indirectConn {} is not set up yet",
+                    directConnFlag, this.dhcpServerConnectPoint, this.indirectDhcpServerConnectPoint);
             return null;
         }
 
@@ -843,6 +838,26 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                      HexString.toHexString(relayAgentIp.toOctets(), ":"));
 
          } else {
+             if (this.indirectDhcpServerIp == null) {
+                 log.warn("indirect DhcpServerIp not available, use default DhcpServerIp {}",
+                         HexString.toHexString(this.dhcpServerIp.toOctets()));
+             } else {
+                 // Indirect case, replace destination to indirect dhcp server if exist
+                 // Check if mac is obtained for valid server ip
+                 if (this.indirectDhcpConnectMac == null) {
+                     log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
+                            + "packet processing from client on port: {}",
+                            (this.indirectDhcpGatewayIp == null) ? "server IP " + this.indirectDhcpServerIp
+                                                                   : "gateway IP " + this.indirectDhcpGatewayIp,
+                             clientInterfaces.iterator().next().connectPoint());
+                     return null;
+                 }
+                 etherReply.setDestinationMACAddress(this.indirectDhcpConnectMac);
+                 etherReply.setVlanID(this.indirectDhcpConnectVlan.toShort());
+                 ipv6Packet.setDestinationAddress(this.indirectDhcpServerIp.toOctets());
+
+             }
+
              if (this.indirectRelayAgentIpFromCfg == null) {
                  dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
                  log.warn("indirect connection: relayAgentIp NOT availale from config file! {}",
@@ -902,8 +917,15 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         ipv6Packet.setHopLimit((byte) 64);
         etherReply.setPayload(ipv6Packet);
 
-
-        return new InternalPacket(etherReply, this.dhcpServerConnectPoint);
+        if (directConnFlag) {
+            return new InternalPacket(etherReply, this.dhcpServerConnectPoint);
+        } else {
+            if (this.indirectDhcpServerIp == null) {
+                return new InternalPacket(etherReply, this.dhcpServerConnectPoint);
+            } else {
+                return new InternalPacket(etherReply, this.indirectDhcpServerConnectPoint);
+            }
+        }
     }
 
     /**
@@ -916,12 +938,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      */
     private InternalPacket processDhcp6PacketFromServer(PacketContext context,
                                                         Ethernet receivedPacket, Set<Interface> recevingInterfaces) {
-        ConnectPoint inPort = context.inPacket().receivedFrom();
-        if (!inPort.equals(this.dhcpServerConnectPoint)) {
-            log.warn("Receiving port {} is not the same as server port {}",
-                    inPort, this.dhcpServerConnectPoint);
-            return null;
-        }
+
         // get dhcp6 header.
         Ethernet etherReply = receivedPacket.duplicate();
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
@@ -929,6 +946,21 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         DHCP6 dhcp6Relay = (DHCP6) udpPacket.getPayload();
 
         Boolean directConnFlag = directlyConnected(dhcp6Relay);
+        ConnectPoint inPort = context.inPacket().receivedFrom();
+        if ((directConnFlag || (!directConnFlag && this.indirectDhcpServerIp == null))
+             && !inPort.equals(this.dhcpServerConnectPoint)) {
+            log.warn("Receiving port {} is not the same as server connect point {} for direct or indirect-null",
+                    inPort, this.dhcpServerConnectPoint);
+            return null;
+        }
+
+        if (!directConnFlag && this.indirectDhcpServerIp != null &&
+                                !inPort.equals(this.indirectDhcpServerConnectPoint)) {
+            log.warn("Receiving port {} is not the same as server connect point {} for indirect",
+                    inPort, this.indirectDhcpServerConnectPoint);
+            return null;
+        }
+
 
         Dhcp6InterfaceIdOption interfaceIdOption = dhcp6Relay.getOptions().stream()
                 .filter(opt -> opt instanceof Dhcp6InterfaceIdOption)
