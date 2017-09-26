@@ -19,7 +19,7 @@
     <parent>
         <artifactId>onos-incubator-grpc-dependencies</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.0-SNAPSHOT</version>
+        <version>1.12.0-b1</version>
         <relativePath>../grpc-dependencies/pom.xml</relativePath>
     </parent>
 
