@@ -16,15 +16,14 @@
 
 package org.onosproject.net.behaviour;
 
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.SparseAnnotations;
 
-import com.google.common.testing.EqualsTester;
-
+import static com.spotify.hamcrest.optional.OptionalMatchers.optionalWithValue;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 
 public class DefaultTunnelDescriptionTest {
@@ -64,16 +63,12 @@ public class DefaultTunnelDescriptionTest {
 
     @Test
     public void testConstruction() {
-        assertTrue(tunnelDescription1.deviceId().isPresent());
-        assertThat(tunnelDescription1.deviceId().get(), is(DID_1));
+        assertThat(tunnelDescription1.deviceId(), optionalWithValue(is(DID_1)));
         assertThat(tunnelDescription1.ifaceName(), is(IFACE_NAME_1));
-        assertTrue(tunnelDescription1.key().isPresent());
-        assertThat(tunnelDescription1.key().get(), is(KEY_1));
+        assertThat(tunnelDescription1.key(), optionalWithValue(is(KEY_1)));
         assertThat(tunnelDescription1.type(), is(TunnelDescription.Type.GRE));
-        assertTrue(tunnelDescription1.local().isPresent());
-        assertThat(tunnelDescription1.local().get(), is(LOCAL_1));
-        assertTrue(tunnelDescription1.remote().isPresent());
-        assertThat(tunnelDescription1.remote().get(), is(REMOTE_1));
+        assertThat(tunnelDescription1.local(), optionalWithValue(is(LOCAL_1)));
+        assertThat(tunnelDescription1.remote(), optionalWithValue(is(REMOTE_1)));
     }
 
     @Test

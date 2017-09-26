@@ -16,17 +16,15 @@
 
 package org.onosproject.net.behaviour;
 
-import java.util.EnumSet;
-
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.Bandwidth;
 
-import com.google.common.testing.EqualsTester;
+import java.util.EnumSet;
 
-import static org.hamcrest.Matchers.contains;
+import static com.spotify.hamcrest.optional.OptionalMatchers.optionalWithValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 
 public class DefaultQueueDescriptionTest {
@@ -71,17 +69,11 @@ public class DefaultQueueDescriptionTest {
 
     @Test
     public void testConstruction() {
-        assertTrue(queueDescription1.burst().isPresent());
-        assertThat(queueDescription1.burst().get(), is(1L));
-        assertTrue(queueDescription1.dscp().isPresent());
-        assertThat(queueDescription1.dscp().get(), is(11));
-        assertTrue(queueDescription1.maxRate().isPresent());
-        assertThat(queueDescription1.maxRate().get(), is(MAX_BANDWIDTH_1));
-        assertTrue(queueDescription1.minRate().isPresent());
-        assertThat(queueDescription1.minRate().get(), is(MIN_BANDWIDTH_1));
-        assertThat(queueDescription1.type(), contains(QueueDescription.Type.MAX));
-        assertTrue(queueDescription1.priority().isPresent());
-        assertThat(queueDescription1.priority().get(), is(1L));
+        assertThat(queueDescription1.burst(), optionalWithValue(is(1L)));
+        assertThat(queueDescription1.dscp(), optionalWithValue(is(11)));
+        assertThat(queueDescription1.maxRate(), optionalWithValue(is(MAX_BANDWIDTH_1)));
+        assertThat(queueDescription1.minRate(), optionalWithValue(is(MIN_BANDWIDTH_1)));
+        assertThat(queueDescription1.priority(), optionalWithValue(is(1L)));
         assertThat(queueDescription1.queueId(), is(QUEUE_ID1));
     }
 
