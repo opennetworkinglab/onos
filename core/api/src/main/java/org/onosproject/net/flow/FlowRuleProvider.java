@@ -16,6 +16,7 @@
 package org.onosproject.net.flow;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.Provider;
 
 /**

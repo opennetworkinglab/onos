@@ -30,8 +30,8 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchEntry;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -50,7 +50,7 @@ import static com.google.common.collect.ImmutableSet.copyOf;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation.*;
+import static org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation.*;
 
 /**
  * Driver-based flow rule provider.

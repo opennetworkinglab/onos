@@ -17,7 +17,7 @@
 package org.onosproject.incubator.store.virtual.impl.primitives;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.net.flow.FlowRuleBatchEvent;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
 
 import java.util.Objects;
 

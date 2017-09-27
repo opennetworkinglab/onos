@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flow;
+package org.onosproject.net.flow.oldbatch;
 
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.CompletedBatchOperation;
 
 @Deprecated
 /**

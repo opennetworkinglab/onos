@@ -18,6 +18,8 @@ package org.onosproject.net.flow;
 import java.util.List;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.store.Store;
 
 /**

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.flow;
-
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
-import org.onosproject.store.StoreDelegate;
 
 /**
- * Flow rule store delegate abstraction.
+ * Flow rule model &amp; related services API definitions.
+ *
+ * <p>
+ * The figure below depicts the general interactions between different
+ * components of the intent subsystem.<br>
+ * <img src="doc-files/flow-design.png" alt="ONOS flow rule subsystem design">
+ * </p>
  */
-public interface FlowRuleStoreDelegate extends StoreDelegate<FlowRuleBatchEvent> {
-}
+package org.onosproject.net.flow.oldbatch;

@@ -18,6 +18,8 @@ package org.onosproject.net.flow;
 import java.util.LinkedList;
 
 import org.junit.Test;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
