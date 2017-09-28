@@ -198,26 +198,6 @@ public class EAPOL extends BasePacket {
         };
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-
-        // deserialize the EAPOL header
-        this.version = bb.get();
-        this.eapolType = bb.get();
-        this.packetLength = bb.getShort();
-
-        if (this.packetLength > 0) {
-            // deserialize the EAP Payload
-            this.payload = new EAP();
-
-            this.payload = this.payload.deserialize(data, bb.position(), length - 4);
-            this.payload.setParent(this);
-        }
-
-        return this;
-    }
 
     @Override
     public String toString() {

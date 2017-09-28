@@ -192,7 +192,7 @@ public class OpenstackRoutingSnatHandler {
                 TpPort.tpPort(patPort),
                 externalGatewayIp);
 
-        packetOut((Ethernet) eth.clone(),
+        packetOut(eth.duplicate(),
                 packetIn.receivedFrom().deviceId(),
                 patPort,
                 externalGatewayIp);

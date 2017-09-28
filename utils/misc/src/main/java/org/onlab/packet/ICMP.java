@@ -134,21 +134,6 @@ public class ICMP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.icmpType = bb.get();
-        this.icmpCode = bb.get();
-        this.checksum = bb.getShort();
-
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
-        return this;
-    }
-
     /*
      * (non-Javadoc)
      *

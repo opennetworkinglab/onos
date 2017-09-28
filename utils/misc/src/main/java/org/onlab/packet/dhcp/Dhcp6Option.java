@@ -21,7 +21,6 @@ import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
-import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -147,14 +146,6 @@ public class Dhcp6Option extends BasePacket {
         return bb.array();
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        try {
-            return deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            throw new RuntimeException("Can't deserialize data for DHCPv6 option.", e);
-        }
-    }
 
     protected ToStringHelper getToStringHelper() {
         return toStringHelper(Dhcp6Option.class)

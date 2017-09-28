@@ -16,6 +16,9 @@
 
 package org.onlab.packet;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /**
  * Base packet class.
  */
@@ -84,18 +87,38 @@ public abstract class BasePacket implements IPacket {
         return true;
     }
 
+    /**
+     * This implementation of clone() is here to preserve backwards compatibility. Applications should not
+     * use clone() and instead use the duplicate() methods on the packet classes.
+     *
+     * @return copy of packet
+     */
     @Override
     public Object clone() {
-        IPacket pkt;
-        try {
-            pkt = this.getClass().newInstance();
-        } catch (final Exception e) {
-            throw new RuntimeException("Could not clone packet");
+
+        Class<? extends BasePacket> packetClass = this.getClass();
+        Method[] allMethods = packetClass.getDeclaredMethods();
+
+        Method deserializerFactory = null;
+        for (Method m : allMethods) {
+            String mname = m.getName();
+            if (mname.equals("deserializer")) {
+                deserializerFactory = m;
+                break;
+            }
         }
 
-        final byte[] data = this.serialize();
-        pkt.deserialize(data, 0, data.length);
-        pkt.setParent(this.parent);
-        return pkt;
+        if (deserializerFactory == null) {
+            throw new IllegalStateException("No Deserializer found for " + packetClass.getName());
+        }
+
+        byte[] data = serialize();
+        try {
+            Deserializer deserializer = (Deserializer) deserializerFactory.invoke(this);
+            return deserializer.deserialize(data, 0, data.length);
+        } catch (IllegalAccessException | InvocationTargetException | DeserializationException ex) {
+            throw new IllegalStateException(ex);
+        }
+
     }
 }

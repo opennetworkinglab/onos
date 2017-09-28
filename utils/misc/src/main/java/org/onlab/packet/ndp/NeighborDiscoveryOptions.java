@@ -15,12 +15,11 @@
  */
 package org.onlab.packet.ndp;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
-import org.onlab.packet.IPacket;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -189,40 +188,6 @@ public class NeighborDiscoveryOptions extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-
-        options.clear();
-
-        //
-        // Deserialize all options
-        //
-        while (bb.hasRemaining()) {
-            byte type = bb.get();
-            if (!bb.hasRemaining()) {
-                break;
-            }
-            byte lengthField = bb.get();
-            int dataLength = lengthField * 8;   // The data length field is in
-            // unit of 8 octets
-
-            // Exclude the type and length fields
-            if (dataLength < 2) {
-                break;
-            }
-            dataLength -= 2;
-
-            if (bb.remaining() < dataLength) {
-                break;
-            }
-            byte[] optionData = new byte[dataLength];
-            bb.get(optionData, 0, optionData.length);
-            addOption(type, optionData);
-        }
-
-        return this;
-    }
 
     @Override
     public int hashCode() {

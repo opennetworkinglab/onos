@@ -19,6 +19,7 @@ package org.onosproject.p4tutorial.pipeconf;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
+import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.ConnectPoint;
@@ -179,9 +180,12 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
     public InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetIn)
             throws PiInterpreterException {
         // We assume that the packet is ethernet, which is fine since default.p4 can deparse only ethernet packets.
-        Ethernet ethPkt = new Ethernet();
-
-        ethPkt.deserialize(packetIn.data().asArray(), 0, packetIn.data().size());
+        Ethernet ethPkt;
+        try {
+            ethPkt = Ethernet.deserializer().deserialize(packetIn.data().asArray(), 0, packetIn.data().size());
+        } catch (DeserializationException dex) {
+            throw new PiInterpreterException(dex.getMessage());
+        }
 
         // Returns the ingress port packet metadata.
         Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas().stream()

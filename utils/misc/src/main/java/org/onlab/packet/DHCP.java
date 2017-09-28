@@ -505,16 +505,6 @@ public class DHCP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        try {
-            return deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            return null;
-        }
-    }
-
     protected void writeString(final String string, final ByteBuffer bb,
             final int maxLength) {
         if (string == null) {

@@ -248,25 +248,6 @@ public class ARP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.hardwareType = bb.getShort();
-        this.protocolType = bb.getShort();
-        this.hardwareAddressLength = bb.get();
-        this.protocolAddressLength = bb.get();
-        this.opCode = bb.getShort();
-        this.senderHardwareAddress = new byte[0xff & this.hardwareAddressLength];
-        bb.get(this.senderHardwareAddress, 0, this.senderHardwareAddress.length);
-        this.senderProtocolAddress = new byte[0xff & this.protocolAddressLength];
-        bb.get(this.senderProtocolAddress, 0, this.senderProtocolAddress.length);
-        this.targetHardwareAddress = new byte[0xff & this.hardwareAddressLength];
-        bb.get(this.targetHardwareAddress, 0, this.targetHardwareAddress.length);
-        this.targetProtocolAddress = new byte[0xff & this.protocolAddressLength];
-        bb.get(this.targetProtocolAddress, 0, this.targetProtocolAddress.length);
-        return this;
-    }
 
     /*
      * (non-Javadoc)
@@ -475,6 +456,21 @@ public class ARP extends BasePacket {
 
             return arp;
         };
+    }
+
+    /**
+     * Make an exact copy of the ARP packet.
+     *
+     * @return copy of the packet
+     */
+    public ARP duplicate() {
+        try {
+            byte[] data = serialize();
+            return deserializer().deserialize(data, 0, data.length);
+        } catch (DeserializationException dex) {
+            // If we can't make an object out of the serialized data, its a defect
+            throw new IllegalStateException(dex);
+        }
     }
 
     @Override

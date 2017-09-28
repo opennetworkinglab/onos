@@ -62,32 +62,6 @@ public class VXLAN extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-
-        if (bb.remaining() < VXLAN_HEADER_LENGTH) {
-            return this;
-        }
-
-        this.flags = bb.get();
-        bb.get(this.rsvd1);
-        bb.get(this.vni);
-        this.rsvd2 = bb.get();
-
-        Deserializer<? extends IPacket> deserializer = Data.deserializer();
-
-        try {
-            this.payload = deserializer.deserialize(data, bb.position(),
-                    bb.limit() - bb.position());
-            this.payload.setParent(this);
-        } catch (DeserializationException e) {
-            return this;
-        }
-        return this;
-    }
-
     /**
      * Returns VNI(VXLAN Network Identifier).
      *

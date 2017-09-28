@@ -65,13 +65,6 @@ public class Data extends BasePacket {
         return this.data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        this.data = Arrays.copyOfRange(data, offset, data.length);
-        return this;
-    }
-
     /*
      * (non-Javadoc)
      *

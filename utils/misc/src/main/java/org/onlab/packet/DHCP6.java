@@ -233,14 +233,6 @@ public class DHCP6 extends BasePacket {
         };
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        try {
-            return deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            return null;
-        }
-    }
 
     /**
      * Gets the message type of this DHCPv6 packet.

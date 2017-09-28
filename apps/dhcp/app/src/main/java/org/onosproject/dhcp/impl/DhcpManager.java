@@ -564,7 +564,7 @@ public class DhcpManager implements DhcpService {
 
             ARP arpPacket = (ARP) packet.getPayload();
 
-            ARP arpReply = (ARP) arpPacket.clone();
+            ARP arpReply = arpPacket.duplicate();
             arpReply.setOpCode(ARP.OP_REPLY);
 
             arpReply.setTargetProtocolAddress(arpPacket.getSenderProtocolAddress());

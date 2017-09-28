@@ -195,34 +195,6 @@ public class UDP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = (bb.getShort() & 0xffff);
-        this.destinationPort = (bb.getShort() & 0xffff);
-        this.length = bb.getShort();
-        this.checksum = bb.getShort();
-
-        Deserializer<? extends IPacket> deserializer;
-        if (UDP.PORT_DESERIALIZER_MAP.containsKey(this.destinationPort)) {
-            deserializer = UDP.PORT_DESERIALIZER_MAP.get(this.destinationPort);
-        } else if (UDP.PORT_DESERIALIZER_MAP.containsKey(this.sourcePort)) {
-            deserializer = UDP.PORT_DESERIALIZER_MAP.get(this.sourcePort);
-        } else {
-            deserializer = Data.deserializer();
-        }
-
-        try {
-            this.payload = deserializer.deserialize(data, bb.position(),
-                                                   bb.limit() - bb.position());
-            this.payload.setParent(this);
-        } catch (DeserializationException e) {
-            return this;
-        }
-        return this;
-    }
-
     /*
      * (non-Javadoc)
      *

@@ -17,9 +17,7 @@
 package org.onlab.packet.dhcp;
 
 import org.onlab.packet.BasePacket;
-import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
-import org.onlab.packet.IPacket;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -55,15 +53,6 @@ public class DhcpOption extends BasePacket {
         return byteBuffer.array();
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        try {
-            return deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            log.warn("Can't deserialize DhcpOption {}", e);
-            return null;
-        }
-    }
 
     /**
      * Deserializer function for DHCP option.

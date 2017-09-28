@@ -113,7 +113,7 @@ public class DefaultNeighbourMessageActionsTest {
     public void forwardToInterface() {
         Ethernet request = NeighbourTestUtils.createArpRequest(IP1);
 
-        Ethernet forwardedRequest = (Ethernet) request.clone();
+        Ethernet forwardedRequest = request.duplicate();
         forwardedRequest.setSourceMACAddress(INTF2.mac());
         forwardedRequest.setVlanID(INTF2.vlan().toShort());
 

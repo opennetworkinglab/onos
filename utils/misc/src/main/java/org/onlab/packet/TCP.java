@@ -346,39 +346,6 @@ public class TCP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = (bb.getShort() & 0xffff);
-        this.destinationPort = (bb.getShort() & 0xffff);
-        this.sequence = bb.getInt();
-        this.acknowledge = bb.getInt();
-        this.flags = bb.getShort();
-        this.dataOffset = (byte) (this.flags >> 12 & 0xf);
-        this.flags = (short) (this.flags & 0x1ff);
-        this.windowSize = bb.getShort();
-        this.checksum = bb.getShort();
-        this.urgentPointer = bb.getShort();
-        if (this.dataOffset > 5) {
-            int optLength = (this.dataOffset << 2) - 20;
-            if (bb.limit() < bb.position() + optLength) {
-                optLength = bb.limit() - bb.position();
-            }
-            try {
-                this.options = new byte[optLength];
-                bb.get(this.options, 0, optLength);
-            } catch (final IndexOutOfBoundsException e) {
-                this.options = null;
-            }
-        }
-
-        this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit()
-                - bb.position());
-        this.payload.setParent(this);
-        return this;
-    }
 
     /*
      * (non-Javadoc)

@@ -235,39 +235,6 @@ public class IPv6 extends IP implements IExtensionHeader {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        int iscratch;
-
-        iscratch = bb.getInt();
-        this.version = (byte) (iscratch >> 28 & 0xf);
-        this.trafficClass = (byte) (iscratch >> 20 & 0xff);
-        this.flowLabel = iscratch & 0xfffff;
-        this.payloadLength = bb.getShort();
-        this.nextHeader = bb.get();
-        this.hopLimit = bb.get();
-        bb.get(this.sourceAddress, 0, Ip6Address.BYTE_LENGTH);
-        bb.get(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
-
-        Deserializer<? extends IPacket> deserializer;
-        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
-            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
-        } else {
-            deserializer = Data.deserializer();
-        }
-        try {
-            this.payload = deserializer.deserialize(data, bb.position(),
-                                                    bb.limit() - bb.position());
-            this.payload.setParent(this);
-        } catch (DeserializationException e) {
-            return this;
-        }
-
-        return this;
-    }
-
     /*
      * (non-Javadoc)
      *

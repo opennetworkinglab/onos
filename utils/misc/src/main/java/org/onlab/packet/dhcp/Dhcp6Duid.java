@@ -19,9 +19,7 @@ package org.onlab.packet.dhcp;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.BasePacket;
-import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
-import org.onlab.packet.IPacket;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -146,14 +144,7 @@ public class Dhcp6Duid extends BasePacket {
         return byteBuffer.array();
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        try {
-            return deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            throw new RuntimeException("Can't deserialize duid due to {}", e);
-        }
-    }
+
 
     public static Deserializer<Dhcp6Duid> deserializer() {
         return (data, offset, length) -> {

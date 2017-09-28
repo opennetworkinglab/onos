@@ -583,7 +583,7 @@ public class DhcpRelayManager implements DhcpRelayService {
          */
         private void processArpPacket(PacketContext context, Ethernet packet, MacAddress replyMac) {
             ARP arpPacket = (ARP) packet.getPayload();
-            ARP arpReply = (ARP) arpPacket.clone();
+            ARP arpReply = arpPacket.duplicate();
             arpReply.setOpCode(ARP.OP_REPLY);
 
             arpReply.setTargetProtocolAddress(arpPacket.getSenderProtocolAddress());

@@ -412,55 +412,6 @@ s     */
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        short sscratch;
-
-        this.version = bb.get();
-        this.headerLength = (byte) (this.version & 0xf);
-        this.version = (byte) (this.version >> 4 & 0xf);
-        this.diffServ = bb.get();
-        this.totalLength = bb.getShort();
-        this.identification = bb.getShort();
-        sscratch = bb.getShort();
-        this.flags = (byte) (sscratch >> 13 & 0x7);
-        this.fragmentOffset = (short) (sscratch & 0x1fff);
-        this.ttl = bb.get();
-        this.protocol = bb.get();
-        this.checksum = bb.getShort();
-        this.sourceAddress = bb.getInt();
-        this.destinationAddress = bb.getInt();
-
-        if (this.headerLength > 5) {
-            final int optionsLength = (this.headerLength - 5) * 4;
-            this.options = new byte[optionsLength];
-            bb.get(this.options);
-        }
-
-        if (this.totalLength != length) {
-            this.isTruncated = true;
-        } else {
-            this.isTruncated = false;
-        }
-
-        Deserializer<? extends IPacket> deserializer;
-        if (IPv4.PROTOCOL_DESERIALIZER_MAP.containsKey(this.protocol)) {
-            deserializer = IPv4.PROTOCOL_DESERIALIZER_MAP.get(this.protocol);
-        } else {
-            deserializer = Data.deserializer();
-        }
-        try {
-            this.payload = deserializer.deserialize(data, bb.position(),
-                                                    bb.limit() - bb.position());
-            this.payload.setParent(this);
-        } catch (DeserializationException e) {
-            return this;
-        }
-
-        return this;
-    }
 
     /**
      * Accepts an IPv4 address of the form xxx.xxx.xxx.xxx, ie 192.168.0.1 and

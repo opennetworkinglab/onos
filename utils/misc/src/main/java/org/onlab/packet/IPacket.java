@@ -64,29 +64,5 @@ public interface IPacket {
      */
     byte[] serialize();
 
-    /**
-     * Deserialize this packet layer and all possible payloads.
-     *
-     * NOTE: This method has been deprecated and will be removed in a future
-     * release. It is now recommended to use the Deserializer function provided
-     * by the deserialize() method on each packet to deserialize them. The
-     * Deserializer functions are robust to malformed input.
-     *
-     * @param data bytes to deserialize
-     * @param offset
-     *            offset to start deserializing from
-     * @param length
-     *            length of the data to deserialize
-     * @return the deserialized data
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    IPacket deserialize(byte[] data, int offset, int length);
 
-    /**
-     * Clone this packet and its payload packet but not its parent.
-     *
-     * @return the clone
-     */
-    Object clone();
 }

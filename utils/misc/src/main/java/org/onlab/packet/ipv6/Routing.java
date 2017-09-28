@@ -18,7 +18,6 @@ package org.onlab.packet.ipv6;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Data;
-import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv6;
@@ -167,35 +166,6 @@ public class Routing extends BasePacket implements IExtensionHeader {
             ((IExtensionHeader) this.parent).setNextHeader(IPv6.PROTOCOL_ROUTING);
         }
         return data;
-    }
-
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.nextHeader = bb.get();
-        this.headerExtLength = bb.get();
-        this.routingType = bb.get();
-        this.segmentsLeft = bb.get();
-        int dataLength =
-                FIXED_ROUTING_DATA_LENGTH + LENGTH_UNIT * this.headerExtLength;
-        this.routingData = new byte[dataLength];
-        bb.get(this.routingData, 0, dataLength);
-
-        Deserializer<? extends IPacket> deserializer;
-        if (IPv6.PROTOCOL_DESERIALIZER_MAP.containsKey(this.nextHeader)) {
-            deserializer = IPv6.PROTOCOL_DESERIALIZER_MAP.get(this.nextHeader);
-        } else {
-            deserializer = new Data().deserializer();
-        }
-        try {
-            this.payload = deserializer.deserialize(data, bb.position(),
-                                                    bb.limit() - bb.position());
-            this.payload.setParent(this);
-        } catch (DeserializationException e) {
-            return this;
-        }
-
-        return this;
     }
 
     /*

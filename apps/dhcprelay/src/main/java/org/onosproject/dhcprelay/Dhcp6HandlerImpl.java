@@ -785,7 +785,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         boolean directConnFlag = directlyConnected(clientDhcp6);
 
-        Ethernet etherReply = (Ethernet) clientPacket.clone();
+        Ethernet etherReply = clientPacket.duplicate();
         etherReply.setSourceMACAddress(relayAgentMac);
 
         if (directConnFlag && this.dhcpConnectMac == null) {
@@ -924,7 +924,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             return null;
         }
         // get dhcp6 header.
-        Ethernet etherReply = (Ethernet) receivedPacket.clone();
+        Ethernet etherReply = receivedPacket.duplicate();
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv6Packet.getPayload();
         DHCP6 dhcp6Relay = (DHCP6) udpPacket.getPayload();

@@ -242,28 +242,7 @@ public class PIM extends BasePacket {
         return data;
     }
 
-    /**
-     * Deserialize the PIM packet.
-     *
-     * @param data bytes to deserialize.
-     * @param offset offset to start deserializing from
-     * @param length length of the data to deserialize
-     *
-     * @return the deserialized PIM packet.
-     */
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-            final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.type = bb.get();
-        this.version = bb.get();
-        this.checksum = bb.getShort();
 
-        //this.payload = new Data();
-        this.payload = this.payload.deserialize(data, bb.position(), bb.limit() - bb.position());
-        this.payload.setParent(this);
-        return this;
-    }
     /**
      * Deserializer function for IPv4 packets.
      *

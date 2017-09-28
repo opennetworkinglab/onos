@@ -143,43 +143,6 @@ public class LLDP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        LLDPTLV tlv;
-        do {
-            try {
-                tlv = new LLDPOrganizationalTLV().deserialize(bb);
-            } catch (DeserializationException e) {
-                break;
-            }
-
-            // if there was a failure to deserialize stop processing TLVs
-            if (tlv == null) {
-                break;
-            }
-            switch (tlv.getType()) {
-                case 0x0:
-                    // can throw this one away, its just an end delimiter
-                    break;
-                case 0x1:
-                    this.chassisId = tlv;
-                    break;
-                case 0x2:
-                    this.portId = tlv;
-                    break;
-                case 0x3:
-                    this.ttl = tlv;
-                    break;
-
-                default:
-                    this.optionalTLVList.add(tlv);
-                    break;
-            }
-        } while (tlv.getType() != 0 && bb.hasRemaining());
-        return this;
-    }
 
     /*
      * (non-Javadoc)

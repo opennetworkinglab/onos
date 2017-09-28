@@ -275,7 +275,7 @@ public class RADIUS extends BasePacket {
             }
         }
         // Assembling EAP object from the concatenated stream
-        message.deserialize(messageStream.toByteArray(), 0, messageStream.size());
+        //message.deserialize(messageStream.toByteArray(), 0, messageStream.size());
         return message;
     }
 
@@ -398,28 +398,6 @@ public class RADIUS extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.code = bb.get();
-        this.identifier = bb.get();
-        this.length = bb.getShort();
-        bb.get(this.authenticator, 0, 16);
-
-        int remainingLength = this.length - RADIUS_MIN_LENGTH;
-        while (remainingLength > 0 && bb.hasRemaining()) {
-            RADIUSAttribute attr = new RADIUSAttribute();
-            attr.setType(bb.get());
-            attr.setLength(bb.get());
-            short attrLength = (short) (attr.length & 0xff);
-            attr.value = new byte[attrLength - 2];
-            bb.get(attr.value, 0, attrLength - 2);
-            this.attributes.add(attr);
-            remainingLength -= attr.length;
-        }
-        return this;
-    }
 
     @Override
     public String toString() {

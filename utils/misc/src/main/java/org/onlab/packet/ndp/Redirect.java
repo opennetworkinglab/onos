@@ -17,7 +17,6 @@ package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Deserializer;
-import org.onlab.packet.IPacket;
 import org.onlab.packet.Ip6Address;
 
 import java.nio.ByteBuffer;
@@ -127,19 +126,7 @@ public class Redirect extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(byte[] data, int offset, int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
 
-        bb.getInt();
-        bb.get(this.targetAddress, 0, Ip6Address.BYTE_LENGTH);
-        bb.get(this.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
-
-        this.options.deserialize(data, bb.position(),
-                                 bb.limit() - bb.position());
-
-        return this;
-    }
 
     /*
      * (non-Javadoc)

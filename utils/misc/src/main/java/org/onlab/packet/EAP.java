@@ -232,25 +232,6 @@ public class EAP extends BasePacket {
         return data;
     }
 
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-        final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.code = bb.get();
-        this.identifier = bb.get();
-        this.length = bb.getShort();
-
-        int dataLength;
-        if (this.code == REQUEST || this.code == RESPONSE) {
-            this.type = bb.get();
-            dataLength = this.length - 5;
-        } else {
-            dataLength = this.length - 4;
-        }
-        this.data = new byte[dataLength];
-        bb.get(this.data);
-        return this;
-    }
 
     @Override
     public int hashCode() {

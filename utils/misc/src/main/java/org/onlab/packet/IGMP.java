@@ -189,32 +189,6 @@ public abstract class IGMP extends BasePacket {
     }
 
     /**
-     * Deserialize an IGMP message.
-     *
-     * @param data bytes to deserialize
-     * @param offset offset to start deserializing from
-     * @param length length of the data to deserialize
-     * @return populated IGMP object
-     */
-    @Override
-    public IPacket deserialize(final byte[] data, final int offset,
-                               final int length) {
-
-        final IGMP igmp;
-        try {
-            igmp = IGMP.deserializer().deserialize(data, offset, length);
-        } catch (DeserializationException e) {
-            log.error("Deserialization exception", e);
-            return this;
-        }
-        this.igmpType = igmp.igmpType;
-        this.resField = igmp.resField;
-        this.checksum = igmp.checksum;
-        this.groups = igmp.groups;
-        return this;
-    }
-
-    /**
      * Deserializer function for IPv4 packets.
      *
      * @return deserializer function

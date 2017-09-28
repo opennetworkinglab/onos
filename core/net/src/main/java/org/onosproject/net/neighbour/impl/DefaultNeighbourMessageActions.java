@@ -65,7 +65,7 @@ public class DefaultNeighbourMessageActions implements NeighbourMessageActions {
 
     @Override
     public void forward(NeighbourMessageContext context, Interface outIntf) {
-        Ethernet packetOut = (Ethernet) context.packet().clone();
+        Ethernet packetOut = context.packet().duplicate();
         if (outIntf.vlan().equals(VlanId.NONE)) {
             // The egress interface has no VLAN Id. Send out an untagged
             // packet

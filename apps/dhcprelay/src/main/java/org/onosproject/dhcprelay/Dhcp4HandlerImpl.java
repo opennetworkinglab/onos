@@ -479,7 +479,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
     private Ethernet processDhcpPacketFromClient(PacketContext context,
                                                  Ethernet ethernetPacket) {
         // get dhcp header.
-        Ethernet etherReply = (Ethernet) ethernetPacket.clone();
+        Ethernet etherReply = ethernetPacket.duplicate();
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
@@ -666,7 +666,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
      */
     private Ethernet processDhcpPacketFromServer(Ethernet ethernetPacket) {
         // get dhcp header.
-        Ethernet etherReply = (Ethernet) ethernetPacket.clone();
+        Ethernet etherReply = ethernetPacket.duplicate();
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPayload = (DHCP) udpPacket.getPayload();
@@ -772,7 +772,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
      * @return Ethernet packet processed
      */
     private Ethernet removeRelayAgentOption(Ethernet ethPacket) {
-        Ethernet ethernet = (Ethernet) ethPacket.clone();
+        Ethernet ethernet = ethPacket.duplicate();
         IPv4 ipv4 = (IPv4) ethernet.getPayload();
         UDP udp = (UDP) ipv4.getPayload();
         DHCP dhcpPayload = (DHCP) udp.getPayload();
