@@ -55,8 +55,20 @@ public final class DefaultApplication implements Application {
      * Default constructor is hidden to prevent calls to new.
      */
     private DefaultApplication() {
-        // should never happen
-        throw new UnsupportedOperationException();
+        appId = null;
+        version = null;
+        title = null;
+        description = null;
+        category = null;
+        url = null;
+        readme = null;
+        icon = null;
+        origin = null;
+        role = null;
+        permissions = null;
+        featuresRepo = Optional.empty();
+        features = ImmutableList.of();
+        requiredApps = ImmutableList.of();
     }
 
     /**

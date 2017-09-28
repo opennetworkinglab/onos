@@ -34,8 +34,9 @@ public final class MirroringStatistics {
      * Hide private constructor to prevent calls to new().
      */
     private MirroringStatistics() {
-        // This should never happen
-        throw new UnsupportedOperationException();
+        mirroringName = null;
+        txBytes = 0;
+        txPackets = 0;
     }
 
     /**
