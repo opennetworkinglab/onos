@@ -1,0 +1,15 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.packet.models";
+
+package net.packet;
+
+import "net/packet/PacketProcessorProto.proto";
+
+// Corresponds to org.onosproject.net.packet.PacketProcessorEntry.
+message PacketProcessorEntryProto {
+    net.packet.PacketProcessorProto packet_processor = 1;
+    int32 priority = 2;
+    int64 invocations = 3;
+    int64 total_nanos = 4;
+    int64 average_nanos = 5;
+}

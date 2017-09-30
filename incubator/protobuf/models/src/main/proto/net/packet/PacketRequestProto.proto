@@ -1,0 +1,17 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.packet.models";
+
+package net.packet;
+
+import "net/flow/TrafficSelectorProto.proto";
+import "cluster/NodeIdProto.proto";
+import "core/ApplicationIdProto.proto";
+
+// Corresponds to org.onosproject.net.packet.PacketRequest.
+message PacketRequestProto {
+    net.flow.TrafficSelectorProto traffic_selector = 1;
+    int32 priority = 2;
+    core.ApplicationIdProto application_id = 3;
+    cluster.NodeIdProto node_id = 4;
+    string device_id = 5;
+}

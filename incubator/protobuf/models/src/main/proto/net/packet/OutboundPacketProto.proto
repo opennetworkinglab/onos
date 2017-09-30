@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.packet.models";
+
+package net.packet;
+
+import "net/flow/TrafficTreatmentProto.proto";
+
+// Corresponds to org.onosproject.net.packet.OutboundPacket.
+message OutboundPacketProto {
+    string device_id = 1;
+    net.flow.TrafficTreatmentProto treatment = 2;
+    bytes data = 3;
+}

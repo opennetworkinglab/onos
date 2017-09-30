@@ -1,0 +1,76 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.net.packet";
+
+package nb.net.packet;
+
+import "net/packet/PacketRequestProto.proto";
+import "net/packet/PacketProcessorProto.proto";
+import "net/packet/PacketProcessorEntryProto.proto";
+import "net/packet/OutboundPacketProto.proto";
+import "core/ApplicationIdProto.proto";
+import "net/flow/TrafficSelectorProto.proto";
+import "net/flow/TrafficTreatmentProto.proto";
+
+message addProcessorRequest {
+    .net.packet.PacketProcessorProto packet_processor = 1;
+    int32 priority = 2;
+}
+
+message addProcessorReply {
+}
+
+message removeProcessorRequest {
+    .net.packet.PacketProcessorProto packet_processor = 1;
+}
+
+message removeProcessorReply {
+}
+
+message getProcessorsRequest {
+}
+
+message getProcessorsReply {
+    repeated .net.packet.PacketProcessorEntryProto packetProcessor_entry = 1;
+}
+
+message requestPacketsRequest {
+    .net.flow.TrafficSelectorProto traffic_selector = 1;
+    int32 priority = 2;
+    .core.ApplicationIdProto application_id = 3;
+}
+
+message requestPacketsReply {
+}
+
+message cancelPacketsRequest {
+    .net.flow.TrafficSelectorProto traffic_selector = 1;
+    int32 priority = 2;
+    .core.ApplicationIdProto application_id = 3;
+}
+
+message cancelPacketsReply {
+}
+
+message getRequestsRequest {
+}
+
+message getRequestsReply {
+    repeated .net.packet.PacketRequestProto packet_request = 1;
+}
+
+message emitRequest {
+    .net.packet.OutboundPacketProto outbound_packet = 1;
+}
+
+message emitReply {
+}
+
+service DeviceService {
+    rpc addProcessor(addProcessorRequest) returns (addProcessorReply) {}
+    rpc removeProcessor(removeProcessorRequest) returns (removeProcessorReply) {}
+    rpc getProcessors(getProcessorsRequest) returns (getProcessorsReply) {}
+    rpc requestPackets(requestPacketsRequest) returns (requestPacketsReply) {}
+    rpc cancelPackets(cancelPacketsRequest) returns (cancelPacketsReply) {}
+    rpc getRequests(getRequestsRequest) returns (getRequestsReply) {}
+    rpc emit(emitRequest) returns (emitReply) {}
+}

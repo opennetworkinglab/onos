@@ -1,0 +1,73 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.criteria.models";
+
+package net.flow.criteria;
+
+enum TypeProto {
+    IN_PORT = 0;
+    ETH_DST = 1;
+    ETH_SRC = 2;
+    ETH_TYPE = 3;
+    IPV4_SRC = 4;
+    IPV4_DST = 5;
+    UDP_SRC = 6;
+    UDP_DST = 7;
+    TCP_SRC = 8;
+    TCP_DST = 9;
+    VLAN_VID = 10;
+    ARP_OP = 11;
+    ARP_SPA = 12;
+    ARP_TPA = 13;
+    ARP_SHA = 14;
+    ARP_THA = 15;
+    IP_PROTO = 16;
+    ETH_DST_MASKED = 17;
+    ETH_SRC_MASKED = 18;
+    VLAN_PCP = 19;
+    INNER_VLAN_VID = 20;
+    INNER_VLAN_PCP = 21;
+    IP_DSCP = 22;
+    IP_ECN = 23;
+    IN_PHY_PORT = 24;
+    METADATA = 25;
+    TCP_SRC_MASKED = 26;
+    TCP_DST_MASKED = 27;
+    UDP_SRC_MASKED = 28;
+    UDP_DST_MASKED = 29;
+    SCTP_SRC = 30;
+    SCTP_SRC_MASKED = 31;
+    SCTP_DST = 32;
+    SCTP_DST_MASKED = 33;
+    ICMPV4_TYPE = 34;
+    ICMPV4_CODE = 35;
+    IPV6_SRC = 36;
+    IPV6_DST = 37;
+    IPV6_FLABEL = 38;
+    ICMPV6_TYPE = 39;
+    ICMPV6_CODE = 40;
+    IPV6_ND_TARGET = 41;
+    IPV6_ND_SLL = 42;
+    IPV6_ND_TLL = 43;
+    MPLS_LABEL = 44;
+    MPLS_TC = 45;
+    MPLS_BOS = 46;
+    PBB_ISID = 47;
+    TUNNEL_ID = 48;
+    IPV6_EXTHDR =49;
+    UNASSIGNED_40 = 50;
+    PBB_UCA = 51;
+    TCP_FLAGS = 52;
+    ACTSET_OUTPUT = 53;
+    PACKET_TYPE = 54;
+    OCH_SIGID = 55;
+    OCH_SIGTYPE = 56;
+    ODU_SIGID = 57;
+    ODU_SIGTYPE = 58;
+    PROTOCOL_INDEPENDENT = 59;
+    EXTENSION = 60;
+    DUMMY = 61;
+}
+
+message CriterionProto {
+    TypeProto type = 1;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.instructions.models";
+
+package net.flow.instructions;
+
+message TableTypeTransitionProto {
+    int32 table_id = 1;
+}
+
+message MetadataInstructionProto {
+    int64 meta_data = 1;
+    int64 meta_data_mask = 2;
+}

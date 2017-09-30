@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.models";
+
+package net.flow;
+
+import "net/flow/instructions/InstructionsProto.proto";
+import "net/flow/instructions/InstructionProto.proto";
+
+// Corresponds to org.onosproject.net.flow.TrafficTreatment.
+message TrafficTreatmentProto {
+    repeated net.flow.instructions.InstructionProto deferred = 1;
+    repeated net.flow.instructions.InstructionProto immediate = 2;
+    repeated net.flow.instructions.InstructionProto all_instructions = 3;
+    net.flow.instructions.TableTypeTransitionProto table_transition = 4;
+    bool cleared_deferred = 5;
+    net.flow.instructions.MetadataInstructionProto write_metadata = 6;
+    net.flow.instructions.MetadataInstructionProto metered = 7;
+}

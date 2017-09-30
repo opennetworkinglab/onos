@@ -1,0 +1,9 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.packet.models";
+
+package net.packet;
+
+// Corresponds to org.onosproject.net.packet.PacketProcessor.
+message PacketProcessorProto {
+    int32 priority = 1;
+}

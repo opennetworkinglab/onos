@@ -1,0 +1,25 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.instructions.models";
+
+package net.flow.instructions;
+
+enum TypeProto {
+    NOACTION = 0;
+    OUTPUT = 1;
+    GROUP = 2;
+    QUEUE = 3;
+    METER = 4;
+    L0MODIFICATION = 5;
+    L1MODIFICATION = 6;
+    L2MODIFICATION = 7;
+    L3MODIFICATION = 8;
+    L4MODIFICATION = 9;
+    TABLE = 10;
+    METADATA = 11;
+    PROTOCOL_INDEPENDENT = 12;
+    EXTENSION = 13;
+}
+
+message InstructionProto {
+    TypeProto type = 1;
+}

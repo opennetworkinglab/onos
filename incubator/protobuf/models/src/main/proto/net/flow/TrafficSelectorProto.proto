@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.models";
+
+package net.flow;
+
+import "net/flow/criteria/CriterionProto.proto";
+
+// Corresponds to org.onosproject.net.flow.TrafficSelector.
+message TrafficSelectorProto {
+    repeated net.flow.criteria.CriterionProto criterion = 1;
+}
