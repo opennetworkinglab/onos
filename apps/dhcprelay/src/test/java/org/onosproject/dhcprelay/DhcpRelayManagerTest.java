@@ -142,32 +142,38 @@ public class DhcpRelayManagerTest {
     private static final Host EXISTS_HOST = new DefaultHost(Dhcp4HandlerImpl.PROVIDER_ID,
                                                             CLIENT_HOST_ID, CLIENT_MAC, CLIENT_VLAN,
                                                             CLIENT_LOCATION, ImmutableSet.of(CLIENT_LL_IP_V6));
-    private static final Interface CLIENT_INTERFACE = new Interface("C1",
-                                                                    CLIENT_CP,
-                                                                    INTERFACE_IPS,
-                                                                    CLIENT_IFACE_MAC,
-                                                                    CLIENT_VLAN);
+    private static final Interface CLIENT_INTERFACE = createInterface("C1",
+                                                                      CLIENT_CP,
+                                                                      INTERFACE_IPS,
+                                                                      CLIENT_IFACE_MAC,
+                                                                      CLIENT_VLAN,
+                                                                      null);
+
+
 
     // Dual homing test
     private static final ConnectPoint CLIENT_DH_CP = ConnectPoint.deviceConnectPoint("of:0000000000000001/3");
     private static final HostLocation CLIENT_DH_LOCATION = new HostLocation(CLIENT_DH_CP, 0);
-    private static final Interface CLIENT_DH_INTERFACE = new Interface("C1-DH",
-                                                                       CLIENT_DH_CP,
-                                                                       INTERFACE_IPS,
-                                                                       CLIENT_IFACE_MAC,
-                                                                       CLIENT_VLAN);
+    private static final Interface CLIENT_DH_INTERFACE = createInterface("C1-DH",
+                                                                         CLIENT_DH_CP,
+                                                                         INTERFACE_IPS,
+                                                                         CLIENT_IFACE_MAC,
+                                                                         CLIENT_VLAN,
+                                                                         null);
 
 
     // DHCP client 2 (will send with option 82, so the vlan should equals to vlan from server)
     private static final MacAddress CLIENT2_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     private static final VlanId CLIENT2_VLAN = VlanId.NONE;
+    private static final VlanId CLIENT2_VLAN_NATIVE = VlanId.vlanId("20");
     private static final ConnectPoint CLIENT2_CP = ConnectPoint.deviceConnectPoint("of:0000000000000001/2");
     private static final MacAddress CLIENT2_IFACE_MAC = MacAddress.valueOf("00:00:00:00:11:01");
-    private static final Interface CLIENT2_INTERFACE = new Interface("C2",
-                                                                     CLIENT2_CP,
-                                                                     INTERFACE_IPS,
-                                                                     CLIENT2_IFACE_MAC,
-                                                                     CLIENT2_VLAN);
+    private static final Interface CLIENT2_INTERFACE = createInterface("C2",
+                                                                       CLIENT2_CP,
+                                                                       INTERFACE_IPS,
+                                                                       CLIENT2_IFACE_MAC,
+                                                                       CLIENT2_VLAN,
+                                                                       CLIENT2_VLAN_NATIVE);
 
     // Outer relay information
     private static final Ip4Address OUTER_RELAY_IP = Ip4Address.valueOf("10.0.5.253");
@@ -188,6 +194,7 @@ public class DhcpRelayManagerTest {
     // DHCP Server
     private static final MacAddress SERVER_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     private static final VlanId SERVER_VLAN = VlanId.NONE;
+    private static final VlanId SERVER_VLAN_NATIVE = VlanId.vlanId("10");
     private static final ConnectPoint SERVER_CONNECT_POINT =
             ConnectPoint.deviceConnectPoint("of:0000000000000001/5");
     private static final HostLocation SERVER_LOCATION =
@@ -206,11 +213,12 @@ public class DhcpRelayManagerTest {
                                                             SERVER_LOCATION,
                                                             DHCP_SERVER_IPS);
     private static final MacAddress SERVER_IFACE_MAC = MacAddress.valueOf("00:00:00:00:00:01");
-    private static final Interface SERVER_INTERFACE = new Interface("SERVER",
-                                                                    SERVER_CONNECT_POINT,
-                                                                    INTERFACE_IPS,
-                                                                    SERVER_IFACE_MAC,
-                                                                    SERVER_VLAN);
+    private static final Interface SERVER_INTERFACE = createInterface("SERVER",
+                                                                      SERVER_CONNECT_POINT,
+                                                                      INTERFACE_IPS,
+                                                                      SERVER_IFACE_MAC,
+                                                                      SERVER_VLAN,
+                                                                      SERVER_VLAN_NATIVE);
 
     // Relay agent config
     private static final Ip4Address RELAY_AGENT_IP = Ip4Address.valueOf("10.0.4.254");
@@ -235,6 +243,21 @@ public class DhcpRelayManagerTest {
     private MockDhcpRelayStore mockDhcpRelayStore;
     private HostProviderService mockHostProviderService;
 
+    private static Interface createInterface(String name, ConnectPoint connectPoint,
+                                             List<InterfaceIpAddress> interfaceIps,
+                                             MacAddress macAddress,
+                                             VlanId vlanId,
+                                             VlanId vlanNative) {
+
+        if (vlanId.equals(VlanId.NONE)) {
+            return new Interface(name, connectPoint, interfaceIps, macAddress, vlanId,
+                                 null, null, vlanNative);
+        } else {
+            return new Interface(name, connectPoint, interfaceIps, macAddress, vlanId,
+                                 null, ImmutableSet.of(vlanId), null);
+        }
+    }
+
     @Before
     public void setup() {
         manager = new DhcpRelayManager();
@@ -244,7 +267,6 @@ public class DhcpRelayManagerTest {
                 .andReturn(CONFIG)
                 .anyTimes();
 
-        // TODO: add indirect test
         expect(manager.cfgService.getConfig(APP_ID, IndirectDhcpRelayConfig.class))
                 .andReturn(CONFIG_INDIRECT)
                 .anyTimes();
@@ -285,8 +307,6 @@ public class DhcpRelayManagerTest {
         v4Handler.routeStore = mockRouteStore;
         manager.v4Handler = v4Handler;
 
-        // TODO: initialize v6 handler.
-        //DhcpHandler v6Handler = createNiceMock(DhcpHandler.class);
         Dhcp6HandlerImpl v6Handler = new Dhcp6HandlerImpl();
         v6Handler.dhcpRelayStore = mockDhcpRelayStore;
         v6Handler.hostService = manager.hostService;
@@ -302,8 +322,8 @@ public class DhcpRelayManagerTest {
         ComponentContext context = createNiceMock(ComponentContext.class);
         expect(context.getProperties()).andReturn(dictionary).anyTimes();
 
-        EasyMock.replay(manager.cfgService, manager.coreService, manager.hostService,
-                        manager.compCfgService, dictionary, context);
+        replay(manager.cfgService, manager.coreService, manager.hostService,
+               manager.compCfgService, dictionary, context);
         manager.activate(context);
     }
 

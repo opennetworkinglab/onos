@@ -460,10 +460,13 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
      * @return true if the Interface contains the vlan id
      */
     private boolean interfaceContainsVlan(Interface iface, VlanId vlanId) {
-        return iface.vlan().equals(vlanId) ||
-                iface.vlanUntagged().equals(vlanId) ||
-                iface.vlanTagged().contains(vlanId) ||
-                iface.vlanNative().equals(vlanId);
+        if (vlanId.equals(VlanId.NONE)) {
+            // untagged packet, check if vlan untagged or vlan native is not NONE
+            return !iface.vlanUntagged().equals(VlanId.NONE) ||
+                    !iface.vlanNative().equals(VlanId.NONE);
+        }
+        // tagged packet, check if the interface contains the vlan
+        return iface.vlanTagged().contains(vlanId);
     }
 
     /**
