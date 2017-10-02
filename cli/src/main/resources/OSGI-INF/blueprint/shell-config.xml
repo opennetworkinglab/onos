@@ -513,8 +513,10 @@
             <completers>
                 <ref component-id="groupStatusCompleter"/>
                 <ref component-id="deviceIdCompleter"/>
-                <null/>
             </completers>
+            <optional-completers>
+                <entry key="-t" value-ref="groupTypeCompleter"/>
+            </optional-completers>
         </command>
 
         <command>
@@ -929,6 +931,7 @@
     <bean id="intentIdCompleter" class="org.onosproject.cli.net.completer.IntentIdCompleter"/>
     <bean id="flowRuleStatusCompleter" class="org.onosproject.cli.net.FlowRuleStatusCompleter"/>
     <bean id="groupStatusCompleter" class="org.onosproject.cli.net.GroupStatusCompleter" />
+    <bean id="groupTypeCompleter" class="org.onosproject.cli.net.GroupTypeCompleter" />
     <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
     <bean id="ethTypeCompleter" class="org.onosproject.cli.net.EthTypeCompleter"/>

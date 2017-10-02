@@ -52,7 +52,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     private static final String FORMAT =
             "   id=0x%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s, referenceCount=%s";
     private static final String BUCKET_FORMAT =
-            "   id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
+            "       id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
 
     @Argument(index = 1, name = "uri", description = "Device ID",
             required = false, multiValued = false)
@@ -133,7 +133,7 @@ public class GroupsListCommand extends AbstractShellCommand {
             groups.sort(Comparators.GROUP_COMPARATOR);
             sortedGroups.put(d, groups);
         }
-        if (type != null) {
+        if (type != null && !"any".equals(type))  {
             for (Device device : sortedGroups.keySet()) {
                 sortedGroups.put(device, sortedGroups.get(device).stream()
                         .filter(group -> GroupDescription.Type.valueOf(type.toUpperCase()).equals(group.type()))
