@@ -66,7 +66,13 @@ public class DistributedDhcpRelayStore implements DhcpRelayStore {
     protected void activated() {
         dhcpRecords = storageService.<HostId, DhcpRecord>eventuallyConsistentMapBuilder()
                 .withName("DHCP-Relay-Records")
-                .withTimestampProvider((hostId, record) -> new WallClockTimestamp(record.lastSeen()))
+                .withTimestampProvider((hostId, record) -> {
+                    if (record != null) {
+                        return new WallClockTimestamp(record.lastSeen());
+                    } else {
+                        return new WallClockTimestamp();
+                    }
+                })
                 .withSerializer(APP_KRYO)
                 .build();
         listener = new InternalMapListener();
