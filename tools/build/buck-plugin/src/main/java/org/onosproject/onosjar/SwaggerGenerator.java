@@ -62,6 +62,7 @@ public class SwaggerGenerator {
     private static final String CONSUMES = "javax.ws.rs.Consumes";
     private static final String JSON = "MediaType.APPLICATION_JSON";
     private static final String OCTET_STREAM = "MediaType.APPLICATION_OCTET_STREAM";
+    private static final String RESPONSES = "io.swagger.annotations.ApiResponses";
 
     private final List<File> srcs;
     private final List<File> resources;
@@ -258,11 +259,10 @@ public class SwaggerGenerator {
 
         processConsumesProduces(methodNode, "consumes", consumes);
         processConsumesProduces(methodNode, "produces", produces);
-        if (tag == null || ((method.toLowerCase().equals("post") || method.toLowerCase().equals("put"))
-                && !(tag.getParameters().size() > 1))) {
-            addResponses(methodNode, tag, false);
+        if (tag == null || !(tag.getParameters().size() > 1)) {
+            addResponses(javaMethod, methodNode, tag, false);
         } else {
-            addResponses(methodNode, tag, true);
+            addResponses(javaMethod, methodNode, tag, true);
         }
 
         ObjectNode operations = pathMap.get(fullPath);
@@ -327,24 +327,49 @@ public class SwaggerGenerator {
         }
     }
 
-    // Temporary solution to add responses to a method
-    private void addResponses(ObjectNode methodNode, DocletTag tag, boolean responseJson) {
+    private Optional<JavaAnnotation> getResponsesAnnotation(JavaMethod javaMethod) {
+        return javaMethod.getAnnotations().stream().filter(
+                a -> a.getType().getName().equals(RESPONSES)
+        ).findAny();
+    }
+
+    // TODO: add json schema for responses
+    private void addResponses(JavaMethod javaMethod, ObjectNode methodNode, DocletTag tag, boolean responseJson) {
         ObjectNode responses = mapper.createObjectNode();
         methodNode.set("responses", responses);
 
-        ObjectNode success = mapper.createObjectNode();
-        success.put("description", "successful operation");
-        responses.set("200", success);
-        if (tag != null && responseJson) {
-            ObjectNode schema = mapper.createObjectNode();
-            tag.getParameters().stream().forEach(
-                    param -> schema.put("$ref", "#/definitions/" + param));
-            success.set("schema", schema);
-        }
+        Optional<JavaAnnotation> responsesAnnotation = getResponsesAnnotation(javaMethod);
 
-        ObjectNode defaultObj = mapper.createObjectNode();
-        defaultObj.put("description", "Unexpected error");
-        responses.set("default", defaultObj);
+        if (responsesAnnotation.isPresent()) {
+            Object annotationsObj = responsesAnnotation.get().getNamedParameter("value");
+            if (annotationsObj != null && annotationsObj instanceof List) {
+                List<JavaAnnotation> responseAnnotation = (List<JavaAnnotation>) annotationsObj;
+                responseAnnotation.forEach(
+                        javaAnnotation -> {
+                            ObjectNode response = mapper.createObjectNode();
+                            response.put("description",
+                                    String.valueOf(javaAnnotation.getNamedParameter("message"))
+                                            .replaceAll("^\"|\"$", ""));
+                            responses.set(String.valueOf(javaAnnotation.getNamedParameter("code")), response);
+                        }
+                );
+            }
+        } else {
+            ObjectNode success = mapper.createObjectNode();
+            success.put("description", "successful operation");
+            responses.set("200", success);
+
+            ObjectNode defaultObj = mapper.createObjectNode();
+            defaultObj.put("description", "Unexpected error");
+            responses.set("default", defaultObj);
+
+            if (tag != null && responseJson) {
+                ObjectNode schema = mapper.createObjectNode();
+                tag.getParameters().stream().forEach(
+                        param -> schema.put("$ref", "#/definitions/" + param));
+                success.set("schema", schema);
+            }
+        }
     }
 
     // Checks if the annotations has a value of JSON and returns the string

@@ -270,6 +270,7 @@
     "google-instrumentation-0.3.0": "mvn:com.google.instrumentation:instrumentation-api:0.3.0",
     "bcpkix-jdk15on": "mvn:org.bouncycastle:bcpkix-jdk15on:1.58",
     "bcprov-jdk15on": "mvn:org.bouncycastle:bcprov-jdk15on:1.58",
-    "hamcrest-optional": "mvn:com.spotify:hamcrest-optional:1.1.0"
+    "hamcrest-optional": "mvn:com.spotify:hamcrest-optional:1.1.0",
+    "swagger-annotations": "mvn:io.swagger:swagger-annotations:1.5.16"
   }
 }

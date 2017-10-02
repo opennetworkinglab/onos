@@ -1519,3 +1519,11 @@ remote_jar (
   visibility = [ 'PUBLIC' ],
 )
 
+remote_jar (
+  name = 'swagger-annotations',
+  out = 'swagger-annotations-1.5.16.jar',
+  url = 'mvn:io.swagger:swagger-annotations:jar:1.5.16',
+  sha1 = '935f1f2fed2cbdd7a0513981d6c53201e21155f4',
+  maven_coords = 'io.swagger:swagger-annotations:1.5.16',
+  visibility = [ 'PUBLIC' ],
+)
