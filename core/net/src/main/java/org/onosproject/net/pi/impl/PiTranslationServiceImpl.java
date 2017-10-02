@@ -23,26 +23,27 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiFlowRuleTranslationService;
+import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.net.pi.runtime.PiTranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.translateFlowRule;
-
 /**
- * Implementation of the protocol-independent flow rule translation service.
+ * Implementation of the protocol-independent translation service.
  */
 @Component(immediate = true)
 @Service
-public class PiFlowRuleTranslationServiceImpl implements PiFlowRuleTranslationService {
+public class PiTranslationServiceImpl implements PiTranslationService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    // TODO: implement cache to speed up translation of flow rules.
+    // TODO: implement cache to speed up translation.
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -58,15 +59,21 @@ public class PiFlowRuleTranslationServiceImpl implements PiFlowRuleTranslationSe
     }
 
     @Override
-    public PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf)
-            throws PiFlowRuleTranslationException {
+    public PiTableEntry translateFlowRule(FlowRule rule, PiPipeconf pipeconf) throws PiTranslationException {
+        return PiFlowRuleTranslator.translate(rule, pipeconf, getDevice(rule.deviceId()));
+    }
 
-        final Device device = deviceService.getDevice(rule.deviceId());
+    @Override
+    public PiActionGroup translateGroup(Group group, PiPipeconf pipeconf) throws PiTranslationException {
+        return PiGroupTranslator.translate(group, pipeconf, getDevice(group.deviceId()));
+    }
+
+    private Device getDevice(DeviceId deviceId) throws PiTranslationException {
+        final Device device = deviceService.getDevice(deviceId);
         if (device == null) {
-            throw new PiFlowRuleTranslationException("Unable to get device " + rule.deviceId());
+            throw new PiTranslationException("Unable to get device " + deviceId);
         }
-
-        return translateFlowRule(rule, pipeconf, device);
+        return device;
     }
 }
 

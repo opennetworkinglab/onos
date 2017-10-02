@@ -18,37 +18,50 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
 
 /**
- * A service to translate ONOS flow rules to table entries of a protocol-independent pipeline.
+ * A service to translate ONOS entities to protocol-independent ones.
  */
 @Beta
-public interface PiFlowRuleTranslationService {
+public interface PiTranslationService {
 
     /**
-     * Returns a table entry equivalent to the given flow rule for the given protocol-independent
-     * pipeline configuration.
+     * Returns a PI table entry equivalent to the given flow rule for the given protocol-independent pipeline
+     * configuration.
      *
      * @param rule     a flow rule
      * @param pipeconf a pipeline configuration
      * @return a table entry
-     * @throws PiFlowRuleTranslationException if the flow rule cannot be translated
+     * @throws PiTranslationException if the flow rule cannot be translated
      */
-    PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf)
-            throws PiFlowRuleTranslationException;
+    PiTableEntry translateFlowRule(FlowRule rule, PiPipeconf pipeconf)
+            throws PiTranslationException;
 
     /**
-     * Signals that an error was encountered while translating flow rule.
+     * Returns a PI action group equivalent to the given group for the given protocol-independent pipeline
+     * configuration.
+     *
+     * @param group    a group
+     * @param pipeconf a pipeline configuration
+     * @return a PI action group
+     * @throws PiTranslationException if the group cannot be translated
      */
-    class PiFlowRuleTranslationException extends Exception {
+    PiActionGroup translateGroup(Group group, PiPipeconf pipeconf)
+            throws PiTranslationException;
+
+    /**
+     * Signals that an error was encountered while translating an entity.
+     */
+    class PiTranslationException extends Exception {
 
         /**
          * Creates a new exception with the given message.
          *
          * @param message a message
          */
-        public PiFlowRuleTranslationException(String message) {
+        public PiTranslationException(String message) {
             super(message);
         }
     }

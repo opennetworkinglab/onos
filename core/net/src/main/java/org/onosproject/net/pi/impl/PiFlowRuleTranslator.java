@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.Device;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -61,7 +60,9 @@ import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.flow.criteria.Criterion.Type.PROTOCOL_INDEPENDENT;
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
-import static org.onosproject.net.pi.runtime.PiFlowRuleTranslationService.PiFlowRuleTranslationException;
+import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
+import static org.onosproject.net.pi.impl.PiUtils.translateTableId;
+import static org.onosproject.net.pi.runtime.PiTranslationService.PiTranslationException;
 
 /**
  * Implementation of flow rule translation logic.
@@ -69,77 +70,43 @@ import static org.onosproject.net.pi.runtime.PiFlowRuleTranslationService.PiFlow
 final class PiFlowRuleTranslator {
 
     public static final int MAX_PI_PRIORITY = (int) Math.pow(2, 24);
-    private static final Logger log = LoggerFactory.getLogger(PiFlowRuleTranslationServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(PiFlowRuleTranslator.class);
 
     private PiFlowRuleTranslator() {
         // Hide constructor.
     }
 
-    static PiTableEntry translateFlowRule(FlowRule rule, PiPipeconf pipeconf, Device device)
-            throws PiFlowRuleTranslationException {
+    /**
+     * Returns a PI table entry equivalent to the given flow rule, for the given pipeconf and device.
+     *
+     * @param rule     flow rule
+     * @param pipeconf pipeconf
+     * @param device   device
+     * @return PI table entry
+     * @throws PiTranslationException if the flow rule cannot be translated
+     */
+    static PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf, Device device)
+            throws PiTranslationException {
 
         PiPipelineModel pipelineModel = pipeconf.pipelineModel();
 
         // Retrieve interpreter, if any.
-        final PiPipelineInterpreter interpreter;
+        final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
+        // Get table model.
+        final PiTableId piTableId = translateTableId(rule.table(), interpreter);
+        final PiTableModel tableModel = getTableModel(piTableId, pipelineModel);
+        // Translate selector.
+        final Collection<PiFieldMatch> fieldMatches = translateFieldMatches(interpreter, rule.selector(), tableModel);
+        // Translate treatment.
+        final PiTableAction piTableAction = translateTreatment(rule.treatment(), interpreter, piTableId, pipelineModel);
 
-        if (device != null) {
-            interpreter = device.is(PiPipelineInterpreter.class) ? device.as(PiPipelineInterpreter.class) : null;
-        } else {
-            // The case of device == null should be admitted only during unit testing.
-            // In any other case, the interpreter should be constructed using the device.as() method to make sure that
-            // behaviour's handler/data attributes are correctly populated.
-            // FIXME: modify test class PiFlowRuleTranslatorTest to avoid passing null device
-            // I.e. we need to create a device object that supports is/as method for obtaining the interpreter.
-            log.warn("translateFlowRule() called with device == null, is this a unit test?");
-            try {
-                interpreter = (PiPipelineInterpreter) pipeconf.implementation(PiPipelineInterpreter.class)
-                        .orElse(null)
-                        .newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(format("Unable to instantiate interpreter of pipeconf %s", pipeconf.id()));
-            }
-        }
-
-        PiTableId piTableId;
-        switch (rule.table().type()) {
-            case PIPELINE_INDEPENDENT:
-                piTableId = (PiTableId) rule.table();
-                break;
-            case INDEX:
-                IndexTableId indexId = (IndexTableId) rule.table();
-                if (interpreter == null) {
-                    throw new PiFlowRuleTranslationException(format(
-                            "Unable to map table ID '%d' from index to PI: missing interpreter", indexId.id()));
-                } else if (!interpreter.mapFlowRuleTableId(indexId.id()).isPresent()) {
-                    throw new PiFlowRuleTranslationException(format(
-                            "Unable to map table ID '%d' from index to PI: missing ID in interpreter", indexId.id()));
-                } else {
-                    piTableId = interpreter.mapFlowRuleTableId(indexId.id()).get();
-                }
-                break;
-            default:
-                throw new PiFlowRuleTranslationException(format(
-                        "Unrecognized table ID type %s", rule.table().type().name()));
-        }
-
-        PiTableModel table = pipelineModel.table(piTableId.toString())
-                .orElseThrow(() -> new PiFlowRuleTranslationException(format(
-                        "Not such a table in pipeline model: %s", piTableId)));
-
-        /* Translate selector */
-        Collection<PiFieldMatch> fieldMatches = buildFieldMatches(interpreter, rule.selector(), table);
-
-        /* Translate treatment */
-        PiTableAction piTableAction = buildAction(rule.treatment(), interpreter, piTableId);
-        piTableAction = typeCheckAction(piTableAction, table);
-
-        PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
+        // Build PI entry.
+        final PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
         // In the P4 world 0 is the highest priority, in ONOS the lowest one.
         // FIXME: move priority conversion to the driver, where different constraints might apply
         // e.g. less bits for encoding priority in TCAM-based implementations.
-        int newPriority;
+        final int newPriority;
         if (rule.priority() > MAX_PI_PRIORITY) {
             log.warn("Flow rule priority too big, setting translated priority to max value {}: {}",
                      MAX_PI_PRIORITY, rule);
@@ -157,11 +124,11 @@ final class PiFlowRuleTranslator {
                 .withAction(piTableAction);
 
         if (!rule.isPermanent()) {
-            if (table.supportsAging()) {
+            if (tableModel.supportsAging()) {
                 tableEntryBuilder.withTimeout((double) rule.timeout());
             } else {
                 log.warn("Flow rule is temporary, but table '{}' doesn't support " +
-                                 "aging, translating to permanent.", table.name());
+                                 "aging, translating to permanent.", tableModel.name());
             }
 
         }
@@ -169,12 +136,40 @@ final class PiFlowRuleTranslator {
         return tableEntryBuilder.build();
     }
 
+
+    /**
+     * Returns a PI action equivalent to the given treatment, optionally using the given interpreter. This method also
+     * checks that the produced PI table action is suitable for the given table ID and pipeline model. If suitable, the
+     * returned action instance will have parameters well-sized, according to the table model.
+     *
+     * @param treatment     traffic treatment
+     * @param interpreter   interpreter
+     * @param tableId       PI table ID
+     * @param pipelineModel pipeline model
+     * @return PI table action
+     * @throws PiTranslationException if the treatment cannot be translated or if the PI action is not suitable for the
+     *                                given pipeline model
+     */
+    static PiTableAction translateTreatment(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
+                                            PiTableId tableId, PiPipelineModel pipelineModel)
+            throws PiTranslationException {
+        PiTableModel tableModel = getTableModel(tableId, pipelineModel);
+        return typeCheckAction(buildAction(treatment, interpreter, tableId), tableModel);
+    }
+
+    private static PiTableModel getTableModel(PiTableId piTableId, PiPipelineModel pipelineModel)
+            throws PiTranslationException {
+        return pipelineModel.table(piTableId.toString())
+                .orElseThrow(() -> new PiTranslationException(format(
+                        "Not such a table in pipeline model: %s", piTableId)));
+    }
+
     /**
      * Builds a PI action out of the given treatment, optionally using the given interpreter.
      */
     private static PiTableAction buildAction(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
-                                        PiTableId tableId)
-            throws PiFlowRuleTranslationException {
+                                             PiTableId tableId)
+            throws PiTranslationException {
 
         PiTableAction piTableAction = null;
 
@@ -184,7 +179,7 @@ final class PiFlowRuleTranslator {
                 if (treatment.allInstructions().size() == 1) {
                     piTableAction = ((PiInstruction) inst).action();
                 } else {
-                    throw new PiFlowRuleTranslationException(format(
+                    throw new PiTranslationException(format(
                             "Unable to translate treatment, found multiple instructions " +
                                     "of which one is protocol-independent: %s", treatment));
                 }
@@ -196,14 +191,14 @@ final class PiFlowRuleTranslator {
             try {
                 piTableAction = interpreter.mapTreatment(treatment, tableId);
             } catch (PiPipelineInterpreter.PiInterpreterException e) {
-                throw new PiFlowRuleTranslationException(
+                throw new PiTranslationException(
                         "Interpreter was unable to translate treatment. " + e.getMessage());
             }
         }
 
         if (piTableAction == null) {
             // No PiInstruction, no interpreter. It's time to give up.
-            throw new PiFlowRuleTranslationException(
+            throw new PiTranslationException(
                     "Unable to translate treatment, neither an interpreter or a "
                             + "protocol-independent instruction were provided.");
         }
@@ -211,13 +206,8 @@ final class PiFlowRuleTranslator {
         return piTableAction;
     }
 
-    /**
-     * Checks that the given PI table action is suitable for the given table
-     * model and returns a new action instance with parameters well-sized,
-     * according to the table model. If not suitable, throws an exception explaining why.
-     */
     private static PiTableAction typeCheckAction(PiTableAction piTableAction, PiTableModel table)
-            throws PiFlowRuleTranslationException {
+            throws PiTranslationException {
         switch (piTableAction.type()) {
             case ACTION:
                 return checkPiAction((PiAction) piTableAction, table);
@@ -229,15 +219,15 @@ final class PiFlowRuleTranslator {
     }
 
     private static PiTableAction checkPiAction(PiAction piAction, PiTableModel table)
-            throws PiFlowRuleTranslationException  {
+            throws PiTranslationException {
         // Table supports this action?
         PiActionModel actionModel = table.action(piAction.id().name()).orElseThrow(
-                () -> new PiFlowRuleTranslationException(format("Not such action '%s' for table '%s'",
-                                                                piAction.id(), table.name())));
+                () -> new PiTranslationException(format("Not such action '%s' for table '%s'",
+                                                        piAction.id(), table.name())));
 
         // Is the number of runtime parameters correct?
         if (actionModel.params().size() != piAction.parameters().size()) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Wrong number of runtime parameters for action '%s', expected %d but found %d",
                     actionModel.name(), actionModel.params().size(), piAction.parameters().size()));
         }
@@ -247,13 +237,13 @@ final class PiFlowRuleTranslator {
         PiAction.Builder newActionBuilder = PiAction.builder().withId(piAction.id());
         for (PiActionParam param : piAction.parameters()) {
             PiActionParamModel paramModel = actionModel.param(param.id().name())
-                    .orElseThrow(() -> new PiFlowRuleTranslationException(format(
+                    .orElseThrow(() -> new PiTranslationException(format(
                             "Not such parameter '%s' for action '%s'", param.id(), actionModel.name())));
             try {
                 newActionBuilder.withParameter(new PiActionParam(param.id(),
                                                                  fit(param.value(), paramModel.bitWidth())));
             } catch (ByteSequenceTrimException e) {
-                throw new PiFlowRuleTranslationException(format(
+                throw new PiTranslationException(format(
                         "Size mismatch for parameter '%s' of action '%s': %s",
                         param.id(), piAction.id(), e.getMessage()));
             }
@@ -266,9 +256,9 @@ final class PiFlowRuleTranslator {
      * Builds a collection of PI field matches out of the given selector, optionally using the given interpreter. The
      * field matches returned are guaranteed to be compatible for the given table model.
      */
-    private static Collection<PiFieldMatch> buildFieldMatches(PiPipelineInterpreter interpreter,
-                                                              TrafficSelector selector, PiTableModel tableModel)
-            throws PiFlowRuleTranslationException {
+    private static Collection<PiFieldMatch> translateFieldMatches(PiPipelineInterpreter interpreter,
+                                                                  TrafficSelector selector, PiTableModel tableModel)
+            throws PiTranslationException {
 
         Map<PiHeaderFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
 
@@ -325,7 +315,7 @@ final class PiFlowRuleTranslator {
                         break;
                     // FIXME: Can we handle the case of RANGE or VALID match?
                     default:
-                        throw new PiFlowRuleTranslationException(format(
+                        throw new PiTranslationException(format(
                                 "No value found for required match field '%s'", fieldId));
                 }
                 // Next field.
@@ -339,7 +329,7 @@ final class PiFlowRuleTranslator {
                 try {
                     fieldMatch = translateCriterion(criterion, fieldId, fieldModel.matchType(), bitWidth);
                     translatedCriteria.add(criterion);
-                } catch (PiFlowRuleTranslationException ex) {
+                } catch (PiTranslationException ex) {
                     // Ignore exception if the same field was found in PiCriterion.
                     if (piCriterionFields.containsKey(fieldId)) {
                         ignoredCriteria.add(criterion);
@@ -355,7 +345,7 @@ final class PiFlowRuleTranslator {
                     // Field was already translated from other criterion.
                     // Throw exception only if we are trying to match on different values of the same field...
                     if (!fieldMatch.equals(piCriterionFields.get(fieldId))) {
-                        throw new PiFlowRuleTranslationException(format(
+                        throw new PiTranslationException(format(
                                 "Duplicate match field '%s': instance translated from criterion '%s' is different to " +
                                         "what found in PiCriterion.", fieldId, criterion.type()));
                     }
@@ -377,7 +367,7 @@ final class PiFlowRuleTranslator {
                 .filter(c -> !translatedCriteria.contains(c) && !ignoredCriteria.contains(c))
                 .forEach(c -> skippedCriteriaJoiner.add(c.type().name()));
         if (skippedCriteriaJoiner.length() > 0) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "The following criteria cannot be translated for table '%s': %s",
                     tableModel.name(), skippedCriteriaJoiner.toString()));
         }
@@ -388,7 +378,7 @@ final class PiFlowRuleTranslator {
                 .filter(k -> !usedPiCriterionFields.contains(k) && !ignoredPiCriterionFields.contains(k))
                 .forEach(k -> skippedPiFieldsJoiner.add(k.id()));
         if (skippedPiFieldsJoiner.length() > 0) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "The following PiCriterion field matches are not supported in table '%s': %s",
                     tableModel.name(), skippedPiFieldsJoiner.toString()));
         }
@@ -397,11 +387,11 @@ final class PiFlowRuleTranslator {
     }
 
     private static PiFieldMatch typeCheckFieldMatch(PiFieldMatch fieldMatch, PiTableMatchFieldModel fieldModel)
-            throws PiFlowRuleTranslationException {
+            throws PiTranslationException {
 
         // Check parameter type and size
         if (!fieldModel.matchType().equals(fieldMatch.type())) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Wrong match type for field '%s', expected %s, but found %s",
                     fieldMatch.fieldId(), fieldModel.matchType().name(), fieldMatch.type().name()));
         }
@@ -427,7 +417,7 @@ final class PiFlowRuleTranslator {
                 case LPM:
                     PiLpmFieldMatch lpmfield = (PiLpmFieldMatch) fieldMatch;
                     if (lpmfield.prefixLength() > modelBitWidth) {
-                        throw new PiFlowRuleTranslationException(format(
+                        throw new PiTranslationException(format(
                                 "Invalid prefix length for LPM field '%s', found %d but field has bit-width %d",
                                 fieldMatch.fieldId(), lpmfield.prefixLength(), modelBitWidth));
                     }
@@ -446,7 +436,7 @@ final class PiFlowRuleTranslator {
                             "Unrecognized match type " + fieldModel.matchType().name());
             }
         } catch (ByteSequenceTrimException e) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Size mismatch for field %s: %s", fieldMatch.fieldId(), e.getMessage()));
         }
     }

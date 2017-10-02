@@ -92,7 +92,7 @@ import java.util.Map;
 import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
 import static org.onosproject.net.pi.impl.CriterionTranslator.CriterionTranslatorException;
-import static org.onosproject.net.pi.runtime.PiFlowRuleTranslationService.PiFlowRuleTranslationException;
+import static org.onosproject.net.pi.runtime.PiTranslationService.PiTranslationException;
 
 /**
  * Helper class to translate criterion instances to PI field matches.
@@ -145,14 +145,14 @@ final class CriterionTranslatorHelper {
      * @param matchType match type
      * @param bitWidth  size of the field match in bits
      * @return a PI field match
-     * @throws PiFlowRuleTranslationException if the criterion cannot be translated (see exception message)
+     * @throws PiTranslationException if the criterion cannot be translated (see exception message)
      */
     static PiFieldMatch translateCriterion(Criterion criterion, PiHeaderFieldId fieldId, PiMatchType matchType,
                                            int bitWidth)
-            throws PiFlowRuleTranslationException {
+            throws PiTranslationException {
 
         if (!TRANSLATORS.containsKey(criterion.getClass())) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Translation of criterion class %s is not implemented.",
                     criterion.getClass().getSimpleName()));
         }
@@ -171,15 +171,15 @@ final class CriterionTranslatorHelper {
                     Pair<ImmutableByteSequence, Integer> lp = translator.lpmMatch();
                     return new PiLpmFieldMatch(fieldId, lp.getLeft(), lp.getRight());
                 default:
-                    throw new PiFlowRuleTranslationException(format(
+                    throw new PiTranslationException(format(
                             "Translation of criterion %s (%s class) to match type %s is not implemented.",
                             criterion.type().name(), criterion.getClass().getSimpleName(), matchType.name()));
             }
         } catch (ByteSequenceTrimException e) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Size mismatch for criterion %s: %s", criterion.type(), e.getMessage()));
         } catch (CriterionTranslatorException e) {
-            throw new PiFlowRuleTranslationException(format(
+            throw new PiTranslationException(format(
                     "Unable to translate criterion %s: %s", criterion.type(), e.getMessage()));
         }
     }

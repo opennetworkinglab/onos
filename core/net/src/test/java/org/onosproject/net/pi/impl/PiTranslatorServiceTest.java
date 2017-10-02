@@ -16,13 +16,18 @@
 
 package org.onosproject.net.pi.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
+import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.TestApplicationId;
 import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -31,19 +36,43 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.group.DefaultGroup;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionGroupMember;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionId;
+import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
+import org.onosproject.net.pi.runtime.PiGroupKey;
+import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onlab.util.ImmutableByteSequence.fit;
+import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.onosproject.net.pi.impl.MockInterpreter.*;
 import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
 
@@ -51,11 +80,31 @@ import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
  * Tests for {@link PiFlowRuleTranslator}.
  */
 @SuppressWarnings("ConstantConditions")
-public class PiFlowRuleTranslatorTest {
+public class PiTranslatorServiceTest {
 
     private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
     private static final short IN_PORT_MASK = 0x01ff; // 9-bit mask
     private static final short ETH_TYPE_MASK = (short) 0xffff;
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:dummy:1");
+    private static final ApplicationId APP_ID = TestApplicationId.create("dummy");
+    private static final PiTableId ECMP_TABLE_ID = PiTableId.of("ecmp");
+    private static final PiActionProfileId ACT_PROF_ID = PiActionProfileId.of("ecmp_selector");
+    private static final GroupId GROUP_ID = GroupId.valueOf(1);
+    private static final PiActionId EGRESS_PORT_ACTION_ID = PiActionId.of("set_egress_port");
+    private static final int PORT_BITWIDTH = 9;
+    private static final PiActionParamId PORT_PARAM_ID = PiActionParamId.of("port");
+    private static final List<GroupBucket> BUCKET_LIST = ImmutableList.of(outputBucket(1),
+                                                                          outputBucket(2),
+                                                                          outputBucket(3)
+    );
+    private static final PiGroupKey GROUP_KEY = new PiGroupKey(ECMP_TABLE_ID, ACT_PROF_ID, GROUP_ID.id());
+    private static final GroupBuckets BUCKETS = new GroupBuckets(BUCKET_LIST);
+    private static final GroupDescription GROUP_DESC =
+            new DefaultGroupDescription(DEVICE_ID, SELECT, BUCKETS, GROUP_KEY, GROUP_ID.id(), APP_ID);
+    private static final Group GROUP = new DefaultGroup(GROUP_ID, GROUP_DESC);
+    private static final int DEFAULT_MEMBER_WEIGHT = 1;
+    private static final int BASE_MEM_ID = 65535;
+    private Collection<PiActionGroupMember> expectedMembers;
 
     private Random random = new Random();
     private PiPipeconf pipeconf;
@@ -67,12 +116,15 @@ public class PiFlowRuleTranslatorTest {
                 .withPipelineModel(Bmv2PipelineModelParser.parse(this.getClass().getResource(BMV2_JSON_PATH)))
                 .addBehaviour(PiPipelineInterpreter.class, MockInterpreter.class)
                 .build();
+
+        expectedMembers = ImmutableSet.of(outputMember(1),
+                                          outputMember(2),
+                                          outputMember(3));
     }
 
     @Test
-    public void testTranslate() throws Exception {
+    public void testTranslateFlowRules() throws Exception {
 
-        DeviceId deviceId = DeviceId.NONE;
         ApplicationId appId = new DefaultApplicationId(1, "test");
         int tableId = 0;
         MacAddress ethDstMac = MacAddress.valueOf(random.nextLong());
@@ -97,7 +149,7 @@ public class PiFlowRuleTranslatorTest {
                 .build();
 
         FlowRule rule1 = DefaultFlowRule.builder()
-                .forDevice(deviceId)
+                .forDevice(DEVICE_ID)
                 .forTable(tableId)
                 .fromApp(appId)
                 .withSelector(matchInPort1)
@@ -107,7 +159,7 @@ public class PiFlowRuleTranslatorTest {
                 .build();
 
         FlowRule rule2 = DefaultFlowRule.builder()
-                .forDevice(deviceId)
+                .forDevice(DEVICE_ID)
                 .forTable(tableId)
                 .fromApp(appId)
                 .withSelector(matchInPort1)
@@ -116,8 +168,8 @@ public class PiFlowRuleTranslatorTest {
                 .withPriority(priority)
                 .build();
 
-        PiTableEntry entry1 = PiFlowRuleTranslator.translateFlowRule(rule1, pipeconf, null);
-        PiTableEntry entry2 = PiFlowRuleTranslator.translateFlowRule(rule1, pipeconf, null);
+        PiTableEntry entry1 = PiFlowRuleTranslator.translate(rule1, pipeconf, null);
+        PiTableEntry entry2 = PiFlowRuleTranslator.translate(rule1, pipeconf, null);
 
         // check equality, i.e. same rules must produce same entries
         new EqualsTester()
@@ -160,5 +212,56 @@ public class PiFlowRuleTranslatorTest {
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
 
+    }
+
+    private static GroupBucket outputBucket(int portNum) {
+        ImmutableByteSequence paramVal = copyFrom(portNum);
+        PiActionParam param = new PiActionParam(PiActionParamId.of(PORT_PARAM_ID.name()), paramVal);
+        PiTableAction action = PiAction.builder().withId(EGRESS_PORT_ACTION_ID).withParameter(param).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .add(Instructions.piTableAction(action))
+                .build();
+        return DefaultGroupBucket.createSelectGroupBucket(treatment);
+    }
+
+    private static PiActionGroupMember outputMember(int portNum)
+            throws ImmutableByteSequence.ByteSequenceTrimException {
+        PiActionParam param = new PiActionParam(PORT_PARAM_ID, fit(copyFrom(portNum), PORT_BITWIDTH));
+        PiAction piAction = PiAction.builder()
+                .withId(EGRESS_PORT_ACTION_ID)
+                .withParameter(param).build();
+        return PiActionGroupMember.builder()
+                .withAction(piAction)
+                .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
+                .withWeight(DEFAULT_MEMBER_WEIGHT)
+                .build();
+    }
+
+    /**
+     * Test add group with buckets.
+     */
+    @Test
+    public void testTranslateGroups() throws Exception {
+
+        PiActionGroup piGroup1 = PiGroupTranslator.translate(GROUP, pipeconf, null);
+        PiActionGroup piGroup2 = PiGroupTranslator.translate(GROUP, pipeconf, null);
+
+        new EqualsTester()
+                .addEqualityGroup(piGroup1, piGroup2)
+                .testEquals();
+
+        assertThat("Group ID must be equal",
+                   piGroup1.id().id(), is(equalTo(GROUP_ID.id())));
+        assertThat("Group type must be SELECT",
+                   piGroup1.type(), is(equalTo(PiActionGroup.Type.SELECT)));
+        assertThat("Action profile ID must be equal",
+                   piGroup1.actionProfileId(), is(equalTo(ACT_PROF_ID)));
+
+        // members installed
+        Collection<PiActionGroupMember> members = piGroup1.members();
+        assertThat("The number of group members must be equal",
+                   piGroup1.members().size(), is(expectedMembers.size()));
+        assertThat("Group members must be equal",
+                   members.containsAll(expectedMembers) && expectedMembers.containsAll(members));
     }
 }

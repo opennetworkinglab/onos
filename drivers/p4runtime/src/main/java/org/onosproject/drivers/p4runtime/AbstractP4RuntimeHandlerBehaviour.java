@@ -24,6 +24,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.net.pi.runtime.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     protected P4RuntimeController controller;
     protected PiPipeconf pipeconf;
     protected P4RuntimeClient client;
+    protected PiTranslationService piTranslationService;
 
     /**
      * Initializes this behaviour attributes. Returns true if the operation was successful, false otherwise. This method
@@ -79,6 +81,8 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
             return false;
         }
         pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
+
+        piTranslationService = handler().get(PiTranslationService.class);
 
         return true;
     }

@@ -31,7 +31,7 @@ import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiCounterId;
 import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
-import org.onosproject.net.pi.runtime.PiFlowRuleTranslationService;
+import org.onosproject.net.pi.runtime.PiTranslationService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
@@ -95,7 +95,6 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
 
     private PiPipelineModel pipelineModel;
     private PiPipelineInterpreter interpreter;
-    private PiFlowRuleTranslationService piFlowRuleTranslationService;
 
     @Override
     protected boolean setupBehaviour() {
@@ -110,7 +109,6 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
         }
         interpreter = device.as(PiPipelineInterpreter.class);
         pipelineModel = pipeconf.pipelineModel();
-        piFlowRuleTranslationService = handler().get(PiFlowRuleTranslationService.class);
         return true;
     }
 
@@ -249,8 +247,8 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
             PiTableEntry piTableEntry;
 
             try {
-                piTableEntry = piFlowRuleTranslationService.translate(rule, pipeconf);
-            } catch (PiFlowRuleTranslationService.PiFlowRuleTranslationException e) {
+                piTableEntry = piTranslationService.translateFlowRule(rule, pipeconf);
+            } catch (PiTranslationService.PiTranslationException e) {
                 log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
                 continue; // next rule
             }

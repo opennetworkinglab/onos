@@ -18,9 +18,9 @@ package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Maps;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
 import p4.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.P4RuntimeOuterClass.ActionProfileGroup.Member;
 import p4.P4RuntimeOuterClass.ActionProfileMember;
@@ -57,12 +57,10 @@ public final class ActionProfileGroupEncoder {
         }
 
         PiActionProfileId piActionProfileId = piActionGroup.actionProfileId();
-        int actionProfileId;
-        P4InfoOuterClass.ActionProfile actionProfile =
-                browser.actionProfiles().getByName(piActionProfileId.id());
-        actionProfileId = actionProfile.getPreamble().getId();
-        ActionProfileGroup.Builder actionProfileGroupBuilder =
-                ActionProfileGroup.newBuilder()
+        P4InfoOuterClass.ActionProfile actionProfile = browser.actionProfiles()
+                .getByNameOrAlias(piActionProfileId.id());
+        int actionProfileId = actionProfile.getPreamble().getId();
+        ActionProfileGroup.Builder actionProfileGroupBuilder = ActionProfileGroup.newBuilder()
                         .setGroupId(piActionGroup.id().id())
                         .setActionProfileId(actionProfileId);
 
@@ -71,8 +69,7 @@ public final class ActionProfileGroupEncoder {
                 actionProfileGroupBuilder.setType(ActionProfileGroup.Type.SELECT);
                 break;
             default:
-                throw new EncodeException(format("Unsupported pi action group type %s",
-                                                 piActionGroup.type()));
+                throw new EncodeException(format("PI action group type %s not supported", piActionGroup.type()));
         }
 
         piActionGroup.members().forEach(m -> {
@@ -83,6 +80,8 @@ public final class ActionProfileGroupEncoder {
                     .build();
             actionProfileGroupBuilder.addMembers(member);
         });
+
+        actionProfileGroupBuilder.setMaxSize(piActionGroup.members().size());
 
         return actionProfileGroupBuilder.build();
     }
@@ -98,8 +97,8 @@ public final class ActionProfileGroupEncoder {
      * @throws EncodeException if can't find P4Info from pipeconf
      */
     static PiActionGroup decode(ActionProfileGroup actionProfileGroup,
-                                        Collection<ActionProfileMember> members,
-                                        PiPipeconf pipeconf)
+                                Collection<ActionProfileMember> members,
+                                PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
@@ -110,15 +109,19 @@ public final class ActionProfileGroupEncoder {
         P4InfoOuterClass.ActionProfile actionProfile = browser.actionProfiles()
                 .getById(actionProfileGroup.getActionProfileId());
         PiActionProfileId piActionProfileId = PiActionProfileId.of(actionProfile.getPreamble().getName());
-        piActionGroupBuilder.withActionProfileId(piActionProfileId)
+
+        piActionGroupBuilder
+                .withActionProfileId(piActionProfileId)
                 .withId(PiActionGroupId.of(actionProfileGroup.getGroupId()));
 
         switch (actionProfileGroup.getType()) {
+            case UNSPECIFIED:
+                // FIXME: PI returns unspecified for select groups. Remove this case when PI bug will be fixed.
             case SELECT:
                 piActionGroupBuilder.withType(PiActionGroup.Type.SELECT);
                 break;
             default:
-                throw new EncodeException(format("Unsupported action profile type %s",
+                throw new EncodeException(format("Action profile type %s is not supported",
                                                  actionProfileGroup.getType()));
         }
 
@@ -134,9 +137,12 @@ public final class ActionProfileGroupEncoder {
         });
 
         for (ActionProfileMember member : members) {
+            if (!memberWeights.containsKey(member.getMemberId())) {
+                // Not a member of this group, ignore.
+                continue;
+            }
             int weight = memberWeights.get(member.getMemberId());
-            piActionGroupBuilder
-                    .addMember(ActionProfileMemberEncoder.decode(member, weight, pipeconf));
+            piActionGroupBuilder.addMember(ActionProfileMemberEncoder.decode(member, weight, pipeconf));
         }
 
         return piActionGroupBuilder.build();

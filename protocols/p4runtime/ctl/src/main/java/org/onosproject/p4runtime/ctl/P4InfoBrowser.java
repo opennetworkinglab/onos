@@ -303,20 +303,6 @@ final class P4InfoBrowser {
         }
 
         /**
-         * Returns the entity identified by the given name, if present, otherwise, throws an exception.
-         *
-         * @param name entity name
-         * @return entity message
-         * @throws NotFoundException if the entity cannot be found
-         */
-        T getByName(String name) throws NotFoundException {
-            if (!hasName(name)) {
-                throw new NotFoundException(entityName, name);
-            }
-            return names.get(name);
-        }
-
-        /**
          * Returns the entity identified by the given name or alias, if present, otherwise, throws an exception.
          *
          * @param name entity name or alias
@@ -341,20 +327,6 @@ final class P4InfoBrowser {
          */
         boolean hasAlias(String alias) {
             return aliases.containsKey(alias);
-        }
-
-        /**
-         * Returns the entity identified by the given alias, if present, otherwise, throws an exception.
-         *
-         * @param alias entity alias
-         * @return entity message
-         * @throws NotFoundException if the entity cannot be found
-         */
-        T getByAlias(String alias) throws NotFoundException {
-            if (!hasName(alias)) {
-                throw new NotFoundException(entityName, alias);
-            }
-            return aliases.get(alias);
         }
 
         /**
@@ -388,7 +360,7 @@ final class P4InfoBrowser {
     public static final class NotFoundException extends Exception {
 
         NotFoundException(String entityName, String key) {
-            super(format("No such %s in P4Info with name/alias '%s'", entityName, key));
+            super(format("No such %s in P4Info with %name or alias '%s'", entityName, key));
         }
 
         NotFoundException(String entityName, int id) {

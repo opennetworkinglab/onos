@@ -36,7 +36,6 @@ import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
@@ -45,6 +44,7 @@ import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiActionProfileId;
 import p4.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.P4RuntimeOuterClass.ActionProfileMember;
 import p4.P4RuntimeOuterClass.Entity;
@@ -57,15 +57,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.niceMock;
+import static org.junit.Assert.*;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.net.pi.runtime.PiActionGroup.Type.SELECT;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
-import static p4.P4RuntimeOuterClass.*;
+import static p4.P4RuntimeOuterClass.Action;
+import static p4.P4RuntimeOuterClass.ReadResponse;
 
 /**
  * Tests for P4 Runtime Action Profile Group support.
@@ -98,7 +98,7 @@ public class P4RuntimeGroupTest {
     private static final int P4_DEVICE_ID = 1;
     private static final int SET_EGRESS_PORT_ID = 16794308;
     private static final String GRPC_SERVER_NAME = "P4RuntimeGroupTest";
-    private static final long DEFAULT_TIMEOUT_TIME = 5;
+    private static final long DEFAULT_TIMEOUT_TIME = 10;
 
     private P4RuntimeClientImpl client;
     private P4RuntimeControllerImpl controller;
@@ -187,7 +187,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionGroupMembers(GROUP, GROUP_MEMBERS, INSERT, PIPECONF);
+        client.writeActionGroupMembers(GROUP, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -240,7 +240,6 @@ public class P4RuntimeGroupTest {
                     .addParams(param)
                     .build();
 
-
             ActionProfileMember actProfMember =
                     ActionProfileMember.newBuilder()
                             .setMemberId(id)
@@ -255,14 +254,14 @@ public class P4RuntimeGroupTest {
                               .build()
         );
 
-        members.forEach(m -> {
-            responses.add(ReadResponse.newBuilder()
-                                  .addEntities(Entity.newBuilder().setActionProfileMember(m))
-                                  .build());
-        });
+        responses.add(ReadResponse.newBuilder()
+                              .addAllEntities(members.stream()
+                                                      .map(m -> Entity.newBuilder().setActionProfileMember(m).build())
+                                                      .collect(Collectors.toList()))
+                              .build());
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
-        CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(4);
+        CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(2);
         CompletableFuture<Collection<PiActionGroup>> groupsComplete = client.dumpGroups(ACT_PROF_ID, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
 

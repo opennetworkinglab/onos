@@ -16,10 +16,10 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
@@ -32,14 +32,14 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiCounterId;
 import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -62,7 +62,6 @@ import p4.P4RuntimeOuterClass.StreamMessageResponse;
 import p4.P4RuntimeOuterClass.TableEntry;
 import p4.P4RuntimeOuterClass.Update;
 import p4.P4RuntimeOuterClass.WriteRequest;
-import p4.config.P4InfoOuterClass;
 import p4.config.P4InfoOuterClass.P4Info;
 import p4.tmp.P4Config;
 
@@ -73,14 +72,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -90,9 +88,7 @@ import java.util.stream.StreamSupport;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
+import static p4.P4RuntimeOuterClass.Entity.EntityCase.*;
 import static p4.P4RuntimeOuterClass.PacketOut;
 import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
 
@@ -123,9 +119,9 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     /**
      * Default constructor.
      *
-     * @param deviceId the ONOS device id
+     * @param deviceId   the ONOS device id
      * @param p4DeviceId the P4 device id
-     * @param channel gRPC channel
+     * @param channel    gRPC channel
      * @param controller runtime client controller
      */
     P4RuntimeClientImpl(DeviceId deviceId, long p4DeviceId, ManagedChannel channel,
@@ -239,10 +235,9 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> writeActionGroupMembers(PiActionGroup group,
-                                                              Collection<PiActionGroupMember> members,
                                                               WriteOperationType opType,
                                                               PiPipeconf pipeconf) {
-        return supplyInContext(() -> doWriteActionGroupMembers(group, members, opType, pipeconf),
+        return supplyInContext(() -> doWriteActionGroupMembers(group, opType, pipeconf),
                                "writeActionGroupMembers-" + opType.name());
     }
 
@@ -394,7 +389,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         int tableId;
         try {
-            tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
+            tableId = browser.tables().getByNameOrAlias(piTableId.id()).getPreamble().getId();
         } catch (P4InfoBrowser.NotFoundException e) {
             log.warn("Unable to dump table: {}", e.getMessage());
             return Collections.emptyList();
@@ -509,23 +504,19 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         return CounterEntryCodec.decodeCounterEntities(entities, counterIdMap, pipeconf);
     }
 
-    private boolean doWriteActionGroupMembers(PiActionGroup group, Collection<PiActionGroupMember> members,
-                                              WriteOperationType opType, PiPipeconf pipeconf) {
-        WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
+    private boolean doWriteActionGroupMembers(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
 
-        Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
+        final Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
         try {
-            for (PiActionGroupMember member : members) {
-                actionProfileMembers.add(
-                        ActionProfileMemberEncoder.encode(group, member, pipeconf)
-                );
+            for (PiActionGroupMember member : group.members()) {
+                actionProfileMembers.add(ActionProfileMemberEncoder.encode(group, member, pipeconf));
             }
         } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-            log.warn("Can't encode group member {} due to {}", members, e.getMessage());
+            log.warn("Unable to write ({}) group members: {}", opType, e.getMessage());
             return false;
         }
 
-        Collection<Update> updateMsgs = actionProfileMembers.stream()
+        final Collection<Update> updateMsgs = actionProfileMembers.stream()
                 .map(actionProfileMember ->
                              Update.newBuilder()
                                      .setEntity(Entity.newBuilder()
@@ -536,18 +527,19 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .collect(Collectors.toList());
 
         if (updateMsgs.size() == 0) {
-            // Nothing to update
+            // Nothing to update.
             return true;
         }
 
-        writeRequestBuilder
+        WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .addAllUpdates(updateMsgs);
+                .addAllUpdates(updateMsgs)
+                .build();
         try {
-            blockingStub.write(writeRequestBuilder.build());
+            blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            log.warn("Unable to write table entries ({}): {}", opType, e.getMessage());
+            log.warn("Unable to write ({}) group members: {}", opType, e.getMessage());
             return false;
         }
     }
@@ -555,141 +547,149 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     private Collection<PiActionGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
         log.debug("Dumping groups from action profile {} from {} (pipeconf {})...",
                   piActionProfileId.id(), deviceId, pipeconf.id());
-        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+
+        final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            log.warn("Unable to get a P4Info browser for pipeconf {}, skipping dump action profile {}",
-                     pipeconf, piActionProfileId);
+            log.warn("Unable to get a P4Info browser for pipeconf {}, aborting dump action profile", pipeconf);
             return Collections.emptySet();
         }
 
-        int actionProfileId;
+        final int actionProfileId;
         try {
-            P4InfoOuterClass.ActionProfile actionProfile =
-                    browser.actionProfiles().getByName(piActionProfileId.id());
-            actionProfileId = actionProfile.getPreamble().getId();
+            actionProfileId = browser
+                    .actionProfiles()
+                    .getByNameOrAlias(piActionProfileId.id())
+                    .getPreamble()
+                    .getId();
         } catch (P4InfoBrowser.NotFoundException e) {
-            log.warn("Can't find action profile {} from p4info", piActionProfileId);
+            log.warn("Unable to dump groups: {}", e.getMessage());
             return Collections.emptySet();
         }
 
-        ActionProfileGroup actionProfileGroup =
-                ActionProfileGroup.newBuilder()
-                        .setActionProfileId(actionProfileId)
-                        .build();
-
-        ReadRequest requestMsg = ReadRequest.newBuilder()
+        // Prepare read request to read all groups from the given action profile.
+        final ReadRequest groupRequestMsg = ReadRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
                 .addEntities(Entity.newBuilder()
-                                     .setActionProfileGroup(actionProfileGroup)
+                                     .setActionProfileGroup(
+                                             ActionProfileGroup.newBuilder()
+                                                     .setActionProfileId(actionProfileId)
+                                                     .build())
                                      .build())
                 .build();
 
-        Iterator<ReadResponse> responses;
+        // Read groups.
+        final Iterator<ReadResponse> groupResponses;
         try {
-            responses = blockingStub.read(requestMsg);
+            groupResponses = blockingStub.read(groupRequestMsg);
         } catch (StatusRuntimeException e) {
-            log.warn("Unable to read action profile {} due to {}", piActionProfileId, e.getMessage());
+            log.warn("Unable dump groups from action profile '{}': {}", piActionProfileId.id(), e.getMessage());
             return Collections.emptySet();
         }
 
-        List<ActionProfileGroup> actionProfileGroups =
-                Tools.stream(() -> responses)
-                        .map(ReadResponse::getEntitiesList)
-                        .flatMap(List::stream)
-                        .filter(entity -> entity.getEntityCase() == ACTION_PROFILE_GROUP)
-                        .map(Entity::getActionProfileGroup)
-                        .collect(Collectors.toList());
+        final List<ActionProfileGroup> groupMsgs = Tools.stream(() -> groupResponses)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .filter(entity -> entity.getEntityCase() == ACTION_PROFILE_GROUP)
+                .map(Entity::getActionProfileGroup)
+                .collect(Collectors.toList());
 
         log.debug("Retrieved {} groups from action profile {} on {}...",
-                  actionProfileGroups.size(), piActionProfileId.id(), deviceId);
+                  groupMsgs.size(), piActionProfileId.id(), deviceId);
 
-        // group id -> members
-        Multimap<Integer, ActionProfileMember> actionProfileMemberMap = HashMultimap.create();
-        AtomicLong memberCount = new AtomicLong(0);
-        AtomicBoolean success = new AtomicBoolean(true);
-        actionProfileGroups.forEach(actProfGrp -> {
-            actProfGrp.getMembersList().forEach(member -> {
-                ActionProfileMember actProfMember =
-                        ActionProfileMember.newBuilder()
-                                .setActionProfileId(actProfGrp.getActionProfileId())
-                                .setMemberId(member.getMemberId())
-                                .build();
-                Entity entity = Entity.newBuilder()
-                        .setActionProfileMember(actProfMember)
-                        .build();
+        // Returned groups contain only a minimal description of their members.
+        // We need to issue a new request to get the full description of each member.
 
-                ReadRequest reqMsg = ReadRequest.newBuilder().setDeviceId(p4DeviceId)
-                        .addEntities(entity)
-                        .build();
+        // Keep a map of all member IDs for each group ID, will need it later.
+        final Multimap<Integer, Integer> groupIdToMemberIdsMap = HashMultimap.create();
+        groupMsgs.forEach(g -> groupIdToMemberIdsMap.putAll(
+                g.getGroupId(),
+                g.getMembersList().stream()
+                        .map(ActionProfileGroup.Member::getMemberId)
+                        .collect(Collectors.toList())));
 
-                Iterator<ReadResponse> resps;
-                try {
-                    resps = blockingStub.read(reqMsg);
-                } catch (StatusRuntimeException e) {
-                    log.warn("Unable to read member {} from action profile {} due to {}",
-                             member, piActionProfileId, e.getMessage());
-                    success.set(false);
-                    return;
-                }
-                Tools.stream(() -> resps)
-                        .map(ReadResponse::getEntitiesList)
-                        .flatMap(List::stream)
-                        .filter(e -> e.getEntityCase() == ACTION_PROFILE_MEMBER)
-                        .map(Entity::getActionProfileMember)
-                        .forEach(m -> {
-                            actionProfileMemberMap.put(actProfGrp.getGroupId(), m);
-                            memberCount.incrementAndGet();
-                        });
-            });
-        });
+        // Prepare one big read request to read all members in one shot.
+        final Set<Entity> entityMsgs = groupMsgs.stream()
+                .flatMap(g -> g.getMembersList().stream())
+                .map(ActionProfileGroup.Member::getMemberId)
+                // Prevent issuing many read requests for the same member.
+                .distinct()
+                .map(id -> ActionProfileMember.newBuilder()
+                        .setActionProfileId(actionProfileId)
+                        .setMemberId(id)
+                        .build())
+                .map(m -> Entity.newBuilder()
+                        .setActionProfileMember(m)
+                        .build())
+                .collect(Collectors.toSet());
+        final ReadRequest memberRequestMsg = ReadRequest.newBuilder().setDeviceId(p4DeviceId)
+                .addAllEntities(entityMsgs)
+                .build();
 
-        if (!success.get()) {
-            // Can't read members
-            return Collections.emptySet();
-        }
-        log.info("Retrieved {} group members from action profile {} on {}...",
-                 memberCount.get(), piActionProfileId.id(), deviceId);
-
-        Collection<PiActionGroup> piActionGroups = Sets.newHashSet();
-
-        for (ActionProfileGroup apg : actionProfileGroups) {
-            try {
-                Collection<ActionProfileMember> members = actionProfileMemberMap.get(apg.getGroupId());
-                PiActionGroup decodedGroup =
-                        ActionProfileGroupEncoder.decode(apg, members, pipeconf);
-                piActionGroups.add(decodedGroup);
-            } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-                log.warn("Can't decode group {} due to {}", apg, e.getMessage());
-                return Collections.emptySet();
-            }
+        // Read members.
+        final Iterator<ReadResponse> memberResponses;
+        try {
+            memberResponses = blockingStub.read(memberRequestMsg);
+        } catch (StatusRuntimeException e) {
+            log.warn("Unable to read members from action profile {}: {}", piActionProfileId, e.getMessage());
+            return Collections.emptyList();
         }
 
-        return piActionGroups;
+        final Multimap<Integer, ActionProfileMember> groupIdToMembersMap = HashMultimap.create();
+        Tools.stream(() -> memberResponses)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .filter(e -> e.getEntityCase() == ACTION_PROFILE_MEMBER)
+                .map(Entity::getActionProfileMember)
+                .forEach(member -> groupIdToMemberIdsMap.asMap()
+                        // Get all group IDs that contain this member.
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getValue().contains(member.getMemberId()))
+                        .map(Map.Entry::getKey)
+                        .forEach(gid -> groupIdToMembersMap.put(gid, member)));
+
+        log.debug("Retrieved {} group members from action profile {} on {}...",
+                  groupIdToMembersMap.size(), piActionProfileId.id(), deviceId);
+
+        return groupMsgs.stream()
+                .map(groupMsg -> {
+                    try {
+                        return ActionProfileGroupEncoder.decode(groupMsg,
+                                                                groupIdToMembersMap.get(groupMsg.getGroupId()),
+                                                                pipeconf);
+                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+                        log.warn("Unable to decode group: {}\n {}", e.getMessage(), groupMsg);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
-        WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
-        ActionProfileGroup actionProfileGroup;
+
+        final ActionProfileGroup actionProfileGroup;
         try {
             actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf);
         } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-            log.warn("Can't encode group {} due to {}", e.getMessage());
+            log.warn("Unable to encode group: {}", e.getMessage());
             return false;
         }
-        Update updateMessage = Update.newBuilder()
-                .setEntity(Entity.newBuilder()
-                                   .setActionProfileGroup(actionProfileGroup)
-                                   .build())
-                .setType(UPDATE_TYPES.get(opType))
-                .build();
-        writeRequestBuilder
+
+        final WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .addUpdates(updateMessage);
+                .addUpdates(Update.newBuilder()
+                                    .setEntity(Entity.newBuilder()
+                                                       .setActionProfileGroup(actionProfileGroup)
+                                                       .build())
+                                    .setType(UPDATE_TYPES.get(opType))
+                                    .build())
+                .build();
         try {
-            blockingStub.write(writeRequestBuilder.build());
+            blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            log.warn("Unable to write table entries ({}): {}", opType, e.getMessage());
+            log.warn("Unable to write groups ({}): {}", opType, e.getMessage());
             return false;
         }
     }

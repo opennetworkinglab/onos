@@ -33,9 +33,7 @@ import java.util.stream.Collectors;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.P4InfoBrowser.NotFoundException;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.PacketIn;
-import static p4.P4RuntimeOuterClass.PacketMetadata;
-import static p4.P4RuntimeOuterClass.PacketOut;
+import static p4.P4RuntimeOuterClass.*;
 
 /**
  * Encoder of packet metadata, from ONOS Pi* format, to P4Runtime protobuf messages, and vice versa.
@@ -75,7 +73,7 @@ final class PacketIOCodec {
 
         //Get the packet out controller packet metadata
         P4InfoOuterClass.ControllerPacketMetadata controllerPacketMetadata =
-                browser.controllerPacketMetadatas().getByName(PACKET_OUT);
+                browser.controllerPacketMetadatas().getByNameOrAlias(PACKET_OUT);
         PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
 
         //outer controller packet metadata id
@@ -96,7 +94,7 @@ final class PacketIOCodec {
             try {
                 //get each metadata id
                 int metadataId = browser.packetMetadatas(controllerPacketMetadataId)
-                        .getByName(metadata.id().name()).getId();
+                        .getByNameOrAlias(metadata.id().name()).getId();
 
                 //Add the metadata id and it's data the packet out
                 return PacketMetadata.newBuilder()
@@ -129,7 +127,7 @@ final class PacketIOCodec {
 
         List<PiPacketMetadata> packetMetadatas;
         try {
-            int controllerPacketMetadataId = browser.controllerPacketMetadatas().getByName(PACKET_IN)
+            int controllerPacketMetadataId = browser.controllerPacketMetadatas().getByNameOrAlias(PACKET_IN)
                                                 .getPreamble().getId();
             packetMetadatas = decodePacketMetadataIn(packetIn.getMetadataList(), browser,
                                                                             controllerPacketMetadataId);

@@ -44,9 +44,7 @@ import java.util.Random;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
-import static org.onlab.util.ImmutableByteSequence.ofOnes;
+import static org.onlab.util.ImmutableByteSequence.*;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
@@ -114,8 +112,8 @@ public class TableEntryEncoderTest {
         assertThat(browser.tables().hasName(TABLE_0), is(true));
         assertThat(browser.actions().hasName(SET_EGRESS_PORT), is(true));
 
-        int tableId = browser.tables().getByName(TABLE_0).getPreamble().getId();
-        int actionId = browser.actions().getByName(SET_EGRESS_PORT).getPreamble().getId();
+        int tableId = browser.tables().getByNameOrAlias(TABLE_0).getPreamble().getId();
+        int actionId = browser.actions().getByNameOrAlias(SET_EGRESS_PORT).getPreamble().getId();
 
         assertThat(browser.matchFields(tableId).hasName(STANDARD_METADATA + "." + INGRESS_PORT), is(true));
         assertThat(browser.actionParams(actionId).hasName(PORT), is(true));
@@ -141,7 +139,7 @@ public class TableEntryEncoderTest {
                 .testEquals();
 
         // Table ID.
-        int p4InfoTableId = browser.tables().getByName(tableId.id()).getPreamble().getId();
+        int p4InfoTableId = browser.tables().getByNameOrAlias(tableId.id()).getPreamble().getId();
         int encodedTableId = tableEntryMsg.getTableId();
         assertThat(encodedTableId, is(p4InfoTableId));
 
@@ -152,12 +150,12 @@ public class TableEntryEncoderTest {
         Action actionMsg = tableEntryMsg.getAction().getAction();
 
         // Action ID.
-        int p4InfoActionId = browser.actions().getByName(outActionId.name()).getPreamble().getId();
+        int p4InfoActionId = browser.actions().getByNameOrAlias(outActionId.name()).getPreamble().getId();
         int encodedActionId = actionMsg.getActionId();
         assertThat(encodedActionId, is(p4InfoActionId));
 
         // Action param ID.
-        int p4InfoActionParamId = browser.actionParams(p4InfoActionId).getByName(portParamId.name()).getId();
+        int p4InfoActionParamId = browser.actionParams(p4InfoActionId).getByNameOrAlias(portParamId.name()).getId();
         int encodedActionParamId = actionMsg.getParams(0).getParamId();
         assertThat(encodedActionParamId, is(p4InfoActionParamId));
 

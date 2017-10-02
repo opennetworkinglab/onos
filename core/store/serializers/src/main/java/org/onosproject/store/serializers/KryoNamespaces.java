@@ -213,6 +213,7 @@ import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiActionProfileId;
+import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
@@ -607,6 +608,7 @@ public final class KryoNamespaces {
                     PiActionParamId.class,
                     PiExactFieldMatch.class,
                     PiFieldMatch.class,
+                    PiGroupKey.class,
                     PiHeaderFieldId.class,
                     PiLpmFieldMatch.class,
                     PiMatchKey.class,

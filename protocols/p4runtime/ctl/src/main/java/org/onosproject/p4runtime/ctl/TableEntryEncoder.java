@@ -39,10 +39,10 @@ import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 import org.slf4j.Logger;
+import p4.P4RuntimeOuterClass.Action;
 import p4.P4RuntimeOuterClass.FieldMatch;
 import p4.P4RuntimeOuterClass.TableAction;
 import p4.P4RuntimeOuterClass.TableEntry;
-import p4.P4RuntimeOuterClass.Action;
 import p4.config.P4InfoOuterClass;
 
 import java.util.Collection;
@@ -197,7 +197,7 @@ final class TableEntryEncoder {
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
 
         //FIXME this throws some kind of NPE
-        P4InfoOuterClass.Table tableInfo = browser.tables().getByName(tableId.id());
+        P4InfoOuterClass.Table tableInfo = browser.tables().getByNameOrAlias(tableId.id());
 
         // Table id.
         tableEntryMsgBuilder.setTableId(tableInfo.getPreamble().getId());
@@ -216,7 +216,7 @@ final class TableEntryEncoder {
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
 
         //FIXME this throws some kind of NPE
-        P4InfoOuterClass.Table tableInfo = browser.tables().getByName(piTableEntry.table().id());
+        P4InfoOuterClass.Table tableInfo = browser.tables().getByNameOrAlias(piTableEntry.table().id());
 
         // Table id.
         tableEntryMsgBuilder.setTableId(tableInfo.getPreamble().getId());
@@ -469,13 +469,13 @@ final class TableEntryEncoder {
     static Action encodePiAction(PiAction piAction, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException, EncodeException {
 
-        int actionId = browser.actions().getByName(piAction.id().name()).getPreamble().getId();
+        int actionId = browser.actions().getByNameOrAlias(piAction.id().name()).getPreamble().getId();
 
         Action.Builder actionMsgBuilder =
                 Action.newBuilder().setActionId(actionId);
 
         for (PiActionParam p : piAction.parameters()) {
-            P4InfoOuterClass.Action.Param paramInfo = browser.actionParams(actionId).getByName(p.id().name());
+            P4InfoOuterClass.Action.Param paramInfo = browser.actionParams(actionId).getByNameOrAlias(p.id().name());
             ByteString paramValue = ByteString.copyFrom(p.value().asReadOnlyBuffer());
             assertSize(format("param '%s' of action '%s'", p.id(), piAction.id()),
                        paramValue, paramInfo.getBitwidth());
