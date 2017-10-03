@@ -179,7 +179,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     }
 
     private Versioned<ClusterMetadata> blockForMetadata(String metadataUrl) {
-
+        int iterations = 0;
         for (;;) {
             Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);
             if (metadata != null) {
@@ -187,7 +187,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
             }
 
             try {
-                Thread.sleep(10);
+                Thread.sleep(Math.min((int) Math.pow(2, ++iterations) * 10, 1000));
             } catch (InterruptedException e) {
                 throw Throwables.propagate(e);
             }
@@ -204,12 +204,21 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 version = file.lastModified();
                 metadata = mapper.readValue(new FileInputStream(file), ClusterMetadata.class);
             } else if ("http".equals(url.getProtocol())) {
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    if (conn.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                        log.warn("Could not reach metadata URL {}. Retrying...", url);
+                        return null;
+                    }
+                    if (conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+                        return null;
+                    }
+                    version = conn.getLastModified();
+                    metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
+                } catch (IOException e) {
+                    log.warn("Could not reach metadata URL {}. Retrying...", url);
                     return null;
                 }
-                version = conn.getLastModified();
-                metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
             }
 
             if (null == metadata) {
