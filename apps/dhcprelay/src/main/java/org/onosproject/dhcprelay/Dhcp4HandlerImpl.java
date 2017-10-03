@@ -577,6 +577,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
         }
 
+        // Remove broadcast flag
+        dhcpPacket.setFlags((short) 0);
+
         udpPacket.setPayload(dhcpPacket);
         // As a DHCP relay, the source port should be server port( instead
         // of client port.
