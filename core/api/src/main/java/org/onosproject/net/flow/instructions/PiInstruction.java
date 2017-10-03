@@ -21,6 +21,8 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
+import static java.lang.String.format;
+
 /**
  * Representation of a protocol-independent instruction.
  */
@@ -71,6 +73,13 @@ public final class PiInstruction implements Instruction {
 
     @Override
     public String toString() {
-        return tableAction.toString();
+        switch (tableAction.type()) {
+            case ACTION_GROUP_ID:
+            case GROUP_MEMBER_ID:
+                // e.g. PiActionGroupId(1)
+                return format("%s{%s}", tableAction.getClass().getSimpleName(), tableAction.toString());
+            default:
+                return tableAction.toString();
+        }
     }
 }
