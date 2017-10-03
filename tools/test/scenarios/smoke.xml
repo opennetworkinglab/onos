@@ -21,9 +21,8 @@
     <import file="${ONOS_SCENARIOS}/dist-test.xml"/>
     <import file="${ONOS_SCENARIOS}/smoke-internal.xml"/>
     <import file="${ONOS_SCENARIOS}/yang-smoke.xml"/>
-    <!--
     <import file="${ONOS_SCENARIOS}/yang-live-compile.xml"/>
-    -->
+
     <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
     <dependency name="Net-Smoke" requires="Setup"/>
     <dependency name="Maps-Cli" requires="Setup"/>
@@ -32,12 +31,8 @@
     <dependency name="Netcfg" requires="Setup"/>
     <dependency name="Distributed-Primitives" requires="Setup"/>
     <dependency name="YANG-Smoke" requires="Setup,~Distributed-Primitives"/>
-
-    <!--  FIXME: Re-enable this scenario when problems locating features.xml file are resolved -->
-    <!--
     <dependency name="YANG-Live-Compile" requires="Setup,~YANG-Smoke"/>
-    -->
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Setup,~Net-Smoke,~Drivers-Test,~Meta-App,~Netcfg,~YANG-Smoke"/>
+    <dependency name="Wrapup" requires="~Setup,~Net-Smoke,~Drivers-Test,~Meta-App,~Netcfg,~YANG-Smoke,~YANG-Live-Compile"/>
 </scenario>
