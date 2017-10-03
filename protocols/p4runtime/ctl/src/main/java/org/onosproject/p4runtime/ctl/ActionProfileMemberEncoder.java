@@ -73,7 +73,7 @@ public final class ActionProfileMemberEncoder {
 
         // action profile id
         P4InfoOuterClass.ActionProfile actionProfile =
-                browser.actionProfiles().getByNameOrAlias(group.actionProfileId().id());
+                browser.actionProfiles().getByName(group.actionProfileId().id());
 
         int actionProfileId = actionProfile.getPreamble().getId();
         actionProfileMemberBuilder.setActionProfileId(actionProfileId);

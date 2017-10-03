@@ -389,7 +389,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         int tableId;
         try {
-            tableId = browser.tables().getByNameOrAlias(piTableId.id()).getPreamble().getId();
+            tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
         } catch (P4InfoBrowser.NotFoundException e) {
             log.warn("Unable to dump table: {}", e.getMessage());
             return Collections.emptyList();
@@ -558,7 +558,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             actionProfileId = browser
                     .actionProfiles()
-                    .getByNameOrAlias(piActionProfileId.id())
+                    .getByName(piActionProfileId.id())
                     .getPreamble()
                     .getId();
         } catch (P4InfoBrowser.NotFoundException e) {

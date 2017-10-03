@@ -75,8 +75,12 @@ final class P4InfoBrowser {
                     EntityBrowser<MatchField> matchFieldBrowser = new EntityBrowser<>(format(
                             "match field for table '%s'", tableName));
                     entity.getMatchFieldsList().forEach(m -> {
-                        String alias = extractMatchFieldSimpleName(m.getName());
-                        matchFieldBrowser.add(m.getName(), alias, m.getId(), m);
+                        // FIXME: nasty hack needed to provide compatibility with BMv2-based pipeline models.
+                        // Indeed in the BMv2 JSON header fields have format like "ethernet.srd_addr", while in P4Info
+                        // the same will be "hdr.ethernet.srd_addr".
+                        // To be removed when ONOS-7066 will be implemented.
+                        String simpleName = extractMatchFieldSimpleName(m.getName());
+                        matchFieldBrowser.add(simpleName, null, m.getId(), m);
                     });
                     matchFields.put(tableId, matchFieldBrowser);
                 });
@@ -121,7 +125,7 @@ final class P4InfoBrowser {
                 });
     }
 
-    private String extractMatchFieldSimpleName(String name) {
+    static String extractMatchFieldSimpleName(String name) {
         // Removes the leading "hdr." or other scope identifier.
         // E.g.: "hdr.ethernet.etherType" becomes "ethernet.etherType"
         String[] pieces = name.split("\\.");
@@ -255,7 +259,7 @@ final class P4InfoBrowser {
 
         private String entityName;
         private final Map<String, T> names = Maps.newHashMap();
-        private final Map<String, T> aliases = Maps.newHashMap();
+        private final Map<String, String> aliasToNames = Maps.newHashMap();
         private final Map<Integer, T> ids = Maps.newHashMap();
 
         private EntityBrowser(String entityName) {
@@ -277,7 +281,7 @@ final class P4InfoBrowser {
             names.put(name, entity);
             ids.put(id, entity);
             if (alias != null && !alias.isEmpty()) {
-                aliases.put(alias, entity);
+                aliasToNames.put(alias, name);
             }
         }
 
@@ -303,30 +307,22 @@ final class P4InfoBrowser {
         }
 
         /**
-         * Returns the entity identified by the given name or alias, if present, otherwise, throws an exception.
+         * Returns the entity identified by the given name, if present, otherwise, throws an exception.
          *
          * @param name entity name or alias
          * @return entity message
          * @throws NotFoundException if the entity cannot be found
          */
-        T getByNameOrAlias(String name) throws NotFoundException {
+        T getByName(String name) throws NotFoundException {
             if (hasName(name)) {
                 return names.get(name);
-            } else if (hasAlias(name)) {
-                return aliases.get(name);
             } else {
-                throw new NotFoundException(entityName, name);
+                final String hint = aliasToNames.containsKey(name)
+                        ? format("Did you mean '%s'? Make sure to use entity names in PI IDs, not aliases",
+                                 aliasToNames.get(name))
+                        : "";
+                throw new NotFoundException(entityName, name, hint);
             }
-        }
-
-        /**
-         * Returns true if the P4Info defines an entity with such alias, false otherwise.
-         *
-         * @param alias entity alias
-         * @return boolean
-         */
-        boolean hasAlias(String alias) {
-            return aliases.containsKey(alias);
         }
 
         /**
@@ -359,8 +355,9 @@ final class P4InfoBrowser {
      */
     public static final class NotFoundException extends Exception {
 
-        NotFoundException(String entityName, String key) {
-            super(format("No such %s in P4Info with %name or alias '%s'", entityName, key));
+        NotFoundException(String entityName, String key, String hint) {
+            super(format(
+                    "No such %s in P4Info with name '%s'%s", entityName, key, hint.isEmpty() ? "" : " (" + hint + ")"));
         }
 
         NotFoundException(String entityName, int id) {

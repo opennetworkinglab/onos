@@ -73,7 +73,7 @@ final class PacketIOCodec {
 
         //Get the packet out controller packet metadata
         P4InfoOuterClass.ControllerPacketMetadata controllerPacketMetadata =
-                browser.controllerPacketMetadatas().getByNameOrAlias(PACKET_OUT);
+                browser.controllerPacketMetadatas().getByName(PACKET_OUT);
         PacketOut.Builder packetOutBuilder = PacketOut.newBuilder();
 
         //outer controller packet metadata id
@@ -94,7 +94,7 @@ final class PacketIOCodec {
             try {
                 //get each metadata id
                 int metadataId = browser.packetMetadatas(controllerPacketMetadataId)
-                        .getByNameOrAlias(metadata.id().name()).getId();
+                        .getByName(metadata.id().name()).getId();
 
                 //Add the metadata id and it's data the packet out
                 return PacketMetadata.newBuilder()
@@ -127,7 +127,7 @@ final class PacketIOCodec {
 
         List<PiPacketMetadata> packetMetadatas;
         try {
-            int controllerPacketMetadataId = browser.controllerPacketMetadatas().getByNameOrAlias(PACKET_IN)
+            int controllerPacketMetadataId = browser.controllerPacketMetadatas().getByName(PACKET_IN)
                                                 .getPreamble().getId();
             packetMetadatas = decodePacketMetadataIn(packetIn.getMetadataList(), browser,
                                                                             controllerPacketMetadataId);

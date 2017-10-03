@@ -26,6 +26,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class PiHeaderFieldId extends Identifier<String> {
 
+    // FIXME: this abstraction is brittle and we should drop any string-composition logic.
+    // e.g. in P4_14 there is no scope for match fields.
+    // In light of ONOS-7066, the best solution seems to have IDs defined as arbitrary
+    // strings equal to the entity names defined in the P4Info.
     private final String headerName;
     private final String fieldName;
     private final int index;

@@ -58,7 +58,7 @@ public final class ActionProfileGroupEncoder {
 
         PiActionProfileId piActionProfileId = piActionGroup.actionProfileId();
         P4InfoOuterClass.ActionProfile actionProfile = browser.actionProfiles()
-                .getByNameOrAlias(piActionProfileId.id());
+                .getByName(piActionProfileId.id());
         int actionProfileId = actionProfile.getPreamble().getId();
         ActionProfileGroup.Builder actionProfileGroupBuilder = ActionProfileGroup.newBuilder()
                         .setGroupId(piActionGroup.id().id())

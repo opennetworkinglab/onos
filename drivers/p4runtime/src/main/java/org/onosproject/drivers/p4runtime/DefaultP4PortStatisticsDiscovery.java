@@ -42,8 +42,21 @@ import static org.onosproject.net.pi.runtime.PiCounterType.INDIRECT;
 public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBehaviour
         implements PortStatisticsDiscovery {
 
-    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("ingress_port_counter", INDIRECT);
-    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("egress_port_counter", INDIRECT);
+    // FIXME: hard-coding the scope here will break support for the P4_14 version of the program.
+    // With P4_14, counter names in the generated P4Info won't have any scope.
+    // A solution could be that of dynamically building counter IDs based on the P4Info (as in DefaultP4Interpreter).
+    private static final String DEFAULT_SCOPE = "port_counters_control";
+    private static final String INGRESS_COUNTER = "ingress_port_counter";
+    private static final String EGRESS_COUNTER = "egress_port_counter";
+
+    /**
+     * Returns the scope string to be used for the counter IDs.
+     *
+     * @return scope string
+     */
+    public String scope() {
+        return DEFAULT_SCOPE;
+    }
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
@@ -51,6 +64,9 @@ public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBe
         if (!super.setupBehaviour()) {
             return Collections.emptyList();
         }
+
+        final PiCounterId ingressCounterId = PiCounterId.of(scope(), INGRESS_COUNTER, INDIRECT);
+        final PiCounterId egressCounterId = PiCounterId.of(scope(), EGRESS_COUNTER, INDIRECT);
 
         Map<Long, DefaultPortStatistics.Builder> portStatBuilders = Maps.newHashMap();
 
@@ -63,8 +79,8 @@ public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBe
         Set<PiCounterCellId> counterCellIds = Sets.newHashSet();
         portStatBuilders.keySet().forEach(p -> {
             // Counter cell/index = port number.
-            counterCellIds.add(PiIndirectCounterCellId.of(INGRESS_COUNTER_ID, p));
-            counterCellIds.add(PiIndirectCounterCellId.of(EGRESS_COUNTER_ID, p));
+            counterCellIds.add(PiIndirectCounterCellId.of(ingressCounterId, p));
+            counterCellIds.add(PiIndirectCounterCellId.of(egressCounterId, p));
         });
 
         Collection<PiCounterCellData> counterEntryResponse;
@@ -87,10 +103,10 @@ public class DefaultP4PortStatisticsDiscovery extends AbstractP4RuntimeHandlerBe
                 return;
             }
             DefaultPortStatistics.Builder statsBuilder = portStatBuilders.get(indCellId.index());
-            if (counterData.cellId().counterId().equals(INGRESS_COUNTER_ID)) {
+            if (counterData.cellId().counterId().equals(ingressCounterId)) {
                 statsBuilder.setPacketsReceived(counterData.packets());
                 statsBuilder.setBytesReceived(counterData.bytes());
-            } else if (counterData.cellId().counterId().equals(EGRESS_COUNTER_ID)) {
+            } else if (counterData.cellId().counterId().equals(egressCounterId)) {
                 statsBuilder.setPacketsSent(counterData.packets());
                 statsBuilder.setBytesSent(counterData.bytes());
             } else {

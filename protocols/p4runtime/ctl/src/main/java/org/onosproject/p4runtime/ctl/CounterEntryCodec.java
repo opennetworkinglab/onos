@@ -122,7 +122,7 @@ final class CounterEntryCodec {
         // Encode PI cell ID into entity message and add to read request.
         switch (cellId.type()) {
             case INDIRECT:
-                counterId = browser.counters().getByNameOrAlias(cellId.counterId().name()).getPreamble().getId();
+                counterId = browser.counters().getByName(cellId.counterId().id()).getPreamble().getId();
                 PiIndirectCounterCellId indCellId = (PiIndirectCounterCellId) cellId;
                 entity = Entity.newBuilder().setCounterEntry(CounterEntry.newBuilder()
                                                                      .setCounterId(counterId)
@@ -131,7 +131,7 @@ final class CounterEntryCodec {
                         .build();
                 break;
             case DIRECT:
-                counterId = browser.directCounters().getByNameOrAlias(cellId.counterId().name()).getPreamble().getId();
+                counterId = browser.directCounters().getByName(cellId.counterId().id()).getPreamble().getId();
                 PiDirectCounterCellId dirCellId = (PiDirectCounterCellId) cellId;
                 DirectCounterEntry.Builder entryBuilder = DirectCounterEntry.newBuilder().setCounterId(counterId);
                 if (!dirCellId.tableEntry().equals(PiTableEntry.EMTPY)) {
