@@ -26,7 +26,7 @@
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.ciena.CienaFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
+                   impl="org.onosproject.drivers.ciena.CienaWaveServerLambdaQuery"/>
     </driver>
 </drivers>
 

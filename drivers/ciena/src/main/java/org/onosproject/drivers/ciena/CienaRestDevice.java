@@ -40,7 +40,6 @@ public class CienaRestDevice {
     private static final String ENABLED = "enabled";
     private static final String DISABLED = "disabled";
     private static final Frequency BASE_FREQUENCY = Frequency.ofGHz(193_950);
-    private static final int MULTIPLIER_OFFSET = 80;
 
     //URIs
     private static final String PORT_URI = "ws-ptps/ptps/%s";
@@ -74,10 +73,10 @@ public class CienaRestDevice {
 
     }
 
-    private String genFrequencyChangeRequest(long wavelength) {
+    private String genFrequencyChangeRequest(long frequency) {
         String request = "{\n" +
                 "\"ciena-ws-ptp-modem:frequency\": {\n" +
-                "\"value\": " + Long.toString(wavelength) + "\n" +
+                "\"value\": " + Long.toString(frequency) + "\n" +
                 "}\n" +
                 "}";
         log.debug("request:\n{}", request);
@@ -123,7 +122,7 @@ public class CienaRestDevice {
 
     public final boolean changeChannel(OchSignal signal, PortNumber outPort) {
         String uri = genUri(CHANNEL_URI, outPort);
-        int channel = signal.spacingMultiplier() + MULTIPLIER_OFFSET;
+        int channel = signal.spacingMultiplier();
         log.debug("channel is {} for port {} on device {}", channel, outPort.name(), deviceId);
         String request = genChannelChangeRequest(channel);
         return putNoReply(uri, request);
@@ -133,10 +132,6 @@ public class CienaRestDevice {
         double frequency = BASE_FREQUENCY.asGHz() +
                 (signal.channelSpacing().frequency().asGHz() * (double) signal.slotGranularity());
         return Double.valueOf(frequency).longValue();
-    }
-
-    public static int getMultiplierOffset() {
-        return MULTIPLIER_OFFSET;
     }
 
     private int put(String uri, String request) {

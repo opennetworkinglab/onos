@@ -29,6 +29,7 @@ import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
@@ -63,6 +64,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
@@ -132,19 +134,16 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // Find first path that has the required resources
         Stream<Path> paths = getOpticalPaths(intent);
         Optional<Map.Entry<Path, List<OchSignal>>> found = paths
-                .map(path ->
-                        Maps.immutableEntry(path, findFirstAvailableLambda(intent, path)))
+                .map(path -> Maps.immutableEntry(path, findFirstAvailableLambda(intent, path)))
                 .filter(entry -> !entry.getValue().isEmpty())
                 .filter(entry -> convertToResources(entry.getKey(),
-                        entry.getValue()).stream().allMatch(resourceService::isAvailable))
+                                                    entry.getValue()).stream().allMatch(resourceService::isAvailable))
                 .findFirst();
 
         // Allocate resources and create optical path intent
         if (found.isPresent()) {
             resources.addAll(convertToResources(found.get().getKey(), found.get().getValue()));
-
             allocateResources(intent, resources);
-
             OchSignal ochSignal = OchSignal.toFixedGrid(found.get().getValue(), ChannelSpacing.CHL_50GHZ);
             return ImmutableList.of(createIntent(intent, found.get().getKey(), ochSignal));
         } else {
@@ -207,8 +206,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             log.error("Resource allocation for {} failed (resource request: {})", intent.key(), resources);
             if (log.isDebugEnabled()) {
                 log.debug("requested resources:\n\t{}", resources.stream()
-                                  .map(Resource::toString)
-                                  .collect(Collectors.joining("\n\t")));
+                        .map(Resource::toString)
+                        .collect(Collectors.joining("\n\t")));
             }
             throw new OpticalIntentCompilationException("Unable to allocate resources: " + resources);
         }
@@ -222,7 +221,25 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      */
     private List<OchSignal> findFirstAvailableLambda(OpticalConnectivityIntent intent, Path path) {
         if (intent.ochSignal().isPresent()) {
-            return Collections.singletonList(intent.ochSignal().get());
+            //create lambdas w.r.t. slotGanularity/slotWidth
+            OchSignal ochSignal = intent.ochSignal().get();
+            if (ochSignal.gridType() == GridType.FLEX) {
+                // multiplier sits in the middle of slots
+                int startMultiplier = ochSignal.spacingMultiplier() - (ochSignal.slotGranularity() / 2);
+                return IntStream.range(0, ochSignal.slotGranularity())
+                        .mapToObj(x -> OchSignal.newFlexGridSlot(startMultiplier + (2 * x)))
+                        .collect(Collectors.toList());
+            } else if (ochSignal.gridType() == GridType.DWDM) {
+                int startMultiplier = (int) (1 - ochSignal.slotGranularity() +
+                        ochSignal.spacingMultiplier() * ochSignal.channelSpacing().frequency().asHz() /
+                                ChannelSpacing.CHL_6P25GHZ.frequency().asHz());
+                return IntStream.range(0, ochSignal.slotGranularity())
+                        .mapToObj(x -> OchSignal.newFlexGridSlot(startMultiplier + (2 * x)))
+                        .collect(Collectors.toList());
+            }
+            //TODO: add support for other gridTypes
+            log.error("Grid type: {} not supported for user defined signal intents", ochSignal.gridType());
+            return Collections.emptyList();
         }
 
         Set<OchSignal> lambdas = findCommonLambdas(path);
@@ -312,6 +329,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Stream<Path> getOpticalPaths(OpticalConnectivityIntent intent) {
         // Route in WDM topology
         Topology topology = topologyService.currentTopology();
+        //TODO: refactor with LinkWeigher class Implementation
         LinkWeight weight = new LinkWeight() {
 
             @Override
@@ -345,18 +363,22 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         ConnectPoint start = intent.getSrc();
         ConnectPoint end = intent.getDst();
+        //head link's src port should be same as intent src port and tail link dst port
+        //should be same as intent dst port in the path.
         Stream<Path> paths = topologyService.getKShortestPaths(topology,
-                                                            start.deviceId(),
-                                                            end.deviceId(),
-                                                            AdapterLinkWeigher.adapt(weight));
+                start.deviceId(),
+                end.deviceId(),
+                AdapterLinkWeigher.adapt(weight))
+                .filter(p -> p.links().get(0).src().port().equals(start.port()) &&
+                        p.links().get(p.links().size() - 1).dst().port().equals(end.port()));
         if (log.isDebugEnabled()) {
             return paths
                     .map(path -> {
                         // no-op map stage to add debug logging
                         log.debug("Candidate path: {}",
                                   path.links().stream()
-                                      .map(lk -> lk.src() + "-" + lk.dst())
-                                      .collect(Collectors.toList()));
+                                          .map(lk -> lk.src() + "-" + lk.dst())
+                                          .collect(Collectors.toList()));
                         return path;
                     });
         }

@@ -203,10 +203,6 @@ public class OchSignal implements Lambda {
         IntStream.range(1, lambdas.size())
                 .forEach(i -> checkArgument(
                         lambdas.get(i).spacingMultiplier() == lambdas.get(i - 1).spacingMultiplier() + 2));
-        // Is center frequency compatible with requested spacing
-        Frequency center = lambdas.get(ratio / 2).centralFrequency().subtract(ChannelSpacing.CHL_6P25GHZ.frequency());
-        checkArgument(Spectrum.CENTER_FREQUENCY.subtract(center).asHz() % spacing.frequency().asHz() == 0);
-
         // Multiplier sits in middle of given lambdas, then convert from 6.25 to requested spacing
         int spacingMultiplier = lambdas.stream()
             .mapToInt(OchSignal::spacingMultiplier)

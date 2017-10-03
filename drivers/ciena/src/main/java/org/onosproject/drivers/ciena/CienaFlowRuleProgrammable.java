@@ -42,6 +42,7 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
     public Collection<FlowEntry> getFlowEntries() {
         DeviceId deviceId = handler().data().deviceId();
         log.debug("getting flow entries for device {}", deviceId);
+        //TODO: implement getFlowEntries
         log.debug("getFlowEntries not supported for device {}", deviceId);
         return Collections.EMPTY_LIST;
     }
@@ -60,11 +61,9 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
     @Override
     public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
         log.debug("removing flow rules: {}", rules);
-        Collection<FlowRule> removed = rules.stream()
-                .map(r -> createCrossConnectFlowRule(r))
-                .filter(xc -> removeCrossConnect(xc))
-                .collect(Collectors.toList());
-        return removed;
+        //TODO: implement remove rule
+        log.debug("ignoring remove rule request");
+        return rules;
     }
 
     private CrossConnectFlowRule createCrossConnectFlowRule(FlowRule r) {
@@ -100,8 +99,7 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
         // only handling lineside rule
         if (xc.isAddRule()) {
             PortNumber outPort = xc.addDrop();
-            OchSignal signal = OchSignal.newDwdmSlot(xc.ochSignal().channelSpacing(),
-                                                     -CienaRestDevice.getMultiplierOffset());
+            OchSignal signal = OchSignal.newDwdmSlot(xc.ochSignal().channelSpacing(), 0);
             return install(outPort, signal);
         }
         return false;
