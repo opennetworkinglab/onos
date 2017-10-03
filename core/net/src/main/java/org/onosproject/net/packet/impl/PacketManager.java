@@ -117,7 +117,7 @@ public class PacketManager
 
     private final List<ProcessorEntry> processors = Lists.newCopyOnWriteArrayList();
 
-    private final  PacketDriverProvider defaultProvider = new PacketDriverProvider();
+    private final PacketDriverProvider defaultProvider = new PacketDriverProvider();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -441,6 +441,13 @@ public class PacketManager
      * Internal listener for device service events.
      */
     private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return event.type() == DeviceEvent.Type.DEVICE_ADDED ||
+                    event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+        }
+
         @Override
         public void event(DeviceEvent event) {
             eventHandlingExecutor.execute(() -> {
@@ -456,14 +463,7 @@ public class PacketManager
                     if (!deviceService.isAvailable(event.subject().id())) {
                         return;
                     }
-                    switch (event.type()) {
-                        case DEVICE_ADDED:
-                        case DEVICE_AVAILABILITY_CHANGED:
-                            pushRulesToDevice(device);
-                            break;
-                        default:
-                            break;
-                    }
+                    pushRulesToDevice(device);
                 } catch (Exception e) {
                     log.warn("Failed to process {}", event, e);
                 }
