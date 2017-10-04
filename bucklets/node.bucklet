@@ -25,7 +25,7 @@ def fetch_node(version):
 
     genrule(
         name = 'node-bin-' + version,
-        bash = 'tar -xf $(location :node-release-' + version + ') && ' +
+        bash = 'tar --no-same-owner -xf $(location :node-release-' + version + ') && ' +
                'mv ' + file_name + ' $OUT && ' +
                'chmod +x $OUT',
         out = 'node-binaries',
