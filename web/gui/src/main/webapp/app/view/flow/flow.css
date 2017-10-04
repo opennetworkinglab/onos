@@ -64,10 +64,20 @@
 #flow-details-panel h2 {
     display: inline-block;
     margin: 8px 0;
+    font-size: 16pt;
+    font-weight: lighter;
+}
+
+#flow-details-panel h3 {
+    display: inline-block;
+    margin: 8px 0;
+    font-size: 11pt;
+    font-variant: small-caps;
+    text-transform: uppercase;
 }
 
 #flow-details-panel .top-content table {
-    font-size: 12pt;
+    font-size: 10pt;
 }
 
 #flow-details-panel td.label {
