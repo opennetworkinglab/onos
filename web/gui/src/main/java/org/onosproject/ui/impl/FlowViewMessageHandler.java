@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
@@ -76,7 +77,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String SELECTOR = "selector";
     private static final String TREATMENT_C = "treatment_c"; // for table column
     private static final String TREATMENT = "treatment";
-    private static final String TIMEOUT = "timeout";
+    private static final String IDLE_TIMEOUT = "idleTimeout";
+    private static final String HARD_TIMEOUT = "hardTimeout";
     private static final String PERMANENT = "permanent";
     private static final String STATE = "state";
     private static final String PACKETS = "packets";
@@ -134,7 +136,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             APP_NAME,
 
             GROUP_ID,
-            TIMEOUT,
+            IDLE_TIMEOUT,
             PERMANENT,
 
             SELECTOR_C,
@@ -170,7 +172,11 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private String makeAppName(short id, Map<Short, ApplicationId> lookup) {
         ApplicationId appId = lookup.get(id);
         if (appId == null) {
-            return UNKNOWN + SPACE + ANGLE_O + id + ANGLE_C;
+            appId = get(CoreService.class).getAppId(id);
+            if (appId == null) {
+                return UNKNOWN + SPACE + ANGLE_O + id + ANGLE_C;
+            }
+            lookup.put(id, appId);
         }
         String appName = appId.name();
         return appName.startsWith(ONOS_PREFIX)
@@ -238,7 +244,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                     .cell(APP_NAME, makeAppName(flow.appId(), lookup))
 
                     .cell(GROUP_ID, flow.groupId().id())
-                    .cell(TIMEOUT, flow.timeout())
+                    .cell(IDLE_TIMEOUT, flow.timeout())
                     .cell(PERMANENT, flow.isPermanent())
 
                     .cell(SELECTOR_C, flow)
@@ -415,7 +421,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 data.put(APP_NAME, makeAppName(flow.appId(), appShortMap()));
 
                 data.put(GROUP_ID, decorateGroupId(flow));
-                data.put(TIMEOUT, flow.hardTimeout());
+                data.put(IDLE_TIMEOUT, flow.timeout());
+                data.put(HARD_TIMEOUT, flow.hardTimeout());
                 data.put(PERMANENT, flow.isPermanent());
 
                 data.set(SELECTOR, jsonCriteria(flow));

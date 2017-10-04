@@ -30,8 +30,6 @@
         pHeight,
         top,
         topTable,
-        trtDiv,
-        selDiv,
         topSelTable,
         topTrtTable,
         iconDiv,
@@ -39,7 +37,7 @@
 
     // constants
     var topPdg = 28,
-        wtPdg = 532,
+        wtPdg = 400,
 
         pName = 'flow-details-panel',
         detailsReq = 'flowDetailsRequest',
@@ -59,7 +57,8 @@
             'appId',
 
             'groupId',
-            'timeout',
+            'idleTimeout',
+            'hardTimeout',
             'permanent',
         ],
         friendlyProps = [
@@ -76,7 +75,8 @@
             'App ID',
 
             'Group ID',
-            'Timeout',
+            'Idle Timeout',
+            'Hard Timeout',
             'Permanent',
         ];
 
@@ -112,16 +112,12 @@
             .append('table');
         top.append('hr');
 
-        selDiv = container.append('div').classed('top', true);
-        selDiv.append('h2').text('Selector');
-        topSelTable = selDiv.append('div').classed('top-content', true)
-            .append('table');
-        selDiv.append('hr');
+        top.append('h3').text('Selector');
+        topSelTable = top.append('div').classed('top-content', true).append('table');
+        top.append('hr');
 
-        trtDiv = container.append('div').classed('top', true);
-        trtDiv.append('h2').text('Treatment');
-        topTrtTable = trtDiv.append('div').classed('top-content', true)
-            .append('table');
+        top.append('h3').text('Treatment');
+        topTrtTable = top.append('div').classed('top-content', true).append('table');
     }
 
     function addProp(tbody, label, value) {
