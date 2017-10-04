@@ -1098,7 +1098,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             if (buildIpv6Selector(filteredSelector, fwd) < 0) {
                 return Collections.emptyList();
             }
-            forTableId = UNICAST_ROUTING_TABLE;
+            //We need to set the proper next table
+            IpPrefix ipv6Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV6_DST)).ip();
+            if (ipv6Dst.isMulticast()) {
+                forTableId = MULTICAST_ROUTING_TABLE;
+            } else {
+                forTableId = UNICAST_ROUTING_TABLE;
+            }
+
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
