@@ -16,7 +16,7 @@ COPY . /src/onos/
 # FIXME - dependence on ONOS_ROOT and git at build time is a hack to work around
 # build problems
 WORKDIR /src/onos
-RUN apt-get update && apt-get install -y zip python git && \
+RUN apt-get update && apt-get install -y zip python git bzip2 && \
         export ONOS_ROOT=/src/onos && \
         tools/build/onos-buck build onos && \
         mkdir -p /src/tar && \
