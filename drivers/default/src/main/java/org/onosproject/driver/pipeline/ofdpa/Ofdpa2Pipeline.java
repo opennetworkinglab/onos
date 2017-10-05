@@ -21,6 +21,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -57,6 +58,8 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
@@ -93,6 +96,7 @@ import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
+import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
@@ -206,6 +210,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return true if match on in-port should be programmed
      */
     protected boolean matchInPortTmacTable() {
+        return true;
+    }
+
+    /**
+     * Determines whether matching L4 destination port on IPv6 packets is supported in ACL table.
+     *
+     * @return true if matching L4 destination port on IPv6 packets is supported in ACL table.
+     */
+    protected boolean supportIpv6L4Dst() {
         return true;
     }
 
@@ -953,6 +966,37 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                  * the ACL table.
                  */
                 log.warn("ICMPv6 Type and ICMPv6 Code are not supported");
+            } else if (criterion instanceof TcpPortCriterion || criterion instanceof UdpPortCriterion) {
+                // FIXME: QMX switches do not support L4 dst port matching in ACL table.
+                // Currently L4 dst port matching is only used by DHCP relay feature
+                // and therefore is safe to be replaced with L4 src port matching.
+                // We need to revisit this if L4 dst port is used for other purpose in the future.
+                if (!supportIpv6L4Dst() && isIpv6(fwd.selector())) {
+                    TpPort tpPort = (criterion instanceof TcpPortCriterion) ?
+                            ((TcpPortCriterion) criterion).tcpPort() :
+                            ((UdpPortCriterion) criterion).udpPort();
+                    TpPort tpMask = (criterion instanceof TcpPortCriterion) ?
+                            ((TcpPortCriterion) criterion).mask() :
+                            ((UdpPortCriterion) criterion).mask();
+                    switch (criterion.type()) {
+                        case UDP_DST:
+                            sbuilder.matchUdpSrc(tpPort);
+                            break;
+                        case UDP_DST_MASKED:
+                            sbuilder.matchUdpSrcMasked(tpPort, tpMask);
+                            break;
+                        case TCP_DST:
+                            sbuilder.matchTcpSrc(tpPort);
+                            break;
+                        case TCP_DST_MASKED:
+                            sbuilder.matchTcpSrcMasked(tpPort, tpMask);
+                            break;
+                        default:
+                            sbuilder.add(criterion);
+                    }
+                } else {
+                    sbuilder.add(criterion);
+                }
             } else {
                 sbuilder.add(criterion);
             }
@@ -1535,7 +1579,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return bosCriterion != null && !bosCriterion.mplsBos();
     }
 
-    protected static VlanId readVlanFromSelector(TrafficSelector selector) {
+    private static boolean isIpv6(TrafficSelector selector) {
+        EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) selector.getCriterion(ETH_TYPE);
+        return ethTypeCriterion != null && ethTypeCriterion.ethType().toShort() == Ethernet.TYPE_IPV6;
+    }
+
+    static VlanId readVlanFromSelector(TrafficSelector selector) {
         if (selector == null) {
             return null;
         }
@@ -1544,7 +1593,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 ? null : ((VlanIdCriterion) criterion).vlanId();
     }
 
-    protected static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
+    static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
         if (selector == null) {
             return null;
         }
