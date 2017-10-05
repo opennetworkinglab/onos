@@ -1,0 +1,1046 @@
+module optical-switch {
+    namespace "http://www.polatis.com/yang/optical-switch";
+    prefix opsw;
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+
+    organization "Polatis Limited";
+    contact
+        "Adam Hughes
+
+        Polatis Limited
+        332/2 Cambridge Science Park
+        Cambridge CB4 0WN
+        United Kingdom
+
+        Phone: +44 (0) 1223 424200
+        Email: yang-support@polatis.com";
+
+    description "Implements the data model for an Optical Circuit Switch";
+
+    revision "2017-08-04" {
+        description " 1. Removed the state and config data dependencies.
+                      2. Added new port configuration containers for better performance.
+                      3. Deprecated old ports/port container ";
+    }
+
+    revision "2017-06-13" {
+        description "Moved the common typedef into separate yang module";
+    }
+
+    revision "2017-02-09" {
+        description "Added APS container and notifications";
+    }
+
+    revision "2016-04-22" {
+        description "Added support for peer port configuration";
+    }
+
+    revision "2016-02-17" {
+        description "1. Added support for Variable Optical Attenuation
+                             2. Defined new portFormat datatype to represent non-zero port Id.
+                             3. Changed the default values of power-high-alarm from +100 to +25 and
+                                and for power-low-alarm from -100 to -60.";
+    }
+
+    revision "2015-09-14" {
+        description "Initial revision.";
+    }
+
+    typedef namesFormat {
+        type string {
+            pattern "[ -~]{1,128}"; // Trying to be 0x20 to 0x7e (7f is DEL).
+        }
+        description "Characters between 1-128, of printable ascii values, 0x20 07e";
+    }
+
+    typedef namesFormatNullable {
+        type string {
+            pattern "[ -~]{0,128}"; // Trying to be 0x20 to 0x7e (7f is DEL).
+        }
+        description "Characters between 0-128, of printable ascii values, 0x20 07e, so can be nullable";
+    }
+
+    typedef floatFormat2d {
+        type decimal64 {
+            fraction-digits 2;
+        }
+        description "Floating point number, displayed with 2 decimal places.";
+    }
+
+    typedef portFormat {
+        type uint32 {
+            range "1 .. 65535";
+        }
+    }
+
+    typedef PortStatus {
+        type enumeration {
+            enum PO_ENABLED  { value 1; }
+            enum PO_DISABLED { value 2; }
+            enum PO_FAILED   { value 3; }
+        }
+        description "ENABLED means that light can pass through the port, shutters are open.
+        DISABLED indicates the opposite. FAILED is reported when the port cannot be used.";
+    }
+
+    typedef apsOperationalState {
+        type enumeration {
+            enum ON_WORKING     { value 0; }
+            enum WORKING_FAIL   { value 1; }
+            enum SWITCH_PROT    { value 2; }
+            enum ON_PROTECT     { value 3; }
+            enum PROTECT_FAIL   { value 4; }
+            enum SWITCH_WORK    { value 5; }
+            enum NOT_APPLICABLE { value 6; }
+        }
+        description "Describes the currently operational state of a port in an aps-protection group,
+        be it on the worker, be it on the protected, or be it that both have failed in effect, which is
+        protect failed. Most of the states are for Worker ports, protect ports are marked NOT_APPLICABLE.";
+    }
+
+    typedef apsPortType {
+        type enumeration {
+            enum WORKER     { value 1; }
+            enum PROTECT    { value 2; }
+        }
+        description "The type of the aps port. They are either a worker, or a port which is protecting one or many
+        working ports.";
+    }
+
+    typedef apsFlags {
+        type bits {
+            bit GLP {position 0;}
+            bit FTP {position 1;}
+            bit FTW {position 2;}
+            bit MTP {position 3;}
+            bit MTW {position 4;}
+            bit DNR {position 5;}
+        }
+        description "Commands which can be sent to an aps-port, they are:
+            GLP - Global Lock Protect
+            FTP - Force switch to Protector
+            FTW - Force switch to Worker
+            MTP - Manual switch To Protector
+            MTW - Manual switch To Worker
+            DNR - Do Not Revert
+            Lack of any of these bits are clear of that status, so a total clear is 000000";
+    }
+
+    typedef hostFormat {
+        type string {
+            pattern "[ -~]{1,64}"; // 0x20 to 07e
+        }
+        description "Characters between 1-64 length, of printable ascii values, 0x20 07e";
+    }
+
+    typedef secretFormat {
+        type string {
+            pattern "[a-zA-Z0-9]{1,128}"; // Alphanumeric
+        }
+        description "Characters between 1-128 length, alphanumeric";
+    }
+
+    container product-information {
+        config false;
+        leaf manufacturer {
+            type string;
+            description "Name of the manufacturer";
+        }
+        leaf serial-number {
+            type string;
+            description "Unique number given to the product during manufacturing.";
+        }
+        leaf model-name {
+            type string;
+            description "Describes the product and the features that the product supports.";
+        }
+        leaf software-version {
+            type string;
+            description "Version of the software that is currently running on the optical switch";
+        }
+    }
+
+    container port-config {
+        list port {
+            key port-id;
+            leaf port-id {
+                type portFormat;
+                description "Unique Id for port";
+            }
+            leaf status {
+                config false;
+                type enumeration {
+                    enum UNSUPPORTED   { value 0; }
+                    enum ENABLED       { value 1; }
+                    enum DISABLED      { value 2; }
+                    enum FAILED        { value 3; }
+                }
+                description "Status of port. When status is ENABLED optical path is clear and signal
+                passes through. When the status is DISABLED optical signal is blocked. When status
+                is UPSUPPORTED port doesn't have the enable/disable feature on that port. And, when
+                the port has failed to report its status correctly status is FAILED. ";
+            }
+            leaf label {
+                type namesFormatNullable;
+                default "";
+
+                description "When set, notifications sent by the server will include the label.";
+            }
+            leaf peer-port {
+                type namesFormatNullable;
+                default "";
+
+                description "This leaf describes the remote port on another switch to which this
+                port is connected physically through the optical fibres. Management interface can
+                set this parameter to configure the network topology.";
+            }
+        }
+    }
+    rpc port-set-state {
+        input {
+            leaf-list port-enab {
+                type portFormat;
+                description "List of port-ids that will be enabled after the RPC finishes successfully.";
+            }
+            leaf-list port-disab {
+                type portFormat;
+                description "List of port-ids that will be enabled after the RPC finishes successfully.";
+            }
+        }
+        description "This RPC is used to enable or disable an port. When the port is disabled
+        optical signal is blocked. When the port is enabled optical path is clear and signal passes through.";
+    }
+
+    container opm-power {
+        config false;
+        list port {
+            key port-id;
+            leaf port-id {
+                type opsw:portFormat;
+                description "Id of the Switch port with OPM sensors.";
+            }
+            leaf power {
+                type opsw:floatFormat2d;
+                description "Optical signal strength that is read at the OPM sensor. Specified in dbm.";
+            }
+            description "List of OPM sensors that return the optical signal strength in the fibre.";
+        }
+    }
+    container opm-config {
+        list port {
+            key port-id;
+            leaf port-id {
+                type opsw:portFormat;
+                description "Switch port with OPM";
+            }
+            leaf wavelength {
+                type opsw:floatFormat2d {
+                    range 1260.0..1640.0;
+                }
+                default 1550.0;
+
+                description "Wavelength against which the power measurements are calibrated.
+                specified in nm.";
+            }
+            leaf offset {
+                type opsw:floatFormat2d {
+                    range -100.0..100.0;
+                }
+                default 0;
+
+                description "Offset for the power measurement; the value is added to power
+                monitor measurements when reporting /opsw:ports/opsw:port[]/opsw:opm/opsw:power.
+                Thus, specifying an offset can be used as a means of referencing the power
+                monitors against external meters.
+                It should be noted that the offset feature does NOT impact the behaviour
+                of the alarm or attenuation features:
+                alarm and attenuation settings always operate relative to the actual
+                power monitor readings, i.e. without any user-specified offsets.
+                Specified in dBm.";
+            }
+            leaf averaging-time {
+                type uint32 {
+                    range "1..8";
+                }
+                default 4;
+
+                description "Selects the period for which the power average is calculated. Each increment
+                in this value doubles the length of the time for which the OPM power readings are averaged.
+                Setting the value to 1 results in the shortest averaging period, around 10ms.
+                Setting the value to 8 results in the longest averaging period, 128 times greater.";
+            }
+        }
+    }
+    container opm-alarm-config {
+        list port {
+            key port-id;
+            leaf port-id {
+                type opsw:portFormat;
+                description "Switch port with OPM";
+            }
+            leaf mode {
+                type enumeration {
+                    enum POWER_ALARM_DISABLED;
+                    enum POWER_ALARM_ENABLED;
+                }
+                default POWER_ALARM_DISABLED;
+
+                description "Power alarms or notifications from ports can be individually enabled or disabled.
+                When enabled, Loss of Signal (LOS) or Signal Degrade notifications are generated when power
+                levels cross the set thresholds";
+            }
+            leaf signal-loss-threshold {
+                type opsw:floatFormat2d;
+                default -60.0;
+
+                description "The switch will generate loss of service notifications should the power
+                level go below this threshold. Specified in dBm.";
+            }
+            leaf signal-degrade-threshold {
+                type opsw:floatFormat2d;
+                default -60.0;
+
+                description "The switch can generate warning (signal degrade) notifications should the
+                power level go below the configured warning threshold. Specified in dBm.";
+            }
+            leaf signal-high-threshold {
+                type opsw:floatFormat2d;
+                default 25.0;
+
+                description "The switch will generate notifications should the power level go beyond this
+                level. Specified in dBm.";
+            }
+            leaf alarm-clear-holdoff {
+                type uint32;
+                default 10;
+
+                description "Minimum time (in seconds) for which the optical power level needs
+                to be restored within the power alarm thresholds for the switch to generate
+                an alarm clear notification.";
+            }
+        }
+    }
+
+    container voa {
+        list port {
+            key port-id;
+            leaf port-id {
+                type opsw:portFormat;
+                description "Switch port with VOA";
+            }
+            leaf atten-mode {
+                type enumeration {
+                    enum VOA_MODE_NONE        { value 0; }
+                    enum VOA_MODE_RELATIVE    { value 1; }
+                    enum VOA_MODE_ABSOLUTE    { value 2; }
+                    enum VOA_MODE_CONVERGED   { value 3; }
+                    enum VOA_MODE_MAXIMUM     { value 4; }
+                    enum VOA_MODE_FIXED       { value 5; }
+                }
+                default VOA_MODE_NONE;
+
+                description " VOA_MODE_NONE: Attenuation on the port is disabled. The light on the port will
+                have the actual power level. VOA_MODE_ABSOLUTE:  Port will achieve the configured attentuation
+                level and power of the light on the port will have the absolute level configured.
+                VOA_MODE_RELATIVE:  Port will achieve the attentuation with respect to the power of the light
+                of the reference port. The actual attenuation achieved depends on the configured level and
+                power of the light of the reference port. VOA_MODE_CONVERGED: This is similar in behaviour to
+                ABSOLUTE mode, but once the attenuation converges to the desired level the switch freezes the
+                VOA control loop. This reduces noise caused by the control loop continually striving to improve
+                the attenuation. VOA_MODE_MAXIMUM: Port will achieve the maximum attenuation level. In this
+                case configured attenuation level is not used. VOA_MODE_FIXED: Disables closed loop updating
+                of the attenuation feature for the specified port. Following issuance of this command, the port
+                will continue to hold their current attenuation level without any optical feedback. Thus, any
+                changes in input power levels will no longer be tracked";
+            }
+            leaf atten-level {
+                when "../atten-mode = 'VOA_MODE_ABSOLUTE' or ../atten-mode = 'VOA_MODE_RELATIVE'" +
+                     "or ../atten-mode = 'VOA_MODE_CONVERGED'";
+                type opsw:floatFormat2d;
+                default 0;
+
+                description "The attenuated output level configured for this port. Specified in dBm
+                (or dB for RELATIVE as it is an offset value with respect to reference port).";
+            }
+            leaf reference-port {
+                when "../atten-mode = 'VOA_MODE_RELATIVE'";
+                type uint32;
+                default 0;
+
+                description "Reference port for attenuation (for use with relative attenuation only). If this port
+                is specified as zero then the default reference port will be used. The default port is the ingress
+                to which the egress port being attenuated is connected. For attenuation states other than RELATIVE
+                this data is ignored. When reading this object, a value of zero is returned for all modes other
+                than RELATIVE. For relative attenuation, the value returned is the current reference port in use.";
+            }
+        }
+    }
+
+    container ports {
+        status "deprecated";
+        list port {
+            key port-id;
+            leaf port-id {
+                type portFormat;
+                description "Unique Id for port";
+            }
+            leaf port-label {
+                type namesFormatNullable;
+                description "When set, notifications will include the label.";
+        }
+            leaf port-state {
+                type enumeration {
+                    enum PC_ENABLED { value 1; }
+                    enum PC_DISABLED { value 2; }
+                }
+                default PC_ENABLED;
+
+                description "State of a port shutter. When port is enabled, shutter is open and
+                when port is disabled, shutter is closed.";
+            }
+            leaf port-status {
+                config false;
+                type PortStatus;
+
+                description "Switch port status. The switch can report FAILED port status when the port fails to
+                correctly report its state";
+            }
+            leaf peer-port {
+                type namesFormatNullable;
+
+                description "This leaf describes the remote port on another switch to which this
+                port is connected physically through the optical fibres. Management interface can
+                set this parameter to configure the network topology.";
+            }
+            container opm {
+                description "Optical Power Monitor (OPM) measures the optical signal strength in the fibre.";
+
+                leaf lambda {
+                    type floatFormat2d;
+                    default 1550.0;
+
+                    description "Wavelength against which the power measurements are calibrated.
+                    Specified in nm.";
+                }
+                leaf power-high-alarm {
+                    type floatFormat2d;
+                    default 25.0;
+
+                    description "The switch will generate notifications should the power level go beyond this
+                    level. Specified in dBm.";
+                }
+                leaf power-low-alarm {
+                    type floatFormat2d;
+                    default -60.0;
+
+                    description "The switch will generate notifications should the power level go below this
+                    level. Specified in dBm.";
+                }
+                leaf power-high-warning-offset {
+                    type floatFormat2d;
+                    default 0;
+
+                    description "The switch will generate (warning) notifications should the power go beyond
+                    the set level. This warning offset is subtracted from power-high-alarm to get the warning threshold.
+                    A zero value means that warnings are disabled. Specified in dBm.";
+                }
+                leaf power-low-warning-offset {
+                    type floatFormat2d;
+                    default 0;
+
+                    description "The switch can generate (warning) notifications should the power go below
+                    the set level. This warning offset is added into power-low-alarm to get the warning threshold.
+                    A zero value means that warnings are disabled. Specified in dBm.";
+                }
+                leaf power-alarm-control {
+                    type enumeration {
+                        enum POWER_ALARM_DISABLED;
+                        enum POWER_ALARM_SINGLE;
+                        enum POWER_ALARM_CONTINUOUS;
+                    }
+                    default POWER_ALARM_DISABLED;
+
+                    description "Power alarms or notifications from ports can be individually enabled or disabled.
+                    When power-alarm-control is POWER_ALARM_SINGLE then only one alarm is generated, following
+                    which power-alarm-control reverts to POWER_ALARM_DISABLED.
+                    When power-alarm-control is POWER_ALARM_CONTINUOUS then power alarms are always generated
+                    when power levels exceed the defined power alarm thresholds.";
+                }
+                leaf power-alarm-status {
+                    config false;
+                    type enumeration {
+                        enum POWER_ALARM_STATUS_OFF;
+                        enum POWER_ALARM_STATUS_ARMED;
+                        enum POWER_ALARM_STATUS_TRIGGERED;
+                    }
+
+                    description "POWER_ALARM_STATUS_OFF       - Power alarms are not enabled.
+                                 POWER_ALARM_STATUS_ARMED     - Alarms can be generated.
+                                 POWER_ALARM_STATUS_TRIGGERED - Port has an active alarm. When the alarm
+                                                                clears, power-alarm-status will change to
+                                                                one of POWER_ALARM_STATUS_OFF or
+                                                                POWER_ALARM_STATUS_ARMED depending on the
+                                                                power-alarm-control mode.";
+                }
+                leaf power {
+                    config false;
+                    type floatFormat2d;
+
+                    description "Power readings for this port. Specified in dBm.";
+                }
+                container voa {
+
+                    description "Variable Optical Attenuation (VOA) functionality controls the the optical
+                    power level of light on the port. It allows to set the desired attenuation level
+                    that the port should achieve.";
+
+                    leaf attenuation-level {
+                        type floatFormat2d;
+                        default 0;
+
+                        description "The attenuated output level configured for this port. Specified in dBm
+                        (or dB for RELATIVE as it is an offset value with respect to reference port).";
+                    }
+                    leaf attenuation-mode {
+                        type enumeration {
+                            enum VOA_ATTEN_MODE_NONE        { value 1; }
+                            enum VOA_ATTEN_MODE_ABSOLUTE    { value 2; }
+                            enum VOA_ATTEN_MODE_RELATIVE    { value 3; }
+                            enum VOA_ATTEN_MODE_VENDOR      { value 128; }
+                        }
+                        default VOA_ATTEN_MODE_NONE;
+
+                        description " VOA_ATTEN_MODE_NONE: Attenuation on the port is disabled. The light on the
+                        port will have the actual power level. VOA_ATTEN_MODE_ABSOLUTE: Port will achieve the configured
+                        attentuation level and power of the light on the port will have the absolute level configured.
+                        VOA_ATTEN_MODE_RELATIVE: Port will achieve the attentuation with respect to the power of the light
+                        of the reference port. The actual attenuation achieved depends on the configured level and power
+                        of the light of the reference port. VOA_ATTEN_MODE_VENDOR: This is vendor specific mode.";
+                    }
+                    leaf attenuation-reference-port {
+                        type uint32;
+                        default 0;
+
+                        description "Reference port for attenuation (for use with relative attenuation only). If this port
+                        is specified as zero then the default reference port will be used. The default port is the ingress
+                        to which the egress port being attenuated is connected. For attenuation states other than RELATIVE
+                        this data is ignored. When reading this object, a value of zero is returned for all modes other
+                        than RELATIVE. For relative attenuation, the value returned is the current reference port in use.";
+                    }
+                }
+            }
+        }
+    }
+
+    container cross-connects {
+        list pair {
+            key ingress;
+            leaf ingress {
+                type portFormat;
+                description "Input port that makes the connection pair.";
+            }
+            leaf egress {
+                type portFormat;
+                description "Output port that makes the connection pair.";
+            }
+        }
+        description "List of all cross connections in the system.";
+    }
+
+    grouping network-interface-group {
+        leaf ip-address {
+            type inet:ip-address;
+            description "IP address of the switch control plane.";
+        }
+        leaf gateway {
+            type inet:ip-address;
+            description "Gateway address for the switch control plane.";
+        }
+        leaf subnet {
+            type inet:ip-address;
+            description "Subnet to which the switch control plane belongs.";
+        }
+        leaf broadcast {
+            type inet:ip-address;
+            description "Broadcast IP address for the switch control plane.";
+        }
+    }
+
+    container system-config {
+        list interface-status {
+            config false;
+            key name;
+
+            leaf name {
+                type string;
+                description "Unique name of the network interface";
+            }
+            uses network-interface-group;
+            leaf hw-addr {
+                type yang:mac-address;
+            }
+            description "List of Switch network interface and their current running configuration.";
+        }
+        list interface {
+            key name;
+            unique ip-address;
+
+            leaf name {
+                type string;
+                description "Unique name of the network interface";
+            }
+            uses network-interface-group;
+
+            description "List of Switch network interfaces and their user configuration.
+            On system restart, switch will start to use this configuration as their running
+            configuration.";
+        }
+        list user {
+            key name;
+            leaf name {
+                type namesFormat;
+                description "The user name string identifying this entry.";
+            }
+            leaf type {
+                type enumeration {
+                    enum RADIUS_USER { value 1; }
+                    enum LOCAL_USER  { value 2; }
+                }
+                mandatory true;
+                description "Type of user. When set to RADIUS_USER, the user will be authenticated against the radius-servers.
+                When set to LOCAL_USER, user will be authenticated locally.";
+            }
+            leaf password {
+                when "../type != 'RADIUS_USER'";
+
+                type namesFormatNullable;
+                description "The password for this entry. May not be set to empty, but will report empty.
+                If set to 'RADIUS' it will report 'RADIUS', and the user will authenticate against radius-servers.";
+            }
+            list authorized-key {
+                when "../type != 'RADIUS_USER'";
+
+                key name;
+                description "A list of public SSH keys for this user. These keys are allowed for SSH
+                authentication, as described in RFC 4253.";
+                reference "RFC 4253: The Secure Shell (SSH) Transport Layer Protocol";
+                leaf name {
+                    type string;
+                    description "An arbitrary name for the SSH key.";
+                }
+                leaf algorithm {
+                    type string;
+                    mandatory true;
+                    description "The public key algorithm name for this SSH key. Valid values are the
+                    values in the IANA 'Secure Shell (SSH) Protocol Parameters' registry, Public Key
+                    Algorithm Names.";
+                    reference "IANA 'Secure Shell (SSH) Protocol Parameters' registry, Public Key
+                    Algorithm Names";
+                }
+                leaf key-data {
+                    type binary;
+                    mandatory true;
+                    description "The binary public key data for this SSH key, as specified by RFC 4253,
+                    Section 6.6, i.e.: string certificate or public key format identifier byte[n]
+                    key/certificate data.";
+                    reference "RFC 4253: The Secure Shell (SSH) Transport Layer Protocol";
+                }
+            }
+            description "The list of local users configured on this device. This model is adopted from
+            System Management yang model. (https://tools.ietf.org/html/rfc7317)";
+        }
+        container activity-log
+        {
+            leaf log-filter {
+                type bits {
+                    bit SYSTEM {position 0;}
+                    bit USER   {position 1;}
+                    bit OXC    {position 2;}
+                    bit OPM    {position 3;}
+                }
+            }
+            leaf log-access {
+                type enumeration {
+                    enum NONE { value 0; }
+                    enum SELF { value 1; }
+                    enum ALL  { value 2; }
+                }
+                default NONE;
+            }
+            leaf logging-enabled {
+                type boolean;
+                default false;
+            }
+        }
+        container radius-servers
+        {
+            list radius-server {
+                key "ip-address port";
+
+                leaf ip-address {
+                    type inet:ip-address;
+                    description "Ip address of the radius server.";
+                }
+                leaf port {
+                    type uint32;
+                    description "Port of the radius server.";
+                }
+                leaf secret {
+                    type secretFormat;
+                    mandatory true;
+                    description "The secret used to authenticate with the radius server.";
+                }
+                leaf timeout {
+                    type uint32 {
+                        range "1..30";
+                    }
+                    default 3;
+                    description "Length of time in seconds before timing out on connection to server.";
+                }
+            }
+            description "The list of radius servers for the nic, the order of the list determines the priority of usage.";
+        }
+        container ntp-servers
+        {
+            list ntp-server {
+                key ip-address;
+
+                leaf ip-address {
+                    type inet:ip-address;
+                    description "The ip address of a ntp server to use";
+                }
+                leaf minpoll {
+                    type uint32 {
+                        range "4..6";
+                    }
+                    default 6;
+                    description "The minimum polling in seconds";
+                }
+                leaf maxpoll {
+                    type uint32 {
+                        range "10..17";
+                    }
+                    default 10;
+                    description "The maximum polling in seconds";
+                }
+                leaf version {
+                    type uint32 {
+                        range "1..4";
+                    }
+                    default 4;
+                    description "The version that the ntp server runs.";
+                }
+            }
+            description "The list of ntp servers in order of usage to get the ntp time";
+        }
+        container remote-syslog
+        {
+            leaf rname {
+                type inet:ipv4-address;
+                description "IPv4 address of remote collector.  Use 0.0.0.0 to disable sending.  This field will change to inet:host type.";
+            }
+            leaf rport {
+                type inet:port-number;
+                description "UDP port receiving syslog on 'rname'. Set to zero to use the default (514).";
+            }
+            leaf facility {
+                type enumeration {
+                    enum USER { value 8; }
+                    enum LOCAL0 { value 128; }
+                    enum LOCAL1  { value 136; }
+                    enum LOCAL2  { value 144; }
+                    enum LOCAL3  { value 152; }
+                    enum LOCAL4  { value 160; }
+                    enum LOCAL5  { value 168; }
+                    enum LOCAL6  { value 176; }
+                    enum LOCAL7  { value 184; }
+                }
+                default USER;
+                description "The facility to send messages under.  See RFC 3164.  All values are 8 times the value listed in the RFC, to pack the severity value in the low bits.";
+            }
+            must "(boolean(rname) = true() and string(rname) != '0.0.0.0') or (boolean(rport) = false() or rport = 0)" { error-message "Cannot have port without name"; }
+            description "The destination for syslog messages. ";
+        }
+        container protocols
+        {
+            list protocol {
+                key protocol-id;
+
+                leaf protocol-id {
+                    type uint32;
+                }
+                leaf protocol-name {
+                    config false;
+                    type string;
+                }
+                leaf protocol-type {
+                    config false;
+                    type string;
+                }
+                leaf protocol-port {
+                    config false;
+                    type uint32;
+                }
+                leaf enabled {
+                    type boolean;
+                    default true;
+                }
+            }
+        }
+
+        leaf current-datetime {
+            config false;
+            type yang:date-and-time;
+
+            description "The current system date and time.";
+        }
+        leaf boot-datetime {
+            config false;
+            type yang:date-and-time;
+
+            description "The system date and time when the system last restarted.";
+        }
+
+        leaf alarm-clear-hysteresis {
+            type decimal64 {
+                fraction-digits 2;
+                range "1..5";
+            }
+
+            default 1;
+
+            description "Added to 'power-low-alarm' and subtracted from 'power-high-alarm'
+            to generate alarm clear notifications. Specified in dBm.";
+        }
+
+    }
+
+    // APS config and status
+    container aps
+    {
+        description "Automatic Protection Switching (APS) feature provides optical redundancy on the Polatis switch.
+        When the switch detects signal failure on the primary optical path, it automatically switches to an alternative
+        optical path. The switch also provides manual operation through which the optical paths can be changed.
+        APS feature consists of list of protection service, where each service is list of working and protection ports. ";
+        list protection-service
+        {
+            description "This the list of APS protection services on the system";
+            key sname;
+            leaf sname {
+                type namesFormat;
+                description "Protection Service name. Should be unique on the switch.";
+            }
+            leaf active
+            {
+                config false;
+                type boolean;
+                description "Whether the Protection Service is Active, or in Config mode.";
+            }
+            list working-port
+            {
+                key port-id;
+
+                description "This the list of APS port configurations on the system. This defines the APS service, and
+                generates port-status and protection-services to represent them";
+
+                leaf port-id
+                {
+                    type portFormat;
+                }
+                leaf client
+                {
+                    type uint32;
+                    mandatory true;
+                    description "Client port to which the working will connect when the service is activated.";
+                }
+                leaf priority
+                {
+                    type uint32;
+                    default 0;
+                    description "A number to be used when deciding the priority of protection switched when there is contention.";
+                }
+                leaf wtr-timeout
+                {
+                    type uint32;
+                    default 0;
+                    description "Wait To Restore timeout value. The amount, in seconds, before a restore is possible on this port.";
+                }
+                leaf ovs
+                {
+                    type boolean;
+                    default false;
+                    description "Override Valid Signal. Allows us to override the need for a valid signal in manual/automatic switch.";
+                }
+                leaf protected-port
+                {
+                    config false;
+
+                    type uint32;
+                    description "If a worker port, and is currently being protected, it is the port id of the protecting port.
+                    If not being protected, it is 0. Vice versa if it is a protecting port.";
+                }
+                leaf operational-state
+                {
+                    config false;
+
+                    type apsOperationalState;
+                    description "The current operational state of the port, being working, protected, protection failed. This does not apply for PROTECTED ports.";
+                }
+                leaf user_command
+                {
+                    config false;
+                    type apsFlags;
+                }
+            }
+            leaf-list protection-port
+            {
+                type uint32;
+                description "";
+            }
+        }
+    }
+
+    rpc set-current-datetime {
+        description "Set the /product-information/clock/current-datetime leaf to the specified value.
+        Also changes /product-information/clock/boot-datetime, relative to current-datetime";
+        input {
+            leaf current-datetime {
+                type yang:date-and-time;
+                mandatory true;
+                description "The current system date and time.";
+            }
+        }
+    }
+
+    rpc system-restart {
+        description "Request to restart the Network Interface Card (NIC).";
+        input {
+            leaf seconds {
+                type uint32;
+                default 0;
+
+                description "Restart the system in the specified time. Given in seconds.
+                Value of 0 will restart the system immediately, and in that case there
+                won't be any response";
+            }
+        }
+    }
+
+    rpc system-restart-cancel {
+        description "Request to cancel the restart. This has no effect when
+        system-restart was not requested. Cancel is done immediately";
+    }
+
+    // APS rpcs and notification
+    rpc aps-command {
+        description "This is a command to apply flags to a number of ports at the same time.
+        You can provide either the sname of the service, to do all ports for that service, or
+        specify ports, which do not have to be on the same protection service.
+        The command is applied via combination of a bitwise mask and bitwise command values, to set/unset
+        different attributes at the same time. Some combinations are mutually exclusive:
+        GLP/FTP/FTW/MTP/MTW are exclusive to each other.
+
+        Some commands are per port, and some per service (GLP). This is why the choice of a service name, or ports are provided.";
+
+        input {
+            leaf mask {
+                type apsFlags;
+                mandatory true;
+            }
+            leaf flags {
+                type apsFlags;
+                mandatory true;
+            }
+            choice parameter
+            {
+                mandatory true;
+                leaf sname
+                {
+                    type namesFormat;
+                }
+                list port
+                {
+                    key port-id;
+                    leaf port-id         { type portFormat; }
+                    leaf target-port-id
+                    {
+                        type uint32;
+                        default 0;
+                        description "This is an optional parameter, used when a target is also needed, ie: FTP/MTP on
+                        M:N protection, where you wish to switch to a specific protection port. It is ignored on other cases.";
+                    }
+                    description "The port-id is in effect mandatory to specify a source port.";
+                }
+            }
+        }
+    }
+
+    rpc aps-activate {
+        description "Used to activate or deactive a protection service.";
+        input {
+            leaf sname {
+                type namesFormat;
+            }
+            leaf active {
+                type boolean;
+                mandatory true;
+            }
+        }
+    }
+
+    rpc radius-server-set-position {
+        description "Used to change the order of radius-servers.";
+        input {
+            leaf ip-address {
+                type inet:ip-address;
+                mandatory true;
+
+                description "Ip address of the radius server.";
+            }
+            leaf port {
+                type portFormat;
+                mandatory true;
+
+                description "Port of the radius server.";
+            }
+            leaf position {
+                type int32;
+                mandatory true;
+
+                description "Position, either explicit, from 0, or -1 to move to end";
+            }
+        }
+    }
+    notification aps-notification {
+        description "This is the notification which is sent whenever an operational state changes.";
+        leaf notification-type {
+            type apsOperationalState;
+        }
+        leaf notification-details { type string; }
+    }
+    container subswitches {
+        list subswitch {
+            key "sname";
+            leaf sname {
+                type string;
+                description "The sub-switch name";
+            }
+            leaf-list username {
+                type string;
+                description "The user associated with the sub-switch";
+            }
+            leaf-list port-id {
+                type uint32;
+                description "The port number of the sub-switch";
+            }
+        }
+    }
+}
+

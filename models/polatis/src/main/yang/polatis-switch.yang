@@ -1,0 +1,479 @@
+module polatis-switch {
+    namespace "http://www.polatis.com/yang/polatis-switch";
+    prefix plts;
+
+    import optical-switch {
+        prefix opsw;
+    }
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+
+    organization "Polatis Limited";
+    contact
+        "Adam Hughes
+
+        Polatis Limited
+        332/2 Cambridge Science Park
+        Cambridge CB4 0WN
+        United Kingdom
+
+        Phone: +44 (0) 1223 424200
+        Email: yang-support@polatis.com";
+
+    description "This module describes features that are specific to Polatis optical switches";
+
+    revision "2017-05-30" {
+        description "1. Added support for activity-log configuration and notifications.
+                     2. Added an RPC to get current system alarm
+                     3. Added the default value for enable-notifications. ";
+    }
+    revision "2016-04-22" {
+        description "1. Added support for the smart fibre Id identification and reporting.
+                     2. Added support for configuring and operation programmable shutters. ";
+    }
+    revision "2016-02-17" {
+        description "1. Added Polatis specific Variable Optical Attenuation (VOA) modes
+                     2. Changed the data type for power alarm hysteresis and defined the range.";
+    }
+    revision "2015-09-14" {
+        description "Initial revision.";
+    }
+
+    augment /opsw:ports/opsw:port {
+        leaf fibre-id {
+            type string;
+
+            config false;
+
+            description "Id of the smart fibre that is connected to this port. Polatis switches report
+            'NA' if smart fibre is not connected on this port. Management interface can find matching Id
+            from a different switch to establish the network topology.";
+        }
+    }
+    augment /opsw:ports/opsw:port/opsw:opm {
+        leaf offset {
+            type opsw:floatFormat2d;
+
+            default 0;
+
+            description "Offset for the power measurement; the value is added to power
+            monitor measurements when reporting /opsw:ports/opsw:port[]/opsw:opm/opsw:power.
+            Thus, specifying an offset can be used as a means of referencing the power
+            monitors against external meters.
+            It should be noted that the offset feature does NOT impact the behaviour
+            of the alarm or attenuation features:
+            alarm and attenuation settings always operate relative to the actual
+            power monitor readings, i.e. without any user-specified offsets.
+            Specified in dBm.";
+        }
+        leaf averaging-time-select {
+            type uint8 {
+                range "1..8";
+            }
+
+            default 4;
+
+            description "Selects the averaging period; each increment
+            in this value doubles the length of the time for which the OPM power
+            readings are averaged.
+            Setting the value to 1 results in the shortest averaging period, around 10ms.
+            Setting the value to 8 results in the longest averaging period, 128 times greater.";
+        }
+        leaf power-alarm-hysteresis {
+            type decimal64 {
+                fraction-digits 2;
+                range "1..5";
+            }
+
+            default 1;
+
+            description "Added to 'power-low-alarm' and subtracted from 'power-high-alarm'
+            to generate alarm clear notifications. Specified in dBm.";
+        }
+        leaf power-alarm-clear-holdoff {
+            type uint32;
+            default 10;
+
+            description "Minimum time (in seconds) for which the optical power level needs
+            to be restored within the power alarm thresholds for the switch to generate
+            an alarm clear notification.";
+        }
+    }
+    augment /opsw:ports/opsw:port/opsw:opm/opsw:voa {
+        leaf polatis-atten-modes {
+            type enumeration {
+                enum VOA_ATTEN_MODE_CONVERGED   { value 1; }
+                enum VOA_ATTEN_MODE_MAXIMUM     { value 2; }
+                enum VOA_ATTEN_MODE_FIXED       { value 3; }
+            }
+            description " VOA_ATTEN_MODE_CONVERGED: This is similar in behaviour to ABSOLUTE mode, but once
+                        the attenuation converges to the desired level the switch freezes the VOA control loop.
+            This reduces noise caused by the control loop continually striving to improve the attenuation.
+            VOA_ATTEN_MODE_MAXIMUM: Port will achieve the maximum attenuation level. In this case configured
+            attenuation level is not used.
+            VOA_ATTEN_MODE_FIXED: Disables closed loop updating of the attenuation feature for the specified port.
+            Following issuance of this command, the port will continue to hold their current attenuation level
+                        without any optical feedback. Thus, any changes in input power levels will no longer be tracked";
+        }
+    }
+    augment "/opsw:system-config" {
+        leaf startup-mode {
+            type enumeration {
+                enum MODE_VOLATILE;
+                enum MODE_PRESERVE;
+            }
+            default MODE_PRESERVE;
+
+            description "Specifies that the configuration needs to be stored
+            across a system-reset. When the mode is set to MODE_PRESERVE all new configurations will
+            be saved and switch will boot to last saved configuration. When the startup mode is MODE_VOLATILE
+            the switch will not retain the given configuration through system reset.";
+        }
+        list logged-in-users {
+            config false;
+            key username;
+
+            leaf username {
+                type opsw:namesFormat;
+            }
+
+            description "Users that are currently logged into the system.";
+        }
+    }
+    augment "/opsw:system-config/opsw:user" {
+        leaf group {
+            type enumeration {
+                enum "admin";
+                enum "user";
+                enum "view";
+            }
+            description "The permissions group to which user belongs.
+            Users in 'admin' group can read and write every data defined for the switch. They can
+            create, delete or edit users, change system-config data.
+            Users in 'user' group cannot change anything in the 'opsw:system-config', otherwise
+            they can change port configuration, cross-connect, only view notification log;
+            Users in 'view' group can only read data";
+        }
+    }
+
+    typedef polatis-switch-status {
+        type enumeration {
+            enum OPERATIONAL;
+            enum REQUEST_SERVICE;
+        }
+
+        description "Polatis switches are designed to recover from most system errors and will report
+        OPERATIONAL after most system errors. Some system errors require service by Polatis engineers. Users are advised to
+        Contact Polatis when REQUEST_SERVICE is reported.";
+    }
+
+    typedef notification-types {
+        type bits {
+            bit NOTIF_NONE {
+                position 0;
+                description "No notification";
+            }
+            bit NOTIF_PORT_POWER {
+                position 1;
+                description "Issued when power readings are outside power-alarm thresholds.";
+            }
+            bit NOTIF_PORT_POWER_WARN {
+                position 2;
+                description "Issued when power readings are outside power-warning thresholds.";
+            }
+            bit NOTIF_SYSTEM {
+                position 5;
+                description "Issued for an internal error";
+            }
+            bit NOTIF_APS {
+                position 7;
+                description "Issued for aps events.";
+            }
+            bit NOTIF_ACTIVITY {
+                position 8;
+                description "Issued for any configuration changes performed by users.";
+            }
+        }
+    }
+
+    leaf enable-notifications {
+        type notification-types;
+
+        default NOTIF_NONE;
+
+        description "Decide which class of netconf notification to send.
+        All notifications are disabled by default";
+    }
+
+    notification port-power-alarm {
+        description "Sent when power reading moves outside the thresholds set.";
+
+        leaf port-id {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-id";
+            }
+            mandatory true;
+        }
+        leaf port-label {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-label";
+            }
+            description "Label of the notification port";
+        }
+    }
+    notification port-power-clear {
+        description "Sent when power reading returns within the thresholds set, including hysteresis.";
+
+        leaf port-id {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-id";
+            }
+            mandatory true;
+        }
+        leaf port-label {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-label";
+            }
+            description "Label of the notification port";
+        }
+    }
+    notification port-power-warn-alarm {
+        description "Sent when power reading moves outside the warning offsets to the thresholds set.";
+
+        leaf port-id {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-id";
+            }
+            mandatory true;
+        }
+        leaf port-label {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-label";
+            }
+            description "Label of the notification port";
+        }
+    }
+    notification port-power-warn-clear {
+        description "Sent when power reading returns within offsets to the thresholds set,
+        including hysteresis.";
+
+        leaf port-id {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-id";
+            }
+            mandatory true;
+        }
+        leaf port-label {
+            type leafref {
+                path "/opsw:ports/opsw:port/opsw:port-label";
+            }
+            description "Label of the notification port";
+        }
+    }
+    notification system-error {
+        description "This notification is generated when switch encounters an unexpected error.";
+
+        leaf error-code {
+            type uint32;
+            mandatory true;
+            description "Description of the system error.";
+        }
+        leaf switch-status {
+            type polatis-switch-status;
+            mandatory true;
+            description "Status of the switch after the system error which
+            resulted in this notification";
+        }
+        leaf message {
+            type string;
+            description "Message related to system error.";
+        }
+    }
+    notification activity-log-notification {
+        description "Sent when a new entry appears in the activity log.";
+        leaf notification-username { type string; }
+        leaf notification-ip-address { type inet:ip-address; }
+        leaf notification-protocol { type string; }
+        leaf notification-activity { type string; }
+    }
+
+
+    container notification-log {
+        config false;
+
+        list log {
+            key notif-id;
+            leaf notif-id {
+                type uint32;
+                description "Unique Id for the notification.";
+            }
+            leaf notif-type {
+                type notification-types;
+                mandatory true;
+            }
+            leaf notif-count {
+                type uint32;
+                description "The number of notifications of the same notif-id.";
+            }
+            leaf notif-time-first {
+                type yang:date-and-time;
+                mandatory true;
+                description "Time at which the first notification was generated";
+            }
+            leaf notif-time-last {
+                type yang:date-and-time;
+                mandatory true;
+                description "Time at which the last notification was generated";
+            }
+            leaf notif-message {
+                type string;
+                mandatory true;
+                description "Useful textual representation of the notification cause.";
+            }
+            leaf notif-port {
+                type leafref {
+                    path "/opsw:ports/opsw:port/opsw:port-id";
+                }
+                when "../notif-type = 'NOTIF_PORT_POWER' or " +
+                     "../notif-type = 'NOTIF_PORT_POWER_WARN' or " +
+                     "../notif-type = 'NOTIF_PORT'";
+            }
+            leaf notif-port-status {
+                type opsw:PortStatus;
+                when "../notif-type = 'NOTIF_PORT'";
+            }
+            container notif-system {
+                leaf error-code {
+                    type uint32;
+                }
+                leaf switch-status {
+                    type polatis-switch-status;
+                }
+                when "../notif-type = 'NOTIF_SYSTEM'";
+            }
+            description "Contains the log of all the notifications generated by the switch.";
+        }
+    }
+
+    rpc shutter-config {
+        input {
+            leaf duration-on {
+                type uint32;
+                mandatory true;
+
+                description "Set how long the shutter will switched on in ms";
+            }
+            leaf duration-off {
+                type uint32;
+                mandatory true;
+
+                description "Set how long the shutter will be switched off in ms";
+            }
+            leaf cycles {
+                type int32;
+
+                description "Set the specific number of cycles the repeating
+                    shutter operates for";
+            }
+
+            list port-interval {
+                key port-id;
+                leaf port-id { type opsw:portFormat; }
+                min-elements 1;
+            }
+        }
+    }
+
+    rpc shutter-status {
+        output {
+            list port-interval {
+                key port-id;
+                leaf port-id { type opsw:portFormat; }
+
+                leaf duration-on {
+                    type uint32;
+                    mandatory true;
+
+                    description "Get how long the shutter will be switched on in ms";
+                }
+                leaf duration-off {
+                    type uint32;
+                    mandatory true;
+
+                    description "Get how long the shutter will be switched off in ms";
+                }
+
+                leaf cycles {
+                    type uint32;
+
+                    description "Get the specific number of cycles the repeating
+                        shutter operates for";
+                }
+            }
+        }
+
+    }
+
+    rpc shutter-operation {
+        input {
+            leaf operation-on {
+                type boolean;
+                mandatory true;
+
+                description "The leaf starts or stops the given mode for programmable shutters. It will
+                             continue until it is stopped. Double stops and double starts have no effect.";
+            }
+        }
+    }
+
+    rpc clear-notification-ids {
+        description "This clears named or all notifications from the log, don't provide any input, or empty list to remove all.";
+        input {
+            list notif-ids {
+                leaf notif-id {
+                    type uint32;
+                    description "Unique Id for the notification.";
+                }
+            }
+        }
+    }
+
+    rpc get-alarm-state {
+        description "This returns the alarm states currently active.";
+        output {
+            list alarm-state {
+                key alarm-index;
+                leaf alarm-index {
+                    type uint32;
+                    description "This is simply a count to have a unique key in the list";
+                }
+
+                leaf alarm-type {
+                    type notification-types;
+                    mandatory true;
+                }
+                leaf alarm-time {
+                    type yang:date-and-time;
+                    mandatory true;
+                    description "Time at which the first notification was generated.";
+                }
+                leaf alarm-message {
+                    type string;
+                    mandatory true;
+                    description "Useful textual representation of the alarm cause.";
+                }
+                leaf port-id {
+                    type uint32;
+                    description "Port id parsed out the alarm message, set to 0 if not simple.";
+                }
+            }
+        }
+    }
+
+}

@@ -1,0 +1,9 @@
+COMPILE_DEPS = [
+    '//models/common:onos-models-common',
+]
+
+yang_model (
+  app_name = 'org.onosproject.models.polatis',
+  title = 'Polatis YANG Model',
+  deps = COMPILE_DEPS,
+)

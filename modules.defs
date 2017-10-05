@@ -107,6 +107,7 @@ ONOS_DRIVERS = [
     '//drivers/bmv2:onos-drivers-bmv2-oar',
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
+    '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',
 ]
 
 ONOS_PROVIDERS = [
@@ -236,7 +237,8 @@ MODELS = [
     '//models/openconfig:onos-models-openconfig-oar',
     '//models/openroadm:onos-models-openroadm-oar',
     '//models/l3vpn:onos-models-l3vpn-oar',
-    '//models/microsemi:onos-models-microsemi-oar'
+    '//models/microsemi:onos-models-microsemi-oar',
+    '//models/polatis:onos-models-polatis-oar',
 ]
 
 APP_JARS = [

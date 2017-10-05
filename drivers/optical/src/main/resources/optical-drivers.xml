@@ -104,17 +104,6 @@
                    impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
     </driver>
 
-    <driver name="polatis-config" manufacturer="Polatis" hwVersion="config" swVersion=".*">
-        <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.driver.optical.config.PolatisDeviceDiscovery"/>
-        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-                   impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
-    </driver>
-
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
