@@ -191,9 +191,7 @@ public class OvsdbDeviceProvider extends AbstractProvider
         @Override
         public void event(DeviceEvent event) {
             DeviceId deviceId = event.subject().id();
-            if (!isRelevant(deviceId)) {
-                return;
-            }
+
             if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
                 executor.execute(() -> discoverPorts(deviceId));
             } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {

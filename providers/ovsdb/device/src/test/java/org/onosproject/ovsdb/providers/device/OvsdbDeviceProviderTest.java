@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -69,6 +70,7 @@ public class OvsdbDeviceProviderTest {
     private final TestDeviceRegistry registry = new TestDeviceRegistry();
     private final TestController controller = new TestController();
     private final TestDeviceService deviceService = new TestDeviceService();
+    private final TestMastershipService mastershipService = new TestMastershipService();
 
     private final Device ovsdbDevice = new MockDevice(
             DeviceId.deviceId("ovsdb:127.0.0.1"),
@@ -86,6 +88,7 @@ public class OvsdbDeviceProviderTest {
         provider.providerRegistry = registry;
         provider.controller = controller;
         provider.deviceService = deviceService;
+        provider.mastershipService = mastershipService;
         provider.activate();
         assertNotNull("provider should be registered", registry.provider);
     }
@@ -120,8 +123,15 @@ public class OvsdbDeviceProviderTest {
         provider.executor = MoreExecutors.newDirectExecutorService();
         prepareMocks(portCount);
 
-        deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, ovsdbDevice));
-        deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, notOvsdbDevice));
+        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, ovsdbDevice);
+        if (deviceService.listener.isRelevant(event)) {
+            deviceService.listener.event(event);
+        }
+
+        event = new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, notOvsdbDevice);
+        if (deviceService.listener.isRelevant(event)) {
+            deviceService.listener.event(event);
+        }
 
         assertEquals(portCount, registry.ports.get(ovsdbDevice.id()).size());
         assertEquals(0, registry.ports.get(notOvsdbDevice.id()).size());
@@ -266,6 +276,14 @@ public class OvsdbDeviceProviderTest {
         public void removeListener(DeviceListener listener) {
             this.listener = null;
         }
+    }
+
+    private class TestMastershipService extends MastershipServiceAdapter {
+        @Override
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
+        }
+
     }
 
     private class TestDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
