@@ -5,6 +5,9 @@
     "source",
     "group"
   ],
+  "optional": [
+    "ingress"
+  ],
   "properties": {
     "source": {
       "type": "string",
@@ -15,6 +18,11 @@
       "type": "string",
       "example": "10.1.1.0",
       "description": "Multicast group IP address"
+    },
+    "ingress": {
+      "type": "string",
+      "example": "of:0000000000000001/1",
+      "description": "Multicast ingress Connection Point device and port"
     }
   }
 }
