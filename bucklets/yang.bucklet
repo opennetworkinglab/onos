@@ -23,6 +23,7 @@ def yang_model(
     description = None,
     deps = [],
     required_apps = [],
+    custom_registrator = False,
     **kwargs
     ):
 
@@ -51,22 +52,32 @@ def yang_model(
       out = 'yang'
     )
 
-    genrule(
-      name = registrator,
-      srcs = [ ':' + yangSrcs ],
-      cmd = '$(location //buck-tools:yang-registrator) $OUT ' + app_name + ' $SRCS',
-      out = 'YangModelRegistrator.java'
-    )
-
-    osgi_jar(
-      name = name,
-      srcs = [ ':' + yangSrcs, ':' + registrator ],
-      deps = deps + YANG_TOOLS,
-      resources = [ ':' + schema ],
-      resources_root = ".",
-      do_checkstyle = False,
-      do_javadocs = False,
-    )
+    if custom_registrator:
+        osgi_jar(
+          name = name,
+          srcs = [ ':' + yangSrcs ] + glob(['src/main/java/**/*.java']),
+          deps = deps + YANG_TOOLS,
+          resources = [ ':' + schema ],
+          resources_root = ".",
+          do_checkstyle = False,
+          do_javadocs = False,
+        )
+    else:
+        genrule(
+          name = registrator,
+          srcs = [ ':' + yangSrcs ],
+          cmd = '$(location //buck-tools:yang-registrator) $OUT ' + app_name + ' $SRCS',
+          out = 'YangModelRegistrator.java'
+        )
+        osgi_jar(
+          name = name,
+          srcs = [ ':' + yangSrcs, ':' + registrator ],
+          deps = deps + YANG_TOOLS,
+          resources = [ ':' + schema ],
+          resources_root = ".",
+          do_checkstyle = False,
+          do_javadocs = False,
+        )
 
     onos_app (
       app_name = app_name,
