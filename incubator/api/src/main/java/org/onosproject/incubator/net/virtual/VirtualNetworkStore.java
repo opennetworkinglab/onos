@@ -166,6 +166,17 @@ public interface VirtualNetworkStore
                         PortNumber portNumber, ConnectPoint realizedBy);
 
     /**
+     * Updates port state of an existing virtual port.
+     *
+     * @param networkId  network identifier
+     * @param deviceId   device identifier
+     * @param portNumber port number
+     * @param isEnabled  indicator whether the port is up and active
+     */
+     void updatePortState(NetworkId networkId, DeviceId deviceId,
+                        PortNumber portNumber, boolean isEnabled);
+
+    /**
      * Removes the specified port from the given device and network.
      *
      * @param networkId  network identifier

@@ -630,6 +630,37 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
+    public void updatePortState(NetworkId networkId, DeviceId deviceId,
+                                PortNumber portNumber, boolean isEnabled) {
+        checkState(networkExists(networkId), "No network with NetworkId %s exists.", networkId);
+
+        VirtualDevice device = deviceIdVirtualDeviceMap.get(new VirtualDeviceId(networkId, deviceId));
+        checkNotNull(device, "No device %s exists in NetworkId: %s", deviceId, networkId);
+
+        Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap.get(networkId);
+        checkNotNull(virtualPortSet, "No port has been created for NetworkId: %s", networkId);
+
+        Optional<VirtualPort> virtualPortOptional = virtualPortSet.stream().filter(
+                p -> p.element().id().equals(deviceId) &&
+                        p.number().equals(portNumber)).findFirst();
+        checkState(virtualPortOptional.isPresent(), "The virtual port has not been added.");
+
+        VirtualPort oldPort = virtualPortOptional.get();
+        if (oldPort.isEnabled() == isEnabled) {
+            log.debug("No change in port state - port not updated");
+            return;
+        }
+        VirtualPort newPort = new DefaultVirtualPort(networkId, device, portNumber, isEnabled,
+                oldPort.realizedBy());
+        virtualPortSet.remove(oldPort);
+        virtualPortSet.add(newPort);
+        networkIdVirtualPortSetMap.put(networkId, virtualPortSet);
+        notifyDelegate(new VirtualNetworkEvent(VirtualNetworkEvent.Type.VIRTUAL_PORT_UPDATED,
+                                               networkId, device, newPort));
+        log.debug("port state changed from {} to {}", oldPort.isEnabled(), isEnabled);
+    }
+
+    @Override
     public void removePort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
         checkState(networkExists(networkId), "The network has not been added.");
         VirtualDevice device = deviceIdVirtualDeviceMap.get(new VirtualDeviceId(networkId, deviceId));

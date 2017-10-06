@@ -816,6 +816,15 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualPortStateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
             <completers>
                 <ref component-id="virtualNetworkCompleter"/>

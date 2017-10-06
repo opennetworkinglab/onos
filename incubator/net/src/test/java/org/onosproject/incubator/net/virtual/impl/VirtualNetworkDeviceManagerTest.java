@@ -40,6 +40,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -380,6 +381,21 @@ public class VirtualNetworkDeviceManagerTest extends VirtualNetworkTestUtil {
         Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork.id(), device2.id());
         assertNotNull("The virtual port set should not be null", virtualPorts);
         assertEquals("The virtual port set size did not match.", 2, virtualPorts.size());
+        virtualPorts.forEach(vp -> assertFalse("Initial virtual port state should be disabled", vp.isEnabled()));
+
+        // verify change state of virtual port (disabled -> enabled)
+        manager.updatePortState(virtualNetwork.id(), device2.id(), PortNumber.portNumber(1), true);
+        Port changedPort = deviceService.getPort(device2.id(), PortNumber.portNumber(1));
+        assertNotNull("The changed virtual port should not be null", changedPort);
+        assertEquals("Virtual port state should be enabled", true, changedPort.isEnabled());
+        expectedEventTypes.add(DeviceEvent.Type.PORT_UPDATED);
+
+        // verify change state of virtual port (disabled -> disabled)
+        manager.updatePortState(virtualNetwork.id(), device2.id(), PortNumber.portNumber(2), false);
+        changedPort = deviceService.getPort(device2.id(), PortNumber.portNumber(2));
+        assertNotNull("The changed virtual port should not be null", changedPort);
+        assertEquals("Virtual port state should be disabled", false, changedPort.isEnabled());
+        // no VIRTUAL_PORT_UPDATED event is expected - the requested state (disabled) is same as previous state.
 
         // remove 2 virtual ports
         for (VirtualPort virtualPort : virtualPorts) {

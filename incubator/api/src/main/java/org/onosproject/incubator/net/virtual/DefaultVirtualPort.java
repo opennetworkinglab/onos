@@ -35,13 +35,40 @@ public final class DefaultVirtualPort extends DefaultPort implements VirtualPort
     private final NetworkId networkId;
     private final ConnectPoint realizedBy;
 
-    public DefaultVirtualPort(NetworkId networkId, Device device,
-                              PortNumber portNumber, ConnectPoint realizedBy) {
-        super((Element) device, portNumber, false, DefaultAnnotations.builder().build());
+    /**
+     * Creates a virtual port.
+     *
+     * @param networkId  network identifier
+     * @param device     parent network element
+     * @param portNumber port number
+     * @param realizedBy underling port which realizes this virtual port
+     */
+    public DefaultVirtualPort(NetworkId networkId, Device device, PortNumber portNumber,
+                              ConnectPoint realizedBy) {
+        this(networkId, device, portNumber, false, realizedBy);
+    }
+
+    /**
+     * Creates a virtual port.
+     *
+     * @param networkId  network identifier
+     * @param device     parent network element
+     * @param portNumber port number
+     * @param isEnabled  indicator whether the port is up and active
+     * @param realizedBy underling port which realizes this virtual port
+     */
+    public DefaultVirtualPort(NetworkId networkId, Device device, PortNumber portNumber,
+                              boolean isEnabled, ConnectPoint realizedBy) {
+        super((Element) device, portNumber, isEnabled, DefaultAnnotations.builder().build());
         this.networkId = networkId;
         this.realizedBy = realizedBy;
     }
 
+    /**
+     * Returns network identifier.
+     *
+     * @return network identifier
+     */
     public NetworkId networkId() {
         return networkId;
     }

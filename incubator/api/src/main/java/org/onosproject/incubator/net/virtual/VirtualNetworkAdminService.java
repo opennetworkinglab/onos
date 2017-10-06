@@ -166,6 +166,18 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
                                   PortNumber portNumber, ConnectPoint realizedBy);
 
     /**
+     * Updates port state of an existing virtual port on the specified device.
+     *
+     * @param networkId  network identifier
+     * @param deviceId   virtual device identifier
+     * @param portNumber virtual port number
+     * @param isEnabled  indicator whether the port is up and active
+     * @throws org.onlab.util.ItemNotFoundException if no such network or device is found
+     */
+    void updatePortState(NetworkId networkId, DeviceId deviceId,
+                                  PortNumber portNumber, boolean isEnabled);
+
+    /**
      * Removes the specified virtual port.
      *
      * @param networkId  network identifier

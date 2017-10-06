@@ -37,7 +37,7 @@ import java.util.List;
 public class VirtualPortListCommand extends AbstractShellCommand {
 
     private static final String FMT_VIRTUAL_PORT =
-            "virtual portNumber=%s, physical deviceId=%s, portNumber=%s";
+            "virtual portNumber=%s, physical deviceId=%s, portNumber=%s, isEnabled=%s";
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
@@ -75,11 +75,12 @@ public class VirtualPortListCommand extends AbstractShellCommand {
      */
     private void printVirtualPort(VirtualPort virtualPort) {
         if (virtualPort.realizedBy() == null) {
-            print(FMT_VIRTUAL_PORT, virtualPort.number(), "None", "None");
+            print(FMT_VIRTUAL_PORT, virtualPort.number(), "None", "None", virtualPort.isEnabled());
         } else {
             print(FMT_VIRTUAL_PORT, virtualPort.number(),
                   virtualPort.realizedBy().deviceId(),
-                  virtualPort.realizedBy().port());
+                  virtualPort.realizedBy().port(),
+                  virtualPort.isEnabled());
         }
     }
 }

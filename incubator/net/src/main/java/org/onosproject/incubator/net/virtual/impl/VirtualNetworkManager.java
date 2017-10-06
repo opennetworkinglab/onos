@@ -291,6 +291,16 @@ public class VirtualNetworkManager
     }
 
     @Override
+    public void updatePortState(NetworkId networkId, DeviceId deviceId,
+                PortNumber portNumber, boolean isEnabled) {
+        checkNotNull(networkId, NETWORK_NULL);
+        checkNotNull(deviceId, DEVICE_NULL);
+        checkNotNull(portNumber, "Port description cannot be null");
+
+        store.updatePortState(networkId, deviceId, portNumber, isEnabled);
+    }
+
+    @Override
     public void removeVirtualPort(NetworkId networkId, DeviceId deviceId,
                                   PortNumber portNumber) {
         checkNotNull(networkId, NETWORK_NULL);

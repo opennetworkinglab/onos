@@ -553,6 +553,12 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         manager.createVirtualLink(virtualNetwork1.id(), src, dst);
     }
 
+    private VirtualPort getPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
+        Set<VirtualPort> virtualPorts = manager.getVirtualPorts(networkId, deviceId);
+        return  virtualPorts.stream().filter(virtualPort -> virtualPort.number().equals(portNumber))
+                .findFirst().orElse(null);
+    }
+
     /**
      * Tests add, bind and remove of virtual ports.
      */
@@ -580,6 +586,21 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertNotNull("The virtual port set should not be null", virtualPorts);
         assertEquals("The virtual port set size did not match.", 2, virtualPorts.size());
+        virtualPorts.forEach(vp -> assertFalse("Initial virtual port state should be disabled", vp.isEnabled()));
+
+        // verify change state of virtual port (disabled -> enabled)
+        manager.updatePortState(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(1), true);
+        VirtualPort changedPort = getPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(1));
+        assertNotNull("The changed virtual port should not be null", changedPort);
+        assertEquals("Virtual port state should be enabled", true, changedPort.isEnabled());
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_UPDATED);
+
+        // verify change state of virtual port (disabled -> disabled)
+        manager.updatePortState(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(2), false);
+        changedPort = getPort(virtualNetwork1.id(), virtualDevice.id(), PortNumber.portNumber(2));
+        assertNotNull("The changed virtual port should not be null", changedPort);
+        assertEquals("Virtual port state should be disabled", false, changedPort.isEnabled());
+        // no VIRTUAL_PORT_UPDATED event is expected - the requested state (disabled) is same as previous state.
 
         for (VirtualPort virtualPort : virtualPorts) {
             manager.removeVirtualPort(virtualNetwork1.id(),

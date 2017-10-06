@@ -104,6 +104,11 @@ public class VirtualNetworkAdminServiceAdapter
     }
 
     @Override
+    public void updatePortState(NetworkId networkId, DeviceId deviceId, PortNumber portNumber, boolean isEnabled) {
+
+    }
+
+    @Override
     public void removeVirtualPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
 
     }
