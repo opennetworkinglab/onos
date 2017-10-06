@@ -1,0 +1,7 @@
+
+yang_model (
+  app_name = 'org.onosproject.models.common',
+  title = 'Common YANG Models',
+  custom_registrator = True,
+  deps = [ '//lib:CORE_DEPS' ]
+)

@@ -41,7 +41,7 @@ import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangMo
 @Component
 public abstract class AbstractYangModelRegistrator {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Class<?> loaderClass;
 
     private Map<YangModuleId, AppModuleInfo> appInfo;
