@@ -25,7 +25,6 @@ APPS = [
     'org.onosproject.models.l3vpn',
     'org.onosproject.l3vpn',
     'org.onosproject.models.huawei',
-    'org.onosproject.models.l3vpn',
 ]
 
 TEST_DEPS = [

@@ -22,6 +22,7 @@ def yang_model(
     url = 'http://onosproject.org',
     description = None,
     deps = [],
+    required_apps = [],
     **kwargs
     ):
 
@@ -73,7 +74,7 @@ def yang_model(
       category = 'Models',
       url = url,
       description = description,
-      required_apps = [ 'org.onosproject.yang' ],
+      required_apps = required_apps + [ 'org.onosproject.yang' ],
     )
 
 def yang_osgi_jar(
