@@ -16,7 +16,7 @@ dstPort=$6
 
 curl -u onos:rocks -X POST --header "Content-Type: application/json" --header "Accept: application/json" -d "{
   \"priority\": 100,
-  \"isPermanent\": \"false\",
+  \"isPermanent\": \"true\",
   \"timeout\": 100,
   \"flag\": \"VERSATILE\",
   \"operation\": \"ADD\",
