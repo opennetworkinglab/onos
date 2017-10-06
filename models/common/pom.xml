@@ -26,11 +26,11 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-models-l3vpn</artifactId>
+    <artifactId>onos-models-common</artifactId>
     <packaging>bundle</packaging>
 
     <properties>
-        <onos.app.name>org.onosproject.models.l3vpn</onos.app.name>
+        <onos.app.name>org.onosproject.models.common</onos.app.name>
     </properties>
 
     <dependencies>
@@ -38,12 +38,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-model</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-models-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
