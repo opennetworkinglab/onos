@@ -37,6 +37,7 @@ def yang_model(
     registrator = name + '-registrator'
 
     yang_library(
+      deps = deps,
       name = yang,
       srcs = glob(['src/main/yang/**/*.yang'], excludes=['**/target/**']),
       model_id = model_id
@@ -74,7 +75,6 @@ def yang_model(
       description = description,
       required_apps = [ 'org.onosproject.yang' ],
     )
-
 
 def yang_osgi_jar(
     name = None,

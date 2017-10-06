@@ -19,9 +19,7 @@ package org.onosproject.l3vpn.netl3vpn.impl;
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
-import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.IetfInetTypes;
 import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.IetfL3VpnSvc;
-import org.onosproject.yang.gen.v1.ietfyangtypes.rev20130715.IetfYangTypes;
 import org.onosproject.yang.gen.v1.l3vpnsvcext.rev20160730.L3VpnSvcExt;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
@@ -47,12 +45,8 @@ public class L3VpnModelRegistrator extends AbstractYangModelRegistrator {
 
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
-        appInfo.put(new DefaultYangModuleId("ietf-inet-types", "2013-07-15"),
-                    new DefaultAppModuleInfo(IetfInetTypes.class, null));
         appInfo.put(new DefaultYangModuleId("ietf-l3vpn-svc", "2016-07-30"),
                     new DefaultAppModuleInfo(IetfL3VpnSvc.class, null));
-        appInfo.put(new DefaultYangModuleId("ietf-yang-types", "2013-07-15"),
-                    new DefaultAppModuleInfo(IetfYangTypes.class, null));
         appInfo.put(new DefaultYangModuleId("l3vpn-svc-ext", "2016-07-30"),
                     new DefaultAppModuleInfo(L3VpnSvcExt.class, null));
         return ImmutableMap.copyOf(appInfo);

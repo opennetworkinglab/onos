@@ -10,6 +10,7 @@ COMPILE_DEPS = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-runtime',
     '//apps/yang:onos-apps-yang',
+    '//models/common:onos-models-common',
 ]
 
 APPS = [
@@ -20,9 +21,11 @@ APPS = [
     'org.onosproject.protocols.restconfserver',
     'org.onosproject.netconf',
     'org.onosproject.netconfsb',
+    'org.onosproject.models.common',
     'org.onosproject.models.l3vpn',
     'org.onosproject.l3vpn',
     'org.onosproject.models.huawei',
+    'org.onosproject.models.l3vpn',
 ]
 
 TEST_DEPS = [

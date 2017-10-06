@@ -1,4 +1,9 @@
+COMPILE_DEPS = [
+    '//models/common:onos-models-common',
+]
+
 yang_model(
     app_name = 'org.onosproject.models.l3vpn',
     title = 'L3VPN YANG Models',
+    deps = COMPILE_DEPS,
 )

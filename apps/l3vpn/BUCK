@@ -8,7 +8,8 @@ COMPILE_DEPS = [
     '//lib:onos-yang-runtime',
     '//apps/yang:onos-apps-yang',
     '//apps/pce/app:onos-apps-pce-app',
-    '//incubator/api:onos-incubator-api'
+    '//incubator/api:onos-incubator-api',
+    '//models/common:onos-models-common',
 ]
 
 TEST_DEPS = [
@@ -24,7 +25,9 @@ APPS = [
     'org.onosproject.protocols.restconfserver',
     'org.onosproject.netconf',
     'org.onosproject.netconfsb',
+    'org.onosproject.models.common',
     'org.onosproject.models.l3vpn',
+    'org.onosproject.bgpcep',
 ]
 
 osgi_jar_with_tests(
