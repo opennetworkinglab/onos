@@ -60,7 +60,6 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
-import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
 import com.google.common.base.Objects;
@@ -90,9 +89,6 @@ public class ConsistentDeviceMastershipStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected UpgradeService upgradeService;
 
     private NodeId localNodeId;
 

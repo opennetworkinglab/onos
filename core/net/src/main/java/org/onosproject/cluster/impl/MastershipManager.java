@@ -49,6 +49,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionService;
+import org.onosproject.upgrade.UpgradeEvent;
+import org.onosproject.upgrade.UpgradeEventListener;
+import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -88,6 +91,7 @@ public class MastershipManager
     private final Logger log = getLogger(getClass());
 
     private final MastershipStoreDelegate delegate = new InternalDelegate();
+    private final UpgradeEventListener upgradeEventListener = new InternalUpgradeEventListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipStore store;
@@ -104,13 +108,22 @@ public class MastershipManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected UpgradeService upgradeService;
+
     private NodeId localNodeId;
     private Timer requestRoleTimer;
 
     static final boolean DEFAULT_USE_REGION_FOR_BALANCE_ROLES = false;
     @Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
               label = "Use Regions for balancing roles")
-    public boolean useRegionForBalanceRoles;
+    protected boolean useRegionForBalanceRoles;
+
+    private static final boolean DEFAULT_REBALANCE_ROLES_ON_UPGRADE = true;
+    @Property(name = "rebalanceRolesOnUpgrade",
+            boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
+            label = "Automatically rebalance roles following an upgrade")
+    protected boolean rebalanceRolesOnUpgrade;
 
     @Activate
     public void activate() {
@@ -489,6 +502,16 @@ public class MastershipManager
         @Override
         public void notify(MastershipEvent event) {
             post(event);
+        }
+    }
+
+    private class InternalUpgradeEventListener implements UpgradeEventListener {
+        @Override
+        public void event(UpgradeEvent event) {
+            if (rebalanceRolesOnUpgrade &&
+                    (event.type() == UpgradeEvent.Type.COMMITTED || event.type() == UpgradeEvent.Type.RESET)) {
+                balanceRoles();
+            }
         }
     }
 
