@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.UnifiedClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -71,6 +72,15 @@ public class UpgradeManagerTest {
                                     nodeId);
                         })
                         .collect(Collectors.toSet());
+            }
+
+            @Override
+            public ControllerNode getNode(NodeId nodeId) {
+                return getNodes()
+                        .stream()
+                        .filter(node -> node.id().equals(nodeId))
+                        .findFirst()
+                        .orElse(null);
             }
 
             @Override
@@ -235,6 +245,24 @@ public class UpgradeManagerTest {
 
         upgradeManager.reset();
         assertEquals(Upgrade.Status.INACTIVE, upgradeManager.getState().status());
+    }
+
+    @Test
+    public void testCrashRollback() throws Exception {
+        UpgradeManager upgradeManager = createUpgradeManager(
+                Version.version("1.0.0"),
+                new Upgrade(Version.version("1.0.0"), Version.version("1.0.1"), Upgrade.Status.UPGRADED),
+                Arrays.asList(Version.version("1.0.0"), Version.version("1.0.0"), Version.version("1.0.1")));
+
+        assertFalse(upgradeManager.isLocalActive());
+
+        upgradeManager.handleClusterEvent(new ClusterEvent(
+                ClusterEvent.Type.INSTANCE_DEACTIVATED,
+                upgradeManager.clusterService.getNode(NodeId.nodeId("2"))));
+
+        assertEquals(Upgrade.Status.ROLLED_BACK, upgradeManager.getState().status());
+        assertTrue(upgradeManager.isLocalActive());
+        assertFalse(upgradeManager.isLocalUpgraded());
     }
 
 }
