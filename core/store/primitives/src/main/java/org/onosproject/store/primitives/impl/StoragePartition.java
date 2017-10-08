@@ -51,18 +51,17 @@ import org.onosproject.store.service.Serializer;
 /**
  * Storage partition.
  */
-public class StoragePartition implements Managed<StoragePartition> {
+public abstract class StoragePartition implements Managed<StoragePartition> {
 
-    private final AtomicBoolean isOpened = new AtomicBoolean(false);
-    private final ClusterCommunicationService clusterCommunicator;
-    private final ClusterService clusterService;
-    private final Version version;
-    private final Version source;
-    private final File dataFolder;
-    private Partition partition;
-    private NodeId localNodeId;
-    private StoragePartitionServer server;
-    private StoragePartitionClient client;
+    static final String PARTITIONS_DIR =
+            System.getProperty("karaf.data") + "/db/partitions/";
+
+    protected final AtomicBoolean isOpened = new AtomicBoolean(false);
+    protected final ClusterCommunicationService clusterCommunicator;
+    protected Partition partition;
+    protected NodeId localNodeId;
+    protected StoragePartitionServer server;
+    protected StoragePartitionClient client;
 
     public static final Map<String, Supplier<RaftService>> RAFT_SERVICES =
             ImmutableMap.<String, Supplier<RaftService>>builder()
@@ -83,18 +82,11 @@ public class StoragePartition implements Managed<StoragePartition> {
 
     public StoragePartition(
             Partition partition,
-            Version version,
-            Version source,
             ClusterCommunicationService clusterCommunicator,
-            ClusterService clusterService,
-            File dataFolder) {
+            ClusterService clusterService) {
         this.partition = partition;
-        this.version = version;
-        this.source = source;
         this.clusterCommunicator = clusterCommunicator;
-        this.clusterService = clusterService;
         this.localNodeId = clusterService.getLocalNode().id();
-        this.dataFolder = dataFolder;
     }
 
     /**
@@ -107,12 +99,7 @@ public class StoragePartition implements Managed<StoragePartition> {
 
     @Override
     public CompletableFuture<Void> open() {
-        if (source != null) {
-            return forkServer(source)
-                    .thenCompose(v -> openClient())
-                    .thenAccept(v -> isOpened.set(true))
-                    .thenApply(v -> null);
-        } else if (partition.getMembers().contains(localNodeId)) {
+        if (partition.getMembers().contains(localNodeId)) {
             return openServer()
                     .thenCompose(v -> openClient())
                     .thenAccept(v -> isOpened.set(true))
@@ -131,22 +118,35 @@ public class StoragePartition implements Managed<StoragePartition> {
     }
 
     /**
+     * Deletes the partition.
+     *
+     * @return future to be completed once the partition has been deleted
+     */
+    public CompletableFuture<Void> delete() {
+        return closeServer().thenCompose(v -> closeClient()).thenRun(() -> deleteServer());
+    }
+
+    /**
+     * Returns the partition data folder.
+     *
+     * @return the partition data folder
+     */
+    public abstract File getDataFolder();
+
+    /**
      * Returns the partition name.
      *
      * @return the partition name
      */
-    public String getName() {
-        return getName(version);
-    }
+    public abstract String getName();
 
     /**
-     * Returns the partition name for the given version.
+     * Returns the identifier of the {@link Partition partition} associated with this instance.
      *
-     * @param version the version for which to return the partition name
-     * @return the partition name for the given version
+     * @return partition identifier
      */
-    String getName(Version version) {
-        return version != null ? String.format("partition-%d-%s", partition.getId().id(), version) : "partition-core";
+    public PartitionId getId() {
+        return partition.getId();
     }
 
     /**
@@ -155,24 +155,7 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return the partition version
      */
     public Version getVersion() {
-        return version;
-    }
-
-    /**
-     * Returns the partition data folder.
-     *
-     * @return the partition data folder
-     */
-    public File getDataFolder() {
-        return dataFolder;
-    }
-
-    /**
-     * Returns the identifier of the {@link Partition partition} associated with this instance.
-     * @return partition identifier
-     */
-    public PartitionId getId() {
-        return partition.getId();
+        return partition.getVersion();
     }
 
     /**
@@ -188,64 +171,14 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return partition member identifiers
      */
     public Collection<MemberId> getMemberIds() {
-        return source != null ?
-                clusterService.getNodes()
-                        .stream()
-                        .filter(node -> {
-                            Version nodeVersion = clusterService.getVersion(node.id());
-                            return nodeVersion != null && nodeVersion.equals(version);
-                        })
-                        .map(node -> MemberId.from(node.id().id()))
-                        .collect(Collectors.toList()) :
-                Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
-    }
-
-    Collection<MemberId> getMemberIds(Version version) {
-        if (source == null || version.equals(source)) {
-            return Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
-        } else {
-            return clusterService.getNodes()
-                    .stream()
-                    .filter(node -> {
-                        Version nodeVersion = clusterService.getVersion(node.id());
-                        return nodeVersion != null && nodeVersion.equals(version);
-                    })
-                    .map(node -> MemberId.from(node.id().id()))
-                    .collect(Collectors.toList());
-        }
+        return Collections2.transform(getMembers(), n -> MemberId.from(n.id()));
     }
 
     /**
      * Attempts to rejoin the partition.
      * @return future that is completed after the operation is complete
      */
-    private CompletableFuture<Void> openServer() {
-        StoragePartitionServer server = new StoragePartitionServer(
-                this,
-                MemberId.from(localNodeId.id()),
-                clusterCommunicator);
-        return server.open().thenRun(() -> this.server = server);
-    }
-
-    /**
-     * Forks the server from the given version.
-     *
-     * @return future to be completed once the server has been forked
-     */
-    private CompletableFuture<Void> forkServer(Version version) {
-        StoragePartitionServer server = new StoragePartitionServer(
-                this,
-                MemberId.from(localNodeId.id()),
-                clusterCommunicator);
-
-        CompletableFuture<Void> future;
-        if (getMemberIds().size() == 1) {
-            future = server.fork(version);
-        } else {
-            future = server.join(getMemberIds());
-        }
-        return future.thenRun(() -> this.server = server);
-    }
+    protected abstract CompletableFuture<Void> openServer();
 
     /**
      * Attempts to join the partition as a new member.
@@ -267,7 +200,7 @@ public class StoragePartition implements Managed<StoragePartition> {
         client = new StoragePartitionClient(this,
                 MemberId.from(localNodeId.id()),
                 new RaftClientCommunicator(
-                        getName(),
+                        String.format("partition-%s-%s", partition.getId(), partition.getVersion()),
                         Serializer.using(StorageNamespaces.RAFT_PROTOCOL),
                         clusterCommunicator));
         return client.open().thenApply(v -> client);
@@ -278,12 +211,27 @@ public class StoragePartition implements Managed<StoragePartition> {
      * @return future that is completed when the operation completes
      */
     public CompletableFuture<Void> leaveCluster() {
-        return server != null ? server.closeAndExit() : CompletableFuture.completedFuture(null);
+        return server != null
+                ? server.closeAndExit().thenRun(() -> server.delete())
+                : CompletableFuture.completedFuture(null);
     }
 
     @Override
     public boolean isOpen() {
         return isOpened.get();
+    }
+
+    private CompletableFuture<Void> closeServer() {
+        if (server != null) {
+            return server.close();
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private void deleteServer() {
+        if (server != null) {
+            server.delete();
+        }
     }
 
     private CompletableFuture<Void> closeClient() {
@@ -306,8 +254,7 @@ public class StoragePartition implements Managed<StoragePartition> {
      * Process updates to partitions and handles joining or leaving a partition.
      * @param newValue new Partition
      */
-    public void onUpdate(Partition newValue) {
-
+    void onUpdate(Partition newValue) {
         boolean wasPresent = partition.getMembers().contains(localNodeId);
         boolean isPresent = newValue.getMembers().contains(localNodeId);
         this.partition = newValue;
@@ -315,7 +262,7 @@ public class StoragePartition implements Managed<StoragePartition> {
             // no action needed
             return;
         }
-        //only need to do action if our membership changed
+        // Only need to do action if our membership changed
         if (wasPresent) {
             leaveCluster();
         } else if (isPresent) {

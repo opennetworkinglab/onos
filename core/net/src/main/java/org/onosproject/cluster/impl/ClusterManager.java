@@ -52,6 +52,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.core.Version;
+import org.onosproject.core.VersionService;
 import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
@@ -87,6 +88,9 @@ public class ClusterManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected SystemService systemService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
 
     private final AtomicReference<ClusterMetadata> currentMetadata = new AtomicReference<>();
     private final InternalClusterMetadataListener metadataListener = new InternalClusterMetadataListener();
@@ -196,7 +200,7 @@ public class ClusterManager
         }
     }
 
-    private static Set<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes, int partitionSize) {
+    private Set<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes, int partitionSize) {
         List<ControllerNode> sorted = new ArrayList<>(nodes);
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
         Set<Partition> partitions = Sets.newHashSet();
@@ -209,7 +213,7 @@ public class ClusterManager
             for (int j = 0; j < count; j++) {
                 set.add(sorted.get((i + j) % length).id());
             }
-            partitions.add(new DefaultPartition(PartitionId.from((index + 1)), set));
+            partitions.add(new DefaultPartition(PartitionId.from((index + 1)), versionService.version(), set));
         }
         return partitions;
     }

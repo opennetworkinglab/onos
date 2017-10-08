@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.core.Version;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -37,9 +38,9 @@ public class ClusterMetadataEventTest {
             new DefaultControllerNode(nid1, IpAddress.valueOf("10.0.0.1"), 9876);
     private final ControllerNode n2 =
             new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
-    private final Partition p1 = new DefaultPartition(pid1, ImmutableSet.of(nid1));
-    private final Partition p2 = new DefaultPartition(pid2, ImmutableSet.of(nid1, nid2));
-    private final Partition p3 = new DefaultPartition(pid2, ImmutableSet.of(nid2));
+    private final Partition p1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
+    private final Partition p2 = new DefaultPartition(pid2, Version.version("1.0.0"), ImmutableSet.of(nid1, nid2));
+    private final Partition p3 = new DefaultPartition(pid2, Version.version("1.0.0"), ImmutableSet.of(nid2));
     private final ClusterMetadata metadata1 =
             new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
     private final ClusterMetadata metadata2 =

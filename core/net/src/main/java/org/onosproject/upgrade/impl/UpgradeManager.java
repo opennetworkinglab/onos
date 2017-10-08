@@ -49,7 +49,10 @@ import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.CLUSTER_EVENT;
+import static org.onosproject.security.AppPermission.Type.UPGRADE_EVENT;
+import static org.onosproject.security.AppPermission.Type.UPGRADE_READ;
+import static org.onosproject.security.AppPermission.Type.UPGRADE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,6 +89,8 @@ public class UpgradeManager
 
     @Activate
     public void activate() {
+        eventDispatcher.addSink(UpgradeEvent.class, listenerRegistry);
+
         state = coordinationService.<Upgrade>atomicValueBuilder()
                 .withName("onos-upgrade-state")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
@@ -138,6 +143,7 @@ public class UpgradeManager
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(UpgradeEvent.class);
         state.removeListener(stateListener);
         clusterService.removeListener(clusterListener);
         log.info("Stopped");

@@ -41,6 +41,7 @@ import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.core.VersionService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
@@ -58,6 +59,9 @@ public class DefaultClusterMetadataProvider implements ClusterMetadataProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterMetadataProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
+
     private static final String ONOS_IP = "ONOS_IP";
     private static final String ONOS_INTERFACE = "ONOS_INTERFACE";
     private static final String ONOS_ALLOW_IPV6 = "ONOS_ALLOW_IPV6";
@@ -72,7 +76,10 @@ public class DefaultClusterMetadataProvider implements ClusterMetadataProvider {
         ControllerNode localNode =
                 new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
         // partition 1
-        Partition partition = new DefaultPartition(PartitionId.from(1), ImmutableSet.of(localNode.id()));
+        Partition partition = new DefaultPartition(
+                PartitionId.from(1),
+                versionService.version(),
+                ImmutableSet.of(localNode.id()));
         ClusterMetadata metadata = new ClusterMetadata(PROVIDER_ID,
                                         "default",
                                         ImmutableSet.of(localNode),

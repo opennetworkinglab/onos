@@ -15,6 +15,9 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -52,14 +55,10 @@ import org.onosproject.store.service.TransactionContextBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.slf4j.Logger;
 
-import java.io.File;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
-import static org.onosproject.store.primitives.impl.PartitionManager.PARTITIONS_DIR;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,18 +85,16 @@ public class CoordinationManager implements CoordinationService {
 
     @Activate
     public void activate() {
-        partition = new StoragePartition(
+        partition = new ActiveStoragePartition(
                 new DefaultPartition(
                         PartitionId.SHARED,
+                        null,
                         clusterService.getNodes()
                                 .stream()
                                 .map(ControllerNode::id)
                                 .collect(Collectors.toSet())),
-                null,
-                null,
                 clusterCommunicator,
-                clusterService,
-                new File(PARTITIONS_DIR + "/coordination"));
+                clusterService);
         partition.open().join();
         primitiveCreator = partition.client();
         log.info("Started");

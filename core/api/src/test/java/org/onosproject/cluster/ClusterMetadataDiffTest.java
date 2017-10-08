@@ -24,6 +24,7 @@ import org.onlab.packet.IpAddress;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onosproject.core.Version;
 
 /**
  * Unit tests for ClusterMetadataDiff.
@@ -35,7 +36,7 @@ public class ClusterMetadataDiffTest {
         PartitionId pid1 = PartitionId.from(1);
         NodeId nid1 = NodeId.nodeId("10.0.0.1");
         ControllerNode n1 = new DefaultControllerNode(nid1, IpAddress.valueOf("10.0.0.1"), 9876);
-        Partition p1 = new DefaultPartition(pid1, ImmutableSet.of(nid1));
+        Partition p1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
         ClusterMetadata md1 = new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
         ClusterMetadataDiff diff = new ClusterMetadataDiff(md1, md1);
         assertTrue(diff.nodesAdded().isEmpty());
@@ -53,8 +54,8 @@ public class ClusterMetadataDiffTest {
         NodeId nid2 = NodeId.nodeId("10.0.0.2");
         ControllerNode n1 = new DefaultControllerNode(nid1, IpAddress.valueOf("10.0.0.1"), 9876);
         ControllerNode n2 = new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
-        Partition p1 = new DefaultPartition(pid1, ImmutableSet.of(nid1));
-        Partition p12 = new DefaultPartition(pid1, ImmutableSet.of(nid1, nid2));
+        Partition p1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
+        Partition p12 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1, nid2));
         ClusterMetadata md1 = new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
         ClusterMetadata md12 = new ClusterMetadata("foo", ImmutableSet.of(n1, n2), ImmutableSet.of(p12));
         ClusterMetadataDiff diff = new ClusterMetadataDiff(md1, md12);
@@ -77,8 +78,8 @@ public class ClusterMetadataDiffTest {
         NodeId nid2 = NodeId.nodeId("10.0.0.2");
         ControllerNode n1 = new DefaultControllerNode(nid1, IpAddress.valueOf("10.0.0.1"), 9876);
         ControllerNode n2 = new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
-        Partition p1 = new DefaultPartition(pid1, ImmutableSet.of(nid1));
-        Partition p12 = new DefaultPartition(pid1, ImmutableSet.of(nid1, nid2));
+        Partition p1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
+        Partition p12 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1, nid2));
         ClusterMetadata md1 = new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
         ClusterMetadata md12 = new ClusterMetadata("foo", ImmutableSet.of(n1, n2), ImmutableSet.of(p12));
         ClusterMetadataDiff diff = new ClusterMetadataDiff(md12, md1);

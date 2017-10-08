@@ -23,6 +23,7 @@ import java.util.Objects;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onosproject.core.Version;
 
 /**
  * Default {@link Partition} implementation.
@@ -30,6 +31,7 @@ import com.google.common.collect.Sets;
 public class DefaultPartition implements Partition {
 
     private final PartitionId id;
+    private final Version version;
     private final Collection<NodeId> members;
 
     /**
@@ -37,6 +39,7 @@ public class DefaultPartition implements Partition {
      */
     protected DefaultPartition() {
         id = null;
+        version = null;
         members = null;
     }
 
@@ -44,10 +47,12 @@ public class DefaultPartition implements Partition {
      * Constructs a partition.
      *
      * @param id partition identifier
+     * @param version partition version
      * @param members partition member nodes
      */
-    public DefaultPartition(PartitionId id, Collection<NodeId> members) {
+    public DefaultPartition(PartitionId id, Version version, Collection<NodeId> members) {
         this.id = checkNotNull(id);
+        this.version = version;
         this.members = ImmutableSet.copyOf(members);
     }
 
@@ -58,23 +63,30 @@ public class DefaultPartition implements Partition {
      */
     public DefaultPartition(Partition other) {
         this.id = checkNotNull(other.getId());
+        this.version = checkNotNull(other.getVersion());
         this.members = ImmutableSet.copyOf(other.getMembers());
     }
 
     @Override
     public PartitionId getId() {
-        return this.id;
+        return id;
+    }
+
+    @Override
+    public Version getVersion() {
+        return version;
     }
 
     @Override
     public Collection<NodeId> getMembers() {
-        return this.members;
+        return members;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id)
+                .add("version", version)
                 .add("members", members)
                 .toString();
     }

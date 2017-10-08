@@ -35,6 +35,7 @@ import org.onosproject.cluster.Member;
 import org.onosproject.cluster.MembershipGroup;
 import org.onosproject.cluster.MembershipServiceAdapter;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionServiceAdapter;
 import org.onosproject.store.service.AsyncAtomicValue;
@@ -49,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Upgrade manager test.
@@ -66,6 +68,7 @@ public class UpgradeManagerTest {
     @SuppressWarnings("unchecked")
     private UpgradeManager createUpgradeManager(Version version, Upgrade state, List<Version> versions) {
         UpgradeManager upgradeManager = new UpgradeManager();
+        injectEventDispatcher(upgradeManager, new TestEventDispatcher());
         upgradeManager.membershipService = new MembershipServiceAdapter() {
             @Override
             public MembershipGroup getLocalGroup() {
