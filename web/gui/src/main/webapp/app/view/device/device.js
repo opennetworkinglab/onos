@@ -74,7 +74,7 @@
         var top = dps.top();
         var bottom = dps.bottom();
 
-        dps.addHeading('dev-icon');
+        dps.addHeading('dev-icon', true);
         top.append('div').classed('top-content', true);
 
         top.append('hr');
@@ -232,7 +232,6 @@
             $scope.pipeconfTip = 'Show pipeconf view for selected device';
 
             // details panel handlers
-            // handlers[detailsResp] = respDetailsCb;
             handlers[nameChangeResp] = respNameCb;
             wss.bindHandlers(handlers);
 

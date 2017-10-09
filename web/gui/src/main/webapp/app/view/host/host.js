@@ -62,7 +62,7 @@
 
         var top = dps.top();
 
-        dps.addHeading('host-icon');
+        dps.addHeading('host-icon', true);
         top.append('div').classed('top-content', true);
 
         top.append('hr');

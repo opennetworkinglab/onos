@@ -58,6 +58,9 @@
         devIcon_SWITCH: 'switch',
         devIcon_ROADM: 'roadm',
         devIcon_OTN: 'otn',
+
+        portIcon_DEFAULT: 'm_ports',
+
         deviceTable: 'switch',
         flowTable: 'flowTable',
         portTable: 'portTable',

@@ -96,7 +96,9 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="port in tableData | filter: customFilter(queryFilter, query) track by $index"
+                <tr ng-repeat="port in tableData | filter: customFilter(queryFilter, query) track by $index">
+                    ng-click="selectCallback($event, port)"
+                    ng-class="{selected: port.id === selId}"
                     ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
                     <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_rx}}</td>
@@ -111,5 +113,7 @@
         </div>
 
     </div>
+
+    <port-details-panel></port-details-panel>
 
 </div>

@@ -45,3 +45,30 @@
 #ov-port tr.no-data td {
     text-align: center;
 }
+
+#port-details-panel.floatpanel {
+    z-index: 0;
+}
+
+
+#port-details-panel .container {
+    padding: 8px 12px;
+}
+
+#port-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#port-details-panel .port-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#port-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
