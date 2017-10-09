@@ -41,6 +41,9 @@ public class DhcpRecord {
     private final MacAddress macAddress;
     private final VlanId vlanId;
     private MacAddress nextHop;
+    // this will hold the potential next hop change in case
+    // of successfull LQ from another NH for a certain IP
+    private MacAddress nextHopTemp;
 
     private Ip4Address ip4Address;
     private DHCP.MsgType ip4Status;
@@ -252,6 +255,26 @@ public class DhcpRecord {
      */
     public DhcpRecord nextHop(MacAddress nextHop) {
         this.nextHop = nextHop;
+        return this;
+    }
+
+    /**
+     * Gets temporary nextHop mac address.
+     *
+     * @return the IPv4 nextHop mac address; empty if not exists
+     */
+    public Optional<MacAddress> nextHopTemp() {
+        return Optional.ofNullable(nextHopTemp);
+    }
+
+    /**
+     * Sets temporary nextHop mac address.
+     *
+     * @param nextHop the IPv4 nextHop mac address
+     * @return the DHCP record
+     */
+    public DhcpRecord nextHopTemp(MacAddress nextHop) {
+        this.nextHopTemp = nextHop;
         return this;
     }
 

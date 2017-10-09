@@ -362,6 +362,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                     handleDhcpDiscoverAndRequest(ethernetPacketRequest, dhcpPayload);
                 }
                 break;
+            case DHCPDECLINE:
+                break;
             case DHCPACK:
                 // reply to dhcp client.
                 Ethernet ethernetPacketAck = processDhcpPacketFromServer(packet);
@@ -371,8 +373,24 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                     sendResponseToClient(ethernetPacketAck, dhcpPayload);
                 }
                 break;
+            case DHCPNAK:
+                break;
             case DHCPRELEASE:
                 // TODO: release the ip address from client
+                break;
+            case DHCPINFORM:
+                break;
+            case DHCPFORCERENEW:
+                break;
+            case DHCPLEASEQUERY:
+                handleLeaseQueryMsg(context, packet, dhcpPayload);
+                break;
+            case DHCPLEASEACTIVE:
+                handleLeaseQueryActivateMsg(packet, dhcpPayload);
+                break;
+            case DHCPLEASEUNASSIGNED:
+            case DHCPLEASEUNKNOWN:
+                handleLeaseQueryUnknown(packet, dhcpPayload);
                 break;
             default:
                 break;
@@ -455,6 +473,156 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         return iface.vlanTagged().contains(vlanId);
     }
 
+    private void handleLeaseQueryActivateMsg(Ethernet packet, DHCP dhcpPayload) {
+        log.debug("LQ: Got DHCPLEASEACTIVE packet!");
+
+        // TODO: release the ip address from client
+        MacAddress clientMacAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
+        VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+        HostId hostId = HostId.hostId(clientMacAddress, vlanId);
+        DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
+
+        if (record == null) {
+            log.warn("Can't find record for host {} when processing DHCPLEASEACTIVE", hostId);
+            return;
+        }
+
+        // need to update routes
+        log.debug("Lease Query for Client results in DHCPLEASEACTIVE - route needs to be modified");
+        // get current route
+        // find the ip of that client with the DhcpRelay store
+
+        Ip4Address clientIP = record.ip4Address().orElse(null);
+        log.debug("LQ: IP of host is " + clientIP.getIp4Address());
+
+        MacAddress nextHopMac = record.nextHop().orElse(null);
+        log.debug("LQ: MAC of resulting *OLD* NH for that host is " + nextHopMac.toString());
+
+        // find the new NH by looking at the src MAC of the dhcp request
+        // from the LQ store
+        MacAddress newNextHopMac = record.nextHopTemp().orElse(null);
+        log.debug("LQ: MAC of resulting *NEW* NH for that host is " + newNextHopMac.toString());
+
+        log.debug("LQ: updating dhcp relay record with new NH");
+        record.nextHop(newNextHopMac);
+
+        // find the next hop IP from its mac
+        HostId gwHostId = HostId.hostId(newNextHopMac, vlanId);
+        Host gwHost = hostService.getHost(gwHostId);
+
+        if (gwHost == null) {
+            log.warn("Can't find gateway for new NH host " + gwHostId);
+            return;
+        }
+
+        Ip4Address nextHopIp = gwHost.ipAddresses()
+                .stream()
+                .filter(IpAddress::isIp4)
+                .map(IpAddress::getIp4Address)
+                .findFirst()
+                .orElse(null);
+
+        if (nextHopIp == null) {
+            log.warn("Can't find IP address of gateway " + gwHost);
+            return;
+        }
+
+        log.debug("LQ: *NEW* NH IP for host is " + nextHopIp.getIp4Address());
+        Route route = new Route(Route.Source.STATIC, clientIP.toIpPrefix(), nextHopIp);
+        routeStore.updateRoute(route);
+
+        // and forward to client
+        Ethernet ethernetPacket = processLeaseQueryFromServer(packet);
+        if (ethernetPacket != null) {
+            sendResponseToClient(ethernetPacket, dhcpPayload);
+        }
+    }
+
+    /**
+     *
+     */
+    private void handleLeaseQueryMsg(PacketContext context, Ethernet packet, DHCP dhcpPayload) {
+        log.debug("LQ: Got DHCPLEASEQUERY packet!");
+        MacAddress clientMacAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
+        log.debug("LQ: got DHCPLEASEQUERY with MAC " + clientMacAddress.toString());
+        // add the client mac (hostid) of this request to a store (the entry will be removed with
+        // the reply sent to the originator)
+        VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+        HostId hId = HostId.hostId(clientMacAddress, vlanId);
+        DhcpRecord record = dhcpRelayStore.getDhcpRecord(hId).orElse(null);
+        if (record != null) {
+            //new NH is to be taken from src mac of LQ packet
+            MacAddress newNextHop = packet.getSourceMAC();
+            record.nextHopTemp(newNextHop);
+            record.ip4Status(dhcpPayload.getPacketType());
+            record.updateLastSeen();
+
+            // do a basic routing of the packet (this is unicast routing
+            // not a relay operation like for other broadcast dhcp packets
+            Ethernet ethernetPacketLQ = processLeaseQueryFromAgent(context, packet);
+            // and forward to server
+            handleDhcpDiscoverAndRequest(ethernetPacketLQ, dhcpPayload);
+        } else {
+            log.warn("LQ: Error! - DHCP relay record for that client not found - ignoring LQ!");
+        }
+    }
+
+    private void handleLeaseQueryUnknown(Ethernet packet, DHCP dhcpPayload) {
+        log.debug("Lease Query for Client results in DHCPLEASEUNASSIGNED or " +
+                          "DHCPLEASEUNKNOWN - removing route & forwarding reply to originator");
+        MacAddress clientMacAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
+        VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+        HostId hostId = HostId.hostId(clientMacAddress, vlanId);
+        DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
+
+        if (record == null) {
+            log.warn("Can't find record for host {} when handling LQ UNKNOWN/UNASSIGNED message", hostId);
+            return;
+        }
+
+        Ip4Address clientIP = record.ip4Address().orElse(null);
+        log.debug("LQ: IP of host is " + clientIP.getIp4Address());
+
+        // find the new NH by looking at the src MAC of the dhcp request
+        // from the LQ store
+        MacAddress nextHopMac = record.nextHop().orElse(null);
+        log.debug("LQ: MAC of resulting *Existing* NH for that route is " + nextHopMac.toString());
+
+        // find the next hop IP from its mac
+        HostId gwHostId = HostId.hostId(nextHopMac, vlanId);
+        Host gwHost = hostService.getHost(gwHostId);
+
+        if (gwHost == null) {
+            log.warn("Can't find gateway for new NH host " + gwHostId);
+            return;
+        }
+
+        Ip4Address nextHopIp = gwHost.ipAddresses()
+                .stream()
+                .filter(IpAddress::isIp4)
+                .map(IpAddress::getIp4Address)
+                .findFirst()
+                .orElse(null);
+
+        if (nextHopIp == null) {
+            log.warn("Can't find IP address of gateway {}", gwHost);
+            return;
+        }
+
+        log.debug("LQ: *Existing* NH IP for host is " + nextHopIp.getIp4Address() + " removing route for it");
+        Route route = new Route(Route.Source.STATIC, clientIP.toIpPrefix(), nextHopIp);
+        routeStore.removeRoute(route);
+
+        // remove from temp store
+        dhcpRelayStore.removeDhcpRecord(hostId);
+
+        // and forward to client
+        Ethernet ethernetPacket = processLeaseQueryFromServer(packet);
+        if (ethernetPacket != null) {
+            sendResponseToClient(ethernetPacket, dhcpPayload);
+        }
+    }
+
     /**
      * Build the DHCP discover/request packet with gateway IP(unicast packet).
      *
@@ -469,7 +637,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
-
 
         VlanId dhcpConnectVlan = null;
         MacAddress dhcpConnectMac = null;
@@ -610,6 +777,102 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         etherReply.setPayload(ipv4Packet);
         return etherReply;
     }
+
+
+    /**
+     * Do a basic routing for a packet from client (used for LQ processing).
+     *
+     * @param context the packet context
+     * @param ethernetPacket the ethernet payload to process
+     * @return processed packet
+     */
+    private Ethernet processLeaseQueryFromAgent(PacketContext context,
+                                                Ethernet ethernetPacket) {
+        // get dhcp header.
+        Ethernet etherReply = (Ethernet) ethernetPacket.clone();
+        IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
+        UDP udpPacket = (UDP) ipv4Packet.getPayload();
+        DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
+
+        VlanId dhcpConnectVlan = null;
+        MacAddress dhcpConnectMac = null;
+        Ip4Address dhcpServerIp = null;
+
+        VlanId indirectDhcpConnectVlan = null;
+        MacAddress indirectDhcpConnectMac = null;
+        Ip4Address indirectDhcpServerIp = null;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            DhcpServerInfo serverInfo = defaultServerInfoList.get(0);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+            dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp4().orElse(null);
+        }
+
+        if (!indirectServerInfoList.isEmpty()) {
+            DhcpServerInfo indirectServerInfo = indirectServerInfoList.get(0);
+            indirectDhcpConnectVlan = indirectServerInfo.getDhcpConnectVlan().orElse(null);
+            indirectDhcpConnectMac = indirectServerInfo.getDhcpConnectMac().orElse(null);
+            indirectDhcpServerIp = indirectServerInfo.getDhcpServerIp4().orElse(null);
+        }
+
+        Ip4Address clientInterfaceIp =
+                interfaceService.getInterfacesByPort(context.inPacket().receivedFrom())
+                        .stream()
+                        .map(Interface::ipAddressesList)
+                        .flatMap(Collection::stream)
+                        .map(InterfaceIpAddress::ipAddress)
+                        .filter(IpAddress::isIp4)
+                        .map(IpAddress::getIp4Address)
+                        .findFirst()
+                        .orElse(null);
+        if (clientInterfaceIp == null) {
+            log.warn("Can't find interface IP for client interface for port {}",
+                     context.inPacket().receivedFrom());
+            return null;
+        }
+        boolean isDirectlyConnected = directlyConnected(dhcpPacket);
+        Interface serverInterface = isDirectlyConnected ? getDefaultServerInterface() : getIndirectServerInterface();
+        if (serverInterface == null) {
+            log.warn("Can't get {} server interface, ignore", isDirectlyConnected ? "direct" : "indirect");
+            return null;
+        }
+        Ip4Address ipFacingServer = getFirstIpFromInterface(serverInterface);
+        MacAddress macFacingServer = serverInterface.mac();
+        if (ipFacingServer == null || macFacingServer == null) {
+            log.warn("No IP address for server Interface {}", serverInterface);
+            return null;
+        }
+        if (dhcpConnectMac == null) {
+            log.warn("DHCP server/gateway not yet resolved .. Aborting DHCP "
+                             + "packet processing from client on port: {}",
+                     context.inPacket().receivedFrom());
+            return null;
+        }
+
+        etherReply.setSourceMACAddress(macFacingServer);
+        etherReply.setDestinationMACAddress(dhcpConnectMac);
+        etherReply.setVlanID(dhcpConnectVlan.toShort());
+        ipv4Packet.setSourceAddress(ipFacingServer.toInt());
+        ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
+
+        if (indirectDhcpServerIp != null) {
+            // Indirect case, replace destination to indirect dhcp server if exist
+            etherReply.setDestinationMACAddress(indirectDhcpConnectMac);
+            etherReply.setVlanID(indirectDhcpConnectVlan.toShort());
+            ipv4Packet.setDestinationAddress(indirectDhcpServerIp.toInt());
+        }
+
+        udpPacket.setPayload(dhcpPacket);
+        // As a DHCP relay, the source port should be server port( instead
+        // of client port.
+        udpPacket.setSourcePort(UDP.DHCP_SERVER_PORT);
+        udpPacket.setDestinationPort(UDP.DHCP_SERVER_PORT);
+        ipv4Packet.setPayload(udpPacket);
+        etherReply.setPayload(ipv4Packet);
+        return etherReply;
+    }
+
 
     /**
      * Writes DHCP record to the store according to the request DHCP packet (Discover, Request).
@@ -761,6 +1024,66 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         return etherReply;
     }
 
+    /**
+     * Build the DHCP offer/ack with proper client port.
+     *
+     * @param ethernetPacket the original packet comes from server
+     * @return new packet which will send to the client
+     */
+    private Ethernet processLeaseQueryFromServer(Ethernet ethernetPacket) {
+        // get dhcp header.
+        Ethernet etherReply = (Ethernet) ethernetPacket.clone();
+        IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
+        UDP udpPacket = (UDP) ipv4Packet.getPayload();
+        DHCP dhcpPayload = (DHCP) udpPacket.getPayload();
+
+        // determine the vlanId of the client host - note that this vlan id
+        // could be different from the vlan in the packet from the server
+        Interface clientInterface = getClientInterface(ethernetPacket, dhcpPayload).orElse(null);
+
+        if (clientInterface == null) {
+            log.warn("Cannot find the interface for the DHCP {}", dhcpPayload);
+            return null;
+        }
+        VlanId vlanId;
+        if (clientInterface.vlanTagged().isEmpty()) {
+            vlanId = clientInterface.vlan();
+        } else {
+            // might be multiple vlan in same interface
+            vlanId = getVlanIdFromRelayAgentOption(dhcpPayload);
+        }
+        if (vlanId == null) {
+            vlanId = VlanId.NONE;
+        }
+        etherReply.setVlanID(vlanId.toShort());
+        etherReply.setSourceMACAddress(clientInterface.mac());
+
+        if (!directlyConnected(dhcpPayload)) {
+            // if client is indirectly connected, try use next hop mac address
+            MacAddress macAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
+            HostId hostId = HostId.hostId(macAddress, vlanId);
+            DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
+            if (record != null) {
+                // if next hop can be found, use mac address of next hop
+                record.nextHop().ifPresent(etherReply::setDestinationMACAddress);
+            } else {
+                // otherwise, discard the packet
+                log.warn("Can't find record for host id {}, discard packet", hostId);
+                return null;
+            }
+        } else {
+            etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
+        }
+
+        // default is client port
+        udpPacket.setSourcePort(UDP.DHCP_SERVER_PORT);
+        udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
+
+        udpPacket.setPayload(dhcpPayload);
+        ipv4Packet.setPayload(udpPacket);
+        etherReply.setPayload(ipv4Packet);
+        return etherReply;
+    }
     /**
      * Extracts VLAN ID from relay agent option.
      *
