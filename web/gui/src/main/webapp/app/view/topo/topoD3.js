@@ -150,11 +150,12 @@
             case 0: return topoLion('fl_host_labels_show_friendly');
             case 1: return topoLion('fl_host_labels_show_ip');
             case 2: return topoLion('fl_host_labels_show_mac');
+            case 3: return topoLion('fl_host_labels_hide');
         }
     }
 
     function setHostLabIndex(mode) {
-        hostLabelIndex = mode % 3;
+        hostLabelIndex = mode % 4;
         var p = ps.getPrefs('topo_prefs', ttbs.defaultPrefs);
         p.hlbls = hostLabelIndex;
         ps.setPrefs('topo_prefs', p);

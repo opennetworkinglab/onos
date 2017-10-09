@@ -352,7 +352,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         // set ALL connect points
         addAllCps(host.locations(), payload);
 
-        payload.set("labels", labels(nameForHost(host), ip, host.mac().toString()));
+        payload.set("labels", labels(nameForHost(host), ip, host.mac().toString(), ""));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
         addMetaUi(host.id().toString(), payload);

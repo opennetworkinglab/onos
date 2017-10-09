@@ -66,6 +66,9 @@ public interface UiTopoLayoutService {
      * @param regionId region identifier
      * @return corresponding layout
      */
+    // FIXME: We will need to add support for multiple layouts (logical & physical)
+    // for the same region and this method won't have sufficient inputs to resolve
+    // the desired layout.
     UiTopoLayout getLayout(RegionId regionId);
 
     /**
