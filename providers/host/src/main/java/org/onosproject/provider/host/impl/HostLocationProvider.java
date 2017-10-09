@@ -585,20 +585,27 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 if (pkt != null && pkt instanceof ICMP6) {
                     // Neighbor Discovery Protocol
                     pkt = pkt.getPayload();
-                    // RouterSolicitation, RouterAdvertisement
-                    if (pkt != null && (pkt instanceof RouterAdvertisement ||
-                            pkt instanceof RouterSolicitation)) {
-                        return;
-                    }
-                    if (pkt != null && (pkt instanceof NeighborSolicitation ||
-                            pkt instanceof NeighborAdvertisement)) {
-                        // Duplicate Address Detection
-                        if (ip.isZero()) {
+                    if (pkt != null) {
+                        // RouterSolicitation, RouterAdvertisement
+                        if (pkt instanceof RouterAdvertisement || pkt instanceof RouterSolicitation) {
                             return;
                         }
-                        // NeighborSolicitation, NeighborAdvertisement
-                        createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
-                        return;
+                        if (pkt instanceof NeighborSolicitation || pkt instanceof NeighborAdvertisement) {
+                            // Duplicate Address Detection
+                            if (ip.isZero()) {
+                                return;
+                            }
+                            // NeighborSolicitation, NeighborAdvertisement
+                            createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
+
+                            // Also learn from the target address of NeighborAdvertisement
+                            if (pkt instanceof NeighborAdvertisement) {
+                                NeighborAdvertisement na = (NeighborAdvertisement) pkt;
+                                Ip6Address targetAddr = Ip6Address.valueOf(na.getTargetAddress());
+                                createOrUpdateHost(hid, srcMac, vlan, hloc, targetAddr);
+                            }
+                            return;
+                        }
                     }
                 }
 

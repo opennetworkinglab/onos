@@ -97,6 +97,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.onlab.packet.VlanId.vlanId;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -143,8 +144,11 @@ public class HostLocationProviderTest {
     private static final MacAddress MAC2 = MacAddress.valueOf("00:00:22:00:00:02");
     private static final MacAddress BCMAC2 = MacAddress.valueOf("33:33:00:00:00:01");
     private static final byte[] IP2 = Ip6Address.valueOf("1000::1").toOctets();
+    private static final byte[] LLIP2 = IPv6.getLinkLocalAddress(MAC2.toBytes());
     private static final IpAddress IP_ADDRESS2 =
             IpAddress.valueOf(IpAddress.Version.INET6, IP2);
+    private static final IpAddress LLIP_ADDRESS2 =
+            IpAddress.valueOf(IpAddress.Version.INET6, LLIP2);
     private static final HostLocation LOCATION2 =
             new HostLocation(deviceId(DEV4), portNumber(INPORT), 0L);
     private static final DefaultHost HOST2 =
@@ -258,21 +262,25 @@ public class HostLocationProviderTest {
 
         providerService.clear();
 
-        // New host. Expect one additional host description.
+        // New host. Expect two additional host descriptions. One for target IP. One for dest IP.
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertThat("New host expected", providerService.descriptions.size(), is(1));
+        assertThat("New host expected", providerService.descriptions.size(), is(2));
 
-        // The host moved to new switch. Expect one additional host description.
-        // The second host description should have a different location.
+        // The host moved to new switch. Expect two additional host descriptions.
+        // The 3rd and 4th host description should have a different location.
         testProcessor.process(new TestNaPacketContext(DEV5));
-        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
+        assertThat("Host motion expected", providerService.descriptions.size(), is(4));
         loc1 = providerService.descriptions.get(0).location();
         loc2 = providerService.descriptions.get(1).location();
-        assertNotEquals("Host location should be different", loc1, loc2);
+        HostLocation loc3 = providerService.descriptions.get(2).location();
+        HostLocation loc4 = providerService.descriptions.get(3).location();
+        assertEquals("1st and 2nd location should be equal", loc1, loc2);
+        assertEquals("3rd and 4th location should be equal", loc3, loc4);
+        assertNotEquals("1st and 3rd location should be different", loc1, loc3);
 
         // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestNaPacketContext(DEV6));
-        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
+        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(4));
     }
 
     @Test
@@ -440,16 +448,23 @@ public class HostLocationProviderTest {
 
     /**
      * When receiving NeighborAdvertisement, updates location and IP.
+     * We should also expect that target IP is learnt.
      */
     @Test
     public void receiveNa() {
         testProcessor.process(new TestNaPacketContext(DEV4));
         assertThat("receiveNa. One host description expected",
-                providerService.descriptions.size(), is(1));
+                providerService.descriptions.size(), is(2));
         HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
-        assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
+        assertTrue(descr.ipAddress().contains(LLIP_ADDRESS2));
+        assertThat(descr.vlan(), is(VLAN));
+
+        descr = providerService.descriptions.get(1);
+        assertThat(descr.location(), is(LOCATION2));
+        assertThat(descr.hwAddress(), is(MAC2));
+        assertTrue(descr.ipAddress().contains(IP_ADDRESS2));
         assertThat(descr.vlan(), is(VLAN));
     }
 
@@ -892,12 +907,13 @@ public class HostLocationProviderTest {
         @Override
         public InboundPacket inPacket() {
             NeighborAdvertisement na = new NeighborAdvertisement();
+            na.setTargetAddress(IP2);
             ICMP6 icmp6 = new ICMP6();
             icmp6.setPayload(na);
             IPv6 ipv6 = new IPv6();
             ipv6.setPayload(icmp6);
             ipv6.setDestinationAddress(Ip6Address.valueOf("ff02::1").toOctets());
-            ipv6.setSourceAddress(IP2);
+            ipv6.setSourceAddress(LLIP2);
             Ethernet eth = new Ethernet();
             eth.setEtherType(Ethernet.TYPE_IPV6)
                     .setVlanID(VLAN.toShort())
