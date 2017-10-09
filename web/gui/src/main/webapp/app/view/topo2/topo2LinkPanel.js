@@ -44,7 +44,18 @@
                 'A Type', 'A Id', 'A Label', 'A Port', '-',
                 'B Type', 'B Id', 'B Label', 'B Port',
             ],
-            props: {
+            propLabels: {
+                'Type': 'Type',
+                'A Type': 'A Type',
+                'A Id': 'A Id',
+                'A Label': 'A Label',
+                'A Port': 'A Port',
+                'B Type': 'B Type',
+                'B Id': 'B Id',
+                'B Label': 'B Label',
+                'B Port': 'B Port',
+            },
+            propValues: {
                 '-': '',
                 'Type': data.get('type'),
                 'A Type': source.get('nodeType'),
