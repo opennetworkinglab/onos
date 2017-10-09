@@ -44,6 +44,22 @@
                  ng-class="{active: ctrlBtnState.selection}">
             </div>
         </div>
+
+        <div class="search">
+            <input type="text" ng-model="queryTxt" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="title">{{lion('title')}}</option>
+                <option value="id">{{lion('app_id')}}</option>
+                <option value="version">{{lion('version')}}</option>
+                <option value="category">{{lion('category')}}</option>
+                <option value="apporiginName">{{lion('origin')}}</option>
+
+            </select>
+        </div>
+
+
     </div>
 
     <div class="summary-list" onos-table-resize>
@@ -69,7 +85,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="app in tableData track by $index"
+                <tr ng-repeat="app in tableData | filter:queryFilter track by $index"
                     ng-click="selectCallback($event, app)"
                     ng-class="{selected: app.id === selId}"
                     ng-repeat-complete row-id="{{app.id}}">
