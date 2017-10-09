@@ -96,7 +96,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="port in tableData | filter:queryFilter track by $index"
+                <tr ng-repeat="port in tableData | filter: customFilter(queryFilter, query) track by $index"
                     ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
                     <td ng-class="(isDelta() ? 'delta' : 'right')">{{port.pkt_rx}}</td>

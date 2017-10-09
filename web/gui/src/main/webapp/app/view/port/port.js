@@ -143,13 +143,65 @@
                     return nzFilter;
                 };
 
-                Object.defineProperty($scope, 'queryFilter', {
-                    get: function () {
+                function getOperatorFromQuery(query) {
+
+                    var operator = query.split(' '),
+                        opFunc = null;
+
+                    if (operator[0] === '>') {
+                        opFunc = _.gt;
+                    } else if (operator[0] === '>=') {
+                        opFunc = _.gte;
+                    } else if (operator[0] === '<') {
+                        opFunc = _.lt;
+                    } else if (operator[0] === '<=') {
+                        opFunc = _.lte;
+                    } else {
+                        return {
+                            operator: opFunc,
+                            searchText: query,
+                        };
+                    }
+
+                    return {
+                        operator: opFunc,
+                        searchText: operator[1],
+                    };
+                }
+
+                $scope.customFilter = function (prop, val) {
+                    if (!val) {
+                        return;
+                    }
+
+                    var search = getOperatorFromQuery(val),
+                        operator = search.operator,
+                        searchText = search.searchText;
+
+                    if (operator) {
+                        return function (row) {
+                            var queryBy = $scope.queryBy || '$';
+
+                            if (queryBy !== '$') {
+                                var rowValue = parseInt(row[$scope.queryBy].replace(/,/g, ''));
+                                return operator(rowValue, parseInt(searchText)) ? row : null;
+                            } else {
+                                var keys = _.keysIn(row);
+
+                                for (var i = 0, l = keys.length; i < l; i++) {
+                                    var rowValue = parseInt(row[keys[i]].replace(/,/g, ''));
+                                    if (operator(rowValue, parseInt(searchText))) {
+                                        return row;
+                                    }
+                                }
+                            }
+                        };
+                    } else {
                         var out = {};
                         out[$scope.queryBy || '$'] = $scope.query;
                         return out;
-                    },
-                });
+                    }
+                };
 
                 restoreConfigFromPrefs();
                 $log.log('OvPortCtrl has been created');
