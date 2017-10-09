@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -115,6 +116,9 @@ public class GeneralDeviceProvider extends AbstractProvider
     protected DeviceProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -182,6 +186,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
+        componentConfigService.registerProperties(getClass());
         coreService.registerApplication(APP_NAME);
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgListener);
@@ -224,6 +229,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Deactivate
     public void deactivate() {
         portStatsExecutor.shutdown();
+        componentConfigService.unregisterProperties(getClass(), false);
         cfgService.removeListener(cfgListener);
         //Not Removing the device so they can still be used from other driver providers
         //cfgService.getSubjects(DeviceId.class, GeneralProviderDeviceConfig.class)
