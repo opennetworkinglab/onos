@@ -82,7 +82,10 @@ public class AppPermission extends BasicPermission {
         TUNNEL_WRITE,
         TUNNEL_EVENT,
         UI_READ,
-        UI_WRITE
+        UI_WRITE,
+        UPGRADE_READ,
+        UPGRADE_WRITE,
+        UPGRADE_EVENT
     }
 
     protected Type type;

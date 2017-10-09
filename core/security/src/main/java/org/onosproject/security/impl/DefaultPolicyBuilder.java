@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.ClusterMetadataAdminService;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ClusterMetadataAdminService;
-import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.LeadershipAdminService;
+import org.onosproject.cluster.LeadershipService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipTermService;
@@ -75,6 +75,8 @@ import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiExtensionService;
+import org.onosproject.upgrade.UpgradeAdminService;
+import org.onosproject.upgrade.UpgradeService;
 import org.osgi.framework.ServicePermission;
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.AdaptPermission;
@@ -202,7 +204,6 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(RegionAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(PartitionAdminService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageAdminService.class.getName(), ServicePermission.GET));
-
         permSet.add(new ServicePermission(ApplicationService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ComponentConfigService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(ClusterMetadataService.class.getName(), ServicePermission.GET));
@@ -247,7 +248,8 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(LogicalClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(StorageService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(UiExtensionService.class.getName(), ServicePermission.GET));
-
+        permSet.add(new ServicePermission(UpgradeService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(UpgradeAdminService.class.getName(), ServicePermission.GET));
         return permSet;
     }
 
@@ -367,6 +369,12 @@ public final class DefaultPolicyBuilder {
                 PartitionService.class.getName()));
         serviceDirectory.put(CLOCK_WRITE, ImmutableSet.of(
                 LogicalClockService.class.getName()));
+        serviceDirectory.put(UPGRADE_READ, ImmutableSet.of(
+                UpgradeService.class.getName(), UpgradeAdminService.class.getName()));
+        serviceDirectory.put(UPGRADE_WRITE, ImmutableSet.of(
+                UpgradeAdminService.class.getName()));
+        serviceDirectory.put(UPGRADE_EVENT, ImmutableSet.of(
+                UpgradeService.class.getName(), UpgradeAdminService.class.getName()));
 
         return serviceDirectory;
     }

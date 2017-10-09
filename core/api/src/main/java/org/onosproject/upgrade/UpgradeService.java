@@ -27,6 +27,13 @@ public interface UpgradeService
         extends ListenerService<UpgradeEvent, UpgradeEventListener> {
 
     /**
+     * Returns the current upgrade state.
+     *
+     * @return the current upgrade state
+     */
+    Upgrade getState();
+
+    /**
      * Returns whether an upgrade is in progress.
      * <p>
      * An upgrade is in progress if the upgrade {@link Upgrade.Status} is active, e.g.
@@ -35,13 +42,6 @@ public interface UpgradeService
      * @return indicates whether an upgrade is in progress
      */
     boolean isUpgrading();
-
-    /**
-     * Returns the current upgrade state.
-     *
-     * @return the current upgrade state
-     */
-    Upgrade getState();
 
     /**
      * Returns the currently active software version.

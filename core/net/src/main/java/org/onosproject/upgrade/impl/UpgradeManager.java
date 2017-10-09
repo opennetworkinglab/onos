@@ -48,6 +48,8 @@ import org.onosproject.upgrade.UpgradeEventListener;
 import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -79,8 +81,8 @@ public class UpgradeManager
     private Version localVersion;
     private AtomicValue<Upgrade> state;
     private final AtomicReference<Upgrade> currentState = new AtomicReference<>();
-    private final AtomicValueEventListener<Upgrade> stateListener = event -> handleUpgradeEvent(event);
-    private final ClusterEventListener clusterListener = event -> handleClusterEvent(event);
+    private final AtomicValueEventListener<Upgrade> stateListener = this::handleUpgradeEvent;
+    private final ClusterEventListener clusterListener = this::handleClusterEvent;
 
     @Activate
     public void activate() {
@@ -92,12 +94,11 @@ public class UpgradeManager
         localVersion = versionService.version();
 
         currentState.set(state.get());
-        if (currentState.get() == null) {
-            currentState.set(new Upgrade(localVersion, localVersion, Upgrade.Status.INACTIVE));
-            state.set(currentState.get());
+        if (getState() == null) {
+            initializeState(new Upgrade(localVersion, localVersion, Upgrade.Status.INACTIVE));
         }
 
-        Upgrade upgrade = currentState.get();
+        Upgrade upgrade = getState();
 
         // If the upgrade state is not initialized, ensure this node matches the version of the cluster.
         if (!upgrade.status().active() && !Objects.equals(upgrade.source(), localVersion)) {
@@ -110,9 +111,9 @@ public class UpgradeManager
         if (upgrade.status() == Upgrade.Status.INITIALIZED) {
             // If the source version equals the target version, attempt to update the target version.
             if (Objects.equals(upgrade.source(), upgrade.target()) && !Objects.equals(upgrade.target(), localVersion)) {
+                checkPermission(UPGRADE_WRITE);
                 upgrade = new Upgrade(upgrade.source(), localVersion, upgrade.status());
-                currentState.set(upgrade);
-                state.set(upgrade);
+                initializeState(upgrade);
             }
         }
 
@@ -142,19 +143,53 @@ public class UpgradeManager
         log.info("Stopped");
     }
 
+    /**
+     * Initializes the state when the cluster starts.
+     * <p>
+     * This method must be called when updating the state in order to check the permissions
+     *
+     * @param newState new state
+     */
+    private void initializeState(Upgrade newState) {
+        checkPermission(UPGRADE_WRITE);
+        currentState.set(newState);
+        state.set(newState);
+    }
+
+    /**
+     * Changes the current state to new one.
+     * <p>
+     * This method must be called when changing between states in order to check the permissions and
+     * to avoid concurrent state modifications
+     *
+     * @param oldState current upgrade state
+     * @param newState new upgrade state
+     *
+     * @throws IllegalStateException if an upgrade is already in progress
+     */
+    private void changeState(Upgrade oldState, Upgrade newState) {
+        checkPermission(UPGRADE_WRITE);
+        if (!state.compareAndSet(oldState, newState)) {
+            throw new IllegalStateException("Concurrent upgrade modification");
+        } else {
+            currentState.set(newState);
+        }
+    }
+
+    @Override
+    public Upgrade getState() {
+        checkPermission(UPGRADE_READ);
+        return currentState.get();
+    }
+
     @Override
     public boolean isUpgrading() {
         return getState().status().active();
     }
 
     @Override
-    public Upgrade getState() {
-        return currentState.get();
-    }
-
-    @Override
     public Version getVersion() {
-        Upgrade upgrade = currentState.get();
+        Upgrade upgrade = getState();
         return upgrade.status().upgraded()
                 ? upgrade.target()
                 : upgrade.source();
@@ -167,7 +202,7 @@ public class UpgradeManager
 
     @Override
     public boolean isLocalUpgraded() {
-        Upgrade upgrade = currentState.get();
+        Upgrade upgrade = getState();
         return upgrade.status().active()
                 && !upgrade.source().equals(upgrade.target())
                 && localVersion.equals(upgrade.target());
@@ -175,7 +210,7 @@ public class UpgradeManager
 
     @Override
     public void initialize() {
-        Upgrade inactive = currentState.get();
+        Upgrade inactive = getState();
 
         // If the current upgrade status is active, fail initialization.
         if (inactive.status().active()) {
@@ -187,27 +222,19 @@ public class UpgradeManager
                 localVersion,
                 localVersion,
                 Upgrade.Status.INITIALIZING);
-        if (!state.compareAndSet(inactive, initializing)) {
-            throw new IllegalStateException("Concurrent upgrade modification");
-        } else {
-            currentState.set(initializing);
+        changeState(inactive, initializing);
 
-            // Set the upgrade status to INITIALIZED.
-            Upgrade initialized = new Upgrade(
-                    initializing.source(),
-                    initializing.target(),
-                    Upgrade.Status.INITIALIZED);
-            if (!state.compareAndSet(initializing, initialized)) {
-                throw new IllegalStateException("Concurrent upgrade modification");
-            } else {
-                currentState.set(initialized);
-            }
-        }
+        // Set the upgrade status to INITIALIZED.
+        Upgrade initialized = new Upgrade(
+                initializing.source(),
+                initializing.target(),
+                Upgrade.Status.INITIALIZED);
+        changeState(initializing, initialized);
     }
 
     @Override
     public void upgrade() {
-        Upgrade initialized = currentState.get();
+        Upgrade initialized = getState();
 
         // If the current upgrade status is not INITIALIZED, throw an exception.
         if (initialized.status() != Upgrade.Status.INITIALIZED) {
@@ -219,27 +246,19 @@ public class UpgradeManager
                 initialized.source(),
                 initialized.target(),
                 Upgrade.Status.UPGRADING);
-        if (!state.compareAndSet(initialized, upgrading)) {
-            throw new IllegalStateException("Concurrent upgrade modification");
-        } else {
-            currentState.set(upgrading);
+        changeState(initialized, upgrading);
 
-            // Set the upgrade status to UPGRADED.
-            Upgrade upgraded = new Upgrade(
-                    upgrading.source(),
-                    upgrading.target(),
-                    Upgrade.Status.UPGRADED);
-            if (!state.compareAndSet(upgrading, upgraded)) {
-                throw new IllegalStateException("Concurrent upgrade modification");
-            } else {
-                currentState.set(upgraded);
-            }
-        }
+        // Set the upgrade status to UPGRADED.
+        Upgrade upgraded = new Upgrade(
+                upgrading.source(),
+                upgrading.target(),
+                Upgrade.Status.UPGRADED);
+        changeState(upgrading, upgraded);
     }
 
     @Override
     public void commit() {
-        Upgrade upgraded = currentState.get();
+        Upgrade upgraded = getState();
 
         // If the current upgrade status is not UPGRADED, throw an exception.
         if (upgraded.status() != Upgrade.Status.UPGRADED) {
@@ -260,38 +279,26 @@ public class UpgradeManager
                 upgraded.source(),
                 upgraded.target(),
                 Upgrade.Status.COMMITTING);
-        if (!state.compareAndSet(upgraded, committing)) {
-            throw new IllegalStateException("Concurrent upgrade modification");
-        } else {
-            currentState.set(committing);
+        changeState(upgraded, committing);
 
-            // Set the upgrade status to COMMITTED.
-            Upgrade committed = new Upgrade(
-                    committing.source(),
-                    committing.target(),
-                    Upgrade.Status.COMMITTED);
-            if (!state.compareAndSet(committing, committed)) {
-                throw new IllegalStateException("Concurrent upgrade modification");
-            } else {
-                currentState.set(committed);
+        // Set the upgrade status to COMMITTED.
+        Upgrade committed = new Upgrade(
+                committing.source(),
+                committing.target(),
+                Upgrade.Status.COMMITTED);
+        changeState(committing, committed);
 
-                // Set the upgrade status to INACTIVE.
-                Upgrade inactive = new Upgrade(
-                        localVersion,
-                        localVersion,
-                        Upgrade.Status.INACTIVE);
-                if (!state.compareAndSet(committed, inactive)) {
-                    throw new IllegalStateException("Concurrent upgrade modification");
-                } else {
-                    currentState.set(inactive);
-                }
-            }
-        }
+        // Set the upgrade status to INACTIVE.
+        Upgrade inactive = new Upgrade(
+                localVersion,
+                localVersion,
+                Upgrade.Status.INACTIVE);
+        changeState(committed, inactive);
     }
 
     @Override
     public void rollback() {
-        Upgrade upgraded = currentState.get();
+        Upgrade upgraded = getState();
 
         // If the current upgrade status is not UPGRADED, throw an exception.
         if (upgraded.status() != Upgrade.Status.UPGRADED) {
@@ -303,27 +310,19 @@ public class UpgradeManager
                 upgraded.source(),
                 upgraded.target(),
                 Upgrade.Status.ROLLING_BACK);
-        if (!state.compareAndSet(upgraded, rollingBack)) {
-            throw new IllegalStateException("Concurrent upgrade modification");
-        } else {
-            currentState.set(rollingBack);
+        changeState(upgraded, rollingBack);
 
-            // Set the upgrade status to ROLLED_BACK.
-            Upgrade rolledBack = new Upgrade(
-                    rollingBack.source(),
-                    rollingBack.target(),
-                    Upgrade.Status.ROLLED_BACK);
-            if (!state.compareAndSet(rollingBack, rolledBack)) {
-                throw new IllegalStateException("Concurrent upgrade modification");
-            } else {
-                currentState.set(rolledBack);
-            }
-        }
+        // Set the upgrade status to ROLLED_BACK.
+        Upgrade rolledBack = new Upgrade(
+                rollingBack.source(),
+                rollingBack.target(),
+                Upgrade.Status.ROLLED_BACK);
+        changeState(rollingBack, rolledBack);
     }
 
     @Override
     public void reset() {
-        Upgrade upgraded = currentState.get();
+        Upgrade upgraded = getState();
 
         // If the current upgrade status is not INITIALIZED or ROLLED_BACK, throw an exception.
         if (upgraded.status() != Upgrade.Status.INITIALIZED
@@ -345,33 +344,21 @@ public class UpgradeManager
                 upgraded.source(),
                 upgraded.target(),
                 Upgrade.Status.RESETTING);
-        if (!state.compareAndSet(upgraded, resetting)) {
-            throw new IllegalStateException("Concurrent upgrade modification");
-        } else {
-            currentState.set(resetting);
+        changeState(upgraded, resetting);
 
-            // Set the upgrade status to RESET.
-            Upgrade reset = new Upgrade(
-                    resetting.source(),
-                    resetting.target(),
-                    Upgrade.Status.RESET);
-            if (!state.compareAndSet(resetting, reset)) {
-                throw new IllegalStateException("Concurrent upgrade modification");
-            } else {
-                currentState.set(reset);
+        // Set the upgrade status to RESET.
+        Upgrade reset = new Upgrade(
+                resetting.source(),
+                resetting.target(),
+                Upgrade.Status.RESET);
+        changeState(resetting, reset);
 
-                // Set the upgrade status to INACTIVE.
-                Upgrade inactive = new Upgrade(
-                        localVersion,
-                        localVersion,
-                        Upgrade.Status.INACTIVE);
-                if (!state.compareAndSet(reset, inactive)) {
-                    throw new IllegalStateException("Concurrent upgrade modification");
-                } else {
-                    currentState.set(inactive);
-                }
-            }
-        }
+        // Set the upgrade status to INACTIVE.
+        Upgrade inactive = new Upgrade(
+                localVersion,
+                localVersion,
+                Upgrade.Status.INACTIVE);
+        changeState(reset, inactive);
     }
 
     /**
@@ -380,9 +367,10 @@ public class UpgradeManager
      * @param event the cluster event
      */
     protected void handleClusterEvent(ClusterEvent event) {
+        checkPermission(CLUSTER_EVENT);
         // If an instance was deactivated, check whether we need to roll back the upgrade.
         if (event.type() == ClusterEvent.Type.INSTANCE_DEACTIVATED) {
-            Upgrade upgrade = state.get();
+            Upgrade upgrade = getState();
             if (upgrade.status().upgraded()) {
                 // Get the upgraded subset of the cluster and check whether the down node is a member
                 // of the upgraded subset. If so, roll back the upgrade to tolerate the failure.
@@ -403,6 +391,7 @@ public class UpgradeManager
      * @param event the upgrade value event
      */
     protected void handleUpgradeEvent(AtomicValueEvent<Upgrade> event) {
+        checkPermission(UPGRADE_EVENT);
         currentState.set(event.newValue());
         switch (event.newValue().status()) {
             case INITIALIZED:
