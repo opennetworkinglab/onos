@@ -896,11 +896,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         log.debug("interfaceId write srcMac {} portString {}",
                   HexString.toHexString(clientSoureMacBytes, ":"), inPortString);
         dhcp6Relay.setOptions(options);
-        //dhcp6Packet.setPayload(dhcp6Relay);
-        //udpPacket.setPayload(dhcp6Packet);
         udpPacket.setPayload(dhcp6Relay);
         udpPacket.resetChecksum();
         ipv6Packet.setPayload(udpPacket);
+        ipv6Packet.setHopLimit((byte) 64);
         etherReply.setPayload(ipv6Packet);
 
 

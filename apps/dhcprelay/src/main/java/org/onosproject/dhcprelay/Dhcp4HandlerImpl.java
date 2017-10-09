@@ -586,6 +586,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         udpPacket.setSourcePort(UDP.DHCP_SERVER_PORT);
         udpPacket.setDestinationPort(UDP.DHCP_SERVER_PORT);
         ipv4Packet.setPayload(udpPacket);
+        ipv4Packet.setTtl((byte) 64);
         etherReply.setPayload(ipv4Packet);
         return etherReply;
     }
