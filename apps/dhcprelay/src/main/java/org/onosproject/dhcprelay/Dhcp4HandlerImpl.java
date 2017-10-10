@@ -521,12 +521,13 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         }
 
         etherReply.setSourceMACAddress(macFacingServer);
-        etherReply.setDestinationMACAddress(dhcpConnectMac);
-        etherReply.setVlanID(dhcpConnectVlan.toShort());
         ipv4Packet.setSourceAddress(ipFacingServer.toInt());
-        ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
 
         if (isDirectlyConnected) {
+            etherReply.setDestinationMACAddress(dhcpConnectMac);
+            etherReply.setVlanID(dhcpConnectVlan.toShort());
+            ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
+
             ConnectPoint inPort = context.inPacket().receivedFrom();
             VlanId vlanId = VlanId.vlanId(ethernetPacket.getVlanID());
             // add connected in port and vlan
@@ -542,7 +543,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             newRelayAgentOpt.setCode(OptionCode_CircuitID.getValue());
             newRelayAgentOpt.addSubOption(circuitIdSubOpt);
 
-            // Removes END option  first
+            // Removes END option first
             List<DhcpOption> options = dhcpPacket.getOptions().stream()
                     .filter(opt -> opt.getCode() != OptionCode_END.getValue())
                     .collect(Collectors.toList());
@@ -557,23 +558,31 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
 
             dhcpPacket.setOptions(options);
 
-            // Sets giaddr to IP address from the Interface which facing to
-            // DHCP client
-            dhcpPacket.setGatewayIPAddress(clientInterfaceIp.toInt());
+            // Sets relay agent IP
+            int effectiveRelayAgentIp = relayAgentIp != null ?
+                    relayAgentIp.toInt() : clientInterfaceIp.toInt();
+            dhcpPacket.setGatewayIPAddress(effectiveRelayAgentIp);
+        } else {
+            if (indirectDhcpServerIp != null) {
+                // Use indirect server config for indirect packets if configured
+                etherReply.setDestinationMACAddress(indirectDhcpConnectMac);
+                etherReply.setVlanID(indirectDhcpConnectVlan.toShort());
+                ipv4Packet.setDestinationAddress(indirectDhcpServerIp.toInt());
 
-            // replace giaddr if relay agent IP is set
-            if (relayAgentIp != null) {
-                dhcpPacket.setGatewayIPAddress(relayAgentIp.toInt());
-            }
-        } else if (indirectDhcpServerIp != null) {
-            // Indirect case, replace destination to indirect dhcp server if exist
-            etherReply.setDestinationMACAddress(indirectDhcpConnectMac);
-            etherReply.setVlanID(indirectDhcpConnectVlan.toShort());
-            ipv4Packet.setDestinationAddress(indirectDhcpServerIp.toInt());
+                // Set giaddr if indirect relay agent IP is configured
+                if (indirectRelayAgentIp != null) {
+                    dhcpPacket.setGatewayIPAddress(indirectRelayAgentIp.toInt());
+                }
+            } else {
+                // Otherwise, use default server config for indirect packets
+                etherReply.setDestinationMACAddress(dhcpConnectMac);
+                etherReply.setVlanID(dhcpConnectVlan.toShort());
+                ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
 
-            // replace giaddr if relay agent IP is set
-            if (indirectRelayAgentIp != null) {
-                dhcpPacket.setGatewayIPAddress(relayAgentIp.toInt());
+                // Set giaddr if direct relay agent IP is configured
+                if (relayAgentIp != null) {
+                    dhcpPacket.setGatewayIPAddress(relayAgentIp.toInt());
+                }
             }
         }
 
