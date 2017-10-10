@@ -17,7 +17,7 @@
         <version>1.12.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-cfm</artifactId>
+    <artifactId>onos-apps-cfm</artifactId>
     <packaging>bundle</packaging>
     <version>1.12.0-SNAPSHOT</version>
 
@@ -71,6 +71,28 @@
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework</groupId>
+            <artifactId>jersey-test-framework-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-rest</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
