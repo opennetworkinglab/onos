@@ -218,6 +218,7 @@ ONOS_APPS = [
     '//apps/route-service:onos-apps-route-service-oar',
     '//apps/evpn-route-service:onos-apps-evpn-route-service-oar',
     '//incubator/protobuf/registry:onos-incubator-protobuf-registry-oar',
+    '//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb-oar',
     '//apps/openstacknetworkingui:onos-apps-openstacknetworkingui-oar',
     '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar',
     '//apps/p4-tutorial/icmpdropper:onos-apps-p4-tutorial-icmpdropper-oar',

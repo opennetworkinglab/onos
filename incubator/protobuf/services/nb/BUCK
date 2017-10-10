@@ -57,3 +57,13 @@ osgi_jar_with_tests(
     deps = COMPILE_DEPS,
     visibility = ['PUBLIC'],
 )
+
+onos_app (
+    title = 'Grpc Northbound Service',
+    app_name = "org.onosproject.grpc.nb.service",
+    category = 'TODO',
+    url = 'http://onosproject.org',
+    included_bundles = ['//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+            '//lib:google-instrumentation-0.3.0'],
+    description = 'gRPC northbound services used to provide fine-grained access to ONOS native northbound interface from off-platform applications',
+)
