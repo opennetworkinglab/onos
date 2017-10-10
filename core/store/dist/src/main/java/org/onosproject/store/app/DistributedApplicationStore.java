@@ -57,6 +57,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.DistributedPrimitive.Status;
+import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -130,6 +131,9 @@ public class DistributedApplicationStore extends ApplicationArchive
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore idStore;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected UpgradeService upgradeService;
+
     private final InternalAppsListener appsListener = new InternalAppsListener();
     private final Consumer<Application> appActivator = new AppActivator();
 
@@ -184,7 +188,45 @@ public class DistributedApplicationStore extends ApplicationArchive
         apps.addListener(appsListener, activationExecutor);
         apps.addStatusChangeListener(statusChangeListener);
         coreAppId = getId(CoreService.CORE_APP_NAME);
+
+        upgradeExistingApplications();
         log.info("Started");
+    }
+
+    /**
+     * Upgrades application versions for existing applications that are stored on disk after an upgrade.
+     */
+    private void upgradeExistingApplications() {
+        if (upgradeService.isUpgrading() && upgradeService.isLocalUpgraded()) {
+            getApplicationNames().forEach(appName -> {
+                // Only update the application version if the application has already been installed.
+                ApplicationId appId = getId(appName);
+                if (appId != null) {
+                    Application application = getApplication(appId);
+                    if (application != null) {
+                        InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.get(application.id()));
+
+                        // Load the application description from disk. If the version doesn't match the persisted
+                        // version, update the stored application with the new version.
+                        ApplicationDescription appDesc = getApplicationDescription(appName);
+                        if (!appDesc.version().equals(application.version())) {
+                            Application newApplication = DefaultApplication.builder(application)
+                                    .withVersion(appDesc.version())
+                                    .build();
+                            InternalApplicationHolder newHolder = new InternalApplicationHolder(
+                                    newApplication, appHolder.state, appHolder.permissions);
+                            apps.put(newApplication.id(), newHolder);
+                        }
+
+                        // If the application was activated in the previous version, set the local state to active.
+                        if (appHolder.state == ACTIVATED) {
+                            setActive(appName);
+                            updateTime(appName);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -193,7 +235,6 @@ public class DistributedApplicationStore extends ApplicationArchive
      */
     private void bootstrapExistingApplications() {
         apps.asJavaMap().forEach((appId, holder) -> setupApplicationAndNotify(appId, holder.app(), holder.state()));
-
     }
 
     /**
@@ -351,7 +392,6 @@ public class DistributedApplicationStore extends ApplicationArchive
         requiredBy.put(appId, forAppId);
         activate(appId, true);
     }
-
 
     private void activate(ApplicationId appId, boolean updateTime) {
         Versioned<InternalApplicationHolder> vAppHolder = apps.get(appId);
