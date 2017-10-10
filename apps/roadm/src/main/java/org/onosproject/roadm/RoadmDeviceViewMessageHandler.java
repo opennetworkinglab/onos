@@ -102,7 +102,7 @@ public class RoadmDeviceViewMessageHandler extends UiMessageHandler {
             DeviceId devId = device.id();
             String id = devId.toString();
             row.cell(ID, id)
-                    .cell(NAME, RoadmUtil.getAnnotation(device.annotations(), AnnotationKeys.PORT_NAME, id))
+                    .cell(NAME, RoadmUtil.getAnnotation(device.annotations(), AnnotationKeys.NAME, id))
                     .cell(TYPE, RoadmUtil.objectToString(device.type(), RoadmUtil.UNKNOWN))
                     .cell(MASTER, mastershipService.getMasterFor(devId))
                     .cell(PORTS, deviceService.getPorts(devId).size())
