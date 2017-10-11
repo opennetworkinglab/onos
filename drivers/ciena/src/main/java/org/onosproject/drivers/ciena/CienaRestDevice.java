@@ -16,18 +16,46 @@
 package org.onosproject.drivers.ciena;
 
 import org.onlab.util.Frequency;
+import org.onosproject.driver.optical.flowrule.CrossConnectCache;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.util.Objects;
+import java.util.List;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -35,37 +63,80 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class CienaRestDevice {
     private DeviceId deviceId;
     private RestSBController controller;
+    private CrossConnectCache crossConnectCache;
+    private DeviceService deviceService;
 
     private final Logger log = getLogger(getClass());
     private static final String ENABLED = "enabled";
     private static final String DISABLED = "disabled";
+    private static final String VALUE = "value";
+    private static final String STATE = "state";
+    private static final String ADMIN_STATE = "admin-state";
+    private static final String WAVELENGTH = "wavelength";
+    private static final String DATA = "data";
+    private static final String LINE_SYSTEM_CHANNEL_NUMBER = "ciena-ws-ptp-modem:line-system-channel-number";
+    private static final String FREQUENCY_KEY = "ciena-ws-ptp-modem:frequency";
     private static final Frequency BASE_FREQUENCY = Frequency.ofGHz(193_950);
 
     //URIs
     private static final String PORT_URI = "ws-ptps/ptps/%s";
     private static final String TRANSMITTER_URI = PORT_URI + "/properties/transmitter";
-    private static final String PORT_STATE_URI = PORT_URI  + "/state";
-    private static final String WAVELENGTH_URI = TRANSMITTER_URI + "/wavelength";
-    private static final String FREQUENCY_URI = TRANSMITTER_URI + "/ciena-ws-ptp-modem:frequency";
-    private static final String CHANNEL_URI = TRANSMITTER_URI + "/ciena-ws-ptp-modem:line-system-channel-number";
+    private static final String PORT_STATE_URI = PORT_URI + "/" + STATE;
+    private static final String WAVELENGTH_URI = TRANSMITTER_URI + "/" + WAVELENGTH;
+    private static final String FREQUENCY_URI = TRANSMITTER_URI + "/" + FREQUENCY_KEY;
+    private static final String CHANNEL_URI = TRANSMITTER_URI + "/" + LINE_SYSTEM_CHANNEL_NUMBER;
+
+    private static final List<String> LINESIDE_PORT_ID = ImmutableList.of("4", "48");
 
     public CienaRestDevice(DriverHandler handler) throws NullPointerException {
         deviceId = handler.data().deviceId();
         controller = checkNotNull(handler.get(RestSBController.class));
+        crossConnectCache = checkNotNull(handler.get(CrossConnectCache.class));
+        deviceService = checkNotNull(handler.get(DeviceService.class));
+    }
+
+    /**
+     * return the Line side ports.
+     *
+     * @return List of Line side ports.
+     */
+    public static List<String> getLinesidePortId() {
+        return LINESIDE_PORT_ID;
+    }
+
+    /**
+     * add the given flow rules to cross connect-cache.
+     *
+     * @param flowRules flow rules that needs to be cached.
+     */
+    public void setCrossConnectCache(Collection<FlowRule> flowRules) {
+        flowRules.forEach(xc -> crossConnectCache.set(
+                Objects.hash(deviceId, xc.selector(), xc.treatment()),
+                xc.id(),
+                xc.priority()));
+    }
+
+    /**
+     * remove the given flow rules form the cross-connect cache.
+     *
+     * @param flowRules flow rules that needs to be removed from cache.
+     */
+    public void removeCrossConnectCache(Collection<FlowRule> flowRules) {
+        flowRules.forEach(xc -> crossConnectCache.remove(Objects.hash(deviceId, xc.selector(), xc.treatment())));
     }
 
     private final String genPortStateRequest(String state) {
         String request = "{\n" +
-                "\"state\": {\n" +
-                "\"admin-state\": \"" + state + "\"\n}\n}";
+                "\"" + STATE + "\": {\n" +
+                "\"" + ADMIN_STATE + "\": \"" + state + "\"\n}\n}";
         log.debug("generated request: \n{}", request);
         return request;
     }
 
     private String genWavelengthChangeRequest(String wavelength) {
         String request = "{\n" +
-                "\"wavelength\": {\n" +
-                "\"value\": " + wavelength + "\n" +
+                "\"" + WAVELENGTH + "\": {\n" +
+                "\"" + VALUE + "\": " + wavelength + "\n" +
                 "}\n" +
                 "}";
         log.debug("request:\n{}", request);
@@ -75,8 +146,8 @@ public class CienaRestDevice {
 
     private String genFrequencyChangeRequest(long frequency) {
         String request = "{\n" +
-                "\"ciena-ws-ptp-modem:frequency\": {\n" +
-                "\"value\": " + Long.toString(frequency) + "\n" +
+                "\"" + FREQUENCY_KEY + "\": {\n" +
+                "\"" + VALUE + "\": " + Long.toString(frequency) + "\n" +
                 "}\n" +
                 "}";
         log.debug("request:\n{}", request);
@@ -86,7 +157,7 @@ public class CienaRestDevice {
 
     private String genChannelChangeRequest(int channel) {
         String request = "{\n" +
-                "\"ciena-ws-ptp-modem:line-system-channel-number\": " +
+                "\"" + LINE_SYSTEM_CHANNEL_NUMBER + "\": " +
                 Integer.toString(channel) + "\n}";
         log.debug("request:\n{}", request);
         return request;
@@ -99,10 +170,14 @@ public class CienaRestDevice {
     }
 
     private boolean changePortState(PortNumber number, String state) {
-        log.debug("changing the port {} state to {}", number, state);
+        log.debug("changing the port {} on device {} state to {}", number, deviceId, state);
         String uri = genUri(PORT_STATE_URI, number);
         String request = genPortStateRequest(state);
-        return putNoReply(uri, request);
+        boolean response = putNoReply(uri, request);
+        if (!response) {
+            log.error("unable to change port {} on device {} state to {}", number, deviceId, state);
+        }
+        return response;
     }
 
     public boolean disablePort(PortNumber number) {
@@ -117,7 +192,11 @@ public class CienaRestDevice {
         String uri = genUri(FREQUENCY_URI, outPort);
         long frequency = toFrequency(signal);
         String request = genFrequencyChangeRequest(frequency);
-        return putNoReply(uri, request);
+        boolean response = putNoReply(uri, request);
+        if (!response) {
+            log.error("unable to change frequency of port {} on device {}", outPort, deviceId);
+        }
+        return response;
     }
 
     public final boolean changeChannel(OchSignal signal, PortNumber outPort) {
@@ -125,13 +204,90 @@ public class CienaRestDevice {
         int channel = signal.spacingMultiplier();
         log.debug("channel is {} for port {} on device {}", channel, outPort.name(), deviceId);
         String request = genChannelChangeRequest(channel);
-        return putNoReply(uri, request);
+        boolean response = putNoReply(uri, request);
+        if (!response) {
+            log.error("unable to change channel to {} for port {} on device {}",
+                    channel, outPort.name(), deviceId);
+        }
+        return response;
     }
 
     private final long toFrequency(OchSignal signal) {
         double frequency = BASE_FREQUENCY.asGHz() +
                 (signal.channelSpacing().frequency().asGHz() * (double) signal.slotGranularity());
         return Double.valueOf(frequency).longValue();
+    }
+
+    private final int getChannel(PortNumber port) {
+        try {
+            String uri = genUri(CHANNEL_URI, port);
+            JsonNode response = get(uri);
+            return response.get(LINE_SYSTEM_CHANNEL_NUMBER).asInt();
+        } catch (IOException e) {
+            // this is expected for client side ports as they don't contain channel data
+            log.error("unable to get channel for port {} on device {}:\n{}", port, deviceId, e);
+            return -1;
+        }
+
+    }
+
+    public Collection<FlowEntry> getFlowEntries() {
+        List<Port> ports = deviceService.getPorts(deviceId);
+        //driver only handles lineSide ports
+        //TODO: handle client ports as well
+        return ports.stream()
+                .filter(p -> LINESIDE_PORT_ID.contains(p.number().name()))
+                .map(p -> fetchRule(p.number()))
+                .filter(p -> p != null)
+                .map(fr -> new DefaultFlowEntry(fr, FlowEntry.FlowEntryState.ADDED, 0, 0, 0))
+                .collect(Collectors.toList());
+    }
+
+    private FlowRule fetchRule(PortNumber port) {
+        int channel = getChannel(port);
+        if (channel == -1) {
+            return null;
+        }
+
+        /*
+         * both inPort and outPort will be same as WaveServer only deal with same port ppt-indexes
+         * channel and spaceMultiplier are same.
+         * TODO: find a way to get both inPort and outPort for future when inPort may not be equal to outPort
+         */
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(port)
+                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
+                .add(Criteria.matchLambda(OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, channel)))
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(port)
+                .build();
+
+        int hash = Objects.hash(deviceId, selector, treatment);
+        Pair<FlowId, Integer> lookup = crossConnectCache.get(hash);
+        if (lookup == null) {
+            return null;
+        }
+
+        FlowRule fr = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .makePermanent()
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(lookup.getRight())
+                .withCookie(lookup.getLeft().value())
+                .build();
+
+        return fr;
+    }
+
+    private JsonNode get(String uri) throws IOException {
+        InputStream response = controller.get(deviceId, uri, MediaType.valueOf(MediaType.APPLICATION_JSON));
+        ObjectMapper om = new ObjectMapper();
+        final ObjectReader reader = om.reader();
+        // all waveserver responses contain data node, which contains the requested data
+        return reader.readTree(response).get(DATA);
     }
 
     private int put(String uri, String request) {

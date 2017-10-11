@@ -41,7 +41,6 @@ import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
@@ -70,8 +69,6 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
 
     private static final String PORT_REQUEST =
             "ciena-ws-ptp:ws-ptps?config=true&format=xml&depth=unbounded";
-    private static final ArrayList<String> LINESIDE_PORT_ID = Lists.newArrayList(
-            "4", "48");
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
@@ -128,7 +125,7 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
         portsConfig.forEach(sub -> {
             String portId = sub.getString(PORT_ID);
             DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
-            if (LINESIDE_PORT_ID.contains(portId)) {
+            if (CienaRestDevice.getLinesidePortId().contains(portId)) {
                 annotations.set(AnnotationKeys.CHANNEL_ID, sub.getString(CHANNEL_ID));
                 // TX/OUT and RX/IN ports
                 annotations.set(AnnotationKeys.PORT_OUT, sub.getString(PORT_OUT));
@@ -172,15 +169,11 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
 
         //Working in Ghz //(Nominal central frequency - 193.1)/channelSpacing = spacingMultiplier
         final int baseFrequency = 193100;
-        int spacingMult = (int) (toGbps(((int) config.getDouble(frequency) -
-                baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
+        int spacingMult = ((int) (toGbps(((int) config.getDouble(frequency) -
+                baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz()))); //FIXME is there a better way ?
 
         return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, OduSignalType.ODU4, isTunable,
                                   new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
-    }
-
-    public static ArrayList<String> getLinesidePortId() {
-        return LINESIDE_PORT_ID;
     }
 
     //FIXME remove when all optical types have two way information methods, see jira tickets

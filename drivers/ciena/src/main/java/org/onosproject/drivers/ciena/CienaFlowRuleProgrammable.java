@@ -42,32 +42,52 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
     public Collection<FlowEntry> getFlowEntries() {
         DeviceId deviceId = handler().data().deviceId();
         log.debug("getting flow entries for device {}", deviceId);
-        //TODO: implement getFlowEntries
-        log.debug("getFlowEntries not supported for device {}", deviceId);
-        return Collections.EMPTY_LIST;
+        try {
+            restCiena = new CienaRestDevice(handler());
+        } catch (NullPointerException e) {
+            log.error("unable to create CienaRestDevice:\n{}", e);
+            return Collections.emptyList();
+        }
+        return restCiena.getFlowEntries();
     }
 
     @Override
     public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
         log.debug("installing flow rules: {}", rules);
+        try {
+            restCiena = new CienaRestDevice(handler());
+        } catch (NullPointerException e) {
+            log.error("unable to create CienaRestDevice:\n{}", e);
+            return Collections.emptyList();
+        }
         // Apply the valid rules on the device
         Collection<FlowRule> added = rules.stream()
                 .map(r -> createCrossConnectFlowRule(r))
                 .filter(xc -> installCrossConnect(xc))
                 .collect(Collectors.toList());
+        restCiena.setCrossConnectCache(added);
         return added;
     }
 
     @Override
     public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
         log.debug("removing flow rules: {}", rules);
-        //TODO: implement remove rule
-        log.debug("ignoring remove rule request");
-        return rules;
+        try {
+            restCiena = new CienaRestDevice(handler());
+        } catch (NullPointerException e) {
+            log.error("unable to create CienaRestDevice:\n{}", e);
+            return Collections.emptyList();
+        }
+        Collection<FlowRule> removed = rules.stream()
+                .map(r -> createCrossConnectFlowRule(r))
+                .filter(xc -> xc != null)
+                .collect(Collectors.toList());
+        restCiena.removeCrossConnectCache(removed);
+        return removed;
     }
 
     private CrossConnectFlowRule createCrossConnectFlowRule(FlowRule r) {
-        List<PortNumber> linePorts = CienaWaveserverDeviceDescription.getLinesidePortId().stream()
+        List<PortNumber> linePorts = CienaRestDevice.getLinesidePortId().stream()
                 .map(p -> PortNumber.portNumber(p))
                 .collect(Collectors.toList());
         try {
@@ -121,19 +141,17 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
         //1- disable port
         //blindly disabling port
         if (!restCiena.disablePort(outPort)) {
-            log.error("unable to disable port {}", outPort);
             return false;
         }
         //2- change channel
         if (!restCiena.changeChannel(signal, outPort)) {
-            log.error("unable to change the channel for port {}", outPort);
             return false;
         }
         //3- enable port
         if (!restCiena.enablePort(outPort)) {
-            log.error("unable to enable port {}", outPort);
             return false;
         }
         return true;
     }
+
 }
