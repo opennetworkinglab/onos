@@ -40,6 +40,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.PacketListener;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
 import org.projectfloodlight.openflow.types.OFBufferId;
@@ -136,12 +137,14 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                 .buildOutput()
                 .setPort(out)
                 .build();
-        return builder
-                .setBufferId(OFBufferId.NO_BUFFER)
-                .setInPort(OFPort.CONTROLLER)
+        builder.setBufferId(OFBufferId.NO_BUFFER)
                 .setActions(Collections.singletonList(act))
-                .setData(eth)
-                .build();
+                .setData(eth);
+        if (sw.factory().getVersion().getWireVersion() <= OFVersion.OF_14.getWireVersion()) {
+            builder.setInPort(OFPort.CONTROLLER);
+        }
+
+        return builder.build();
     }
 
     /**

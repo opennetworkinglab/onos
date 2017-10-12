@@ -17,6 +17,7 @@ package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Maps;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType;
@@ -37,6 +38,8 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.StatTriggerField;
+import org.onosproject.net.flow.StatTriggerFlag;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -48,10 +51,12 @@ import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.meter.MeterId;
 import org.slf4j.Logger;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onosproject.codec.impl.InstructionCodec.STAT_PACKET_COUNT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -262,6 +267,58 @@ public final class DecodeInstructionCodecHelper {
                 + subType + " is not supported");
     }
 
+    private Instruction decodeStatTrigger() {
+        String statTriggerFlag = nullIsIllegal(json.get(InstructionCodec.STAT_TRIGGER_FLAG),
+                InstructionCodec.STAT_TRIGGER_FLAG + InstructionCodec.ERROR_MESSAGE).asText();
+
+        StatTriggerFlag flag = null;
+
+        if (statTriggerFlag.equals(StatTriggerFlag.ONLY_FIRST.name())) {
+            flag = StatTriggerFlag.ONLY_FIRST;
+        } else if (statTriggerFlag.equals(StatTriggerFlag.PERIODIC.name())) {
+            flag = StatTriggerFlag.PERIODIC;
+        } else {
+            throw new IllegalArgumentException("statTriggerFlag "
+                    + statTriggerFlag + " is not supported");
+        }
+        if (!json.has(InstructionCodec.STAT_THRESHOLDS)) {
+            throw new IllegalArgumentException("statThreshold is not added");
+        }
+        JsonNode statThresholdsNode = nullIsIllegal(json.get(InstructionCodec.STAT_THRESHOLDS),
+                InstructionCodec.STAT_THRESHOLDS + InstructionCodec.ERROR_MESSAGE);
+        Map<StatTriggerField, Long> statThresholdMap = getStatThreshold(statThresholdsNode);
+        if (statThresholdMap.isEmpty()) {
+            throw new IllegalArgumentException("statThreshold must have at least one property");
+        }
+        return Instructions.statTrigger(statThresholdMap, flag);
+    }
+
+    private Map<StatTriggerField, Long> getStatThreshold(JsonNode statThresholdNode) {
+        Map<StatTriggerField, Long> statThresholdMap = Maps.newEnumMap(StatTriggerField.class);
+        for (JsonNode jsonNode : statThresholdNode) {
+            if (jsonNode.hasNonNull(InstructionCodec.STAT_BYTE_COUNT)) {
+                JsonNode byteCountNode = jsonNode.get(InstructionCodec.STAT_BYTE_COUNT);
+                if (!byteCountNode.isNull() && byteCountNode.isNumber()) {
+                    statThresholdMap.put(StatTriggerField.BYTE_COUNT, byteCountNode.asLong());
+                }
+            } else if (jsonNode.hasNonNull(STAT_PACKET_COUNT)) {
+                JsonNode packetCount = jsonNode.get(STAT_PACKET_COUNT);
+                if (!packetCount.isNull() && packetCount.isNumber()) {
+                    statThresholdMap.put(StatTriggerField.PACKET_COUNT, packetCount.asLong());
+                }
+            } else if (jsonNode.hasNonNull(InstructionCodec.STAT_DURATION)) {
+                JsonNode duration = jsonNode.get(InstructionCodec.STAT_DURATION);
+                if (!duration.isNull() && duration.isNumber()) {
+                    statThresholdMap.put(StatTriggerField.DURATION, duration.asLong());
+                }
+            } else {
+                log.error("Unsupported stat {}", jsonNode.toString());
+            }
+        }
+
+        return statThresholdMap;
+    }
+
     /**
      * Decodes a extension instruction.
      *
@@ -391,6 +448,8 @@ public final class DecodeInstructionCodecHelper {
             return decodeL4();
         } else if (type.equals(Instruction.Type.EXTENSION.name())) {
             return decodeExtension();
+        } else if (type.equals(Instruction.Type.STAT_TRIGGER.name())) {
+            return decodeStatTrigger();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");

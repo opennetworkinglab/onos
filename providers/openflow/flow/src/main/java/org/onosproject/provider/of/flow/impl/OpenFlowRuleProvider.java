@@ -63,6 +63,7 @@ import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
+import org.projectfloodlight.openflow.protocol.OFFlowLightweightStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
@@ -141,6 +142,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private Cache<Long, InternalCacheEntry> pendingBatches;
 
     private final Timer timer = new Timer("onos-openflow-collector");
+
 
     // Old simple collector set
     private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newConcurrentMap();
@@ -441,6 +443,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
                         pushFlowMetrics(dpid, (OFFlowStatsReply) msg);
                     } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.TABLE) {
                         pushTableStatistics(dpid, (OFTableStatsReply) msg);
+                    } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW_LIGHTWEIGHT) {
+                        pushFlowLightWeightMetrics(dpid, (OFFlowLightweightStatsReply) msg);
                     }
                     break;
                 case BARRIER_REPLY:
@@ -651,6 +655,40 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             providerService.pushTableStatistics(did, tableStatsEntries);
+        }
+
+        private void pushFlowLightWeightMetrics(Dpid dpid, OFFlowLightweightStatsReply replies) {
+
+            DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
+            NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
+            if (adaptiveFlowSampling && afsc != null)  {
+                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).withSetAfsc(afsc).build())
+                        .collect(Collectors.toList());
+
+                // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
+                if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
+                    log.debug("OpenFlowRuleProvider:pushFlowMetrics, flowMissingXid={}, "
+                                    + "OFFlowStatsReply Xid={}, for {}",
+                            afsc.getFlowMissingXid(), replies.getXid(), dpid);
+                    if (afsc.getFlowMissingXid() == replies.getXid()) {
+                        // call entire flow stats update with flowMissing synchronization.
+                        // used existing pushFlowMetrics
+                        providerService.pushFlowMetrics(did, flowEntries);
+                    }
+                    // reset flowMissingXid to NO_FLOW_MISSING_XID
+                    afsc.setFlowMissingXid(NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID);
+                } else {
+                    // call individual flow stats update
+                    providerService.pushFlowMetricsWithoutFlowMissing(did, flowEntries);
+                }
+            } else {
+                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                        .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
+                        .collect(Collectors.toList());
+                // call existing entire flow stats update with flowMissing synchronization
+                providerService.pushFlowMetrics(did, flowEntries);
+            }
         }
 
         private TableStatisticsEntry buildTableStatistics(DeviceId deviceId,

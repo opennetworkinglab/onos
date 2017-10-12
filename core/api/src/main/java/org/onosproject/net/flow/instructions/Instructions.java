@@ -16,6 +16,7 @@
 package org.onosproject.net.flow.instructions;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -28,6 +29,8 @@ import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.StatTriggerField;
+import org.onosproject.net.flow.StatTriggerFlag;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
@@ -42,6 +45,7 @@ import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransp
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -498,6 +502,20 @@ public final class Instructions {
     }
 
     /**
+     * Creates a stat trigger instruction.
+     *
+     * @param statTriggerMap map keeps stat trigger threshold
+     * @param flag stat trigger flag
+     * @return stat trigger instruction
+     */
+    public static StatTriggerInstruction statTrigger(Map<StatTriggerField, Long> statTriggerMap,
+                                                     StatTriggerFlag flag) {
+        checkNotNull(statTriggerMap, "Stat trigger map cannot be null");
+        checkNotNull(flag, "Stat trigger flag  cannot be null");
+        return new StatTriggerInstruction(statTriggerMap, flag);
+    }
+
+    /**
      *  No Action instruction.
      */
     public static final class NoActionInstruction implements Instruction {
@@ -862,6 +880,68 @@ public final class Instructions {
 
             }
             return false;
+        }
+    }
+
+    public static class StatTriggerInstruction implements Instruction {
+        private Map<StatTriggerField, Long> statTriggerFieldMap;
+        private StatTriggerFlag statTriggerFlag;
+
+
+        StatTriggerInstruction(Map<StatTriggerField, Long> statTriggerMap,
+                                      StatTriggerFlag flag) {
+            this.statTriggerFieldMap = ImmutableMap.copyOf(statTriggerMap);
+            this.statTriggerFlag = flag;
+        }
+
+        public Map<StatTriggerField, Long> getStatTriggerFieldMap() {
+            return statTriggerFieldMap;
+        }
+
+        public StatTriggerFlag getStatTriggerFlag() {
+            return statTriggerFlag;
+        }
+
+        public Long getStatValue(StatTriggerField field) {
+            return statTriggerFieldMap.get(field);
+        }
+
+        @Override
+        public Type type() {
+            return Type.STAT_TRIGGER;
+        }
+
+        @Override
+        public String toString() {
+            return "StatTriggerInstruction{" +
+                    "statTriggerFieldMap=" + statTriggerFieldMap +
+                    ", statTriggerFlag=" + statTriggerFlag +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            StatTriggerInstruction that = (StatTriggerInstruction) o;
+
+            if (!Objects.equals(statTriggerFieldMap, that.statTriggerFieldMap)) {
+                return false;
+            }
+
+            return statTriggerFlag == that.statTriggerFlag;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = statTriggerFieldMap != null ? statTriggerFieldMap.hashCode() : 0;
+            result = 31 * result + (statTriggerFlag != null ? statTriggerFlag.hashCode() : 0);
+            return result;
         }
     }
 

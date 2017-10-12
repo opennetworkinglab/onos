@@ -17,6 +17,7 @@ package org.onosproject.net.flow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.onlab.packet.EthType;
@@ -49,6 +50,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private final List<Instruction> all;
     private final Instructions.TableTypeTransition table;
     private final Instructions.MetadataInstruction meta;
+    private final Instructions.StatTriggerInstruction statTrigger;
 
     private final boolean hasClear;
 
@@ -69,6 +71,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.table = null;
         this.meta = null;
         this.meter = null;
+        this.statTrigger = null;
     }
 
     /**
@@ -80,11 +83,13 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
      * @param clear instruction to clear the deferred actions list
      */
     private DefaultTrafficTreatment(List<Instruction> deferred,
-                                   List<Instruction> immediate,
-                                   Instructions.TableTypeTransition table,
-                                   boolean clear,
-                                   Instructions.MetadataInstruction meta,
-                                   Instructions.MeterInstruction meter) {
+                                    List<Instruction> immediate,
+                                    Instructions.TableTypeTransition table,
+                                    boolean clear,
+                                    Instructions.MetadataInstruction meta,
+                                    Instructions.MeterInstruction meter,
+                                    Instructions.StatTriggerInstruction statTrigger
+                                    ) {
         this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
         this.deferred = ImmutableList.copyOf(checkNotNull(deferred));
         this.all = new ImmutableList.Builder<Instruction>()
@@ -95,6 +100,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.meta = meta;
         this.hasClear = clear;
         this.meter = meter;
+        this.statTrigger = statTrigger;
     }
 
     @Override
@@ -125,6 +131,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     @Override
     public Instructions.MetadataInstruction writeMetadata() {
         return meta;
+    }
+
+    @Override
+    public Instructions.StatTriggerInstruction statTrigger() {
+        return statTrigger;
     }
 
     @Override
@@ -191,6 +202,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("transition", table == null ? "None" : table.toString())
                 .add("meter", meter == null ? "None" : meter.toString())
                 .add("cleared", hasClear)
+                .add("StatTrigger", statTrigger)
                 .add("metadata", meta)
                 .toString();
     }
@@ -208,6 +220,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         Instructions.MetadataInstruction meta;
 
         Instructions.MeterInstruction meter;
+
+        Instructions.StatTriggerInstruction statTrigger;
 
         List<Instruction> deferred = new ArrayList<>();
 
@@ -258,6 +272,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     break;
                 case METER:
                     meter = (Instructions.MeterInstruction) instruction;
+                    break;
+                case STAT_TRIGGER:
+                    statTrigger = (Instructions.StatTriggerInstruction) instruction;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
@@ -493,6 +510,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public TrafficTreatment.Builder statTrigger(Map<StatTriggerField, Long> statTriggerFieldMap,
+                                                    StatTriggerFlag statTriggerFlag) {
+            return add(Instructions.statTrigger(statTriggerFieldMap, statTriggerFlag));
+        }
+
+        @Override
         public TrafficTreatment.Builder addTreatment(TrafficTreatment treatment) {
             List<Instruction> previous = current;
             deferred();
@@ -516,7 +539,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 immediate();
                 noAction();
             }
-            return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter);
+            return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter, statTrigger);
         }
 
     }

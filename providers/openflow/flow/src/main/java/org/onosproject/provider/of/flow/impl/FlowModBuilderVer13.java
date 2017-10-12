@@ -100,10 +100,10 @@ import java.util.Optional;
  */
 public class FlowModBuilderVer13 extends FlowModBuilder {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private static final int OFPCML_NO_BUFFER = 0xffff;
+    protected final Logger log = LoggerFactory.getLogger(getClass());
+    protected static final int OFPCML_NO_BUFFER = 0xffff;
 
-    private final TrafficTreatment treatment;
+    protected final TrafficTreatment treatment;
 
     /**
      * Constructor for a flow mod builder for OpenFlow 1.3.
@@ -295,24 +295,24 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return actions;
     }
 
-    private OFInstruction buildTableGoto(Instructions.TableTypeTransition i) {
+    protected OFInstruction buildTableGoto(Instructions.TableTypeTransition i) {
         OFInstruction instruction = factory().instructions().gotoTable(
                 TableId.of(i.tableId()));
         return instruction;
     }
 
-    private OFInstruction buildMetadata(Instructions.MetadataInstruction m) {
+    protected OFInstruction buildMetadata(Instructions.MetadataInstruction m) {
         OFInstruction instruction = factory().instructions().writeMetadata(
                 U64.of(m.metadata()), U64.of(m.metadataMask()));
         return instruction;
     }
 
-    private OFInstruction buildMeter(Instructions.MeterInstruction metered) {
+    protected OFInstruction buildMeter(Instructions.MeterInstruction metered) {
         return factory().instructions().meter(metered.meterId().id());
     }
 
 
-    private OFAction buildL0Modification(Instruction i) {
+    protected OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         OFOxm<?> oxm = null;
         switch (l0m.subtype()) {
@@ -340,7 +340,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildL1Modification(Instruction i) {
+    protected OFAction buildL1Modification(Instruction i) {
         L1ModificationInstruction l1m = (L1ModificationInstruction) i;
         OFOxm<?> oxm = null;
         switch (l1m.subtype()) {
@@ -365,7 +365,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildL2Modification(Instruction i) {
+    protected OFAction buildL2Modification(Instruction i) {
         L2ModificationInstruction l2m = (L2ModificationInstruction) i;
         ModEtherInstruction eth;
         OFOxm<?> oxm = null;
@@ -430,7 +430,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildL3Modification(Instruction i) {
+    protected OFAction buildL3Modification(Instruction i) {
         L3ModificationInstruction l3m = (L3ModificationInstruction) i;
         ModIPInstruction ip;
         Ip4Address ip4;
@@ -493,7 +493,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildL4Modification(Instruction i) {
+    protected OFAction buildL4Modification(Instruction i) {
         L4ModificationInstruction l4m = (L4ModificationInstruction) i;
         ModTransportPortInstruction tp;
         OFOxm<?> oxm = null;
@@ -525,7 +525,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildExtensionAction(ExtensionTreatment i) {
+    protected OFAction buildExtensionAction(ExtensionTreatment i) {
         if (!driverService.isPresent()) {
             log.error("No driver service present");
             return null;

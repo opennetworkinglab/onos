@@ -339,8 +339,9 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
             meter.setLife(stat.getDurationSec());
             meter.setProcessedBytes(stat.getByteInCount().getValue());
             meter.setProcessedPackets(stat.getPacketInCount().getValue());
-            meter.setReferenceCount(stat.getFlowCount());
-
+            if (stat.getVersion().getWireVersion() < OFVersion.OF_15.getWireVersion()) {
+                meter.setReferenceCount(stat.getFlowCount());
+            }
             // marks the meter as seen on the dataplane
             pendingOperations.invalidate(stat.getMeterId());
             return meter;

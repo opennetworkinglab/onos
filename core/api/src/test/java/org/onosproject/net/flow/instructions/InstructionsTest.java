@@ -31,6 +31,8 @@ import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.StatTriggerField;
+import org.onosproject.net.flow.StatTriggerFlag;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionId;
@@ -38,7 +40,9 @@ import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -827,6 +831,49 @@ public class InstructionsTest {
         checkEqualsAndToString(meterInstruction1,
                                sameAsMeterInstruction1,
                                meterInstruction2);
+    }
+
+    private long packetCountValue1 = 5L;
+    private long byteCountValue1 = 10L;
+    private long packetCountValue2 = 10L;
+    private long byteCountValue2 = 5L;
+    private StatTriggerFlag flag1 = StatTriggerFlag.ONLY_FIRST;
+    private StatTriggerFlag flag2 = StatTriggerFlag.PERIODIC;
+    Map<StatTriggerField, Long> statTriggerFieldMap1 = new EnumMap<StatTriggerField, Long>(StatTriggerField.class) {
+        {
+            put(StatTriggerField.BYTE_COUNT, packetCountValue1);
+            put(StatTriggerField.PACKET_COUNT, byteCountValue1);
+        }
+    };
+    Map<StatTriggerField, Long> statTriggerFieldMap2 = new EnumMap<StatTriggerField, Long>(StatTriggerField.class) {
+        {
+            put(StatTriggerField.BYTE_COUNT, packetCountValue2);
+            put(StatTriggerField.PACKET_COUNT, byteCountValue2);
+        }
+    };
+
+    final Instruction statInstruction1 = Instructions.statTrigger(statTriggerFieldMap1, flag1);
+    final Instruction statInstruction1Same = Instructions.statTrigger(statTriggerFieldMap1, flag1);
+    final Instruction statInstruction2 = Instructions.statTrigger(statTriggerFieldMap2, flag2);
+
+    @Test
+    public void testStatTriggerTrafficMethod() {
+        final Instruction instruction = Instructions.statTrigger(statTriggerFieldMap1, flag1);
+        final Instructions.StatTriggerInstruction statTriggerInstruction =
+                checkAndConvert(instruction,
+                        Instruction.Type.STAT_TRIGGER,
+                        Instructions.StatTriggerInstruction.class);
+        assertThat(statTriggerInstruction.getStatTriggerFieldMap(), is(equalTo(statTriggerFieldMap1)));
+        assertThat(statTriggerInstruction.getStatTriggerFlag(), is(equalTo(flag1)));
+        assertThat(statTriggerInstruction.getStatTriggerFieldMap(), is(not(equalTo(statTriggerFieldMap2))));
+        assertThat(statTriggerInstruction.getStatTriggerFlag(), is(not(equalTo(flag2))));
+    }
+
+    @Test
+    public void testStatTriggerTrafficInstructionEquals() {
+        checkEqualsAndToString(statInstruction1,
+                statInstruction1Same,
+                statInstruction2);
     }
 
     //  TableTypeTransition

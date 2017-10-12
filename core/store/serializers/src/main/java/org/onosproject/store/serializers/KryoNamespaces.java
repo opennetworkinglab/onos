@@ -100,16 +100,18 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleEvent;
+import org.onosproject.net.flow.FlowRuleExtPayLoad;
+import org.onosproject.net.flow.IndexTableId;
+import org.onosproject.net.flow.StatTriggerField;
+import org.onosproject.net.flow.StatTriggerFlag;
+import org.onosproject.net.flow.StoredFlowEntry;
+import org.onosproject.net.flow.TableId;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchRequest;
-import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
-import org.onosproject.net.flow.IndexTableId;
-import org.onosproject.net.flow.StoredFlowEntry;
-import org.onosproject.net.flow.TableId;
-import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.flow.criteria.ArpHaCriterion;
 import org.onosproject.net.flow.criteria.ArpOpCriterion;
 import org.onosproject.net.flow.criteria.ArpPaCriterion;
@@ -355,6 +357,9 @@ public final class KryoNamespaces {
             .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE + MISC_MAX_SIZE)
             .register(
                     Instructions.MeterInstruction.class,
+                    Instructions.StatTriggerInstruction.class,
+                    StatTriggerFlag.class,
+                    StatTriggerField.class,
                     MeterId.class,
                     Version.class,
                     ControllerNode.State.class,

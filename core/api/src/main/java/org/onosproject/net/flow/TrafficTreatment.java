@@ -16,6 +16,7 @@
 package org.onosproject.net.flow;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.annotations.Beta;
 import org.onlab.packet.EthType;
@@ -79,6 +80,12 @@ public interface TrafficTreatment {
      * @return a metadata instruction that may be null
      */
     Instructions.MetadataInstruction writeMetadata();
+
+    /**
+     * Returns the stat trigger instruction if there is one.
+     * @return a stat trigger instruction; may be null.
+     */
+    Instructions.StatTriggerInstruction statTrigger();
 
     /**
      * Returns the meter instruction if there is one.
@@ -420,6 +427,16 @@ public interface TrafficTreatment {
          * @return a treatment builder
          */
         Builder extension(ExtensionTreatment extension, DeviceId deviceId);
+
+        /**
+         * Add stat trigger instruction.
+         *
+         * @param statTriggerFieldMap defines stat trigger constraints
+         * @param statTriggerFlag describes which circumstances that start will be triggered
+         * @return a treatment builder
+         */
+        Builder statTrigger(Map<StatTriggerField, Long> statTriggerFieldMap,
+                            StatTriggerFlag statTriggerFlag);
 
         /**
          * Add all instructions from another treatment.

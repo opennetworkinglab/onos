@@ -49,6 +49,8 @@ import org.projectfloodlight.openflow.protocol.OFCalientFlowStatsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
+import org.projectfloodlight.openflow.protocol.OFFlowLightweightStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFFlowLightweightStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
@@ -60,6 +62,8 @@ import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
+import org.projectfloodlight.openflow.protocol.OFQueueStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFQueueStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
@@ -88,8 +92,6 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.Device.Type.CONTROLLER;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.openflow.controller.Dpid.dpid;
-import org.projectfloodlight.openflow.protocol.OFQueueStatsEntry;
-import org.projectfloodlight.openflow.protocol.OFQueueStatsReply;
 
 
 @Component(immediate = true)
@@ -159,6 +161,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected Set<OpenFlowMessageListener> ofMessageListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
+            ArrayListMultimap.create();
+
+    protected Multimap<Dpid, OFFlowLightweightStatsEntry> fullFlowLightweightStats =
             ArrayListMultimap.create();
 
     protected Multimap<Dpid, OFTableStatsEntry> fullTableStats =
@@ -422,7 +427,17 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
                 }
                 break;
-
+            case FLOW_LIGHTWEIGHT:
+                Collection<OFFlowLightweightStatsEntry> flowLightweightStats =
+                        publishFlowStatsLightweight(dpid, (OFFlowLightweightStatsReply) reply);
+                if (flowLightweightStats != null) {
+                    OFFlowLightweightStatsReply.Builder rep =
+                            OFFactories.getFactory(reply.getVersion()).buildFlowLightweightStatsReply();
+                    rep.setEntries(ImmutableList.copyOf(flowLightweightStats));
+                    rep.setXid(reply.getXid());
+                    executorMsgs.execute(new OFMessageHandler(dpid, rep.build()));
+                }
+                break;
             case TABLE:
                 Collection<OFTableStatsEntry> tableStats = publishTableStats(dpid, (OFTableStatsReply) reply);
                 if (tableStats != null) {
@@ -525,6 +540,17 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         fullFlowStats.putAll(dpid, reply.getEntries());
         if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
             return fullFlowStats.removeAll(dpid);
+        }
+        return null;
+    }
+
+    private synchronized Collection<OFFlowLightweightStatsEntry> publishFlowStatsLightweight(
+            Dpid dpid,
+            OFFlowLightweightStatsReply reply) {
+        //TODO: Get rid of synchronized
+        fullFlowLightweightStats.putAll(dpid, reply.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullFlowLightweightStats.removeAll(dpid);
         }
         return null;
     }
