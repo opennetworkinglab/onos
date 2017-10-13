@@ -433,6 +433,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public void freeMeterId(DeviceId deviceId, MeterId meterId) {
+        // Avoid to free meter not allocated
+        if (meterIdGenerators.get(deviceId) < meterId.id()) {
+            return;
+        }
         // Update the availability
         updateMeterIdAvailability(deviceId, meterId, true);
     }

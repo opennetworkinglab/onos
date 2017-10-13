@@ -335,6 +335,16 @@ public class GrpcNbMeterServiceTest {
             }
             return meters;
         }
+
+        @Override
+        public MeterId allocateMeterId(DeviceId deviceId) {
+            return null;
+        }
+
+        @Override
+        public void freeMeterId(DeviceId deviceId, MeterId meterId) {
+
+        }
     }
 
 }

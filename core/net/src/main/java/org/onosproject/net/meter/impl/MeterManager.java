@@ -243,9 +243,16 @@ public class MeterManager
         return store.getAllMeters();
     }
 
-    private MeterId allocateMeterId(DeviceId deviceId) {
+    @Override
+    public MeterId allocateMeterId(DeviceId deviceId) {
         // We delegate direclty to the store
         return store.allocateMeterId(deviceId);
+    }
+
+    @Override
+    public void freeMeterId(DeviceId deviceId, MeterId meterId) {
+        // We delegate direclty to the store
+        store.freeMeterId(deviceId, meterId);
     }
 
     private class InternalMeterProviderService

@@ -84,6 +84,7 @@ public class DistributedMeterStoreTest {
     // Meter ids used during the tests
     private MeterId mid1 = MeterId.meterId(1);
     private MeterId mid2 = MeterId.meterId(2);
+    private MeterId mid10 = MeterId.meterId(10);
 
     // Bands used during the tests
     private Band b1 = DefaultBand.builder()
@@ -209,6 +210,10 @@ public class DistributedMeterStoreTest {
         meterStore.freeMeterId(did1, mid1);
         // Allocate a meter id and verify is equal to mid1
         assertThat(mid1, is(meterStore.allocateMeterId(did1)));
+        // Free an id not allocated
+        meterStore.freeMeterId(did1, mid10);
+        // Allocate a meter id and verify is equal to mid2
+        assertThat(mid2, is(meterStore.allocateMeterId(did1)));
     }
 
     /**

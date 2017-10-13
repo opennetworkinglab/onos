@@ -67,4 +67,21 @@ public interface MeterService
      * @return a collection of meters
      */
     Collection<Meter> getMeters(DeviceId deviceId);
+
+    /**
+     * Allocates a new meter id in the system.
+     *
+     * @param deviceId the device id
+     * @return the allocated meter id, null if there is an internal error
+     * or there are no meter ids available
+     */
+    MeterId allocateMeterId(DeviceId deviceId);
+
+    /**
+     * Frees the given meter id.
+     *
+     * @param deviceId the device id
+     * @param meterId the id to be freed
+     */
+    void freeMeterId(DeviceId deviceId, MeterId meterId);
 }

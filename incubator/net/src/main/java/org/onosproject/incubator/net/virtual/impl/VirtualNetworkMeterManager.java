@@ -183,7 +183,7 @@ public class VirtualNetworkMeterManager
                 .getAtomicCounter(String.format(METERCOUNTERIDENTIFIER, deviceId));
     }
 
-    private MeterId allocateMeterId(DeviceId deviceId) {
+    public MeterId allocateMeterId(DeviceId deviceId) {
         long maxMeters = store.getMaxMeters(networkId(), MeterFeaturesKey.key(deviceId));
         if (maxMeters == 0L) {
             // MeterFeatures couldn't be retrieved, trying with queryMeters
@@ -209,6 +209,11 @@ public class VirtualNetworkMeterManager
         }).incrementAndGet();
 
         return MeterId.meterId(id);
+    }
+
+    @Override
+    public void freeMeterId(DeviceId deviceId, MeterId meterId) {
+        // Do nothing
     }
 
     private class InternalMeterProviderService
