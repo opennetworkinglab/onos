@@ -20,6 +20,8 @@ import com.google.common.collect.Range;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -86,5 +88,16 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      */
     default Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
         return Optional.empty();
+    }
+
+    /**
+     * Get the ports, which support {@code PowerConfig} operations for the specified
+     * {@code component}.
+     *
+     * @param component the port component
+     * @return a set of power config ports
+     */
+    default List<PortNumber> getPorts(T component) {
+        return new ArrayList<PortNumber>();
     }
 }

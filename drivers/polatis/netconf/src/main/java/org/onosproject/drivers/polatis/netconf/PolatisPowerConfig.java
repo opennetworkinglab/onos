@@ -25,6 +25,8 @@ import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.POWER_MULTIPLIER;
@@ -70,12 +72,41 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
         return Optional.ofNullable(getRxPowerRange(port, component));
     }
 
+    @Override
+    public List<PortNumber> getPorts(T component) {
+        if (component instanceof OchSignal) {
+            log.warn("Channel component is not applicable.");
+            return new ArrayList<PortNumber>();
+        }
+        log.debug("Get port config ports...");
+        return acquirePorts();
+    }
+
+    private List<PortNumber> acquirePorts() {
+        String filter = getPortPowerFilter(null);
+        String reply = netconfGet(handler(), filter);
+        List<HierarchicalConfiguration> subtrees = configsAt(reply, KEY_DATA_OPM);
+        List<PortNumber> ports = new ArrayList<PortNumber>();
+        for (HierarchicalConfiguration portConfig : subtrees) {
+            ports.add(PortNumber.portNumber(portConfig.getLong(KEY_PORTID)));
+        }
+        return ports;
+    }
+
+    /**
+     * Get the filter string for the OPM power NETCONF request.
+     *
+     * @param port the port, null to return all the opm ports
+     * @return filter string
+     */
     private String getPortPowerFilter(PortNumber port) {
-        return new StringBuilder(xmlOpen(KEY_OPM_XMLNS))
+        StringBuilder filter = new StringBuilder(xmlOpen(KEY_OPM_XMLNS))
                 .append(xmlOpen(KEY_PORT))
-                .append(xmlOpen(KEY_PORTID))
-                .append(port.toLong())
-                .append(xmlClose(KEY_PORTID))
+                .append(xmlOpen(KEY_PORTID));
+        if (port != null) {
+            filter.append(port.toLong());
+        }
+        return filter.append(xmlClose(KEY_PORTID))
                 .append(xmlClose(KEY_PORT))
                 .append(xmlClose(KEY_OPM))
                 .toString();

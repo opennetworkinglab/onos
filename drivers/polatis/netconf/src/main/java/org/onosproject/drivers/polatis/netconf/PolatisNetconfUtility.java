@@ -54,6 +54,7 @@ public final class PolatisNetconfUtility {
     public static final String KEY_DATA_PORTCONFIG = String.format("%s.%s.%s", KEY_DATA, KEY_PORTCONFIG, KEY_PORT);
     public static final String KEY_OPM = "opm-power";
     public static final String KEY_OPM_XMLNS = String.format("%s %s", KEY_OPM, KEY_XMLNS);
+    public static final String KEY_DATA_OPM = String.format("%s.%s.%s", KEY_DATA, KEY_OPM, KEY_PORT);
     public static final String KEY_POWER = "power";
     public static final String KEY_DATA_OPM_PORT = String.format("%s.%s.%s", KEY_DATA, KEY_OPM, KEY_PORT);
     public static final String OPTICAL_CAPABILITY_PREFIX
