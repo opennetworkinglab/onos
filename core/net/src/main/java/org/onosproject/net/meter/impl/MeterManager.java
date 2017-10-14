@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.meter.impl;
 
-import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,15 +24,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.MeterQuery;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
-import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
@@ -49,8 +44,6 @@ import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
-import org.onosproject.store.service.AtomicCounter;
-import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -72,7 +65,6 @@ public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
 
-    private static final String METERCOUNTERIDENTIFIER = "meter-id-counter-%s";
     private static final String NUM_THREAD = "numThreads";
     private static final String WORKER_PATTERN = "installer-%d";
     private static final String GROUP_THREAD_NAME = "onos/meter";
@@ -87,16 +79,7 @@ public class MeterManager
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MeterStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
-
-    private Map<DeviceId, AtomicCounter> meterIdCounters
-            = Maps.newConcurrentMap();
+    private MeterStore store;
 
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
@@ -198,54 +181,9 @@ public class MeterManager
         return store.getAllMeters();
     }
 
-    private long queryMeters(DeviceId device) {
-            DriverHandler handler = driverService.createHandler(device);
-            if (handler == null || !handler.hasBehaviour(MeterQuery.class)) {
-                return 0L;
-            }
-            MeterQuery query = handler.behaviour(MeterQuery.class);
-            return query.getMaxMeters();
-    }
-
     private MeterId allocateMeterId(DeviceId deviceId) {
-        // We first query the store for any previously removed meterId that could
-        // be reused. Receiving a value (not null) already means that meters
-        // are available for the device.
-        MeterId meterid = store.firstReusableMeterId(deviceId);
-        if (meterid != null) {
-            return meterid;
-        }
-        // If there was no reusable MeterId we have to generate a new value
-        // with an upper limit in maxMeters.
-        long maxMeters = store.getMaxMeters(MeterFeaturesKey.key(deviceId));
-        if (maxMeters == 0L) {
-            // MeterFeatures couldn't be retrieved, trying with queryMeters.
-            // queryMeters is implemented in FullMetersAvailable behaviour.
-            maxMeters = queryMeters(deviceId);
-        }
-
-        if (maxMeters == 0L) {
-            throw new IllegalStateException("Meters not supported by device " + deviceId);
-        }
-
-        final long mmeters = maxMeters;
-        long id = meterIdCounters.compute(deviceId, (k, v) -> {
-            if (v == null) {
-                return allocateCounter(k);
-            }
-            if (v.get() >= mmeters) {
-                throw new IllegalStateException("Maximum number of meters " +
-                        meterIdCounters.get(deviceId).get() +
-                        " reached for device " + deviceId);
-            }
-            return v;
-        }).incrementAndGet();
-
-        return MeterId.meterId(id);
-    }
-
-    private AtomicCounter allocateCounter(DeviceId deviceId) {
-        return storageService.getAtomicCounter(String.format(METERCOUNTERIDENTIFIER, deviceId));
+        // We delegate direclty to the store
+        return store.allocateMeterId(deviceId);
     }
 
     private class InternalMeterProviderService

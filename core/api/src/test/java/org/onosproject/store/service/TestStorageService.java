@@ -62,4 +62,9 @@ public class TestStorageService extends StorageServiceAdapter {
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
         return new TestTopic(name);
     }
+
+    @Override
+    public <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder() {
+        return TestAtomicCounterMap.builder();
+    }
 }

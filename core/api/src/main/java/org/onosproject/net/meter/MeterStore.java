@@ -42,7 +42,6 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      */
     CompletableFuture<MeterStoreResult> deleteMeter(Meter meter);
 
-
     /**
      * Adds the meter features to the store.
      *
@@ -58,7 +57,6 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * @return a future indicating the result of the store operation
      */
     MeterStoreResult deleteMeterFeatures(DeviceId deviceId);
-
 
     /**
      * Updates a meter whose meter id is the same as the passed meter.
@@ -124,13 +122,20 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     long getMaxMeters(MeterFeaturesKey key);
 
     /**
-     * Returns the first available MeterId from previously removed meter.
-     * This method allows allocating MeterIds below the actual meterIdCounter
-     * value.
+     * Allocates the first available MeterId.
      *
      * @param deviceId the device id
-     * @return the meter Id or null if none exist
+     * @return the meter Id or null if it was not possible
+     * to allocate a meter id
      */
-    MeterId firstReusableMeterId(DeviceId deviceId);
+    MeterId allocateMeterId(DeviceId deviceId);
+
+    /**
+     * Frees the given meter id.
+     *
+     * @param deviceId the device id
+     * @param meterId the id to be freed
+     */
+    void freeMeterId(DeviceId deviceId, MeterId meterId);
 
 }
