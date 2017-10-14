@@ -33,6 +33,7 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 
+import org.onlab.packet.ChassisId;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
 
@@ -95,10 +96,10 @@ public class PolatisDeviceDescription extends AbstractHandlerBehaviour
         DeviceId devid = handler().data().deviceId();
         Device dev = devsvc.getDevice(devid);
         if (dev == null) {
-            return new DefaultDeviceDescription(dev.id().uri(), FIBER_SWITCH,
+            return new DefaultDeviceDescription(devid.uri(), FIBER_SWITCH,
                     DEFAULT_MANUFACTURER, DEFAULT_DESCRIPTION_DATA,
                     DEFAULT_DESCRIPTION_DATA, DEFAULT_DESCRIPTION_DATA,
-                    dev.chassisId());
+                    new ChassisId());
         }
         String reply = netconfGet(handler(), getProductInformationFilter());
         HierarchicalConfiguration cfg = configAt(reply, KEY_DATA_PRODINF);
