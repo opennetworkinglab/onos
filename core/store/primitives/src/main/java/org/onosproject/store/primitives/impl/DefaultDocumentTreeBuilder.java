@@ -34,7 +34,7 @@ public class DefaultDocumentTreeBuilder<V> extends DocumentTreeBuilder<V> {
 
     @Override
     public AsyncDocumentTree<V> buildDocumentTree() {
-        return primitiveCreator.newAsyncDocumentTree(name(), serializer());
+        return primitiveCreator.newAsyncDocumentTree(name(), serializer(), ordering());
     }
 
     //TODO

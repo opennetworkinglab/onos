@@ -145,7 +145,7 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
         checkNotNull(name);
         checkNotNull(serializer);
         Map<PartitionId, AsyncDocumentTree<V>> trees =
-                Maps.transformValues(members, partition -> partition.<V>newAsyncDocumentTree(name, serializer));
+                Maps.transformValues(members, part -> part.<V>newAsyncDocumentTree(name, serializer, ordering));
         Hasher<DocumentPath> hasher = key -> {
             int bucket = Math.abs(Hashing.murmur3_32().hashUnencodedChars(String.valueOf(key)).asInt()) % buckets;
             return sortedMemberPartitionIds.get(Hashing.consistentHash(bucket, sortedMemberPartitionIds.size()));
