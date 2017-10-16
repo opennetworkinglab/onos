@@ -16,6 +16,7 @@
 package org.onosproject.store.primitives;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
@@ -30,6 +31,8 @@ import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
+
+import static org.onosproject.store.service.DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS;
 
 /**
  * Interface for entity that can create instances of different distributed primitives.
@@ -120,7 +123,19 @@ public interface DistributedPrimitiveCreator {
      * @param name leader elector name
      * @return leader elector
      */
-    AsyncLeaderElector newAsyncLeaderElector(String name);
+    default AsyncLeaderElector newAsyncLeaderElector(String name) {
+        return newAsyncLeaderElector(name, DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Creates a new {@code AsyncLeaderElector}.
+     *
+     * @param name leader elector name
+     * @param electionTimeout leader election timeout
+     * @param timeUnit leader election timeout time unit
+     * @return leader elector
+     */
+    AsyncLeaderElector newAsyncLeaderElector(String name, long electionTimeout, TimeUnit timeUnit);
 
     /**
      * Creates a new {@code WorkQueue}.

@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.concurrent.TimeUnit;
+
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.LeaderElectorBuilder;
@@ -32,6 +34,6 @@ public class DefaultLeaderElectorBuilder extends LeaderElectorBuilder {
 
     @Override
     public AsyncLeaderElector build() {
-        return primitiveCreator.newAsyncLeaderElector(name());
+        return primitiveCreator.newAsyncLeaderElector(name(), electionTimeoutMillis(), TimeUnit.MILLISECONDS);
     }
 }

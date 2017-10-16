@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import com.google.common.base.Charsets;
@@ -123,11 +124,11 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     }
 
     @Override
-    public AsyncLeaderElector newAsyncLeaderElector(String name) {
+    public AsyncLeaderElector newAsyncLeaderElector(String name, long leaderTimeout, TimeUnit timeUnit) {
         checkNotNull(name);
         Map<PartitionId, AsyncLeaderElector> leaderElectors =
                 Maps.transformValues(members,
-                                     partition -> partition.newAsyncLeaderElector(name));
+                                     partition -> partition.newAsyncLeaderElector(name, leaderTimeout, timeUnit));
         Hasher<String> hasher = topic -> {
             int hashCode = Hashing.sha256().hashString(topic, Charsets.UTF_8).asInt();
             return sortedMemberPartitionIds.get(Math.abs(hashCode) % members.size());

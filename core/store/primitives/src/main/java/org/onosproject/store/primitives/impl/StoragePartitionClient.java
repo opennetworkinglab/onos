@@ -18,6 +18,7 @@ package org.onosproject.store.primitives.impl;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Suppliers;
@@ -257,13 +258,13 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     }
 
     @Override
-    public AsyncLeaderElector newAsyncLeaderElector(String name) {
+    public AsyncLeaderElector newAsyncLeaderElector(String name, long leaderTimeout, TimeUnit timeUnit) {
         AtomixLeaderElector leaderElector = new AtomixLeaderElector(client.newProxyBuilder()
                 .withName(name)
                 .withServiceType(DistributedPrimitive.Type.LEADER_ELECTOR.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withTimeout(Duration.ofSeconds(5))
+                .withTimeout(Duration.ofMillis(timeUnit.toMillis(leaderTimeout)))
                 .withMaxRetries(5)
                 .build()
                 .open()
