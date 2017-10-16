@@ -18,12 +18,17 @@ package org.onosproject.net.meter.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
@@ -44,15 +49,19 @@ import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,13 +90,33 @@ public class MeterManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private MeterStore store;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    private static final int DEFAULT_POLL_FREQUENCY = 30;
+    @Property(name = "fallbackMeterPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
+            label = "Frequency (in seconds) for polling meters via fallback provider")
+    private int fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
+
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
     private ExecutorService executorService;
 
+    private final MeterDriverProvider defaultProvider = new MeterDriverProvider();
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         store.setDelegate(delegate);
+        cfgService.registerProperties(getClass());
         eventDispatcher.addSink(MeterEvent.class, listenerRegistry);
 
         onComplete = (request, result, error) -> {
@@ -107,15 +136,48 @@ public class MeterManager
 
         executorService = newFixedThreadPool(numThreads,
                 groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
+        modified(context);
         log.info("Started");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context != null) {
+            readComponentConfiguration(context);
+        }
+        defaultProvider.init(deviceService, createProviderService(defaultProvider),
+                mastershipService, fallbackMeterPollFrequency);
     }
 
     @Deactivate
     public void deactivate() {
+        defaultProvider.terminate();
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(MeterEvent.class);
+        cfgService.unregisterProperties(getClass(), false);
         executorService.shutdown();
         log.info("Stopped");
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+
+        String s = get(properties, "fallbackMeterPollFrequency");
+        try {
+            fallbackMeterPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
+        }
+    }
+
+    @Override
+    protected MeterProvider defaultProvider() {
+        return defaultProvider;
     }
 
     @Override

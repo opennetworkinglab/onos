@@ -15,12 +15,16 @@
  */
 package org.onosproject.net.meter.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -28,7 +32,20 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.incubator.store.meter.impl.DistributedMeterStore;
 import org.onosproject.mastership.MastershipServiceAdapter;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
+import org.onosproject.net.behaviour.MeterQuery;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.driver.DefaultDriver;
+import org.onosproject.net.driver.DriverRegistry;
+import org.onosproject.net.driver.impl.DriverManager;
+import org.onosproject.net.driver.impl.DriverRegistryManager;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
@@ -39,10 +56,12 @@ import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterOperations;
+import org.onosproject.net.meter.MeterProgrammable;
 import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -50,7 +69,11 @@ import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
@@ -69,8 +92,26 @@ public class MeterManagerTest {
     // Test ip address
     private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
-    // Provider id used during the tests
     private static final ProviderId PID = new ProviderId("of", "foo");
+
+    private static final ProviderId PROGRAMMABLE_PROVIDER = new ProviderId("foo", "foo");
+    private static final DeviceId PROGRAMMABLE_DID = DeviceId.deviceId("test:002");
+
+    private static final DefaultAnnotations ANNOTATIONS =
+            DefaultAnnotations.builder().set(AnnotationKeys.DRIVER, "foo").build();
+
+    private static final Device PROGRAMMABLE_DEV =
+            new DefaultDevice(PROGRAMMABLE_PROVIDER, PROGRAMMABLE_DID, Device.Type.SWITCH,
+                    "", "", "", "", null, ANNOTATIONS);
+
+
+    private MeterService service;
+
+    // Test Driver service used during the tests
+    private DriverManager driverService;
+
+    // Test device service used during the tests
+    private DeviceService deviceService;
 
     // Test provider used during the tests
     private TestProvider provider;
@@ -95,7 +136,7 @@ public class MeterManagerTest {
     private MeterId mid1 = MeterId.meterId(1);
 
     // Bands used during the tests
-    private Band b1 = DefaultBand.builder()
+    private static Band b1 = DefaultBand.builder()
             .ofType(Band.Type.DROP)
             .withRate(500)
             .build();
@@ -116,6 +157,14 @@ public class MeterManagerTest {
             .withBands(Collections.singletonList(b1))
             .build();
 
+    private static Meter mProgrammable = DefaultMeter.builder()
+            .forDevice(PROGRAMMABLE_DID)
+            .fromApp(APP_ID)
+            .withId(MeterId.meterId(1))
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1))
+            .build();
+
     // Meter requests used during the tests
     private MeterRequest.Builder m1Request = DefaultMeterRequest.builder()
             .forDevice(did1)
@@ -124,6 +173,12 @@ public class MeterManagerTest {
             .withBands(Collections.singletonList(b1));
     private MeterRequest.Builder m2Request = DefaultMeterRequest.builder()
             .forDevice(did2)
+            .fromApp(APP_ID)
+            .withUnit(Meter.Unit.KB_PER_SEC)
+            .withBands(Collections.singletonList(b1));
+
+    private MeterRequest.Builder mProgrammableRequest = DefaultMeterRequest.builder()
+            .forDevice(PROGRAMMABLE_DID)
             .fromApp(APP_ID)
             .withUnit(Meter.Unit.KB_PER_SEC)
             .withBands(Collections.singletonList(b1));
@@ -148,14 +203,27 @@ public class MeterManagerTest {
             .withMaxColors((byte) 0)
             .build();
 
+
     @Before
     public void setup() {
+        //Init step for the deviceService
+        deviceService = new TestDeviceService();
+        //Init step for the driver registry and driver service.
+        DriverRegistryManager driverRegistry = new DriverRegistryManager();
+        driverService = new TestDriverManager(driverRegistry, deviceService);
+        driverRegistry.addDriver(new DefaultDriver("foo", ImmutableList.of(), "",
+                "", "",
+                ImmutableMap.of(MeterProgrammable.class,
+                        TestMeterProgrammable.class, MeterQuery.class, TestMeterQuery.class),
+                ImmutableMap.of()));
+
         // Init step for the store
         meterStore = new DistributedMeterStore();
         // Let's initialize some internal services of the store
         TestUtils.setField(meterStore, "storageService", new TestStorageService());
         TestUtils.setField(meterStore, "clusterService", new TestClusterService());
         TestUtils.setField(meterStore, "mastershipService", new TestMastershipService());
+        TestUtils.setField(meterStore, "driverService", driverService);
         // Activate the store
         meterStore.activate();
         // Init step for the manager
@@ -163,11 +231,19 @@ public class MeterManagerTest {
         // Let's initialize some internal services of the manager
         TestUtils.setField(manager, "store", meterStore);
         injectEventDispatcher(manager, new TestEventDispatcher());
+        manager.deviceService = deviceService;
+        manager.mastershipService = new TestMastershipService();
+        manager.cfgService = new ComponentConfigAdapter();
+        TestUtils.setField(manager, "storageService", new TestStorageService());
         // Init the reference of the registry
         registry = manager;
+
+        manager.driverService = driverService;
+
         // Activate the manager
-        manager.activate();
+        manager.activate(null);
         // Initialize the test provider
+
         provider = new TestProvider(PID);
         // Register the provider against the manager
         providerService = registry.register(provider);
@@ -337,6 +413,61 @@ public class MeterManagerTest {
         assertTrue("The meter was not removed", manager.getMeters(did2).size() == 0);
     }
 
+    @Test
+    public void testAddFromMeterProgrammable()  {
+
+        // Init store
+        initMeterStore();
+
+        manager.submit(mProgrammableRequest.add());
+
+        TestTools.assertAfter(500, () -> {
+
+            assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
+
+            assertThat(manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(1)), is(mProgrammable));
+        });
+
+    }
+
+    @Test
+    public void testAddBatchFromMeterProgrammable()  {
+
+        // Init store
+        initMeterStore();
+
+        List<MeterOperation> operations = ImmutableList.of(new MeterOperation(mProgrammable, MeterOperation.Type.ADD));
+        manager.defaultProvider().performMeterOperation(PROGRAMMABLE_DID, new MeterOperations(operations));
+
+        TestTools.assertAfter(500, () -> {
+
+            assertTrue("The meter was not added", meterOperations.size() == 1);
+
+            assertTrue("Wrong Meter Operation", meterOperations.get(0).meter().id().equals(mProgrammable.id()));
+        });
+
+    }
+
+    @Test
+    public void testGetFromMeterProgrammable()  {
+
+        // Init store
+        initMeterStore();
+
+        MeterDriverProvider fallback = (MeterDriverProvider) manager.defaultProvider();
+
+        testAddFromMeterProgrammable();
+
+        fallback.init(manager.deviceService, fallback.meterProviderService, manager.mastershipService, 1);
+
+        TestTools.assertAfter(2000, () -> {
+            assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
+            Meter m = manager.getMeters(PROGRAMMABLE_DID).iterator().next();
+            assertEquals("incorrect state", MeterState.ADDED, m.state());
+        });
+
+    }
+
     // Test cluster service
     private final class TestClusterService extends ClusterServiceAdapter {
 
@@ -352,6 +483,65 @@ public class MeterManagerTest {
             return Sets.newHashSet();
         }
 
+    }
+
+    private static class TestDeviceService extends DeviceServiceAdapter {
+        @Override
+        public int getDeviceCount() {
+            return 1;
+        }
+
+        @Override
+        public Iterable<Device> getDevices() {
+            return ImmutableList.of(PROGRAMMABLE_DEV);
+        }
+
+        @Override
+        public Iterable<Device> getAvailableDevices() {
+            return getDevices();
+        }
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            return PROGRAMMABLE_DEV;
+        }
+    }
+
+    private class TestDriverManager extends DriverManager {
+        TestDriverManager(DriverRegistry registry, DeviceService deviceService) {
+            this.registry = registry;
+            this.deviceService = deviceService;
+            activate();
+        }
+    }
+
+    public static class TestMeterQuery extends AbstractHandlerBehaviour
+            implements MeterQuery {
+        private static final long MAX_METER = 0x00000FFF;
+
+        @Override
+        public long getMaxMeters() {
+            return MAX_METER;
+        }
+    }
+
+    private static List<MeterOperation> meterOperations = new ArrayList<>();
+
+    public static class TestMeterProgrammable extends AbstractHandlerBehaviour
+            implements MeterProgrammable {
+
+        @Override
+        public CompletableFuture<Boolean> performMeterOperation(MeterOperation meterOp) {
+            return CompletableFuture.completedFuture(meterOperations.add(meterOp));
+        }
+
+        @Override
+        public CompletableFuture<Collection<Meter>> getMeters() {
+            //ADD METER
+            DefaultMeter mProgrammableAdded = (DefaultMeter) mProgrammable;
+            mProgrammableAdded.setState(MeterState.ADDED);
+            return CompletableFuture.completedFuture(ImmutableList.of(mProgrammableAdded));
+        }
     }
 
     private class TestProvider extends AbstractProvider implements MeterProvider {
@@ -376,6 +566,11 @@ public class MeterManagerTest {
         @Override
         public NodeId getMasterFor(DeviceId deviceId) {
             return NID_LOCAL;
+        }
+
+        @Override
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return MastershipRole.MASTER;
         }
     }
 

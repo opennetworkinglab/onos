@@ -112,6 +112,7 @@
             <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>
