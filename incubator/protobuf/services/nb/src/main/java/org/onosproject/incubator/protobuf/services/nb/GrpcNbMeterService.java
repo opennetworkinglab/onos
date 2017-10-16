@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.grpc.nb.net.meter;
+package org.onosproject.incubator.protobuf.services.nb;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.meter.MeterService;
-import org.onosproject.grpc.nb.utils.GrpcNbMeterServiceUtil;
+import org.onosproject.incubator.protobuf.models.net.meter.MeterProtoTranslator;
 
 import org.onosproject.grpc.nb.net.meter.MeterServiceGrpc.MeterServiceImplBase;
 import org.onosproject.grpc.nb.net.meter.MeterServiceNbProto.submitRequest;
@@ -46,7 +46,7 @@ import org.onosproject.net.DeviceId;
 /**
  * A server that provides access to the methods exposed by {@link MeterService}.
  * TODO this requires major refactoring, translation should be delegated to calls to
- * TODO{@link GrpcNbMeterServiceUtil}.
+ * TODO{@link MeterProtoTranslator}.
  */
 @Beta
 @Component(immediate = true)
@@ -75,8 +75,8 @@ public class GrpcNbMeterService {
         public void submit(submitRequest request,
                            StreamObserver<submitReply> responseObserver) {
             submitReply.Builder replyBuilder = submitReply.newBuilder();
-            Meter meter = meterService.submit(GrpcNbMeterServiceUtil.translate(request.getMeter()));
-            responseObserver.onNext(replyBuilder.setSubmitMeter(GrpcNbMeterServiceUtil.translate(meter)).build());
+            Meter meter = meterService.submit(MeterProtoTranslator.translate(request.getMeter()));
+            responseObserver.onNext(replyBuilder.setSubmitMeter(MeterProtoTranslator.translate(meter)).build());
             responseObserver.onCompleted();
         }
 
@@ -84,7 +84,7 @@ public class GrpcNbMeterService {
         public void withdraw(withdrawRequest request,
                              StreamObserver<withdrawReply> responseObserver) {
             withdrawReply.Builder replyBuilder = withdrawReply.newBuilder();
-            meterService.withdraw(GrpcNbMeterServiceUtil.translate(request.getMeter()),
+            meterService.withdraw(MeterProtoTranslator.translate(request.getMeter()),
                     MeterId.meterId(request.getMeterId()));
             responseObserver.onNext(replyBuilder.build());
             responseObserver.onCompleted();
@@ -96,7 +96,7 @@ public class GrpcNbMeterService {
             getMeterReply.Builder replyBuilder = getMeterReply.newBuilder();
             Meter meter = meterService.getMeter(DeviceId.deviceId(request.getDeviceId()),
                     MeterId.meterId(request.getMeterId()));
-            responseObserver.onNext(replyBuilder.setMeter(GrpcNbMeterServiceUtil.translate(meter)).build());
+            responseObserver.onNext(replyBuilder.setMeter(MeterProtoTranslator.translate(meter)).build());
             responseObserver.onCompleted();
         }
 
@@ -105,7 +105,7 @@ public class GrpcNbMeterService {
                                  StreamObserver<getAllMetersReply> responseObserver) {
             getAllMetersReply.Builder replyBuilder = getAllMetersReply.newBuilder();
             meterService.getAllMeters().forEach(d -> {
-                replyBuilder.addMeters(GrpcNbMeterServiceUtil.translate(d));
+                replyBuilder.addMeters(MeterProtoTranslator.translate(d));
             });
             responseObserver.onNext(replyBuilder.build());
             responseObserver.onCompleted();
@@ -116,7 +116,7 @@ public class GrpcNbMeterService {
                               StreamObserver<getMetersReply> responseObserver) {
             getMetersReply.Builder replyBuilder = getMetersReply.newBuilder();
             meterService.getMeters(DeviceId.deviceId(request.getDeviceId())).forEach(d -> {
-                replyBuilder.addMeters(GrpcNbMeterServiceUtil.translate(d));
+                replyBuilder.addMeters(MeterProtoTranslator.translate(d));
             });
             responseObserver.onNext(replyBuilder.build());
             responseObserver.onCompleted();

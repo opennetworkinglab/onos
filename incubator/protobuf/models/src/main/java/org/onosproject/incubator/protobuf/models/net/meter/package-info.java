@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
- * A package contains a set of utilities that are used to convert gRPC model
- * object to ONOS data model object.
+ * Utilities to handle ProtoBuf version of ONOS meter models.
  */
-package org.onosproject.grpc.nb.utils;
+package org.onosproject.incubator.protobuf.models.net.meter;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.grpc.nb.app;
+package org.onosproject.incubator.protobuf.services.nb;
 
 import com.google.common.annotations.Beta;
 import io.grpc.stub.StreamObserver;
@@ -27,6 +27,7 @@ import org.onosproject.app.ApplicationState;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.grpc.nb.app.ApplicationServiceGrpc.ApplicationServiceImplBase;
+import org.onosproject.grpc.nb.app.ApplicationServiceNb;
 import org.onosproject.grpc.nb.app.ApplicationServiceNb.getApplicationReply;
 import org.onosproject.grpc.nb.app.ApplicationServiceNb.getApplicationsReply;
 import org.onosproject.grpc.nb.app.ApplicationServiceNb.getIdReply;

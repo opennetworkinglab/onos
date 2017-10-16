@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.grpc.nb.utils;
+package org.onosproject.incubator.protobuf.models.net.meter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +45,8 @@ import com.google.common.annotations.Beta;
  * gRPC message conversion related utilities for meter service.
  */
 @Beta
-public final class GrpcNbMeterServiceUtil {
-    private static final Logger log = LoggerFactory.getLogger(GrpcNbMeterServiceUtil.class);
+public final class MeterProtoTranslator {
+    private static final Logger log = LoggerFactory.getLogger(MeterProtoTranslator.class);
 
     /**
      * Translates gRPC ApplicationId to {@link ApplicationId}.
@@ -292,6 +292,6 @@ public final class GrpcNbMeterServiceUtil {
     }
 
     // Utility class not intended for instantiation.
-    private GrpcNbMeterServiceUtil() {
+    private MeterProtoTranslator() {
     }
 }
