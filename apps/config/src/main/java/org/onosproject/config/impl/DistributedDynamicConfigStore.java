@@ -63,7 +63,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_UPDATED;
@@ -228,13 +227,12 @@ public class DistributedDynamicConfigStore
         log.trace("dpath={}", dpath);
         // FIXME Not atomic, should probably use create or replace
         if (completeVersioned(keystore.get(dpath)) != null) {
+            log.trace(" keystore.set({}, {})", dpath, type);
             completeVersioned(keystore.set(dpath, type));
-            log.trace("true");
             return true;
         }
         log.trace(" keystore.create({}, {})", dpath, type);
         Boolean result = complete(keystore.create(dpath, type));
-        log.trace("{}", result);
         return result;
     }
 
@@ -298,6 +296,8 @@ public class DistributedDynamicConfigStore
                 DocumentPath.from(spath));
         Map<String, Versioned<DataNode.Type>> entries = null;
         entries = complete(ret);
+        log.trace(" keystore.getChildren({})", spath);
+        log.trace("  entries keys:{}", entries.keySet());
         if ((entries != null) && (!entries.isEmpty())) {
             entries.forEach((k, v) -> {
                 String[] names = k.split(ResourceIdParser.NM_CHK);
@@ -429,10 +429,12 @@ public class DistributedDynamicConfigStore
                 }
             });
         }
+        log.trace(" keystore.removeNode({})", spath);
         keystore.removeNode(DocumentPath.from(spath));
     }
 
     private void removeLeaf(String path) {
+        log.trace(" keystore.removeNode({})", path);
         keystore.removeNode(DocumentPath.from(path));
         objectStore.remove(path);
     }

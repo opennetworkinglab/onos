@@ -23,8 +23,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.onlab.util.XmlString;
 import org.onosproject.d.config.ResourceIds;
 import org.onosproject.d.config.sync.DeviceConfigSynchronizationProvider;
@@ -47,6 +45,7 @@ import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.AnnotatedNodeInfo;
 import org.onosproject.yang.runtime.Annotation;
+import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultAnnotatedNodeInfo;
 import org.onosproject.yang.runtime.DefaultAnnotation;
@@ -93,9 +92,6 @@ public class NetconfDeviceConfigSynchronizerProvider
 
     private NetconfContext context;
 
-    // FIXME remove and let netconf southbound deal with message-id generation
-    private final AtomicInteger messageId = new AtomicInteger(1);
-
     protected NetconfDeviceConfigSynchronizerProvider(ProviderId id,
                                                       NetconfContext context) {
         super(id);
@@ -115,8 +111,8 @@ public class NetconfDeviceConfigSynchronizerProvider
         StringBuilder rpc = new StringBuilder();
 
         // - Add NETCONF envelope
-        rpc.append("<rpc xmlns=\"").append(NETCONF_1_0_BASE_NAMESPACE).append("\" ")
-            .append("message-id=\"").append(messageId.getAndIncrement()).append("\">");
+        rpc.append("<rpc xmlns=\"").append(NETCONF_1_0_BASE_NAMESPACE).append('"')
+            .append(">");
 
         rpc.append("<edit-config>");
         rpc.append("<target>");
@@ -134,6 +130,7 @@ public class NetconfDeviceConfigSynchronizerProvider
 
         // Convert change(s) into a DataNode tree
         for (Change change : request.changes()) {
+            log.trace("change={}", change);
 
             // TODO switch statement can probably be removed
             switch (change.op()) {
@@ -157,7 +154,9 @@ public class NetconfDeviceConfigSynchronizerProvider
                                            .setDataFormat(DATAFORMAT_XML)
                                            .addAnnotation(XMLNS_XC_ANNOTATION)
                                            .build();
-                CompositeStream xml = context.yangRuntime().encode(compositeData.build(),
+                CompositeData cdata = compositeData.build();
+                log.trace("CompositeData:{}", cdata);
+                CompositeStream xml = context.yangRuntime().encode(cdata,
                                                                    yrtContext);
                 try {
                     CharStreams.copy(new InputStreamReader(xml.resourceData(), UTF_8), rpc);
@@ -191,11 +190,12 @@ public class NetconfDeviceConfigSynchronizerProvider
         try {
             // FIXME Netconf async API is currently screwed up, need to fix
             // NetconfSession, etc.
-            CompletableFuture<String> response = session.request(rpc.toString());
-            log.info("TRACE: request:\n{}", XmlString.prettifyXml(rpc));
+            CompletableFuture<String> response = session.rpc(rpc.toString());
+            log.trace("raw request:\n{}", rpc);
+            log.trace("prettified request:\n{}", XmlString.prettifyXml(rpc));
             return response.handle((resp, err) -> {
                 if (err == null) {
-                    log.info("TRACE: reply:\n{}", XmlString.prettifyXml(resp));
+                    log.trace("reply:\n{}", XmlString.prettifyXml(resp));
                     // FIXME check response properly
                     return SetResponse.ok(request);
                 } else {

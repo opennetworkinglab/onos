@@ -165,6 +165,7 @@ public class DynamicDeviceConfigSynchronizer
     void processEventNonBatch(DynamicConfigEvent event) {
         ResourceId path = event.subject();
         if (isUnderDeviceRootNode(path)) {
+            log.trace("processing event:{}", event);
 
             DeviceId deviceId = DeviceResourceIds.toDeviceId(path);
             ResourceId deviceRootPath = DeviceResourceIds.toResourceId(deviceId);
@@ -207,6 +208,8 @@ public class DynamicDeviceConfigSynchronizer
                     log.error("Request to {} failed {}", deviceId, response, e);
                 }
             });
+        } else {
+            log.warn("Ignored event's ResourceId: {}", event.subject());
         }
     }
 

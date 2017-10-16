@@ -19,6 +19,7 @@ buck-out
 bucklets/plugins/
 .watchmanconfig
 .vscode
+*.fxs
 
 /bin/
 lib/yang
