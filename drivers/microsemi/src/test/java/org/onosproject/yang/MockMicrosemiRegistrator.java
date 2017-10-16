@@ -17,6 +17,7 @@ package org.onosproject.yang;
 
 import org.onosproject.drivers.microsemi.yang.MicrosemiModelRegistrator;
 import org.onosproject.yang.compiler.datamodel.YangNode;
+import org.onosproject.yang.compiler.tool.YangNodeInfo;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
 import org.onosproject.yang.runtime.YangModelRegistry;
@@ -46,9 +47,11 @@ public class MockMicrosemiRegistrator extends MicrosemiModelRegistrator {
     @Override
     public void activate() {
         modelRegistry = new DefaultYangModelRegistry();
-        List<YangNode> nodes = new ArrayList<>();
+        List<YangNodeInfo> nodes = new ArrayList<>();
         try {
-            nodes.addAll(getYangNodes(deSerializeDataModel(META_PATH)));
+            for (YangNode node : getYangNodes(deSerializeDataModel(META_PATH))) {
+                nodes.add(new YangNodeInfo(node, false));
+            }
 
             model = processYangModel(META_PATH, nodes, "test", false);
             ModelRegistrationParam.Builder b =
