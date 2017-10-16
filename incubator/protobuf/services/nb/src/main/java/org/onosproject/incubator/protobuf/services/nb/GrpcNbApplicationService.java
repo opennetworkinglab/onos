@@ -16,6 +16,7 @@
 package org.onosproject.incubator.protobuf.services.nb;
 
 import com.google.common.annotations.Beta;
+import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -37,6 +38,10 @@ import org.onosproject.incubator.protobuf.models.core.ApplicationEnumsProtoTrans
 import org.onosproject.incubator.protobuf.models.core.ApplicationIdProtoTranslator;
 import org.onosproject.incubator.protobuf.models.core.ApplicationProtoTranslator;
 import org.onosproject.incubator.protobuf.models.security.PermissionProtoTranslator;
+import org.onosproject.protobuf.api.GrpcServiceRegistry;
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A server that provides access to the methods exposed by {@link ApplicationService}.
@@ -46,17 +51,40 @@ import org.onosproject.incubator.protobuf.models.security.PermissionProtoTransla
 @Component(immediate = true)
 public class GrpcNbApplicationService {
 
+    private final Logger log = getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GrpcServiceRegistry registry;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationService applicationService;
 
+    private static ApplicationServiceNbServerInternal instance = null;
+
+
     @Activate
     public void activate() {
-        //TODO this should contact the registry service and register an instance
-        // of this service.
+        registry.register(getInnerInstance());
+        log.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
+        registry.unregister(getInnerInstance());
+        log.info("Stopped");
+    }
+
+    /**
+     * Register Application Service, Used for unit testing purposes.
+     *
+     * @return An instance of binding Application service
+     */
+    public InProcessServer<BindableService> registerInProcessServer() {
+        InProcessServer<BindableService> inprocessServer =
+                new InProcessServer(GrpcNbApplicationService.ApplicationServiceNbServerInternal.class);
+        inprocessServer.addServiceToBind(getInnerInstance());
+
+        return inprocessServer;
     }
 
     private class ApplicationServiceNbServerInternal extends ApplicationServiceImplBase {
@@ -123,5 +151,12 @@ public class GrpcNbApplicationService {
             responseObserver.onNext(replyBuilder.build());
             responseObserver.onCompleted();
         }
+    }
+
+    private ApplicationServiceNbServerInternal getInnerInstance() {
+        if (instance == null) {
+            instance = new ApplicationServiceNbServerInternal();
+        }
+        return instance;
     }
 }
