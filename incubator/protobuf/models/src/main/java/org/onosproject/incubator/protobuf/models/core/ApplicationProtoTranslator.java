@@ -23,7 +23,9 @@ import org.onosproject.grpc.core.models.ApplicationProtoOuterClass.ApplicationPr
 import org.onosproject.incubator.protobuf.models.security.PermissionProtoTranslator;
 import org.onosproject.security.Permission;
 
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onosproject.grpc.core.models.ApplicationProtoOuterClass.ApplicationProto.getDefaultInstance;
 
@@ -58,6 +60,7 @@ public final class ApplicationProtoTranslator {
                 .withRole((ApplicationRole) ApplicationEnumsProtoTranslator.translate(app.getRole()).get())
                 .withPermissions(permissions)
                 .withFeatures(app.getFeaturesList())
+                .withFeaturesRepo(Optional.empty()) // TODO: need to add features repo
                 .withRequiredApps(app.getRequiredAppsList())
                 .build();
     }
@@ -81,6 +84,10 @@ public final class ApplicationProtoTranslator {
                     .setUrl(application.url())
                     .setVersion(VersionProtoTranslator.translate(application.version()))
                     .setRole(ApplicationEnumsProtoTranslator.translate(application.role()))
+                    .addAllFeatures(application.features())
+                    .addAllPermissions(application.permissions().stream().map(p ->
+                            PermissionProtoTranslator.translate(p)).collect(Collectors.toList()))
+                    .addAllRequiredApps(application.requiredApps())
                     .build();
         }
 
