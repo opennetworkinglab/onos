@@ -37,3 +37,5 @@ npm-debug.log
 sonar-project.properties
 
 out/
+
+bazel-*

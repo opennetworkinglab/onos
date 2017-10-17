@@ -20,4 +20,4 @@
 
 [project]
   ide = intellij
-  ignore = .git
+  ignore = .git, bazel-bin, bazel-genfiles, bazel-onos-next, bazel-out, bazel-testlogs
