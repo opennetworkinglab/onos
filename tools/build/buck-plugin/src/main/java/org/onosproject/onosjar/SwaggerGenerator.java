@@ -55,6 +55,7 @@ public class SwaggerGenerator {
     private static final String PATH_PARAM = "javax.ws.rs.PathParam";
     private static final String QUERY_PARAM = "javax.ws.rs.QueryParam";
     private static final String POST = "javax.ws.rs.POST";
+    private static final String PATCH = "javax.ws.rs.PATCH";
     private static final String GET = "javax.ws.rs.GET";
     private static final String PUT = "javax.ws.rs.PUT";
     private static final String DELETE = "javax.ws.rs.DELETE";
@@ -213,7 +214,8 @@ public class SwaggerGenerator {
         javaClass.getMethods().forEach(javaMethod -> {
             javaMethod.getAnnotations().forEach(annotation -> {
                 String name = annotation.getType().getName();
-                if (name.equals(POST) || name.equals(GET) || name.equals(DELETE) || name.equals(PUT)) {
+                if (name.equals(PATCH) || name.equals(POST) || name.equals(GET) || name.equals(DELETE) ||
+                        name.equals(PUT)) {
                     // substring(12) removes "javax.ws.rs."
                     String method = annotation.getType().toString().substring(12).toLowerCase();
                     processRestMethod(javaMethod, method, pathMap, resourcePath, tagArray, definitions, srcDirectory);

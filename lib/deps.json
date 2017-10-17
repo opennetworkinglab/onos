@@ -155,7 +155,7 @@
     "jackson-databind": "mvn:com.fasterxml.jackson.core:jackson-databind:2.8.8",
     "javax.annotation-api": "mvn:javax.annotation:javax.annotation-api:1.2",
     "javax.inject": "mvn:org.glassfish.hk2.external:javax.inject:2.5.0-b32",
-    "javax.ws.rs-api": "mvn:javax.ws.rs:javax.ws.rs-api:2.0.1",
+    "javax.ws.rs-api": "mvn:javax.ws.rs:javax.ws.rs-api:2.1",
     "jersey-client": "mvn:org.glassfish.jersey.core:jersey-client:2.25.1",
     "jersey-common": "mvn:org.glassfish.jersey.core:jersey-common:2.25.1",
     "jersey-container-jetty-http": "mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:2.25.1",
