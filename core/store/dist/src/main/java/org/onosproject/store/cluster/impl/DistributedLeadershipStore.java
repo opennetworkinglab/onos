@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.impl;
 
+import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -26,9 +27,12 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipEvent;
@@ -45,8 +49,12 @@ import org.onosproject.store.service.LeaderElector;
 import org.onosproject.upgrade.UpgradeEvent;
 import org.onosproject.upgrade.UpgradeEventListener;
 import org.onosproject.upgrade.UpgradeService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -70,11 +78,19 @@ public class DistributedLeadershipStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoordinationService storageService;
 
+    @Reference(cardinality = MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VersionService versionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected UpgradeService upgradeService;
+
+    private static final long DEFAULT_ELECTION_TIMEOUT_MILLIS = 5000;
+    @Property(name = "electionTimeoutMillis", longValue = DEFAULT_ELECTION_TIMEOUT_MILLIS,
+            label = "the leader election timeout in milliseconds")
+    private long electionTimeoutMillis = DEFAULT_ELECTION_TIMEOUT_MILLIS;
 
     private ExecutorService statusChangeHandler;
     private NodeId localNodeId;
@@ -149,17 +165,45 @@ public class DistributedLeadershipStore
 
     @Activate
     public void activate() {
+        configService.registerProperties(getClass());
         statusChangeHandler = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/dist/cluster/leadership", "status-change-handler", log));
         localNodeId = clusterService.getLocalNode().id();
         leaderElector = storageService.leaderElectorBuilder()
-                      .withName("onos-leadership-elections")
-                      .build()
-                      .asLeaderElector();
+                .withName("onos-leadership-elections")
+                .withElectionTimeout(electionTimeoutMillis)
+                .build()
+                .asLeaderElector();
         leaderElector.addChangeListener(leadershipChangeListener);
         leaderElector.addStatusChangeListener(clientStatusListener);
         upgradeService.addListener(upgradeListener);
         log.info("Started");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            return;
+        }
+
+        Dictionary<?, ?> properties = context.getProperties();
+        long newElectionTimeoutMillis;
+        try {
+            String s = get(properties, "electionTimeoutMillis");
+            newElectionTimeoutMillis = isNullOrEmpty(s) ? electionTimeoutMillis : Long.parseLong(s.trim());
+        } catch (NumberFormatException | ClassCastException e) {
+            log.warn("Malformed configuration detected; using defaults", e);
+            newElectionTimeoutMillis = DEFAULT_ELECTION_TIMEOUT_MILLIS;
+        }
+
+        if (newElectionTimeoutMillis != electionTimeoutMillis) {
+            electionTimeoutMillis = newElectionTimeoutMillis;
+            leaderElector = storageService.leaderElectorBuilder()
+                    .withName("onos-leadership-elections")
+                    .withElectionTimeout(electionTimeoutMillis)
+                    .build()
+                    .asLeaderElector();
+        }
     }
 
     @Deactivate
@@ -168,6 +212,7 @@ public class DistributedLeadershipStore
         leaderElector.removeStatusChangeListener(clientStatusListener);
         upgradeService.removeListener(upgradeListener);
         statusChangeHandler.shutdown();
+        configService.unregisterProperties(getClass(), false);
         log.info("Stopped");
     }
 
