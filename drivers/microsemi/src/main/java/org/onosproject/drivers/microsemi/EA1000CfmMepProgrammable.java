@@ -430,10 +430,10 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             case INTERVAL_3MS:
                 yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX3_3MS);
                 break;
-            case INVERVAL_10MS:
+            case INTERVAL_10MS:
                 yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX10MS);
                 break;
-            case INVERVAL_100MS:
+            case INTERVAL_100MS:
                 yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX100MS);
                 break;
             case INTERVAL_1S:

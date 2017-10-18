@@ -82,8 +82,8 @@ public interface MaintenanceAssociation extends NetworkResource {
     public enum CcmInterval {
         INVALID(0),
         INTERVAL_3MS(3),
-        INVERVAL_10MS(10),
-        INVERVAL_100MS(100),
+        INTERVAL_10MS(10),
+        INTERVAL_100MS(100),
         INTERVAL_1S(1000),
         INTERVAL_10S(10000),
         INTERVAL_1MIN(60000),
