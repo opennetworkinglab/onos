@@ -22,7 +22,7 @@ import java.util.concurrent.CompletionException;
 import io.atomix.protocols.raft.RaftException;
 import io.atomix.protocols.raft.cluster.MemberId;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.store.cluster.messaging.ClusterCommunicator;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.cluster.messaging.MessagingException;
 import org.onosproject.store.service.Serializer;
@@ -35,12 +35,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class RaftCommunicator {
     protected final RaftMessageContext context;
     protected final Serializer serializer;
-    protected final ClusterCommunicator clusterCommunicator;
+    protected final ClusterCommunicationService clusterCommunicator;
 
     public RaftCommunicator(
             RaftMessageContext context,
             Serializer serializer,
-            ClusterCommunicator clusterCommunicator) {
+            ClusterCommunicationService clusterCommunicator) {
         this.context = checkNotNull(context, "context cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
         this.clusterCommunicator = checkNotNull(clusterCommunicator, "clusterCommunicator cannot be null");

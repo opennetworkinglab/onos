@@ -15,52 +15,47 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Collection;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.onosproject.core.Version;
 
 /**
- * Compatible cluster service adapter.
+ * Membership service adapter.
  */
-public class UnifiedClusterServiceAdapter implements UnifiedClusterService {
+public class MembershipServiceAdapter implements MembershipService {
     @Override
-    public ControllerNode getLocalNode() {
+    public Member getLocalMember() {
         return null;
     }
 
     @Override
-    public Set<ControllerNode> getNodes() {
+    public MembershipGroup getLocalGroup() {
         return null;
     }
 
     @Override
-    public ControllerNode getNode(NodeId nodeId) {
+    public Set<Member> getMembers() {
         return null;
     }
 
     @Override
-    public ControllerNode.State getState(NodeId nodeId) {
+    public Collection<MembershipGroup> getGroups() {
         return null;
     }
 
     @Override
-    public Version getVersion(NodeId nodeId) {
+    public MembershipGroup getGroup(Version version) {
         return null;
     }
 
     @Override
-    public DateTime getLastUpdated(NodeId nodeId) {
+    public Set<Member> getMembers(Version version) {
         return null;
     }
 
     @Override
-    public void addListener(ClusterEventListener listener) {
-
-    }
-
-    @Override
-    public void removeListener(ClusterEventListener listener) {
-
+    public Member getMember(NodeId nodeId) {
+        return null;
     }
 }

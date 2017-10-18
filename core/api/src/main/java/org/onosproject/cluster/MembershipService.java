@@ -15,32 +15,59 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Collection;
 import java.util.Set;
 
-import org.joda.time.DateTime;
 import org.onosproject.core.Version;
-import org.onosproject.event.ListenerService;
 
 /**
- * Service for obtaining information about the individual nodes within
- * the controller cluster.
+ * Service for obtaining information about the individual members of the controller cluster.
  */
-public interface MembershipService
-    extends ListenerService<ClusterEvent, ClusterEventListener> {
+public interface MembershipService {
 
     /**
-     * Returns the local controller node.
+     * Returns the local member.
      *
-     * @return local controller node
+     * @return local member
      */
-    ControllerNode getLocalNode();
+    Member getLocalMember();
 
     /**
-     * Returns the set of current cluster members.
+     * Returns the group associated with the local member.
      *
-     * @return set of cluster members
+     * @return the group associated with the local member
      */
-    Set<ControllerNode> getNodes();
+    MembershipGroup getLocalGroup();
+
+    /**
+     * Returns the set of current cluster members in the local group.
+     *
+     * @return set of cluster members in the local group
+     */
+    Set<Member> getMembers();
+
+    /**
+     * Returns the set of membership groups in the cluster.
+     *
+     * @return the set of membership groups in the cluster
+     */
+    Collection<MembershipGroup> getGroups();
+
+    /**
+     * Returns the membership group for the given version.
+     *
+     * @param version the version for which to return the membership group
+     * @return the membership group for the given version
+     */
+    MembershipGroup getGroup(Version version);
+
+    /**
+     * Returns the set of members in the given version.
+     *
+     * @param version the version for which to return the set of members
+     * @return the set of members for the given version
+     */
+    Set<Member> getMembers(Version version);
 
     /**
      * Returns the specified controller node.
@@ -48,32 +75,6 @@ public interface MembershipService
      * @param nodeId controller node identifier
      * @return controller node
      */
-    ControllerNode getNode(NodeId nodeId);
-
-    /**
-     * Returns the availability state of the specified controller node. Note
-     * that this does not imply that all the core and application components
-     * have been fully activated; only that the node has joined the cluster.
-     *
-     * @param nodeId controller node identifier
-     * @return availability state
-     */
-    ControllerNode.State getState(NodeId nodeId);
-
-    /**
-     * Returns the version of the given controller node.
-     *
-     * @param nodeId controller node identifier
-     * @return controller version
-     */
-    Version getVersion(NodeId nodeId);
-
-    /**
-     * Returns the system time when the availability state was last updated.
-     *
-     * @param nodeId controller node identifier
-     * @return system time when the availability state was last updated.
-     */
-    DateTime getLastUpdated(NodeId nodeId);
+    Member getMember(NodeId nodeId);
 
 }

@@ -40,7 +40,7 @@ import io.atomix.protocols.raft.protocol.RaftClientProtocol;
 import io.atomix.protocols.raft.protocol.ResetRequest;
 import io.atomix.protocols.raft.session.SessionId;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.store.cluster.messaging.ClusterCommunicator;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.service.Serializer;
 
 /**
@@ -51,7 +51,7 @@ public class RaftClientCommunicator extends RaftCommunicator implements RaftClie
     public RaftClientCommunicator(
             String prefix,
             Serializer serializer,
-            ClusterCommunicator clusterCommunicator) {
+            ClusterCommunicationService clusterCommunicator) {
         super(new RaftMessageContext(prefix), serializer, clusterCommunicator);
     }
 

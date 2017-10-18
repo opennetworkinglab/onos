@@ -74,7 +74,6 @@ public interface ControllerNode {
      */
     IpAddress ip();
 
-
     /**
      * Returns the TCP port on which the node listens for connections.
      *

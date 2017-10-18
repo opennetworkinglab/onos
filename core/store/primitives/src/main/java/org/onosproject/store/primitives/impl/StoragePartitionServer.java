@@ -28,7 +28,7 @@ import io.atomix.protocols.raft.cluster.RaftMember;
 import io.atomix.protocols.raft.storage.RaftStorage;
 import io.atomix.storage.StorageLevel;
 import org.onosproject.core.Version;
-import org.onosproject.store.cluster.messaging.UnifiedClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.resources.impl.AtomixSerializerAdapter;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
@@ -49,13 +49,13 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
 
     private final MemberId localMemberId;
     private final StoragePartition partition;
-    private final UnifiedClusterCommunicationService clusterCommunicator;
+    private final ClusterCommunicationService clusterCommunicator;
     private RaftServer server;
 
     public StoragePartitionServer(
             StoragePartition partition,
             MemberId localMemberId,
-            UnifiedClusterCommunicationService clusterCommunicator) {
+            ClusterCommunicationService clusterCommunicator) {
         this.partition = partition;
         this.localMemberId = localMemberId;
         this.clusterCommunicator = clusterCommunicator;

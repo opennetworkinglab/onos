@@ -29,12 +29,12 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import io.atomix.protocols.raft.cluster.MemberId;
 import io.atomix.protocols.raft.service.RaftService;
-import org.onosproject.cluster.MembershipService;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.core.Version;
-import org.onosproject.store.cluster.messaging.UnifiedClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.resources.impl.AtomixAtomicCounterMapService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapService;
@@ -54,8 +54,8 @@ import org.onosproject.store.service.Serializer;
 public class StoragePartition implements Managed<StoragePartition> {
 
     private final AtomicBoolean isOpened = new AtomicBoolean(false);
-    private final UnifiedClusterCommunicationService clusterCommunicator;
-    private final MembershipService clusterService;
+    private final ClusterCommunicationService clusterCommunicator;
+    private final ClusterService clusterService;
     private final Version version;
     private final Version source;
     private final File dataFolder;
@@ -85,8 +85,8 @@ public class StoragePartition implements Managed<StoragePartition> {
             Partition partition,
             Version version,
             Version source,
-            UnifiedClusterCommunicationService clusterCommunicator,
-            MembershipService clusterService,
+            ClusterCommunicationService clusterCommunicator,
+            ClusterService clusterService,
             File dataFolder) {
         this.partition = partition;
         this.version = version;
@@ -191,6 +191,10 @@ public class StoragePartition implements Managed<StoragePartition> {
         return source != null ?
                 clusterService.getNodes()
                         .stream()
+                        .filter(node -> {
+                            Version nodeVersion = clusterService.getVersion(node.id());
+                            return nodeVersion != null && nodeVersion.equals(version);
+                        })
                         .map(node -> MemberId.from(node.id().id()))
                         .collect(Collectors.toList()) :
                 Collections2.transform(partition.getMembers(), n -> MemberId.from(n.id()));
@@ -202,6 +206,10 @@ public class StoragePartition implements Managed<StoragePartition> {
         } else {
             return clusterService.getNodes()
                     .stream()
+                    .filter(node -> {
+                        Version nodeVersion = clusterService.getVersion(node.id());
+                        return nodeVersion != null && nodeVersion.equals(version);
+                    })
                     .map(node -> MemberId.from(node.id().id()))
                     .collect(Collectors.toList());
         }
@@ -231,13 +239,10 @@ public class StoragePartition implements Managed<StoragePartition> {
                 clusterCommunicator);
 
         CompletableFuture<Void> future;
-        if (clusterService.getNodes().size() == 1) {
+        if (getMemberIds().size() == 1) {
             future = server.fork(version);
         } else {
-            future = server.join(clusterService.getNodes().stream()
-                    .filter(node -> !node.id().equals(localNodeId))
-                    .map(node -> MemberId.from(node.id().id()))
-                    .collect(Collectors.toList()));
+            future = server.join(getMemberIds());
         }
         return future.thenRun(() -> this.server = server);
     }

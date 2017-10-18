@@ -16,17 +16,24 @@
 package org.onosproject.upgrade.impl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
-import org.onosproject.cluster.UnifiedClusterServiceAdapter;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.Member;
+import org.onosproject.cluster.MembershipGroup;
+import org.onosproject.cluster.MembershipServiceAdapter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionServiceAdapter;
@@ -59,7 +66,29 @@ public class UpgradeManagerTest {
     @SuppressWarnings("unchecked")
     private UpgradeManager createUpgradeManager(Version version, Upgrade state, List<Version> versions) {
         UpgradeManager upgradeManager = new UpgradeManager();
-        upgradeManager.clusterService = new UnifiedClusterServiceAdapter() {
+        upgradeManager.membershipService = new MembershipServiceAdapter() {
+            @Override
+            public MembershipGroup getLocalGroup() {
+                return getGroups()
+                        .stream()
+                        .filter(group -> group.version().equals(version))
+                        .findFirst()
+                        .get();
+            }
+
+            @Override
+            public Collection<MembershipGroup> getGroups() {
+                AtomicInteger nodeCounter = new AtomicInteger();
+                Map<Version, Set<Member>> groups = Maps.newHashMap();
+                versions.stream().forEach(version -> {
+                    groups.computeIfAbsent(version, k -> Sets.newHashSet())
+                            .add(new Member(NodeId.nodeId(String.valueOf(nodeCounter.getAndIncrement())), version));
+                });
+                return Maps.transformEntries(groups, MembershipGroup::new).values();
+            }
+        };
+
+        upgradeManager.clusterService = new ClusterServiceAdapter() {
             @Override
             public Set<ControllerNode> getNodes() {
                 AtomicInteger nodeCounter = new AtomicInteger();
@@ -81,11 +110,6 @@ public class UpgradeManagerTest {
                         .filter(node -> node.id().equals(nodeId))
                         .findFirst()
                         .orElse(null);
-            }
-
-            @Override
-            public ControllerNode.State getState(NodeId nodeId) {
-                return ControllerNode.State.READY;
             }
 
             @Override

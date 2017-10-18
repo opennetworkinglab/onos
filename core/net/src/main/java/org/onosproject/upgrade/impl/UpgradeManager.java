@@ -28,9 +28,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.MembershipService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.UnifiedClusterService;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionService;
 import org.onosproject.event.AbstractListenerManager;
@@ -70,7 +71,10 @@ public class UpgradeManager
     protected CoordinationService coordinationService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected UnifiedClusterService clusterService;
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MembershipService membershipService;
 
     private Version localVersion;
     private AtomicValue<Upgrade> state;
@@ -243,13 +247,8 @@ public class UpgradeManager
         }
 
         // Determine whether any nodes have not been upgraded to the target version.
-        boolean upgradeComplete = clusterService.getNodes()
-                .stream()
-                .allMatch(node -> {
-                    ControllerNode.State state = clusterService.getState(node.id());
-                    Version version = clusterService.getVersion(node.id());
-                    return state.isActive() && version != null && version.equals(upgraded.target());
-                });
+        boolean upgradeComplete = membershipService.getGroups().size() == 1
+                && membershipService.getLocalGroup().version().equals(upgraded.target());
 
         // If some nodes have not yet been upgraded, throw an exception.
         if (!upgradeComplete) {
@@ -333,13 +332,8 @@ public class UpgradeManager
         }
 
         // Determine whether any nodes are still running the target version.
-        boolean rollbackComplete = clusterService.getNodes()
-                .stream()
-                .allMatch(node -> {
-                    ControllerNode.State state = clusterService.getState(node.id());
-                    Version version = clusterService.getVersion(node.id());
-                    return state.isActive() && version != null && version.equals(upgraded.source());
-                });
+        boolean rollbackComplete = membershipService.getGroups().size() == 1
+                && membershipService.getLocalGroup().version().equals(upgraded.source());
 
         // If some nodes have not yet been downgraded, throw an exception.
         if (!rollbackComplete) {

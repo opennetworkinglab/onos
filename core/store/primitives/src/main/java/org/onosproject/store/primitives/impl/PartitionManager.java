@@ -45,7 +45,7 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionService;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.store.cluster.messaging.UnifiedClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
@@ -71,7 +71,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected UnifiedClusterCommunicationService clusterCommunicator;
+    protected ClusterCommunicationService clusterCommunicator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterMetadataService metadataService;
@@ -103,24 +103,24 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
             Version targetVersion = upgradeService.getState().target();
             currentClusterMetadata.get()
                     .getPartitions()
-                    .forEach(partition -> inactivePartitions.put(partition.getId(), new StoragePartition(
-                            partition,
-                            sourceVersion,
-                            null,
-                            clusterCommunicator,
-                            clusterService,
-                            new File(System.getProperty("karaf.data") +
-                                    "/partitions/" + sourceVersion + "/" + partition.getId()))));
-            currentClusterMetadata.get()
-                    .getPartitions()
-                    .forEach(partition -> activePartitions.put(partition.getId(), new StoragePartition(
-                            partition,
-                            targetVersion,
-                            sourceVersion,
-                            clusterCommunicator,
-                            clusterService,
-                            new File(System.getProperty("karaf.data") +
-                                    "/partitions/" + targetVersion + "/" + partition.getId()))));
+                    .forEach(partition -> {
+                        inactivePartitions.put(partition.getId(), new StoragePartition(
+                                partition,
+                                sourceVersion,
+                                null,
+                                clusterCommunicator,
+                                clusterService,
+                                new File(System.getProperty("karaf.data") +
+                                        "/partitions/" + sourceVersion + "/" + partition.getId())));
+                        activePartitions.put(partition.getId(), new StoragePartition(
+                                partition,
+                                targetVersion,
+                                sourceVersion,
+                                clusterCommunicator,
+                                clusterService,
+                                new File(System.getProperty("karaf.data") +
+                                        "/partitions/" + targetVersion + "/" + partition.getId())));
+                    });
 
             // We have to fork existing partitions before we can start inactive partition servers to
             // avoid duplicate message handlers when both servers are running.

@@ -22,8 +22,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.joda.time.DateTime;
 import org.onlab.util.Tools;
+import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.MembershipAdminService;
 import org.onosproject.core.Version;
 import org.onosproject.utils.Comparators;
 
@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-
 
 /**
  * Lists all controller cluster nodes.
@@ -44,7 +43,7 @@ public class NodesListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        MembershipAdminService service = get(MembershipAdminService.class);
+        ClusterAdminService service = get(ClusterAdminService.class);
         List<ControllerNode> nodes = newArrayList(service.getNodes());
         Collections.sort(nodes, Comparators.NODE_COMPARATOR);
         if (outputJson()) {
@@ -68,7 +67,7 @@ public class NodesListCommand extends AbstractShellCommand {
     }
 
     // Produces JSON structure.
-    private JsonNode json(MembershipAdminService service, List<ControllerNode> nodes) {
+    private JsonNode json(ClusterAdminService service, List<ControllerNode> nodes) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         ControllerNode self = service.getLocalNode();
