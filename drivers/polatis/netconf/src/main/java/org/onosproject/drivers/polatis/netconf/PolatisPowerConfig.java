@@ -31,7 +31,18 @@ import java.util.Optional;
 
 import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.POWER_MULTIPLIER;
 import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.POWER_RANGE;
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.*;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfGet;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configAt;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configsAt;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlOpen;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlClose;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORT;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORTID;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_OPM;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_OPM_XMLNS;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_OPM;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_OPM_PORT;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -40,6 +51,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
     implements PowerConfig<T> {
+
+    private static final String KEY_POWER = "power";
 
     private static final Logger log = getLogger(PolatisPowerConfig.class);
 
