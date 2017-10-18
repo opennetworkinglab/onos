@@ -31,6 +31,8 @@ import java.nio.ByteBuffer;
  * Based on RFC-3315.
  */
 public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
+    private static final short VLAN_LEN = 2;
+    private static final short SEPARATOR_LEN = 1;
     private MacAddress peerMacAddr;
     private byte[] inPort;
     private short vlanId;
@@ -138,7 +140,8 @@ public final class Dhcp6InterfaceIdOption extends Dhcp6Option {
                 ByteBuffer bb = ByteBuffer.wrap(optionData);
 
                 byte[] macAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
-                byte[] port = new byte[21];
+                byte[] port = new byte[optionData.length - MacAddress.MAC_ADDRESS_LENGTH -
+                                                        VLAN_LEN - SEPARATOR_LEN * 2];
                 short vlan;
                 bb.get(macAddr);
                 bb.get();  // separator "-"

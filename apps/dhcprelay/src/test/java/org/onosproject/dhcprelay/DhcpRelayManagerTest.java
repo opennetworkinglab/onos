@@ -119,6 +119,8 @@ import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_RELAY_APP;
 import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_SELECTORS;
 
 public class DhcpRelayManagerTest {
+    private static final short VLAN_LEN = 2;
+    private static final short SEPARATOR_LEN = 1;
     private static final String CONFIG_FILE_PATH = "dhcp-relay.json";
     private static final DeviceId DEV_1_ID = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DEV_2_ID = DeviceId.deviceId("of:0000000000000002");
@@ -1247,10 +1249,12 @@ public class DhcpRelayManagerTest {
         interfaceId.setData(interfaceIdBytes);
         interfaceId.setLength((short) interfaceIdBytes.length);
         Dhcp6InterfaceIdOption interfaceIdOption = new Dhcp6InterfaceIdOption(interfaceId);
+        byte[] optionData = interfaceIdOption.getData();
         ByteBuffer bb = ByteBuffer.wrap(interfaceIdBytes);
 
         byte[] macAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
-        byte[] port =  new byte[21];
+        byte[] port =  new byte[optionData.length - MacAddress.MAC_ADDRESS_LENGTH -
+                VLAN_LEN - SEPARATOR_LEN * 2];
         short vlan;
         bb.get(macAddr);
         bb.get();  // separator
