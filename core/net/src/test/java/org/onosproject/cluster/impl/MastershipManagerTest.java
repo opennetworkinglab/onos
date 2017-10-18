@@ -49,6 +49,7 @@ import org.onosproject.store.trivial.SimpleMastershipStore;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
+import org.onosproject.upgrade.impl.UpgradeServiceAdapter;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
@@ -104,6 +105,7 @@ public class MastershipManagerTest {
         injectEventDispatcher(mgr, new TestEventDispatcher());
         testClusterService = new TestClusterService();
         mgr.clusterService = testClusterService;
+        mgr.upgradeService = new UpgradeServiceAdapter();
         mgr.store = new TestSimpleMastershipStore(mgr.clusterService);
         regionStore = new DistributedRegionStore();
         TestUtils.setField(regionStore, "storageService", new TestStorageService());

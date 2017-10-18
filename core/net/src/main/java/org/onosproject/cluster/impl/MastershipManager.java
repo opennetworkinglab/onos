@@ -132,6 +132,7 @@ public class MastershipManager
 
         requestRoleTimer = createTimer("Mastership", "requestRole", "responseTime");
         localNodeId = clusterService.getLocalNode().id();
+        upgradeService.addListener(upgradeEventListener);
         eventDispatcher.addSink(MastershipEvent.class, listenerRegistry);
         store.setDelegate(delegate);
         log.info("Started");
@@ -150,6 +151,7 @@ public class MastershipManager
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(MastershipEvent.class);
+        upgradeService.removeListener(upgradeEventListener);
         store.unsetDelegate(delegate);
         log.info("Stopped");
         cfgService.unregisterProperties(getClass(), false);
