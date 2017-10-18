@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter.impl;
+package org.onosproject.net.meter.impl;
 
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;

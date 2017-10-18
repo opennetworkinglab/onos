@@ -17,4 +17,4 @@
 /**
  * Provides implementation of the meter service APIs.
  */
-package org.onosproject.incubator.net.meter.impl;
+package org.onosproject.net.meter.impl;
