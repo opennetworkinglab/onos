@@ -49,7 +49,6 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.AnnotationsUtil;
@@ -1031,9 +1030,7 @@ public class GossipDeviceStore
                 relinquishAtEnd = true;
             }
             log.debug("Temporarily requesting role for {} to remove", deviceId);
-            mastershipService.requestRoleFor(deviceId);
-            MastershipTerm term = termService.getMastershipTerm(deviceId);
-            if (term != null && myId.equals(term.master())) {
+            if (mastershipService.requestRoleFor(deviceId).join() == MastershipRole.MASTER) {
                 master = myId;
             }
         }
