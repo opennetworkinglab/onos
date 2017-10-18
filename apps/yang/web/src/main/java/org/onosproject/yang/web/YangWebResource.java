@@ -16,38 +16,45 @@
 
 package org.onosproject.yang.web;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.yang.YangLiveCompilerService;
+import org.onosproject.yang.model.DefaultYangModuleId;
+import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.model.YangModule;
+import org.onosproject.yang.runtime.YangModelRegistry;
+import org.slf4j.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Yang files upload resource.
  */
 @Path("models")
 public class YangWebResource extends AbstractWebResource {
-    private static final String YANG_FILE_EXTENSION = ".yang";
-    private static final String SER_FILE_EXTENSION = ".ser";
-    private static final String JAR_FILE_EXTENSION = ".jar";
-    private static final String ZIP_FILE_EXTENSION = ".zip";
-    private static final String REGISTER = "register";
-    private static final String UNREGISTER = "unregister";
-    private static final String CODE_GEN_DIR = "target/generated-sources/";
-    private static final String YANG_RESOURCES = "target/yang/resources/";
-    private static final String SERIALIZED_FILE_NAME = "YangMetaData.ser";
-    private static final String UNKNOWN_KEY = "Key must be either register " +
-            "or unregister.";
-    private static final String SLASH = "/";
+
+    private final Logger log = getLogger(getClass());
+    private YangModelRegistry modelRegistry = getService(YangModelRegistry.class);
 
     /**
      * Compiles and registers the given yang files.
@@ -66,5 +73,92 @@ public class YangWebResource extends AbstractWebResource {
         appService.install(compiler.compileYangFiles(modelId, stream));
         appService.activate(appService.getId(modelId));
         return Response.ok().build();
+    }
+
+    /**
+     * Returns all models registered with YANG runtime. If the operation is
+     * successful, the JSON presentation of the resource plus HTTP status
+     * code "200 OK" is returned.Otherwise,
+     * HTTP error status code "400 Bad Request" is returned.
+     *
+     * @return HTTP response
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getModels() {
+
+        modelRegistry = getService(YangModelRegistry.class);
+        ObjectNode result = mapper().createObjectNode();
+        Set<YangModel> models = modelRegistry.getModels();
+        ArrayNode ids = result.putArray("Model_ids");
+        for (YangModel m : models) {
+            ids.add(m.getYangModelId());
+        }
+        return Response.ok(result.toString()).build();
+    }
+
+    /**
+     * Returns all modules registered with YANG runtime under given model
+     * identifier.If the operation is successful, the JSON presentation of the
+     * resource plus HTTP status code "200 OK" is returned. Otherwise,
+     * HTTP error status code "400 Bad Request" is returned.
+     *
+     * @param id for model
+     * @return HTTP response
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{id}")
+    public Response getModules(@PathParam("id") String
+                                       id) {
+        modelRegistry = getService(YangModelRegistry.class);
+        ObjectNode result = mapper().createObjectNode();
+        YangModel model = modelRegistry.getModel(id);
+        if (model == null) {
+            return Response.status(NOT_FOUND).build();
+        }
+        Set<YangModule> modules = model.getYangModules();
+        ArrayNode ids = result.putArray(id);
+        for (YangModule m : modules) {
+            ids.add(m.getYangModuleId().moduleName() + "@" + m
+                    .getYangModuleId().revision());
+        }
+        return Response.ok(result).build();
+    }
+
+    /**
+     * Returns module registered with YANG runtime with given module
+     * identifier.
+     * If the operation is successful, the JSON presentation of the resource
+     * plus HTTP status code "200 OK" is returned. Otherwise,
+     * HTTP error status code "400 Bad Request" is returned.
+     *
+     * @param n for module name
+     * @param r for module revision
+     * @return HTTP response
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/{name}@{revision}")
+    public String getModule(@PathParam("name") String n,
+                            @PathParam("revision") String r) {
+
+        modelRegistry = getService(YangModelRegistry.class);
+        YangModule m = modelRegistry.getModule(new DefaultYangModuleId(n, r));
+        if (m == null) {
+            return Response.status(NOT_FOUND).build().toString();
+        }
+        String x;
+        try {
+            x = IOUtils.toString(m.getYangSource(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("ERROR: handleModuleGetRequest", e.getMessage());
+            log.debug("Exception in handleModuleGetRequest:", e);
+            return e.getMessage();
+        }
+        return x;
     }
 }
