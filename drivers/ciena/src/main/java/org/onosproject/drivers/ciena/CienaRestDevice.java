@@ -17,6 +17,10 @@ package org.onosproject.drivers.ciena;
 
 import org.onlab.util.Frequency;
 import org.onosproject.driver.optical.flowrule.CrossConnectCache;
+import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
+import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -38,6 +42,10 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.List;
 import java.util.Collection;
@@ -51,6 +59,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,12 +71,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class CienaRestDevice {
-    private DeviceId deviceId;
-    private RestSBController controller;
-    private CrossConnectCache crossConnectCache;
-    private DeviceService deviceService;
-
-    private final Logger log = getLogger(getClass());
+    private static final Frequency BASE_FREQUENCY = Frequency.ofGHz(193_950);
     private static final String ENABLED = "enabled";
     private static final String DISABLED = "disabled";
     private static final String VALUE = "value";
@@ -74,10 +79,23 @@ public class CienaRestDevice {
     private static final String ADMIN_STATE = "admin-state";
     private static final String WAVELENGTH = "wavelength";
     private static final String DATA = "data";
+    private static final String ACTIVE = "active";
+    private static final String ACKNOWLEDGE = "acknowledged";
+    private static final String SEVERITY = "severity";
+    private static final String DESCRIPTION = "description";
+    private static final String INSTANCE = "instance";
+    private static final String PORT = "port";
+    private static final String PTP = "ptp";
+    private static final String UTC = "UTC";
+    private static final String OTHER = "other";
+    private static final String DATE_TIME_FORMAT = "EEE MMM [ ]d HH:mm:ss yyyy";
+    //keys
+    private static final String ALARM_KEY = "ws-alarms";
+    private static final String ALARM_INSTANCE_ID = "alarm-instance-id";
+    private static final String ALARM_TABLE_ID = "alarm-table-id";
+    private static final String ALARM_LOCAL_DATE_TIME = "local-date-time";
     private static final String LINE_SYSTEM_CHANNEL_NUMBER = "ciena-ws-ptp-modem:line-system-channel-number";
     private static final String FREQUENCY_KEY = "ciena-ws-ptp-modem:frequency";
-    private static final Frequency BASE_FREQUENCY = Frequency.ofGHz(193_950);
-
     //URIs
     private static final String PORT_URI = "ws-ptps/ptps/%s";
     private static final String TRANSMITTER_URI = PORT_URI + "/properties/transmitter";
@@ -85,8 +103,16 @@ public class CienaRestDevice {
     private static final String WAVELENGTH_URI = TRANSMITTER_URI + "/" + WAVELENGTH;
     private static final String FREQUENCY_URI = TRANSMITTER_URI + "/" + FREQUENCY_KEY;
     private static final String CHANNEL_URI = TRANSMITTER_URI + "/" + LINE_SYSTEM_CHANNEL_NUMBER;
-
+    private static final String ACTIVE_ALARMS_URL = ALARM_KEY + "/" + ACTIVE;
     private static final List<String> LINESIDE_PORT_ID = ImmutableList.of("4", "48");
+
+    private final Logger log = getLogger(getClass());
+
+    private DeviceId deviceId;
+    private RestSBController controller;
+    private CrossConnectCache crossConnectCache;
+    private DeviceService deviceService;
+
 
     public CienaRestDevice(DriverHandler handler) throws NullPointerException {
         deviceId = handler.data().deviceId();
@@ -231,6 +257,71 @@ public class CienaRestDevice {
 
     }
 
+    private AlarmEntityId getAlarmSource(String instance) {
+        AlarmEntityId source;
+        if (instance.contains(PORT)) {
+            source = AlarmEntityId.alarmEntityId(instance.replace("-", ":"));
+        } else if (instance.contains(PTP)) {
+            source = AlarmEntityId.alarmEntityId(instance.replace(PTP + "-", PORT + ":"));
+        } else {
+            source = AlarmEntityId.alarmEntityId(OTHER + ":" + instance);
+        }
+        return source;
+    }
+
+    private long parseAlarmTime(String time) {
+        /*
+         * expecting WaveServer time to be set to UTC.
+         */
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
+            LocalDateTime localDateTime = LocalDateTime.parse(time, formatter);
+            return localDateTime.atZone(ZoneId.of(UTC)).toInstant().toEpochMilli();
+        } catch (DateTimeParseException e2) {
+            log.error("unable to parse time {}, using system time", time);
+            return System.currentTimeMillis();
+        }
+    }
+
+    private Alarm newAlarmFromJsonNode(JsonNode jsonNode) {
+        try {
+            AlarmId alarmId = AlarmId.alarmId(checkNotNull(jsonNode.get(ALARM_INSTANCE_ID)).asText());
+            String time = checkNotNull(jsonNode.get(ALARM_LOCAL_DATE_TIME)).asText();
+            String instance = checkNotNull(jsonNode.get(INSTANCE).asText()).toLowerCase();
+            String description = checkNotNull(jsonNode.get(DESCRIPTION)).asText() + " - " + instance + " - " + time;
+            AlarmEntityId source = getAlarmSource(instance);
+            Alarm.SeverityLevel severity = Alarm.SeverityLevel.valueOf(checkNotNull(
+                    jsonNode.get(SEVERITY)).asText().toUpperCase());
+
+            long timeRaised = parseAlarmTime(time);
+            boolean isAcknowledged = checkNotNull(jsonNode.get(ACKNOWLEDGE)).asBoolean();
+
+            return new DefaultAlarm.Builder(alarmId, deviceId, description, severity, timeRaised)
+                    .withAcknowledged(isAcknowledged)
+                    .forSource(source)
+                    .build();
+
+        } catch (NullPointerException e) {
+            log.error("got exception while parsing alarm json node {} for device {}:\n", jsonNode, deviceId, e);
+            return null;
+        }
+
+    }
+
+    private List<Alarm> getActiveAlarms() {
+        log.debug("getting active alarms for device {}", deviceId);
+        try {
+            List<JsonNode> alarms = Lists.newArrayList(get(ACTIVE_ALARMS_URL).get(ACTIVE).elements());
+            return alarms.stream()
+                    .map(a -> newAlarmFromJsonNode(a))
+                    .filter(a -> a != null)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            log.error("unable to get active alarms for device {}:\n", deviceId, e);
+            return null;
+        }
+    }
+
     public Collection<FlowEntry> getFlowEntries() {
         List<Port> ports = deviceService.getPorts(deviceId);
         //driver only handles lineSide ports
@@ -250,7 +341,7 @@ public class CienaRestDevice {
         }
 
         /*
-         * both inPort and outPort will be same as WaveServer only deal with same port ppt-indexes
+         * both inPort and outPort will be same as WaveServer only deal with same port ptp-indexes
          * channel and spaceMultiplier are same.
          * TODO: find a way to get both inPort and outPort for future when inPort may not be equal to outPort
          */
@@ -280,6 +371,11 @@ public class CienaRestDevice {
                 .build();
 
         return fr;
+    }
+
+    public List<Alarm> getAlarms() {
+        log.debug("getting alarms for device {}", deviceId);
+        return getActiveAlarms();
     }
 
     private JsonNode get(String uri) throws IOException {
