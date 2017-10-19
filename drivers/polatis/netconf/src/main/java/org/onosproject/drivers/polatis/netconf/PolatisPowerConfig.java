@@ -27,13 +27,17 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.POWER_MULTIPLIER;
+import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.VOA_MULTIPLIER;
 import static org.onosproject.drivers.polatis.netconf.PolatisOpticalUtility.POWER_RANGE;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfGet;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfEditConfig;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configAt;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configsAt;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xml;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlOpen;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlClose;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_PORT;
@@ -42,6 +46,10 @@ import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_OPM_XMLNS;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_OPM;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_OPM_PORT;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_VOA;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_VOA_XMLNS;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_VOA_PORT;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.CFG_MODE_MERGE;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -53,6 +61,9 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
     implements PowerConfig<T> {
 
     private static final String KEY_POWER = "power";
+    private static final String KEY_ATTEN_LEVEL = "atten-level";
+    private static final String KEY_ATTEN_MODE = "atten-mode";
+    private static final String VALUE_ATTEN_MODE = "VOA_MODE_ABSOLUTE";
 
     private static final Logger log = getLogger(PolatisPowerConfig.class);
 
@@ -131,8 +142,45 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
             return null;
         }
         log.debug("Get port{} target power...", port);
-        log.warn("This is currently unimplemented");
-        return null;
+        return acquirePortAttenuation(port);
+    }
+
+    /**
+     * Get the filter string for the attenuation NETCONF request.
+     *
+     * @param port the port, null to return all the attenuation ports
+     * @return filter string
+     */
+    private String getPortAttenuationFilter(PortNumber port) {
+        StringBuilder filter = new StringBuilder(xmlOpen(KEY_VOA_XMLNS))
+                .append(xmlOpen(KEY_PORT))
+                .append(xmlOpen(KEY_PORTID));
+        if (port != null) {
+            filter.append(port.toLong());
+        }
+        return filter.append(xmlClose(KEY_PORTID))
+                .append(xmlOpen(KEY_ATTEN_LEVEL))
+                .append(xmlClose(KEY_ATTEN_LEVEL))
+                .append(xmlClose(KEY_PORT))
+                .append(xmlClose(KEY_VOA))
+                .toString();
+    }
+
+    private Long acquirePortAttenuation(PortNumber port) {
+        String filter = getPortAttenuationFilter(port);
+        String reply = netconfGet(handler(), filter);
+        HierarchicalConfiguration info = configAt(reply, KEY_DATA_VOA_PORT);
+        if (info == null) {
+            return null;
+        }
+        long attenuation = 0;
+        try {
+            attenuation = (long) (info.getDouble(KEY_ATTEN_LEVEL) * VOA_MULTIPLIER);
+        } catch (NoSuchElementException e) {
+            log.debug("Could not find atten-level for port {}", port);
+        }
+
+        return attenuation;
     }
 
     private Long acquireCurrentPower(PortNumber port, T component) {
@@ -156,8 +204,15 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
 
     private boolean setPortTargetPower(PortNumber port, long power) {
         log.debug("Set port{} target power...", port);
-        log.warn("This is currently unimplemented");
-        return false;
+        String cfg = new StringBuilder(xmlOpen(KEY_VOA_XMLNS))
+                .append(xmlOpen(KEY_PORT))
+                .append(xml(KEY_PORTID, Long.toString(port.toLong())))
+                .append(xml(KEY_ATTEN_MODE, VALUE_ATTEN_MODE))
+                .append(xml(KEY_ATTEN_LEVEL, Long.toString(power)))
+                .append(xmlClose(KEY_PORT))
+                .append(xmlClose(KEY_VOA_XMLNS))
+                .toString();
+        return netconfEditConfig(handler(), CFG_MODE_MERGE, cfg);
     }
 
     private Range<Long> getPowerRange() {
@@ -169,7 +224,6 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
             log.debug("Get target port{} power range...", port);
             return getPowerRange();
         } else {
-            log.debug("Get channel attenuation range...");
             log.warn("Channel power is not applicable.");
             return null;
         }

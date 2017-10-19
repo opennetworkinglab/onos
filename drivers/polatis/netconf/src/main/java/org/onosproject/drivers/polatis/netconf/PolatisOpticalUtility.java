@@ -50,6 +50,7 @@ public final class PolatisOpticalUtility {
     private static final int DEFAULT_PRIORITY = 88;
     private static final String DEFAULT_APP = "org.onosproject.drivers.polatis.netconf";
     public static final int POWER_MULTIPLIER = 100;
+    public static final int VOA_MULTIPLIER = 100;
     public static final Range<Long> POWER_RANGE = Range.closed(-6000L, 2800L);
 
     private PolatisOpticalUtility() {

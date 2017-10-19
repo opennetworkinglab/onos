@@ -48,6 +48,7 @@ import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlC
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_CONNS;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_CONNS_XMLNS;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.KEY_DATA_CONNS;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.CFG_MODE_MERGE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -60,7 +61,6 @@ public class PolatisFlowRuleProgrammable
     public static final String KEY_SRC = "ingress";
     public static final String KEY_DST = "egress";
     public static final String KEY_SRC_CHID = String.format("%s.%s", KEY_SRC, KEY_CHID);
-    public static final String CFG_MODE_MERGE = "merge";
     public static final String CFG_MODE_DELETE = "delete";
     public static final String KEY_PAIR = "pair";
     public static final String KEY_PAIRS = "pairs";
