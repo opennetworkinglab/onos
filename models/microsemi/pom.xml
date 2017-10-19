@@ -43,6 +43,12 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-models-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-apps-yang</artifactId>
             <version>${project.version}</version>
         </dependency>

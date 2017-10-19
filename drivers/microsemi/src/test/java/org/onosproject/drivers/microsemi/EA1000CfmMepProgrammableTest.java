@@ -41,14 +41,17 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.MdNameAndTypeCombo;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.MaNameAndTypeCombo;
 
+import java.util.BitSet;
+
 /**
  * Test of the CFM implementation on EA1000 through the incubator/net/l2monitoring interface.
  */
 public class EA1000CfmMepProgrammableTest {
     EA1000CfmMepProgrammable cfmProgrammable;
-    MdId mdId1 = MdIdCharStr.asMdId("md-1");
-    MaIdShort maId11 = MaIdCharStr.asMaId("ma-1-1");
-    MepId mep111 = MepId.valueOf((short) 1);
+    public static final MdId MD_ID_1 = MdIdCharStr.asMdId("md-1");
+    public static final MaIdShort MA_ID_11 = MaIdCharStr.asMaId("ma-1-1");
+    public static final MepId MEP_111 = MepId.valueOf((short) 1);
+    public static final MepId MEP_112 = MepId.valueOf((short) 2);
 
     @Before
     public void setUp() throws Exception {
@@ -72,7 +75,7 @@ public class EA1000CfmMepProgrammableTest {
 
     @Test
     public void testGetMep() throws CfmConfigException {
-        MepEntry mepEntry = cfmProgrammable.getMep(mdId1, maId11, mep111);
+        MepEntry mepEntry = cfmProgrammable.getMep(MD_ID_1, MA_ID_11, MEP_111);
 
         //Result will come from MockNetconfSessionEa1000.SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY
         assertNotNull(mepEntry);
@@ -80,13 +83,43 @@ public class EA1000CfmMepProgrammableTest {
         assertTrue(mepEntry.cciEnabled());
         assertEquals(Priority.PRIO5.name(), mepEntry.ccmLtmPriority().name());
 
-        assertTrue(mepEntry.activeMacStatusDefect()); //remote-mac-error
-        assertTrue(mepEntry.activeRdiCcmDefect()); //remote-rdi
+        assertTrue("Expecting remote-mac-error", mepEntry.activeMacStatusDefect()); //remote-mac-error
+        assertTrue("Expecting remote-rdi", mepEntry.activeRdiCcmDefect()); //remote-rdi
 
         assertNotNull(mepEntry.activeRemoteMepList());
 
-        //TODO Comment back in this test - this is a serious issue with onos-yang-tools that only 1 is found
-        // See https://gerrit.onosproject.org/#/c/15164/
+//FIXME Waiting on patch https://gerrit.onosproject.org/#/c/15778/
+//        assertEquals("Expecting 2 Remote Meps", 2, mepEntry.activeRemoteMepList().size());
+        mepEntry.activeRemoteMepList().forEach(rmep -> {
+            if (rmep.remoteMepId().value() == 1) {
+                assertEquals(RemoteMepState.RMEP_FAILED.name(),
+                        rmep.state().toString());
+                assertEquals(54654654L, rmep.failedOrOkTime().toMillis());
+                assertEquals("aa:bb:cc:dd:ee:ff".toUpperCase(), rmep.macAddress().toString());
+                assertFalse(rmep.rdi());
+                assertEquals(PortStatusTlvType.PS_NO_STATUS_TLV.name(),
+                        rmep.portStatusTlvType().toString());
+                assertEquals(InterfaceStatusTlvType.IS_DORMANT.name(),
+                        rmep.interfaceStatusTlvType().toString());
+            }
+        });
+
+    }
+
+    @Test
+    public void testGetMep2() throws CfmConfigException {
+        MepEntry mepEntry = cfmProgrammable.getMep(MD_ID_1, MA_ID_11, MEP_112);
+
+        //Result will come from MockNetconfSessionEa1000.SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY
+        assertNotNull(mepEntry);
+        assertTrue(mepEntry.administrativeState());
+        assertTrue(mepEntry.cciEnabled());
+        assertEquals(Priority.PRIO4.name(), mepEntry.ccmLtmPriority().name());
+
+        assertNotNull(mepEntry.activeRemoteMepList());
+        BitSet bs1 = new BitSet();
+        bs1.clear();
+//FIXME Waiting on patch https://gerrit.onosproject.org/#/c/15778/
 //        assertEquals("Expecting 2 Remote Meps", 2, mepEntry.activeRemoteMepList().size());
         mepEntry.activeRemoteMepList().forEach(rmep -> {
             if (rmep.remoteMepId().value() == 1) {
@@ -110,7 +143,7 @@ public class EA1000CfmMepProgrammableTest {
      */
     @Test
     public void testDeleteMep() throws CfmConfigException {
-        assertTrue(cfmProgrammable.deleteMep(mdId1, maId11, mep111));
+        assertTrue(cfmProgrammable.deleteMep(MD_ID_1, MA_ID_11, MEP_111));
     }
 
     /**
@@ -126,12 +159,12 @@ public class EA1000CfmMepProgrammableTest {
         lbCreate.vlanPriority(Priority.PRIO3);
         lbCreate.vlanDropEligible(true);
 
-        cfmProgrammable.transmitLoopback(mdId1, maId11, mep111, lbCreate.build());
+        cfmProgrammable.transmitLoopback(MD_ID_1, MA_ID_11, MEP_111, lbCreate.build());
     }
 
     @Test
     public void testAbortLoopback() throws CfmConfigException {
-        cfmProgrammable.abortLoopback(mdId1, maId11, mep111);
+        cfmProgrammable.abortLoopback(MD_ID_1, MA_ID_11, MEP_111);
     }
 
 //    @Test

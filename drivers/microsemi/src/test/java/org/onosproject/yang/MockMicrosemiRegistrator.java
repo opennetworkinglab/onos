@@ -15,7 +15,7 @@
  */
 package org.onosproject.yang;
 
-import org.onosproject.drivers.microsemi.yang.MicrosemiModelRegistrator;
+import org.onosproject.models.microsemi.MicrosemiModelRegistrator;
 import org.onosproject.yang.compiler.datamodel.YangNode;
 import org.onosproject.yang.compiler.tool.YangNodeInfo;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;

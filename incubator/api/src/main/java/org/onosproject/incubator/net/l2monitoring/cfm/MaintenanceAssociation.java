@@ -79,7 +79,7 @@ public interface MaintenanceAssociation extends NetworkResource {
     /**
      * Enumerated values from IEEE 802.1Q Table 21-16—CCM Interval field encoding.
      */
-    public enum CcmInterval {
+    enum CcmInterval {
         INVALID(0),
         INTERVAL_3MS(3),
         INTERVAL_10MS(10),

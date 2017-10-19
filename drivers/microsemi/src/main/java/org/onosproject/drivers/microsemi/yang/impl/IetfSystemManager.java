@@ -29,14 +29,8 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.ietfsystem.DefaultSystem;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.ietfsystem.DefaultSystemState;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.doupgradeandreboot.DoUpgradeAndRebootInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.doupgradeandreboot.DoUpgradeAndRebootOutput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.pullupdatetarfromtftp.PullUpdateTarFromTftpInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.readfromsyslog.ReadFromSyslogInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.readfromsyslog.ReadFromSyslogOutput;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystem;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystemOpParam;
-import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.ietfsystem.systemrestart.SystemRestartInput;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObject;
@@ -146,33 +140,9 @@ public class IetfSystemManager extends AbstractYangServiceImpl
     }
 
     @Override
-    public void systemRestart(SystemRestartInput inputVar, NetconfSession session) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
     public void systemShutdown(NetconfSession session) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
-
-    @Override
-    public DoUpgradeAndRebootOutput doUpgradeAndReboot(DoUpgradeAndRebootInput inputVar, NetconfSession session)
-            throws NetconfException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void pullUpdateTarFromTftp(PullUpdateTarFromTftpInput inputVar, NetconfSession session)
-            throws NetconfException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public ReadFromSyslogOutput readFromSyslog(ReadFromSyslogInput inputVar, NetconfSession session)
-            throws NetconfException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
 
     /**
      * Builds a request crafted to get the configuration required to create
@@ -186,9 +156,10 @@ public class IetfSystemManager extends AbstractYangServiceImpl
         rpc.append("xmlns:sysms=\"http://www.microsemi.com/microsemi-edge-assure/msea-system\">");
         rpc.append("<platform>");
         rpc.append("<os-release/>");
-        rpc.append("<sysms:device-identification>");
-        rpc.append("<sysms:serial-number/>");
-        rpc.append("</sysms:device-identification>");
+//FIXME: This has been commented out until the augment of common models issue with onos-yang-tools is sorted
+//        rpc.append("<sysms:device-identification>");
+//        rpc.append("<sysms:serial-number/>");
+//        rpc.append("</sysms:device-identification>");
         rpc.append("</platform>");
         rpc.append("<clock>");
         rpc.append("<current-datetime/>");

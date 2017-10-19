@@ -20,14 +20,8 @@ import java.time.OffsetDateTime;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.doupgradeandreboot.DoUpgradeAndRebootInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.doupgradeandreboot.DoUpgradeAndRebootOutput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.pullupdatetarfromtftp.PullUpdateTarFromTftpInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.readfromsyslog.ReadFromSyslogInput;
-import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.ietfsystemmicrosemi.readfromsyslog.ReadFromSyslogOutput;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystem;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystemOpParam;
-import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.ietfsystem.systemrestart.SystemRestartInput;
 
 /**
  * Extension of ietfSystemService to include NETCONF sessions.
@@ -76,52 +70,11 @@ public interface IetfSystemNetconfService {
     void setCurrentDatetime(OffsetDateTime date, NetconfSession session) throws NetconfException;
 
     /**
-     * Service interface of systemRestart.
-     *
-     * @param inputVar input of service interface systemRestart
-     * @param session An active NETCONF session
-     * @throws NetconfException if the session has any error
-     */
-    void systemRestart(SystemRestartInput inputVar, NetconfSession session) throws NetconfException;
-
-    /**
      * Service interface of systemShutdown.
      *
      * @param session An active NETCONF session
      * @throws NetconfException if the session has any error
      */
     void systemShutdown(NetconfSession session) throws NetconfException;
-
-    /**
-     * Service interface of doUpgradeAndReboot.
-     *
-     * @param inputVar input of service interface doUpgradeAndReboot
-     * @param session An active NETCONF session
-     * @return doUpgradeAndRebootOutput output of service interface doUpgradeAndReboot
-     * @throws NetconfException if the session has any error
-     */
-    DoUpgradeAndRebootOutput doUpgradeAndReboot(DoUpgradeAndRebootInput inputVar, NetconfSession session)
-            throws NetconfException;
-
-    /**
-     * Service interface of pullUpdateTarFromTftp.
-     *
-     * @param inputVar input of service interface pullUpdateTarFromTftp
-     * @param session An active NETCONF session
-     * @throws NetconfException if the session has any error
-     */
-    void pullUpdateTarFromTftp(PullUpdateTarFromTftpInput inputVar, NetconfSession session)
-            throws NetconfException;
-
-    /**
-     * Service interface of readFromSyslog.
-     *
-     * @param inputVar input of service interface readFromSyslog
-     * @param session An active NETCONF session
-     * @return readFromSyslogOutput output of service interface readFromSyslog
-     * @throws NetconfException if the session has any error
-     */
-    ReadFromSyslogOutput readFromSyslog(ReadFromSyslogInput inputVar, NetconfSession session)
-            throws NetconfException;
 
 }

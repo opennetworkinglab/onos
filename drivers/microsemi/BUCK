@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
+    '//models/common:onos-models-common',
     '//models/microsemi:onos-models-microsemi',
     '//lib:org.apache.karaf.shell.console',
     '//incubator/api:onos-incubator-api',
@@ -24,6 +25,7 @@ APPS = [
     'org.onosproject.netconf',
     'org.onosproject.netconfsb',
     'org.onosproject.drivers.netconf',
+    'org.onosproject.models.common',
     'org.onosproject.models.microsemi'
 ]
 

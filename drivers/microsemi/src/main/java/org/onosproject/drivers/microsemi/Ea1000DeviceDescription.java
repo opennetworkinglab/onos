@@ -83,16 +83,21 @@ public class Ea1000DeviceDescription extends AbstractHandlerBehaviour implements
             IetfSystem system = ietfSystemService.getIetfSystemInit(session);
             if (system != null && system.systemState() != null) {
                 swVersion = system.systemState().platform().osRelease();
-                AugmentedSysPlatform augmentedSysPlatform =
+                AugmentedSysPlatform augmentedSysStatePlatform =
                         (AugmentedSysPlatform) system.systemState()
                         .platform().augmentation(DefaultAugmentedSysPlatform.class);
-                serialNumber = augmentedSysPlatform.deviceIdentification().serialNumber();
+                if (augmentedSysStatePlatform != null && augmentedSysStatePlatform.deviceIdentification() != null) {
+                    serialNumber = augmentedSysStatePlatform.deviceIdentification().serialNumber();
+                } else {
+                    log.warn("Serial Number of device not available: {}", handler().data().deviceId());
+                }
                 DateAndTime deviceDateAndTime = system.systemState().clock().currentDatetime();
                 OffsetDateTime odt =
                         OffsetDateTime.parse(deviceDateAndTime.string(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
                 if (odt.getYear() < OffsetDateTime.now(ZoneId.of("UTC")).getYear()) {
                     OffsetDateTime nowUtc = OffsetDateTime.now(ZoneId.of("UTC"));
-                    log.warn("Date on device is in the past: {}. Setting it to {}", odt.toString(), nowUtc);
+                    log.warn("Date on device {} is in the past: {}. Setting it to {}",
+                            handler().data().deviceId(), odt.toString(), nowUtc);
                     ietfSystemService.setCurrentDatetime(nowUtc, session);
                 }
             }

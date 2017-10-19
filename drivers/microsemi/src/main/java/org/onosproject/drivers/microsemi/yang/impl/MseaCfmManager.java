@@ -35,7 +35,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.DefaultMefCfm;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.abortloopback.AbortLoopbackInput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.MaintenanceAssociation;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.CcmIntervalEnum;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.MaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitlinktrace.TransmitLinktraceInput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitlinktrace.TransmitLinktraceOutput;
@@ -43,7 +42,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.AugmentedMseaCfmMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.DefaultAugmentedMseaCfmMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.augmentedmseacfmmaintenanceassociationendpoint.delaymeasurements.DelayMeasurement;
-import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.augmentedmseacfmmaintenanceassociationendpoint.lossmeasurements.lossmeasurement.MessagePeriodEnum;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObject;
@@ -56,6 +54,7 @@ import org.onosproject.yang.runtime.DefaultAnnotation;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
 
 import java.io.ByteArrayInputStream;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of the MseaCfmServiceNetconf YANG model service.
@@ -69,6 +68,16 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
     public static final String MSEA_CFM_NS = "http://www.microsemi.com/microsemi-edge-assure/msea-cfm";
     public static final String MSEA_CFM_PM_NS = "http://www.microsemi.com/microsemi-edge-assure/msea-soam-pm";
+
+    //FIXME Remove when the issue with Null bits on onos-yang-tools is sorted
+    @Deprecated
+    protected static final Pattern REGEX_EMPTY_ACTIVE_DEFECTS =
+            Pattern.compile("(<active-defects)[ ]?(/>)", Pattern.DOTALL);
+    //FIXME Remove when the issue with Null bits on onos-yang-tools is sorted
+    @Deprecated
+    protected static final Pattern REGEX_EMPTY_LAST_DEFECT_SENT =
+            Pattern.compile("(<msea-soam-fm:last-defect-sent)[ ]?(/>)", Pattern.DOTALL);
+
     @Activate
     public void activate() {
         super.activate();
@@ -96,7 +105,6 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
         String xmlResult = session.get(xmlQueryStr, null);
         xmlResult = removeRpcReplyData(xmlResult);
-        xmlResult = removePrefixedMessagePeriod(xmlResult);
         DefaultCompositeStream resultDcs = new DefaultCompositeStream(
                 null, new ByteArrayInputStream(xmlResult.getBytes()));
         CompositeData compositeData = xSer.decode(resultDcs, yCtx);
@@ -127,7 +135,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
         String xmlResult = session.get(xmlQueryStr, null);
         xmlResult = removeRpcReplyData(xmlResult);
-        xmlResult = removePrefixedCcmInterval(xmlResult);
+        xmlResult = removeEmptyActiveDefects(xmlResult);
         DefaultCompositeStream resultDcs = new DefaultCompositeStream(
                 null, new ByteArrayInputStream(xmlResult.getBytes()));
         CompositeData compositeData = xSer.decode(resultDcs, yCtx);
@@ -155,7 +163,6 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
         String xmlResult = session.get(xmlQueryStr, null);
         xmlResult = removeRpcReplyData(xmlResult);
-        xmlResult = removePrefixedMessagePeriod(xmlResult);
         DefaultCompositeStream resultDcs = new DefaultCompositeStream(
                 null, new ByteArrayInputStream(xmlResult.getBytes()));
         CompositeData compositeData = xSer.decode(resultDcs, yCtx);
@@ -285,6 +292,16 @@ public class MseaCfmManager extends AbstractYangServiceImpl
             TransmitLinktraceInput inputVar, NetconfSession session)
             throws NetconfException {
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    //FIXME Remove when the fix for null bits with onos-yang-tools
+    // https://gerrit.onosproject.org/#/c/15777/ is available
+    @Deprecated
+    private static String removeEmptyActiveDefects(String rpcReplyXml) throws NetconfException {
+        rpcReplyXml = REGEX_EMPTY_ACTIVE_DEFECTS.matcher(rpcReplyXml).replaceFirst("");
+        rpcReplyXml = REGEX_EMPTY_LAST_DEFECT_SENT.matcher(rpcReplyXml).replaceFirst("");
+
+        return rpcReplyXml;
     }
 
     @Deprecated //Replace this with a ModelObject defintion
@@ -435,29 +452,4 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
         return rpc.toString();
     }
-
-    private static final String removePrefixedMessagePeriod(String xmlResult) {
-        xmlResult = xmlResult.replace("message-period>3ms</",
-                "message-period>" + MessagePeriodEnum.YANGAUTOPREFIX3MS.toString() + "</");
-        xmlResult = xmlResult.replace("message-period>10ms</",
-                "message-period>" + MessagePeriodEnum.YANGAUTOPREFIX10MS.toString() + "</");
-        xmlResult = xmlResult.replace("message-period>100ms</",
-                "message-period>" + MessagePeriodEnum.YANGAUTOPREFIX100MS.toString() + "</");
-        xmlResult = xmlResult.replace("message-period>1000ms</",
-                "message-period>" + MessagePeriodEnum.YANGAUTOPREFIX1000MS.toString() + "</");
-        return xmlResult;
-    }
-
-    private static final String removePrefixedCcmInterval(String xmlResult) {
-        xmlResult = xmlResult.replace("ccm-interval>3.3ms</",
-                "ccm-interval>" + CcmIntervalEnum.YANGAUTOPREFIX3_3MS.toString() + "</");
-        xmlResult = xmlResult.replace("ccm-interval>10ms</",
-                "ccm-interval>" + CcmIntervalEnum.YANGAUTOPREFIX10MS.toString() + "</");
-        xmlResult = xmlResult.replace("ccm-interval>100ms</",
-                "ccm-interval>" + CcmIntervalEnum.YANGAUTOPREFIX100MS.toString() + "</");
-        xmlResult = xmlResult.replace("ccm-interval>1s</",
-                "ccm-interval>" + CcmIntervalEnum.YANGAUTOPREFIX1S.toString() + "</");
-        return xmlResult;
-    }
-
 }

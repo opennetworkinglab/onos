@@ -28,7 +28,7 @@ EA1000 Devices will not be automatically discovered at present in ONOS. They hav
 * The name must follow the format **netconf:ipaddr:port**
 * The **ip** and **port** must correspond to the ip and port in the name (above).
 
-```json
+```js
 {
   "devices": {
     "netconf:192.168.56.10:830": {
@@ -36,7 +36,10 @@ EA1000 Devices will not be automatically discovered at present in ONOS. They hav
         "username": "admin",
         "password": "admin",
         "ip": "192.168.56.10",
-        "port": "830"
+        "port": 830,
+        "connect-timeout": 50,
+        "reply-timeout": 50,
+        "idle-timeout": 40 
       },
       "basic": {
         "driver": "microsemi-netconf",
@@ -85,7 +88,7 @@ Currently the EA1000 supports only a limited set of OpenFlow rules through the F
 A feature of the EA1000 that may be configured through Flow Rules is IP Source Address Filtering. This can only be activated on Port 0 (the optics Port). An example of this kind of flow is
 
 `POST /onos/v1/flows/ HTTP/1.1`<br/>
-```json
+```js
 {
   "flows": [
     {
@@ -96,8 +99,8 @@ A feature of the EA1000 that may be configured through Flow Rules is IP Source A
       "tableId": 8,
       "treatment": {
         "instructions": [ {"type": "NOACTION"} ],
-        "deferred": []
-       },
+        "deferred": []
+      },
       "selector": {
         "criteria": [
           {"type": "IPV4_SRC", "ip": "192.168.8.0/24"},
@@ -115,7 +118,7 @@ A feature of the EA1000 that may be configured through Flow Rules is IP Source A
 Flows that Push, Pop or Overwrite VLAN tags are implemented in EA1000 and are treated as MEF Carrier Ethernet EVCs. Both CTags and STags can be pushed on to matching Ethernet packets at network Layer 2.
 
 `POST /onos/v1/flows/ HTTP/1.1`<br/>
-```json
+```js
 {
   "flows": [
     {
@@ -268,7 +271,7 @@ src=netconf:192.168.56.20:830/0, dst=netconf:192.168.56.10:830/0, type=DIRECT, s
 This will not exist by default since Link Discovery is not yet a feature of the EA1000 driver. These have to be created manually - through the network/configuration REST API.
 
 `POST /onos/v1/network/configuration/ HTTP/1.1`<br/>
-```json
+```js
 {
   "links": {
     "netconf:192.168.56.10:830/0-netconf:192.168.56.20:830/0": { // 10 to 20
@@ -389,3 +392,104 @@ DefaultMeter{device=netconf:192.168.56.10:830, id=1, appId=org.onosproject.ecord
 
 ## EVC Deletion
 EVCs can be deleted individually with **ce-evc-remove <evc-id>** or all together with **ce-evc-remove-all**.
+
+# Support for Layer 2 Monitoring
+EA1000 supports both Connectivity Fault Management (CFM) and MEF Services OAM. This is achieved through the EA1000 driver supporting the ONOS behaviors CfmMepProgrammable and SoamDmProgrammable described in [Layer 2 Monitoring with CFM and Services OAM](https://wiki.onosproject.org/display/ONOS/Layer+2+Monitoring+with+CFM+and+Services+OAM).
+
+With EA1000 the CFM entities (Maintenance Association Endpoints or MEPs) are created in parallel with the EVC services that they are designed to test, and related loosely to each other only through VLAN ID.
+For instance an EVC might be created with a VLAN of 101, and separately a Maintenance Association would be created with the same VLAN ID, and MEPs created under this for monitoring that VLAN (and by inference that EVC).
+
+The CFM interface to ONOS is exposed through a REST API at /onos/cfm
+In ONOS Maintenance Domains and Maintenance Associations beneath them are created and persisted in a distributed datastore. These are logical entities that can span across an ONOS cluster and are not directly related to devices.
+
+The Maintenance Association Endpoint - MEP (the child of the Maintenance Association, and grandchild of the Maintenance Domain) is also a logical entity but has a hard many:1 association to a device that supports the CfmMepProgrammable behaviour. EA1000 is one such device, and so one to many MEPs can be associated with an EA1000 device.
+
+For example to create an Maintenance Domain in ONOS the following might be POSTed to 
+`POST http://localhost:8181/onos/cfm/md HTTP/1.1`</br>
+```js
+{"md": {
+    "mdName": "Microsemi",
+    "mdNameType": "CHARACTERSTRING",
+    "mdLevel": "LEVEL3",
+    "mdNumericId": 1
+   }
+}
+```
+
+To create a Maintenance Association under this
+`POST http://localhost:8181/onos/cfm/md/Microsemi/ma HTTP/1.1`</br>
+```js
+{
+  "ma": {
+    "maName": "ma-vlan-1",
+    "maNameType": "CHARACTERSTRING",
+    "maNumericId": 1,
+    "ccm-interval": "INTERVAL_1S",
+    "component-list": [
+      { "component": {
+        "component-id":"1",
+        "tag-type": "VLAN_STAG",
+        "vid-list": [
+          {"vid":1}
+        ]
+        }
+      }
+    ],
+    "rmep-list": [
+      { "rmep":10 },
+      { "rmep":20 },
+      { "rmep":30 }
+    ]
+  }
+}
+```
+
+To create a MEP under this:
+`POST http://localhost:8181/onos/cfm/md/Microsemi/ma/ma-vlan-1/mep HTTP/1.1`</br>
+```js
+{
+  "mep": {
+    "mepId": 10,
+    "deviceId": "netconf:10.205.86.26:830",
+    "port": 0,
+    "direction": "DOWN_MEP",
+    "primary-vid": 1,
+    "administrative-state": true,
+    "ccm-ltm-priority": 4,
+    "cci-enabled" :true
+  }
+}
+```
+
+When the MEP is created a configuration is written down to the EA1000 device at 10.205.86.26 through NETCONF roughly in the format:
+```xml
+<maintenance-domain>
+ <id>1</id>
+ <name>Microsemi</name>
+ <name-type>CHARACTER_STRING</name-type>
+ <md-level>3</md-level>
+ <maintenance-association>
+   <id>1</id>
+   <name>ma-vlan-1</name>
+   <name-type>CHARACTER_STRING</name-type>
+   <component-list>
+     <tag-type>vlan-stag</tag-type>
+     <vid>1</vid> 
+   </component-list>
+   <remote-mep>10</remote-mep>
+   <remote-mep>20</remote-mep>
+   <remote-mep>30</remote-mep>
+   <maintenance-association-endpoint>
+     <mep-identifier>10</mep-identifier>
+     ...
+   </maintenance-association-endpoint>
+ </maintenance-association>
+</maintenance-domain>
+```
+
+There are a few things to note here:
+* On EA1000 the MD and MA are indexed by their _id_ and not by name. This means that it is essential when working with EA1000 that all MD's and MA's have a numeric ID specified, and that the numeric IDs of Maintenance Domains should be unique. The numeric IDs of Maintenance Associations should be unique _within_ Maintenance Domains.
+* The component list is flattened down to a singleton object. While in the CFM model many Components are possible, EA1000 supports only 1
+* With Remote Meps - the local and all remote meps must be specified by their ID. In this instance 10 is the local on device 10.205.86.26 and 20 and 30 are remote meps that we expect will be local to some other devices
+* Even though the write to the EA1000 only happens when the MEP is created it brings down the MD and MA to the device with it.
+* When the MEP is deleted the MD and MA are left behind on the device. If the MD and MA were then to be changed in ONOS and a new MEP pushed down to the device, there would be an error, as the MD and MA would remain on the device since the earlier time. To remedy this, the MD and MA would need to be deleted manually through yangcli-pro.

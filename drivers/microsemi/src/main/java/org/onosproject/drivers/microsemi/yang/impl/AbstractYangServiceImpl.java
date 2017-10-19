@@ -76,15 +76,12 @@ public abstract class AbstractYangServiceImpl {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected YangModelRegistry yangModelRegistry;
 
-//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected SchemaContextProvider schemaContextProvider;
-
     protected ApplicationId appId;
 
     // xSer is not a service and is a class variable. Can be lost on deactivate.
     // Must be recreated on activate
-    protected XmlSerializer xSer;
-    protected YangSerializerContext yCtx;
+    protected XmlSerializer xSer = null;
+    protected YangSerializerContext yCtx = null;
 
     protected static final Pattern REGEX_XML_HEADER =
             Pattern.compile("(<\\?xml).*(\\?>)", Pattern.DOTALL);
@@ -107,11 +104,8 @@ public abstract class AbstractYangServiceImpl {
     @Activate
     public void activate() {
         Set<YangSerializer> yangSer = ((YangSerializerRegistry) yangModelRegistry).getSerializers();
-        yangSer.forEach(ser -> {
-            if (ser instanceof XmlSerializer) {
-                xSer = (XmlSerializer) ser;
-            }
-        });
+        xSer = (XmlSerializer) yangSer.stream()
+                .filter(ser -> (ser instanceof XmlSerializer)).findFirst().get();
         SchemaContext context = ((SchemaContextProvider) yangModelRegistry)
                 .getSchemaContext(ResourceId.builder().addBranchPointSchema("/", null).build());
 

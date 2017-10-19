@@ -96,7 +96,7 @@ public class IetfSystemManagerTest {
         AugmentedSysPlatform sysSystemState =
                 (AugmentedSysPlatform) sys.systemState().platform().augmentation(DefaultAugmentedSysPlatform.class);
 
-        assertEquals("Eagle Simulator.", sysSystemState.deviceIdentification().serialNumber());
+        assertEquals("EA1000 unit test.", sysSystemState.deviceIdentification().serialNumber());
     }
 
     @Test

@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import org.onosproject.drivers.microsemi.EA1000CfmMepProgrammableTest;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
@@ -375,43 +376,59 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
                     + "(</rpc>)\\R?"
                     + "(]]>){2}", Pattern.DOTALL);
 
-    //For testGetConfigMseaCfmEssentials
+    //For testGetMep
+    private String sampleXmlRegexGetMseaCfmFullStr =
+            "(<\\?xml).*(<rpc).*(<get>)\\R?"
+            + "(<filter type=\"subtree\">)\\R?"
+            + "(<mef-cfm).*"
+            + "(<maintenance-domain>)\\R?"
+            + "(<id/>)\\R?"
+            + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
+            + "(<md-level/>)?\\R?"
+            + "(<maintenance-association>)\\R?"
+            + "(<id/>)\\R?"
+            + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
+            + "(<maintenance-association-end-point>)\\R?"
+            + "(<mep-identifier>)[0-9]{1,4}(</mep-identifier>)\\R?"
+            + "(<interface/>)?\\R?"
+            + "(<primary-vid/>)?\\R?"
+            + "(<administrative-state/>)?\\R?"
+            + "(<mac-address/>)?\\R?"
+            + "(<ccm-ltm-priority/>)?\\R?"
+            + "(<continuity-check/>)?\\R?"
+            + "(<loopback/>)?\\R?"
+            + "(<linktrace/>)?\\R?"
+            + "(<remote-mep-database/>)\\R?"
+            + "(<msea-soam-fm:operational-state/>)\\R?"
+            + "(<msea-soam-fm:connectivity-status/>)\\R?"
+            + "(<msea-soam-fm:port-status/>)\\R?"
+            + "(<msea-soam-fm:interface-status/>)\\R?"
+            + "(<msea-soam-fm:last-defect-sent/>)\\R?"
+            + "(<msea-soam-fm:rdi-transmit-status/>)\\R?"
+            + "(</maintenance-association-end-point>)\\R?"
+            + "(</maintenance-association>)\\R?"
+            + "(</maintenance-domain>)\\R?"
+            + "(</mef-cfm>)\\R?"
+            + "(</filter>)\\R?"
+            + "(</get>)\\R?"
+            + "(</rpc>)\\R?"
+            + "(]]>){2}";
+
     private Pattern sampleXmlRegexGetMseaCfmFull =
-            Pattern.compile("(<\\?xml).*(<rpc).*(<get>)\\R?"
-                    + "(<filter type=\"subtree\">)\\R?"
-                    + "(<mef-cfm).*"
-                    + "(<maintenance-domain>)\\R?"
-                    + "(<id/>)\\R?"
-                    + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
-                    + "(<md-level/>)?\\R?"
-                    + "(<maintenance-association>)\\R?"
-                    + "(<id/>)\\R?"
-                    + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
-                    + "(<maintenance-association-end-point>)\\R?"
-                    + "(<mep-identifier>)[0-9]{1,4}(</mep-identifier>)\\R?"
-                    + "(<interface/>)?\\R?"
-                    + "(<primary-vid/>)?\\R?"
-                    + "(<administrative-state/>)?\\R?"
-                    + "(<mac-address/>)?\\R?"
-                    + "(<ccm-ltm-priority/>)?\\R?"
-                    + "(<continuity-check/>)?\\R?"
-                    + "(<loopback/>)?\\R?"
-                    + "(<linktrace/>)?\\R?"
-                    + "(<remote-mep-database/>)\\R?"
-                    + "(<msea-soam-fm:operational-state/>)\\R?"
-                    + "(<msea-soam-fm:connectivity-status/>)\\R?"
-                    + "(<msea-soam-fm:port-status/>)\\R?"
-                    + "(<msea-soam-fm:interface-status/>)\\R?"
-                    + "(<msea-soam-fm:last-defect-sent/>)\\R?"
-                    + "(<msea-soam-fm:rdi-transmit-status/>)\\R?"
-                    + "(</maintenance-association-end-point>)\\R?"
-                    + "(</maintenance-association>)\\R?"
-                    + "(</maintenance-domain>)\\R?"
-                    + "(</mef-cfm>)\\R?"
-                    + "(</filter>)\\R?"
-                    + "(</get>)\\R?"
-                    + "(</rpc>)\\R?"
-                    + "(]]>){2}", Pattern.DOTALL);
+            Pattern.compile(sampleXmlRegexGetMseaCfmFullStr
+                    .replace("(<mep-identifier>)[0-9]{1,4}(</mep-identifier>)",
+                            "(<mep-identifier>)" +
+                                    EA1000CfmMepProgrammableTest.MEP_111 +
+                                    "(</mep-identifier>)"),
+                    Pattern.DOTALL);
+
+    private Pattern sampleXmlRegexGetMseaCfmFull2 =
+            Pattern.compile(sampleXmlRegexGetMseaCfmFullStr
+                    .replace("(<mep-identifier>)[0-9]{1,4}(</mep-identifier>)",
+                            "(<mep-identifier>)" +
+                                    EA1000CfmMepProgrammableTest.MEP_112 +
+                                    "(</mep-identifier>)"),
+                    Pattern.DOTALL);
 
     //For testGetConfigMseaCfmEssentials
     private Pattern sampleXmlRegexGetMseaDelay =
@@ -555,7 +572,7 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
             + "<platform>\n"
             + "<os-release>4.4.0-53-generic</os-release>\n"
             + "<sysms:device-identification>\n"
-            + "<sysms:serial-number>Eagle Simulator.</sysms:serial-number>\n"
+            + "<sysms:serial-number>EA1000 unit test.</sysms:serial-number>\n"
             + "</sysms:device-identification>\n"
             + "</platform>\n"
             + "</system-state>\n"
@@ -830,25 +847,25 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
             + "xmlns:msea-soam-pm=\"http://www.microsemi.com/microsemi-edge-assure/msea-soam-pm\">"
             + "<maintenance-domain>"
             + "<id>1</id>"
-            + "<name>md-1</name>"
+            + "<name>" + EA1000CfmMepProgrammableTest.MD_ID_1 + "</name>"
             + "<maintenance-association>"
             + "<id>1</id>"
-            + "<name>ma-1-1</name>"
+            + "<name>" + EA1000CfmMepProgrammableTest.MA_ID_11 + "</name>"
             + "<ccm-interval>3.3ms</ccm-interval>"
             + "<maintenance-association-end-point>"
-            + "<mep-identifier>1</mep-identifier>"
+            + "<mep-identifier>" + EA1000CfmMepProgrammableTest.MEP_111 + "</mep-identifier>"
             + "<interface>eth0</interface>"
             + "<primary-vid>20</primary-vid>"
             + "<administrative-state>true</administrative-state>"
             + "<mac-address>00:b0:ae:03:ff:31</mac-address>"
             + "<ccm-ltm-priority>5</ccm-ltm-priority>"
             + "<continuity-check>"
-            + "<cci-enabled>true</cci-enabled>"
-            + "<fng-state>defect-reported</fng-state>"
-            + "<highest-priority-defect-found>remote-invalid-ccm</highest-priority-defect-found>"
-            + "<active-defects>remote-rdi remote-invalid-ccm</active-defects>"
-            + "<ccm-sequence-error-count>0</ccm-sequence-error-count>"
-            + "<sent-ccms>197</sent-ccms>"
+                + "<cci-enabled>true</cci-enabled>"
+                + "<fng-state>defect-reported</fng-state>"
+                + "<highest-priority-defect-found>remote-invalid-ccm</highest-priority-defect-found>"
+                + "<active-defects>remote-rdi remote-invalid-ccm</active-defects>"
+                + "<ccm-sequence-error-count>0</ccm-sequence-error-count>"
+                + "<sent-ccms>197</sent-ccms>"
             + "</continuity-check>"
             + "<loopback>"
             + "</loopback>"
@@ -882,6 +899,85 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
             + "<msea-soam-fm:rdi-transmit-status>true</msea-soam-fm:rdi-transmit-status>"
             + "</maintenance-association-end-point>"
             + "</maintenance-association>"
+            + "</maintenance-domain>"
+            + "</mef-cfm>"
+            + "</data>"
+            + "</rpc-reply>";
+
+
+    /**
+     * With an empty <last-defect-sent />. Retrieved from simulator.
+     */
+    private static final String SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY2 =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+            + "<rpc-reply xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" message-id=\"47\">"
+            + "<data>"
+            + "<mef-cfm xmlns=\"http://www.microsemi.com/microsemi-edge-assure/msea-cfm\" "
+            + "xmlns:msea-soam-fm=\"http://www.microsemi.com/microsemi-edge-assure/msea-soam-fm\" "
+            + "xmlns:msea-soam-pm=\"http://www.microsemi.com/microsemi-edge-assure/msea-soam-pm\">"
+            + "<maintenance-domain>"
+                + "<id>1</id>"
+                + "<name>" + EA1000CfmMepProgrammableTest.MD_ID_1 + "</name>"
+                + "<maintenance-association>"
+                    + "<id>1</id>"
+                    + "<name>" + EA1000CfmMepProgrammableTest.MA_ID_11 + "</name>"
+                    + "<maintenance-association-end-point>"
+                        + "<mep-identifier>" + EA1000CfmMepProgrammableTest.MEP_112 + "</mep-identifier>"
+                        + "<interface>eth0</interface>"
+                        + "<administrative-state>true</administrative-state>"
+                        + "<ccm-ltm-priority>4</ccm-ltm-priority>"
+                        + "<continuity-check>"
+                            + "<cci-enabled>true</cci-enabled>"
+                            + "<fng-state>report-defect</fng-state>"
+                            + "<highest-priority-defect-found>remote-mac-error</highest-priority-defect-found>"
+                            + "<active-defects> remote-mac-error invalid-ccm</active-defects>"
+                            + "<last-error-ccm>U2FtcGxlIGxhc3QgZXJyb3IgY2NtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                            + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                            + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                            + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+                            + "</last-error-ccm>"
+                            + "<ccm-sequence-error-count>10</ccm-sequence-error-count>"
+                            + "<sent-ccms>15</sent-ccms>"
+                        + "</continuity-check>"
+                        + "<mac-address>53:65:61:6e:20:43</mac-address>"
+                        + "<msea-soam-fm:port-status>no-status-tlv</msea-soam-fm:port-status>"
+                        + "<msea-soam-fm:interface-status>no-status-tlv</msea-soam-fm:interface-status>"
+                        + "<msea-soam-fm:last-defect-sent />"
+                        + "<msea-soam-fm:rdi-transmit-status>false</msea-soam-fm:rdi-transmit-status>"
+                        + "<loopback>"
+                            + "<replies-received>123</replies-received>"
+                            + "<replies-transmitted>456</replies-transmitted>"
+                        + "</loopback>"
+                        + "<remote-mep-database>"
+                            + "<remote-mep>"
+                                + "<remote-mep-id>20</remote-mep-id>"
+                                + "<remote-mep-state>ok</remote-mep-state>"
+                                + "<failed-ok-time>150859498</failed-ok-time>"
+                                + "<mac-address>53:65:61:6e:20:43</mac-address>"
+                                + "<rdi>true</rdi>"
+                                + "<port-status-tlv>up</port-status-tlv>"
+                                + "<interface-status-tlv>no-status-tlv</interface-status-tlv>"
+                            + "</remote-mep>"
+                            + "<remote-mep>"
+                                + "<remote-mep-id>30</remote-mep-id>"
+                                + "<remote-mep-state>ok</remote-mep-state>"
+                                + "<failed-ok-time>150859498</failed-ok-time>"
+                                + "<mac-address>53:65:61:6e:20:43</mac-address>"
+                                + "<rdi>true</rdi>"
+                                + "<port-status-tlv>no-status-tlv</port-status-tlv>"
+                                + "<interface-status-tlv>down</interface-status-tlv>"
+                            + "</remote-mep>"
+                        + "</remote-mep-database>"
+                        + "<linktrace>"
+                            + "<unexpected-replies-received>0</unexpected-replies-received>"
+                            + "<msea-soam-fm:ltm-msgs-transmitted>2</msea-soam-fm:ltm-msgs-transmitted>"
+                            + "<msea-soam-fm:ltm-msgs-received>2</msea-soam-fm:ltm-msgs-received>"
+                            + "<msea-soam-fm:ltr-msgs-transmitted>2</msea-soam-fm:ltr-msgs-transmitted>"
+                            + "<msea-soam-fm:ltr-msgs-received>2</msea-soam-fm:ltr-msgs-received>"
+                            + "<linktrace-database />"
+                        + "</linktrace>"
+                    + "</maintenance-association-end-point>"
+                + "</maintenance-association>"
             + "</maintenance-domain>"
             + "</mef-cfm>"
             + "</data>"
@@ -1207,6 +1303,9 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
 
         } else if (sampleXmlRegexGetMseaCfmFull.matcher(request).matches()) {
             return SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY;
+
+        } else if (sampleXmlRegexGetMseaCfmFull2.matcher(request).matches()) {
+            return SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY2;
 
         } else if (sampleXmlRegexDeleteMseaCfmMep.matcher(request).matches()) {
             return SAMPLE_REPLY_OK;

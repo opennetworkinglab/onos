@@ -23,10 +23,10 @@ module ietf-system-microsemi {
         revision-date 2014-08-06;
     }
 
-    import ietf-netconf-acm {
-        prefix nacm;
-        revision-date 2012-02-22;
-    }
+//    import ietf-netconf-acm {
+//        prefix nacm;
+//        revision-date 2012-02-22;
+//    }
 
     /*** META INFORMATION ***/
 
@@ -351,7 +351,7 @@ module ietf-system-microsemi {
 
     augment "/sys:system-state/sys:platform" {
         description
-        "Extends the SYSTEM-STATE with some extra configuration attributes required for setup.
+        "Extends the SYSTEM-STATE platform with some extra configuration attributes required for setup.
 
         All attributes are automatically config=false because they extend system-state";
 
@@ -410,118 +410,4 @@ module ietf-system-microsemi {
             }
         }
     }
-
-    rpc do-upgrade-and-reboot {
-//        nacm:default-deny-all;
-        if-feature remote-upgrade;
-
-        description "Method to perform an upgrade of the device. This
-        expects a file /update.tar to have be present on the device.
-        The system-state/remote-upgrade attributes can be used to
-        verify the contents of the file before calling this action.
-        If there is a problem performing the upgrade
-        these will be described in any error thrown";
-
-        input {
-            leaf reset-option {
-                type enumeration {
-                    enum nuclear {
-                        description "Erases all configuration and resets the device to
-                                factory defaults.";
-                    }
-                    enum allnetconf {
-                        description "Reset all NETCONF data - leaves only logs and SSH keys.
-                            If a lesser reset is required use system-restart with a
-                            suitable reset-option";
-                    }
-                }
-                description "Optionally specify a parameter that can be
-                    used to reset the device to factory defaults";
-            }
-        }
-
-        output {
-            anyxml data {
-                description "A message describing the result.
-                    The result might not be seen as it schedules a reboot of the device";
-            }
-        }
-    }
-
-
-    rpc pull-update-tar-from-tftp {
-//        nacm:default-deny-all;
-        if-feature remote-upgrade;
-
-        description "Pulls a specified file from the specifed host and copies it
-                to the local device (usually at /update.tar
-                It also expects the file to be signed with GnuPG and the signature
-                file to exist on the TFTP server at <tftp-file>.asc";
-
-        input {
-            leaf tftp-file {
-                type msea:file-name;
-                mandatory true;
-                description "The name of a file to pull from the TFTP server at the host name specified";
-            }
-
-            leaf tftp-host {
-                type inet:host;
-                mandatory true;
-                description "The hostname of a TFTP server where an update TAR file can be pulled from";
-            }
-        }
-    }
-
-    rpc read-from-syslog {
-        description "A method of reading the entries from syslog. If no
-                argument is given will read the last 100 lines";
-
-        input {
-            leaf start-line {
-                type int16 {
-                    range -10000..-1;
-                }
-                default -100;
-                description "The number of lines to read from the end of syslog.";
-            }
-        }
-
-        output {
-            anyxml data {
-                description "Syslog entries represented as XML";
-            }
-        }
-    }
-
-//    notification upgrade-notification {
-//        description
-//            "Generated when a remote upgrade is in progress.";
-//
-//        leaf upgrade-stage {
-//            type enumeration {
-//                enum "check" {
-//                    description
-//                    "Checking the upgrade file is valid";
-//                }
-//                enum "erase" {
-//                    description    "Erasing old image";
-//                }
-//                enum "write" {
-//                    description "Writing new image";
-//                }
-//                enum "complete" {
-//                    description "Upgrade complete";
-//                }
-//            }
-//            mandatory true;
-//        }
-//
-//        leaf upgrade-detail {
-//            description "Textual description of the stage of upgrade";
-//            type string {
-//                length 0..100;
-//            }
-//        }
-//    } // upgrade-notification
 }
