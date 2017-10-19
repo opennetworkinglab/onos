@@ -1,0 +1,76 @@
+<!--
+  ~  Copyright 2017-present Open Networking Foundation
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<scenario name="net-setup-vnet1" description="Virtual Network (vnet1) setup steps">
+    <group name="Net-Setup-Vnet1">
+
+        <step name="Get-TenantId" unless="${tenantId}"
+              exec="echo @stc tenantId=TestTenant"/>
+
+        <step name="Set-PhysicalDevice1" unless="${physicalDevice1}"
+              exec="echo @stc physicalDevice1=of:0000000000000001"/>
+
+        <step name="Set-PhysicalDevice2" unless="${physicalDevice2}"
+              exec="echo @stc physicalDevice2=of:0000000000000002"/>
+
+        <step name="Set-VirtualDevice-Setup" unless="${virtualDevice}"
+              exec="echo @stc virtualDevice=of:1122334455660001"/>
+
+        <step name="Set-VirtualHost1-Id-Setup" unless="${virtualHost1Id}"
+              exec="echo @stc virtualHost1Id=3A:13:39:73:9F:83"/>
+
+        <step name="Set-VirtualHost2-Id-Setup" unless="${virtualHost2Id}"
+              exec="echo @stc virtualHost2Id=7A:64:F7:85:9B:31"/>
+
+        <step name="Create-Tenant" requires="~Get-TenantId"
+              exec="onos ${OCI} vnet-add-tenant ${tenantId}"/>
+
+        <step name="Query-Tenant" requires="^"
+              exec="onos-check-vnet ${OCI} checkTenant ${tenantId}"/>
+
+        <step name="Create-Vnet" requires="^"
+              exec="onos ${OCI} vnet-create ${tenantId}"/>
+
+        <step name="Query-Vnet" requires="^"
+              exec="onos-check-vnet ${OCI} getNetworkId ${tenantId}"/>
+
+        <step name="Create-VirtualDevice-1" requires="^"
+              exec="onos ${OCI} vnet-create-device ${networkId} ${virtualDevice}"/>
+
+        <step name="Show-VirtualDevice" requires="^"
+              exec="onos ${OCI} vnet-devices ${networkId}"/>
+
+        <step name="Create-VirtualPort-1" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice} 1 ${physicalDevice1} 1"/>
+
+        <step name="Create-VirtualPort-2" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice} 2 ${physicalDevice2} 1"/>
+
+        <step name="Show-VirtualPorts-1" requires="^"
+              exec="onos ${OCI} vnet-ports ${networkId} ${virtualDevice}"/>
+
+        <step name="Create-VirtualHost-1" requires="^"
+              exec="onos ${OCI} vnet-create-host ${networkId} ${virtualHost1Id} 65535 ${virtualDevice} 1"/>
+
+        <step name="Create-VirtualHost-2" requires="^"
+              exec="onos ${OCI} vnet-create-host ${networkId} ${virtualHost2Id} 65535 ${virtualDevice} 2"/>
+
+        <step name="Show-VirtualHosts-1" requires="^"
+              exec="onos ${OCI} vnet-hosts ${networkId}"/>
+
+        <step name="Show-PhysicalHosts-1" requires="^"
+              exec="onos ${OCI} hosts "/>
+    </group>
+</scenario>

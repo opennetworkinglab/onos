@@ -1,0 +1,55 @@
+<!--
+  ~  Copyright 2017-present Open Networking Foundation
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<scenario name="net-teardown-vnet1" description="Virtual Network (vnet1) teardown steps">
+    <group name="Net-Teardown-Vnet1">
+
+        <step name="Check-NetworkId-Variable-Exists" exec="test '${networkId}' != ''"/>
+
+        <step name="Set-VirtualDevice-Teardown" unless="${virtualDevice}"
+              exec="echo @stc virtualDevice=of:1122334455660001"/>
+
+        <step name="Set-VirtualHost1-Id-Teardown" unless="${virtualHost1Id}"
+              exec="echo @stc virtualHost1Id=3A:13:39:73:9F:83"/>
+
+        <step name="Set-VirtualHost2-Id-Teardown" unless="${virtualHost2Id}"
+              exec="echo @stc virtualHost2Id=7A:64:F7:85:9B:31"/>
+
+        <step name="Remove-VirtualHost-2" requires="^"
+              exec="onos ${OCI} vnet-remove-host ${networkId} ${virtualHost2Id}/None"/>
+
+        <step name="Remove-VirtualHost-1" requires="^"
+              exec="onos ${OCI} vnet-remove-host ${networkId} ${virtualHost1Id}/None"/>
+
+        <step name="Remove-VirtualPort-2" requires="^"
+              exec="onos ${OCI} vnet-remove-port ${networkId} ${virtualDevice} 2"/>
+
+        <step name="Remove-VirtualPort-1" requires="^"
+              exec="onos ${OCI} vnet-remove-port ${networkId} ${virtualDevice} 1"/>
+
+        <step name="Remove-VirtualDevice-1" requires="^"
+              exec="onos ${OCI} vnet-remove-device ${networkId} ${virtualDevice}"/>
+
+        <step name="Remove-Vnet" requires="^"
+              exec="onos ${OCI} vnet-remove ${networkId}"/>
+
+        <step name="Check-TenantId-Variable-Exists" requires="^"
+              exec="test '${tenantId}' != ''"/>
+
+        <step name="Remove-Tenant" requires="Check-TenantId-Variable-Exists"
+              exec="onos ${OCI} vnet-remove-tenant ${tenantId}"/>
+
+    </group>
+</scenario>

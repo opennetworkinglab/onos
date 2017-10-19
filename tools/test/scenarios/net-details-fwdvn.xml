@@ -1,0 +1,34 @@
+<!--
+  ~  Copyright 2017-present Open Networking Foundation
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+
+<!-- Currently the virtual network forwarding app is not in the ONOS codebase.
+  ~  When it is moved to the ONOS codebase, settings such as fwdVnAppFullName
+  ~  will be changed.
+  -->
+<scenario name="net-details-fwdvn" description="Virtual network forwarding app details">
+    <group name="Net-Details-Fwdvn" unless="${fwdVnAppFullName}">
+
+        <step name="Set-FwdVnAppFullName" unless="${fwdVnAppFullName}"
+              exec="echo @stc fwdVnAppFullName=org.postech.fwdvn"/>
+
+        <step name="Set-FwdVnAppName" unless="${fwdVnAppName}"
+              exec="echo @stc fwdVnAppName=fwdvn"/>
+
+        <step name="Set-FwdVnAppOarFileName" unless="${fwdVnAppOarFileName}"
+              exec="echo @stc fwdVnAppOarFileName=fwdvn-1.0-SNAPSHOT.oar"/>
+
+    </group>
+</scenario>
