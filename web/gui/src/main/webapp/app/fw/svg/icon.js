@@ -61,6 +61,8 @@
 
         portIcon_DEFAULT: 'm_ports',
 
+        meter: 'meterTable', // TODO: m_meter icon?
+
         deviceTable: 'switch',
         flowTable: 'flowTable',
         portTable: 'portTable',

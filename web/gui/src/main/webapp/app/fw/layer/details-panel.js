@@ -103,7 +103,6 @@
     }
 
     function addProp(tbody, key, value) {
-        console.log(tbody);
         var tr = tbody.append('tr');
 
         function addCell(cls, txt, width) {

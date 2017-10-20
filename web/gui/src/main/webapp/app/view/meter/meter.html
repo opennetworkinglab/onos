@@ -78,6 +78,8 @@
                 </tr>
 
                 <tr ng-repeat-start="meter in tableData | filter:queryFilter  track by $index"
+                    ng-click="selectCallback($event, meter)"
+                    ng-class="{selected: meter.id === selId}"
                     ng-repeat-complete row-id="{{meter.id}}">
                     <td>{{meter.id}}</td>
                     <td>{{meter.app_id}}</td>
@@ -93,5 +95,7 @@
         </div>
 
     </div>
+
+    <meter-details-panel></meter-details-panel>
 
 </div>

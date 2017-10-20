@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -52,12 +53,20 @@ public class MeterViewMessageHandler extends UiMessageHandler {
     private static final Set<String> UNSUPPORTED_PROTOCOLS =
             ImmutableSet.of(OF_10, OF_11, OF_12);
 
+    private static final String METER_DETAILS_REQ = "meterDetailsRequest";
+    private static final String METER_DETAILS_RESP = "meterDetailsResponse";
+    private static final String DETAILS = "details";
+
+    private static final String DEV_ID = "devId";
     private static final String ID = "id";
     private static final String APP_ID = "app_id";
     private static final String STATE = "state";
     private static final String PACKETS = "packets";
     private static final String BYTES = "bytes";
     private static final String BANDS = "bands";
+    private static final String BURST = "isBurst";
+    private static final String LIFE = "life";
+    private static final String TYPE_IID = "_iconid_type";
 
     private static final String[] COL_IDS = {
             ID, APP_ID, STATE, PACKETS, BYTES, BANDS
@@ -65,7 +74,10 @@ public class MeterViewMessageHandler extends UiMessageHandler {
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new MeterDataRequest());
+        return ImmutableSet.of(
+            new MeterDataRequest(),
+            new DetailRequestHandler()
+        );
     }
 
     // handler for meter table requests
@@ -158,6 +170,45 @@ public class MeterViewMessageHandler extends UiMessageHandler {
 
                 return sb.toString();
             }
+        }
+    }
+
+
+    private final class DetailRequestHandler extends RequestHandler {
+        private DetailRequestHandler() {
+            super(METER_DETAILS_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            Long id = Long.decode(string(payload, ID));
+            String devId = string(payload, DEV_ID);
+
+            DeviceId deviceId = DeviceId.deviceId(devId);
+            MeterService ms = get(MeterService.class);
+            MeterId meterId = MeterId.meterId(id);
+            Meter meter = ms.getMeter(deviceId, meterId);
+
+            ObjectNode data = objectNode();
+
+            data.put(ID, id);
+            data.put(DEV_ID, devId);
+            data.put(APP_ID, meter.appId().name());
+            data.put(BYTES, meter.bytesSeen());
+            data.put(BURST, meter.isBurst());
+            data.put(LIFE, meter.life());
+            data.put(PACKETS, meter.packetsSeen());
+            data.put(STATE, meter.state().toString());
+
+            data.put(TYPE_IID, "meter");
+
+            ObjectNode rootNode = objectNode();
+            rootNode.set(DETAILS, data);
+
+            // NOTE: ... an alternate way of getting all the details of an item:
+            // Use the codec context to get a JSON of the meter. See ONOS-5976.
+            // TODO: rootNode.set(METER, getJsonCodecContext().encode(meter, Meter.class));
+            sendMessage(METER_DETAILS_RESP, rootNode);
         }
     }
 }
