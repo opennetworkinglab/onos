@@ -16,6 +16,7 @@
 package org.onosproject.utils;
 
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.Member;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intf.Interface;
@@ -92,6 +93,9 @@ public final class Comparators {
 
     public static final Comparator<ControllerNode> NODE_COMPARATOR =
             (ci1, ci2) -> ci1.id().toString().compareTo(ci2.id().toString());
+
+    public static final Comparator<Member> MEMBERSHIP_COMPARATOR =
+            (ci1, ci2) -> ci1.nodeId().toString().compareTo(ci2.nodeId().toString());
 
     public static final Comparator<ConnectPoint> CONNECT_POINT_COMPARATOR =
             (o1, o2) -> {

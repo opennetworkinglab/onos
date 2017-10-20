@@ -919,6 +919,10 @@
             </optional-completers>
         </command>
 
+        <command>
+            <action class="org.onosproject.cli.MembershipsListCommand"/>
+        </command>
+
         <!--Domain command-->
         <command>
             <action class="org.onosproject.cli.net.GetDomainsCommand"/>
