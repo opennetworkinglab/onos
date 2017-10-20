@@ -73,19 +73,6 @@ public abstract class AbstractP4RuntimePipelineProgrammable extends AbstractHand
         }
 
         try {
-            if (!client.setPipelineConfig(pipeconf, deviceDataBuffer).get()) {
-                log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
-                return false;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Exception while deploying pipeconf to {}", deviceId, e);
-            return false;
-        }
-
-        try {
-            // It would make more sense to init the stream channel once the client
-            // is created, but P4runtime would reject any command if a P4info has
-            // not been set first.
             if (!client.initStreamChannel().get()) {
                 log.warn("Unable to init stream channel to {}.", deviceId);
                 return false;
@@ -95,6 +82,15 @@ public abstract class AbstractP4RuntimePipelineProgrammable extends AbstractHand
             return false;
         }
 
+        try {
+            if (!client.setPipelineConfig(pipeconf, deviceDataBuffer).get()) {
+                log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
+                return false;
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Exception while deploying pipeconf to {}", deviceId, e);
+            return false;
+        }
         return true;
     }
 

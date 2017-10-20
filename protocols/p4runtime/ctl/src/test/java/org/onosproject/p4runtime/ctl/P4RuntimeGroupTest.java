@@ -48,6 +48,7 @@ import org.onosproject.net.pi.runtime.PiActionProfileId;
 import p4.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.P4RuntimeOuterClass.ActionProfileMember;
 import p4.P4RuntimeOuterClass.Entity;
+import p4.P4RuntimeOuterClass.Uint128;
 import p4.P4RuntimeOuterClass.Update;
 import p4.P4RuntimeOuterClass.WriteRequest;
 
@@ -101,6 +102,7 @@ public class P4RuntimeGroupTest {
     private static final int SET_EGRESS_PORT_ID = 16794308;
     private static final String GRPC_SERVER_NAME = "P4RuntimeGroupTest";
     private static final long DEFAULT_TIMEOUT_TIME = 10;
+    private static final Uint128 DEFAULT_ELECTION_ID = Uint128.newBuilder().setLow(1).build();
 
     private P4RuntimeClientImpl client;
     private P4RuntimeControllerImpl controller;
@@ -156,6 +158,7 @@ public class P4RuntimeGroupTest {
         client = new P4RuntimeClientImpl(DEVICE_ID, P4_DEVICE_ID,
                                          grpcChannel,
                                          controller);
+        client.p4RuntimeElectionId = DEFAULT_ELECTION_ID;
     }
 
     @Test
@@ -166,6 +169,7 @@ public class P4RuntimeGroupTest {
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
         assertEquals(1, result.getUpdatesCount());
+        assertEquals(DEFAULT_ELECTION_ID, result.getElectionId());
 
         Update update = result.getUpdatesList().get(0);
         assertEquals(Update.Type.INSERT, update.getType());
@@ -194,6 +198,7 @@ public class P4RuntimeGroupTest {
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
         assertEquals(3, result.getUpdatesCount());
+        assertEquals(DEFAULT_ELECTION_ID, result.getElectionId());
 
         List<Update> updates = result.getUpdatesList();
         for (Update update : updates) {

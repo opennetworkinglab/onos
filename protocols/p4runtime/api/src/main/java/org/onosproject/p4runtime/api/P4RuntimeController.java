@@ -75,4 +75,11 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
      * @return true if a client was created and is able to contact the P4Runtime server, false otherwise.
      */
     boolean isReacheable(DeviceId deviceId);
+
+    /**
+     * Gets new election id for device arbitration request.
+     *
+     * @return the election id
+     */
+    long getNewMasterElectionId();
 }

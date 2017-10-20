@@ -31,6 +31,7 @@ import io.grpc.stub.StreamObserver;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
@@ -60,6 +61,7 @@ import p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
 import p4.P4RuntimeOuterClass.StreamMessageRequest;
 import p4.P4RuntimeOuterClass.StreamMessageResponse;
 import p4.P4RuntimeOuterClass.TableEntry;
+import p4.P4RuntimeOuterClass.Uint128;
 import p4.P4RuntimeOuterClass.Update;
 import p4.P4RuntimeOuterClass.WriteRequest;
 import p4.config.P4InfoOuterClass.P4Info;
@@ -74,6 +76,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -104,6 +107,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             WriteOperationType.MODIFY, Update.Type.MODIFY,
             WriteOperationType.DELETE, Update.Type.DELETE
     );
+    private static final String ARBITRATION_RESULT_MASTER = "Is master";
 
     private final Logger log = getLogger(getClass());
 
@@ -116,6 +120,9 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     private final Executor contextExecutor;
     private final Lock writeLock = new ReentrantLock();
     private final StreamObserver<StreamMessageRequest> streamRequestObserver;
+
+    private Map<Uint128, CompletableFuture<Boolean>> arbitrationUpdateMap = Maps.newConcurrentMap();
+    protected Uint128 p4RuntimeElectionId;
 
     /**
      * Default constructor.
@@ -257,34 +264,44 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                                "dumpGroups-" + actionProfileId.id());
     }
 
+    @Override
+    public CompletableFuture<Boolean> sendMasterArbitrationUpdate() {
+        return supplyInContext(this::doArbitrationUpdate, "arbitrationUpdate");
+    }
+
     /* Blocking method implementations below */
 
+    private boolean doArbitrationUpdate() {
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        // TODO: currently we use 64-bit Long type for election id, should
+        // we use 128-bit ?
+        long nextElectId = controller.getNewMasterElectionId();
+        Uint128 newElectionId = Uint128.newBuilder()
+                .setLow(nextElectId)
+                .build();
+        MasterArbitrationUpdate arbitrationUpdate = MasterArbitrationUpdate.newBuilder()
+                .setDeviceId(p4DeviceId)
+                .setElectionId(newElectionId)
+                .build();
+        StreamMessageRequest requestMsg = StreamMessageRequest.newBuilder()
+                .setArbitration(arbitrationUpdate)
+                .build();
+        log.debug("Sending arbitration update to {} with election id {}...",
+                  deviceId, newElectionId);
+        arbitrationUpdateMap.put(newElectionId, result);
+        try {
+            streamRequestObserver.onNext(requestMsg);
+            return result.get();
+        } catch (InterruptedException | ExecutionException | StatusRuntimeException e) {
+            log.warn("Arbitration update failed for {} due to {}", deviceId, e);
+            arbitrationUpdateMap.remove(newElectionId);
+            return false;
+        }
+    }
     private boolean doInitStreamChannel() {
         // To listen for packets and other events, we need to start the RPC.
         // Here we do it by sending a master arbitration update.
-        log.info("initializing stream chanel on {}...", deviceId);
-        if (!doArbitrationUpdate()) {
-            log.warn("Unable to initialize stream channel for {}", deviceId);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    private boolean doArbitrationUpdate() {
-        log.info("Sending arbitration update to {}...", deviceId);
-        StreamMessageRequest requestMsg = StreamMessageRequest.newBuilder()
-                .setArbitration(MasterArbitrationUpdate.newBuilder()
-                                        .setDeviceId(p4DeviceId)
-                                        .build())
-                .build();
-        try {
-            streamRequestObserver.onNext(requestMsg);
-            return true;
-        } catch (StatusRuntimeException e) {
-            log.warn("Arbitration update failed for {}: {}", deviceId, e);
-            return false;
-        }
+        return doArbitrationUpdate();
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
@@ -315,6 +332,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
+                .setElectionId(p4RuntimeElectionId)
                 .setAction(VERIFY_AND_COMMIT)
                 .addConfigs(pipelineConfig)
                 .build();
@@ -330,7 +348,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private boolean doWriteTableEntries(Collection<PiTableEntry> piTableEntries, WriteOperationType opType,
                                         PiPipeconf pipeconf) {
-
         WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
 
         Collection<Update> updateMsgs = TableEntryEncoder.encode(piTableEntries, pipeconf)
@@ -350,11 +367,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         writeRequestBuilder
                 .setDeviceId(p4DeviceId)
-                /* PI ignores this ElectionId, commenting out for now.
-                .setElectionId(Uint128.newBuilder()
-                                       .setHigh(0)
-                                       .setLow(ELECTION_ID)
-                                       .build()) */
+                .setElectionId(p4RuntimeElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
 
@@ -455,8 +468,33 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private void doArbitrationUpdateFromDevice(MasterArbitrationUpdate arbitrationMsg) {
+        log.debug("Received arbitration update from {}: {}", deviceId, arbitrationMsg);
 
-        log.warn("Received arbitration update from {} (NOT IMPLEMENTED YET): {}", deviceId, arbitrationMsg);
+        Uint128 electionId = arbitrationMsg.getElectionId();
+        CompletableFuture<Boolean> mastershipFeature = arbitrationUpdateMap.remove(electionId);
+
+        if (mastershipFeature == null) {
+            log.warn("Can't find completable future of election id {}", electionId);
+            return;
+        }
+
+        this.p4RuntimeElectionId = electionId;
+        int statusCode = arbitrationMsg.getStatus().getCode();
+        MastershipRole arbitrationRole;
+        // arbitration update success
+
+        if (statusCode == Status.OK.getCode().value()) {
+            mastershipFeature.complete(true);
+            arbitrationRole = MastershipRole.MASTER;
+        } else {
+            mastershipFeature.complete(false);
+            arbitrationRole = MastershipRole.STANDBY;
+        }
+
+        DefaultArbitration arbitrationEventSubject = new DefaultArbitration(arbitrationRole, electionId);
+        P4RuntimeEvent event = new P4RuntimeEvent(P4RuntimeEvent.Type.ARBITRATION,
+                                                  arbitrationEventSubject);
+        controller.postEvent(event);
     }
 
     private Collection<PiCounterCellData> doReadCounterCells(Collection<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
@@ -490,7 +528,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private boolean doWriteActionGroupMembers(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
-
         final Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
         try {
             for (PiActionGroupMember member : group.members()) {
@@ -518,6 +555,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
+                .setElectionId(p4RuntimeElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
         try {
@@ -652,7 +690,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
-
         final ActionProfileGroup actionProfileGroup;
         try {
             actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf);
@@ -663,6 +700,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         final WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
+                .setElectionId(p4RuntimeElectionId)
                 .addUpdates(Update.newBuilder()
                                     .setEntity(Entity.newBuilder()
                                                        .setActionProfileGroup(actionProfileGroup)

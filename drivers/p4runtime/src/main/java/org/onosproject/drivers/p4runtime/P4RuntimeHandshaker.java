@@ -60,10 +60,30 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
     @Override
     public CompletableFuture<MastershipRole> roleChanged(MastershipRole newRole) {
+        deviceId = handler().data().deviceId();
+        controller = handler().get(P4RuntimeController.class);
         CompletableFuture<MastershipRole> result = new CompletableFuture<>();
-        log.warn("roleChanged not implemented");
-        result.complete(MastershipRole.MASTER);
-        // TODO.
+
+        client = controller.getClient(deviceId);
+        if (client == null || !controller.isReacheable(deviceId)) {
+            result.complete(MastershipRole.STANDBY);
+            return result;
+        }
+        if (newRole.equals(MastershipRole.MASTER)) {
+            client.sendMasterArbitrationUpdate().thenAcceptAsync(success -> {
+                if (!success) {
+                    log.warn("Device {} arbitration failed", deviceId);
+                    result.complete(MastershipRole.STANDBY);
+                } else {
+                    result.complete(MastershipRole.MASTER);
+                }
+            });
+        } else {
+            // Since we don't need to do anything, we can complete it directly
+            // Spec: The client with the highest election id is referred to as the
+            // "master", while all other clients are referred to as "slaves".
+            result.complete(newRole);
+        }
         return result;
     }
 }

@@ -156,5 +156,12 @@ public interface P4RuntimeClient {
      */
     void shutdown();
 
+    /**
+     * Sends a master arbitration update to the device.
+     *
+     * @return a completable future containing true if the operation was successful; false otherwise
+     */
+    CompletableFuture<Boolean> sendMasterArbitrationUpdate();
+
     // TODO: work in progress.
 }

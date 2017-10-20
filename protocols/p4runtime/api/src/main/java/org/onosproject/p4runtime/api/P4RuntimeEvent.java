@@ -33,7 +33,11 @@ public final class P4RuntimeEvent extends AbstractEvent<P4RuntimeEvent.Type, P4R
          * A packet-in.
          */
         PACKET_IN,
-        // TODO: add mastership, device as soon as we define those.
+
+        /**
+         * Arbitration reply.
+         */
+        ARBITRATION,
     }
 
     public P4RuntimeEvent(Type type, P4RuntimeEventSubject subject) {

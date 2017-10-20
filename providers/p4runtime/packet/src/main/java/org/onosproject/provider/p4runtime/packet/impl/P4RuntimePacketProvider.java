@@ -148,6 +148,10 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
 
         @Override
         public void event(P4RuntimeEvent event) {
+            if (event.type() != P4RuntimeEvent.Type.PACKET_IN) {
+                // Not a packet-in event, ignore it.
+                return;
+            }
             P4RuntimePacketIn eventSubject = (P4RuntimePacketIn) event.subject();
             DeviceId deviceId = eventSubject.deviceId();
 

@@ -35,6 +35,8 @@ import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
+import org.onosproject.store.service.AtomicCounter;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -55,19 +57,26 @@ public class P4RuntimeControllerImpl
         extends AbstractListenerManager<P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
+    private static final String P4R_ELECTION = "p4runtime-election";
     private final Logger log = getLogger(getClass());
     private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
     private final Map<DeviceId, P4RuntimeClient> clients = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
     // TODO: should use a cache to delete unused locks.
     private final Map<DeviceId, ReadWriteLock> deviceLocks = Maps.newConcurrentMap();
+    private AtomicCounter electionIdGenerator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public GrpcController grpcController;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public StorageService storageService;
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(P4RuntimeEvent.class, listenerRegistry);
+        electionIdGenerator = storageService.getAtomicCounter(P4R_ELECTION);
+
         log.info("Started");
     }
 
@@ -184,6 +193,11 @@ public class P4RuntimeControllerImpl
         } finally {
             deviceLocks.get(deviceId).readLock().unlock();
         }
+    }
+
+    @Override
+    public long getNewMasterElectionId() {
+        return electionIdGenerator.incrementAndGet();
     }
 
     public void postEvent(P4RuntimeEvent event) {
