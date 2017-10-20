@@ -16,29 +16,29 @@
 
 package org.onosproject.incubator.protobuf.services.nb;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableList;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.grpc.net.models.RegionProtoOuterClass;
-
-import static org.junit.Assert.assertTrue;
-import static org.onosproject.cluster.NodeId.nodeId;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.HostId.hostId;
-
+import com.google.common.collect.ImmutableSet;
+import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.grpc.nb.net.region.RegionServiceGrpc;
+import org.onosproject.grpc.nb.net.region.RegionServiceGrpc.RegionServiceBlockingStub;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb;
+import org.onosproject.grpc.net.models.RegionProtoOuterClass;
+import org.onosproject.incubator.protobuf.models.net.RegionProtoTranslator;
 import org.onosproject.net.DefaultAnnotations;
-
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-
 import org.onosproject.net.HostId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.region.DefaultRegion;
+import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.net.region.RegionListener;
 import org.onosproject.net.region.RegionService;
 
@@ -50,20 +50,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
-
-import org.onosproject.incubator.protobuf.models.net.RegionProtoTranslator;
-import org.onosproject.grpc.nb.net.region.RegionServiceGrpc;
-import org.onosproject.grpc.nb.net.region.RegionServiceGrpc.RegionServiceBlockingStub;
-import org.onosproject.grpc.nb.net.region.RegionServiceNb;
-import org.onosproject.incubator.protobuf.services.nb.GrpcNbRegionService.RegionServiceNBServerInternal;
-import org.onosproject.net.region.Region;
-import org.onosproject.net.region.RegionId;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.cluster.NodeId.nodeId;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.HostId.hostId;
 
 public class GrpcNbRegionServiceTest {
-    private static InProcessServer<GrpcNbRegionService.RegionServiceNBServerInternal> inprocessServer;
-    private static ManagedChannel channel;
+
+    private static InProcessServer<BindableService> inprocessServer;
     private static RegionServiceBlockingStub blockingStub;
+    private static ManagedChannel channel;
 
     private static final String C1 = "C1";
     private static final String C2 = "C2";
@@ -287,14 +283,11 @@ public class GrpcNbRegionServiceTest {
 
     @BeforeClass
     public static void beforeClass() throws InstantiationException, IllegalAccessException, IOException {
-        inprocessServer = new InProcessServer<RegionServiceNBServerInternal>(RegionServiceNBServerInternal.class);
-
-        GrpcNbRegionService outer = new GrpcNbRegionService();
-        GrpcNbRegionService.RegionServiceNBServerInternal inner = outer.getInnerClassInstance();
-        outer.regionService = MOCK_REGION;
-        inprocessServer.addServiceToBind(inner);
-
+        GrpcNbRegionService regionService = new GrpcNbRegionService();
+        regionService.regionService = MOCK_REGION;
+        inprocessServer = regionService.registerInProcessServer();
         inprocessServer.start();
+
         channel = InProcessChannelBuilder.forName("test").directExecutor()
                 // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                 // needing certificates.

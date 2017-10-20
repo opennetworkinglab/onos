@@ -15,11 +15,9 @@
 */
 
 package org.onosproject.incubator.protobuf.services.nb;
-import org.onosproject.incubator.protobuf.models.net.RegionProtoTranslator;
 
 import com.google.common.annotations.Beta;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -27,28 +25,22 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.grpc.nb.net.region.RegionServiceGrpc.RegionServiceImplBase;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.region.RegionId;
-import org.onosproject.net.region.Region;
-import org.onosproject.net.region.RegionService;
-
-
-import java.io.IOException;
-
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionsRequest;
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionsReply;
-
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionRequest;
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionReply;
-
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionForDeviceRequest;
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionForDeviceReply;
-
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionDevicesRequest;
 import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionDevicesReply;
-
-import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionHostsRequest;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionDevicesRequest;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionForDeviceReply;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionForDeviceRequest;
 import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionHostsReply;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionHostsRequest;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionReply;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionRequest;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionsReply;
+import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionsRequest;
+import org.onosproject.incubator.protobuf.models.net.RegionProtoTranslator;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
+import org.onosproject.net.region.RegionService;
+import org.onosproject.protobuf.api.GrpcServiceRegistry;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -60,30 +52,44 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class GrpcNbRegionService {
 
-    private Server server;
     private final Logger log = getLogger(getClass());
-    private RegionServiceNBServerInternal innerClassInstance = null;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GrpcServiceRegistry registry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RegionService regionService;
 
+    private RegionServiceNbServerInternal innerClassInstance = null;
+
     @Activate
     public void activate() {
-        server = ServerBuilder.forPort(64000).addService(new RegionServiceNBServerInternal()).build();
-        try {
-            server.start();
-        } catch (IOException e) {
-            log.error("Failed to start server", e);
-            throw new RuntimeException("Failed to start server", e);
-        }
+
+        registry.register(getInnerClassInstance());
+        log.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
-        server.shutdown();
+
+        registry.unregister(getInnerClassInstance());
+        log.info("Stopped.");
     }
 
-    public class RegionServiceNBServerInternal extends RegionServiceImplBase {
+    /**
+     * Register Region Service, used for unit testing purposes.
+     *
+     * @return An instance of binding Region service
+     */
+    public InProcessServer<BindableService> registerInProcessServer() {
+        InProcessServer<BindableService> inprocessServer =
+                new InProcessServer(GrpcNbRegionService.RegionServiceNbServerInternal.class);
+        inprocessServer.addServiceToBind(getInnerClassInstance());
+
+        return inprocessServer;
+    }
+
+    private final class RegionServiceNbServerInternal extends RegionServiceImplBase {
         /**
          * Service for interacting with inventory of network control regions.
          */
@@ -153,9 +159,9 @@ public class GrpcNbRegionService {
         }
     }
 
-    public RegionServiceNBServerInternal getInnerClassInstance() {
+    private RegionServiceNbServerInternal getInnerClassInstance() {
         if (innerClassInstance == null) {
-            innerClassInstance = new RegionServiceNBServerInternal();
+            innerClassInstance = new RegionServiceNbServerInternal();
         }
         return innerClassInstance;
     }
