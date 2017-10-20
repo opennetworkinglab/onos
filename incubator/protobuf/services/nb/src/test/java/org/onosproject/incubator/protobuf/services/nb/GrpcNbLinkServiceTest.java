@@ -17,23 +17,23 @@
 package org.onosproject.incubator.protobuf.services.nb;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableList;
-import org.onosproject.grpc.net.models.LinkProtoOuterClass;
-
-import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-
+import com.google.common.collect.ImmutableSet;
+import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.onosproject.grpc.nb.net.link.LinkServiceGrpc;
+import org.onosproject.grpc.nb.net.link.LinkServiceGrpc.LinkServiceBlockingStub;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb;
+import org.onosproject.grpc.net.models.LinkProtoOuterClass;
 import org.onosproject.incubator.protobuf.models.net.ConnectPointProtoTranslator;
 import org.onosproject.incubator.protobuf.models.net.LinkProtoTranslator;
 import org.onosproject.net.ConnectPoint;
-
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
-
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.link.LinkService;
@@ -45,17 +45,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Test;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import org.onosproject.grpc.nb.net.link.LinkServiceGrpc;
-import org.onosproject.grpc.nb.net.link.LinkServiceGrpc.LinkServiceBlockingStub;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb;
-import org.onosproject.incubator.protobuf.services.nb.GrpcNbLinkService.LinkServiceNBServerInternal;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 public class GrpcNbLinkServiceTest {
-    private static InProcessServer<LinkServiceNBServerInternal> inprocessServer;
+    private static InProcessServer<BindableService> inprocessServer;
     private static ManagedChannel channel;
     private static LinkServiceBlockingStub blockingStub;
 
@@ -353,14 +348,11 @@ public class GrpcNbLinkServiceTest {
 
     @BeforeClass
     public static void beforeClass() throws InstantiationException, IllegalAccessException, IOException {
-        inprocessServer = new InProcessServer<LinkServiceNBServerInternal>(LinkServiceNBServerInternal.class);
-
-        GrpcNbLinkService outer = new GrpcNbLinkService();
-        GrpcNbLinkService.LinkServiceNBServerInternal inner = outer.getInnerClassInstance();
-        outer.linkService = MOCK_LINK;
-        inprocessServer.addServiceToBind(inner);
-
+        GrpcNbLinkService linkService = new GrpcNbLinkService();
+        linkService.linkService = MOCK_LINK;
+        inprocessServer = linkService.registerInProcessServer();
         inprocessServer.start();
+
         channel = InProcessChannelBuilder.forName("test").directExecutor()
                 // Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid
                 // needing certificates.

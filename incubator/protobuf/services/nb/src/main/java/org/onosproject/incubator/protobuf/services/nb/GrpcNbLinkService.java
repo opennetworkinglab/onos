@@ -15,12 +15,9 @@
 */
 
 package org.onosproject.incubator.protobuf.services.nb;
-import org.onosproject.incubator.protobuf.models.net.ConnectPointProtoTranslator;
-import org.onosproject.incubator.protobuf.models.net.LinkProtoTranslator;
 
 import com.google.common.annotations.Beta;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -28,30 +25,31 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.grpc.nb.net.link.LinkServiceGrpc.LinkServiceImplBase;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getActiveLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getActiveLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceEgressLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceEgressLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceIngressLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceIngressLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getEgressLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getEgressLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getIngressLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getIngressLinksRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkCountReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkCountRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkRequest;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinksReply;
+import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinksRequest;
+import org.onosproject.incubator.protobuf.models.net.ConnectPointProtoTranslator;
+import org.onosproject.incubator.protobuf.models.net.LinkProtoTranslator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.link.LinkService;
-
-import java.io.IOException;
-
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkCountRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkCountReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinkReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getActiveLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getActiveLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceEgressLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceEgressLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceIngressLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getDeviceIngressLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getEgressLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getEgressLinksReply;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getIngressLinksRequest;
-import org.onosproject.grpc.nb.net.link.LinkServiceNb.getIngressLinksReply;
+import org.onosproject.protobuf.api.GrpcServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,32 +62,44 @@ public class GrpcNbLinkService {
 
     private static final Logger log = LoggerFactory.getLogger(GrpcNbLinkService.class);
 
-
-    private Server server;
-    private LinkServiceNBServerInternal innerClassInstance = null;
-
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GrpcServiceRegistry registry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
 
+    private LinkServiceNbServerInternal innerClassInstance;
+
     @Activate
     public void activate() {
-        server = ServerBuilder.forPort(64000).addService(getInnerClassInstance()).build();
-        try {
-            server.start();
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+
+        registry.register(getInnerInstance());
+        log.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
-        server.shutdown();
+
+        registry.unregister(getInnerInstance());
+        log.info("Stopped.");
     }
 
-    public class LinkServiceNBServerInternal extends LinkServiceImplBase {
+    /**
+     * Register Link Service, used for unit testing purposes.
+     *
+     * @return An instance of binding Link service
+     */
+    public InProcessServer<BindableService> registerInProcessServer() {
+        InProcessServer<BindableService> inprocessServer =
+                new InProcessServer(LinkServiceNb.class);
+        inprocessServer.addServiceToBind(getInnerInstance());
 
-        public LinkServiceNBServerInternal() {
+        return inprocessServer;
+    }
+
+    private class LinkServiceNbServerInternal extends LinkServiceImplBase {
+
+        public LinkServiceNbServerInternal() {
             super();
         }
 
@@ -204,9 +214,9 @@ public class GrpcNbLinkService {
         }
     }
 
-    public LinkServiceNBServerInternal getInnerClassInstance() {
+    private LinkServiceNbServerInternal getInnerInstance() {
         if (innerClassInstance == null) {
-            innerClassInstance = new LinkServiceNBServerInternal();
+            innerClassInstance = new LinkServiceNbServerInternal();
         }
         return innerClassInstance;
     }
