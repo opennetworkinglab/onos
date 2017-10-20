@@ -1398,6 +1398,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    private void createOrUpdateDeviceConfiguration() {
+        if (deviceConfiguration == null) {
+            deviceConfiguration = new DeviceConfiguration(this);
+        } else {
+            deviceConfiguration.updateConfig();
+        }
+    }
+
     /**
      * Registers the given connect point with the NRS, this is necessary
      * to receive the NDP and ARP packets from the NRS.
@@ -1429,11 +1437,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          * Reads network config and initializes related data structure accordingly.
          */
         public void configureNetwork() {
-            if (deviceConfiguration == null) {
-                deviceConfiguration = new DeviceConfiguration(srManager);
-            } else {
-                deviceConfiguration.updateConfig();
-            }
+            createOrUpdateDeviceConfiguration();
 
             arpHandler = new ArpHandler(srManager);
             icmpHandler = new IcmpHandler(srManager);
@@ -1466,6 +1470,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         break;
                     case CONFIG_UPDATED:
                         log.info("Segment Routing Config updated for {}", event.subject());
+                        createOrUpdateDeviceConfiguration();
                         // TODO support dynamic configuration
                         break;
                     default:
@@ -1479,6 +1484,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         break;
                     case CONFIG_UPDATED:
                         log.info("Interface Config updated for {}", event.subject());
+                        createOrUpdateDeviceConfiguration();
                         // TODO support dynamic configuration
                         break;
                     default:
