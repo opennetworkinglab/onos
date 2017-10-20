@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.optical.cli;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -40,11 +41,7 @@ import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 
 import java.util.Map;
-import java.util.HashMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -58,16 +55,22 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
     private static final String SIGNAL_FORMAT = "slotGranularity/channelSpacing(in GHz e.g 6.25,12.5,25,50,100)/" +
             "spaceMultiplier/gridType(cwdm, flex, dwdm) " + "e.g 1/6.25/1/flex";
-    private static final String FLEX = "FLEX";
-    private static final String DWDM = "DWDM";
-    private static final String CWDM = "CWDM";
+
     private static final String CH_6P25 = "6.25";
     private static final String CH_12P5 = "12.5";
     private static final String CH_25 = "25";
     private static final String CH_50 = "50";
     private static final String CH_100 = "100";
-    private static final Map<String, ChannelSpacing> CHANNEL_SPACING_MAP = createChannelSpacingMap();
-    private static final Map<String, GridType> GRID_TYPE_MAP = createGridTypeMap();
+
+    private static final Map<String, ChannelSpacing> CHANNEL_SPACING_MAP = ImmutableMap
+            .<String, ChannelSpacing>builder()
+            .put(CH_6P25, ChannelSpacing.CHL_6P25GHZ)
+            .put(CH_12P5, ChannelSpacing.CHL_12P5GHZ)
+            .put(CH_25, ChannelSpacing.CHL_25GHZ)
+            .put(CH_50, ChannelSpacing.CHL_50GHZ)
+            .put(CH_100, ChannelSpacing.CHL_100GHZ)
+            .build();
+
     // OSGi workaround
     @SuppressWarnings("unused")
     private ConnectPointCompleter cpCompleter;
@@ -97,31 +100,11 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             required = false, multiValued = false)
     private String signal;
 
-    private static final Map<String, ChannelSpacing> createChannelSpacingMap() {
-        return new HashMap(Stream.of(
-                new SimpleEntry(CH_6P25, ChannelSpacing.CHL_6P25GHZ),
-                new SimpleEntry(CH_12P5, ChannelSpacing.CHL_12P5GHZ),
-                new SimpleEntry(CH_25, ChannelSpacing.CHL_25GHZ),
-                new SimpleEntry(CH_50, ChannelSpacing.CHL_50GHZ),
-                new SimpleEntry(CH_100, ChannelSpacing.CHL_100GHZ))
-                                   .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
-
-    }
-
-    private static final Map<String, GridType> createGridTypeMap() {
-        return new HashMap(Stream.of(
-                new SimpleEntry(FLEX, GridType.FLEX),
-                new SimpleEntry(DWDM, GridType.DWDM),
-                new SimpleEntry(CWDM, GridType.CWDM))
-                                   .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
-
-    }
-
     private ConnectPoint createConnectPoint(String devicePortString) {
         String[] splitted = devicePortString.split("/");
 
         checkArgument(splitted.length == 2,
-                      "Connect point must be in \"deviceUri/portNumber\" format");
+                "Connect point must be in \"deviceUri/portNumber\" format");
 
         DeviceId deviceId = DeviceId.deviceId(splitted[0]);
         DeviceService deviceService = get(DeviceService.class);
@@ -144,15 +127,14 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         try {
             String[] splitted = signal.split("/");
             checkArgument(splitted.length == 4,
-                          "signal requires 4 parameters: " + SIGNAL_FORMAT);
+                    "signal requires 4 parameters: " + SIGNAL_FORMAT);
             int slotGranularity = Integer.parseInt(splitted[0]);
             String chSpacing = splitted[1];
             ChannelSpacing channelSpacing = checkNotNull(CHANNEL_SPACING_MAP.get(chSpacing),
-                                                         String.format("invalid channel spacing: %s", chSpacing));
+                    String.format("invalid channel spacing: %s", chSpacing));
             int multiplier = Integer.parseInt(splitted[2]);
             String gdType = splitted[3].toUpperCase();
-            GridType gridType = checkNotNull(GRID_TYPE_MAP.get(gdType),
-                                             String.format("invalid grid type: %s", gdType));
+            GridType gridType = GridType.valueOf(gdType);
             return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
         } catch (RuntimeException e) {
             /* catching RuntimeException as both NullPointerException (thrown by
