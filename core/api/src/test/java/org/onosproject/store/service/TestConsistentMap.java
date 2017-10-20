@@ -184,7 +184,9 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public void clear() {
-        map.keySet().forEach(this::remove);
+        for (K key : map.keySet().stream().collect(Collectors.toList())) {
+            remove(key);
+        }
     }
 
     @Override
