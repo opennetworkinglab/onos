@@ -21,6 +21,7 @@ import static java.time.temporal.ChronoField.CLOCK_HOUR_OF_AMPM;
 import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
 import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -30,11 +31,15 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Formats time values using {@link DateTimeFormatter}.
  */
 public final class TimeFormatter extends AbstractCellFormatter {
+
+    private static final Logger log = LoggerFactory.getLogger(TimeFormatter.class);
 
     private DateTimeFormatter dtf;
 
@@ -58,7 +63,9 @@ public final class TimeFormatter extends AbstractCellFormatter {
                 .optionalStart()
                 .appendLiteral(' ')
                 .appendOffset("+HH:MM", "+00:00")
-                .toFormatter();
+                .toFormatter()
+                .withLocale(Locale.getDefault())
+                .withZone(ZoneId.systemDefault());
     }
 
     /**
@@ -99,7 +106,13 @@ public final class TimeFormatter extends AbstractCellFormatter {
     @Override
     protected String nonNullFormat(Object value) {
         if (value instanceof TemporalAccessor) {
-            return dtf.format((TemporalAccessor) value);
+            try {
+                return dtf.format((TemporalAccessor) value);
+            } catch (DateTimeException e) {
+                log.error("Failed formatting {} [{}]", value, value.getClass().getSimpleName(), e);
+                log.warn("dtf zone was {}", dtf.getZone());
+                throw e;
+            }
         } else if (value instanceof org.joda.time.DateTime) {
             return dtf.format(Instant.ofEpochMilli(((org.joda.time.DateTime) value).getMillis()));
         }
