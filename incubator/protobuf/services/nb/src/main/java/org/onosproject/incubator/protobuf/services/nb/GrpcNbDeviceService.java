@@ -17,6 +17,7 @@ package org.onosproject.incubator.protobuf.services.nb;
 
 
 import com.google.common.annotations.Beta;
+import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -35,8 +36,10 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.incubator.protobuf.models.GrpcNbDeviceServiceUtil;
+import org.slf4j.Logger;
 
 import static org.onosproject.grpc.nb.net.device.DeviceServiceNb.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -48,6 +51,8 @@ import static org.onosproject.grpc.nb.net.device.DeviceServiceNb.*;
 @Component(immediate = true)
 public class GrpcNbDeviceService {
 
+    private final Logger log = getLogger(getClass());
+
     private static DeviceServiceNbServerInternal instance = null;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -58,21 +63,27 @@ public class GrpcNbDeviceService {
 
     @Activate
     public void activate() {
-        //TODO this should contact the registry service and register an instance
-        // of this service
         registry.register(getInnerInstance());
+        log.info("Started.");
     }
 
     @Deactivate
     public void deactivate() {
         registry.unregister(getInnerInstance());
+        log.info("Stopped");
     }
 
-    public DeviceServiceNbServerInternal getInnerInstance() {
-        if (instance == null) {
-            instance = new DeviceServiceNbServerInternal();
-        }
-        return instance;
+    /**
+     * Register Device Service, Used for unit testing purposes.
+     *
+     * @return An instance of binding Device service
+     */
+    public InProcessServer<BindableService> registerInProcessServer() {
+        InProcessServer<BindableService> inprocessServer =
+                new InProcessServer(GrpcNbDeviceService.DeviceServiceNbServerInternal.class);
+        inprocessServer.addServiceToBind(getInnerInstance());
+
+        return inprocessServer;
     }
 
     private final class DeviceServiceNbServerInternal extends DeviceServiceImplBase {
@@ -366,5 +377,12 @@ public class GrpcNbDeviceService {
                             .build());
             responseObserver.onCompleted();
         }
+    }
+
+    private DeviceServiceNbServerInternal getInnerInstance() {
+        if (instance == null) {
+            instance = new DeviceServiceNbServerInternal();
+        }
+        return instance;
     }
 }
