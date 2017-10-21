@@ -93,6 +93,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.packet.MacAddress.BROADCAST;
+import static org.onlab.packet.MacAddress.IPV4_MULTICAST;
+import static org.onlab.packet.MacAddress.IPV6_MULTICAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
@@ -637,7 +639,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         // Multicast MAC
         if (ethCriterion.mask() != null) {
-            return processMcastEthDstFilter(ethCriterion, applicationId);
+            return processMcastEthDstFilter(ethCriterion, assignedVlan, applicationId);
         }
 
         //handling untagged packets via assigned VLAN
@@ -870,37 +872,47 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
+                                                      VlanId assignedVlan,
                                                       ApplicationId applicationId) {
         ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
-        treatment.transition(MULTICAST_ROUTING_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(applicationId)
-                .makePermanent()
-                .forTable(TMAC_TABLE).build();
-        builder.add(rule);
+        FlowRule rule;
 
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV6);
-        selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
-        treatment.transition(MULTICAST_ROUTING_TABLE);
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(applicationId)
-                .makePermanent()
-                .forTable(TMAC_TABLE).build();
-        return builder.add(rule).build();
+        if (IPV4_MULTICAST.equals(ethCriterion.mac())) {
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+            selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
+            selector.matchVlanId(assignedVlan);
+            treatment.transition(MULTICAST_ROUTING_TABLE);
+            rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(TMAC_TABLE).build();
+            builder.add(rule);
+        }
+
+        if (IPV6_MULTICAST.equals(ethCriterion.mac())) {
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+            selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
+            selector.matchVlanId(assignedVlan);
+            treatment.transition(MULTICAST_ROUTING_TABLE);
+            rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(TMAC_TABLE).build();
+            builder.add(rule);
+        }
+        return builder.build();
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {

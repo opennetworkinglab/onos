@@ -98,7 +98,7 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
 
         // Multicast MAC
         if (ethCriterion.mask() != null) {
-            return processMcastEthDstFilter(ethCriterion, applicationId);
+            return processMcastEthDstFilter(ethCriterion, assignedVlan, applicationId);
         }
 
         //handling untagged packets via assigned VLAN
