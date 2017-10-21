@@ -774,7 +774,7 @@ public class McastHandler {
         }
         // Reuse unicast VLAN if the port has subnet configured
         if (cp != null) {
-            VlanId untaggedVlan = srManager.getUntaggedVlanId(cp);
+            VlanId untaggedVlan = srManager.getInternalVlanId(cp);
             return (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
         }
         // Use DEFAULT_VLAN if none of the above matches
