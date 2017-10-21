@@ -37,7 +37,6 @@
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
             org.onosproject.snmp,
-            org.onosproject.faultmanagement,
             org.onosproject.optical-model,
             org.onosproject.tl1
         </onos.app.requires>

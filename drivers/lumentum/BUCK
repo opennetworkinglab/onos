@@ -27,6 +27,6 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'Adds support for Lumentum devices.',
-    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model',
+    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.optical-model',
      'org.onosproject.tl1', 'org.onosproject.drivers.optical'],
 )
