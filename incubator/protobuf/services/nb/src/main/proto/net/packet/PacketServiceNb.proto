@@ -9,7 +9,6 @@ import "net/packet/PacketProcessorEntryProto.proto";
 import "net/packet/OutboundPacketProto.proto";
 import "core/ApplicationIdProto.proto";
 import "net/flow/TrafficSelectorProto.proto";
-import "net/flow/TrafficTreatmentProto.proto";
 
 message addProcessorRequest {
     .net.packet.PacketProcessorProto packet_processor = 1;
