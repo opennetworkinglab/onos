@@ -17,6 +17,7 @@
 package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.ImmutableList;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.driver.extensions.Ofdpa3MatchMplsL2Port;
 import org.onosproject.driver.extensions.Ofdpa3MatchOvid;
@@ -91,19 +92,22 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     protected void processFilter(FilteringObjective filteringObjective,
                                  boolean install,
                                  ApplicationId applicationId) {
-        // We are looking for inner vlan id criterion. We use this
-        // to identify the pseudo wire flows. In future we can enforce
-        // using also the tunnel id in the meta.
-        VlanIdCriterion innerVlanIdCriterion = null;
-        for (Criterion criterion : filteringObjective.conditions()) {
-            if (criterion.type() == INNER_VLAN_VID) {
-                innerVlanIdCriterion = (VlanIdCriterion) criterion;
-                break;
-            }
-        }
-        if (innerVlanIdCriterion != null) {
+
+        // Check if filter is intended for pseudowire
+        boolean isPw = isPseudowire(filteringObjective);
+
+        if (isPw) {
             FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
             PortCriterion portCriterion;
+
+            VlanIdCriterion innerVlanIdCriterion = null;
+            for (Criterion criterion : filteringObjective.conditions()) {
+                if (criterion.type() == INNER_VLAN_VID) {
+                    innerVlanIdCriterion = (VlanIdCriterion) criterion;
+                    break;
+                }
+            }
+
             VlanIdCriterion outerVlanIdCriterion = null;
             // We extract the expected port criterion in the key.
             portCriterion = (PortCriterion) filteringObjective.key();
@@ -114,19 +118,25 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                     break;
                 }
             }
+
             // We extract the tunnel id.
             long tunnelId;
+            VlanId egressVlan;
+
             if (filteringObjective.meta() != null &&
-                    filteringObjective.meta().allInstructions().size() != 1) {
+                    filteringObjective.meta().allInstructions().size() != 2) {
                 log.warn("Bad filtering objective from app: {}. Not"
                                  + "processing filtering objective", applicationId);
                 fail(filteringObjective, ObjectiveError.BADPARAMS);
                 return;
             } else if (filteringObjective.meta() != null &&
-                    filteringObjective.meta().allInstructions().size() == 1 &&
-                    filteringObjective.meta().allInstructions().get(0).type() == L2MODIFICATION) {
+                    filteringObjective.meta().allInstructions().size() == 2 &&
+                    filteringObjective.meta().allInstructions().get(0).type() == L2MODIFICATION &&
+                    filteringObjective.meta().allInstructions().get(1).type() == L2MODIFICATION) {
+
                 L2ModificationInstruction l2instruction = (L2ModificationInstruction)
                         filteringObjective.meta().allInstructions().get(0);
+
                 if (l2instruction.subtype() != L2SubType.TUNNEL_ID) {
                     log.warn("Bad filtering objective from app: {}. Not"
                                      + "processing filtering objective", applicationId);
@@ -135,12 +145,25 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                 } else {
                     tunnelId = ((ModTunnelIdInstruction) l2instruction).tunnelId();
                 }
+
+                L2ModificationInstruction vlanInstruction = (L2ModificationInstruction)
+                        filteringObjective.meta().allInstructions().get(1);
+
+                if (vlanInstruction.subtype() != L2SubType.VLAN_ID) {
+                    log.warn("Bad filtering objective from app: {}. Not"
+                                     + "processing filtering objective", applicationId);
+                    fail(filteringObjective, ObjectiveError.BADPARAMS);
+                    return;
+                } else {
+                    egressVlan = ((L2ModificationInstruction.ModVlanIdInstruction) vlanInstruction).vlanId();
+                }
             } else {
                 log.warn("Bad filtering objective from app: {}. Not"
                                  + "processing filtering objective", applicationId);
                 fail(filteringObjective, ObjectiveError.BADPARAMS);
                 return;
             }
+
             // Mpls tunnel ids according to the OFDPA manual have to be
             // in the range [2^17-1, 2^16].
             tunnelId = MPLS_TUNNEL_ID_BASE | tunnelId;
@@ -160,12 +183,14 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                 fail(filteringObjective, ObjectiveError.BADPARAMS);
                 return;
             }
+
             // We create the flows.
             List<FlowRule> pwRules = processPwFilter(portCriterion,
                                                      innerVlanIdCriterion,
                                                      outerVlanIdCriterion,
                                                      tunnelId,
-                                                     applicationId
+                                                     applicationId,
+                                                     egressVlan
             );
             // We tag the flow for adding or for removing.
             for (FlowRule pwRule : pwRules) {
@@ -197,6 +222,32 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     }
 
     /**
+     * Determines if the filtering objective will be used for a pseudowire.
+     *
+     * @param filteringObjective
+     * @return True if objective was created for a pseudowire, false otherwise.
+     */
+    private boolean isPseudowire(FilteringObjective filteringObjective) {
+
+
+        if (filteringObjective.meta() != null) {
+
+            TrafficTreatment treatment = filteringObjective.meta();
+            for (Instruction instr : treatment.immediate()) {
+                if (instr.type().equals(Instruction.Type.L2MODIFICATION)) {
+
+                    L2ModificationInstruction l2Instr = (L2ModificationInstruction) instr;
+                    if (l2Instr.subtype().equals(L2SubType.TUNNEL_ID)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Method to process the pw related filtering objectives.
      *
      * @param portCriterion the in port match
@@ -204,61 +255,128 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
      * @param outerVlanIdCriterion the outer vlan match
      * @param tunnelId the tunnel id
      * @param applicationId the application id
+     * @param egressVlan the vlan to modify, was passed in metadata
      * @return a list of flow rules to install
      */
     private List<FlowRule> processPwFilter(PortCriterion portCriterion,
                                            VlanIdCriterion innerVlanIdCriterion,
                                            VlanIdCriterion outerVlanIdCriterion,
                                            long tunnelId,
-                                           ApplicationId applicationId) {
-        // As first we create the flow rule for the vlan 1 table.
+                                           ApplicationId applicationId,
+                                           VlanId egressVlan) {
+
         FlowRule vlan1FlowRule;
         int mplsLogicalPort = ((int) portCriterion.port().toLong());
         // We have to match on the inner vlan and outer vlan at the same time.
         // Ofdpa supports this through the OVID meta-data type.
-        TrafficSelector.Builder vlan1Selector = DefaultTrafficSelector.builder()
-                .matchInPort(portCriterion.port())
-                .matchVlanId(innerVlanIdCriterion.vlanId())
-                .extension(new Ofdpa3MatchOvid(outerVlanIdCriterion.vlanId()), deviceId);
-        // TODO understand for the future how to manage the vlan rewrite.
-        TrafficTreatment.Builder vlan1Treatment = DefaultTrafficTreatment.builder()
-                .pushVlan()
-                .setVlanId(outerVlanIdCriterion.vlanId())
-                .extension(new Ofdpa3SetMplsType(VPWS), deviceId)
-                .extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId)
-                .setTunnelId(tunnelId)
-                .transition(MPLS_L2_PORT_FLOW_TABLE);
-        vlan1FlowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(vlan1Selector.build())
-                .withTreatment(vlan1Treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(applicationId)
-                .makePermanent()
-                .forTable(VLAN_1_TABLE)
-                .build();
-        // Finally we create the flow rule for the vlan table.
-        FlowRule vlanFlowRule;
-        // We have to match on the outer vlan.
-        TrafficSelector.Builder vlanSelector = DefaultTrafficSelector.builder()
-                .matchInPort(portCriterion.port())
-                .matchVlanId(outerVlanIdCriterion.vlanId());
-        // TODO understand for the future how to manage the vlan rewrite.
-        TrafficTreatment.Builder vlanTreatment = DefaultTrafficTreatment.builder()
-                .popVlan()
-                .extension(new Ofdpa3SetOvid(outerVlanIdCriterion.vlanId()), deviceId)
-                .transition(VLAN_1_TABLE);
-        vlanFlowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(vlanSelector.build())
-                .withTreatment(vlanTreatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(applicationId)
-                .makePermanent()
-                .forTable(VLAN_TABLE)
-                .build();
 
-        return ImmutableList.of(vlan1FlowRule, vlanFlowRule);
+        ImmutableList<FlowRule> toReturn;
+
+        // pseudowire configured with double tagged vlans
+        if (!(innerVlanIdCriterion.vlanId().equals(VlanId.NONE))
+                && !(outerVlanIdCriterion.vlanId().equals(VlanId.NONE))) {
+
+            log.info("Installing filter objective for double tagged CE for tunnel {}", tunnelId);
+
+            TrafficSelector.Builder vlan1Selector = DefaultTrafficSelector.builder()
+                    .matchInPort(portCriterion.port())
+                    .matchVlanId(innerVlanIdCriterion.vlanId())
+                    .extension(new Ofdpa3MatchOvid(outerVlanIdCriterion.vlanId()), deviceId);
+            // TODO understand for the future how to manage the vlan rewrite.
+            TrafficTreatment.Builder vlan1Treatment = DefaultTrafficTreatment.builder()
+                    .pushVlan()
+                    .setVlanId(egressVlan)
+                    .extension(new Ofdpa3SetMplsType(VPWS), deviceId)
+                    .extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId)
+                    .setTunnelId(tunnelId)
+                    .transition(MPLS_L2_PORT_FLOW_TABLE);
+            vlan1FlowRule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(vlan1Selector.build())
+                    .withTreatment(vlan1Treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(VLAN_1_TABLE)
+                    .build();
+            // Finally we create the flow rule for the vlan table.
+            FlowRule vlanFlowRule;
+            // We have to match on the outer vlan.
+            TrafficSelector.Builder vlanSelector = DefaultTrafficSelector.builder()
+                    .matchInPort(portCriterion.port())
+                    .matchVlanId(outerVlanIdCriterion.vlanId());
+            // TODO understand for the future how to manage the vlan rewrite.
+            TrafficTreatment.Builder vlanTreatment = DefaultTrafficTreatment.builder()
+                    .popVlan()
+                    .extension(new Ofdpa3SetOvid(outerVlanIdCriterion.vlanId()), deviceId)
+                    .transition(VLAN_1_TABLE);
+            vlanFlowRule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(vlanSelector.build())
+                    .withTreatment(vlanTreatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(VLAN_TABLE)
+                    .build();
+
+            return ImmutableList.of(vlan1FlowRule, vlanFlowRule);
+        } else  if (!(innerVlanIdCriterion.vlanId().equals(VlanId.NONE))
+                && (outerVlanIdCriterion.vlanId().equals(VlanId.NONE))) {
+
+            log.info("Installing filter objective for single tagged CE for tunnel {}", tunnelId);
+
+            TrafficSelector.Builder singleVlanSelector = DefaultTrafficSelector.builder()
+                    .matchInPort(portCriterion.port())
+                    .matchVlanId(innerVlanIdCriterion.vlanId());
+
+            TrafficTreatment.Builder singleVlanTreatment = DefaultTrafficTreatment.builder()
+                    // .pushVlan()
+                    .setVlanId(egressVlan)
+                    .extension(new Ofdpa3SetMplsType(VPWS), deviceId)
+                    .extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId)
+                    .setTunnelId(tunnelId)
+                    .transition(MPLS_L2_PORT_FLOW_TABLE);
+
+            vlan1FlowRule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(singleVlanSelector.build())
+                    .withTreatment(singleVlanTreatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(VLAN_TABLE)
+                    .build();
+
+            return ImmutableList.of(vlan1FlowRule);
+        } else if ((innerVlanIdCriterion.vlanId().equals(VlanId.NONE))
+                && (outerVlanIdCriterion.vlanId().equals(VlanId.NONE))) {
+
+            TrafficSelector.Builder singleVlanSelector = DefaultTrafficSelector.builder()
+                    .matchInPort(portCriterion.port())
+                    .matchVlanId(innerVlanIdCriterion.vlanId());
+
+            TrafficTreatment.Builder singleVlanTreatment = DefaultTrafficTreatment.builder()
+                    .extension(new Ofdpa3SetMplsType(VPWS), deviceId)
+                    .extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId)
+                    .setTunnelId(tunnelId)
+                    .transition(MPLS_L2_PORT_FLOW_TABLE);
+
+            vlan1FlowRule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(singleVlanSelector.build())
+                    .withTreatment(singleVlanTreatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(VLAN_TABLE)
+                    .build();
+
+            return ImmutableList.of(vlan1FlowRule);
+        } else {
+            // failure...
+            return Collections.emptyList();
+        }
     }
 
     @Override

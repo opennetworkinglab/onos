@@ -54,9 +54,22 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.PseudowireListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.PseudowireRemoveCommand"/>
+            <completers>
+                <ref component-id="pseudowireIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.PseudowireAddCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
+    <bean id="pseudowireIdCompleter" class="org.onosproject.segmentrouting.cli.PseudowireIdCompleter"/>
 
 </blueprint>
 

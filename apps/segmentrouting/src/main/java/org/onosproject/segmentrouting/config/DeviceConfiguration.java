@@ -77,6 +77,7 @@ public class DeviceConfiguration implements DeviceProperties {
         Map<Integer, Set<Integer>> adjacencySids;
         DeviceId pairDeviceId;
         PortNumber pairLocalPort;
+        int pwRoutingLabel;
 
         public SegmentRouterInfo() {
             gatewayIps = HashMultimap.create();
@@ -113,6 +114,7 @@ public class DeviceConfiguration implements DeviceProperties {
             info.adjacencySids = config.adjacencySids();
             info.pairDeviceId = config.pairDeviceId();
             info.pairLocalPort = config.pairLocalPort();
+            info.pwRoutingLabel = info.ipv4NodeSid + 1000;
             deviceConfigMap.put(info.deviceId, info);
             log.debug("Read device config for device: {}", info.deviceId);
             /*
@@ -188,6 +190,7 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public int getIPv4SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        log.info("DEVICE MAP IS {}", deviceConfigMap);
         if (srinfo != null) {
             log.trace("getIPv4SegmentId for device{} is {}", deviceId, srinfo.ipv4NodeSid);
             return srinfo.ipv4NodeSid;
@@ -205,6 +208,18 @@ public class DeviceConfiguration implements DeviceProperties {
             return srinfo.ipv6NodeSid;
         } else {
             String message = "getIPv6SegmentId fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
+        }
+    }
+
+    @Override
+    public int getPWRoutingLabel(DeviceId deviceId) throws DeviceConfigNotFoundException {
+        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        if (srinfo != null) {
+            log.trace("pwRoutingLabel for device{} is {}", deviceId, srinfo.pwRoutingLabel);
+            return srinfo.pwRoutingLabel;
+        } else {
+            String message = "getPWRoutingLabel fails for device: " + deviceId + ".";
             throw new DeviceConfigNotFoundException(message);
         }
     }

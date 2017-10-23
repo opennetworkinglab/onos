@@ -20,7 +20,10 @@ package org.onosproject.segmentrouting.pwaas;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.Link;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -52,21 +55,19 @@ public class DefaultL2Tunnel {
      */
     private MplsLabel interCoLabel;
 
+    private List<Link> pathUsed;
+
     /**
      * Creates a inter-co l2 tunnel using the
      * supplied parameters.
      *
-     * @param mode the tunnel mode
-     * @param sdtag the service delimiting tag
-     * @param tunnelId the tunnel id
-     * @param pwLabel the pseudo wire label
+     * @param mode         the tunnel mode
+     * @param sdtag        the service delimiting tag
+     * @param tunnelId     the tunnel id
+     * @param pwLabel      the pseudo wire label
      * @param interCoLabel the inter central office label
      */
-    public DefaultL2Tunnel(L2Mode mode,
-                           VlanId sdtag,
-                           long tunnelId,
-                           MplsLabel pwLabel,
-                           MplsLabel interCoLabel) {
+    public DefaultL2Tunnel(L2Mode mode, VlanId sdtag, long tunnelId, MplsLabel pwLabel, MplsLabel interCoLabel) {
         checkNotNull(mode);
         checkArgument(tunnelId > 0);
         checkNotNull(pwLabel);
@@ -80,24 +81,36 @@ public class DefaultL2Tunnel {
     }
 
     /**
-     * Creates a intra-co l2 tunnel using the
-     * supplied parameters.
+     * Creates a l2Tunnel from a given tunnel.
      *
-     * @param mode the tunnel mode
-     * @param sdtag the service delimiting tag
-     * @param tunnelId the tunnel id
-     * @param pwLabel the pseudo wire label
+     * @param l2Tunnel to replicate
      */
-    public DefaultL2Tunnel(L2Mode mode,
-                           VlanId sdtag,
-                           long tunnelId,
-                           MplsLabel pwLabel) {
-        this(mode, sdtag, tunnelId, pwLabel, MplsLabel.mplsLabel(MplsLabel.MAX_MPLS));
+    public DefaultL2Tunnel(DefaultL2Tunnel l2Tunnel) {
+
+        this.pwMode = l2Tunnel.pwMode();
+        this.sdTag = l2Tunnel.sdTag();
+        this.tunnelId = l2Tunnel.tunnelId();
+        this.pwLabel = l2Tunnel.pwLabel();
+        this.interCoLabel = l2Tunnel.interCoLabel();
+        this.pathUsed = l2Tunnel.pathUsed();
     }
 
     /**
-     * Creates an empty l2 tunnel.
+     * Creates a intra-co l2 tunnel using the
+     * supplied parameters.
      *
+     * @param mode     the tunnel mode
+     * @param sdtag    the service delimiting tag
+     * @param tunnelId the tunnel id
+     * @param pwLabel  the pseudo wire label
+     */
+    public DefaultL2Tunnel(L2Mode mode, VlanId sdtag, long tunnelId, MplsLabel pwLabel) {
+        this(mode, sdtag, tunnelId, pwLabel, MplsLabel.mplsLabel(MplsLabel.MAX_MPLS));
+    }
+
+
+    /**
+     * Creates an empty l2 tunnel.
      **/
     public DefaultL2Tunnel() {
         this.pwMode = null;
@@ -142,6 +155,24 @@ public class DefaultL2Tunnel {
      */
     public MplsLabel pwLabel() {
         return pwLabel;
+    }
+
+    /**
+     * Set the path for the pseudowire.
+     *
+     * @param path The path to set
+     */
+    public void setPath(List<Link> path) {
+        pathUsed = new ArrayList<>(path);
+    }
+
+    /**
+     * Returns the used path of the pseudowire.
+     *
+     * @return pathUsed
+     */
+    public List<Link> pathUsed() {
+        return pathUsed;
     }
 
     /**

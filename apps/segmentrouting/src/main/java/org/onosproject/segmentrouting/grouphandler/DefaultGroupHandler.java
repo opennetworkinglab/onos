@@ -910,6 +910,7 @@ public class DefaultGroupHandler {
                                                       index));
                     foundSingleNeighbor = true;
                 }
+
                 for (PortNumber sp : neighborPorts) {
                     TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                             .builder();

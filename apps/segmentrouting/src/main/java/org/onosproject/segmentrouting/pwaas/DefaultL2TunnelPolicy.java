@@ -57,10 +57,6 @@ public class DefaultL2TunnelPolicy {
      * cP2 outer vlan tag.
      */
     private VlanId cP2OuterTag;
-    /**
-     * Boolean value to indicate if the pseudo wire is port based.
-     */
-    private boolean allVlan;
 
     /**
      * Creates a default l2 tunnel policy using
@@ -73,12 +69,10 @@ public class DefaultL2TunnelPolicy {
      * @param cP2 the second connect point
      * @param cP2InnerTag the cP2 inner tag
      * @param cP2OuterTag the cP2 outer tag
-     * @param allVlan if the tunnel is port based or not
      */
     public DefaultL2TunnelPolicy(long tunnelId,
                                  ConnectPoint cP1, VlanId cP1InnerTag, VlanId cP1OuterTag,
-                                 ConnectPoint cP2, VlanId cP2InnerTag, VlanId cP2OuterTag,
-                                 boolean allVlan) {
+                                 ConnectPoint cP2, VlanId cP2InnerTag, VlanId cP2OuterTag) {
         this.cP1 = checkNotNull(cP1);
         this.cP2 = checkNotNull(cP2);
         this.tunnelId = tunnelId;
@@ -86,7 +80,21 @@ public class DefaultL2TunnelPolicy {
         this.cP1OuterTag = cP1OuterTag;
         this.cP2InnerTag = cP2InnerTag;
         this.cP2OuterTag = cP2OuterTag;
-        this.allVlan = allVlan;
+    }
+
+    /**
+     * Creates a default l2 policy given the provided policy.
+     * @param policy L2policy to replicate
+     */
+    public DefaultL2TunnelPolicy(DefaultL2TunnelPolicy policy) {
+
+        this.cP1 = policy.cP1;
+        this.cP2 = policy.cP2;
+        this.tunnelId = policy.tunnelId;
+        this.cP1InnerTag = policy.cP1InnerTag;
+        this.cP1OuterTag = policy.cP1OuterTag;
+        this.cP2InnerTag = policy.cP2InnerTag;
+        this.cP2OuterTag = policy.cP2OuterTag;
     }
 
     /**
@@ -144,16 +152,6 @@ public class DefaultL2TunnelPolicy {
     }
 
     /**
-     * Return all vlan value.
-     *
-     * @return true, if the pw is port based. False if the traffic is sliced
-     *         through the inner and outer tags
-     */
-    public boolean isAllVlan() {
-        return allVlan;
-    }
-
-    /**
      * Returns the tunnel ID of the policy.
      *
      * @return Tunnel ID
@@ -170,8 +168,7 @@ public class DefaultL2TunnelPolicy {
                             cP1InnerTag,
                             cP1OuterTag,
                             cP2InnerTag,
-                            cP2OuterTag,
-                            allVlan
+                            cP2OuterTag
         );
     }
 
@@ -189,8 +186,7 @@ public class DefaultL2TunnelPolicy {
                     this.cP1InnerTag.equals(that.cP1InnerTag) &&
                     this.cP1OuterTag.equals(that.cP1OuterTag) &&
                     this.cP2InnerTag.equals(that.cP2InnerTag) &&
-                    this.cP2OuterTag.equals(that.cP2OuterTag) &&
-                    this.allVlan == that.allVlan) {
+                    this.cP2OuterTag.equals(that.cP2OuterTag)) {
                 return true;
             }
         }
@@ -208,7 +204,6 @@ public class DefaultL2TunnelPolicy {
                 .add("cP1OuterTag", cP1OuterTag())
                 .add("cP2InnerTag", cP2InnerTag())
                 .add("cP2OuterTag", cP2OuterTag())
-                .add("allVlan", isAllVlan())
                 .toString();
     }
 

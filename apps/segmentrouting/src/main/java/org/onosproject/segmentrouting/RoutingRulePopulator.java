@@ -589,15 +589,20 @@ public class RoutingRulePopulator {
             return false;
         }
         fwdObjs.addAll(fwdObjsMpls);
-        // Generates the transit rules used by the MPLS Pwaas. For now it is
-        // the only case !BoS supported.
-        /*
-        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
+
+        // Generates the transit rules used by the MPLS Pwaas.
+        int pwSrLabel;
+        try {
+            pwSrLabel = config.getPWRoutingLabel(destSwId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateMplsRule. No label for PseudoWire traffic.");
+            return false;
+        }
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, pwSrLabel, routerIp, false);
         if (fwdObjsMpls.isEmpty()) {
             return false;
         }
         fwdObjs.addAll(fwdObjsMpls);
-        */
 
         for (ForwardingObjective fwdObj : fwdObjs) {
             log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",

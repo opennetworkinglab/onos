@@ -1468,14 +1468,16 @@ public class Ofdpa2GroupHandler {
      *             this next objective
      */
     protected void removeGroup(NextObjective nextObjective, NextGroup next) {
+
         List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
 
         List<GroupKey> groupKeys = allActiveKeys.stream()
                 .map(Deque::getFirst).collect(Collectors.toList());
         addPendingRemoveNextObjective(nextObjective, groupKeys);
 
-        allActiveKeys.forEach(groupChain -> groupChain.forEach(groupKey ->
-                groupService.removeGroup(deviceId, groupKey, nextObjective.appId())));
+        allActiveKeys
+                .forEach(groupChain -> groupChain.forEach(groupKey -> groupService
+                        .removeGroup(deviceId, groupKey, nextObjective.appId())));
         flowObjectiveStore.removeNextGroup(nextObjective.id());
     }
 

@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -105,6 +106,8 @@ import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
@@ -429,7 +432,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         TunnelPolicy.class,
                         Policy.Type.class,
                         PortNextObjectiveStoreKey.class,
-                        XConnectStoreKey.class
+                        XConnectStoreKey.class,
+                        DefaultL2Tunnel.class,
+                        DefaultL2TunnelPolicy.class
                 );
     }
 
@@ -501,6 +506,67 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public List<Policy> getPolicies() {
         return policyHandler.getPolicies();
+    }
+
+    @Override
+    public List<DefaultL2Tunnel> getL2Tunnels() {
+        return l2TunnelHandler.getL2Tunnels();
+    }
+
+    @Override
+    public List<DefaultL2TunnelPolicy> getL2Policies() {
+        return l2TunnelHandler.getL2Policies();
+    }
+
+    @Override
+    public L2TunnelHandler.Result addPseudowire(String tunnelId, String pwLabel, String cP1,
+                                         String cP1InnerVlan, String cP1OuterVlan, String cP2,
+                                         String cP2InnerVlan, String cP2OuterVlan,
+                                         String mode, String sdTag) {
+
+        PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
+        if (config == null) {
+            log.warn("Configuration for Pwaas class could not be found!");
+            return L2TunnelHandler.Result.CONFIG_NOT_FOUND;
+        }
+
+        ObjectNode object = config.addPseudowire(tunnelId, pwLabel,
+                                                 cP1, cP1InnerVlan, cP1OuterVlan,
+                                                 cP2, cP2InnerVlan, cP2OuterVlan,
+                                                 mode, sdTag);
+        if (object == null) {
+            log.warn("Could not add pseudowire to the configuration!");
+            return L2TunnelHandler.Result.ADDITION_ERROR;
+        }
+
+        // inform everyone about the valid change in the pw configuration
+        cfgService.applyConfig(appId(), PwaasConfig.class, object);
+        return L2TunnelHandler.Result.SUCCESS;
+    }
+
+    @Override
+    public L2TunnelHandler.Result removePseudowire(String pwId) {
+
+        PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
+        if (config == null) {
+            log.warn("Configuration for Pwaas class could not be found!");
+            return L2TunnelHandler.Result.CONFIG_NOT_FOUND;
+        }
+
+        ObjectNode object = config.removePseudowire(pwId);
+        if (object == null) {
+            log.warn("Could not delete pseudowire from configuration!");
+            return L2TunnelHandler.Result.REMOVAL_ERROR;
+        }
+
+        // sanity check, this should never fail since we removed a pw
+        // and we always check when we update the configuration
+        config.isValid();
+
+        // inform everyone
+        cfgService.applyConfig(appId(), PwaasConfig.class, object);
+
+        return L2TunnelHandler.Result.SUCCESS;
     }
 
     @Override
@@ -711,7 +777,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param cp connect point
      * @return true if current instance is the master of given connect point
      */
-    boolean isMasterOf(ConnectPoint cp) {
+    public boolean isMasterOf(ConnectPoint cp) {
         boolean isMaster = mastershipService.isLocalMaster(cp.deviceId());
         if (!isMaster) {
             log.debug(NOT_MASTER, cp);
@@ -1244,6 +1310,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
 
         mcastHandler.processLinkDown(link);
+        l2TunnelHandler.processLinkDown(link);
     }
 
     private void processDeviceAdded(Device device) {
