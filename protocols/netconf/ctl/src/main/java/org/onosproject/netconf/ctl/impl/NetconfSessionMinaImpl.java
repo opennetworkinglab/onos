@@ -409,6 +409,8 @@ public class NetconfSessionMinaImpl implements NetconfSession {
                 log.debug("Trying to reopen the channel with {}", deviceInfo.getDeviceId());
                 cleanUp();
                 openChannel();
+            } else {
+                return;
             }
             if (subscriptionConnected) {
                 log.debug("Restarting subscription with {}", deviceInfo.getDeviceId());
