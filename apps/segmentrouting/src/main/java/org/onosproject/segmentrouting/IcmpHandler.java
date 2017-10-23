@@ -203,27 +203,31 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
     public void processIcmpv6(Ethernet eth, ConnectPoint inPort) {
         DeviceId deviceId = inPort.deviceId();
         IPv6 ipv6Packet = (IPv6) eth.getPayload();
+        ICMP6 icmp6 = (ICMP6) ipv6Packet.getPayload();
         Ip6Address destinationAddress = Ip6Address.valueOf(ipv6Packet.getDestinationAddress());
         Set<IpAddress> gatewayIpAddresses = config.getPortIPs(deviceId);
-        MacAddress interfaceMac;
         IpAddress routerIp;
+
+        // Only proceed with echo request
+        if (icmp6.getIcmpType() != ICMP6.ECHO_REQUEST) {
+            return;
+        }
 
         try {
             routerIp = config.getRouterIpv6(deviceId);
-            Optional<MacAddress> macAddress = srManager.interfaceService.getInterfacesByPort(inPort).stream()
-                    .map(Interface::mac)
-                    .findFirst();
-            if (!macAddress.isPresent()) {
-                log.warn("Failed in fetching MAC address of {}. Aborting ICMP6 processing.", inPort);
-                return;
-            }
-            interfaceMac = MacAddress.valueOf(macAddress.get().toBytes());
 
-            // Ensure ICMP to the router IP, gateway IP or link-local EUI-64
-            ICMP6 icmp6 = (ICMP6) ipv6Packet.getPayload();
-            if (icmp6.getIcmpType() == ICMP6.ECHO_REQUEST && (destinationAddress.equals(routerIp.getIp6Address()) ||
-                    destinationAddress.equals(Ip6Address.valueOf(IPv6.getLinkLocalAddress(interfaceMac.toBytes()))) ||
-                    gatewayIpAddresses.contains(destinationAddress))) {
+            Optional<Ip6Address> linkLocalIp = srManager.interfaceService.getInterfacesByPort(inPort)
+                    .stream()
+                    .map(Interface::mac)
+                    .map(MacAddress::toBytes)
+                    .map(IPv6::getLinkLocalAddress)
+                    .map(Ip6Address::valueOf)
+                    .findFirst();
+
+            // Ensure ICMP to the router IP, EUI-64 link-local IP, or gateway IP
+            if (destinationAddress.equals(routerIp.getIp6Address()) ||
+                    (linkLocalIp.isPresent() && destinationAddress.equals(linkLocalIp.get())) ||
+                    gatewayIpAddresses.contains(destinationAddress)) {
                 sendIcmpv6Response(eth, inPort);
             } else {
                 log.trace("Ignore ICMPv6 that targets for {}", destinationAddress);
@@ -330,17 +334,16 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
             // Process NDP targets towards EUI-64 address.
             try {
                 DeviceId deviceId = pkt.inPort().deviceId();
-                Optional<MacAddress> macAddress = srManager.interfaceService.getInterfacesByPort(pkt.inPort())
+
+                Optional<Ip6Address> linkLocalIp = srManager.interfaceService.getInterfacesByPort(pkt.inPort())
                         .stream()
                         .map(Interface::mac)
+                        .map(MacAddress::toBytes)
+                        .map(IPv6::getLinkLocalAddress)
+                        .map(Ip6Address::valueOf)
                         .findFirst();
-                if (!macAddress.isPresent()) {
-                    log.warn("Failed in fetching MAC address of {}. Aborting NDP processing.", pkt.inPort());
-                    return;
-                }
-                MacAddress interfaceMac = MacAddress.valueOf(macAddress.get().toBytes());
-                Ip6Address interfaceLinkLocalIP = Ip6Address.valueOf(IPv6.getLinkLocalAddress(interfaceMac.toBytes()));
-                if (pkt.target().equals(interfaceLinkLocalIP)) {
+
+                if (linkLocalIp.isPresent() && pkt.target().equals(linkLocalIp.get())) {
                     MacAddress routerMac = config.getDeviceMac(deviceId);
                     sendResponse(pkt, routerMac, hostService);
                 }
