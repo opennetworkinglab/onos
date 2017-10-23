@@ -33,6 +33,8 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.Port;
+import org.onosproject.net.behaviour.PortAdmin;
 import org.onosproject.net.config.ConfigException;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
@@ -49,6 +51,7 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceEvent;
@@ -83,6 +86,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -353,7 +357,36 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
-        // TODO if required
+        Device device = deviceService.getDevice(deviceId);
+        if (mastershipService.isLocalMaster(deviceId)) {
+            if (device.is(PortAdmin.class)) {
+                PortAdmin portAdmin =
+                        device.as(PortAdmin.class);
+                CompletableFuture<Boolean> modified;
+                if (enable) {
+                    modified = portAdmin.enable(portNumber);
+                } else {
+                    modified = portAdmin.disable(portNumber);
+                }
+                modified.thenAccept(result -> {
+                    if (result) {
+                        Port port = deviceService.getPort(deviceId, portNumber);
+                        //rebuilding port description with admin state changed.
+                        providerService.portStatusChanged(deviceId,
+                                new DefaultPortDescription(portNumber, enable, false,
+                                        port.type(), port.portSpeed(),
+                                        (SparseAnnotations) port.annotations()));
+                    } else {
+                        log.warn("Your device {} port {} status can't be changed to {}",
+                                deviceId, portNumber, enable);
+                    }
+                });
+            } else {
+                log.warn("Device {} does not support Port Admin", deviceId);
+            }
+        } else {
+            log.debug("Not master but {}, not changing port state", mastershipService.getLocalRole(deviceId));
+        }
     }
 
     private class InnerNetconfDeviceListener implements NetconfDeviceListener {
