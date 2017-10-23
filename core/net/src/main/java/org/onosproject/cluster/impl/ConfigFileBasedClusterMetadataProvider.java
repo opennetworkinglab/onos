@@ -181,13 +181,17 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private Versioned<ClusterMetadata> blockForMetadata(String metadataUrl) {
         int iterations = 0;
         for (;;) {
-            Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);
-            if (metadata != null) {
-                return metadata;
+            try {
+                Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);
+                if (metadata != null) {
+                    return metadata;
+                }
+            } catch (Exception e) {
+                log.warn("Exception attempting to access metadata file at {}: {}", metadataUrl, e);
             }
 
             try {
-                Thread.sleep(Math.min((int) Math.pow(2, ++iterations) * 10, 1000));
+                Thread.sleep((int) Math.pow(2, iterations < 7 ? ++iterations : iterations) * 10);
             } catch (InterruptedException e) {
                 throw Throwables.propagate(e);
             }
