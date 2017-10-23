@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "powerConfigSupported",
+  "required": [
+    "powerConfigSupported"
+  ],
+  "properties": {
+    "powerConfigSupported": {
+      "type": "boolean",
+      "example": true
+    }
+  }
+}

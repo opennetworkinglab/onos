@@ -208,9 +208,9 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
                 .append(xmlOpen(KEY_PORT))
                 .append(xml(KEY_PORTID, Long.toString(port.toLong())))
                 .append(xml(KEY_ATTEN_MODE, VALUE_ATTEN_MODE))
-                .append(xml(KEY_ATTEN_LEVEL, Long.toString(power)))
+                .append(xml(KEY_ATTEN_LEVEL, Double.toString((double) power / VOA_MULTIPLIER)))
                 .append(xmlClose(KEY_PORT))
-                .append(xmlClose(KEY_VOA_XMLNS))
+                .append(xmlClose(KEY_VOA))
                 .toString();
         return netconfEditConfig(handler(), CFG_MODE_MERGE, cfg);
     }

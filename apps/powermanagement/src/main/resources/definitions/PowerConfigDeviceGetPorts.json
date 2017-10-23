@@ -1,0 +1,38 @@
+{
+  "type": "object",
+  "title": "powerConfigPorts",
+  "additionalProperties": {
+    "type": "object",
+    "title": "powerConfigPort",
+    "additionalProperties": {
+      "type": "object",
+      "title": "powerConfigComponent",
+      "required": [
+        "currentPower",
+        "targetPower",
+        "inputPowerRange",
+        "targetPowerRange"
+      ],
+      "properties": {
+        "currentPower": {
+          "type": "integer",
+          "format": "int64",
+          "example": -755
+        },
+        "targetPower": {
+          "type": "integer",
+          "format": "int64",
+          "example": -800
+        },
+        "inputPowerRange": {
+          "type": "string",
+          "example": "[-6000..2800]"
+        },
+        "targetPowerRange": {
+          "type": "string",
+          "example": "[-6000..2800]"
+        }
+      }
+    }
+  }
+}

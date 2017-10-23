@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "title": "powerConfigPut",
+  "required": [
+    "powerConfigDevices"
+  ],
+  "properties": {
+    "powerConfigDevices": {
+      "type": "object",
+      "title": "powerConfigDevicePut",
+      "additionalProperties": {
+        "type": "object",
+        "title": "powerConfigPortPut",
+        "additionalProperties": {
+          "type": "object",
+          "title": "powerConfigComponentPut",
+          "required": [
+            "targetPower"
+          ],
+          "properties": {
+            "targetPower": {
+              "type": "integer",
+              "format": "int64",
+              "example": -1000
+            }
+          }
+        }
+      }
+    }
+  }
+}
