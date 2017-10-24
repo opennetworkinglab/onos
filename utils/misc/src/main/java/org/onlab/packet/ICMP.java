@@ -236,6 +236,7 @@ public class ICMP extends BasePacket {
         ipReply.setDestinationAddress(ipRequest.getSourceAddress());
         ipReply.setSourceAddress(destAddress);
         ipReply.setTtl((byte) 64);
+        ipReply.setDiffServ(ipRequest.getDiffServ());
         ipReply.setChecksum((short) 0);
         ipReply.setProtocol(IPv4.PROTOCOL_ICMP);
 

@@ -375,6 +375,7 @@ public class ICMP6 extends BasePacket {
         ipv6Reply.setDestinationAddress(ipv6Request.getSourceAddress());
         ipv6Reply.setSourceAddress(destAddress);
         ipv6Reply.setHopLimit((byte) 64);
+        ipv6Reply.setTrafficClass(ipv6Request.getTrafficClass());
         ipv6Reply.setNextHeader(IPv6.PROTOCOL_ICMP6);
 
         ICMP6 icmpv6Reply = new ICMP6();
