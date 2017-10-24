@@ -184,11 +184,7 @@
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">
     </driver>
-    <driver name="hp" extends="default"
-            manufacturer="HP" hwVersion="Switch 3500yl-48G" swVersion="K.16.01.0004">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.HpPipeline"/>
-    </driver>
+
     <!-- The abstract driver is meant as a base driver containing classes that are
        ~ present in the default drivers module. These classes are needed by other
        ~ drivers but not loaded by any of the base ones.

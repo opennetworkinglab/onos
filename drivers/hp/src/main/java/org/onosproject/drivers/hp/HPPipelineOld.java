@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.pipeline;
+package org.onosproject.drivers.hp;
 
 
 import org.onlab.osgi.ServiceDirectory;
@@ -48,7 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  *  Driver for Hp. Default table starts from 200.
  */
-public class HpPipeline extends AbstractHandlerBehaviour implements Pipeliner {
+public class HPPipelineOld extends AbstractHandlerBehaviour implements Pipeliner {
 
 
     private final Logger log = getLogger(getClass());

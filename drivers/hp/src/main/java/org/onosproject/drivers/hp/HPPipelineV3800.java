@@ -38,6 +38,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Driver for HP3800 hybrid switches.
  */
 public class HPPipelineV3800 extends AbstractHPPipeline {
+    // FIXME: This class should probably be renamed not to imply it applies for the 3800 series solely.
 
     private static final int HP_TABLE_ZERO = 0;
     private static final int HP_HARDWARE_TABLE = 100;
