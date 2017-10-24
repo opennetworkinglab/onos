@@ -15,20 +15,21 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,9 +39,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class EventuallyConsistentMapBuilderImpl<K, V>
         implements EventuallyConsistentMapBuilder<K, V> {
-    private final ClusterService clusterService;
     private final ClusterCommunicationService clusterCommunicator;
 
+    private NodeId localNodeId;
     private String name;
     private KryoNamespace serializer;
     private KryoNamespace.Builder serializerBuilder;
@@ -56,21 +57,29 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     private boolean persistent = false;
     private boolean persistentMap = false;
     private final PersistenceService persistenceService;
+    private Supplier<List<NodeId>> peersSupplier;
+    private Supplier<List<NodeId>> bootstrapPeersSupplier;
 
     /**
      * Creates a new eventually consistent map builder.
-     *
-     * @param clusterService cluster service
-     * @param clusterCommunicator cluster communication service
-     * @param persistenceService persistence service
+     * @param localNodeId               local node id
+     * @param clusterCommunicator       cluster communication service
+     * @param persistenceService        persistence service
+     * @param peersSupplier             supplier for peers
+     * @param bootstrapPeersSupplier    supplier for peers for bootstrap
      */
     public EventuallyConsistentMapBuilderImpl(
-            ClusterService clusterService,
+            NodeId localNodeId,
             ClusterCommunicationService clusterCommunicator,
-            PersistenceService persistenceService) {
+            PersistenceService persistenceService,
+            Supplier<List<NodeId>> peersSupplier,
+            Supplier<List<NodeId>> bootstrapPeersSupplier
+    ) {
+        this.localNodeId = localNodeId;
         this.persistenceService = persistenceService;
-        this.clusterService = checkNotNull(clusterService);
         this.clusterCommunicator = checkNotNull(clusterCommunicator);
+        this.peersSupplier = peersSupplier;
+        this.bootstrapPeersSupplier = bootstrapPeersSupplier;
     }
 
     @Override
@@ -160,21 +169,26 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
             serializer = serializerBuilder.build(name);
         }
         checkNotNull(serializer, "serializer is a mandatory parameter");
+        checkNotNull(localNodeId, "local node id cannot be null");
 
-        return new EventuallyConsistentMapImpl<>(name,
-                                                 clusterService,
-                                                 clusterCommunicator,
-                                                 serializer,
-                                                 timestampProvider,
-                                                 peerUpdateFunction,
-                                                 eventExecutor,
-                                                 communicationExecutor,
-                                                 backgroundExecutor,
-                                                 tombstonesDisabled,
-                                                 antiEntropyPeriod,
-                                                 antiEntropyTimeUnit,
-                                                 convergeFaster,
-                                                 persistent,
-                                                 persistenceService);
+        return new EventuallyConsistentMapImpl<>(
+                localNodeId,
+                name,
+                clusterCommunicator,
+                serializer,
+                timestampProvider,
+                peerUpdateFunction,
+                eventExecutor,
+                communicationExecutor,
+                backgroundExecutor,
+                tombstonesDisabled,
+                antiEntropyPeriod,
+                antiEntropyTimeUnit,
+                convergeFaster,
+                persistent,
+                persistenceService,
+                peersSupplier,
+                bootstrapPeersSupplier
+        );
     }
 }

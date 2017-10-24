@@ -45,13 +45,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -66,9 +68,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
@@ -79,7 +78,6 @@ public class EventuallyConsistentMapImplTest {
     private EventuallyConsistentMap<String, String> ecMap;
 
     private PersistenceService persistenceService;
-    private ClusterService clusterService;
     private ClusterCommunicationService clusterCommunicator;
     private SequentialClockService<String, String> clockService;
 
@@ -106,14 +104,10 @@ public class EventuallyConsistentMapImplTest {
     private Consumer<Collection<UpdateEntry<String, String>>> updateHandler;
     private Consumer<Collection<UpdateRequest<String>>> requestHandler;
     private Function<AntiEntropyAdvertisement<String>, AntiEntropyResponse> antiEntropyHandler;
+    private Supplier<List<NodeId>> peersHandler = ArrayList::new;
 
     @Before
     public void setUp() throws Exception {
-        clusterService = createMock(ClusterService.class);
-        expect(clusterService.getLocalNode()).andReturn(self).anyTimes();
-        expect(clusterService.getNodes()).andReturn(ImmutableSet.of(self)).anyTimes();
-        replay(clusterService);
-
         clusterCommunicator = createMock(ClusterCommunicationService.class);
 
         persistenceService = new TestPersistenceService();
@@ -154,7 +148,12 @@ public class EventuallyConsistentMapImplTest {
                 .register(TestTimestamp.class);
 
         ecMap = new EventuallyConsistentMapBuilderImpl<String, String>(
-                        clusterService, clusterCommunicator, persistenceService)
+                NodeId.nodeId("0"),
+                clusterCommunicator,
+                persistenceService,
+                peersHandler,
+                peersHandler
+                )
                 .withName(MAP_NAME)
                 .withSerializer(serializer)
                 .withTimestampProvider((k, v) -> clockService.getTimestamp(k, v))

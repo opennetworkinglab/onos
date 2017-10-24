@@ -15,10 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import java.io.File;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultPartition;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
@@ -54,6 +51,11 @@ import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.slf4j.Logger;
+
+import java.io.File;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
@@ -109,9 +111,28 @@ public class CoordinationManager implements CoordinationService {
     @Override
     public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new EventuallyConsistentMapBuilderImpl<>(clusterService,
+        final NodeId localNodeId = clusterService.getLocalNode().id();
+
+        Supplier<List<NodeId>> peersSupplier = () -> clusterService.getNodes().stream()
+                .map(ControllerNode::id)
+                .filter(nodeId -> !nodeId.equals(localNodeId))
+                .filter(id -> clusterService.getState(id).isActive())
+                .collect(Collectors.toList());
+
+        Supplier<List<NodeId>> bootstrapPeersSupplier = () -> clusterService.getNodes()
+                .stream()
+                .map(ControllerNode::id)
+                .filter(id -> !localNodeId.equals(id))
+                .filter(id -> clusterService.getState(id).isActive())
+                .collect(Collectors.toList());
+
+        return new EventuallyConsistentMapBuilderImpl<>(
+                localNodeId,
                 clusterCommunicator,
-                persistenceService);
+                persistenceService,
+                peersSupplier,
+                bootstrapPeersSupplier
+        );
     }
 
     @Override
@@ -146,7 +167,7 @@ public class CoordinationManager implements CoordinationService {
     @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultDistributedSetBuilder<>(() -> this.<E, Boolean>consistentMapBuilder());
+        return new DefaultDistributedSetBuilder<>(this::<E, Boolean>consistentMapBuilder);
     }
 
     @Override
