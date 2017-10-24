@@ -22,6 +22,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
+import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.packet.PacketContext;
 
@@ -161,4 +162,11 @@ public interface DhcpHandler {
      * @param configs the config
      */
     void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs);
+
+    /**
+     * Push IgnoreDhcpConfig to the handler.
+     *
+     * @param config the config
+     */
+    void updateIgnoreVlanConfig(IgnoreDhcpConfig config);
 }

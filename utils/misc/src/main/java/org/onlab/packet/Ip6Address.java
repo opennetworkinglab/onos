@@ -32,6 +32,19 @@ public final class Ip6Address extends IpAddress {
     public static final int BIT_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
     /**
+     * A link-scoped multicast address used by a DHCP client to communicate with
+     * neighboring DHCP relay agents and servers. (RFC 3315)
+     */
+    public static final Ip6Address ALL_DHCP_RELAY_AGENTS_AND_SERVERS =
+            Ip6Address.valueOf("ff02::1:2");
+    /**
+     * A site-scoped multicast address used by a DHCP relay agent to
+     * communicate with DHCP servers. (RFC 3315)
+     */
+    public static final Ip6Address ALL_DHCP_SERVERS =
+            Ip6Address.valueOf("ff05::1:3");
+
+    /**
      * All-zero unspecified IPv6 address.
      */
     public static final Ip6Address ZERO = Ip6Address.valueOf("::");

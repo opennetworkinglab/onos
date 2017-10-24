@@ -27,6 +27,9 @@ import org.onosproject.net.ConnectPoint;
 
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * DHCP server configuration.
  */
@@ -100,6 +103,11 @@ public class DhcpServerConfig {
                 }
             });
         }
+
+        checkNotNull(connectPoint, "Connect point of DHCP server can't be null");
+        checkState(serverIp4Addr != null || serverIp6Addr != null,
+                   "Should exist at least one server IP for DHCPv4 or DHCPv6");
+
     }
 
     /**
