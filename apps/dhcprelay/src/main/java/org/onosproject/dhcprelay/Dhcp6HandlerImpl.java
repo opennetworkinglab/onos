@@ -17,7 +17,9 @@
 
 package org.onosproject.dhcprelay;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import com.google.common.collect.Sets;
@@ -35,6 +37,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.dhcp.Dhcp6RelayOption;
@@ -46,9 +49,24 @@ import org.onlab.packet.dhcp.Dhcp6IaPdOption;
 import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
 import org.onlab.packet.dhcp.Dhcp6IaPrefixOption;
 import org.onlab.util.HexString;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
+import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
@@ -60,6 +78,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteStore;
@@ -84,11 +103,13 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
+import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 
 @Component
 @Service
@@ -96,6 +117,26 @@ import static com.google.common.base.Preconditions.checkState;
 public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     public static final String DHCP_V6_RELAY_APP = "org.onosproject.Dhcp6HandlerImpl";
     public static final ProviderId PROVIDER_ID = new ProviderId("dhcp6", DHCP_V6_RELAY_APP);
+    private static final int IGNORE_CONTROL_PRIORITY = PacketPriority.CONTROL.priorityValue() + 1000;
+
+    private static final TrafficSelector CLIENT_SERVER_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV6)
+            .matchIPProtocol(IPv6.PROTOCOL_UDP)
+            .matchIPv6Src(IpPrefix.IPV6_LINK_LOCAL_PREFIX)
+            .matchIPv6Dst(Ip6Address.ALL_DHCP_RELAY_AGENTS_AND_SERVERS.toIpPrefix())
+            .matchUdpSrc(TpPort.tpPort(UDP.DHCP_V6_CLIENT_PORT))
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
+            .build();
+    private static final TrafficSelector SERVER_RELAY_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV6)
+            .matchIPProtocol(IPv6.PROTOCOL_UDP)
+            .matchUdpSrc(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
+            .build();
+    static final Set<TrafficSelector> DHCP_SELECTORS = ImmutableSet.of(
+            CLIENT_SERVER_SELECTOR,
+            SERVER_RELAY_SELECTOR
+    );
     private static Logger log = LoggerFactory.getLogger(Dhcp6HandlerImpl.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -116,8 +157,20 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry providerRegistry;
 
-    private InternalHostListener hostListener = new InternalHostListener();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
     protected HostProviderService providerService;
+    protected ApplicationId appId;
+    protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
+    private InternalHostListener hostListener = new InternalHostListener();
+
     private Ip6Address dhcpServerIp = null;
     // dhcp server may be connected directly to the SDN network or
     // via an external gateway. When connected directly, the dhcpConnectPoint, dhcpConnectMac,
@@ -156,6 +209,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
     @Activate
     protected void activate() {
+        appId = coreService.registerApplication(DHCP_V6_RELAY_APP);
         providerService = providerRegistry.register(this);
         hostService.addListener(hostListener);
     }
@@ -187,6 +241,30 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     @Override
     public List<DhcpServerInfo> getIndirectDhcpServerInfoList() {
         return indirectServerInfoList;
+    }
+
+    @Override
+    public void updateIgnoreVlanConfig(IgnoreDhcpConfig config) {
+        if (config == null) {
+            ignoredVlans.forEach(((deviceId, vlanId) -> {
+                processIgnoreVlanRule(deviceId, vlanId, REMOVE);
+            }));
+            return;
+        }
+        config.ignoredVlans().forEach((deviceId, vlanId) -> {
+            if (ignoredVlans.get(deviceId).contains(vlanId)) {
+                // don't need to process if it already ignored
+                return;
+            }
+            processIgnoreVlanRule(deviceId, vlanId, ADD);
+        });
+
+        ignoredVlans.forEach((deviceId, vlanId) -> {
+            if (!config.ignoredVlans().get(deviceId).contains(vlanId)) {
+                // not contains in new config, remove it
+                processIgnoreVlanRule(deviceId, vlanId, REMOVE);
+            }
+        });
     }
 
     @Override
@@ -1053,6 +1131,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             });
             oldServerInfo.getDhcpServerIp6().ifPresent(serverIp -> {
                 hostService.stopMonitoringIp(serverIp);
+                cancelDhcpPacket(serverIp);
             });
         }
 
@@ -1067,7 +1146,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         log.debug("DHCP server connect point: {}", newServerInfo.getDhcpServerConnectPoint().orElse(null));
         log.debug("DHCP server IP: {}", newServerInfo.getDhcpServerIp6().orElse(null));
 
-        IpAddress ipToProbe;
+        Ip6Address serverIp = newServerInfo.getDhcpServerIp6().get();
+        Ip6Address ipToProbe;
         if (newServerInfo.getDhcpGatewayIp6().isPresent()) {
             ipToProbe = newServerInfo.getDhcpGatewayIp6().get();
         } else {
@@ -1093,6 +1173,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         nonDupServerInfoList.addAll(serverInfoList);
         serverInfoList.clear();
         serverInfoList.addAll(nonDupServerInfoList);
+        requestDhcpPacket(serverIp);
     }
 
     class InternalHostListener implements HostListener {
@@ -1106,79 +1187,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 case HOST_REMOVED:
                     hostRemoved(event.subject());
                     break;
-                case HOST_MOVED:
-                    hostMoved(event.subject());
-                    break;
                 default:
                     break;
             }
         }
-    }
-
-    /**
-     * Handle host move.
-     * If the host DHCP server or gateway and it moved to the location different
-     * to user configured, unsets the connect mac and vlan
-     *
-     * @param host the host
-     */
-    private void hostMoved(Host host) {
-        Set<ConnectPoint> hostConnectPoints = host.locations().stream()
-                .map(hl -> new ConnectPoint(hl.elementId(), hl.port()))
-                .collect(Collectors.toSet());
-        DhcpServerInfo serverInfo;
-        ConnectPoint dhcpServerConnectPoint;
-        Ip6Address dhcpGatewayIp;
-        Ip6Address dhcpServerIp;
-
-        if (!defaultServerInfoList.isEmpty()) {
-            serverInfo = defaultServerInfoList.get(0);
-            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            if (dhcpServerConnectPoint == null) {
-                return;
-            }
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp) &&
-                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp) &&
-                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-        }
-
-        if (!indirectServerInfoList.isEmpty()) {
-            serverInfo = indirectServerInfoList.get(0);
-            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            if (dhcpServerConnectPoint == null) {
-                return;
-            }
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp) &&
-                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp) &&
-                        !hostConnectPoints.contains(dhcpServerConnectPoint)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-        }
-        reloadServerSettings();
     }
 
     /**
@@ -1188,45 +1200,31 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param host the host
      */
     private void hostUpdated(Host host) {
-        DhcpServerInfo serverInfo;
-        Ip6Address dhcpGatewayIp;
-        Ip6Address dhcpServerIp;
-        if (!defaultServerInfoList.isEmpty()) {
-            serverInfo = defaultServerInfoList.get(0);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp)) {
-                    serverInfo.setDhcpConnectMac(host.mac());
-                    serverInfo.setDhcpConnectVlan(host.vlan());
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp)) {
-                    serverInfo.setDhcpConnectMac(host.mac());
-                    serverInfo.setDhcpConnectVlan(host.vlan());
-                }
-            }
-        }
-
-        if (!indirectServerInfoList.isEmpty()) {
-            serverInfo = indirectServerInfoList.get(0);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp)) {
-                    serverInfo.setDhcpConnectMac(host.mac());
-                    serverInfo.setDhcpConnectVlan(host.vlan());
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp)) {
-                    serverInfo.setDhcpConnectMac(host.mac());
-                    serverInfo.setDhcpConnectVlan(host.vlan());
-                }
-            }
-        }
+        hostUpdated(host, defaultServerInfoList);
+        hostUpdated(host, indirectServerInfoList);
         reloadServerSettings();
+    }
+
+    private void hostUpdated(Host host, List<DhcpServerInfo> serverInfoList) {
+        DhcpServerInfo serverInfo;
+        Ip6Address targetIp;
+        if (!serverInfoList.isEmpty()) {
+            serverInfo = serverInfoList.get(0);
+            Ip6Address serverIp = serverInfo.getDhcpServerIp6().orElse(null);
+            targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+
+            if (targetIp == null) {
+                targetIp = serverIp;
+            }
+
+            if (targetIp != null) {
+                if (host.ipAddresses().contains(targetIp)) {
+                    serverInfo.setDhcpConnectMac(host.mac());
+                    serverInfo.setDhcpConnectVlan(host.vlan());
+                    requestDhcpPacket(serverIp);
+                }
+            }
+        }
     }
 
     /**
@@ -1236,48 +1234,32 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param host the host
      */
     private void hostRemoved(Host host) {
-        DhcpServerInfo serverInfo;
-        Ip6Address dhcpGatewayIp;
-        Ip6Address dhcpServerIp;
-
-        if (!defaultServerInfoList.isEmpty()) {
-            serverInfo = defaultServerInfoList.get(0);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-        }
-
-        if (!indirectServerInfoList.isEmpty()) {
-            serverInfo = indirectServerInfoList.get(0);
-            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-
-            if (dhcpGatewayIp != null) {
-                if (host.ipAddresses().contains(dhcpGatewayIp)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-            if (dhcpServerIp != null) {
-                if (host.ipAddresses().contains(dhcpServerIp)) {
-                    serverInfo.setDhcpConnectVlan(null);
-                    serverInfo.setDhcpConnectMac(null);
-                }
-            }
-        }
+        hostRemoved(host, defaultServerInfoList);
+        hostRemoved(host, indirectServerInfoList);
         reloadServerSettings();
+    }
+
+    private void hostRemoved(Host host, List<DhcpServerInfo> serverInfoList) {
+        DhcpServerInfo serverInfo;
+        Ip6Address targetIp;
+
+        if (!serverInfoList.isEmpty()) {
+            serverInfo = serverInfoList.get(0);
+            Ip6Address serverIp = serverInfo.getDhcpServerIp6().orElse(null);
+            targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+
+            if (targetIp == null) {
+                targetIp = serverIp;
+            }
+
+            if (targetIp != null) {
+                if (host.ipAddresses().contains(targetIp)) {
+                    serverInfo.setDhcpConnectVlan(null);
+                    serverInfo.setDhcpConnectMac(null);
+                    cancelDhcpPacket(serverIp);
+                }
+            }
+        }
     }
 
     private void reloadServerSettings() {
@@ -1369,4 +1351,139 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         return iface.vlanTagged().contains(vlanId);
     }
 
+    private void requestDhcpPacket(Ip6Address serverIp) {
+        requestServerDhcpPacket(serverIp);
+        requestClientDhcpPacket(serverIp);
+    }
+
+    private void cancelDhcpPacket(Ip6Address serverIp) {
+        cancelServerDhcpPacket(serverIp);
+        cancelClientDhcpPacket(serverIp);
+    }
+
+    private void cancelServerDhcpPacket(Ip6Address serverIp) {
+        TrafficSelector serverSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Src(serverIp.toIpPrefix())
+                        .build();
+        packetService.cancelPackets(serverSelector,
+                                    PacketPriority.CONTROL,
+                                    appId);
+    }
+
+    private void requestServerDhcpPacket(Ip6Address serverIp) {
+        TrafficSelector serverSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Src(serverIp.toIpPrefix())
+                        .build();
+        packetService.requestPackets(serverSelector,
+                                     PacketPriority.CONTROL,
+                                     appId);
+    }
+
+    private void cancelClientDhcpPacket(Ip6Address serverIp) {
+        // Packet comes from relay
+        TrafficSelector indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(serverIp.toIpPrefix())
+                        .build();
+        packetService.cancelPackets(indirectClientSelector,
+                                    PacketPriority.CONTROL,
+                                    appId);
+
+        // Packet comes from client
+        packetService.cancelPackets(CLIENT_SERVER_SELECTOR,
+                                    PacketPriority.CONTROL,
+                                    appId);
+    }
+
+    private void requestClientDhcpPacket(Ip6Address serverIp) {
+        // Packet comes from relay
+        TrafficSelector indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(serverIp.toIpPrefix())
+                        .build();
+        packetService.requestPackets(indirectClientSelector,
+                                     PacketPriority.CONTROL,
+                                     appId);
+
+        // Packet comes from client
+        packetService.requestPackets(CLIENT_SERVER_SELECTOR,
+                                     PacketPriority.CONTROL,
+                                     appId);
+    }
+
+    /**
+     * Process the ignore rules.
+     *
+     * @param deviceId the device id
+     * @param vlanId the vlan to be ignored
+     * @param op the operation, ADD to install; REMOVE to uninstall rules
+     */
+    private void processIgnoreVlanRule(DeviceId deviceId, VlanId vlanId, Objective.Operation op) {
+        TrafficTreatment dropTreatment = DefaultTrafficTreatment.builder().wipeDeferred().build();
+        AtomicInteger installedCount = new AtomicInteger(DHCP_SELECTORS.size());
+        DHCP_SELECTORS.forEach(trafficSelector -> {
+            TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
+                    .matchVlanId(vlanId)
+                    .build();
+
+            ForwardingObjective.Builder builder = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .withSelector(selector)
+                    .withPriority(IGNORE_CONTROL_PRIORITY)
+                    .withTreatment(dropTreatment)
+                    .fromApp(appId);
+
+
+            ObjectiveContext objectiveContext = new ObjectiveContext() {
+                @Override
+                public void onSuccess(Objective objective) {
+                    log.info("Ignore rule {} (Vlan id {}, device {}, selector {})",
+                             op, vlanId, deviceId, selector);
+                    int countDown = installedCount.decrementAndGet();
+                    if (countDown != 0) {
+                        return;
+                    }
+                    switch (op) {
+                        case ADD:
+                            ignoredVlans.put(deviceId, vlanId);
+                            break;
+                        case REMOVE:
+                            ignoredVlans.remove(deviceId, vlanId);
+                            break;
+                        default:
+                            log.warn("Unsupported objective operation {}", op);
+                            break;
+                    }
+                }
+
+                @Override
+                public void onError(Objective objective, ObjectiveError error) {
+                    log.warn("Can't {} ignore rule (vlan id {}, selector {}, device {}) due to {}",
+                             op, vlanId, selector, deviceId, error);
+                }
+            };
+
+            ForwardingObjective fwd;
+            switch (op) {
+                case ADD:
+                    fwd = builder.add(objectiveContext);
+                    break;
+                case REMOVE:
+                    fwd = builder.remove(objectiveContext);
+                    break;
+                default:
+                    log.warn("Unsupported objective operation {}", op);
+                    return;
+            }
+
+            Device device = deviceService.getDevice(deviceId);
+            if (device == null || !device.is(Pipeliner.class)) {
+                log.warn("Device {} is not available now, wait until device is available", deviceId);
+                return;
+            }
+            flowObjectiveService.apply(deviceId, fwd);
+        });
+    }
 }
