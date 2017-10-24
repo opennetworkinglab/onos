@@ -36,8 +36,12 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -63,11 +67,18 @@ public class AlarmManager
 
     private final Logger log = getLogger(getClass());
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected AlarmStore store;
 
     protected AlarmStoreDelegate delegate = this::post;
+
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
 
     //TODO improve implementation of AlarmId
     private final AtomicLong alarmIdGenerator = new AtomicLong(0);
@@ -78,11 +89,13 @@ public class AlarmManager
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(AlarmEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(AlarmEvent.class);
         log.info("Stopped");
@@ -214,5 +227,28 @@ public class AlarmManager
         public void updateAlarmList(DeviceId deviceId, Collection<Alarm> alarms) {
             alarms.forEach(alarm -> store.createOrUpdateAlarm(alarm));
         }
+    }
+
+    /**
+     * Internal listener for device events.
+     */
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return event.type().equals(DeviceEvent.Type.DEVICE_REMOVED);
+        }
+
+        @Override
+        public void event(DeviceEvent event) {
+            if (mastershipService.isLocalMaster(event.subject().id())) {
+                log.info("Device {} removed from ONOS, removing all related alarms", event.subject().id());
+                //TODO this can be improved when core supports multiple keys map and gets implemented in AlarmStore
+                store.getAlarms(event.subject().id()).forEach(alarm -> store.removeAlarm(alarm.id()));
+            } else {
+                log.info("This Node is not Master for device {}", event.subject().id());
+            }
+        }
+
     }
 }

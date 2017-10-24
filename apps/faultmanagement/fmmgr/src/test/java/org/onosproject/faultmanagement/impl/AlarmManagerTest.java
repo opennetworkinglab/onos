@@ -35,9 +35,17 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipServiceAdapter;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.store.service.TestStorageService;
 
@@ -59,6 +67,7 @@ import static org.onosproject.net.NetTestTools.PID;
 public class AlarmManagerTest {
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("foo:bar");
+
     private static final String UNIQUE_ID_1 = "unique_id_1";
     private static final String UNIQUE_ID_2 = "unique_id_2";
     private static final AlarmId A_ID = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
@@ -82,6 +91,10 @@ public class AlarmManagerTest {
     private TestProvider provider;
     protected AlarmProviderRegistry registry;
     protected TestListener listener = new TestListener();
+    private final MastershipService mastershipService = new MockMastershipService();
+    protected final MockDeviceService deviceService = new MockDeviceService();
+
+    private final Device device = new MockDevice(DEVICE_ID);
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
@@ -95,6 +108,8 @@ public class AlarmManagerTest {
         registry = manager;
         manager.addListener(listener);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
+        manager.deviceService = deviceService;
+        manager.mastershipService = mastershipService;
         manager.store = alarmStore;
         manager.activate();
         provider = new TestProvider();
@@ -191,6 +206,21 @@ public class AlarmManagerTest {
 
     }
 
+    @Test
+    public void testRemoveWhenDeviceRemoved() {
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(ALARM_B, ALARM_A));
+        verifyGettingSetsOfAlarms(manager, 2, 2);
+        validateEvents(AlarmEvent.Type.CREATED, AlarmEvent.Type.CREATED);
+        Map<Alarm.SeverityLevel, Long> critical2 = new CountsMapBuilder().with(CRITICAL, 2L).create();
+        assertEquals("A critical should be present", critical2, manager.getAlarmCounts());
+        assertEquals("A critical should be present", critical2, manager.getAlarmCounts(DEVICE_ID));
+        deviceService.deviceListener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, device));
+        Map<Alarm.SeverityLevel, Long> zeroAlarms = new CountsMapBuilder().create();
+        assertEquals("The counts should be empty for removed device", zeroAlarms,
+                manager.getAlarmCounts(DEVICE_ID));
+
+    }
+
     private void verifyGettingSetsOfAlarms(AlarmManager am, int expectedTotal, int expectedActive) {
         assertEquals("Incorrect total alarms", expectedTotal, am.getAlarms().size());
         assertEquals("Incorrect active alarms count", expectedActive, am.getActiveAlarms().size());
@@ -229,6 +259,21 @@ public class AlarmManagerTest {
     }
 
 
+    private class MockDeviceService extends DeviceServiceAdapter {
+        DeviceListener deviceListener = null;
+
+        @Override
+        public void addListener(DeviceListener listener) {
+            this.deviceListener = listener;
+        }
+
+        @Override
+        public void removeListener(DeviceListener listener) {
+            this.deviceListener = null;
+        }
+    }
+
+
     private class TestProvider extends AbstractProvider implements AlarmProvider {
         private DeviceId deviceReceived;
         private MastershipRole roleReceived;
@@ -242,6 +287,14 @@ public class AlarmManagerTest {
         }
     }
 
+    private class MockMastershipService extends MastershipServiceAdapter {
+        int test = 0;
+        @Override
+        public boolean isLocalMaster(DeviceId deviceId) {
+            return true;
+        }
+    }
+
     /**
      * Test listener class to receive alarm events.
      */
@@ -252,6 +305,15 @@ public class AlarmManagerTest {
         @Override
         public void event(AlarmEvent event) {
             events.add(event);
+        }
+
+    }
+
+    private class MockDevice extends DefaultDevice {
+
+        MockDevice(DeviceId id) {
+            super(null, id, null, null, null, null, null,
+                    null, DefaultAnnotations.EMPTY);
         }
 
     }
