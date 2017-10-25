@@ -212,6 +212,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
 
         assertEquals(0, flowRuleService.flowRulesRemove.size());
         assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
     /**
@@ -242,6 +243,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
 
         assertEquals(0, flowRuleService.flowRulesRemove.size());
         assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
     /**
@@ -261,6 +263,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
 
         assertEquals(0, flowRuleService.flowRulesRemove.size());
         assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(0, flowRuleService.flowRulesModify.size());
     }
 
     /**
@@ -290,6 +293,41 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
     }
 
     /**
+     * Test intents with same match rules, should do modify instead of add.
+     */
+    @Test
+    public void testRuleModify() {
+        List<Intent> intentsToInstall = createFlowRuleIntents();
+        List<Intent> intentsToUninstall = createFlowRuleIntentsWithSameMatch();
+
+        IntentData toInstall = new IntentData(createP2PIntent(),
+                                              IntentState.INSTALLING,
+                                              new WallClockTimestamp());
+        toInstall = new IntentData(toInstall, intentsToInstall);
+        IntentData toUninstall = new IntentData(createP2PIntent(),
+                                                IntentState.INSTALLED,
+                                                new WallClockTimestamp());
+        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+
+        IntentOperationContext<FlowRuleIntent> operationContext;
+        IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
+        operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
+
+        installer.apply(operationContext);
+
+        IntentOperationContext successContext = intentInstallCoordinator.successContext;
+        assertEquals(successContext, operationContext);
+
+        assertEquals(0, flowRuleService.flowRulesRemove.size());
+        assertEquals(0, flowRuleService.flowRulesAdd.size());
+        assertEquals(1, flowRuleService.flowRulesModify.size());
+
+        FlowRuleIntent installedIntent = (FlowRuleIntent) intentsToInstall.get(0);
+        assertEquals(flowRuleService.flowRulesModify.size(), installedIntent.flowRules().size());
+        assertTrue(flowRuleService.flowRulesModify.containsAll(installedIntent.flowRules()));
+    }
+
+    /**
      * Generates FlowRuleIntents for test.
      *
      * @return the FlowRuleIntents for test
@@ -300,6 +338,45 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(CP2.port())
+                .build();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(CP1.deviceId())
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .fromApp(APP_ID)
+                .withPriority(DEFAULT_PRIORITY)
+                .makePermanent()
+                .build();
+
+        List<NetworkResource> resources = ImmutableList.of(CP1.deviceId());
+
+        FlowRuleIntent intent = new FlowRuleIntent(APP_ID,
+                                                   KEY1,
+                                                   ImmutableList.of(flowRule),
+                                                   resources,
+                                                   PathIntent.ProtectionType.PRIMARY,
+                                                   RG1);
+
+        List<Intent> flowRuleIntents = Lists.newArrayList();
+        flowRuleIntents.add(intent);
+
+        return flowRuleIntents;
+    }
+
+    /**
+     * Generates FlowRuleIntents for test. Flow rules in Intent should have same
+     * match as we created by createFlowRuleIntents method, but action will be
+     * different.
+     *
+     * @return the FlowRuleIntents for test
+     */
+    public List<Intent> createFlowRuleIntentsWithSameMatch() {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPhyPort(CP1.port())
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .punt()
                 .build();
 
         FlowRule flowRule = DefaultFlowRule.builder()
@@ -370,6 +447,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
     class TestFlowRuleService extends FlowRuleServiceAdapter {
 
         Set<FlowRule> flowRulesAdd = Sets.newHashSet();
+        Set<FlowRule> flowRulesModify = Sets.newHashSet();
         Set<FlowRule> flowRulesRemove = Sets.newHashSet();
 
         public void record(FlowRuleOperations ops) {
@@ -384,6 +462,8 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
                         case REMOVE:
                             flowRulesRemove.add(op.rule());
                             break;
+                        case MODIFY:
+                            flowRulesModify.add(op.rule());
                         default:
                             break;
                     }

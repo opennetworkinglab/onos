@@ -448,7 +448,6 @@ public class DistributedFlowRuleStore
     }
 
     private void storeBatchInternal(FlowRuleBatchOperation operation) {
-
         final DeviceId did = operation.deviceId();
         //final Collection<FlowEntry> ft = flowTable.getFlowEntries(did);
         Set<FlowRuleBatchEntry> currentOps = updateStoreInternal(operation);
@@ -470,6 +469,7 @@ public class DistributedFlowRuleStore
                     StoredFlowEntry entry;
                     switch (op.operator()) {
                         case ADD:
+                        case MODIFY:
                             entry = new DefaultFlowEntry(op.target());
                             // always add requested FlowRule
                             // Note: 2 equal FlowEntry may have different treatment
@@ -485,9 +485,6 @@ public class DistributedFlowRuleStore
                                 log.debug("Setting state of rule to pending remove: {}", entry);
                                 return op;
                             }
-                            break;
-                        case MODIFY:
-                            //TODO: figure this out at some point
                             break;
                         default:
                             log.warn("Unknown flow operation operator: {}", op.operator());

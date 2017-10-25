@@ -120,13 +120,13 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
             flowRulesToInstall = Collections.emptyList();
         }
 
-        List<FlowRule> dontUninstall;
+        List<FlowRule> flowRuleToModify;
         List<FlowRule> dontTouch;
 
         // If both uninstall/install list contained equal (=match conditions are equal) FlowRules,
         // omit it from remove list, since it will/should be overwritten by install
-        dontUninstall = flowRulesToUninstall.stream()
-                .filter(flowRule -> flowRulesToInstall.stream().anyMatch(flowRule::equals))
+        flowRuleToModify = flowRulesToInstall.stream()
+                .filter(flowRule -> flowRulesToUninstall.stream().anyMatch(flowRule::equals))
                 .collect(Collectors.toList());
 
         // If both contained exactMatch-ing FlowRules, remove from both list,
@@ -135,11 +135,13 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
                 .filter(flowRule -> flowRulesToUninstall.stream().anyMatch(flowRule::exactMatch))
                 .collect(Collectors.toList());
 
-        flowRulesToUninstall.removeAll(dontUninstall);
+        flowRulesToUninstall.removeAll(flowRuleToModify);
         flowRulesToUninstall.removeAll(dontTouch);
+        flowRulesToInstall.removeAll(flowRuleToModify);
         flowRulesToInstall.removeAll(dontTouch);
+        flowRuleToModify.removeAll(dontTouch);
 
-        if (flowRulesToInstall.isEmpty() && flowRulesToUninstall.isEmpty()) {
+        if (flowRulesToInstall.isEmpty() && flowRulesToUninstall.isEmpty() && flowRuleToModify.isEmpty()) {
             // There is no flow rules to install/uninstall
             intentInstallCoordinator.intentInstallSuccess(context);
             return;
@@ -148,6 +150,8 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         // Add flows
         flowRulesToInstall.forEach(builder::add);
+        // Modify flows
+        flowRuleToModify.forEach(builder::modify);
         // Remove flows
         flowRulesToUninstall.forEach(builder::remove);
 
