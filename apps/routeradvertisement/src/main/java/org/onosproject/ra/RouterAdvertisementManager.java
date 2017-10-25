@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Modified;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
@@ -81,6 +82,12 @@ public class RouterAdvertisementManager {
     private static final int DEFAULT_RA_THREADS_POOL_SIZE = 10;
     private static final String PROP_RA_THREADS_DELAY = "raThreadDelay";
     private static final int DEFAULT_RA_THREADS_DELAY = 5;
+    private static final String PROP_RA_FLAG_MBIT_STATUS = "raFlagMbitStatus";
+    private static final boolean DEFAULT_RA_FLAG_MBIT_STATUS = false;
+    private static final String PROP_RA_FLAG_OBIT_STATUS = "raFlagObitStatus";
+    private static final boolean DEFAULT_RA_FLAG_OBIT_STATUS = false;
+    private static final String PROP_RA_OPTION_PREFIX_STATUS = "raOptionPrefixStatus";
+    private static final boolean DEFAULT_RA_OPTION_PREFIX_STATUS = true;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -98,12 +105,24 @@ public class RouterAdvertisementManager {
     public MastershipService mastershipService;
 
     @Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
-            label = "Router Advertisement thread pool capacity")
+            label = "Thread pool capacity")
     protected int raPoolSize = DEFAULT_RA_THREADS_POOL_SIZE;
 
     @Property(name = PROP_RA_THREADS_DELAY, intValue = DEFAULT_RA_THREADS_DELAY,
-            label = "Router Advertisement thread delay in seconds")
+            label = "Thread delay in seconds")
     protected int raThreadDelay = DEFAULT_RA_THREADS_DELAY;
+
+    @Property(name = PROP_RA_FLAG_MBIT_STATUS, boolValue = DEFAULT_RA_FLAG_MBIT_STATUS,
+            label = "Turn M-bit flag on/off")
+    protected boolean raFlagMbitStatus = DEFAULT_RA_FLAG_MBIT_STATUS;
+
+    @Property(name = PROP_RA_FLAG_OBIT_STATUS, boolValue = DEFAULT_RA_FLAG_OBIT_STATUS,
+            label = "Turn O-bit flag on/off")
+    protected boolean raFlagObitStatus = DEFAULT_RA_FLAG_OBIT_STATUS;
+
+    @Property(name = PROP_RA_OPTION_PREFIX_STATUS, boolValue = DEFAULT_RA_OPTION_PREFIX_STATUS,
+            label = "Prefix option support needed or not")
+    protected boolean raOptionPrefixStatus = DEFAULT_RA_OPTION_PREFIX_STATUS;
 
     private ScheduledExecutorService executors = null;
 
@@ -134,6 +153,13 @@ public class RouterAdvertisementManager {
                     }
                     break;
                 case INTERFACE_UPDATED:
+                    if (mastershipService.getLocalRole(i.connectPoint().deviceId())
+                            == MastershipRole.MASTER) {
+                        deactivateRouterAdvertisement(i.connectPoint(),
+                                i.ipAddressesList());
+                        activateRouterAdvertisement(i.connectPoint(),
+                                i.ipAddressesList());
+                    }
                     break;
                 default:
                     break;
@@ -143,58 +169,37 @@ public class RouterAdvertisementManager {
     private final InterfaceListener interfaceListener = new InternalInterfaceListener();
 
     // Enables RA threads on 'connectPoint' with configured IPv6s
-    private void activateRouterAdvertisement(ConnectPoint connectPoint, List<InterfaceIpAddress> addresses) {
-        synchronized (this) {
+    private synchronized void activateRouterAdvertisement(ConnectPoint connectPoint,
+                                                          List<InterfaceIpAddress> addresses) {
             RAWorkerThread worker = new RAWorkerThread(connectPoint, addresses, raThreadDelay);
             ScheduledFuture<?> handler = executors.scheduleAtFixedRate(worker, raThreadDelay,
                     raThreadDelay, TimeUnit.SECONDS);
             transmitters.put(connectPoint, handler);
-        }
-
     }
 
     // Disables already activated RA threads on 'connectPoint'
-    private void deactivateRouterAdvertisement(ConnectPoint connectPoint, List<InterfaceIpAddress> addresses) {
-        synchronized (this) {
+    private synchronized void deactivateRouterAdvertisement(ConnectPoint connectPoint,
+                                                            List<InterfaceIpAddress> addresses) {
             if (connectPoint != null) {
                 ScheduledFuture<?> handler = transmitters.get(connectPoint);
                 handler.cancel(false);
                 transmitters.remove(connectPoint);
             }
-        }
     }
 
-    @Activate
-    protected void activate(ComponentContext context) {
-        // Basic application registrations.
-        appId = coreService.registerApplication(APP_NAME);
-        componentConfigService.registerProperties(getClass());
-
-        // Loading configured properties.
-        if (context != null) {
-            Dictionary<?, ?> properties = context.getProperties();
-            try {
-                String s = get(properties, PROP_RA_THREADS_POOL);
-                raPoolSize = isNullOrEmpty(s) ?
-                        DEFAULT_RA_THREADS_POOL_SIZE : Integer.parseInt(s.trim());
-
-                s = get(properties, PROP_RA_THREADS_DELAY);
-                raThreadDelay = isNullOrEmpty(s) ?
-                        DEFAULT_RA_THREADS_DELAY : Integer.parseInt(s.trim());
-
-            } catch (NumberFormatException e) {
-                log.warn("Component configuration had invalid value, loading default values.", e);
-            }
-        }
-
-        // Interface listener for dynamic RA handling.
-        interfaceService.addListener(interfaceListener);
-
+    private synchronized void setupThreadPool() {
         // Initialize RA thread pool
         executors = Executors.newScheduledThreadPool(raPoolSize,
                 groupedThreads("RouterAdvertisement", "event-%d", log));
+    }
 
-        // Start Router Advertisement Transmission for all configured interfaces.
+    private synchronized void clearThreadPool() {
+        // Release RA thread pool
+        executors.shutdown();
+    }
+
+    private synchronized void setupTxWorkers() {
+        // Start Router Advertisement transmission for all configured interfaces.
         interfaceService.getInterfaces()
                 .stream()
                 .filter(i -> mastershipService.getLocalRole(i.connectPoint().deviceId())
@@ -207,12 +212,7 @@ public class RouterAdvertisementManager {
                 );
     }
 
-    @Deactivate
-    protected void deactivate() {
-        // Unregister resources.
-        componentConfigService.unregisterProperties(getClass(), false);
-        interfaceService.removeListener(interfaceListener);
-
+    private synchronized void clearTxWorkers() {
         // Clear out Router Advertisement Transmission for all configured interfaces.
         interfaceService.getInterfaces()
                 .stream()
@@ -224,6 +224,90 @@ public class RouterAdvertisementManager {
                 .forEach(j ->
                         deactivateRouterAdvertisement(j.connectPoint(), j.ipAddressesList())
                 );
+    }
+
+    // Setting up pool & workers.
+    private synchronized void setupPoolAndTxWorkers() {
+        setupThreadPool();
+        setupTxWorkers();
+    }
+
+    // Clearing pool & workers.
+    private synchronized void clearPoolAndTxWorkers() {
+        clearTxWorkers();
+        clearThreadPool();
+    }
+
+    @Activate
+    protected void activate(ComponentContext context) {
+        // Basic application registrations.
+        appId = coreService.registerApplication(APP_NAME);
+        componentConfigService.registerProperties(getClass());
+
+        // Interface listener for dynamic RA handling.
+        interfaceService.addListener(interfaceListener);
+
+        // Setup pool and worker threads for existing interfaces
+        setupPoolAndTxWorkers();
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        int newRaPoolSize, newRaThreadDelay;
+
+        // Loading configured properties.
+        if (context != null) {
+            Dictionary<?, ?> properties = context.getProperties();
+            try {
+                // Handle change in pool size
+                String s = get(properties, PROP_RA_THREADS_POOL);
+                newRaPoolSize = isNullOrEmpty(s) ?
+                        DEFAULT_RA_THREADS_POOL_SIZE : Integer.parseInt(s.trim());
+                if (newRaPoolSize != raPoolSize) {
+                    raPoolSize = newRaPoolSize;
+                    clearPoolAndTxWorkers();
+                    setupPoolAndTxWorkers();
+                }
+
+                // Handle change in thread delay
+                s = get(properties, PROP_RA_THREADS_DELAY);
+                newRaThreadDelay = isNullOrEmpty(s) ?
+                        DEFAULT_RA_THREADS_DELAY : Integer.parseInt(s.trim());
+                if (newRaThreadDelay != raThreadDelay) {
+                    raThreadDelay = newRaThreadDelay;
+                    clearTxWorkers();
+                    setupTxWorkers();
+                }
+
+                // Handle M-flag changes
+                s = get(properties, PROP_RA_FLAG_MBIT_STATUS);
+                raFlagMbitStatus = isNullOrEmpty(s) ?
+                        DEFAULT_RA_FLAG_MBIT_STATUS : Boolean.parseBoolean(s.trim());
+
+                // Handle O-flag changes
+                s = get(properties, PROP_RA_FLAG_OBIT_STATUS);
+                raFlagObitStatus = isNullOrEmpty(s) ?
+                        DEFAULT_RA_FLAG_OBIT_STATUS : Boolean.parseBoolean(s.trim());
+
+                // Handle prefix option configuration
+                s = get(properties, PROP_RA_OPTION_PREFIX_STATUS);
+                raOptionPrefixStatus = isNullOrEmpty(s) ?
+                        DEFAULT_RA_OPTION_PREFIX_STATUS : Boolean.parseBoolean(s.trim());
+
+            } catch (NumberFormatException e) {
+                log.warn("Component configuration had invalid value, aborting changes loading.", e);
+            }
+        }
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        // Unregister resources.
+        componentConfigService.unregisterProperties(getClass(), false);
+        interfaceService.removeListener(interfaceListener);
+
+        // Clear pool & threads
+        clearPoolAndTxWorkers();
     }
 
     // Worker thread for actually sending ICMPv6 RA packets.
@@ -253,8 +337,8 @@ public class RouterAdvertisementManager {
             // Router Advertisement header filling. Please refer RFC-2461.
             RouterAdvertisement ra = new RouterAdvertisement();
             ra.setCurrentHopLimit(RA_HOP_LIMIT);
-            ra.setMFlag((byte) 0x01);
-            ra.setOFlag((byte) 0x00);
+            ra.setMFlag((byte) (raFlagMbitStatus ? 0x01 : 0x00));
+            ra.setOFlag((byte) (raFlagObitStatus ? 0x01 : 0x00));
             ra.setRouterLifetime(RA_ROUTER_LIFETIME);
             ra.setReachableTime(0);
             ra.setRetransmitTimer(retransmitPeriod + RA_RETRANSMIT_CALIBRATION_PERIOD);
@@ -280,23 +364,25 @@ public class RouterAdvertisementManager {
                     Arrays.copyOfRange(option.array(), 0, option.position()));
 
             // Option : Prefix information.
-            ipAddresses.stream()
-                    .filter(i -> i.ipAddress().version().equals(IpAddress.Version.INET6))
-                    .forEach(i -> {
-                        option.rewind();
-                        option.put((byte) i.subnetAddress().prefixLength());
-                        // Enable "onlink" option only.
-                        option.put((byte) 0x80);
-                        option.putInt(RA_OPTION_PREFIX_VALID_LIFETIME);
-                        option.putInt(RA_OPTION_PREFIX_PREFERRED_LIFETIME);
-                        // Clear reserved fields
-                        option.putInt(0x00000000);
-                        option.put(IpAddress.makeMaskedAddress(i.ipAddress(),
-                                i.subnetAddress().prefixLength()).toOctets());
-                        ra.addOption(NeighborDiscoveryOptions.TYPE_PREFIX_INFORMATION,
-                                Arrays.copyOfRange(option.array(), 0, option.position()));
+            if (raOptionPrefixStatus) {
+                ipAddresses.stream()
+                        .filter(i -> i.ipAddress().version().equals(IpAddress.Version.INET6))
+                        .forEach(i -> {
+                            option.rewind();
+                            option.put((byte) i.subnetAddress().prefixLength());
+                            // Enable "onlink" option only.
+                            option.put((byte) 0x80);
+                            option.putInt(RA_OPTION_PREFIX_VALID_LIFETIME);
+                            option.putInt(RA_OPTION_PREFIX_PREFERRED_LIFETIME);
+                            // Clear reserved fields
+                            option.putInt(0x00000000);
+                            option.put(IpAddress.makeMaskedAddress(i.ipAddress(),
+                                    i.subnetAddress().prefixLength()).toOctets());
+                            ra.addOption(NeighborDiscoveryOptions.TYPE_PREFIX_INFORMATION,
+                                    Arrays.copyOfRange(option.array(), 0, option.position()));
 
-                    });
+                        });
+            }
 
             // ICMPv6 header filling.
             ICMP6 icmpv6 = new ICMP6();
