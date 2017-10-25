@@ -45,7 +45,7 @@ def checkstyle(
                     '$(location //tools/build/conf:checkstyle-xml)',
                     '$(location //tools/build/conf:suppressions-xml)',
                     ],
-                test_rule_timeout_ms = 20000,
+                test_rule_timeout_ms = 45000,
                 labels = [ 'checkstyle' ],
         )
 
