@@ -436,11 +436,10 @@ public class DistributedFlowRuleStore
         return Tools.allOf(operation.getOperations().stream().map(op -> {
             switch (op.operator()) {
                 case ADD:
+                case MODIFY:
                     return addBatchEntry(op).thenApply(succeeded -> succeeded ? op : null);
                 case REMOVE:
                     return removeBatchEntry(op).thenApply(succeeded -> succeeded ? op : null);
-                case MODIFY:
-                    return CompletableFuture.<FlowRuleBatchEntry>completedFuture(null);
                 default:
                     log.warn("Unknown flow operation operator: {}", op.operator());
                     return CompletableFuture.<FlowRuleBatchEntry>completedFuture(null);
