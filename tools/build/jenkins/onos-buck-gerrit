@@ -1,0 +1,42 @@
+#!groovy
+
+pipeline {
+
+    agent any
+
+    stages {
+
+        stage('build') {
+            steps {
+                sh '''#!/bin/bash -l
+                    ONOS_ROOT=`pwd`
+                    source tools/build/envDefaults
+                    onos-buck build onos
+                '''
+            }
+        }
+
+        stage('test') {
+            steps {
+                parallel (
+                    "unit-tests": {
+                        sh '''#!/bin/bash -l
+                            ONOS_ROOT=`pwd`
+                            source tools/build/envDefaults
+                            onos-buck test
+                        '''
+                    },
+                    "javadocs": {
+                        sh '''#!/bin/bash -l
+                            ONOS_ROOT=`pwd`
+                            source tools/build/envDefaults
+                            onos-buck build //docs:external //docs:internal --show-output
+                        '''
+                    },
+                )
+            }
+        }
+    }
+
+}
+
