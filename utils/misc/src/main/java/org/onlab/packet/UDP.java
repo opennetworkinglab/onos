@@ -35,6 +35,8 @@ public class UDP extends BasePacket {
                     .put(UDP.DHCP_V6_SERVER_PORT, DHCP6.deserializer())
                     .put(UDP.DHCP_V6_CLIENT_PORT, DHCP6.deserializer())
                     .put(UDP.VXLAN_UDP_PORT, VXLAN.deserializer())
+                    .put(UDP.RIP_PORT, RIP.deserializer())
+                    .put(UDP.RIPNG_PORT, RIPng.deserializer())
                     .build();
 
     public static final int DHCP_SERVER_PORT = 67;
@@ -42,6 +44,8 @@ public class UDP extends BasePacket {
     public static final int DHCP_V6_SERVER_PORT = 547;
     public static final int DHCP_V6_CLIENT_PORT = 546;
     public static final int VXLAN_UDP_PORT = 4789;
+    public static final int RIP_PORT = 520;
+    public static final int RIPNG_PORT = 521;
 
     private static final short UDP_HEADER_LENGTH = 8;
 
