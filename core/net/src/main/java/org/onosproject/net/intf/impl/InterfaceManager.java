@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intf.impl;
 
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -36,6 +37,7 @@ import org.onosproject.net.intf.InterfaceEvent;
 import org.onosproject.net.intf.InterfaceListener;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.BasicNetworkConfigService;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -67,6 +69,10 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService configService;
+
+    //Dependency to ensure subject factories are properly initialized
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected BasicNetworkConfigService basicNetworkConfigService;
 
     private final InternalConfigListener listener = new InternalConfigListener();
 
