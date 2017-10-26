@@ -41,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -148,6 +149,8 @@ public class NetconfSessionMinaImplTest {
 
         NetconfDeviceInfo deviceInfo = new NetconfDeviceInfo(
                 TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), portNumber);
+        deviceInfo.setConnectTimeoutSec(OptionalInt.of(30));
+        deviceInfo.setReplyTimeoutSec(OptionalInt.of(30));
 
         session1 = new NetconfSessionMinaImpl(deviceInfo, ImmutableList.of("urn:ietf:params:netconf:base:1.0"));
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
