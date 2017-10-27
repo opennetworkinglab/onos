@@ -19,14 +19,13 @@ for a in ${*:1}; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $
 expect="${@: -1}"
 echo $cmd
 echo "expect ${expect}"
-node_count=`onos $OC1 nodes | wc -l`
-# FIMXE: This only works if nodes are sequential
-# For dynamic clustering we could grab the IPs from 'nodes'
-for i in `seq 1 $node_count`; do
-    node_var="OC$i"
-    onos ${!node_var} $cmd > $aux
+nodes=`onos $OCI nodes | awk -F 'address=' '{print $2}' | cut -d':' -f1`
+while read -r line; do
+    node_var=$line
+    onos ${node_var} $cmd > $aux
     cat $aux
     grep -q $expect $aux || exit 1
-done
+done <<< "$nodes"
+
 echo "expected value found"
 exit 0
