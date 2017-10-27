@@ -18,6 +18,7 @@ package org.onosproject.cluster.impl;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,9 +57,10 @@ public class MembershipManager implements MembershipService {
 
     @Activate
     public void activate() {
+        NodeId localId = clusterService.getLocalNode().id();
         localMember = new Member(
-                clusterService.getLocalNode().id(),
-                clusterService.getVersion(clusterService.getLocalNode().id()));
+                localId,
+                clusterService.getVersion(localId));
         log.info("Started");
     }
 
@@ -84,6 +86,8 @@ public class MembershipManager implements MembershipService {
     @Override
     public Set<Member> getMembers() {
         return clusterService.getNodes().stream()
+                .filter(node -> Optional.ofNullable(clusterService.getVersion(node.id()))
+                        .filter(version -> version.equals(localMember.version())).isPresent())
                 .map(this::toMemberId)
                 .collect(Collectors.toSet());
     }
