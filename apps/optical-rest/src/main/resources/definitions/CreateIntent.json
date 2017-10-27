@@ -1,0 +1,85 @@
+{
+  "type": "object",
+  "title": "createIntent",
+  "required": [
+    "ingressPoint",
+    "egressPoint"
+  ],
+  "properties": {
+    "appId": {
+      "type": "string",
+      "example": "org.onosproject.ovsdb"
+    },
+    "ingressPoint": {
+      "type": "object",
+      "title": "ingressPoint",
+      "required": [
+        "device",
+        "port"
+      ],
+      "properties": {
+        "device": {
+          "type": "string",
+          "example": "of:0000000000000001" 
+        },
+        "port": {
+          "type": "string",
+          "example": "1" 
+        }
+      }
+    },
+    "egressPoint": {
+      "type": "object",
+      "title": "egressPoint",
+      "required": [
+        "device",
+        "port"
+      ],
+      "properties": {
+        "device": {
+          "type": "string",
+          "example": "of:0000000000000002"
+        },
+        "port": {
+          "type": "string",
+          "example": "200"
+        }
+      }
+    },
+    "bidirection": {
+      "type": "boolean",
+      "example": true
+    },
+    "signal": {
+      "type": "object",
+      "title": "signal",
+      "required": [
+        "channelSpacing",
+        "gridType",
+        "spacingMultiplier",
+        "slotGranularity"
+      ],
+      "properties": {
+        "channelSpacing": {
+          "type": "string",
+          "example": "6.25"
+        },
+        "gridType": {
+          "type": "string",
+          "enum": ["dwdm", "cwdm", "flex"],
+          "example": "flex"
+        },
+        "spacingMultiplier": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        },
+        "slotGranularity": {
+          "type": "integer",
+          "format": "int32",
+          "example": 1
+        }
+      }
+    }
+  }
+}
