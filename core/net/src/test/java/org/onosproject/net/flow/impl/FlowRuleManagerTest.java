@@ -673,6 +673,11 @@ public class FlowRuleManagerTest {
             return null;
         }
 
+        @Override
+        public Set<Instructions.MeterInstruction> meters() {
+            return Sets.newHashSet();
+        }
+
     }
 
     public class TestApplicationId extends DefaultApplicationId {

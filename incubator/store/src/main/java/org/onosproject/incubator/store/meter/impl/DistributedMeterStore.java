@@ -40,6 +40,7 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
+import org.onosproject.net.meter.MeterFeaturesFlag;
 import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
@@ -159,7 +160,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                                  DefaultMeterFeatures.class,
                                                  Band.Type.class,
                                                  Meter.Unit.class,
-                                                 MeterFailReason.class)).build();
+                                                 MeterFailReason.class,
+                                                 MeterFeaturesFlag.class)).build();
 
         // Init the set of the available ids
         availableMeterIds = new DefaultDistributedSet<>(storageService.<MeterKey>setBuilder()

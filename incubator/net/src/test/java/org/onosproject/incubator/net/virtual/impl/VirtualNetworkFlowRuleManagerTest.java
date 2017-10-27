@@ -473,6 +473,11 @@ public class VirtualNetworkFlowRuleManagerTest extends VirtualNetworkTestUtil {
         public Instructions.MeterInstruction metered() {
             return null;
         }
+
+        @Override
+        public Set<Instructions.MeterInstruction> meters() {
+            return Sets.newHashSet();
+        }
     }
 
     private void validateEvents(TestFlowRuleListener listener, FlowRuleEvent.Type... events) {

@@ -17,6 +17,7 @@ package org.onosproject.net.flow;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.annotations.Beta;
 import org.onlab.packet.EthType;
@@ -90,9 +91,16 @@ public interface TrafficTreatment {
     /**
      * Returns the meter instruction if there is one.
      *
-     * @return a meter instruction that may be null
+     * @return a meter instruction that may be a null.
      */
     Instructions.MeterInstruction metered();
+
+    /**
+     * Returns the meter instructions if there is any.
+     *
+     * @return meter instructions that may be an empty set.
+     */
+    Set<Instructions.MeterInstruction> meters();
 
     /**
      * Builder of traffic treatment entities.

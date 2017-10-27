@@ -172,9 +172,11 @@ public class FlowModBuilderVer15 extends FlowModBuilderVer13 {
         List<OFAction> actions = new LinkedList<>();
 
         //Meter action handling
-        if (null != treatment.metered() && immediateActions) {
-            OFAction meterAction = buildMultipleMeterAction(treatment.metered());
-            actions.add(meterAction);
+        if (null != treatment.meters() && immediateActions) {
+            treatment.meters().forEach(meterInstruction -> {
+                OFAction meterAction = buildMeterAction(meterInstruction);
+                actions.add(meterAction);
+            });
         }
 
         for (Instruction i : treatments) {
@@ -287,7 +289,7 @@ public class FlowModBuilderVer15 extends FlowModBuilderVer13 {
      * @param meterInstruction meter instruction
      * @return meter action
      */
-    protected OFAction buildMultipleMeterAction(Instructions.MeterInstruction meterInstruction) {
+    protected OFAction buildMeterAction(Instructions.MeterInstruction meterInstruction) {
         OFActionMeter.Builder meterBuilder = factory().actions().buildMeter()
                 .setMeterId(meterInstruction.meterId().id());
         return meterBuilder.build();

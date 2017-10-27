@@ -16,6 +16,7 @@
 package org.onosproject.net.meter;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 import org.onosproject.net.DeviceId;
 
 import java.util.HashSet;
@@ -35,11 +36,12 @@ public final class DefaultMeterFeatures implements MeterFeatures {
     private boolean stats;
     private short maxBands;
     private short maxColor;
+    private Set<MeterFeaturesFlag> features;
 
     private DefaultMeterFeatures(DeviceId did, long maxMeter,
                                  Set<Band.Type> bandTypes, Set<Meter.Unit> units,
                                  boolean burst, boolean stats,
-                                 short maxBands, short maxColor) {
+                                 short maxBands, short maxColor, Set<MeterFeaturesFlag> flag) {
         this.deviceId = did;
         this.maxMeter = maxMeter;
         this.bandTypes = bandTypes;
@@ -48,6 +50,7 @@ public final class DefaultMeterFeatures implements MeterFeatures {
         this.units = units;
         this.maxBands = maxBands;
         this.maxColor = maxColor;
+        this.features = flag;
     }
 
     @Override
@@ -90,6 +93,11 @@ public final class DefaultMeterFeatures implements MeterFeatures {
         return maxColor;
     }
 
+    @Override
+    public Set<MeterFeaturesFlag> features() {
+        return features;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -125,6 +133,7 @@ public final class DefaultMeterFeatures implements MeterFeatures {
         private Set<Meter.Unit> units1 = new HashSet<>();
         private boolean burst = false;
         private boolean stats = false;
+        private Set<MeterFeaturesFlag> features = Sets.newHashSet();
 
         @Override
         public MeterFeatures.Builder forDevice(DeviceId deviceId) {
@@ -175,9 +184,15 @@ public final class DefaultMeterFeatures implements MeterFeatures {
         }
 
         @Override
+        public MeterFeatures.Builder withFeatures(Set<MeterFeaturesFlag> featureFlags) {
+            features = featureFlags;
+            return this;
+        }
+
+        @Override
         public MeterFeatures build() {
             checkNotNull(did, "Must specify a device");
-            return new DefaultMeterFeatures(did, mmeter, bandTypes, units1, burst, stats, mbands, mcolors);
+            return new DefaultMeterFeatures(did, mmeter, bandTypes, units1, burst, stats, mbands, mcolors, features);
         }
     }
 }

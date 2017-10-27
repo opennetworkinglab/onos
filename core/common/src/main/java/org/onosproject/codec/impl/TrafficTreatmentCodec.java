@@ -23,6 +23,7 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 
 import java.util.stream.IntStream;
 
@@ -51,7 +52,9 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
         }
 
         if (treatment.metered() != null) {
-            jsonInstructions.add(instructionCodec.encode(treatment.metered(), context));
+            for (Instructions.MeterInstruction instruction : treatment.meters()) {
+                jsonInstructions.add(instructionCodec.encode(instruction, context));
+            }
         }
         if (treatment.tableTransition() != null) {
             jsonInstructions.add(instructionCodec.encode(treatment.tableTransition(), context));

@@ -19,7 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -56,7 +59,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     private static final DefaultTrafficTreatment EMPTY
             = new DefaultTrafficTreatment(ImmutableList.of(Instructions.createNoAction()));
-    private final Instructions.MeterInstruction meter;
+    private final Set<Instructions.MeterInstruction> meter;
 
     /**
      * Creates a new traffic treatment from the specified list of instructions.
@@ -70,7 +73,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.hasClear = false;
         this.table = null;
         this.meta = null;
-        this.meter = null;
+        this.meter = ImmutableSet.of();
         this.statTrigger = null;
     }
 
@@ -87,7 +90,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                                     Instructions.TableTypeTransition table,
                                     boolean clear,
                                     Instructions.MetadataInstruction meta,
-                                    Instructions.MeterInstruction meter,
+                                    Set<Instructions.MeterInstruction> meters,
                                     Instructions.StatTriggerInstruction statTrigger
                                     ) {
         this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
@@ -99,7 +102,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.table = table;
         this.meta = meta;
         this.hasClear = clear;
-        this.meter = meter;
+        this.meter = ImmutableSet.copyOf(meters);
         this.statTrigger = statTrigger;
     }
 
@@ -140,6 +143,14 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     @Override
     public Instructions.MeterInstruction metered() {
+        if (meter.isEmpty()) {
+            return null;
+        }
+        return meter.iterator().next();
+    }
+
+    @Override
+    public Set<Instructions.MeterInstruction> meters() {
         return meter;
     }
 
@@ -200,7 +211,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 .add("immediate", immediate)
                 .add("deferred", deferred)
                 .add("transition", table == null ? "None" : table.toString())
-                .add("meter", meter == null ? "None" : meter.toString())
+                .add("meter", meter == null ? "None" : meter)
                 .add("cleared", hasClear)
                 .add("StatTrigger", statTrigger)
                 .add("metadata", meta)
@@ -219,7 +230,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         Instructions.MetadataInstruction meta;
 
-        Instructions.MeterInstruction meter;
+        Set<Instructions.MeterInstruction> meter = Sets.newHashSet();
 
         Instructions.StatTriggerInstruction statTrigger;
 
@@ -271,7 +282,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     meta = (Instructions.MetadataInstruction) instruction;
                     break;
                 case METER:
-                    meter = (Instructions.MeterInstruction) instruction;
+                    meter.add((Instructions.MeterInstruction) instruction);
                     break;
                 case STAT_TRIGGER:
                     statTrigger = (Instructions.StatTriggerInstruction) instruction;

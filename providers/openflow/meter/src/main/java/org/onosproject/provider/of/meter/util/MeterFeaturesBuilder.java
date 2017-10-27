@@ -21,7 +21,9 @@ import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterFeatures;
+import org.onosproject.net.meter.MeterFeaturesFlag;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +34,15 @@ import static org.onosproject.net.meter.Band.Type.DROP;
 import static org.onosproject.net.meter.Band.Type.REMARK;
 import static org.onosproject.net.meter.Meter.Unit.KB_PER_SEC;
 import static org.onosproject.net.meter.Meter.Unit.PKTS_PER_SEC;
+import static org.onosproject.net.meter.MeterFeaturesFlag.ACTION_SET;
+import static org.onosproject.net.meter.MeterFeaturesFlag.ANY_POSITION;
+import static org.onosproject.net.meter.MeterFeaturesFlag.MULTI_LIST;
 import static org.projectfloodlight.openflow.protocol.ver13.OFMeterBandTypeSerializerVer13.DROP_VAL;
 import static org.projectfloodlight.openflow.protocol.ver13.OFMeterBandTypeSerializerVer13.DSCP_REMARK_VAL;
 import static org.projectfloodlight.openflow.protocol.ver13.OFMeterFlagsSerializerVer13.*;
+import static org.projectfloodlight.openflow.protocol.ver15.OFMeterFeatureFlagsSerializerVer15.ACTION_SET_VAL;
+import static org.projectfloodlight.openflow.protocol.ver15.OFMeterFeatureFlagsSerializerVer15.ANY_POSITION_VAL;
+import static org.projectfloodlight.openflow.protocol.ver15.OFMeterFeatureFlagsSerializerVer15.MULTI_LIST_VAL;
 
 /**
  * OpenFlow builder of MeterFeatures.
@@ -98,6 +106,24 @@ public class MeterFeaturesBuilder {
          * Stats are supported ?
          */
         builder.hasStats((STATS_VAL & ofMeterFeatures.getCapabilities()) != 0);
+
+        /*
+         * Along with the OF1.5, we extract meter features flags
+         */
+        if (ofMeterFeatures.getVersion().wireVersion >= OFVersion.OF_15.wireVersion) {
+            Set<MeterFeaturesFlag> meterFeaturesFlags = Sets.newHashSet();
+            if ((ACTION_SET_VAL & ofMeterFeatures.getFeatures()) != 0) {
+                meterFeaturesFlags.add(ACTION_SET);
+            }
+            if ((ANY_POSITION_VAL & ofMeterFeatures.getFeatures()) != 0) {
+                meterFeaturesFlags.add(ANY_POSITION);
+            }
+            if ((MULTI_LIST_VAL & ofMeterFeatures.getFeatures()) != 0) {
+                meterFeaturesFlags.add(MULTI_LIST);
+            }
+            builder.withFeatures(meterFeaturesFlags);
+        }
+
         return builder.build();
     }
 

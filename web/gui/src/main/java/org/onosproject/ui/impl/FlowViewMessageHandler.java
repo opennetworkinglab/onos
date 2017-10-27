@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
@@ -325,7 +326,9 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 formatInstructs(sb, imm, IMM);
                 formatInstructs(sb, def, DEF);
 
-                addLabVal(sb, METERED, treatment.metered());
+                treatment.meters().forEach(meterInstruction ->
+                        addLabVal(sb, METERED, meterInstruction)
+                );
                 addLabVal(sb, TRANSITION, treatment.tableTransition());
                 addLabVal(sb, METADATA, treatment.writeMetadata());
 
@@ -445,9 +448,9 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         private ObjectNode jsonTreatment(FlowEntry flow) {
             ObjectNode treat = objectNode();
             TrafficTreatment treatment = flow.treatment();
-            List<Instruction> imm = treatment.immediate();
+            List<Instruction> imm = Lists.newArrayList(treatment.immediate());
             List<Instruction> def = treatment.deferred();
-            Instructions.MeterInstruction meter = treatment.metered();
+            Set<Instructions.MeterInstruction> meter = treatment.meters();
             Instructions.TableTypeTransition table = treatment.tableTransition();
             Instructions.MetadataInstruction meta = treatment.writeMetadata();
 
@@ -457,8 +460,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             if (!def.isEmpty()) {
                 treat.set(DEFER, jsonInstrList(def));
             }
-            if (meter != null) {
-                treat.put(METER, meter.toString());
+            if (!meter.isEmpty()) {
+                treat.set(METER, jsonInstrList(Lists.newArrayList(meter)));
             }
             if (table != null) {
                 treat.put(TABLE, table.toString());

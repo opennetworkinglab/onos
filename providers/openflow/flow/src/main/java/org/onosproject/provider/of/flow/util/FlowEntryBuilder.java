@@ -49,6 +49,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.onosproject.provider.of.flow.impl.NewAdaptiveFlowStatsCollector;
@@ -66,6 +67,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionEnqueue;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
+import org.projectfloodlight.openflow.protocol.action.OFActionMeter;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionPushVlan;
@@ -604,6 +606,10 @@ public class FlowEntryBuilder {
                 case PUSH_VLAN:
                     OFActionPushVlan pushVlan = (OFActionPushVlan) act;
                     builder.pushVlan(new EthType((short) pushVlan.getEthertype().getValue()));
+                    break;
+                case METER:
+                    OFActionMeter actionMeter = (OFActionMeter) act;
+                    builder.meter(MeterId.meterId(actionMeter.getMeterId()));
                     break;
                 case SET_TP_DST:
                 case SET_TP_SRC:

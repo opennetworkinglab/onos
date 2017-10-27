@@ -22,6 +22,7 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMeterFlags;
 import org.projectfloodlight.openflow.protocol.OFMeterMod;
 import org.projectfloodlight.openflow.protocol.OFMeterModCommand;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBand;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDrop;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDscpRemark;
@@ -118,8 +119,13 @@ public final class MeterModBuilder {
             default:
                 log.warn("Unknown unit type {}", unit);
         }
-        //FIXME: THIS WILL CHANGE IN OF1.4 to setBands.
-        builder.setMeters(buildBands());
+
+        if (factory.getVersion().getWireVersion() >= OFVersion.OF_14.getWireVersion()) {
+            builder.setBands(buildBands());
+        } else {
+            builder.setMeters(buildBands());
+        }
+
         builder.setFlags(flags)
                 .setMeterId(id)
                 .setXid(xid);

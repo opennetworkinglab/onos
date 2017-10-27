@@ -81,6 +81,14 @@ public interface MeterFeatures {
     short maxColor();
 
     /**
+     * Returns features flags that supported for meter actions by device.
+     *
+     * @return meter features flags
+     * otherwise empty set.
+     */
+    Set<MeterFeaturesFlag> features();
+
+    /**
      * A meter features builder.
      */
     interface Builder {
@@ -147,6 +155,14 @@ public interface MeterFeatures {
          * @return this builder
          */
         Builder hasStats(boolean hasStats);
+
+        /**
+         * Assigns the features for this meter features for OF1.5.
+         *
+         * @param featureFlags if meter features flags are supported
+         * @return this builder
+         */
+        Builder withFeatures(Set<MeterFeaturesFlag> featureFlags);
 
         /**
          * Builds the Meter Features based on the specified parameters.
