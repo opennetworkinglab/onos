@@ -34,15 +34,13 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.pi.demo.app.common.AbstractUpgradableFabricApp;
+import org.onosproject.pipelines.basic.PipeconfLoader;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -52,23 +50,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 import static org.onlab.packet.EthType.EtherType.IPV4;
-import static org.onosproject.pi.demo.app.ecmp.EcmpInterpreter.*;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_NEXT_HOP_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_NEXT_HOP_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_NEXT_HOP_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_SELECTOR_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
+import static org.onosproject.pipelines.basic.EcmpConstants.TBL_ECMP_TABLE_ID;
 
 
 /**
- * Implementation of an upgradable fabric app for the ECMP configuration.
+ * Implementation of an upgradable fabric app for the ECMP pipeconf.
  */
 @Component(immediate = true)
 public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
-    private static final String APP_NAME = "org.onosproject.pi-ecmp-fabric";
+    private static final String APP_NAME = "org.onosproject.pi-ecmp";
 
     private static final Map<DeviceId, Map<Set<PortNumber>, Short>> DEVICE_GROUP_ID_MAP = Maps.newHashMap();
 
     public EcmpFabricApp() {
-        super(APP_NAME, EcmpPipeconfFactory.getAll());
+        super(APP_NAME, singleton(PipeconfLoader.ECMP_PIPECONF));
     }
 
     @Override
@@ -120,7 +124,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
         // From srHost to dstHosts.
         for (Host dstHost : dstHosts) {
-            FlowRule rule = flowRuleBuilder(leaf, EcmpInterpreter.TABLE0)
+            FlowRule rule = flowRuleBuilder(leaf, TBL_TABLE0_ID)
                     .withSelector(
                             DefaultTrafficSelector.builder()
                                     .matchInPort(hostPort)
@@ -135,7 +139,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
         // From fabric ports to this leaf host.
         for (PortNumber port : fabricPorts) {
-            FlowRule rule = flowRuleBuilder(leaf, EcmpInterpreter.TABLE0)
+            FlowRule rule = flowRuleBuilder(leaf, TBL_TABLE0_ID)
                     .withSelector(
                             DefaultTrafficSelector.builder()
                                     .matchInPort(port)
@@ -183,7 +187,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
                 treatment = DefaultTrafficTreatment.builder().piTableAction(result.getLeft()).build();
             }
 
-            FlowRule rule = flowRuleBuilder(deviceId, EcmpInterpreter.TABLE0)
+            FlowRule rule = flowRuleBuilder(deviceId, TBL_TABLE0_ID)
                     .withSelector(
                             DefaultTrafficSelector.builder()
                                     .matchEthType(IPV4.ethType().toShort())
@@ -212,7 +216,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
         Iterator<PortNumber> portIterator = fabricPorts.iterator();
         List<FlowRule> rules = Lists.newArrayList();
         for (short i = 0; i < HASHED_LINKS; i++) {
-            FlowRule rule = flowRuleBuilder(deviceId, EcmpInterpreter.ECMP_GROUP_TABLE)
+            FlowRule rule = flowRuleBuilder(deviceId, TBL_ECMP_TABLE_ID)
                     .withSelector(
                             buildEcmpTrafficSelector(groupId, i))
                     .withTreatment(
@@ -231,16 +235,16 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     private PiTableAction buildEcmpPiTableAction(int groupId) {
 
         return PiAction.builder()
-                .withId(PiActionId.of(ECMP_GROUP_ACTION_NAME))
-                .withParameter(new PiActionParam(PiActionParamId.of(GROUP_ID),
+                .withId(ACT_SET_NEXT_HOP_ID)
+                .withParameter(new PiActionParam(ACT_PRM_NEXT_HOP_ID,
                                                  ImmutableByteSequence.copyFrom(groupId)))
                 .build();
     }
 
     private TrafficSelector buildEcmpTrafficSelector(int groupId, int selector) {
         Criterion ecmpCriterion = PiCriterion.builder()
-                .matchExact(PiHeaderFieldId.of(ECMP_METADATA_HEADER_NAME, GROUP_ID), groupId)
-                .matchExact(PiHeaderFieldId.of(ECMP_METADATA_HEADER_NAME, SELECTOR), selector)
+                .matchExact(HDR_NEXT_HOP_ID, groupId)
+                .matchExact(HDR_SELECTOR_ID, selector)
                 .build();
 
         return DefaultTrafficSelector.builder()
@@ -248,7 +252,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
                 .build();
     }
 
-    public int groupIdOf(DeviceId deviceId, Set<PortNumber> ports) {
+    private int groupIdOf(DeviceId deviceId, Set<PortNumber> ports) {
         DEVICE_GROUP_ID_MAP.putIfAbsent(deviceId, Maps.newHashMap());
         // Counts the number of unique portNumber sets for each deviceId.
         // Each distinct set of portNumbers will have a unique ID.

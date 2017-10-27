@@ -1,0 +1,30 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:minimal-json',
+    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//drivers/default:onos-drivers-default',
+    '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
+]
+
+BUNDLES = [
+    '//pipelines/basic:onos-pipelines-basic',
+    '//drivers/default:onos-drivers-default',
+    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+]
+
+osgi_jar(
+    deps = COMPILE_DEPS,
+)
+
+onos_app(
+    app_name = 'org.onosproject.pipelines.basic',
+    title = 'Basic Pipelines',
+    category = 'Pipeline',
+    url = 'http://onosproject.org',
+    description = 'Provides pipelines with basic L2/L3 forwarding capabilities and packet-in/out '
+                  + 'support.',
+    included_bundles = BUNDLES,
+    required_apps = [
+        'org.onosproject.drivers.p4runtime',
+    ]
+)

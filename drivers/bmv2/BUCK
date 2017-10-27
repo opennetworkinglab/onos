@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//drivers/p4runtime:onos-drivers-p4runtime',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
+    '//pipelines/basic:onos-pipelines-basic',
 ]
 
 BUNDLES = [
@@ -29,5 +30,6 @@ onos_app (
     included_bundles = BUNDLES,
     required_apps = [
         'org.onosproject.drivers.p4runtime',
+        'org.onosproject.pipelines.basic',
     ],
 )

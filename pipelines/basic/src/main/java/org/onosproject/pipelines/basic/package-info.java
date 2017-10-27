@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
-
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
-
 /**
- * Loader for P4Runtime device drivers.
+ * ONOS default pipelines that provide basic L2/L3 forwarding capabilities
+ * and packet-in/out support.
  */
-@Component(immediate = true)
-public class Bmv2DriversLoader extends AbstractDriverLoader {
-
-    public Bmv2DriversLoader() {
-        super("/bmv2-drivers.xml");
-    }
-}
+package org.onosproject.pipelines.basic;

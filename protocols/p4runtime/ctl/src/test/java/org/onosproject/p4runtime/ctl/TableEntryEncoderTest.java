@@ -44,7 +44,9 @@ import java.util.Random;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onlab.util.ImmutableByteSequence.*;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onlab.util.ImmutableByteSequence.fit;
+import static org.onlab.util.ImmutableByteSequence.ofOnes;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
@@ -64,7 +66,7 @@ public class TableEntryEncoderTest {
     private static final String ETHER_TYPE = "etherType";
 
     private final Random rand = new Random();
-    private final URL p4InfoUrl = this.getClass().getResource("/default.p4info");
+    private final URL p4InfoUrl = this.getClass().getResource("/test.p4info");
 
     private final PiPipeconf defaultPipeconf = DefaultPiPipeconf.builder()
             .withId(new PiPipeconfId("mock"))

@@ -23,6 +23,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineProgrammable;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
+import org.onosproject.pipelines.basic.PipeconfLoader;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -36,8 +37,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the PiPipelineProgrammable for BMv2.
  */
 public class Bmv2PipelineProgrammable extends AbstractHandlerBehaviour implements PiPipelineProgrammable {
-
-    private static final PiPipeconf DEFAULT_PIPECONF = Bmv2DefaultPipeconfFactory.get();
 
     private final Logger log = getLogger(getClass());
 
@@ -87,6 +86,6 @@ public class Bmv2PipelineProgrammable extends AbstractHandlerBehaviour implement
 
     @Override
     public Optional<PiPipeconf> getDefaultPipeconf() {
-        return Optional.of(DEFAULT_PIPECONF);
+        return Optional.of(PipeconfLoader.BASIC_PIPECONF);
     }
 }

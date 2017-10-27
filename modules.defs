@@ -243,6 +243,10 @@ MODELS = [
     '//models/polatis:onos-models-polatis-oar',
 ]
 
+PIPELINES = [
+    '//pipelines/basic:onos-pipelines-basic-oar',
+]
+
 APP_JARS = [
     '//apps/cpman/api:onos-apps-cpman-api',
     '//apps/routing-api:onos-apps-routing-api',
@@ -259,5 +263,6 @@ APP_JARS = [
 #   '//apps/p4runtime-test:onos-apps-p4runtime-test',
 ]
 
-APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PROTOCOL_APPS
+APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES \
+        + PROTOCOL_APPS
 

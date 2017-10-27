@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//protocols/p4runtime/ctl:onos-protocols-p4runtime-ctl',
     '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
     '//drivers/bmv2:onos-drivers-bmv2',
+    '//pipelines/basic:onos-pipelines-basic',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-stub-' + GRPC_VER,
     '//lib:protobuf-java-' + PROTOBUF_VER,

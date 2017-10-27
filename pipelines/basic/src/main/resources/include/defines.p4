@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+#ifndef __DEFINES__
+#define __DEFINES__
 
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
+#define ETH_TYPE_IPV4 0x0800
+#define IP_PROTO_TCP 8w6
+#define IP_PROTO_UDP 8w17
+#define MAX_PORTS 511
 
-/**
- * Loader for P4Runtime device drivers.
- */
-@Component(immediate = true)
-public class Bmv2DriversLoader extends AbstractDriverLoader {
+typedef bit<9>  port_t;
+typedef bit<16> next_hop_id_t;
 
-    public Bmv2DriversLoader() {
-        super("/bmv2-drivers.xml");
-    }
-}
+const port_t CPU_PORT = 255;
+
+#endif

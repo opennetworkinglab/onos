@@ -23,10 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
-import org.onosproject.net.behaviour.PipelinerAdapter;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.ConfigFactory;
@@ -46,33 +44,29 @@ import org.onosproject.net.driver.DriverAdminServiceAdapter;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.driver.DriverServiceAdapter;
-import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiPipeconfConfig;
+import org.onosproject.pipelines.basic.PipeconfLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 /**
  * Unit Test Class for PiPipeconfManager.
  */
 public class PiPipeconfManagerTest {
-
-    private static final String PIPECONF_ID = "org.project.pipeconf.default";
-    private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
-
-    private final URL bmv2JsonConfigUrl = this.getClass().getResource(BMV2_JSON_PATH);
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("test:test");
     private static final String BASE_DRIVER = "baseDriver";
@@ -105,11 +99,7 @@ public class PiPipeconfManagerTest {
     @Before
     public void setUp() throws IOException {
         piPipeconfService = new PiPipeconfManager();
-        piPipeconf = DefaultPiPipeconf.builder()
-                .withId(new PiPipeconfId(PIPECONF_ID))
-                .withPipelineModel(Bmv2PipelineModelParser.parse(bmv2JsonConfigUrl))
-                .addBehaviour(Pipeliner.class, PipelinerAdapter.class)
-                .build();
+        piPipeconf = PipeconfLoader.BASIC_PIPECONF;
         completeDriverName = BASE_DRIVER + ":" + piPipeconf.id();
         piPipeconfService.cfgService = cfgService;
         piPipeconfService.driverService = driverService;

@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+#ifndef __ACTIONS__
+#define __ACTIONS__
 
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
+#include "headers.p4"
+#include "defines.p4"
 
-/**
- * Loader for P4Runtime device drivers.
- */
-@Component(immediate = true)
-public class Bmv2DriversLoader extends AbstractDriverLoader {
-
-    public Bmv2DriversLoader() {
-        super("/bmv2-drivers.xml");
-    }
+action send_to_cpu(inout standard_metadata_t standard_metadata) {
+    standard_metadata.egress_spec = CPU_PORT;
 }
+
+action set_egress_port(inout standard_metadata_t standard_metadata, port_t port) {
+    standard_metadata.egress_spec = port;
+}
+
+action _drop() {
+    mark_to_drop();
+}
+
+
+
+#endif

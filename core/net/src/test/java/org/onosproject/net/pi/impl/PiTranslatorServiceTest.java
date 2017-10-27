@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.TestApplicationId;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
@@ -44,23 +43,17 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.onosproject.pipelines.basic.PipeconfLoader;
 
 import java.util.Collection;
 import java.util.List;
@@ -73,8 +66,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
-import static org.onosproject.net.pi.impl.MockInterpreter.*;
 import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_IN_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.PORT_BITWIDTH;
+import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
  * Tests for {@link PiFlowRuleTranslator}.
@@ -82,22 +84,17 @@ import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
 @SuppressWarnings("ConstantConditions")
 public class PiTranslatorServiceTest {
 
-    private static final String BMV2_JSON_PATH = "/org/onosproject/net/pi/impl/default.json";
     private static final short IN_PORT_MASK = 0x01ff; // 9-bit mask
     private static final short ETH_TYPE_MASK = (short) 0xffff;
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:dummy:1");
     private static final ApplicationId APP_ID = TestApplicationId.create("dummy");
-    private static final PiTableId ECMP_TABLE_ID = PiTableId.of("ecmp");
-    private static final PiActionProfileId ACT_PROF_ID = PiActionProfileId.of("ecmp_selector");
     private static final GroupId GROUP_ID = GroupId.valueOf(1);
-    private static final PiActionId EGRESS_PORT_ACTION_ID = PiActionId.of("set_egress_port");
-    private static final int PORT_BITWIDTH = 9;
-    private static final PiActionParamId PORT_PARAM_ID = PiActionParamId.of("port");
     private static final List<GroupBucket> BUCKET_LIST = ImmutableList.of(outputBucket(1),
                                                                           outputBucket(2),
                                                                           outputBucket(3)
     );
-    private static final PiGroupKey GROUP_KEY = new PiGroupKey(ECMP_TABLE_ID, ACT_PROF_ID, GROUP_ID.id());
+    private static final PiGroupKey GROUP_KEY = new PiGroupKey(TBL_WCMP_TABLE_ID, ACT_PRF_WCMP_SELECTOR_ID,
+                                                               GROUP_ID.id());
     private static final GroupBuckets BUCKETS = new GroupBuckets(BUCKET_LIST);
     private static final GroupDescription GROUP_DESC =
             new DefaultGroupDescription(DEVICE_ID, SELECT, BUCKETS, GROUP_KEY, GROUP_ID.id(), APP_ID);
@@ -111,12 +108,7 @@ public class PiTranslatorServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        pipeconf = DefaultPiPipeconf.builder()
-                .withId(new PiPipeconfId("mock-pipeconf"))
-                .withPipelineModel(Bmv2PipelineModelParser.parse(this.getClass().getResource(BMV2_JSON_PATH)))
-                .addBehaviour(PiPipelineInterpreter.class, MockInterpreter.class)
-                .build();
-
+        pipeconf = PipeconfLoader.BASIC_PIPECONF;
         expectedMembers = ImmutableSet.of(outputMember(1),
                                           outputMember(2),
                                           outputMember(3));
@@ -177,13 +169,13 @@ public class PiTranslatorServiceTest {
                 .addEqualityGroup(entry1, entry2)
                 .testEquals();
 
-        int numMatchParams = pipeconf.pipelineModel().table(TABLE0).get().matchFields().size();
+        int numMatchParams = pipeconf.pipelineModel().table(TBL_TABLE0_ID.id()).get().matchFields().size();
         // parse values stored in entry1
-        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(IN_PORT_ID).get();
-        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_DST_ID).get();
-        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_SRC_ID).get();
-        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(ETH_TYPE_ID).get();
-        Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TABLE0).get().supportsAging()
+        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_IN_PORT_ID).get();
+        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_DST_ID).get();
+        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_SRC_ID).get();
+        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_TYPE_ID).get();
+        Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TBL_TABLE0_ID.id()).get().supportsAging()
                 ? Optional.of((double) rule1.timeout()) : Optional.empty();
 
         // check that the number of parameters in the entry is the same as the number of table keys
@@ -216,8 +208,8 @@ public class PiTranslatorServiceTest {
 
     private static GroupBucket outputBucket(int portNum) {
         ImmutableByteSequence paramVal = copyFrom(portNum);
-        PiActionParam param = new PiActionParam(PiActionParamId.of(PORT_PARAM_ID.name()), paramVal);
-        PiTableAction action = PiAction.builder().withId(EGRESS_PORT_ACTION_ID).withParameter(param).build();
+        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, paramVal);
+        PiTableAction action = PiAction.builder().withId(ACT_SET_EGRESS_PORT_ID).withParameter(param).build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .add(Instructions.piTableAction(action))
                 .build();
@@ -226,9 +218,9 @@ public class PiTranslatorServiceTest {
 
     private static PiActionGroupMember outputMember(int portNum)
             throws ImmutableByteSequence.ByteSequenceTrimException {
-        PiActionParam param = new PiActionParam(PORT_PARAM_ID, fit(copyFrom(portNum), PORT_BITWIDTH));
+        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, fit(copyFrom(portNum), PORT_BITWIDTH));
         PiAction piAction = PiAction.builder()
-                .withId(EGRESS_PORT_ACTION_ID)
+                .withId(ACT_SET_EGRESS_PORT_ID)
                 .withParameter(param).build();
         return PiActionGroupMember.builder()
                 .withAction(piAction)
@@ -255,7 +247,7 @@ public class PiTranslatorServiceTest {
         assertThat("Group type must be SELECT",
                    piGroup1.type(), is(equalTo(PiActionGroup.Type.SELECT)));
         assertThat("Action profile ID must be equal",
-                   piGroup1.actionProfileId(), is(equalTo(ACT_PROF_ID)));
+                   piGroup1.actionProfileId(), is(equalTo(ACT_PRF_WCMP_SELECTOR_ID)));
 
         // members installed
         Collection<PiActionGroupMember> members = piGroup1.members();

@@ -1,10 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:minimal-json',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
     '//apps/pi-demo/common:onos-apps-pi-demo-common',
-    '//drivers/default:onos-drivers-default',
-    '//drivers/p4runtime:onos-drivers-p4runtime',
+    '//pipelines/basic:onos-pipelines-basic',
 ]
 
 osgi_jar (
@@ -12,25 +10,18 @@ osgi_jar (
 )
 
 BUNDLES = [
-    '//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp',
     '//apps/pi-demo/common:onos-apps-pi-demo-common',
-    '//drivers/default:onos-drivers-default',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp',
 ]
 
 onos_app (
-    app_name = 'org.onosproject.pi-ecmp-fabric',
+    app_name = 'org.onosproject.pi-ecmp',
     title = 'PI Demo ECMP Fabric',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'Provides ECMP support for a 2-stage clos fabric topology of PI-enabled devices',
     included_bundles = BUNDLES,
     required_apps = [
-        # FIXME: there should be no dependendcy on a driver here.
-        # However, we depend on the DefaultP4Interpreter that currently lives in the p4runtime
-        # driver. Bringing up the whole app avoids to specify all transitive runtime dependencies
-        # as bundles. DefaultP4Interpreter and other pipeconf-related stuff should leave in a
-        # separate location, outside the drivers.
-        'org.onosproject.drivers.p4runtime'
+        'org.onosproject.pipelines.basic'
     ]
 )

@@ -60,7 +60,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.niceMock;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.net.pi.runtime.PiActionGroup.Type.SELECT;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
@@ -72,7 +74,7 @@ import static p4.P4RuntimeOuterClass.ReadResponse;
  */
 public class P4RuntimeGroupTest {
     private static final String PIPECONF_ID = "p4runtime-mock-pipeconf";
-    private static final String P4INFO_PATH = "/default.p4info";
+    private static final String P4INFO_PATH = "/test.p4info";
     private static final PiPipeconf PIPECONF = buildPipeconf();
     private static final int P4_INFO_ACT_PROF_ID = 285227860;
     private static final PiActionProfileId ACT_PROF_ID = PiActionProfileId.of("ecmp_selector");

@@ -75,7 +75,9 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -151,7 +153,7 @@ public abstract class AbstractUpgradableFabricApp {
     /**
      * Creates a new PI fabric app.
      *
-     * @param appName     app name
+     * @param appName      app name
      * @param appPipeconfs collection of compatible pipeconfs
      */
     protected AbstractUpgradableFabricApp(String appName, Collection<PiPipeconf> appPipeconfs) {
@@ -181,7 +183,6 @@ public abstract class AbstractUpgradableFabricApp {
 
         appId = coreService.registerApplication(appName);
         deviceService.addListener(deviceListener);
-        appPipeconfs.forEach(piPipeconfService::register);
 
         init();
 
@@ -201,9 +202,6 @@ public abstract class AbstractUpgradableFabricApp {
         scheduledExecutorService.shutdown();
         deviceService.removeListener(deviceListener);
         flowRuleService.removeFlowRulesById(appId);
-        appPipeconfs.stream()
-                .map(PiPipeconf::id)
-                .forEach(piPipeconfService::remove);
 
         appActive = false;
         APP_HANDLES.remove(appName);
@@ -228,7 +226,7 @@ public abstract class AbstractUpgradableFabricApp {
         one, it generates the necessary flow rules and starts the deploy process on each device.
          */
         scheduledExecutorService.scheduleAtFixedRate(this::checkTopologyAndGenerateFlowRules,
-                0, CHECK_TOPOLOGY_INTERVAL_SECONDS, TimeUnit.SECONDS);
+                                                     0, CHECK_TOPOLOGY_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     private void setAppFreezed(boolean appFreezed) {
@@ -453,11 +451,11 @@ public abstract class AbstractUpgradableFabricApp {
     /**
      * Returns a new, pre-configured flow rule builder.
      *
-     * @param did       a device id
-     * @param tableName a table name
+     * @param did     a device id
+     * @param tableId a table id
      * @return a new flow rule builder
      */
-    protected FlowRule.Builder flowRuleBuilder(DeviceId did, String tableName) throws FlowRuleGeneratorException {
+    protected FlowRule.Builder flowRuleBuilder(DeviceId did, PiTableId tableId) throws FlowRuleGeneratorException {
 
         final Device device = deviceService.getDevice(did);
         if (!device.is(PiPipelineInterpreter.class)) {
@@ -465,10 +463,10 @@ public abstract class AbstractUpgradableFabricApp {
         }
         final PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
         final int flowRuleTableId;
-        if (interpreter.mapPiTableId(PiTableId.of(tableName)).isPresent()) {
-            flowRuleTableId = interpreter.mapPiTableId(PiTableId.of(tableName)).get();
+        if (interpreter.mapPiTableId(tableId).isPresent()) {
+            flowRuleTableId = interpreter.mapPiTableId(tableId).get();
         } else {
-            throw new FlowRuleGeneratorException(format("Unknown table %s in interpreter", tableName));
+            throw new FlowRuleGeneratorException(format("Unknown table '%s' in interpreter", tableId));
         }
 
         return DefaultFlowRule.builder()

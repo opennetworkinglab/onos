@@ -286,6 +286,15 @@ final class PiFlowRuleTranslator {
                                                          fieldModel.field().type().name(),
                                                          fieldModel.field().header().index());
 
+            // FIXME: workaround until ONOS-7066 is resolved
+            if (fieldId.id().startsWith("scalars")) {
+                String newFieldId = fieldId.id()
+                        .replace("scalars.", "")
+                        .replace("_t.", ".");
+                String[] piecies = newFieldId.split("\\.");
+                fieldId = PiHeaderFieldId.of(piecies[0], piecies[1]);
+            }
+
             int bitWidth = fieldModel.field().type().bitWidth();
             int fieldByteWidth = (int) Math.ceil((double) bitWidth / 8);
 

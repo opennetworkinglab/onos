@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+package org.onosproject.pipelines.basic;
 
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.pi.runtime.PiTableId;
 
 /**
- * Loader for P4Runtime device drivers.
+ * Constants for the ecmp.p4 program.
  */
-@Component(immediate = true)
-public class Bmv2DriversLoader extends AbstractDriverLoader {
+public final class EcmpConstants {
 
-    public Bmv2DriversLoader() {
-        super("/bmv2-drivers.xml");
+    public static final PiTableId TBL_ECMP_TABLE_ID = PiTableId.of("ecmp_table");
+
+    private EcmpConstants() {
+        // Hides constructor.
     }
 }

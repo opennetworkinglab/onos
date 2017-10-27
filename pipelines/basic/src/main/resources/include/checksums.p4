@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2;
+#ifndef __CHECKSUMS__
+#define __CHECKSUMS__
 
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
+#include "headers.p4"
 
-/**
- * Loader for P4Runtime device drivers.
- */
-@Component(immediate = true)
-public class Bmv2DriversLoader extends AbstractDriverLoader {
-
-    public Bmv2DriversLoader() {
-        super("/bmv2-drivers.xml");
+control verify_checksum_control(inout headers_t hdr,
+                                inout local_metadata_t local_metadata) {
+    apply {
+        // Assume checksum is always correct.
     }
 }
+
+control compute_checksum_control(inout headers_t hdr,
+                                 inout local_metadata_t local_metadata) {
+    apply {
+        // No need to recompute.
+    }
+}
+
+#endif
