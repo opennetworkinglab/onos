@@ -19,11 +19,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableList;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,6 +46,14 @@ public class DriversListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String driverName = null;
 
+    @Option(name = "-s", aliases = "--sort", description = "Sort output by driver name",
+            required = false, multiValued = false)
+    private boolean sort = false;
+
+    @Option(name = "-n", aliases = "--name", description = "Show driver name only",
+            required = false, multiValued = false)
+    private boolean nameOnly = false;
+
     @Override
     protected void execute() {
         DriverService service = get(DriverService.class);
@@ -54,7 +64,10 @@ public class DriversListCommand extends AbstractShellCommand {
             if (outputJson()) {
                 json(service.getDrivers());
             } else {
-                service.getDrivers().forEach(d -> printDriver(d, true));
+                service.getDrivers()
+                    .stream()
+                    .sorted(Comparator.comparing(Driver::name))
+                    .forEach(d -> printDriver(d, true));
             }
         }
     }
@@ -72,8 +85,9 @@ public class DriversListCommand extends AbstractShellCommand {
     private void printDriver(Driver driver, boolean first) {
         if (outputJson()) {
             json(driver);
+        } else if (nameOnly) {
+            print("%s", driver.name());
         } else {
-
             List<Driver> parents = Optional.ofNullable(driver.parents())
                     .orElse(ImmutableList.of());
 
