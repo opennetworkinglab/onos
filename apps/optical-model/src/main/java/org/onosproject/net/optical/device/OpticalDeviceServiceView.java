@@ -73,13 +73,7 @@ public class OpticalDeviceServiceView
         = CacheBuilder.newBuilder()
             .weakKeys() // == for Key comparison
             .maximumSize(100)
-            .build(CacheLoader.from(elm -> {
-                if (elm.is(OpticalDevice.class)) {
-                    return Optional.of(elm.as(OpticalDevice.class));
-                } else {
-                    return Optional.empty();
-                }
-            }));
+            .build(CacheLoader.from(elm -> elm.project(OpticalDevice.class)));
 
     // Not intended to be instantiated directly
     protected OpticalDeviceServiceView(DeviceService base) {

@@ -16,6 +16,8 @@
 
 package org.onosproject.net.driver;
 
+import java.util.Optional;
+
 import com.google.common.annotations.Beta;
 
 /**
@@ -45,5 +47,21 @@ public interface Projectable {
      * @return true if the requested projection is supported
      */
     <B extends Behaviour> boolean is(Class<B> projectionClass);
+
+    /**
+     * Returns the specified projection of this entity if such projection
+     * is supported.
+     *
+     * @param projectionClass requested projection class
+     * @param <B> type of behaviour
+     * @return projection instance
+     */
+    default <B extends Behaviour> Optional<B> project(Class<B> projectionClass) {
+        if (is(projectionClass)) {
+            return Optional.of(as(projectionClass));
+        } else {
+            return Optional.empty();
+        }
+    }
 
 }
