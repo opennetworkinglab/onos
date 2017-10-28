@@ -35,7 +35,7 @@ export ONOS_ZIP=$ONOS_STAGE.zip
 
 # If the BUCK-built bits are newer than the Maven-built bits, use the former.
 BUCK_TAR=$ONOS_ROOT/buck-out/gen/tools/package/onos-package/onos.tar.gz
-if [ -f $BUCK_TAR -a $BUCK_TAR -nt $ONOS_TAR ]; then
+if [ -f $BUCK_TAR ] && [ $BUCK_TAR -nt $ONOS_TAR ]; then
     rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
 fi
 
