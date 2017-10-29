@@ -166,13 +166,19 @@ public class SoamManagerTest {
 
     @Test
     public void testGetAllDms() throws CfmConfigException, SoamConfigException {
+        expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
+        replay(deviceService);
 
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
+        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        replay(driverService);
+
         Collection<DelayMeasurementEntry> dmEntries =
                 soamManager.getAllDms(MDNAME1, MANAME1, MEPID1);
-        assertEquals(2, dmEntries.size());
+        assertNotNull(dmEntries);
+        assertEquals(1, dmEntries.size());
     }
 
     @Test

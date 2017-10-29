@@ -87,9 +87,22 @@ public class SoamManager implements SoamService {
             MdId mdName, MaIdShort maName, MepId mepId)
                     throws CfmConfigException, SoamConfigException {
         MepEntry mep = cfmMepService.getMep(mdName, maName, mepId);
+        if (mep == null || mep.deviceId() == null) {
+            throw new CfmConfigException("MEP :"
+                    + mdName + "/" + maName + "/" + mepId + " does not exist");
+        } else if (deviceService.getDevice(mep.deviceId()) == null) {
+            throw new CfmConfigException("Device " + mep.deviceId() + " from MEP :"
+                    + mdName + "/" + maName + "/" + mepId + " does not exist");
+        } else if (!deviceService.getDevice(mep.deviceId()).is(SoamDmProgrammable.class)) {
+            throw new CfmConfigException("Device " + mep.deviceId() + " from MEP :"
+                    + mdName + "/" + maName + "/" + mepId +
+                    " does not implement SoamDmProgrammable");
+        }
         log.debug("Retrieving DMs for MD {}, MA {}, MEP {} on Device {}",
                 mdName, maName, mepId, mep.deviceId());
-        return mep.delayMeasurementList();
+
+        return deviceService.getDevice(mep.deviceId())
+                .as(SoamDmProgrammable.class).getAllDms(mdName, maName, mepId);
     };
 
     @Override
