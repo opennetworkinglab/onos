@@ -93,7 +93,12 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
     public Collection<DelayMeasurementEntry> getAllDms(
             MdId mdName, MaIdShort maName, MepId mepId)
             throws CfmConfigException, SoamConfigException {
-        return null;
+        Collection<DelayMeasurementEntry> dmEntries = new ArrayList<>();
+        if (mdName.equals(MDNAME1) && maName.equals(MANAME1) && mepId.equals(MEPID1)) {
+            dmEntries.add(dmEntry1);
+            return dmEntries;
+        }
+        return new ArrayList<>();
     }
 
     @Override
