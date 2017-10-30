@@ -145,12 +145,30 @@ public class XmlDriverLoader {
             parents = parentsNames.stream().map(parent -> (parent != null) ?
                     resolve(parent, resolver) : null).collect(Collectors.toList());
         }
-        String manufacturer = driverCfg.getString(MFG, "");
-        String hwVersion = driverCfg.getString(HW, "");
-        String swVersion = driverCfg.getString(SW, "");
+        String manufacturer = driverCfg.getString(MFG, getParentAttribute(parents, MFG));
+        String hwVersion = driverCfg.getString(HW, getParentAttribute(parents, HW));
+        String swVersion = driverCfg.getString(SW, getParentAttribute(parents, SW));
         return new DefaultDriver(name, parents, manufacturer, hwVersion, swVersion,
                                  parseBehaviours(driverCfg),
                                  parseProperties(driverCfg));
+    }
+
+    // Returns the specified property from the highest priority parent
+    private String getParentAttribute(List<Driver> parents, String attribute) {
+        if (!parents.isEmpty()) {
+            Driver parent = parents.get(0);
+            switch (attribute) {
+                case MFG:
+                    return parent.manufacturer();
+                case HW:
+                    return parent.hwVersion();
+                case SW:
+                    return parent.swVersion();
+                default:
+                    throw new IllegalArgumentException("Unsupported attribute");
+            }
+        }
+        return "";
     }
 
     // Resolves the driver by name locally at first and then using the specified resolver.

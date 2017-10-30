@@ -20,7 +20,7 @@
                    impl="org.onosproject.net.driver.TestBehaviourImpl"/>
     </driver>
 
-    <driver name="foo.1" extends="foo.0" manufacturer="Circus" hwVersion="1.2a" swVersion="2.2">
+    <driver name="foo.1" extends="foo.0" hwVersion="1.2a" swVersion="2.2">
         <fingerprint>ding</fingerprint>
         <fingerprint>bat</fingerprint>
 
@@ -31,7 +31,7 @@
         <property name="p2">v2</property>
     </driver>
 
-    <driver name="foo.2" extends="foo.0,foo.1" manufacturer="Circus" hwVersion="1.2" swVersion="2.0">
+    <driver name="foo.2" extends="foo.0,foo.1" manufacturer="Big Top OEM">
         <behaviour api="org.onosproject.net.driver.TestBehaviourThree"
                    impl="org.onosproject.net.driver.TestBehaviourThreeImpl"/>
     </driver>

@@ -15,47 +15,25 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="hp-switch">
+    <driver name="hp-switch" manufacturer="(HP|Aruba)" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.drivers.hp.HPPipelineV3800"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.drivers.hp.HPSwitchHandshaker"/>
     </driver>
 
-    <driver name="hp-2920" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="2920-(24G|48G).* Switch" swVersion=".*"/>
+    <driver name="hp-2920"  extends="hp-switch" hwVersion=".*2920.*"/>
+    <driver name="hp-2930"  extends="hp-switch" hwVersion=".*2930.*"/>
+    <driver name="hp-3500"  extends="hp-switch" hwVersion=".*3500.*"/>
+    <driver name="hp-3800"  extends="hp-switch" hwVersion=".*3800.*"/>
+    <driver name="hp-3810"  extends="hp-switch" hwVersion=".*3810.*"/>
+    <driver name="hp-5400"  extends="hp-switch" hwVersion=".*54[0-9][0-9]z.*"/>
+    <driver name="hp-5400R" extends="hp-switch" hwVersion=".*54[0-9][0-9]R.*"/>
+    <driver name="hp-6200"  extends="hp-switch" hwVersion=".*6200.*"/>
+    <driver name="hp-6600"  extends="hp-switch" hwVersion=".*6600.*"/>
+    <driver name="hp-8200"  extends="hp-switch" hwVersion=".*82[0-9][0-9].*"/>
 
-    <driver name="hp-2930" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="2930[FM]-(8G|8SR|24G|40G|48G).* Switch" swVersion=".*"/>
-
-    <driver name="hp-3500" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch 3500.*" swVersion=".*"/>
-
-    <driver name="hp-3800" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="3800-(24G|24SFP|48G).* Switch" swVersion=".*"/>
-
-    <driver name="hp-3810" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="3810M-(16SFP|16SR|24G|24SFP|40G|48G).* Switch" swVersion=".*"/>
-
-    <driver name="hp-5400" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch (5406zl|5412zl)" swVersion=".*"/>
-
-    <driver name="hp-5400R" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch (5406Rzl2|5412Rzl2)" swVersion=".*"/>
-
-    <driver name="hp-6200" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch 6200zl-24G" swVersion=".*"/>
-
-    <driver name="hp-6600" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch (E6600|6600ml|6600).*" swVersion=".*"/>
-
-    <driver name="aruba-7000" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Aruba70(05|08|10|24|30)" swVersion=".*"/>
-
-    <driver name="aruba-7200" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Aruba72(05|10|20|40)" swVersion=".*"/>
-
-    <driver name="hp-8200" extends="hp-switch" manufacturer="(HP|Aruba)"
-            hwVersion="Switch 8212zl" swVersion=".*"/>
+    <driver name="aruba-7000" extends="hp-switch,ovs" hwVersion=".*Aruba70[0-9][0-9].*"/>
+    <driver name="aruba-7200" extends="hp-switch,ovs" hwVersion=".*Aruba72[0-9][0-9].*"/>
 
 </drivers>
