@@ -741,9 +741,37 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
          etherReply.setVlanID(this.dhcpConnectVlan.toShort());
 
          IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
-         byte[] peerAddress = clientIpv6.getSourceAddress();
-         ipv6Packet.setSourceAddress(ipFacingServer.toOctets());
+         Ip6Address peerAddress = null;
+         if (directConnFlag) {
+             peerAddress = Ip6Address.valueOf(ipv6Packet.getSourceAddress());
 
+         } else {
+             MacAddress gwOrClientMac = MacAddress.valueOf(clientPacket.getSourceMACAddress());
+             VlanId vlanId = VlanId.vlanId(clientPacket.getVlanID());
+             HostId gwOrClientHostId = HostId.hostId(gwOrClientMac, vlanId);
+             Host gwOrClientHost = hostService.getHost(gwOrClientHostId);
+
+             if (gwOrClientHost == null) {
+                 log.warn("Can't find client gateway/server host {}", gwOrClientHostId);
+                 return null;
+             }
+             // pick out the first gloabl ip address
+             peerAddress = gwOrClientHost.ipAddresses()
+                     .stream()
+                     .filter(IpAddress::isIp6)
+                     .filter(ip6 -> !ip6.isLinkLocal())
+                     .map(IpAddress::getIp6Address)
+                     .findFirst()
+                     .orElse(null);
+
+             if (peerAddress == null) {
+                 log.warn("Can't find client gateway/server for mac {} ip {}", gwOrClientMac,
+                         HexString.toHexString(ipv6Packet.getSourceAddress()));
+                 log.warn("Can't find IP address of client gateway/ClienHost address {} for peerAddress", gwOrClientHost);
+                 return null;
+             }
+         }
+         ipv6Packet.setSourceAddress(ipFacingServer.toOctets());
          ipv6Packet.setDestinationAddress(this.dhcpServerIp.toOctets());
 
          UDP udpPacket = (UDP) ipv6Packet.getPayload();
@@ -806,7 +834,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
          // peer address:  address of the client or relay agent from which
          // the message to be relayed was received.
-         dhcp6Relay.setPeerAddress(peerAddress);
+         dhcp6Relay.setPeerAddress(peerAddress.toOctets());
          List<Dhcp6Option> options = new ArrayList<Dhcp6Option>();
 
          // directly connected case, hop count is zero
