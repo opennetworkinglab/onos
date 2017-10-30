@@ -16,72 +16,34 @@
 
 package org.onosproject.drivers.bmv2;
 
-import org.onlab.util.SharedExecutors;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.apache.commons.io.IOUtils;
+import org.onosproject.drivers.p4runtime.AbstractP4RuntimePipelineProgrammable;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.model.PiPipelineProgrammable;
-import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.pipelines.basic.PipeconfLoader;
-import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of the PiPipelineProgrammable for BMv2.
+ * Implementation of the PiPipelineProgrammable behavior for BMv2.
  */
-public class Bmv2PipelineProgrammable extends AbstractHandlerBehaviour implements PiPipelineProgrammable {
-
-    private final Logger log = getLogger(getClass());
+public class Bmv2PipelineProgrammable extends AbstractP4RuntimePipelineProgrammable {
 
     @Override
-    public CompletableFuture<Boolean> deployPipeconf(PiPipeconf pipeconf) {
-
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-
-        SharedExecutors.getPoolThreadExecutor().submit(() -> result.complete(doDeployConfig(pipeconf)));
-
-        return result;
-    }
-
-    private boolean doDeployConfig(PiPipeconf pipeconf) {
-
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-
-        DeviceId deviceId = handler().data().deviceId();
-
-        if (!controller.hasClient(deviceId)) {
-            log.warn("Unable to find client for {}, aborting pipeconf deploy", deviceId);
-            return false;
-
+    public ByteBuffer createDeviceDataBuffer(PiPipeconf pipeconf) {
+        if (!pipeconf.extension(BMV2_JSON).isPresent()) {
+            log.warn("Missing extension {} in pipeconf {}", BMV2_JSON, pipeconf.id());
+            return null;
         }
-
-        P4RuntimeClient client = controller.getClient(deviceId);
-
         try {
-            if (!client.setPipelineConfig(pipeconf, BMV2_JSON).get()) {
-                log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
-                return false;
-            }
-
-            // It would be more logical to have this performed at device handshake, but P4runtime would reject any
-            // command if a P4info has not been set first.
-            if (!client.initStreamChannel().get()) {
-                log.warn("Unable to init stream channel to {}.", deviceId);
-                return false;
-            }
-
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            return ByteBuffer.wrap(IOUtils.toByteArray(pipeconf.extension(BMV2_JSON).get()));
+        } catch (IOException e) {
+            log.warn("Unable to read {} from pipeconf {}", BMV2_JSON, pipeconf.id());
+            return null;
         }
-
-        return true;
     }
 
     @Override

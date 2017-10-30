@@ -105,6 +105,7 @@ ONOS_DRIVERS = [
     '//drivers/microsemi:onos-drivers-microsemi-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
     '//drivers/bmv2:onos-drivers-bmv2-oar',
+    '//drivers/barefoot:onos-drivers-barefoot-oar',
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
     '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',

@@ -27,6 +27,7 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableId;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -48,15 +49,15 @@ public interface P4RuntimeClient {
     }
 
     /**
-     * Sets the pipeline configuration defined by the given pipeconf for the given target-specific configuration
-     * extension type (e.g. {@link PiPipeconf.ExtensionType#BMV2_JSON}, or {@link PiPipeconf.ExtensionType#TOFINO_BIN}).
-     * This method should be called before any other method of this client.
+     * Sets the device pipeline according to the given pipeconf, and for the given byte buffer representing the
+     * target-specific data to be used in the P4Runtime's SetPipelineConfig message. This method should be called
+     * before any other method of this client.
      *
-     * @param pipeconf            pipeconf
-     * @param targetConfigExtType extension type of the target-specific configuration
+     * @param pipeconf   pipeconf
+     * @param deviceData target-specific data
      * @return a completable future of a boolean, true if the operations was successful, false otherwise.
      */
-    CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, PiPipeconf.ExtensionType targetConfigExtType);
+    CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData);
 
     /**
      * Initializes the stream channel, after which all messages received from the device will be notified using the
@@ -109,8 +110,8 @@ public interface P4RuntimeClient {
      * Returns a collection of counter data corresponding to the given set of counter cell identifiers, for the given
      * pipeconf.
      *
-     * @param cellIds set of counter cell identifiers
-     * @param pipeconf   pipeconf
+     * @param cellIds  set of counter cell identifiers
+     * @param pipeconf pipeconf
      * @return collection of counter data
      */
     CompletableFuture<Collection<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
@@ -119,8 +120,8 @@ public interface P4RuntimeClient {
     /**
      * Performs the given write operation for the given action group members and pipeconf.
      *
-     * @param group action group
-     * @param opType write operation type
+     * @param group    action group
+     * @param opType   write operation type
      * @param pipeconf the pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise
      */
@@ -131,8 +132,8 @@ public interface P4RuntimeClient {
     /**
      * Performs the given write operation for the given action group and pipeconf.
      *
-     * @param group the action group
-     * @param opType write operation type
+     * @param group    the action group
+     * @param opType   write operation type
      * @param pipeconf the pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise
      */
@@ -144,7 +145,7 @@ public interface P4RuntimeClient {
      * Dumps all groups currently installed for the given action profile.
      *
      * @param actionProfileId the action profile id
-     * @param pipeconf the pipeconf currently deployed on the device
+     * @param pipeconf        the pipeconf currently deployed on the device
      * @return completable future of a collection of groups
      */
     CompletableFuture<Collection<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,

@@ -65,8 +65,7 @@ import p4.P4RuntimeOuterClass.WriteRequest;
 import p4.config.P4InfoOuterClass.P4Info;
 import p4.tmp.P4Config;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -85,10 +84,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.*;
+import static p4.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
+import static p4.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
+import static p4.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
 import static p4.P4RuntimeOuterClass.PacketOut;
 import static p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
 
@@ -172,8 +173,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, ExtensionType targetConfigExtType) {
-        return supplyInContext(() -> doSetPipelineConfig(pipeconf, targetConfigExtType), "setPipelineConfig");
+    public CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
+        return supplyInContext(() -> doSetPipelineConfig(pipeconf, deviceData), "setPipelineConfig");
     }
 
     @Override
@@ -286,9 +287,11 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
     }
 
-    private boolean doSetPipelineConfig(PiPipeconf pipeconf, ExtensionType targetConfigExtType) {
+    private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
 
-        log.info("Setting pipeline config for {} to {} using {}...", deviceId, pipeconf.id(), targetConfigExtType);
+        log.info("Setting pipeline config for {} to {}...", deviceId, pipeconf.id());
+
+        checkNotNull(deviceData, "deviceData cannot be null");
 
         P4Info p4Info = PipeconfHelper.getP4Info(pipeconf);
         if (p4Info == null) {
@@ -296,51 +299,33 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             return false;
         }
 
+        P4Config.P4DeviceConfig p4DeviceConfigMsg = P4Config.P4DeviceConfig
+                .newBuilder()
+                .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
+                .setReassign(true)
+                .setDeviceData(ByteString.copyFrom(deviceData))
+                .build();
 
-        ForwardingPipelineConfig.Builder pipelineConfigBuilder = ForwardingPipelineConfig
+        ForwardingPipelineConfig pipelineConfig = ForwardingPipelineConfig
                 .newBuilder()
                 .setDeviceId(p4DeviceId)
-                .setP4Info(p4Info);
-
-        //if the target config extension is null we don't want to add the config.
-        if (targetConfigExtType != null) {
-            if (!pipeconf.extension(targetConfigExtType).isPresent()) {
-                log.warn("Missing extension {} in pipeconf {}", targetConfigExtType, pipeconf.id());
-                return false;
-            }
-            InputStream targetConfig = pipeconf.extension(targetConfigExtType).get();
-            P4Config.P4DeviceConfig p4DeviceConfigMsg;
-            try {
-                p4DeviceConfigMsg = P4Config.P4DeviceConfig
-                        .newBuilder()
-                        .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
-                        .setReassign(true)
-                        .setDeviceData(ByteString.readFrom(targetConfig))
-                        .build();
-
-                pipelineConfigBuilder.setP4DeviceConfig(p4DeviceConfigMsg.toByteString());
-
-            } catch (IOException ex) {
-                log.warn("Unable to load target-specific config for {}: {}", deviceId, ex.getMessage());
-                return false;
-            }
-        }
+                .setP4Info(p4Info)
+                .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
+                .build();
 
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
                 .setAction(VERIFY_AND_COMMIT)
-                .addConfigs(pipelineConfigBuilder.build())
+                .addConfigs(pipelineConfig)
                 .build();
 
         try {
             this.blockingStub.setForwardingPipelineConfig(request);
-
+            return true;
         } catch (StatusRuntimeException ex) {
             log.warn("Unable to set pipeline config for {}: {}", deviceId, ex.getMessage());
             return false;
         }
-
-        return true;
     }
 
     private boolean doWriteTableEntries(Collection<PiTableEntry> piTableEntries, WriteOperationType opType,

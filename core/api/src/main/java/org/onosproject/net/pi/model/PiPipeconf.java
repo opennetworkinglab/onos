@@ -95,6 +95,11 @@ public interface PiPipeconf {
         /**
          * Barefoot's Tofino configuration binary.
          */
-        TOFINO_BIN
+        TOFINO_BIN,
+
+        /**
+         * Barefoot's Tofino context JSON.
+         */
+        TOFINO_CONTEXT_JSON
     }
 }
