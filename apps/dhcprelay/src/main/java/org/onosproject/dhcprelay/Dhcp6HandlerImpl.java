@@ -698,7 +698,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
          }
 
          // get dhcp6 header.
-
          IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
          UDP clientUdp = (UDP) clientIpv6.getPayload();
          DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
@@ -722,12 +721,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
          if ((directConnFlag && this.dhcpConnectMac == null)  ||
                  !directConnFlag && this.indirectDhcpConnectMac == null && this.dhcpConnectMac == null)   {
              log.warn("Packet received from {} connected client.", directConnFlag ? "directly" : "indirectly");
-             log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
-                             + "packet processing from client on port: {}",
+             log.warn("DHCP6 {} not yet resolved .. Aborting DHCP packet processing from client on port: {}",
                      (this.dhcpGatewayIp == null) ? "server IP " + this.dhcpServerIp
                              : "gateway IP " + this.dhcpGatewayIp,
                      clientInterfaces.iterator().next().connectPoint());
-
              return null;
          }
 
@@ -744,7 +741,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
          Ip6Address peerAddress = null;
          if (directConnFlag) {
              peerAddress = Ip6Address.valueOf(ipv6Packet.getSourceAddress());
-
          } else {
              MacAddress gwOrClientMac = MacAddress.valueOf(clientPacket.getSourceMACAddress());
              VlanId vlanId = VlanId.vlanId(clientPacket.getVlanID());
@@ -756,18 +752,15 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                  return null;
              }
              // pick out the first gloabl ip address
-             peerAddress = gwOrClientHost.ipAddresses()
-                     .stream()
-                     .filter(IpAddress::isIp6)
-                     .filter(ip6 -> !ip6.isLinkLocal())
-                     .map(IpAddress::getIp6Address)
-                     .findFirst()
-                     .orElse(null);
+             peerAddress = gwOrClientHost.ipAddresses().stream()
+                     .filter(IpAddress::isIp6).filter(ip6 -> !ip6.isLinkLocal())
+                     .map(IpAddress::getIp6Address).findFirst().orElse(null);
 
              if (peerAddress == null) {
                  log.warn("Can't find client gateway/server for mac {} ip {}", gwOrClientMac,
                          HexString.toHexString(ipv6Packet.getSourceAddress()));
-                 log.warn("Can't find IP address of client gateway/ClienHost address {} for peerAddress", gwOrClientHost);
+                 log.warn("Can't find IP address of client gateway/ClienHost address {} for peerAddress",
+                         gwOrClientHost);
                  return null;
              }
          }
@@ -784,10 +777,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
          ConnectPoint clientConnectionPoint = context.inPacket().receivedFrom();
          VlanId vlanIdInUse = VlanId.vlanId(clientPacket.getVlanID());
          Interface clientInterface = interfaceService.getInterfacesByPort(clientConnectionPoint)
-                 .stream()
-                 .filter(iface -> interfaceContainsVlan(iface, vlanIdInUse))
-                 .findFirst()
-                 .orElse(null);
+                 .stream().filter(iface -> interfaceContainsVlan(iface, vlanIdInUse))
+                 .findFirst().orElse(null);
 
          removeHostOrRoute(directConnFlag, dhcp6Packet, clientPacket, clientIpv6, clientInterface);
 
@@ -824,7 +815,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                  dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
                  log.warn("indirect connection: relayAgentIp NOT availale from config file! Use dynamic. {}",
                          HexString.toHexString(relayAgentIp.toOctets(), ":"));
-
              } else {
                  dhcp6Relay.setLinkAddress(this.indirectRelayAgentIpFromCfg.toOctets());
                  log.debug("indirect connection: relayAgentIp from config file is available! {}",
