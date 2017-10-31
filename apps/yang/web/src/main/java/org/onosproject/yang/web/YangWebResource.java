@@ -70,9 +70,35 @@ public class YangWebResource extends AbstractWebResource {
                            @FormDataParam("file") InputStream stream) throws IOException {
         YangLiveCompilerService compiler = get(YangLiveCompilerService.class);
         ApplicationAdminService appService = get(ApplicationAdminService.class);
+        modelId = getValidModelId(modelId);
         appService.install(compiler.compileYangFiles(modelId, stream));
         appService.activate(appService.getId(modelId));
         return Response.ok().build();
+    }
+
+    /**
+     * Returns the valid model id by removing the special character with
+     * underscore.
+     *
+     * @param id user given model id
+     * @return model id
+     * @throws IllegalArgumentException if user defined model id does not
+     *                                  contain at least a alphanumeric character
+     */
+    public static String getValidModelId(String id) throws
+            IllegalArgumentException {
+        // checking weather modelId contains the alphanumeric character or not.
+        if (id.matches(".*[A-Za-z0-9].*")) {
+            // replacing special characters with '_'
+            id = id.replaceAll("[\\s\\/:*?\"\\[\\]<>|$@!#%&(){}';.,-]", "_");
+            // remove leading and trailing underscore
+            id = id.replaceAll("^_+|_+$", "");
+            // replacing the consecutive underscores '_' to single _
+            id = id.replaceAll("_+", "_");
+            return id;
+        } else {
+            throw new IllegalArgumentException("Invalid model id " + id);
+        }
     }
 
     /**
