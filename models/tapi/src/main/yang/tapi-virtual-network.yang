@@ -1,0 +1,220 @@
+module tapi-virtual-network {
+    namespace "urn:onf:params:xml:ns:yang:tapi-virtual-network";
+    prefix tapi-virtual-network;
+    import tapi-topology {
+        prefix tapi-topology;
+    }
+    import tapi-common {
+        prefix tapi-common;
+    }
+    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    contact "
+        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
+        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
+        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
+        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
+    description "none";
+    revision 2017-05-31 {
+        description "TAPI SDK 2.0-alpha";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+    }
+    augment "/tapi-common:context" {
+        uses virtual-network-context;
+        description "Augments the base TAPI Context with VirtualNetworkService information";
+    }
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping virtual-network-constraint {
+            leaf src-service-end-point {
+                type leafref {
+                    path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
+                }
+                config false;
+                description "none";
+            }
+            leaf sink-service-end-point {
+                type leafref {
+                    path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
+                }
+                config false;
+                description "none";
+            }
+            leaf-list diversity-exclusion {
+                type leafref {
+                    path '/tapi-common:context/tapi-virtual-network:virtual-nw-service/tapi-virtual-network:vnw-constraint/tapi-virtual-network:local-id';
+                }
+                config false;
+                description "none";
+            }
+            container requested-capacity {
+                uses tapi-common:capacity;
+                description "none";
+            }
+            leaf service-level {
+                type string;
+                description "An abstract value the meaning of which is mutually agreed – typically represents metrics such as - Class of service, priority, resiliency, availability";
+            }
+            leaf-list service-layer {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            list cost-characteristic {
+                key 'cost-name';
+                uses tapi-topology:cost-characteristic;
+                description "The list of costs where each cost relates to some aspect of the TopologicalEntity.";
+            }
+            list latency-characteristic {
+                key 'traffic-property-name';
+                uses tapi-topology:latency-characteristic;
+                description "The effect on the latency of a queuing process. This only has significant effect for packet based systems and has a complex characteristic.";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping virtual-network-service {
+            leaf topology {
+                type leafref {
+                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
+                }
+                config false;
+                description "none";
+            }
+            list end-point {
+                key 'local-id';
+                min-elements 2;
+                uses virtual-network-service-end-point;
+                description "none";
+            }
+            list vnw-constraint {
+                key 'local-id';
+                min-elements 1;
+                uses virtual-network-constraint;
+                description "none";
+            }
+            leaf schedule {
+                type string;
+                description "none";
+            }
+            container state {
+                uses tapi-common:admin-state-pac;
+                description "none";
+            }
+            leaf-list layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                min-elements 1;
+                description "none";
+            }
+            uses tapi-common:service-spec;
+            description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
+                At the lowest level of recursion, a FC represents a cross-connection within an NE.";
+        }
+        grouping virtual-network-service-end-point {
+            leaf service-interface-point {
+                type leafref {
+                    path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
+                }
+                config false;
+                description "none";
+            }
+            leaf role {
+                type tapi-common:port-role;
+                config false;
+                description "Each EP of the FC has a role (e.g., working, protection, protected, symmetric, hub, spoke, leaf, root)  in the context of the FC with respect to the FC function. ";
+            }
+            leaf direction {
+                type tapi-common:port-direction;
+                config false;
+                description "The orientation of defined flow at the EndPoint.";
+            }
+            leaf service-layer {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "The association of the FC to LTPs is made via EndPoints.
+                The EndPoint (EP) object class models the access to the FC function. 
+                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.  
+                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC. 
+                It can represent a protected (resilient/reliable) point or a protecting (unreliable working or protection) point.
+                The EP replaces the Protection Unit of a traditional protection model. 
+                The ForwadingConstruct can be considered as a component and the EndPoint as a Port on that component";
+        }
+        grouping virtual-network-context {
+            list virtual-nw-service {
+                key 'uuid';
+                uses virtual-network-service;
+                description "none";
+            }
+            description "none";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc create-virtual-network-service {
+            description "none";
+            input {
+                list sep {
+                    min-elements 2;
+                    uses virtual-network-service-end-point;
+                    description "none";
+                }
+                container vnw-constraint {
+                    uses virtual-network-constraint;
+                    description "none";
+                }
+                leaf conn-schedule {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses virtual-network-service;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-virtual-network-service {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses virtual-network-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-virtual-network-service-details {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses virtual-network-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-virtual-network-service-list {
+            description "none";
+            output {
+                list service {
+                    uses virtual-network-service;
+                    description "none";
+                }
+            }
+        }
+
+}

@@ -1,0 +1,497 @@
+module tapi-notification {
+    namespace "urn:onf:params:xml:ns:yang:tapi-notification";
+    prefix tapi-notification;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    contact "
+        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
+        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
+        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
+        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
+    description "none";
+    revision 2017-05-31 {
+        description "TAPI SDK 2.0-alpha";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+    }
+    augment "/tapi-common:context" {
+        uses notification-context;
+        description "Augments the base TAPI Context with NotificationService information";
+    }
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping notification-subscription-service {
+            list notification {
+                key 'uuid';
+                config false;
+                uses notification;
+                description "none";
+            }
+            container notification-channel {
+                uses notification-channel;
+                description "none";
+            }
+            container subscription-filter {
+                uses subscription-filter;
+                description "none";
+            }
+            leaf subscription-state {
+                type subscription-state;
+                description "none";
+            }
+            leaf-list supported-notification-types {
+                type notification-type;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            leaf-list supported-object-types {
+                type object-type;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            uses tapi-common:service-spec;
+            description "none";
+        }
+        grouping subscription-filter {
+            leaf-list requested-notification-types {
+                type notification-type;
+                config false;
+                description "none";
+            }
+            leaf-list requested-object-types {
+                type object-type;
+                config false;
+                description "none";
+            }
+            leaf-list requested-layer-protocols {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf-list requested-object-identifier {
+                type tapi-common:uuid;
+                config false;
+                description "none";
+            }
+            leaf include-content {
+                type boolean;
+                config false;
+                description "Indicates whether the published Notification includes content or just the Notification Id (which enables retrieval of the notification at the later stage)";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        notification notification {
+            uses notification;
+            description "none";
+        }
+        grouping notification {
+            leaf notification-type {
+                type notification-type;
+                description "none";
+            }
+            leaf target-object-type {
+                type object-type;
+                description "none";
+            }
+            leaf target-object-identifier {
+                type tapi-common:uuid;
+                description "none";
+            }
+            list target-object-name {
+                key 'value-name';
+                min-elements 1;
+                uses tapi-common:name-and-value;
+                description "none";
+            }
+            leaf event-time-stamp {
+                type tapi-common:date-and-time;
+                description "none";
+            }
+            leaf sequence-number {
+                type uint64;
+                config false;
+                description "A monotonous increasing sequence number associated with the notification.
+                    The exact semantics of how this sequence number is assigned (per channel or subscription or source or system) is left undefined.";
+            }
+            leaf source-indicator {
+                type source-indicator;
+                description "none";
+            }
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            list changed-attributes {
+                key 'value-name';
+                uses name-and-value-change;
+                description "none";
+            }
+            list additional-info {
+                key 'value-name';
+                uses tapi-common:name-and-value;
+                description "none";
+            }
+            leaf additional-text {
+                type string;
+                description "none";
+            }
+            container tca-info {
+                uses tca-info;
+                description "none";
+            }
+            container alarm-info {
+                uses alarm-info;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            description "none";
+        }
+        grouping notification-channel {
+            leaf stream-address {
+                type string;
+                config false;
+                description "The address/location/URI of the channel/stream to which the subscribed notifications are published.
+                    This specifics of this is typically dependent on the implementation protocol & mechanism and hence is typed as a string.";
+            }
+            leaf next-sequence-no {
+                type uint64;
+                config false;
+                description "The sequence number of the next notification that will be published on the channel";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping notification-context {
+            list notif-subscription {
+                key 'uuid';
+                uses notification-subscription-service;
+                description "none";
+            }
+            list notification {
+                key 'uuid';
+                config false;
+                uses notification;
+                description "none";
+            }
+            description "none";
+        }
+        grouping alarm-info {
+            leaf is-transient {
+                type boolean;
+                config false;
+                description "none";
+            }
+            leaf pervceived-severity {
+                type perceived-serverity-type;
+                config false;
+                description "none";
+            }
+            leaf probable-cause {
+                type string;
+                config false;
+                description "none";
+            }
+            leaf service-affecting {
+                type service-affecting;
+                description "none";
+            }
+            description "none";
+        }
+        grouping tca-info {
+            leaf is-transient {
+                type boolean;
+                config false;
+                description "none";
+            }
+            leaf threshold-crossing {
+                type threshold-crossing-type;
+                description "none";
+            }
+            leaf threshold-parameter {
+                type string;
+                config false;
+                description "none";
+            }
+            leaf threshold-value {
+                type uint64;
+                config false;
+                description "none";
+            }
+            description "none";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        grouping name-and-value-change {
+            leaf value-name {
+                type string;
+                description "The name of the value. The value need not have a name.";
+            }
+            leaf old-value {
+                type string;
+                description "The value";
+            }
+            leaf new-value {
+                type string;
+                description "The value";
+            }
+            description "A scoped name-value triple, including old value and new value";
+        }
+        typedef notification-type {
+            type enumeration {
+                enum object-creation {
+                    description "Not a normal state. The system is unable to determine the correct value.";
+                }
+                enum object-deletion {
+                    description "none";
+                }
+                enum attribute-value-change {
+                    description "none";
+                }
+                enum alarm-event {
+                    description "none";
+                }
+                enum threshold-crossing-alert {
+                    description "none";
+                }
+            }
+            description "The orientation of flow at the Port of a Forwarding entity";
+        }
+        typedef object-type {
+            type enumeration {
+                enum topology {
+                    description "none";
+                }
+                enum node {
+                    description "none";
+                }
+                enum link {
+                    description "none";
+                }
+                enum connection {
+                    description "none";
+                }
+                enum path {
+                    description "none";
+                }
+                enum connectivity-service {
+                    description "none";
+                }
+                enum virtual-network-service {
+                    description "none";
+                }
+                enum path-computation-service {
+                    description "none";
+                }
+                enum node-edge-point {
+                    description "none";
+                }
+                enum service-interface-point {
+                    description "none";
+                }
+                enum connection-end-point {
+                    description "none";
+                }
+            }
+            description "The orientation of flow at the Port of a Forwarding entity";
+        }
+        typedef source-indicator {
+            type enumeration {
+                enum resource-operation {
+                    description "none";
+                }
+                enum management-operation {
+                    description "none";
+                }
+                enum unknown {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef subscription-state {
+            type enumeration {
+                enum suspended {
+                    description "none";
+                }
+                enum active {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef perceived-serverity-type {
+            type enumeration {
+                enum critical {
+                    description "none";
+                }
+                enum major {
+                    description "none";
+                }
+                enum minor {
+                    description "none";
+                }
+                enum warning {
+                    description "none";
+                }
+                enum cleared {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef threshold-crossing-type {
+            type enumeration {
+                enum threshold-above {
+                    description "none";
+                }
+                enum threshold-below {
+                    description "none";
+                }
+                enum cleared {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef service-affecting {
+            type enumeration {
+                enum service-affecting {
+                    description "none";
+                }
+                enum not-service-affecting {
+                    description "none";
+                }
+                enum unknown {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc get-supported-notification-types {
+            description "none";
+            output {
+                leaf-list supported-notification-types {
+                    type notification-type;
+                    min-elements 1;
+                    description "none";
+                }
+                leaf-list supported-object-types {
+                    type object-type;
+                    min-elements 1;
+                    description "none";
+                }
+            }
+        }
+        rpc create-notification-subscription-service {
+            description "none";
+            input {
+                container subscription-filter {
+                    uses subscription-filter;
+                    description "none";
+                }
+                leaf subscription-state {
+                    type subscription-state;
+                    description "none";
+                }
+            }
+            output {
+                container subscription-service {
+                    uses notification-subscription-service;
+                    description "none";
+                }
+            }
+        }
+        rpc update-notification-subscription-service {
+            description "none";
+            input {
+                leaf subscription-id-or-name {
+                    type string;
+                    description "none";
+                }
+                container subscription-filter {
+                    uses subscription-filter;
+                    description "none";
+                }
+                leaf subscription-state {
+                    type subscription-state;
+                    description "none";
+                }
+            }
+            output {
+                container subscription-service {
+                    uses notification-subscription-service;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-notification-subscription-service {
+            description "none";
+            input {
+                leaf subscription-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container subscription-service {
+                    uses notification-subscription-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-notification-subscription-service-details {
+            description "none";
+            input {
+                leaf subscription-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container subscription-service {
+                    uses notification-subscription-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-notification-subscription-service-list {
+            description "none";
+            output {
+                list subscription-service {
+                    uses notification-subscription-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-notification-list {
+            description "none";
+            input {
+                leaf subscription-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf time-period {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                list notification {
+                    uses notification;
+                    description "none";
+                }
+            }
+        }
+
+}

@@ -35,6 +35,7 @@
         <module>openconfig</module>
         <module>openroadm</module>
         <module>l3vpn</module>
+        <module>tapi</module>
     </modules>
 
 </project>
