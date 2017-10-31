@@ -17,10 +17,12 @@ package org.onosproject.ofagent.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.netty.channel.Channel;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -79,9 +81,11 @@ import org.projectfloodlight.openflow.protocol.OFMeterModFailedCode;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketInReason;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
+import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortMod;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
+import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFPortStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
@@ -137,6 +141,7 @@ public final class DefaultOFSwitch implements OFSwitch {
     private final Logger log;
 
     private final OFSwitchService ofSwitchService;
+    private final VirtualNetworkAdminService virtualNetworkAdminService;
     private final FlowRuleService flowRuleService;
     private final DriverService driverService;
     private final GroupService groupService;
@@ -166,6 +171,7 @@ public final class DefaultOFSwitch implements OFSwitch {
         this.deviceId = deviceId;
         this.ofSwitchService = serviceDirectory.get(OFSwitchService.class);
         this.driverService = serviceDirectory.get(DriverService.class);
+        this.virtualNetworkAdminService = serviceDirectory.get(VirtualNetworkAdminService.class);
         VirtualNetworkService virtualNetworkService = serviceDirectory.get(VirtualNetworkService.class);
         this.flowRuleService = virtualNetworkService.get(networkId, FlowRuleService.class);
         this.groupService = virtualNetworkService.get(networkId, GroupService.class);
@@ -244,14 +250,12 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void processPortDown(Port port) {
-        // TODO generate PORT_STATUS message and send it to the controller
-        log.debug("processPortDown: Functionality not yet supported for {}", port);
+        sendPortStatus(port, OFPortReason.MODIFY);
     }
 
     @Override
     public void processPortUp(Port port) {
-        // TODO generate PORT_STATUS message and send it to the controller
-        log.debug("processPortUp: Functionality not yet supported for {}", port);
+        sendPortStatus(port, OFPortReason.MODIFY);
     }
 
     @Override
@@ -267,9 +271,13 @@ public final class DefaultOFSwitch implements OFSwitch {
     }
 
     private void processPortMod(OFPortMod portMod) {
-//        PortNumber portNumber = PortNumber.portNumber(portMod.getPortNo().getPortNumber());
-        log.debug("processPortMod: {} not yet supported for {}",
-                  portMod.getType(), portMod);
+        // process specified port
+        PortNumber portNumber = PortNumber.portNumber(portMod.getPortNo().getPortNumber());
+        boolean disablePort = portMod.getConfig().contains(OFPortConfig.PORT_DOWN);
+        log.debug("processing PORT_MOD message - setting port {} state to {}",
+                  portNumber, !disablePort);
+        virtualNetworkAdminService.updatePortState(networkId, deviceId, portNumber, !disablePort);
+        // TODO what side effects (e.g. cleaning flow mods) needs to be handled?
     }
 
     private void processFlowMod(OFFlowMod flowMod) {
@@ -474,9 +482,16 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     private OFPortDesc portDesc(Port port) {
         OFPort ofPort = OFPort.of((int) port.number().toLong());
-        // TODO handle port state and other port attributes
+        Set<OFPortConfig> portConfigs = Sets.newHashSet();
+        Set<OFPortState> portStates = Sets.newHashSet();
+        if (!port.isEnabled()) {
+            portConfigs.add(OFPortConfig.PORT_DOWN);
+            portStates.add(OFPortState.LINK_DOWN);
+        }
         OFPortDesc ofPortDesc = FACTORY.buildPortDesc()
                 .setPortNo(ofPort)
+                .setState(portStates)
+                .setConfig(portConfigs)
                 .build();
         return ofPortDesc;
     }

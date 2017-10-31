@@ -403,6 +403,19 @@ public class OFSwitchManager implements OFSwitchService {
                     });
                     break;
                 case VIRTUAL_PORT_UPDATED:
+                    eventExecutor.execute(() -> {
+                        OFSwitch ofSwitch = ofSwitch(event.virtualPort());
+                        if (ofSwitch != null) {
+                            if (event.virtualPort().isEnabled()) {
+                                ofSwitch.processPortUp(event.virtualPort());
+                            } else {
+                                ofSwitch.processPortDown(event.virtualPort());
+                            }
+                            log.debug("Virtual port {} updated in network {}",
+                                      event.virtualPort(),
+                                      event.subject());
+                        }
+                    });
                     break;
                 case VIRTUAL_PORT_REMOVED:
                     eventExecutor.execute(() -> {
