@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
+import static org.onosproject.store.primitives.impl.PartitionManager.PARTITIONS_DIR;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -94,7 +95,7 @@ public class CoordinationManager implements CoordinationService {
                 null,
                 clusterCommunicator,
                 clusterService,
-                new File(System.getProperty("karaf.data") + "/partitions/coordination"));
+                new File(PARTITIONS_DIR + "/coordination"));
         partition.open().join();
         primitiveCreator = partition.client();
         log.info("Started");

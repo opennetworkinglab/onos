@@ -25,7 +25,6 @@ import org.mapdb.DBMaker;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.persistence.PersistentMapBuilder;
 import org.onosproject.persistence.PersistentSetBuilder;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -42,17 +41,19 @@ import static org.onosproject.security.AppPermission.Type.PERSISTENCE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Service that maintains local disk backed maps and sets.  This implementation automatically deletes empty structures
- * on shutdown.
+ * Service that maintains local disk backed maps and sets.
+ * This implementation automatically deletes empty structures on shutdown.
  */
 @Component(immediate = true)
 @Service
 public class PersistenceManager implements PersistenceService {
 
-    private static final String DATABASE_PATH = "localDB";
+    private static final String DATABASE_ROOT =
+            System.getProperty("karaf.data") + "/db/local/";
+
+    private static final String DATABASE_PATH = "cache";
 
     static final String MAP_PREFIX = "map:";
-
     static final String SET_PREFIX = "set:";
 
     private final Logger log = getLogger(getClass());
@@ -66,10 +67,10 @@ public class PersistenceManager implements PersistenceService {
     private final CommitTask commitTask = new CommitTask();
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         timer = new Timer();
-        // bundle's persistent storage area directory
-        File dbFolderPath = context.getBundleContext().getDataFile("");
+
+        File dbFolderPath = new File(DATABASE_ROOT);
         Path dbPath = dbFolderPath.toPath().resolve(DATABASE_PATH);
         log.debug("dbPath: {}", dbPath);
 
@@ -105,15 +106,15 @@ public class PersistenceManager implements PersistenceService {
         for (Map.Entry<String, Object> entry : localDB.getAll().entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-                //This is a map implementation to be handled as such
             if (value instanceof Map) {
+                // This is a map implementation to be handled as such
                 Map asMap = (Map) value;
                 if (asMap.isEmpty()) {
                     //the map is empty and may be deleted
                     localDB.delete(key);
                 }
-                //This is a set implementation and can be handled as such
             } else if (value instanceof Set) {
+                // This is a set implementation and can be handled as such
                 Set asSet = (Set) value;
                 if (asSet.isEmpty()) {
                     //the set is empty and may be deleted

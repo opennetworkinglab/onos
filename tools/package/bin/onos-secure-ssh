@@ -1,3 +1,0 @@
-#!/bin/bash
-echo "This command has been deprecated!"
-echo "Please use 'onos-user-key' and 'onos-user-password' commands instead."

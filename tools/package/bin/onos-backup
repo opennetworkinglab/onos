@@ -1,0 +1,31 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# ONOS utility to produce a backup archive of all persistent data.
+# -----------------------------------------------------------------------------
+
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+ONOS_DEFAULT_ARCHIVE=$(dirname $ONOS_HOME)/onos-data.tar.gz
+ONOS_KARAF=$ONOS_HOME/apache-karaf-3.0.8
+
+# Fetch the name of the archive or use a default if none is specified
+archive=${1:-$ONOS_DEFAULT_ARCHIVE}
+archive=$(cd "$(dirname "$archive")"; pwd)/$(basename "$archive")
+
+# Make sure that the apache karaf data directory exists
+[ ! -d $ONOS_KARAF/data ] && echo "ONOS data directory not found" && exit 1
+
+# Make sure that the archive lies outside of $ONOS_HOME for safety
+[[ "$archive" =~ ^$ONOS_HOME/.* ]] && \
+    echo "Archive cannot be in $ONOS_HOME directory tree" && exit 1
+
+# Make sure that the archive file does not already exist
+[ -f $archive ] && echo "Archive $archive already exists" && exit 1
+
+# Make sure we can write the archive
+! touch $archive 2>/dev/null && \
+    echo "No permission to write archive $archive" && exit 1
+rm -f $archive
+
+# Now produce the archive using the subset of the data directory tree
+cd $ONOS_KARAF
+tar zcf $archive data/db data/log

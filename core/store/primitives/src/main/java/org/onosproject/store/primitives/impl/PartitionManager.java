@@ -68,6 +68,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class PartitionManager extends AbstractListenerManager<PartitionEvent, PartitionEventListener>
     implements PartitionService, PartitionAdminService {
 
+    static final String PARTITIONS_DIR =
+            System.getProperty("karaf.data") + "/db/partitions/";
+
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -110,16 +113,14 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                                 null,
                                 clusterCommunicator,
                                 clusterService,
-                                new File(System.getProperty("karaf.data") +
-                                        "/partitions/" + sourceVersion + "/" + partition.getId())));
+                                new File(PARTITIONS_DIR + sourceVersion + "/" + partition.getId())));
                         activePartitions.put(partition.getId(), new StoragePartition(
                                 partition,
                                 targetVersion,
                                 sourceVersion,
                                 clusterCommunicator,
                                 clusterService,
-                                new File(System.getProperty("karaf.data") +
-                                        "/partitions/" + targetVersion + "/" + partition.getId())));
+                                new File(PARTITIONS_DIR + targetVersion + "/" + partition.getId())));
                     });
 
             // We have to fork existing partitions before we can start inactive partition servers to
@@ -140,8 +141,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                             null,
                             clusterCommunicator,
                             clusterService,
-                            new File(System.getProperty("karaf.data") +
-                                    "/partitions/" + version + "/" + partition.getId()))));
+                            new File(PARTITIONS_DIR + version + "/" + partition.getId()))));
             openFuture = CompletableFuture.allOf(activePartitions.values().stream()
                     .map(StoragePartition::open)
                     .toArray(CompletableFuture[]::new));

@@ -1,0 +1,26 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# ONOS utility to restore persistent data from a backup archive.
+# -----------------------------------------------------------------------------
+
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+ONOS_DEFAULT_ARCHIVE=$(dirname $ONOS_HOME)/onos-data.tar.gz
+ONOS_KARAF=$ONOS_HOME/apache-karaf-3.0.8
+
+# Fetch the name of the archive or use a default if none is specified
+archive=${1:-$ONOS_DEFAULT_ARCHIVE}
+archive=$(cd "$(dirname "$1")"; pwd)/$(basename "$1")
+
+# Make sure that the apache karaf data directory exists
+[ ! -d $ONOS_KARAF/data ] && echo "ONOS data directory not found" && exit 1
+
+# Make sure that the archive lies outside of $ONOS_HOME for safety
+[[ "$archive" =~ ^$ONOS_HOME/.* ]] && \
+    echo "Archive cannot be in $ONOS_HOME directory tree" && exit 1
+
+# Make sure that the archive file exists
+[ ! -f $archive ] && echo "Archive $archive not found" && exit 1
+
+# Now unroll the archive into the data directory tree
+cd $ONOS_KARAF
+tar zxf $archive
