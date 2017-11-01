@@ -18,13 +18,14 @@
 
     // Injected Services
     var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs,
-        t2fs, t2tbs;
+        t2fs, t2tbs, t2dp;
 
     // Commmands
     function actionMap() {
         return {
             L: [cycleDeviceLabels, 'Cycle device labels'],
             B: [toggleBackground, 'Toggle background'],
+            D: [toggleDetails, 'Toggle details panel'],
             I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
             O: [toggleSummary, 'Toggle the Summary Panel'],
             R: [resetZoom, 'Reset pan / zoom'],
@@ -146,6 +147,10 @@
         t2bgs.toggle(x);
     }
 
+    function toggleDetails(x) {
+        t2dp().toggleUseDetailsFlag(x);
+    }
+
     function toggleInstancePanel(x) {
         updatePrefsState('insts', t2is.toggle(x));
     }
@@ -223,10 +228,10 @@
         '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService',
         'Topo2PrefsService', 'Topo2BackgroundService', 'PrefsService',
         'Topo2InstanceService', 'Topo2SummaryPanelService', 'Topo2ViewService',
-        'Topo2RegionService',
+        'Topo2RegionService', 'Topo2DetailsPanelService',
 
         function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_,
-                  _t2is_, _t2sp_, _t2vs_, _t2rs_) {
+                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2dp_) {
 
             $log = _$log_;
             fs = _fs_;
@@ -240,6 +245,7 @@
             t2sp = _t2sp_;
             t2vs = _t2vs_;
             t2rs = _t2rs_;
+            t2dp = _t2dp_;
 
             return {
                 init: init,
