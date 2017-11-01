@@ -214,6 +214,10 @@
                 onEnter: function (el) {
                     this.el = d3.select(el);
                     this.render();
+
+                    if (this.setOfflineVisibility) {
+                        this.setOfflineVisibility();
+                    }
                 },
                 setScale: function () {
 

@@ -93,6 +93,7 @@
                     setOfflineVisibility: function () {
                         var showOffline = ps.getPrefs('topo2_prefs')['offline_devices'],
                             display = this.get('online') || showOffline;
+
                         this.el.style('visibility', display ? 'visible' : 'hidden');
                     },
                     onExit: function () {
