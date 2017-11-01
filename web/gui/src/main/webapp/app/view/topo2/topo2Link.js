@@ -163,6 +163,11 @@
                 var data = [],
                     point;
 
+                var hostsVisible = ps.getPrefs('topo2_prefs')['hosts'];
+                if (!hostsVisible && this.get('type') === 'UiEdgeLink') {
+                    return;
+                }
+
                 if (showPort()) {
                     this.set('enhanced', true);
                     point = this.locatePortLabel();
