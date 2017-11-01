@@ -288,6 +288,7 @@ public class DhcpRecord {
         locations.forEach(newRecord::addLocation);
         newRecord.directlyConnected = directlyConnected;
         newRecord.nextHop = nextHop;
+        newRecord.nextHopTemp = nextHopTemp;
         newRecord.ip4Address = ip4Address;
         newRecord.ip4Status = ip4Status;
         newRecord.ip6Address = ip6Address;
@@ -299,7 +300,7 @@ public class DhcpRecord {
     @Override
     public int hashCode() {
         return Objects.hash(locations, macAddress, vlanId, ip4Address, ip4Status,
-                            nextHop, ip6Address, ip6Status, lastSeen);
+                            nextHop, nextHopTemp, ip6Address, ip6Status, lastSeen);
     }
 
     @Override
@@ -317,6 +318,7 @@ public class DhcpRecord {
                 Objects.equals(ip4Address, that.ip4Address) &&
                 Objects.equals(ip4Status, that.ip4Status) &&
                 Objects.equals(nextHop, that.nextHop) &&
+                Objects.equals(nextHopTemp, that.nextHopTemp) &&
                 Objects.equals(ip6Address, that.ip6Address) &&
                 Objects.equals(ip6Status, that.ip6Status) &&
                 Objects.equals(lastSeen, that.lastSeen) &&
@@ -332,6 +334,7 @@ public class DhcpRecord {
                 .add("ip4Address", ip4Address)
                 .add("ip4State", ip4Status)
                 .add("nextHop", nextHop)
+                .add("nextHopTemp", nextHopTemp)
                 .add("ip6Address", ip6Address)
                 .add("ip6State", ip6Status)
                 .add("lastSeen", lastSeen)
