@@ -85,6 +85,13 @@
     top: 64px;
 }
 
+#topo2-p-instance .instTitle {
+    font-size: 11pt;
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+}
+
 /* -- Base Device Styles -- */
 #ov-topo2 svg .node {
     cursor: pointer;
