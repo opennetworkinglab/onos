@@ -631,6 +631,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                                    Ethernet clientPacket, IPv6 clientIpv6,
                                    Interface clientInterface) {
         log.debug("extractPrefix  enters {}", dhcp6Packet);
+        VlanId vlanId = clientInterface.vlan();
+        MacAddress clientMac = clientPacket.getSourceMAC();
+        log.debug("client mac {} client vlan {}", HexString.toHexString(clientMac.toBytes(), ":"), vlanId);
+
         // add host or route
         if (isDhcp6Release(dhcp6Packet)) {
             IpAddress ip = null;
@@ -638,13 +642,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 // Add to host store if it is connected to network directly
                 ip = extractIpAddress(dhcp6Packet);
                 if (ip != null) {
-                    VlanId vlanId = clientInterface.vlan();
-                    MacAddress clientMac = clientPacket.getSourceMAC();
+
                     HostId hostId = HostId.hostId(clientMac, vlanId);
                     log.debug("remove Host {} ip for directly connected.", hostId.toString());
-
-                    log.debug("client mac {} client vlan {}", HexString.toHexString(clientMac.toBytes(), ":"), vlanId);
-
                     // Remove host's ip of  when dhcp release msg is received
                     providerService.removeIpFromHost(hostId, ip);
                 } else {
@@ -652,7 +652,13 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 }
             } else {
                 // Remove from route store if it is not connected to network directly
-                IpAddress nextHopIp = IpAddress.valueOf(IpAddress.Version.INET6, clientIpv6.getSourceAddress());
+                // pick out the first link-local ip address
+                IpAddress nextHopIp = getFirstIpByHost(clientMac, vlanId);
+                if (nextHopIp == null) {
+                    log.warn("Can't find link-local IP address of gateway mac {} vlanId {}",
+                            clientMac, vlanId);
+                    return;
+                }
 
                 DHCP6 leafDhcp = getDhcp6Leaf(dhcp6Packet);
                 ip = extractIpAddress(leafDhcp);
@@ -695,6 +701,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                                 MacAddress clientMac,
                                 Interface clientInterface) {
         log.debug("addHostOrRoute entered.");
+        VlanId vlanId = clientInterface.vlan();
         // add host or route
         if (isDhcp6Reply(dhcp6Relay)) {
             IpAddress ip = null;
@@ -705,7 +712,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     Set<IpAddress> ips = Sets.newHashSet(ip);
 
                     // FIXME: we should use vlan id from original packet (solicit, request)
-                    VlanId vlanId = clientInterface.vlan();
                     HostId hostId = HostId.hostId(clientMac, vlanId);
                     Host host = hostService.getHost(hostId);
                     HostLocation hostLocation = new HostLocation(clientInterface.connectPoint(),
@@ -732,7 +738,13 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 }
             } else {
                 // Add to route store if it does not connect to network directly
-                IpAddress nextHopIp = IpAddress.valueOf(IpAddress.Version.INET6, dhcp6Relay.getPeerAddress());
+                // pick out the first link-local ip address
+                IpAddress nextHopIp = getFirstIpByHost(clientMac, vlanId);
+                if (nextHopIp == null) {
+                    log.warn("Can't find link-local IP address of gateway mac {} vlanId {}",
+                            clientMac, vlanId);
+                    return;
+                }
 
                 DHCP6 leafDhcp = getDhcp6Leaf(embeddedDhcp6);
                 ip = extractIpAddress(leafDhcp);
@@ -816,32 +828,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         etherReply.setVlanID(this.dhcpConnectVlan.toShort());
 
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
-        Ip6Address peerAddress = null;
-        if (directConnFlag) {
-            peerAddress = Ip6Address.valueOf(ipv6Packet.getSourceAddress());
-        } else {
-            MacAddress gwOrClientMac = MacAddress.valueOf(clientPacket.getSourceMACAddress());
-            VlanId vlanId = VlanId.vlanId(clientPacket.getVlanID());
-            HostId gwOrClientHostId = HostId.hostId(gwOrClientMac, vlanId);
-            Host gwOrClientHost = hostService.getHost(gwOrClientHostId);
-
-            if (gwOrClientHost == null) {
-                log.warn("Can't find client gateway/server host {}", gwOrClientHostId);
-                return null;
-            }
-            // pick out the first gloabl ip address
-            peerAddress = gwOrClientHost.ipAddresses().stream()
-                    .filter(IpAddress::isIp6).filter(ip6 -> !ip6.isLinkLocal())
-                    .map(IpAddress::getIp6Address).findFirst().orElse(null);
-
-            if (peerAddress == null) {
-                log.warn("Can't find client gateway/server for mac {} ip {}", gwOrClientMac,
-                        HexString.toHexString(ipv6Packet.getSourceAddress()));
-                log.warn("Can't find IP address of client gateway/ClienHost address {} for peerAddress",
-                        gwOrClientHost);
-                return null;
-            }
-        }
+        byte[] peerAddress = clientIpv6.getSourceAddress();
         ipv6Packet.setSourceAddress(ipFacingServer.toOctets());
         ipv6Packet.setDestinationAddress(this.dhcpServerIp.toOctets());
 
@@ -902,7 +889,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         // peer address:  address of the client or relay agent from which
         // the message to be relayed was received.
-        dhcp6Relay.setPeerAddress(peerAddress.toOctets());
+        dhcp6Relay.setPeerAddress(peerAddress);
         List<Dhcp6Option> options = new ArrayList<Dhcp6Option>();
 
         // directly connected case, hop count is zero
@@ -1485,5 +1472,31 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
             flowObjectiveService.apply(deviceId, fwd);
         });
+    }
+
+    /**
+     * Find first ipaddress for a given Host info i.e.  mac and vlan.
+     *
+     * @param clientMac client mac
+     * @param vlanId  packet's vlan
+     * @return next-hop link-local ipaddress for a given host
+     */
+    private IpAddress getFirstIpByHost(MacAddress clientMac, VlanId vlanId) {
+        IpAddress nextHopIp;
+        // pick out the first link-local ip address
+        HostId gwHostId = HostId.hostId(clientMac, vlanId);
+        Host gwHost = hostService.getHost(gwHostId);
+        if (gwHost == null) {
+            log.warn("Can't find gateway host for hostId {}", gwHostId);
+            return null;
+        }
+        nextHopIp = gwHost.ipAddresses()
+                .stream()
+                .filter(IpAddress::isIp6)
+                .filter(ip6 -> ip6.isLinkLocal())
+                .map(IpAddress::getIp6Address)
+                .findFirst()
+                .orElse(null);
+        return nextHopIp;
     }
 }
