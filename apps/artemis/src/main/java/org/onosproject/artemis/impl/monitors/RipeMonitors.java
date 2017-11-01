@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@ package org.onosproject.artemis.impl.monitors;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.artemis.impl.ArtemisManager;
-import org.onosproject.artemis.impl.DataHandler;
+import org.onosproject.artemis.ArtemisPacketProcessor;
+import org.onosproject.artemis.Monitors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +30,19 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 /**
- * Implementation of RIPE Route Collector Monitor.
+ * Implementation of RIPE Route Collector Monitors.
  */
-public class RipeMonitor extends Monitor {
+public class RipeMonitors implements Monitors {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private String host;
     private Socket socket;
+    private IpPrefix prefix;
+    private ArtemisPacketProcessor packetProcessor;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
-    public RipeMonitor(IpPrefix prefix, String host) {
-        super(prefix);
+    public RipeMonitors(IpPrefix prefix, String host, ArtemisPacketProcessor packetProcessor) {
+        this.prefix = prefix;
         this.host = host;
+        this.packetProcessor = packetProcessor;
     }
 
     /**
@@ -64,6 +67,16 @@ public class RipeMonitor extends Monitor {
         }
     }
 
+    @Override
+    public IpPrefix getPrefix() {
+        return prefix;
+    }
+
+    @Override
+    public void setPrefix(IpPrefix prefix) {
+        this.prefix = prefix;
+    }
+
     /**
      * socket.io onRisMessage event handler.
      * This event is custom made that triggers when it receives an BGP update/withdraw for our prefix.
@@ -74,13 +87,6 @@ public class RipeMonitor extends Monitor {
         try {
             JSONObject message = (JSONObject) args[0];
             if (message.getString("type").equals("A")) {
-                // Write BGP message to a json database
-                DataHandler.Serializer.writeData(args[0]);
-
-                if (ArtemisManager.logging) {
-                    log.info(message.toString());
-                }
-
                 // Example of BGP Update message:
                 // {
                 //  "timestamp":1488044022.97,
@@ -101,9 +107,10 @@ public class RipeMonitor extends Monitor {
                 message.remove("host");
 
                 // Append synchronized message to message list in memory.
-                DataHandler.getInstance().appendData(message);
+                packetProcessor.processMonitorPacket(message);
             }
         } catch (JSONException e) {
+            log.error(ExceptionUtils.getFullStackTrace(e));
             e.printStackTrace();
         }
         socket.emit("ping");
@@ -122,6 +129,7 @@ public class RipeMonitor extends Monitor {
                 this.socket.on(Socket.EVENT_PONG, args -> socket.emit("ping"));
                 this.socket.on("ris_message", this::onRisMessage);
             } catch (URISyntaxException e) {
+                log.error(ExceptionUtils.getFullStackTrace(e));
                 e.printStackTrace();
             }
 
@@ -138,11 +146,6 @@ public class RipeMonitor extends Monitor {
             this.socket.close();
             this.socket = null;
         }
-    }
-
-    @Override
-    public Types getType() {
-        return Types.RIPE;
     }
 
     @Override
@@ -170,8 +173,8 @@ public class RipeMonitor extends Monitor {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof RipeMonitor) {
-            final RipeMonitor that = (RipeMonitor) obj;
+        if (obj instanceof RipeMonitors) {
+            final RipeMonitors that = (RipeMonitors) obj;
             return Objects.equals(this.prefix, that.prefix) &&
                     Objects.equals(this.host, that.host);
         }

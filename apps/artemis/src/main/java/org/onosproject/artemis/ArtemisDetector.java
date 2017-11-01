@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
 
 /**
- * BGP Speakers.
+ * Interface for Detector Service of Artemis.
+ *
+ * The detection service combines the information received through the events generated from the monitor service and
+ * the configuration file that includes all the legit BGP paths. The purpose of this interface is to identify given
+ * a BGP update message if there is a BGP hijack or not.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+public interface ArtemisDetector {
+    //TODO: give the ability to other services to check the legitimacy of a BGP Update message
+}

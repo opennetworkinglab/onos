@@ -1,24 +1,36 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//lib:NETTY',
     '//lib:JACKSON',
+    '//lib:NETTY',
+    '//lib:netty',
+    '//lib:netty-transport',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//apps/routing-api:onos-apps-routing-api',
     '//apps/routing/common:onos-apps-routing-common',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//apps/intentsync:onos-apps-intentsync',
+    '//apps/route-service/api:onos-apps-route-service-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
     '//lib:okhttp',
     '//lib:okio',
     ':commons-net',
     ':io.socket-client',
     ':json',
-    ':engine.io-client',
-    '//lib:netty',
+    ':engine.io-client'
  ]
 
 BUNDLES = [
     '//apps/artemis:onos-apps-artemis',
     '//apps/routing-api:onos-apps-routing-api',
     '//apps/routing/common:onos-apps-routing-common',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//apps/route-service/api:onos-apps-route-service-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc'
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS'
 ]
 
 EXCLUDED_BUNDLES = [
@@ -30,8 +42,9 @@ EXCLUDED_BUNDLES = [
     ':engine.io-client'
 ]
 
-osgi_jar (
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
 onos_app (
@@ -42,7 +55,12 @@ onos_app (
     description = 'Artemis',
     included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
-    required_apps = [ 'org.onosproject.sdnip' ],
+    required_apps = [
+        'org.onosproject.sdnip',
+        'org.onosproject.openflow',
+        'org.onosproject.ovsdb',
+        'org.onosproject.drivers.ovsdb'
+    ],
 )
 
 remote_jar (

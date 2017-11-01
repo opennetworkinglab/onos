@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
+
+import org.onosproject.artemis.impl.ArtemisEvent;
+import org.onosproject.event.EventListener;
 
 /**
- * BGP Speakers.
+ * Entity capable of receiving artemis-related events.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+public interface ArtemisEventListener extends EventListener<ArtemisEvent> {
+}

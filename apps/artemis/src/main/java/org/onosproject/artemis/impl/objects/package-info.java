@@ -15,6 +15,6 @@
  */
 
 /**
- * BGP Speakers.
+ * Custom objects.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+package org.onosproject.artemis.impl.objects;

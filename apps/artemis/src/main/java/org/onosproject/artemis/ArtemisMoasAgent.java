@@ -13,8 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
+
+import io.netty.channel.ChannelHandlerContext;
+import org.onlab.packet.IpAddress;
 
 /**
- * BGP Speakers.
+ * MOAS agent that handles remote connections.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+public interface ArtemisMoasAgent {
+
+    /**
+     * Keep a connection active if MOAS client is legit.
+     *
+     * @param ipAddress remote IP address
+     * @param ctx channel context
+     */
+    void addMoas(IpAddress ipAddress, ChannelHandlerContext ctx);
+
+    /**
+     * Remove MOAS.
+     *
+     * @param ipAddress remote IP address
+     */
+    void removeMoas(IpAddress ipAddress);
+}

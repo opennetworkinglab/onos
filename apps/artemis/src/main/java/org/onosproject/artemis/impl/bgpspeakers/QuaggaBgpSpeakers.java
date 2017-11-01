@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package org.onosproject.artemis.impl.bgpspeakers;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.net.telnet.TelnetClient;
+import org.onosproject.artemis.BgpSpeakers;
 import org.onosproject.routing.bgp.BgpInfoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -25,20 +29,23 @@ import java.util.Arrays;
 /**
  * Quagga interface to connect and announce prefixes.
  */
-public class QuaggaBgpSpeakers extends BgpSpeakers {
+public class QuaggaBgpSpeakers implements BgpSpeakers {
+    // TODO: move this to configuration
     private static final String PASSWORD = "sdnip";
-
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private TelnetClient telnet = new TelnetClient();
     private InputStream in;
     private PrintStream out;
+    private BgpInfoService bgpInfoService;
 
     public QuaggaBgpSpeakers(BgpInfoService bgpInfoService) {
-        super(bgpInfoService);
+        this.bgpInfoService = bgpInfoService;
     }
 
     @Override
     public void announceSubPrefixes(String[] prefixes) {
-        bgpSessions.forEach((session) -> {
+        log.info("Announcing subprefixes: {}", (Object[]) prefixes);
+        bgpInfoService.getBgpSessions().forEach((session) -> {
             String peerIp = session.remoteInfo().ip4Address().toString(),
                     localAs = String.valueOf(session.remoteInfo().as4Number());
             assert peerIp != null;
@@ -59,7 +66,7 @@ public class QuaggaBgpSpeakers extends BgpSpeakers {
 
                 log.info("Announced " + prefixes[0] + " and " + prefixes[1] + " at " + peerIp);
             } catch (Exception e) {
-                log.warn(e.getMessage());
+                log.error(ExceptionUtils.getFullStackTrace(e));
             }
         });
     }
@@ -85,7 +92,7 @@ public class QuaggaBgpSpeakers extends BgpSpeakers {
                 ch = (char) in.read();
             }
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.error(ExceptionUtils.getFullStackTrace(e));
         }
         return null;
     }
@@ -100,7 +107,7 @@ public class QuaggaBgpSpeakers extends BgpSpeakers {
             out.println(value);
             out.flush();
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.error(ExceptionUtils.getFullStackTrace(e));
         }
     }
 
@@ -108,7 +115,7 @@ public class QuaggaBgpSpeakers extends BgpSpeakers {
      * Configure terminal and announce prefix inside the Quagga router.
      *
      * @param prefixes prefixes to announce
-     * @param localAs ASN of BGP Speaker
+     * @param localAs  ASN of BGP Speaker
      */
     private void announcePrefix(String[] prefixes, String localAs) {
         write("en");
@@ -131,7 +138,7 @@ public class QuaggaBgpSpeakers extends BgpSpeakers {
         try {
             telnet.disconnect();
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.error(ExceptionUtils.getFullStackTrace(e));
         }
     }
 }

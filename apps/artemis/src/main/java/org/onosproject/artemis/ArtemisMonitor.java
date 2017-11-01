@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
 
 /**
- * BGP Speakers.
+ * Interface for Monitor Service of Artemis.
+ *
+ * The monitoring service runs continuously and provides control plane information from the AS itself, the streaming
+ * services can be RIPE RIS, BGPstream, BGPmon and Periscope, which return almost real-time BGP updates for a given
+ * list of prefixes and ASNs. The purpose of this interface is to provide store and provide this BGO information to the
+ * consumers (e.g. Artemis Detector Service).
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+public interface ArtemisMonitor {
+    //TODO: give access to BGP Update messages to other services through this service
+}

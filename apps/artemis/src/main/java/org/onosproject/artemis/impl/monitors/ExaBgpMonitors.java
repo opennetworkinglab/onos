@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import io.socket.client.Socket;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.artemis.impl.ArtemisManager;
-import org.onosproject.artemis.impl.DataHandler;
+import org.onosproject.artemis.ArtemisPacketProcessor;
+import org.onosproject.artemis.Monitors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +29,19 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 /**
- * Implementation of ExaBGP Route Collector Monitor.
+ * Implementation of ExaBGP Route Collector Monitors.
  */
-public class ExaBgpMonitor extends Monitor {
+public class ExaBgpMonitors implements Monitors {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private String host;
     private Socket socket;
+    private IpPrefix prefix;
+    private ArtemisPacketProcessor packetProcessor;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
-    public ExaBgpMonitor(IpPrefix prefix, String host) {
-        super(prefix);
+    public ExaBgpMonitors(IpPrefix prefix, String host, ArtemisPacketProcessor packetProcessor) {
         this.host = host;
+        this.prefix = prefix;
+        this.packetProcessor = packetProcessor;
     }
 
     /**
@@ -56,22 +58,20 @@ public class ExaBgpMonitor extends Monitor {
         }
     }
 
+    /**
+     * ExaBGP message received on the socket.io.
+     *
+     * @param args exabgp message
+     */
     private void onExaMessage(Object[] args) {
         JSONObject message = (JSONObject) args[0];
 
         try {
             if (message.getString("type").equals("A")) {
-                // Write BGP message to a json database
-                DataHandler.Serializer.writeData(args[0]);
-
-                if (ArtemisManager.logging) {
-                    log.info(message.toString());
-                }
-
                 // Example of BGP Update message:
                 // {
                 //  "path":[65001],
-                //  "peer":"1.1.1.1",
+                //  "peer":"1.1.1.s1",
                 //  "prefix":"12.0.0.0/8",
                 //  "host":"exabgp", <-- Can put IP here
                 //  "type":"A",
@@ -85,11 +85,21 @@ public class ExaBgpMonitor extends Monitor {
                 message.remove("timestamp");
 
                 // Append synchronized message to message list in memory.
-                DataHandler.getInstance().appendData(message);
+                packetProcessor.processMonitorPacket(message);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public IpPrefix getPrefix() {
+        return prefix;
+    }
+
+    @Override
+    public void setPrefix(IpPrefix prefix) {
+        this.prefix = prefix;
     }
 
     @Override
@@ -120,11 +130,6 @@ public class ExaBgpMonitor extends Monitor {
     }
 
     @Override
-    public Types getType() {
-        return Types.EXABGP;
-    }
-
-    @Override
     public boolean isRunning() {
         return this.socket != null;
     }
@@ -149,8 +154,8 @@ public class ExaBgpMonitor extends Monitor {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof ExaBgpMonitor) {
-            final ExaBgpMonitor that = (ExaBgpMonitor) obj;
+        if (obj instanceof ExaBgpMonitors) {
+            final ExaBgpMonitors that = (ExaBgpMonitors) obj;
             return Objects.equals(this.prefix, that.prefix) &&
                     Objects.equals(this.host, that.host);
         }

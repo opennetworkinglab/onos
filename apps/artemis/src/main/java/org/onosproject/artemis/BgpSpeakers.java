@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
 
 /**
- * BGP Speakers.
+ * Interface for all the types of BGP Speakers.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+public interface BgpSpeakers {
+
+    /**
+     * Announces the two new subprefixes on the BGP Speaker.
+     *
+     * @param prefixes list of two prefixes
+     */
+    void announceSubPrefixes(String[] prefixes);
+}

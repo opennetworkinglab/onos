@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.artemis.impl;
 
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.artemis.ArtemisEventListener;
+import org.onosproject.artemis.ArtemisService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.routing.bgp.BgpInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.Timer;
 
-/**
- * Artemis Component.
- */
 @Component(immediate = true)
 @Service
-public class ArtemisManager implements ArtemisService {
+public class ArtemisManager
+        extends AbstractListenerManager<ArtemisEvent, ArtemisEventListener>
+        implements ArtemisService {
+
     private static final String ARTEMIS_APP_ID = "org.onosproject.artemis";
     private static final Class<ArtemisConfig> CONFIG_CLASS = ArtemisConfig.class;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final InternalNetworkConfigListener configListener =
+            new InternalNetworkConfigListener();
+    /* Services */
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private NetworkConfigRegistry registry;
 
@@ -57,21 +60,12 @@ public class ArtemisManager implements ArtemisService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private BgpInfoService bgpInfoService;
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
+    /* Variables */
     private ApplicationId appId;
-    public static boolean logging = false;
+    private ArtemisConfig artemisConfig;
 
-    private Set<PrefixHandler> prefixHandlers = Sets.newHashSet();
-    private Deaggregator deaggr;
-    private Timer timer;
 
-    private final InternalNetworkConfigListener configListener =
-            new InternalNetworkConfigListener();
-
+    /* Config */
     private ConfigFactory<ApplicationId, ArtemisConfig> artemisConfigFactory =
             new ConfigFactory<ApplicationId, ArtemisConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY, ArtemisConfig.class, "artemis") {
@@ -86,72 +80,25 @@ public class ArtemisManager implements ArtemisService {
         appId = coreService.registerApplication(ARTEMIS_APP_ID);
         configService.addListener(configListener);
         registry.registerConfigFactory(artemisConfigFactory);
-        log.info("Artemis Started");
+
+        eventDispatcher.addSink(ArtemisEvent.class, listenerRegistry);
+
+        log.info("Artemis Service Started");
     }
 
     @Deactivate
     protected void deactivate() {
         configService.removeListener(configListener);
         registry.unregisterConfigFactory(artemisConfigFactory);
-        prefixHandlers.forEach(PrefixHandler::stopPrefixMonitors);
-        log.info("Artemis Stopped");
-    }
 
-    /**
-     * Helper function to start and stop monitors on configuration changes.
-     */
-    private void setUpConfiguration() {
-        ArtemisConfig config = configService.getConfig(appId, CONFIG_CLASS);
+        eventDispatcher.removeSink(ArtemisEvent.class);
 
-        if (config == null) {
-            log.warn("No artemis config available!");
-            return;
-        }
-
-        final Set<ArtemisConfig.ArtemisPrefixes> prefixes = config.monitoredPrefixes();
-        final Integer frequency = config.detectionFrequency();
-        final Map<String, Set<String>> monitors = config.activeMonitors();
-
-        Set<PrefixHandler> toRemove = Sets.newHashSet(prefixHandlers);
-
-        for (ArtemisConfig.ArtemisPrefixes curr : prefixes) {
-            final Optional<PrefixHandler> handler = prefixHandlers
-                    .stream()
-                    .filter(prefixHandler -> prefixHandler.getPrefix().equals(curr.prefix()))
-                    .findFirst();
-
-            if (handler.isPresent()) {
-                PrefixHandler oldHandler = handler.get();
-                oldHandler.changeMonitors(monitors);
-
-                // remove the ones we are going to keep from toRemove list
-                toRemove.remove(oldHandler);
-            } else {
-                // Add new handler
-                PrefixHandler newHandler = new PrefixHandler(curr.prefix(), monitors);
-                newHandler.startPrefixMonitors();
-                prefixHandlers.add(newHandler);
-            }
-        }
-
-        // stop and remove old monitors that do not exist on new configuration
-        toRemove.forEach(PrefixHandler::stopPrefixMonitors);
-        prefixHandlers.removeAll(toRemove);
-
-        // new timer task with updated bgp speakers
-        deaggr = new Deaggregator(bgpInfoService);
-        deaggr.setPrefixes(prefixes);
-
-        if (timer != null) {
-            timer.cancel();
-        }
-        timer = new Timer();
-        timer.scheduleAtFixedRate(deaggr, frequency, frequency);
+        log.info("Artemis Service Stopped");
     }
 
     @Override
-    public void setLogger(boolean value) {
-        logging = value;
+    public Optional<ArtemisConfig> getConfig() {
+        return Optional.ofNullable(artemisConfig);
     }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
@@ -160,19 +107,27 @@ public class ArtemisManager implements ArtemisService {
         public void event(NetworkConfigEvent event) {
             switch (event.type()) {
                 case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED: {
                     break;
-                case CONFIG_UNREGISTERED:
-                    break;
-                case CONFIG_ADDED:
-                case CONFIG_UPDATED:
-                case CONFIG_REMOVED:
+                }
+                case CONFIG_REMOVED: {
                     if (event.configClass() == CONFIG_CLASS) {
-                        setUpConfiguration();
+                        artemisConfig = null;
                     }
                     break;
+                }
+                case CONFIG_UPDATED:
+                case CONFIG_ADDED: {
+                    if (event.configClass() == CONFIG_CLASS) {
+                        event.config().ifPresent(config -> artemisConfig = (ArtemisConfig) config);
+                    }
+                    break;
+                }
                 default:
                     break;
             }
         }
+
     }
+
 }

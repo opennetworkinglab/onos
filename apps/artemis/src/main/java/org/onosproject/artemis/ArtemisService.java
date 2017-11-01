@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.artemis;
+
+import org.onosproject.artemis.impl.ArtemisConfig;
+import org.onosproject.artemis.impl.ArtemisEvent;
+import org.onosproject.event.ListenerService;
+
+import java.util.Optional;
 
 /**
- * Artemis CLI commands.
+ * The main service/orchestrator of Artemis.
  */
-package org.onosproject.artemis.cli;
+public interface ArtemisService extends ListenerService<ArtemisEvent, ArtemisEventListener> {
+
+    /**
+     * Get the current configuration.
+     *
+     * @return config
+     */
+    Optional<ArtemisConfig> getConfig();
+
+}

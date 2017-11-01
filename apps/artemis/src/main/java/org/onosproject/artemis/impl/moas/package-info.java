@@ -15,6 +15,6 @@
  */
 
 /**
- * BGP Speakers.
+ * MOAS related package.
  */
-package org.onosproject.artemis.impl.bgpspeakers;
+package org.onosproject.artemis.impl.moas;
