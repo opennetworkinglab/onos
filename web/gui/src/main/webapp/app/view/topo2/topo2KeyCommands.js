@@ -41,6 +41,12 @@
             esc: handleEscape,
 
             _keyListener: t2tbs.keyListener.bind(t2tbs),
+
+            _helpFormat: [
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B'],
+                ['X', 'Z', 'N', 'L', 'shift-L', 'U', 'R', 'E', 'dot'],
+                [], // this column reserved for overlay actions
+            ],
         };
     }
 
