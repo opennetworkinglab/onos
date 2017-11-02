@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 # -----------------------------------------------------------------------------
 # Builds the release bits and uploads them.
 # -----------------------------------------------------------------------------
@@ -13,11 +13,8 @@ if [ "${DRY_RUN}" == "--dry-run" ]; then
     dryRun=1
 fi
 
-set -e
-set -x
-
 # fix version strings, build artifacts, upload artifacts
-onos-release $VERSION $DRY_RUN | tee build.log
+onos-release $VERSION $DRY_RUN
 
 if [ $dryRun -eq 0 ]; then
     # upload docs
