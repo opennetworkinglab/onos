@@ -50,7 +50,7 @@ public class AtomixConsistentSetMultimapServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
 
         AtomixConsistentSetMultimapService service = new AtomixConsistentSetMultimapService();
         service.put(new DefaultCommit<>(

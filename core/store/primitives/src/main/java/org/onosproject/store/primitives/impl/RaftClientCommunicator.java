@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.atomix.protocols.raft.cluster.MemberId;
@@ -27,6 +28,8 @@ import io.atomix.protocols.raft.protocol.CloseSessionRequest;
 import io.atomix.protocols.raft.protocol.CloseSessionResponse;
 import io.atomix.protocols.raft.protocol.CommandRequest;
 import io.atomix.protocols.raft.protocol.CommandResponse;
+import io.atomix.protocols.raft.protocol.HeartbeatRequest;
+import io.atomix.protocols.raft.protocol.HeartbeatResponse;
 import io.atomix.protocols.raft.protocol.KeepAliveRequest;
 import io.atomix.protocols.raft.protocol.KeepAliveResponse;
 import io.atomix.protocols.raft.protocol.MetadataRequest;
@@ -83,6 +86,16 @@ public class RaftClientCommunicator extends RaftCommunicator implements RaftClie
     @Override
     public CompletableFuture<MetadataResponse> metadata(MemberId memberId, MetadataRequest request) {
         return sendAndReceive(context.metadataSubject, request, memberId);
+    }
+
+    @Override
+    public void registerHeartbeatHandler(Function<HeartbeatRequest, CompletableFuture<HeartbeatResponse>> function) {
+        clusterCommunicator.addSubscriber(context.heartbeatSubject, serializer::decode, function, serializer::encode);
+    }
+
+    @Override
+    public void unregisterHeartbeatHandler() {
+        clusterCommunicator.removeSubscriber(context.heartbeatSubject);
     }
 
     @Override

@@ -15,8 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.cluster.MemberId;
 import io.atomix.protocols.raft.impl.RaftContext;
@@ -34,6 +32,8 @@ import io.atomix.protocols.raft.storage.snapshot.SnapshotStore;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
 import io.atomix.storage.StorageLevel;
 import io.atomix.time.WallClockTimestamp;
+import io.atomix.utils.concurrent.AtomixThreadFactory;
+import io.atomix.utils.concurrent.SingleThreadContextFactory;
 import io.atomix.utils.concurrent.ThreadContext;
 import org.junit.Test;
 import org.onosproject.cluster.Leadership;
@@ -58,7 +58,7 @@ public class AtomixLeaderElectorServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
 
         DefaultServiceContext context = mock(DefaultServiceContext.class);
         expect(context.serviceType()).andReturn(ServiceType.from(LEADER_ELECTOR.name())).anyTimes();
@@ -85,10 +85,11 @@ public class AtomixLeaderElectorServiceTest {
                         "test",
                         ServiceType.from(LEADER_ELECTOR.name()),
                         ReadConsistency.LINEARIZABLE,
+                        100,
                         5000,
                         context,
                         server,
-                        mock(ScheduledExecutorService.class)),
+                        new SingleThreadContextFactory(new AtomixThreadFactory())),
                 System.currentTimeMillis()));
 
         try (SnapshotWriter writer = snapshot.openWriter()) {

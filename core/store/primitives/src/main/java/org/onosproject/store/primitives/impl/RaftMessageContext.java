@@ -22,6 +22,7 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
  */
 final class RaftMessageContext {
     private final String prefix;
+    final MessageSubject heartbeatSubject;
     final MessageSubject openSessionSubject;
     final MessageSubject closeSessionSubject;
     final MessageSubject keepAliveSubject;
@@ -40,6 +41,7 @@ final class RaftMessageContext {
 
     RaftMessageContext(String prefix) {
         this.prefix = prefix;
+        this.heartbeatSubject = getSubject(prefix, "heartbeat");
         this.openSessionSubject = getSubject(prefix, "open");
         this.closeSessionSubject = getSubject(prefix, "close");
         this.keepAliveSubject = getSubject(prefix, "keep-alive");

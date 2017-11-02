@@ -42,7 +42,7 @@ public class AtomixAtomicCounterMapServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
 
         AtomixAtomicCounterMapService service = new AtomixAtomicCounterMapService();
         service.put(new DefaultCommit<>(

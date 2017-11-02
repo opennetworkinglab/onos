@@ -45,7 +45,7 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
 
     private static final int MAX_SEGMENT_SIZE = 1024 * 1024 * 64;
     private static final long ELECTION_TIMEOUT_MILLIS = 2500;
-    private static final long HEARTBEAT_INTERVAL_MILLIS = 1000;
+    private static final long HEARTBEAT_INTERVAL_MILLIS = 250;
 
     private final MemberId localMemberId;
     private final StoragePartition partition;
