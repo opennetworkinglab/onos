@@ -1,0 +1,296 @@
+{
+  "type": "object",
+  "title": "lm",
+  "required": [
+    "lm"
+  ],
+  "properties": {
+    "lm": {
+      "type": "object",
+      "title": "lmprops",
+      "required": [
+        "remoteMepId",
+        "lmCfgType",
+        "version",
+        "priority"
+      ],
+      "properties": {
+        "remoteMepId": {
+          "type": "uint16",
+          "minimum": 1,
+          "maximum": 8191,
+          "description": "Remote MEP identifier",
+          "example": 20
+        },
+        "lmCfgType": {
+          "type": "string",
+          "enum": ["LMLMM","LMSLM", "LMCCM"],
+          "description": "The type of Loss Measurement to be performed",
+          "example": "LMLMM"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["Y17312008","Y17312011"],
+          "description": "The version of Loss Measurement to be performed",
+          "example": "Y17312011"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["PRIO0","PRIO1","PRIO2","PRIO3","PRIO4","PRIO5","PRIO6","PRIO7"],
+          "description": "The Priority for the Delay Measurement",
+          "example": "PRIO3"
+        },
+        "countersEnabled": {
+          "type": "array" ,
+          "xml": {
+            "name": "countersEnabled",
+            "wrapped": true
+          },
+          "items": {
+            "type": "string",
+            "enum": [ "FORWARD_TRANSMITTED_FRAMES",
+              "FORWARD_RECEIVED_FRAMES","FORWARD_MIN_FLR","FORWARD_MAX_FLR","FORWARD_AVERAGE_FLR","BACKWARD_TRANSMITTED_FRAMES","BACKWARD_RECEIVED_FRAMES","BACKWARD_MIN_FLR","BACKWARD_MAX_FLR","BACKWARD_AVERAGE_FLR","SOAM_PDUS_SENT","SOAM_PDUS_RECEIVED","AVAILABILITY_FORWARD_HIGH_LOSS","AVAILABILITY_FORWARD_CONSECUTIVE_HIGH_LOSS","AVAILABILITY_FORWARD_AVAILABLE","AVAILABILITY_FORWARD_UNAVAILABLE","AVAILABILILITY_FORWARD_MIN_FLR","AVAILABILITY_FORWARD_MAX_FLR","AVAILABILITY_FORWARD_AVERAGE_FLR","AVAILABILITY_BACKWARD_HIGH_LOSS","AVAILABILITY_BACKWARD_CONSECUTIVE_HIGH_LOSS","AVAILABILITY_BACKWARD_AVAILABLE","AVAILABLE_BACKWARD_UNAVAILABLE","AVAILABLE_BACKWARD_MIN_FLR","AVAILABLE_BACKWARD_MAX_FLR","AVAILABLE_BACKWARD_AVERAGE_FLR","MEASURED_STATS_FORWARD_MEASURED_FLR","MEASURED_STATS_BACKWARD_MEASURED_FLR","MEASURED_STATS_AVAILABILITY_FORWARD_STATUS","MEASURED_STATS_AVAILABILITY_BACKWARD_STATUS"],
+            "description": "A vector of bits that indicates the type of SOAM LM counters that are enabled"
+          },
+          "example": ["FORWARD_RECEIVED_FRAMES","BACKWARD_RECEIVED_FRAMES","SOAM_PDUS_SENT","SOAM_PDUS_RECEIVED"]
+        },
+        "availabilityMeasurementIntervalMins": {
+          "type": "uint16",
+          "description": "The availability measurement interval in minutes",
+          "example": 15
+        },
+        "availabilityNumberConsecutiveFlrMeasurements": {
+          "type": "uint32",
+          "minimum": 10,
+          "maximum": 1000000,
+          "description": "configurable number of consecutive loss measurement PDUs",
+          "example": 100
+        },
+        "availabilityFlrThresholdPct": {
+          "type": "float",
+          "minimum": 0.0,
+          "maximum": 100.0,
+          "description": "configurable availability threshold to be used in evaluating the availability/unavailability status in percent",
+          "example": 50.0
+        },
+        "availabilityNumberConsecutiveIntervals": {
+          "type": "uint16",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "configurable number of consecutive availability indicators to be used to determine a change in the availability status",
+          "example": 10
+        },
+        "availabilityNumberConsecutiveHighFlr": {
+          "type": "uint16",
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "configurable number of consecutive availability indicators to be used for assessing CHLI.",
+          "example": 10
+        },
+        "frameSize": {
+          "type": "uint16",
+          "minimum": 64,
+          "maximum": 9600,
+          "description": "Frame size",
+          "example": 64
+        },
+        "measurementIntervalMins": {
+          "type": "uint16",
+          "description": "Measurement Interval in minutes",
+          "example": 15
+        },
+        "alignMeasurementIntervals": {
+          "type": "boolean",
+          "description": "Defines if measurement intervals are aligned with a zero offset to real time"
+        },
+        "alignMeasurementOffsetMins": {
+          "type": "uint16",
+          "description": "The offset in minutes from the time of day value",
+          "example": 0
+        },
+        "messagePeriodMs": {
+          "type": "uint32",
+          "description": "Message period in milliseconds",
+          "example": 100
+        },
+        "thresholds": {
+          "type": "array" ,
+          "xml": {
+            "name": "thresholds",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "title": "thresholdProps",
+            "properties": {
+              "threshold": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "uint8",
+                    "description": "The id of the threshold",
+                    "example": 1
+                  },
+                  "thresholds": {
+                    "type": "array",
+                    "xml": {
+                      "name": "thresholds",
+                      "wrapped": true
+                    },
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "MEASURED_FLR_FORWARD",
+                        "MAX_FLR_FORWARD",
+                        "AVERAGE_FLR_FORWARD",
+                        "MEASURED_FLR_BACKWARD",
+                        "MAX_FLR_BACKWARD",
+                        "AVERAGE_FLR_BACKWARD",
+                        "FORWARD_HIGH_LOSS",
+                        "FORWARD_CONSECUTIVE_HIGH_LOSS",
+                        "BACKWARD_HIGH_LOSS",
+                        "BACKWARD_CONSECUTIVE_HIGH_LOSS",
+                        "FORWARD_UNAVAILABLE_COUNT",
+                        "FORWARD_AVAILABLE_RATIO",
+                        "BACKWARD_UNAVAILABLE_COUNT",
+                        "BACKWARD_AVAILABLE_RATIO"
+                      ],
+                      "description": "A vector of bits that indicates the type of SOAM LM thresholds notifications that are enabled."
+                    },
+                    "example": [
+                      "MEASURED_FLR_FORWARD",
+                      "MAX_FLR_FORWARD",
+                      "AVERAGE_FLR_FORWARD"
+                    ]
+                  },
+                  "measuredFlrForward": {
+                    "type": "uint32",
+                    "description": "The measured forward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  },
+                  "maxFlrForward": {
+                    "type": "uint32",
+                    "description": "The maximum forward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  },
+                  "averageFlrForward": {
+                    "type": "uint32",
+                    "description": "The average forward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  },
+                  "measuredFlrBackward": {
+                    "type": "uint32",
+                    "description": "The measured backward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  },
+                  "maxFlrBackward": {
+                    "type": "uint32",
+                    "description": "The maximum backward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  },
+                  "averageFlrBackward": {
+                    "type": "uint32",
+                    "description": "The average backward frame loss ratio threshold value in milli Percent 1/100000",
+                    "example": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        "binsPerFdInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for Frame Delay measurements",
+          "example": 4
+        },
+        "binsPerIfdvInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for IFDV measurements",
+          "example": 4
+        },
+        "ifdvSelectionOffset": {
+          "type": "uint8",
+          "minimum": 2,
+          "description": "selection offset for Inter-Frame Delay Variation measurements",
+          "example": 2
+        },
+        "binsPerFdrInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for Frame Delay Range measurements",
+          "example": 4
+        },
+        "startTime": {
+          "type": "object",
+          "title": "startTime",
+          "description": "only one needs to be specified",
+          "properties": {
+            "immediate": {
+              "type": "boolean",
+              "description": "Should always be true if specified",
+              "example": true
+            },
+            "absolute": {
+              "type": "object",
+              "description": "Will be ignored if immediate is specified",
+              "properties": {
+                "start-time": {
+                  "type": "date-time",
+                  "example": "2017-11-11T12:00:00"
+                }
+              }
+            },
+            "relative": {
+              "type": "object",
+              "description": "Will be ignored if immediate or absolute is specified",
+              "properties": {
+                "start-time": {
+                  "type": "string",
+                  "description": "A period of time written as a Java Duration",
+                  "example": "PT10M"
+                }
+              }
+            }
+          },
+          "example": {"immediate": true}
+        },
+        "stopTime": {
+          "type": "object",
+          "title": "stopTime",
+          "description": "only one needs to be specified",
+          "properties": {
+            "none": {
+              "type": "boolean",
+              "description": "Should always be true if specified",
+              "example": true
+            },
+            "absolute": {
+              "type": "object",
+              "description": "Will be ignored if none is specified",
+              "properties": {
+                "start-time": {
+                  "type": "date-time",
+                  "example": "2017-11-11T12:00:00"
+                }
+              }
+            },
+            "relative": {
+              "type": "object",
+              "description": "Will be ignored if none or absolute is specified",
+              "properties": {
+                "start-time": {
+                  "type": "string",
+                  "description": "A period of time written as a Java Duration",
+                  "example": "PT10M"
+                }
+              }
+            }
+          },
+          "example": {"none": true}
+        }
+      }
+    }
+  }
+}

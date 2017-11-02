@@ -43,7 +43,7 @@ public interface LossMeasurementCreate extends MeasurementCreateBase {
     Collection<CounterOption> countersEnabled();
 
     /**
-     * This object specifies the availability measurement interval in minutes.
+     * This object specifies the availability measurement interval.
      * A measurement interval of 15 minutes is to be supported, other intervals can be supported
      * @return A java Duration
      */

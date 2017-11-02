@@ -1,0 +1,141 @@
+{
+  "type": "object",
+  "title": "ma",
+  "required": [
+    "ma"
+  ],
+  "properties": {
+    "ma": {
+      "type": "object",
+      "title": "maprops",
+      "required": [
+        "maName",
+        "maNameType"
+      ],
+      "properties": {
+        "maName": {
+          "type": "string",
+          "maxLength": 45,
+          "description": "MA identifier [a-zA-Z0-9-:.]",
+          "example": "ma-vlan-101"
+        },
+        "maNameType": {
+          "type": "string",
+          "enum": ["CHARACTERSTRING", "TWOOCTET", "ICCY1731", "PRIMARYVID", "RFC2685VPNID"],
+          "description": "MA identifier type",
+          "example": "CHARACTERSTRING"
+        },
+        "maNumericId": {
+          "type": "uint16",
+          "minimum": 1,
+          "maximum": 32767,
+          "description": "Optional numeric id",
+          "example": 1
+        },
+        "ccm-interval": {
+          "type": "string",
+          "enum": ["INVALID", "INTERVAL_3MS", "INTERVAL_10MS", "INTERVAL_100MS", "INTERVAL_1S", "INTERVAL_10S", "INTERVAL_1MIN", "INTERVAL_10MIN"],
+          "description": "CCM interval for the Maintenance Association",
+          "example": "INTERVAL_1S"
+        },
+        "component-list": {
+          "type": "array" ,
+          "xml": {
+            "name": "components",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "title": "component",
+            "required": [
+              "component-id"
+            ],
+            "properties": {
+              "component": {
+                "type": "object",
+                "properties": {
+                  "component-id": {
+                    "type": "uint8",
+                    "minimum": 1,
+                    "maximum": 8,
+                    "description": "An id for the component",
+                    "example": 1
+                  },
+                  "vid-list": {
+                    "type": "array",
+                    "xml": {
+                      "name": "vid",
+                      "wrapped": true
+                    },
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "vid": {
+                          "type": "uint16",
+                          "minimum": 1,
+                          "maximum": 4094,
+                          "description": "VID of component",
+                          "example": 101
+                        }
+                      }
+                    }
+                  },
+                  "mhf-creation-type": {
+                    "type": "string",
+                    "enum": [
+                      "NONE",
+                      "DEFAULT",
+                      "EXPLICIT",
+                      "DEFER"
+                    ],
+                    "description": "Defines how the MA can create MHFs (MIP Half Function) for this VID at this MA"
+                  },
+                  "id-permission": {
+                    "type": "string",
+                    "enum": [
+                      "NONE",
+                      "CHASSIS",
+                      "MANAGE",
+                      "CHASSIS_MANAGE",
+                      "DEFER"
+                    ],
+                    "description": "indicates what, if anything, is to be included in the Sender ID TLV"
+                  },
+                  "tag-type": {
+                    "type": "string",
+                    "enum": [
+                      "VLAN_NONE",
+                      "VLAN_CTAG",
+                      "VLAN_STAG"
+                    ],
+                    "description": "Indicates the tag type for this component",
+                    "example": "VLAN_STAG"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "rmep-list": {
+          "type": "array",
+          "xml": {
+            "name": "rmep",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "rmep": {
+                "type": "uint16",
+                "minimum": 1,
+                "maximum": 8191,
+                "description": "Remote MEP ID"
+              }
+            }
+          },
+          "example": [{"rmep": 10}, {"rmep": 20}]
+        }
+      }
+    }
+  }
+}

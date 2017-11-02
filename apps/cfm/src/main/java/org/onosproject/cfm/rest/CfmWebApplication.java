@@ -13,7 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.onosproject.cfm.rest;
+
+import java.util.Set;
+
+import org.onlab.rest.AbstractWebApplication;
+import org.onosproject.soam.rest.DmWebResource;
+import org.onosproject.soam.rest.LmWebResource;
+
 /**
- * REST Web Application for SOAM.
+ * CFM REST API web application.
  */
-package org.onosproject.soam.impl;
+public class CfmWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(
+                MdWebResource.class,
+                MaWebResource.class,
+                MepWebResource.class,
+                DmWebResource.class,
+                LmWebResource.class);
+    }
+}

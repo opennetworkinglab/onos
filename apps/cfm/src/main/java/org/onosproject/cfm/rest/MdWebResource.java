@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cfm.impl;
+package org.onosproject.cfm.rest;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -125,6 +125,7 @@ public class MdWebResource extends AbstractWebResource {
     /**
      * Create Maintenance Domain.
      *
+     * @onos.rsModel MdCreate
      * @param input A JSON formatted input stream specifying the MA parameters
      * @return 200 OK, 304 if MD already exists or 500 on error
      */
