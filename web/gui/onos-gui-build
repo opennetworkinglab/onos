@@ -10,7 +10,6 @@ export PATH=$NODEJS_HOME/bin:$PATH
 cd $ONOS_ROOT/tools/gui
 
 # Ensure lock file is removed
-rm -rf node_modules
 rm -f package-lock.json
 
 # Install Project Dependencies

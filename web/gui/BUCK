@@ -49,7 +49,7 @@ export_file (
 
 genrule(
     name = 'onos-tools-gui',
-    srcs = glob(['src/main/webapp/**/*.js'], excludes = ['src/main/webapp/dist/*.js']),
+    srcs = glob(['src/main/webapp/*.js', 'src/main/webapp/app/**/*.js'], excludes = ['src/main/webapp/dist/*.js']),
     bash = '$(location :onos-tools-gui-exe) '
         + '$(location //web/gui:node-release-v8.1.2) '
         + '$(location //web/gui:node-bin-v8.1.2) > $OUT',
