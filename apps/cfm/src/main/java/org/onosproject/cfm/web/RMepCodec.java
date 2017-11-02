@@ -53,10 +53,10 @@ public class RMepCodec extends JsonCodec<MepId> {
             return null;
         }
 
-        JsonNode vidNode = json.get("rmep");
+        JsonNode rmepNode = json.get("rmep");
 
-        return MepId.valueOf(
-                    nullIsIllegal((short) vidNode.asInt(), "rmep is required"));
+        return MepId.valueOf((short)
+                    nullIsIllegal(rmepNode, "rmep is required").asInt());
 
     }
 

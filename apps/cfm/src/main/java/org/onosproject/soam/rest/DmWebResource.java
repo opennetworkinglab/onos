@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.soam.impl;
+package org.onosproject.soam.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
@@ -31,159 +44,149 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamService;
-import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate;
-import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementEntry;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Layer 2 SOAM Loss Measurement web resource.
+ * Layer 2 SOAM Delay Measurement web resource.
  */
-@Path("md/{md_name}/ma/{ma_name}/mep/{mep_id}/lm")
-public class LmWebResource extends AbstractWebResource {
+@Path("md/{md_name}/ma/{ma_name}/mep/{mep_id}/dm")
+public class DmWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
-     * Get all LMs for a Mep.
+     * Get all DMs for a Mep.
      *
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepId The ID of a Mep belonging to the MA
-     * @return 200 OK with a list of LMs or 500 on error
+     * @return 200 OK with a list of DMs or 500 on error
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getAllLmsForMep(@PathParam("md_name") String mdName,
-                                    @PathParam("ma_name") String maName,
-                                    @PathParam("mep_id") short mepId) {
-
-        log.debug("GET all LMs called for MEP {}", mdName + "/" + maName + "/" + mepId);
+    public Response getAllDmsForMep(@PathParam("md_name") String mdName,
+            @PathParam("ma_name") String maName,
+            @PathParam("mep_id") short mepId) {
+        log.debug("GET all DMs called for MEP {}", mdName + "/" + maName + "/" + mepId);
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
             MepId mepIdObj = MepId.valueOf(mepId);
-            Collection<LossMeasurementEntry> lmCollection =
-                    get(SoamService.class).getAllLms(mdId, maId, mepIdObj);
+            Collection<DelayMeasurementEntry> dmCollection =
+                    get(SoamService.class).getAllDms(mdId, maId, mepIdObj);
             ArrayNode an = mapper().createArrayNode();
-            an.add(codec(LossMeasurementEntry.class).encode(lmCollection, this));
-            return ok(mapper().createObjectNode().set("lms", an)).build();
+            an.add(codec(DelayMeasurementEntry.class).encode(dmCollection, this));
+            return ok(mapper().createObjectNode().set("dms", an)).build();
         } catch (CfmConfigException | SoamConfigException e) {
-            log.error("Get LM {} failed because of exception {}",
+            log.error("Get DM {} failed because of exception {}",
                     mdName + "/" + maName + "/" + mepId, e.toString());
             return Response.serverError().entity("{ \"failure\":\"" + e.toString() + "\" }").build();
         }
     }
 
     /**
-     * Get LM by MD name, MA name, Mep Id and Dm id.
+     * Get DM by MD name, MA name, Mep Id and Dm id.
      *
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepId The Id of the MEP
-     * @param lmId The Id of the LM
-     * @return 200 OK with details of the LM or 500 on error
+     * @param dmId The Id of the DM
+     * @return 200 OK with details of the DM or 500 on error
      */
     @GET
-    @Path("{lm_id}")
+    @Path("{dm_id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getLm(@PathParam("md_name") String mdName,
-                          @PathParam("ma_name") String maName,
-                          @PathParam("mep_id") short mepId, @PathParam("lm_id") int lmId) {
-        log.debug("GET called for LM {}", mdName + "/" + maName + "/" + mepId + "/" + lmId);
+    public Response getDm(@PathParam("md_name") String mdName,
+            @PathParam("ma_name") String maName,
+            @PathParam("mep_id") short mepId, @PathParam("dm_id") int dmId) {
+        log.debug("GET called for DM {}", mdName + "/" + maName + "/" + mepId + "/" + dmId);
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
             MepId mepIdObj = MepId.valueOf(mepId);
-            SoamId lmIdObj = SoamId.valueOf(lmId);
-            LossMeasurementEntry lm = get(SoamService.class)
-                                    .getLm(mdId, maId, mepIdObj, lmIdObj);
-            if (lm == null) {
-                return Response.serverError().entity("{ \"failure\":\"LM " +
-                        mdName + "/" + maName + "/" + mepId + "/" + lmId + " not found\" }").build();
+            SoamId dmIdObj = SoamId.valueOf(dmId);
+            DelayMeasurementEntry dm = get(SoamService.class)
+                                    .getDm(mdId, maId, mepIdObj, dmIdObj);
+            if (dm == null) {
+                return Response.serverError().entity("{ \"failure\":\"DM " +
+                        mdName + "/" + maName + "/" + mepId + "/" + dmId + " not found\" }").build();
             }
             ObjectNode node = mapper().createObjectNode();
-            node.set("lm", codec(LossMeasurementEntry.class).encode(lm, this));
+            node.set("dm", codec(DelayMeasurementEntry.class).encode(dm, this));
             return ok(node).build();
         } catch (CfmConfigException | SoamConfigException e) {
-            log.error("Get LM {} failed because of exception {}",
-                    mdName + "/" + maName + "/" + mepId + "/" + lmId, e.toString());
+            log.error("Get DM {} failed because of exception {}",
+                    mdName + "/" + maName + "/" + mepId + "/" + dmId, e.toString());
             return Response.serverError().entity("{ \"failure\":\"" + e.toString() + "\" }").build();
         }
     }
 
     /**
-     * Abort LM by MD name, MA name, Mep Id and LM Id.
+     * Abort DM by MD name, MA name, Mep Id and DM Id.
      * In the API the measurement is aborted, and not truly deleted. It still
      * remains so that its results may be read. Depending on the device it will
      * get overwritten on the creation of subsequent measurements.
-     * Use clear stats to delete old results measurements.
+     * Use clear stats to delete old results
+     * measurements.
      *
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepId The Id of the MEP
-     * @param lmId The Id of the LM
+     * @param dmId The Id of the DM
      * @return 200 OK or 304 if not found, or 500 on error
      */
     @DELETE
-    @Path("{lm_id}")
+    @Path("{dm_id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response abortLm(@PathParam("md_name") String mdName,
-                            @PathParam("ma_name") String maName,
-                            @PathParam("mep_id") short mepId,
-                            @PathParam("lm_id") int lmId) {
-        log.debug("DELETE called for LM {}", mdName + "/" + maName + "/" + mepId + "/" + lmId);
+    public Response abortDm(@PathParam("md_name") String mdName,
+            @PathParam("ma_name") String maName,
+            @PathParam("mep_id") short mepId,
+            @PathParam("dm_id") int dmId) {
+        log.debug("DELETE called for DM {}", mdName + "/" + maName + "/" + mepId + "/" + dmId);
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
             MepId mepIdObj = MepId.valueOf(mepId);
-            SoamId lmIdObj = SoamId.valueOf(lmId);
+            SoamId dmIdObj = SoamId.valueOf(dmId);
 
-            get(SoamService.class).abortLm(mdId, maId, mepIdObj, lmIdObj);
+            get(SoamService.class).abortDm(mdId, maId, mepIdObj, dmIdObj);
             return ok("{ \"success\":\"deleted (aborted) " + mdName + "/" + maName +
-                    "/" + mepId + "/" + lmId + "\" }").build();
+                    "/" + mepId + "/" + dmId + "\" }").build();
         } catch (CfmConfigException e) {
-            log.error("Delete (abort) LM {} failed because of exception {}",
-                    mdName + "/" + maName + "/" + mepId + "/" + lmId, e.toString());
+            log.error("Delete (abort) DM {} failed because of exception {}",
+                    mdName + "/" + maName + "/" + mepId + "/" + dmId, e.toString());
             return Response.serverError().entity("{ \"failure\":\"" + e.toString() + "\" }").build();
         }
     }
 
     /**
-     * Create LM with MD name, MA name, Mep id and LM Json.
+     * Create DM with MD name, MA name, Mep id and DM Json.
      *
+     * @onos.rsModel DmCreate
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepId The Id of the MEP belonging to the MEP
-     * @param input A JSON formatted input stream specifying the LM parameters
+     * @param input A JSON formatted input stream specifying the DM parameters
      * @return 201 Created or 304 if already exists or 500 on error
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createLm(@PathParam("md_name") String mdName,
-                             @PathParam("ma_name") String maName,
-                             @PathParam("mep_id") short mepId, InputStream input) {
-        log.debug("POST called to Create Lm");
+    public Response createDm(@PathParam("md_name") String mdName,
+            @PathParam("ma_name") String maName,
+            @PathParam("mep_id") short mepId, InputStream input) {
+        log.debug("POST called to Create Dm");
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
@@ -197,19 +200,19 @@ public class LmWebResource extends AbstractWebResource {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode cfg = mapper.readTree(input);
-            JsonCodec<LossMeasurementCreate> lmCodec = codec(LossMeasurementCreate.class);
+            JsonCodec<DelayMeasurementCreate> dmCodec = codec(DelayMeasurementCreate.class);
 
-            LossMeasurementCreate lm = lmCodec.decode((ObjectNode) cfg, this);
-            get(SoamService.class).createLm(mdId, maId, mepIdObj, lm);
+            DelayMeasurementCreate dm = dmCodec.decode((ObjectNode) cfg, this);
+            get(SoamService.class).createDm(mdId, maId, mepIdObj, dm);
             return Response
                     .created(new URI("md/" + mdName + "/ma/" + maName + "/mep/" +
-                            mepId + "/lm"))
-                    .entity("{ \"success\":\"lm " + mdName + "/" + maName + "/" +
+                            mepId + "/dm"))
+                    .entity("{ \"success\":\"dm " + mdName + "/" + maName + "/" +
                             mepId + " created\" }")
                     .build();
         } catch (CfmConfigException | SoamConfigException | IllegalArgumentException |
                 IOException | URISyntaxException e) {
-            log.error("Create LM on " + mdName + "/" + maName +  "/" + mepId +
+            log.error("Create DM on " + mdName + "/" + maName + "/" + mepId +
                     " failed because of exception {}", e.toString());
             return Response.serverError()
                     .entity("{ \"failure\":\"" + e.toString() + "\" }")
@@ -218,39 +221,38 @@ public class LmWebResource extends AbstractWebResource {
     }
 
     /**
-     * Clear LM history stats by MD name, MA name, Mep Id and LM Id.
+     * Clear DM history stats by MD name, MA name, Mep Id and DM Id.
      *
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepId The Id of the MEP
-     * @param lmId The Id of the LM
+     * @param dmId The Id of the DM
      * @return 200 OK or 304 if not found, or 500 on error
      */
     @PUT
-    @Path("{lm_id}/clear-history")
+    @Path("{dm_id}/clear-history")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response clearLmHistory(@PathParam("md_name") String mdName,
-                                   @PathParam("ma_name") String maName,
-                                   @PathParam("mep_id") short mepId,
-                                   @PathParam("lm_id") int lmId) {
-        log.debug("clear-history called for LM {}", mdName + "/" + maName +
-                "/" + mepId + "/" + lmId);
+    public Response clearDmHistory(@PathParam("md_name") String mdName,
+                            @PathParam("ma_name") String maName,
+                            @PathParam("mep_id") short mepId,
+                            @PathParam("dm_id") int dmId) {
+        log.debug("clear-history called for DM {}", mdName + "/" + maName +
+                "/" + mepId + "/" + dmId);
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
             MepId mepIdObj = MepId.valueOf(mepId);
-            SoamId lmIdObj = SoamId.valueOf(lmId);
+            SoamId dmIdObj = SoamId.valueOf(dmId);
 
-            get(SoamService.class).clearDelayHistoryStats(mdId, maId, mepIdObj, lmIdObj);
-            return ok("{ \"success\":\"cleared LM history stats for " +
-                    mdName + "/" + maName + "/" + mepId + "/" + lmId + "\" }").build();
+            get(SoamService.class).clearDelayHistoryStats(mdId, maId, mepIdObj, dmIdObj);
+            return ok("{ \"success\":\"cleared DM history stats for " +
+                    mdName + "/" + maName + "/" + mepId + "/" + dmId + "\" }").build();
         } catch (CfmConfigException e) {
-            log.error("Clear history stats for LM {} failed because of exception {}",
-                    mdName + "/" + maName + "/" + mepId + "/" + lmId, e.toString());
+            log.error("Clear history stats for DM {} failed because of exception {}",
+                    mdName + "/" + maName + "/" + mepId + "/" + dmId, e.toString());
             return Response.serverError().entity("{ \"failure\":\"" +
                     e.toString() + "\" }").build();
         }
     }
-
 }

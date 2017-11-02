@@ -1,0 +1,219 @@
+{
+  "type": "object",
+  "title": "dm",
+  "required": [
+    "dm"
+  ],
+  "properties": {
+    "dm": {
+      "type": "object",
+      "title": "dmprops",
+      "required": [
+        "remoteMepId",
+        "dmCfgType",
+        "version",
+        "priority"
+      ],
+      "properties": {
+        "remoteMepId": {
+          "type": "uint16",
+          "minimum": 1,
+          "maximum": 8191,
+          "description": "Remote MEP identifier",
+          "example": 20
+        },
+        "dmCfgType": {
+          "type": "string",
+          "enum": ["DMDMM","DM1DMTX", "DM1DMRX"],
+          "description": "The type of Delay Measurement to be performed",
+          "example": "DMDMM"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["Y17312008","Y17312011"],
+          "description": "The version of Delay Measurement to be performed",
+          "example": "Y17312011"
+        },
+        "messagePeriodMs": {
+          "type": "uint32",
+          "description": "Message period in milliseconds",
+          "example": 100
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["PRIO0","PRIO1","PRIO2","PRIO3","PRIO4","PRIO5","PRIO6","PRIO7"],
+          "description": "The Priority for the Delay Measurement",
+          "example": "PRIO3"
+        },
+        "frameSize": {
+          "type": "uint16",
+          "minimum": 64,
+          "maximum": 9600,
+          "description": "Frame size",
+          "example": 64
+        },
+        "measurementIntervalMins": {
+          "type": "uint16",
+          "description": "Measurement Interval in minutes",
+          "example": 15
+        },
+        "alignMeasurementIntervals": {
+          "type": "boolean",
+          "description": "Defines if measurement intervals are aligned with a zero offset to real time"
+        },
+        "alignMeasurementOffsetMins": {
+          "type": "uint16",
+          "description": "The offset in minutes from the time of day value",
+          "example": 0
+        },
+        "measurementsEnabled": {
+          "type": "array" ,
+          "xml": {
+            "name": "measurementsEnabled",
+            "wrapped": true
+          },
+          "items": {
+            "type": "string",
+            "enum": [
+              "SOAM_PDUS_SENT",
+              "SOAM_PDUS_RECEIVED",
+              "FRAME_DELAY_TWO_WAY_BINS",
+              "FRAME_DELAY_TWO_WAY_MIN",
+              "FRAME_DELAY_TWO_WAY_MAX",
+              "FRAME_DELAY_TWO_WAY_AVERAGE",
+              "FRAME_DELAY_FORWARD_BINS",
+              "FRAME_DELAY_FORWARD_MIN",
+              "FRAME_DELAY_FORWARD_MAX",
+              "FRAME_DELAY_FORWARD_AVERAGE",
+              "FRAME_DELAY_BACKWARD_BINS",
+              "FRAME_DELAY_BACKWARD_MIN",
+              "FRAME_DELAY_BACKWARD_MAX",
+              "FRAME_DELAY_BACKWARD_AVERAGE",
+              "INTER_FRAME_DELAY_VARIATION_FORWARD_BINS",
+              "INTER_FRAME_DELAY_VARIATION_FORWARD_MIN",
+              "INTER_FRAME_DELAY_VARIATION_FORWARD_MAX",
+              "INTER_FRAME_DELAY_VARIATION_FORWARD_AVERAGE",
+              "INTER_FRAME_DELAY_VARIATION_BACKWARD_BINS",
+              "INTER_FRAME_DELAY_VARIATION_BACKWARD_MIN",
+              "INTER_FRAME_DELAY_VARIATION_BACKWARD_MAX",
+              "INTER_FRAME_DELAY_VARIATION_BACKWARD_AVERAGE",
+              "INTER_FRAME_DELAY_VARIATION_TWO_WAY_BINS",
+              "INTER_FRAME_DELAY_VARIATION_TWO_WAY_MIN",
+              "INTER_FRAME_DELAY_VARIATION_TWO_WAY_MAX",
+              "INTER_FRAME_DELAY_VARIATION_TWO_WAY_AVERAGE",
+              "FRAME_DELAY_RANGE_FORWARD_BINS",
+              "FRAME_DELAY_RANGE_FORWARD_MAX",
+              "FRAME_DELAY_RANGE_FORWARD_AVERAGE",
+              "FRAME_DELAY_RANGE_BACKWARD_BINS",
+              "FRAME_DELAY_RANGE_BACKWARD_MAX",
+              "FRAME_DELAY_RANGE_BACKWARD_AVERAGE",
+              "FRAME_DELAY_RANGE_TWO_WAY_BINS",
+              "FRAME_DELAY_RANGE_TWO_WAY_MAX",
+              "FRAME_DELAY_RANGE_TWO_WAY_AVERAGE",
+              "MEASURED_STATS_FRAME_DELAY_TWO_WAY",
+              "MEASURED_STATS_FRAME_DELAY_FORWARD",
+              "MEASURED_STATS_FRAME_DELAY_BACKWARD",
+              "MEASURED_STATS_INTER_FRAME_DELAY_VARIATION_TWO_WAY",
+              "MEASURED_STATS_INTER_FRAME_DELAY_VARIATION_FORWARD",
+              "MEASURED_STATS_INTER_FRAME_DELAY_VARIATION_BACKWARD"
+            ],
+            "description": "A vector of bits that indicates the type of SOAM DM counters that are enabled"
+          },
+          "example": ["FRAME_DELAY_TWO_WAY_BINS","FRAME_DELAY_TWO_WAY_AVERAGE"]
+        },
+        "binsPerFdInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for Frame Delay measurements",
+          "example": 4
+        },
+        "binsPerIfdvInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for IFDV measurements",
+          "example": 4
+        },
+        "ifdvSelectionOffset": {
+          "type": "uint8",
+          "minimum": 2,
+          "description": "selection offset for Inter-Frame Delay Variation measurements",
+          "example": 2
+        },
+        "binsPerFdrInterval": {
+          "type": "uint8",
+          "minimum": 3,
+          "description": "The number of measurement bins per Measurement Interval for Frame Delay Range measurements",
+          "example": 4
+        },
+        "startTime": {
+          "type": "object",
+          "title": "startTime",
+          "description": "only one needs to be specified",
+          "properties": {
+            "immediate": {
+              "type": "boolean",
+              "description": "Should always be true if specified",
+              "example": true
+            },
+            "absolute": {
+              "type": "object",
+              "description": "Will be ignored if immediate is specified",
+              "properties": {
+                "start-time": {
+                  "type": "date-time",
+                  "example": "2017-11-11T12:00:00"
+                }
+              }
+            },
+            "relative": {
+              "type": "object",
+              "description": "Will be ignored if immediate or absolute is specified",
+              "properties": {
+                "start-time": {
+                  "type": "string",
+                  "description": "A period of time written as a Java Duration",
+                  "example": "PT10M"
+                }
+              }
+            }
+          },
+          "example": {"immediate": true}
+        },
+        "stopTime": {
+          "type": "object",
+          "title": "stopTime",
+          "description": "only one needs to be specified",
+          "properties": {
+            "none": {
+              "type": "boolean",
+              "description": "Should always be true if specified",
+              "example": true
+            },
+            "absolute": {
+              "type": "object",
+              "description": "Will be ignored if none is specified",
+              "properties": {
+                "start-time": {
+                  "type": "date-time",
+                  "example": "2017-11-11T12:00:00"
+                }
+              }
+            },
+            "relative": {
+              "type": "object",
+              "description": "Will be ignored if none or absolute is specified",
+              "properties": {
+                "start-time": {
+                  "type": "string",
+                  "description": "A period of time written as a Java Duration",
+                  "example": "PT10M"
+                }
+              }
+            }
+          },
+          "example": {"none": true}
+        }
+      }
+    }
+  }
+}

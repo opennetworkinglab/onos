@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cfm.impl;
+package org.onosproject.cfm.rest;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -164,6 +164,7 @@ public class MepWebResource extends AbstractWebResource {
     /**
      * Create MEP with MD name, MA name and Mep Json.
      *
+     * @onos.rsModel MepCreate
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param input A JSON formatted input stream specifying the Mep parameters
@@ -207,6 +208,7 @@ public class MepWebResource extends AbstractWebResource {
     /**
      * Transmit Loopback on MEP with MD name, MA name and Mep Id.
      *
+     * @onos.rsModel MepLbTransmit
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepIdShort The id of a MEP belonging to the MA
@@ -296,6 +298,7 @@ public class MepWebResource extends AbstractWebResource {
     /**
      * Transmit Linktrace on MEP with MD name, MA name and Mep Id.
      *
+     * @onos.rsModel MepLtTransmit
      * @param mdName The name of a Maintenance Domain
      * @param maName The name of a Maintenance Association belonging to the MD
      * @param mepIdShort The id of a MEP belonging to the MA

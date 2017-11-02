@@ -16,6 +16,7 @@
 package org.onosproject.cfm.impl;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.onosproject.cfm.rest.CfmWebApplication;
 import org.onosproject.rest.resources.ResourceTest;
 
 /**

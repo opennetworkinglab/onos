@@ -18,6 +18,10 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/cfm',
+    api_title = 'L2 Monitoring CFM',
+    api_version = '1.0',
+    api_description = 'REST API for L2 Monitoring CFM',
+    api_package = 'org.onosproject.soam.rest',
 )
 
 onos_app (

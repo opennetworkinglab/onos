@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cfm.impl;
+package org.onosproject.cfm.rest;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -121,6 +121,7 @@ public class MaWebResource extends AbstractWebResource {
     /**
      * Create Maintenance Association by MD and MA name.
      *
+     * @onos.rsModel MaCreate
      * @param mdName The name of a Maintenance Domain
      * @param input A JSON formatted input stream specifying the MA parameters
      * @return 200 OK or 500 on error

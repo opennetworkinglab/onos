@@ -16,4 +16,4 @@
 /**
  * REST Web Application for CFM.
  */
-package org.onosproject.cfm.impl;
+package org.onosproject.cfm.rest;

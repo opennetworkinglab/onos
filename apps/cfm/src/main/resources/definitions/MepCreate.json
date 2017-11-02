@@ -1,0 +1,115 @@
+{
+  "type": "object",
+  "title": "mep",
+  "required": [
+    "mep"
+  ],
+  "properties": {
+    "mep": {
+      "type": "object",
+      "title": "mepprops",
+      "required": [
+        "mepId",
+        "deviceId",
+        "port",
+        "direction"
+      ],
+      "properties": {
+        "mepId": {
+          "type": "uint16",
+          "minimum": 1,
+          "maximum": 8191,
+          "description": "Identifier of the MEP",
+          "example": 10
+        },
+        "deviceId": {
+          "type": "string",
+          "description": "The ID of a device in ONOS",
+          "example": "netconf:192.168.56.10:830"
+        },
+        "port": {
+          "type": "uint8",
+          "description": "A valid port identifier for the device",
+          "example": 0
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "UP_MEP",
+            "DOWN_MEP"
+          ],
+          "description": "the direction in which the MEP faces on the interface",
+          "example": "DOWN_MEP"
+        },
+        "primary-vid": {
+          "type": "uint16",
+          "minimum": 0,
+          "maximum": 4094,
+          "description": "Primary VID of the MEP",
+          "example": 101
+        },
+        "administrative-state": {
+          "type": "boolean",
+          "description": "The administrative state of the MEP",
+          "example": true
+        },
+        "cci-enabled": {
+          "type": "boolean",
+          "description": "whether the MEP is or is not to generate CCMs",
+          "example": true
+        },
+        "ccm-ltm-priority": {
+          "type": "uint8",
+          "minimum": 0,
+          "maximum": 7,
+          "description": "the priority parameter for CCMs and LTMs transmitted by the MEP",
+          "example": 3
+        },
+        "fng-address": {
+          "type": "object",
+          "description": "Configuration of the fault notification generator",
+          "properties": {
+            "address-type": {
+              "type": "string",
+              "enum": [
+                "IPV4",
+                "IPV6",
+                "NOT_TRANSMITTED",
+                "NOT_SPECIFIED"
+              ],
+              "description": "An address type for the FNG",
+              "example": "NOT_SPECIFIED"
+            },
+            "ip-address": {
+              "type": "string",
+              "description": "An address for the FNG",
+              "example": "192.168.56.100"
+            }
+          }
+        },
+        "lowest-fault-priority-defect": {
+          "type": "string",
+          "enum": [
+            "ALL_DEFECTS",
+            "MAC_FD_PLUS",
+            "REMOTE_FD_PLUS",
+            "ERROR_FD_PLUS",
+            "XCON_FD_ONLY"
+          ],
+          "description": "the lowest priority defect that is allowed to generate a Fault Alarm",
+          "example": "ALL_DEFECTS"
+        },
+        "defect-present-time": {
+          "type": "string",
+          "description": "the time that the Fault must be present before it is issued. Given as a Java duration literal",
+          "example": "PT10S"
+        },
+        "defect-absent-time": {
+          "type": "string",
+          "description": "the time that the Fault must be absent before it is reset. Given as a Java duration literal",
+          "example": "PT10S"
+        }
+      }
+    }
+  }
+}

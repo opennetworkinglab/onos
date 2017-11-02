@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "title": "md",
+  "required": [
+    "md"
+  ],
+  "properties": {
+    "md": {
+      "type": "object",
+      "title": "mdprops",
+      "required": [
+        "mdName",
+        "mdNameType"
+      ],
+      "properties": {
+        "mdName": {
+          "type": "string",
+          "maxLength": 45,
+          "description": "Domain identifier [a-zA-Z0-9-:.]",
+          "example": "TestDomain"
+        },
+        "mdNameType": {
+          "type": "string",
+          "enum": ["CHARACTERSTRING", "DOMAINNAME", "MACANDUINT", "NONE"],
+          "description": "Domain identifier type",
+          "example": "CHARACTERSTRING"
+        },
+        "mdLevel": {
+          "type": "string",
+          "enum": ["LEVEL0","LEVEL1","LEVEL2","LEVEL3","LEVEL4","LEVEL5","LEVEL6","LEVEL7"],
+          "description": "Domain level",
+          "example": "LEVEL3"
+        },
+        "mdNumericId": {
+          "type": "uint8",
+          "minimum": 1,
+          "maximum": 32767,
+          "description": "Optional numeric id",
+          "example": 1
+        }
+      }
+    }
+  }
+}
