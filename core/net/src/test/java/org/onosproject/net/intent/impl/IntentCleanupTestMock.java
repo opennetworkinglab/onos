@@ -53,19 +53,11 @@ public class IntentCleanupTestMock extends AbstractIntentTest {
         store = new SimpleIntentStore();
         cleanup = new IntentCleanup();
 
-        service.addListener(cleanup);
-        expectLastCall().once();
-        replay(service);
-
         cleanup.cfgService = new ComponentConfigAdapter();
         cleanup.service = service;
         cleanup.store = store;
         cleanup.period = 1000;
         cleanup.retryThreshold = 3;
-        cleanup.activate();
-
-        verify(service);
-        reset(service);
 
         assertTrue("store should be empty",
                    Sets.newHashSet(cleanup.store.getIntents()).isEmpty());
@@ -75,15 +67,6 @@ public class IntentCleanupTestMock extends AbstractIntentTest {
 
     @After
     public void tearDown() {
-        service.removeListener(cleanup);
-        expectLastCall().once();
-        replay(service);
-
-        cleanup.deactivate();
-
-        verify(service);
-        reset(service);
-
         super.tearDown();
     }
 
@@ -113,9 +96,8 @@ public class IntentCleanupTestMock extends AbstractIntentTest {
         expectLastCall().once();
         replay(service);
 
-        synchronized (service) {
-            cleanup.run();
-        }
+        cleanup.run();
+
         verify(service);
         reset(service);
     }
@@ -209,6 +191,9 @@ public class IntentCleanupTestMock extends AbstractIntentTest {
         Timestamp version = new SystemClockTimestamp(1L);
         data = new IntentData(intent2, INSTALL_REQ, version);
         store.addPending(data);
+
+        service.submit(intent);
+        expectLastCall().once();
 
         service.submit(intent2);
         expectLastCall().once();
