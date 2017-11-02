@@ -60,8 +60,10 @@ else
     popd
 fi
 
-# Commit newly versioned artifacts and issue a tag.
-git commit -a -m"Tagging $NEW_VERSION"
-git tag -sm"Tagging $NEW_VERSION" $NEW_VERSION #signed tag
+if [ $dryRun -eq 0 ]; then
+    # Commit newly versioned artifacts and issue a tag.
+    git commit -a -m"Tagging $NEW_VERSION"
+    git tag -sm"Tagging $NEW_VERSION" $NEW_VERSION #signed tag
+fi
 
 # TODO: push?
