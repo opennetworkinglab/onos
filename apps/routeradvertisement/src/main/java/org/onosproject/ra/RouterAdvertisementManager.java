@@ -36,7 +36,14 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceEvent;
 import org.onosproject.net.intf.InterfaceListener;
@@ -48,6 +55,7 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.ra.config.RouterAdvertisementDeviceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.osgi.service.component.ComponentContext;
@@ -60,11 +68,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
+import java.util.AbstractMap;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -87,7 +98,9 @@ public class RouterAdvertisementManager {
     private static final String PROP_RA_FLAG_OBIT_STATUS = "raFlagObitStatus";
     private static final boolean DEFAULT_RA_FLAG_OBIT_STATUS = false;
     private static final String PROP_RA_OPTION_PREFIX_STATUS = "raOptionPrefixStatus";
-    private static final boolean DEFAULT_RA_OPTION_PREFIX_STATUS = true;
+    private static final boolean DEFAULT_RA_OPTION_PREFIX_STATUS = false;
+    private static final String PROP_RA_GLOBAL_PREFIX_CONF_STATUS = "raGlobalPrefixConfStatus";
+    private static final boolean DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS = true;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -103,6 +116,12 @@ public class RouterAdvertisementManager {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry networkConfigRegistry;
 
     @Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
             label = "Thread pool capacity")
@@ -124,13 +143,43 @@ public class RouterAdvertisementManager {
             label = "Prefix option support needed or not")
     protected boolean raOptionPrefixStatus = DEFAULT_RA_OPTION_PREFIX_STATUS;
 
-    private ScheduledExecutorService executors = null;
+    @Property(name = PROP_RA_GLOBAL_PREFIX_CONF_STATUS, boolValue = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS,
+            label = "Global prefix configuration support on/off")
+    protected boolean raGlobalConfigStatus = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS;
 
     @GuardedBy(value = "this")
     private final Map<ConnectPoint, ScheduledFuture<?>> transmitters = new LinkedHashMap<>();
 
+    @GuardedBy(value = "this")
+    private final Map<DeviceId, List<InterfaceIpAddress>> globalPrefixes = new LinkedHashMap<>();
+
+    private Function<Interface, Map.Entry<ConnectPoint, List<InterfaceIpAddress>>> prefixGenerator =
+            i -> {
+                Map.Entry<ConnectPoint, List<InterfaceIpAddress>> prefixEntry;
+                if (raGlobalConfigStatus && globalPrefixes.containsKey(i.connectPoint().deviceId())) {
+                    prefixEntry = new AbstractMap.SimpleEntry<>(i.connectPoint(),
+                            globalPrefixes.get(i.connectPoint().deviceId()));
+                } else {
+                    prefixEntry = new AbstractMap.SimpleEntry<>(i.connectPoint(), i.ipAddressesList());
+                }
+                return prefixEntry;
+    };
+
+    private ScheduledExecutorService executors = null;
+
     private static final String APP_NAME = "org.onosproject.routeradvertisement";
     private ApplicationId appId;
+
+    private final ConfigFactory<DeviceId, RouterAdvertisementDeviceConfig> deviceConfigFactory =
+            new ConfigFactory<DeviceId, RouterAdvertisementDeviceConfig>(
+                    SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                    RouterAdvertisementDeviceConfig.class, "routeradvertisement") {
+                @Override
+                public RouterAdvertisementDeviceConfig createConfig() {
+
+                    return new RouterAdvertisementDeviceConfig();
+                }
+            };
 
     // Listener for handling dynamic interface modifications.
     private class InternalInterfaceListener implements InterfaceListener {
@@ -166,77 +215,111 @@ public class RouterAdvertisementManager {
             }
         }
     }
+
     private final InterfaceListener interfaceListener = new InternalInterfaceListener();
 
     // Enables RA threads on 'connectPoint' with configured IPv6s
     private synchronized void activateRouterAdvertisement(ConnectPoint connectPoint,
                                                           List<InterfaceIpAddress> addresses) {
-            RAWorkerThread worker = new RAWorkerThread(connectPoint, addresses, raThreadDelay);
-            ScheduledFuture<?> handler = executors.scheduleAtFixedRate(worker, raThreadDelay,
-                    raThreadDelay, TimeUnit.SECONDS);
-            transmitters.put(connectPoint, handler);
+        RAWorkerThread worker = new RAWorkerThread(connectPoint, addresses, raThreadDelay);
+        ScheduledFuture<?> handler = executors.scheduleAtFixedRate(worker, raThreadDelay,
+                raThreadDelay, TimeUnit.SECONDS);
+        transmitters.put(connectPoint, handler);
     }
 
     // Disables already activated RA threads on 'connectPoint'
     private synchronized void deactivateRouterAdvertisement(ConnectPoint connectPoint,
                                                             List<InterfaceIpAddress> addresses) {
-            if (connectPoint != null) {
-                ScheduledFuture<?> handler = transmitters.get(connectPoint);
-                handler.cancel(false);
-                transmitters.remove(connectPoint);
-            }
+        // Note : Parameter addresses not used now, kept for future.
+        if (connectPoint != null) {
+            ScheduledFuture<?> handler = transmitters.get(connectPoint);
+            handler.cancel(false);
+            transmitters.remove(connectPoint);
+        }
     }
 
     private synchronized void setupThreadPool() {
-        // Initialize RA thread pool
         executors = Executors.newScheduledThreadPool(raPoolSize,
                 groupedThreads("RouterAdvertisement", "event-%d", log));
     }
 
     private synchronized void clearThreadPool() {
-        // Release RA thread pool
         executors.shutdown();
     }
 
+    // Start Tx threads for all configured interfaces.
     private synchronized void setupTxWorkers() {
-        // Start Router Advertisement transmission for all configured interfaces.
         interfaceService.getInterfaces()
                 .stream()
                 .filter(i -> mastershipService.getLocalRole(i.connectPoint().deviceId())
                         == MastershipRole.MASTER)
-                .filter(i -> i.ipAddressesList()
+                .map(prefixGenerator::apply)
+                .filter(i -> i.getValue()
                         .stream()
                         .anyMatch(ia -> ia.ipAddress().version().equals(IpAddress.Version.INET6)))
                 .forEach(j ->
-                        activateRouterAdvertisement(j.connectPoint(), j.ipAddressesList())
+                        activateRouterAdvertisement(j.getKey(), j.getValue())
                 );
     }
 
+    // Clear out Tx threads.
     private synchronized void clearTxWorkers() {
-        // Clear out Router Advertisement Transmission for all configured interfaces.
-        interfaceService.getInterfaces()
-                .stream()
-                .filter(i -> mastershipService.getLocalRole(i.connectPoint().deviceId())
-                        == MastershipRole.MASTER)
-                .filter(i -> i.ipAddressesList()
-                        .stream()
-                        .anyMatch(ia -> ia.ipAddress().version().equals(IpAddress.Version.INET6)))
-                .forEach(j ->
-                        deactivateRouterAdvertisement(j.connectPoint(), j.ipAddressesList())
-                );
+        transmitters.entrySet().stream().forEach(i -> i.getValue().cancel(false));
+        transmitters.clear();
     }
 
-    // Setting up pool & workers.
     private synchronized void setupPoolAndTxWorkers() {
         setupThreadPool();
         setupTxWorkers();
     }
 
-    // Clearing pool & workers.
     private synchronized void clearPoolAndTxWorkers() {
         clearTxWorkers();
         clearThreadPool();
     }
+
+    // Loading global prefixes for devices from network configuration
+    private synchronized void loadGlobalPrefixConfig() {
+        globalPrefixes.clear();
+        Set<DeviceId> deviceSubjects =
+                networkConfigRegistry.getSubjects(DeviceId.class, RouterAdvertisementDeviceConfig.class);
+        deviceSubjects.forEach(subject -> {
+            RouterAdvertisementDeviceConfig config =
+                    networkConfigRegistry.getConfig(subject, RouterAdvertisementDeviceConfig.class);
+            if (config != null) {
+                List<InterfaceIpAddress> ips = config.prefixes();
+                globalPrefixes.put(subject, ips);
+            }
+        });
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (event.configClass().equals(RouterAdvertisementDeviceConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                        log.info("Router Advertisement device Config added for {}", event.subject());
+                        clearTxWorkers();
+                        loadGlobalPrefixConfig();
+                        setupTxWorkers();
+                        break;
+                    case CONFIG_UPDATED:
+                        log.info("Router Advertisement device updated for {}", event.subject());
+                        clearTxWorkers();
+                        loadGlobalPrefixConfig();
+                        setupTxWorkers();
+                        break;
+                    default :
+                        break;
+                }
+            }
+        }
+
+    }
+    private final InternalNetworkConfigListener networkConfigListener
+                = new InternalNetworkConfigListener();
+
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -244,12 +327,15 @@ public class RouterAdvertisementManager {
         appId = coreService.registerApplication(APP_NAME);
         componentConfigService.registerProperties(getClass());
 
-        // Interface listener for dynamic RA handling.
-        interfaceService.addListener(interfaceListener);
+        // Setup global prefix loading components
+        networkConfigRegistry.addListener(networkConfigListener);
+        networkConfigRegistry.registerConfigFactory(deviceConfigFactory);
+        loadGlobalPrefixConfig();
 
         // Setup pool and worker threads for existing interfaces
         setupPoolAndTxWorkers();
     }
+
 
     @Modified
     protected void modified(ComponentContext context) {
@@ -267,6 +353,7 @@ public class RouterAdvertisementManager {
                     raPoolSize = newRaPoolSize;
                     clearPoolAndTxWorkers();
                     setupPoolAndTxWorkers();
+                    log.info("Thread pool size updated to {}", raPoolSize);
                 }
 
                 // Handle change in thread delay
@@ -277,22 +364,39 @@ public class RouterAdvertisementManager {
                     raThreadDelay = newRaThreadDelay;
                     clearTxWorkers();
                     setupTxWorkers();
+                    log.info("Thread delay updated to {}", raThreadDelay);
                 }
 
                 // Handle M-flag changes
                 s = get(properties, PROP_RA_FLAG_MBIT_STATUS);
-                raFlagMbitStatus = isNullOrEmpty(s) ?
-                        DEFAULT_RA_FLAG_MBIT_STATUS : Boolean.parseBoolean(s.trim());
+                if (!isNullOrEmpty(s)) {
+                    raFlagMbitStatus = Boolean.parseBoolean(s.trim());
+                    log.info("RA M-flag set {}", s);
+                }
 
                 // Handle O-flag changes
                 s = get(properties, PROP_RA_FLAG_OBIT_STATUS);
-                raFlagObitStatus = isNullOrEmpty(s) ?
-                        DEFAULT_RA_FLAG_OBIT_STATUS : Boolean.parseBoolean(s.trim());
+                if (!isNullOrEmpty(s)) {
+                    raFlagObitStatus = Boolean.parseBoolean(s.trim());
+                    log.info("RA O-flag set {}", s);
+                }
 
                 // Handle prefix option configuration
                 s = get(properties, PROP_RA_OPTION_PREFIX_STATUS);
-                raOptionPrefixStatus = isNullOrEmpty(s) ?
-                        DEFAULT_RA_OPTION_PREFIX_STATUS : Boolean.parseBoolean(s.trim());
+                if (!isNullOrEmpty(s)) {
+                    raOptionPrefixStatus = Boolean.parseBoolean(s.trim());
+                    String status = raOptionPrefixStatus ? "enabled" : "disabled";
+                    log.info("RA prefix option {}", status);
+                }
+
+                s = get(properties, PROP_RA_GLOBAL_PREFIX_CONF_STATUS);
+                if (!isNullOrEmpty(s)) {
+                    raGlobalConfigStatus = Boolean.parseBoolean(s.trim());
+                    clearTxWorkers();
+                    setupTxWorkers();
+                    String status = raOptionPrefixStatus ? "enabled" : "disabled";
+                    log.info("RA global configuration file loading {}", status);
+                }
 
             } catch (NumberFormatException e) {
                 log.warn("Component configuration had invalid value, aborting changes loading.", e);
