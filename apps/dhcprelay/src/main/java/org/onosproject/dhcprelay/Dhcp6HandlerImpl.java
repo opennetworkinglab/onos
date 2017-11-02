@@ -1377,6 +1377,20 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         packetService.cancelPackets(indirectClientSelector,
                                     PacketPriority.CONTROL,
                                     appId);
+        indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(Ip6Address.ALL_DHCP_RELAY_AGENTS_AND_SERVERS.toIpPrefix())
+                        .build();
+        packetService.cancelPackets(indirectClientSelector,
+                                    PacketPriority.CONTROL,
+                                    appId);
+        indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(Ip6Address.ALL_DHCP_SERVERS.toIpPrefix())
+                        .build();
+        packetService.cancelPackets(indirectClientSelector,
+                                    PacketPriority.CONTROL,
+                                    appId);
 
         // Packet comes from client
         packetService.cancelPackets(CLIENT_SERVER_SELECTOR,
@@ -1389,6 +1403,20 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         TrafficSelector indirectClientSelector =
                 DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
                         .matchIPv6Dst(serverIp.toIpPrefix())
+                        .build();
+        packetService.requestPackets(indirectClientSelector,
+                                     PacketPriority.CONTROL,
+                                     appId);
+        indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(Ip6Address.ALL_DHCP_RELAY_AGENTS_AND_SERVERS.toIpPrefix())
+                        .build();
+        packetService.requestPackets(indirectClientSelector,
+                                     PacketPriority.CONTROL,
+                                     appId);
+        indirectClientSelector =
+                DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Dst(Ip6Address.ALL_DHCP_SERVERS.toIpPrefix())
                         .build();
         packetService.requestPackets(indirectClientSelector,
                                      PacketPriority.CONTROL,
