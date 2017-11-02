@@ -122,14 +122,14 @@ public class DistributedDynamicConfigStore
                 .build();
         keystore.addListener(klistener);
         objectStore.addListener(olistener);
-        log.info("DyanmicConfig Store Active");
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivateStore() {
         keystore.removeListener(klistener);
         objectStore.removeListener(olistener);
-        log.info("DyanmicConfig Store Stopped");
+        log.info("Stopped");
     }
 
     @Override
@@ -139,7 +139,7 @@ public class DistributedDynamicConfigStore
         log.trace(" addNode({}, {})", parent, node);
         log.trace(" spath={}", spath);
         if (spath == null) {
-            throw new FailedException("Invalid RsourceId, cannot create Node");
+            throw new FailedException("Invalid ResourceId, cannot create Node");
         }
         if (!spath.equals(ResourceIdParser.ROOT)) {
             if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
