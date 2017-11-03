@@ -18,10 +18,7 @@ package org.onosproject.store.service;
 
 import com.google.common.collect.Comparators;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +26,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -50,7 +46,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
     /** Root document tree path. */
     public static final DocumentPath ROOT = DocumentPath.from("root");
 
-    private final List<String> pathElements = Lists.newArrayList();
+    private final List<String> pathElements;
 
     /**
      * Private utility constructor for internal generation of partial paths only.
@@ -59,13 +55,14 @@ public class DocumentPath implements Comparable<DocumentPath> {
      */
     private DocumentPath(List<String> pathElements) {
         checkNotNull(pathElements);
-        this.pathElements.addAll(pathElements);
+        this.pathElements = ImmutableList.copyOf(pathElements);
     }
 
     /**
      * Constructs a new document path.
      * <p>
-     * New paths must contain at least one name and string names may NOT contain any period characters.
+     * New paths must contain at least one name and string names MUST NOT contain
+     * any path separator characters.
      * If one field is {@code null} that field will be ignored.
      *
      * @param nodeName the name of the last level of this path
@@ -79,14 +76,14 @@ public class DocumentPath implements Comparable<DocumentPath> {
             throw new IllegalDocumentNameException("'" + pathSeparator + "'" +
                     " are not allowed in names.");
         }
+
         if (parentPath != null) {
-            pathElements.addAll(parentPath.pathElements());
-        }
-        pathElements.add(nodeName);
-        if (pathElements.isEmpty()) {
-            throw new IllegalDocumentNameException("A document path must contain at" +
-                                                   "least one non-null" +
-                                                   "element.");
+            pathElements = ImmutableList.<String>builder()
+                            .addAll(parentPath.pathElements())
+                            .add(nodeName)
+                            .build();
+        } else {
+            pathElements = ImmutableList.of(nodeName);
         }
     }
 
@@ -163,7 +160,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @return a list of elements that make up this path
      */
     public List<String> pathElements() {
-        return ImmutableList.copyOf(pathElements);
+        return pathElements;
     }
 
     /**
@@ -175,7 +172,8 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @return {@code true} is yes; {@code false} otherwise.
      */
     public boolean isAncestorOf(DocumentPath other) {
-        return !other.equals(this) && other.toString().startsWith(toString());
+        return this.pathElements.size() < other.pathElements.size() &&
+               this.pathElements.equals(other.pathElements.subList(0, this.pathElements.size()));
     }
 
     /**
@@ -194,16 +192,35 @@ public class DocumentPath implements Comparable<DocumentPath> {
     /**
      * Returns the path that points to the least common ancestor of the specified
      * collection of paths.
+     *
      * @param paths collection of path
-     * @return path to least common ancestor
+     * @return path to least common ancestor or null if there is nothing in common
      */
     public static DocumentPath leastCommonAncestor(Collection<DocumentPath> paths) {
         if (CollectionUtils.isEmpty(paths)) {
             return null;
         }
-        return DocumentPath.from(StringUtils.getCommonPrefix(paths.stream()
-                    .map(DocumentPath::toString)
-                    .toArray(String[]::new)));
+        DocumentPath first = paths.iterator().next();
+
+        int maxComps = paths.stream()
+            .map(DocumentPath::pathElements)
+            .mapToInt(List::size)
+            .min()
+            .orElse(-1); // paths.size() will never be 0 here
+
+        for (int i = 0; i < maxComps; ++i) {
+            final int fi = i;
+            String comp = first.pathElements().get(i);
+            boolean isAllCommon = paths.stream()
+                .map(DocumentPath::pathElements)
+                .map(l -> l.get(fi))
+                .allMatch(c -> comp.equals(c));
+            if (!isAllCommon) {
+                return (i == 0) ? null :
+                       DocumentPath.from(first.pathElements.subList(0, i));
+            }
+        }
+        return DocumentPath.from(first.pathElements.subList(0, maxComps));
     }
 
     @Override

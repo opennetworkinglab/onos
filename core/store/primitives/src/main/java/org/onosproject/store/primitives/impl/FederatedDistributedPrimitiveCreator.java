@@ -27,6 +27,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.Funnels;
 import com.google.common.hash.Hashing;
 import org.onlab.util.HexString;
 import org.onosproject.cluster.PartitionId;
@@ -53,6 +55,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * distributed primitives to a collection of other {@link DistributedPrimitiveCreator creators}.
  */
 public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiveCreator {
+
+    private static final Funnel<Iterable<? extends CharSequence>> STR_LIST_FUNNEL =
+                Funnels.sequentialFunnel(Funnels.unencodedCharsFunnel());
+
     private final TreeMap<PartitionId, DistributedPrimitiveCreator> members;
     private final List<PartitionId> sortedMemberPartitionIds;
     private final int buckets;
@@ -148,7 +154,10 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
         Map<PartitionId, AsyncDocumentTree<V>> trees =
                 Maps.transformValues(members, part -> part.<V>newAsyncDocumentTree(name, serializer, ordering));
         Hasher<DocumentPath> hasher = key -> {
-            int bucket = Math.abs(Hashing.murmur3_32().hashUnencodedChars(String.valueOf(key)).asInt()) % buckets;
+            int bucket = (key == null) ? 0 :
+                    Math.abs(Hashing.murmur3_32()
+                                  .hashObject(key.pathElements(), STR_LIST_FUNNEL)
+                                  .asInt()) % buckets;
             return sortedMemberPartitionIds.get(Hashing.consistentHash(bucket, sortedMemberPartitionIds.size()));
         };
         return new PartitionedAsyncDocumentTree<>(name, trees, hasher);
