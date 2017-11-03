@@ -1,0 +1,877 @@
+tables {
+  preamble {
+    id: 33578399
+    name: "filtering.ingress_port_vlan"
+    alias: "ingress_port_vlan"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.ingress_port"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.vlan_tag.is_valid"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 3
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 16794505
+  }
+  action_refs {
+    id: 16782367
+  }
+  action_refs {
+    id: 16819938
+  }
+  action_refs {
+    id: 16793508
+  }
+  const_default_action_id: 16793508
+  direct_resource_ids: 302015144
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33619540
+    name: "filtering.fwd_classifier"
+    alias: "fwd_classifier"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.ingress_port"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ethernet.dst_addr"
+    bitwidth: 48
+    match_type: EXACT
+  }
+  match_fields {
+    id: 3
+    name: "hdr.ethernet.ether_type"
+    bitwidth: 16
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16838162
+  }
+  const_default_action_id: 16838162
+  direct_resource_ids: 302033694
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33569146
+    name: "forwarding.bridging"
+    alias: "bridging"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ethernet.dst_addr"
+    bitwidth: 48
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302047449
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33565386
+    name: "forwarding.mpls"
+    alias: "mpls"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.mpls.label"
+    bitwidth: 20
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16842717
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302001577
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33589684
+    name: "forwarding.unicast_v4"
+    alias: "unicast_v4"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dst_addr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16788751
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302038636
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33615204
+    name: "forwarding.multicast_v4"
+    alias: "multicast_v4"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ipv4.dst_addr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302009236
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33608345
+    name: "forwarding.unicast_v6"
+    alias: "unicast_v6"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv6.dst_addr"
+    bitwidth: 128
+    match_type: LPM
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16827504
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 301998193
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33592333
+    name: "forwarding.multicast_v6"
+    alias: "multicast_v6"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ipv6.dst_addr"
+    bitwidth: 128
+    match_type: LPM
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302003792
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33587782
+    name: "forwarding.acl"
+    alias: "acl"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.ingress_port"
+    bitwidth: 9
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 2
+    name: "fabric_metadata.ip_proto"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 3
+    name: "hdr.ethernet.dst_addr"
+    bitwidth: 48
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 4
+    name: "hdr.ethernet.src_addr"
+    bitwidth: 48
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 5
+    name: "hdr.ethernet.ether_type"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 6
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 7
+    name: "hdr.vlan_tag.pri"
+    bitwidth: 3
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 8
+    name: "hdr.mpls.tc"
+    bitwidth: 3
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 9
+    name: "hdr.mpls.bos"
+    bitwidth: 1
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 10
+    name: "hdr.mpls.label"
+    bitwidth: 20
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 11
+    name: "hdr.ipv4.src_addr"
+    bitwidth: 32
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 12
+    name: "hdr.ipv4.dst_addr"
+    bitwidth: 32
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 13
+    name: "hdr.ipv4.protocol"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 14
+    name: "hdr.ipv6.src_addr"
+    bitwidth: 128
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 15
+    name: "hdr.ipv6.dst_addr"
+    bitwidth: 128
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 16
+    name: "hdr.ipv6.next_hdr"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 17
+    name: "hdr.tcp.src_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 18
+    name: "hdr.tcp.dst_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 19
+    name: "hdr.udp.src_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 20
+    name: "hdr.udp.dst_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 21
+    name: "hdr.icmp.icmp_type"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 22
+    name: "hdr.icmp.icmp_code"
+    bitwidth: 8
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 16829931
+  }
+  action_refs {
+    id: 16805452
+  }
+  action_refs {
+    id: 16793508
+  }
+  action_refs {
+    id: 16819938
+  }
+  const_default_action_id: 16819938
+  direct_resource_ids: 302000008
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33589605
+    name: "next.next_id_mapping"
+    alias: "next_id_mapping"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16800774
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302015538
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33615740
+    name: "next.simple"
+    alias: "simple"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16818315
+  }
+  action_refs {
+    id: 16837690
+  }
+  action_refs {
+    id: 16804266
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 301991179
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33569488
+    name: "next.hashed"
+    alias: "hashed"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16804266
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  implementation_id: 285225078
+  direct_resource_ids: 301993193
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33608545
+    name: "next.broadcast"
+    alias: "broadcast"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16778974
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 301995093
+  size: 1024
+}
+actions {
+  preamble {
+    id: 16819938
+    name: "nop"
+    alias: "nop"
+  }
+}
+actions {
+  preamble {
+    id: 16793508
+    name: "drop"
+    alias: "drop"
+  }
+}
+actions {
+  preamble {
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
+  }
+}
+actions {
+  preamble {
+    id: 16782367
+    name: "filtering.set_vlan"
+    alias: "set_vlan"
+  }
+  params {
+    id: 1
+    name: "new_vlan_id"
+    bitwidth: 12
+  }
+}
+actions {
+  preamble {
+    id: 16794505
+    name: "filtering.push_internal_vlan"
+    alias: "push_internal_vlan"
+  }
+  params {
+    id: 1
+    name: "new_vlan_id"
+    bitwidth: 12
+  }
+}
+actions {
+  preamble {
+    id: 16838162
+    name: "filtering.set_forwarding_type"
+    alias: "set_forwarding_type"
+  }
+  params {
+    id: 1
+    name: "fwd_type"
+    bitwidth: 3
+  }
+}
+actions {
+  preamble {
+    id: 16829931
+    name: "forwarding.set_next_id"
+    alias: "set_next_id"
+  }
+  params {
+    id: 1
+    name: "next_id"
+    bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16842717
+    name: "forwarding.pop_mpls_and_next"
+    alias: "pop_mpls_and_next"
+  }
+  params {
+    id: 1
+    name: "next_id"
+    bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16788751
+    name: "forwarding.push_mpls_and_next_v4"
+    alias: "push_mpls_and_next_v4"
+  }
+  params {
+    id: 1
+    name: "label"
+    bitwidth: 20
+  }
+  params {
+    id: 2
+    name: "next_id"
+    bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16827504
+    name: "forwarding.push_mpls_and_next_v6"
+    alias: "push_mpls_and_next_v6"
+  }
+  params {
+    id: 1
+    name: "label"
+    bitwidth: 20
+  }
+  params {
+    id: 2
+    name: "next_id"
+    bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16805452
+    name: "forwarding.duplicate_to_controller"
+    alias: "duplicate_to_controller"
+  }
+}
+actions {
+  preamble {
+    id: 16800774
+    name: "next.set_next_type"
+    alias: "set_next_type"
+  }
+  params {
+    id: 1
+    name: "next_type"
+    bitwidth: 3
+  }
+}
+actions {
+  preamble {
+    id: 16818315
+    name: "next.output"
+    alias: "output"
+  }
+  params {
+    id: 1
+    name: "port_num"
+    bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 16837690
+    name: "next.set_vlan_output"
+    alias: "set_vlan_output"
+  }
+  params {
+    id: 1
+    name: "new_vlan_id"
+    bitwidth: 12
+  }
+  params {
+    id: 2
+    name: "port_num"
+    bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 16804266
+    name: "next.l3_routing"
+    alias: "l3_routing"
+  }
+  params {
+    id: 1
+    name: "port_num"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "dmac"
+    bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 16778974
+    name: "next.set_mcast_group"
+    alias: "set_mcast_group"
+  }
+  params {
+    id: 1
+    name: "gid"
+    bitwidth: 16
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+}
+action_profiles {
+  preamble {
+    id: 285225078
+    name: "next.ecmp_selector"
+    alias: "ecmp_selector"
+  }
+  table_ids: 33569488
+  with_selector: true
+  size: 64
+}
+counters {
+  preamble {
+    id: 302025528
+    name: "port_counters_control.egress_port_counter"
+    alias: "egress_port_counter"
+  }
+  spec {
+    unit: PACKETS
+  }
+  size: 511
+}
+counters {
+  preamble {
+    id: 301999025
+    name: "port_counters_control.ingress_port_counter"
+    alias: "ingress_port_counter"
+  }
+  spec {
+    unit: PACKETS
+  }
+  size: 511
+}
+direct_counters {
+  preamble {
+    id: 302015144
+    name: "filtering.ingress_port_vlan_counter"
+    alias: "ingress_port_vlan_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33578399
+}
+direct_counters {
+  preamble {
+    id: 302033694
+    name: "filtering.fwd_classifier_counter"
+    alias: "fwd_classifier_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33619540
+}
+direct_counters {
+  preamble {
+    id: 302047449
+    name: "forwarding.bridging_counter"
+    alias: "bridging_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33569146
+}
+direct_counters {
+  preamble {
+    id: 302001577
+    name: "forwarding.mpls_counter"
+    alias: "mpls_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33565386
+}
+direct_counters {
+  preamble {
+    id: 302038636
+    name: "forwarding.unicast_v4_counter"
+    alias: "unicast_v4_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33589684
+}
+direct_counters {
+  preamble {
+    id: 302009236
+    name: "forwarding.multicast_v4_counter"
+    alias: "multicast_v4_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33615204
+}
+direct_counters {
+  preamble {
+    id: 301998193
+    name: "forwarding.unicast_v6_counter"
+    alias: "unicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33608345
+}
+direct_counters {
+  preamble {
+    id: 302003792
+    name: "forwarding.multicast_v6_counter"
+    alias: "multicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33592333
+}
+direct_counters {
+  preamble {
+    id: 302000008
+    name: "forwarding.acl_counter"
+    alias: "acl_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33587782
+}
+direct_counters {
+  preamble {
+    id: 302015538
+    name: "next.next_id_mapping_counter"
+    alias: "next_id_mapping_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33589605
+}
+direct_counters {
+  preamble {
+    id: 301991179
+    name: "next.simple_counter"
+    alias: "simple_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33615740
+}
+direct_counters {
+  preamble {
+    id: 301993193
+    name: "next.hashed_counter"
+    alias: "hashed_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33569488
+}
+direct_counters {
+  preamble {
+    id: 301995093
+    name: "next.broadcast_counter"
+    alias: "broadcast_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33608545
+}
+controller_packet_metadata {
+  preamble {
+    id: 2868941301
+    name: "packet_in"
+    annotations: "@controller_header(\"packet_in\")"
+  }
+  metadata {
+    id: 1
+    name: "ingress_port"
+    bitwidth: 9
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 2868916615
+    name: "packet_out"
+    annotations: "@controller_header(\"packet_out\")"
+  }
+  metadata {
+    id: 1
+    name: "egress_port"
+    bitwidth: 9
+  }
+}

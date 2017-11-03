@@ -249,6 +249,7 @@ MODELS = [
 
 PIPELINES = [
     '//pipelines/basic:onos-pipelines-basic-oar',
+    '//pipelines/fabric:onos-pipelines-fabric-oar',
 ]
 
 APP_JARS = [
