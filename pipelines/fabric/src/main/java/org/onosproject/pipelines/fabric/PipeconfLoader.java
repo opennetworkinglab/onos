@@ -26,6 +26,7 @@ import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.model.P4InfoParser;
@@ -76,6 +77,7 @@ public class PipeconfLoader {
         return DefaultPiPipeconf.builder()
                 .withId(FABRIC_PIPECONF_ID)
                 .withPipelineModel(model)
+                .addBehaviour(PiPipelineInterpreter.class, FabricInterpreter.class)
                 .addBehaviour(PortStatisticsDiscovery.class, FabricPortStatisticsDiscovery.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)

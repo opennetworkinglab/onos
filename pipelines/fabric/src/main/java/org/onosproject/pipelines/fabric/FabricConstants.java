@@ -155,4 +155,6 @@ public final class FabricConstants {
     // Packet Metadata IDs
     public static final PiControlMetadataId CTRL_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");
     public static final PiControlMetadataId CTRL_META_INGRESS_PORT_ID = PiControlMetadataId.of("ingress_port");
+
+    public static final int PORT_BITWIDTH = 9;
 }
