@@ -3,7 +3,7 @@
 # Patches lib/BUCK file to use locally built YANG tools.
 # -----------------------------------------------------------------------------
 
-BVER=2.3.0-b2
+BVER=2.3.0-b3
 SVER=2.3-SNAPSHOT
 
 YANG_TOOLS_ROOT=${YANG_TOOLS_ROOT:-~/onos-yang-tools}
