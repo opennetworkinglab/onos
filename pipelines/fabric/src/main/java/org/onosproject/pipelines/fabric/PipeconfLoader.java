@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
@@ -31,6 +32,7 @@ import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.model.P4InfoParser;
 import org.onosproject.p4runtime.model.P4InfoParserException;
+import org.onosproject.pipelines.fabric.pipeliner.FabricPipeliner;
 
 import java.net.URL;
 import java.util.Collection;
@@ -78,6 +80,7 @@ public class PipeconfLoader {
                 .withId(FABRIC_PIPECONF_ID)
                 .withPipelineModel(model)
                 .addBehaviour(PiPipelineInterpreter.class, FabricInterpreter.class)
+                .addBehaviour(Pipeliner.class, FabricPipeliner.class)
                 .addBehaviour(PortStatisticsDiscovery.class, FabricPortStatisticsDiscovery.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
