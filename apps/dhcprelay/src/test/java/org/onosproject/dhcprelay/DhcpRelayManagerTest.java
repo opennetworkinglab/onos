@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.io.Resources;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -871,11 +872,13 @@ public class DhcpRelayManagerTest {
          */
         public MockDhcpServerConfig(Ip4Address relayAgentIp) {
             this.relayAgentIp = relayAgentIp;
+            this.relayAgentIps.put(DEV_1_ID, Pair.of(relayAgentIp, null));
+            this.relayAgentIps.put(DEV_2_ID, Pair.of(relayAgentIp, null));
         }
 
         @Override
-        public Optional<Ip4Address> getRelayAgentIp4() {
-            return Optional.ofNullable(relayAgentIp);
+        public Optional<Ip4Address> getRelayAgentIp4(DeviceId deviceId) {
+            return Optional.ofNullable(this.relayAgentIps.get(deviceId).getLeft());
         }
 
         @Override
