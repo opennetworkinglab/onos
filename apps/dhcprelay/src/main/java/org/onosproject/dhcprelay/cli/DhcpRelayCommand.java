@@ -99,7 +99,6 @@ public class DhcpRelayCommand extends AbstractShellCommand {
                     .map(Object::toString).orElse(NA);
             String gatewayAddress;
             String serverIp;
-            String relayAgentIp;
 
             switch (dhcpServerInfo.getVersion()) {
                 case DHCP_V4:
@@ -107,24 +106,20 @@ public class DhcpRelayCommand extends AbstractShellCommand {
                             .map(Object::toString).orElse(null);
                     serverIp = dhcpServerInfo.getDhcpServerIp4()
                             .map(Object::toString).orElse(NA);
-                    relayAgentIp = dhcpServerInfo.getRelayAgentIp4()
-                            .map(Object::toString).orElse(NA);
                     break;
                 case DHCP_V6:
                     gatewayAddress = dhcpServerInfo.getDhcpGatewayIp6()
                             .map(Object::toString).orElse(null);
                     serverIp = dhcpServerInfo.getDhcpServerIp6()
                             .map(Object::toString).orElse(NA);
-                    relayAgentIp = dhcpServerInfo.getRelayAgentIp6()
-                            .map(Object::toString).orElse(NA);
                     break;
                 default:
                     return;
             }
             if (gatewayAddress != null) {
-                print(DHCP_SERVER_GW, connectPoint, serverIp, gatewayAddress, serverMac, relayAgentIp);
+                print(DHCP_SERVER_GW, connectPoint, serverIp, gatewayAddress, serverMac);
             } else {
-                print(DHCP_SERVER, connectPoint, serverIp, serverMac, relayAgentIp);
+                print(DHCP_SERVER, connectPoint, serverIp, serverMac);
             }
         });
     }

@@ -171,24 +171,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
     private InternalHostListener hostListener = new InternalHostListener();
 
-    private Ip6Address dhcpServerIp = null;
-    // dhcp server may be connected directly to the SDN network or
-    // via an external gateway. When connected directly, the dhcpConnectPoint, dhcpConnectMac,
-    // and dhcpConnectVlan refer to the server. When connected via the gateway, they refer
-    // to the gateway.
-    private ConnectPoint dhcpServerConnectPoint = null;
-    private MacAddress dhcpConnectMac = null;
-    private VlanId dhcpConnectVlan = null;
-    private Ip6Address dhcpGatewayIp = null;
-    private Ip6Address relayAgentIpFromCfg = null;
-
-    private Ip6Address indirectDhcpServerIp = null;
-    private ConnectPoint indirectDhcpServerConnectPoint = null;
-    private MacAddress indirectDhcpConnectMac = null;
-    private VlanId indirectDhcpConnectVlan = null;
-    private Ip6Address indirectDhcpGatewayIp = null;
-    private Ip6Address indirectRelayAgentIpFromCfg = null;
-
     private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
     private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
 
@@ -769,29 +751,58 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     /**
-     *
-     * build the DHCP6 solicit/request packet with gatewayip.
+     * Build the DHCP6 solicit/request packet with gatewayip.
+     * TODO: method too long, need to be refactored.
      *
      * @param context packet context
      * @param clientPacket client ethernet packet
      * @param clientInterfaces set of client side interfaces
      */
      private InternalPacket processDhcp6PacketFromClient(PacketContext context,
-                                                        Ethernet clientPacket, Set<Interface> clientInterfaces) {
+                                                         Ethernet clientPacket, Set<Interface> clientInterfaces) {
+         ConnectPoint receivedFrom = context.inPacket().receivedFrom();
+         DeviceId receivedFromDevice = receivedFrom.deviceId();
+         DhcpServerInfo serverInfo;
+         Ip6Address dhcpServerIp = null;
+         ConnectPoint dhcpServerConnectPoint = null;
+         MacAddress dhcpConnectMac = null;
+         VlanId dhcpConnectVlan = null;
+         Ip6Address dhcpGatewayIp = null;
+         Ip6Address indirectDhcpServerIp = null;
+         ConnectPoint indirectDhcpServerConnectPoint = null;
+         MacAddress indirectDhcpConnectMac = null;
+         VlanId indirectDhcpConnectVlan = null;
+         Ip6Address indirectDhcpGatewayIp = null;
+         Ip6Address indirectRelayAgentIpFromCfg = null;
+         if (!defaultServerInfoList.isEmpty()) {
+             serverInfo = defaultServerInfoList.get(0);
+             dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+             dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+             dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+             dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+             dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+         }
+         if (!indirectServerInfoList.isEmpty()) {
+             serverInfo = indirectServerInfoList.get(0);
+             indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+             indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+             indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+             indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+             indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+             indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6(receivedFromDevice).orElse(null);
+         }
          Ip6Address relayAgentIp = getRelayAgentIPv6Address(clientInterfaces);
          MacAddress relayAgentMac = clientInterfaces.iterator().next().mac();
          if (relayAgentIp == null || relayAgentMac == null) {
              log.warn("Missing DHCP relay agent interface Ipv6 addr config for "
-                             + "packet from client on port: {}. Aborting packet processing",
-                     clientInterfaces.iterator().next().connectPoint());
+                              + "packet from client on port: {}. Aborting packet processing",
+                      clientInterfaces.iterator().next().connectPoint());
              return null;
          }
-
          // get dhcp6 header.
          IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
          UDP clientUdp = (UDP) clientIpv6.getPayload();
          DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
-
          boolean directConnFlag = directlyConnected(clientDhcp6);
          Interface serverInterface = directConnFlag ? getServerInterface() : getIndirectServerInterface();
          if (serverInterface == null) {
@@ -804,33 +815,30 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
              log.warn("No IP v6 address for server Interface {}", serverInterface);
              return null;
          }
-
          Ethernet etherReply = clientPacket.duplicate();
          etherReply.setSourceMACAddress(macFacingServer);
-
-         if ((directConnFlag && this.dhcpConnectMac == null)  ||
-                 !directConnFlag && this.indirectDhcpConnectMac == null && this.dhcpConnectMac == null)   {
+         if ((directConnFlag && dhcpConnectMac == null)  ||
+                 !directConnFlag && indirectDhcpConnectMac == null && dhcpConnectMac == null)   {
              log.warn("Packet received from {} connected client.", directConnFlag ? "directly" : "indirectly");
              log.warn("DHCP6 {} not yet resolved .. Aborting DHCP packet processing from client on port: {}",
-                     (this.dhcpGatewayIp == null) ? "server IP " + this.dhcpServerIp
-                             : "gateway IP " + this.dhcpGatewayIp,
-                     clientInterfaces.iterator().next().connectPoint());
+                      (dhcpGatewayIp == null) ? "server IP " + dhcpServerIp
+                              : "gateway IP " + dhcpGatewayIp,
+                      clientInterfaces.iterator().next().connectPoint());
              return null;
          }
-
-         if (this.dhcpServerConnectPoint == null) {
+         if (dhcpServerConnectPoint == null) {
              log.warn("DHCP6 server connection point direct {} directConn {} indirectConn {} is not set up yet",
-                     directConnFlag, this.dhcpServerConnectPoint, this.indirectDhcpServerConnectPoint);
+                     directConnFlag, dhcpServerConnectPoint, indirectDhcpServerConnectPoint);
             return null;
         }
 
-        etherReply.setDestinationMACAddress(this.dhcpConnectMac);
-        etherReply.setVlanID(this.dhcpConnectVlan.toShort());
+        etherReply.setDestinationMACAddress(dhcpConnectMac);
+        etherReply.setVlanID(dhcpConnectVlan.toShort());
 
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
         byte[] peerAddress = clientIpv6.getSourceAddress();
         ipv6Packet.setSourceAddress(ipFacingServer.toOctets());
-        ipv6Packet.setDestinationAddress(this.dhcpServerIp.toOctets());
+        ipv6Packet.setDestinationAddress(dhcpServerIp.toOctets());
 
         UDP udpPacket = (UDP) ipv6Packet.getPayload();
         udpPacket.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
@@ -857,100 +865,86 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                       HexString.toHexString(relayAgentIp.toOctets(), ":"));
 
         } else {
-            if (this.indirectDhcpServerIp == null) {
+            if (indirectDhcpServerIp == null) {
                 log.warn("indirect DhcpServerIp not available, use default DhcpServerIp {}",
-                         HexString.toHexString(this.dhcpServerIp.toOctets()));
+                         HexString.toHexString(dhcpServerIp.toOctets()));
              } else {
                  // Indirect case, replace destination to indirect dhcp server if exist
                  // Check if mac is obtained for valid server ip
-                 if (this.indirectDhcpConnectMac == null) {
+                 if (indirectDhcpConnectMac == null) {
                      log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
-                            + "packet processing from client on port: {}",
-                            (this.indirectDhcpGatewayIp == null) ? "server IP " + this.indirectDhcpServerIp
-                                                                   : "gateway IP " + this.indirectDhcpGatewayIp,
-                             clientInterfaces.iterator().next().connectPoint());
+                                      + "packet processing from client on port: {}",
+                              (indirectDhcpGatewayIp == null) ? "server IP " + indirectDhcpServerIp
+                                      : "gateway IP " + indirectDhcpGatewayIp,
+                              clientInterfaces.iterator().next().connectPoint());
                      return null;
                  }
-                 etherReply.setDestinationMACAddress(this.indirectDhcpConnectMac);
-                 etherReply.setVlanID(this.indirectDhcpConnectVlan.toShort());
-                 ipv6Packet.setDestinationAddress(this.indirectDhcpServerIp.toOctets());
+                 etherReply.setDestinationMACAddress(indirectDhcpConnectMac);
+                 etherReply.setVlanID(indirectDhcpConnectVlan.toShort());
+                 ipv6Packet.setDestinationAddress(indirectDhcpServerIp.toOctets());
 
              }
-             if (this.indirectRelayAgentIpFromCfg == null) {
+             if (indirectRelayAgentIpFromCfg == null) {
                  dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
                  log.warn("indirect connection: relayAgentIp NOT availale from config file! Use dynamic. {}",
-                         HexString.toHexString(relayAgentIp.toOctets(), ":"));
-            } else {
-                dhcp6Relay.setLinkAddress(this.indirectRelayAgentIpFromCfg.toOctets());
-                log.debug("indirect connection: relayAgentIp from config file is available! {}",
-                          HexString.toHexString(this.indirectRelayAgentIpFromCfg.toOctets(), ":"));
-            }
-        }
-
-        // peer address:  address of the client or relay agent from which
-        // the message to be relayed was received.
-        dhcp6Relay.setPeerAddress(peerAddress);
-        List<Dhcp6Option> options = new ArrayList<Dhcp6Option>();
-
-        // directly connected case, hop count is zero
-        // otherwise, hop count + 1
-        if (directConnFlag) {
-            dhcp6Relay.setHopCount((byte) 0);
-        } else {
-            dhcp6Relay.setHopCount((byte) (dhcp6Packet.getHopCount() + 1));
-        }
-
-        // create relay message option
-        Dhcp6Option relayMessage = new Dhcp6Option();
-        relayMessage.setCode(DHCP6.OptionCode.RELAY_MSG.value());
-        relayMessage.setLength((short) dhcp6PacketByte.length);
-        relayMessage.setData(dhcp6PacketByte);
-        options.add(relayMessage);
-
-        // create interfaceId option
-        String inPortString = "-" + context.inPacket().receivedFrom().toString() + ":";
-        Dhcp6Option interfaceId = new Dhcp6Option();
-        interfaceId.setCode(DHCP6.OptionCode.INTERFACE_ID.value());
-        byte[] clientSoureMacBytes = clientPacket.getSourceMACAddress();
-        byte[] inPortStringBytes = inPortString.getBytes();
-        byte[] vlanIdBytes = new byte[2];
-        vlanIdBytes[0] = (byte) (clientPacket.getVlanID() & 0xff);
-        vlanIdBytes[1] = (byte) ((clientPacket.getVlanID() >> 8) & 0xff);
-        byte[] interfaceIdBytes = new byte[clientSoureMacBytes.length +
-                inPortStringBytes.length + vlanIdBytes.length];
-        log.debug("Length: interfaceIdBytes  {} clientSoureMacBytes {} inPortStringBytes {} vlan {}",
-                  interfaceIdBytes.length, clientSoureMacBytes.length, inPortStringBytes.length,
-                  vlanIdBytes.length);
-
-        System.arraycopy(clientSoureMacBytes, 0, interfaceIdBytes, 0, clientSoureMacBytes.length);
-        System.arraycopy(inPortStringBytes, 0, interfaceIdBytes, clientSoureMacBytes.length, inPortStringBytes.length);
-        System.arraycopy(vlanIdBytes, 0, interfaceIdBytes, clientSoureMacBytes.length + inPortStringBytes.length,
-                         vlanIdBytes.length);
-
-        interfaceId.setData(interfaceIdBytes);
-        interfaceId.setLength((short) interfaceIdBytes.length);
-
-        options.add(interfaceId);
-
-        log.debug("interfaceId write srcMac {} portString {}",
-                  HexString.toHexString(clientSoureMacBytes, ":"), inPortString);
-        dhcp6Relay.setOptions(options);
-        udpPacket.setPayload(dhcp6Relay);
-        udpPacket.resetChecksum();
-        ipv6Packet.setPayload(udpPacket);
-        ipv6Packet.setHopLimit((byte) 64);
-        etherReply.setPayload(ipv6Packet);
-
-        if (directConnFlag) {
-            return new InternalPacket(etherReply, this.dhcpServerConnectPoint);
-        } else {
-            if (this.indirectDhcpServerIp == null) {
-                return new InternalPacket(etherReply, this.dhcpServerConnectPoint);
-            } else {
-                return new InternalPacket(etherReply, this.indirectDhcpServerConnectPoint);
-            }
-        }
-    }
+                          HexString.toHexString(relayAgentIp.toOctets(), ":"));
+             } else {
+                 dhcp6Relay.setLinkAddress(indirectRelayAgentIpFromCfg.toOctets());
+                 log.debug("indirect connection: relayAgentIp from config file is available! {}",
+                           HexString.toHexString(indirectRelayAgentIpFromCfg.toOctets(), ":"));
+             }
+         }
+         // peer address: address of the client or relay agent from which
+         // the message to be relayed was received.
+         dhcp6Relay.setPeerAddress(peerAddress);
+         List<Dhcp6Option> options = new ArrayList<>();
+         // directly connected case, hop count is zero; otherwise, hop count + 1
+         if (directConnFlag) {
+             dhcp6Relay.setHopCount((byte) 0);
+         } else {
+             dhcp6Relay.setHopCount((byte) (dhcp6Packet.getHopCount() + 1));
+         }
+         // create relay message option
+         Dhcp6Option relayMessage = new Dhcp6Option();
+         relayMessage.setCode(DHCP6.OptionCode.RELAY_MSG.value());
+         relayMessage.setLength((short) dhcp6PacketByte.length);
+         relayMessage.setData(dhcp6PacketByte);
+         options.add(relayMessage);
+         // create interfaceId option
+         String inPortString = "-" + context.inPacket().receivedFrom().toString() + ":";
+         Dhcp6Option interfaceId = new Dhcp6Option();
+         interfaceId.setCode(DHCP6.OptionCode.INTERFACE_ID.value());
+         byte[] clientSoureMacBytes = clientPacket.getSourceMACAddress();
+         byte[] inPortStringBytes = inPortString.getBytes();
+         byte[] vlanIdBytes = new byte[2];
+         vlanIdBytes[0] = (byte) (clientPacket.getVlanID() & 0xff);
+         vlanIdBytes[1] = (byte) ((clientPacket.getVlanID() >> 8) & 0xff);
+         byte[] interfaceIdBytes = new byte[clientSoureMacBytes.length +
+                 inPortStringBytes.length + vlanIdBytes.length];
+         log.debug("Length: interfaceIdBytes  {} clientSoureMacBytes {} inPortStringBytes {} vlan {}",
+                   interfaceIdBytes.length, clientSoureMacBytes.length, inPortStringBytes.length,
+                   vlanIdBytes.length);
+         System.arraycopy(clientSoureMacBytes, 0, interfaceIdBytes, 0, clientSoureMacBytes.length);
+         System.arraycopy(inPortStringBytes, 0, interfaceIdBytes, clientSoureMacBytes.length, inPortStringBytes.length);
+         System.arraycopy(vlanIdBytes, 0, interfaceIdBytes, clientSoureMacBytes.length + inPortStringBytes.length,
+                          vlanIdBytes.length);
+         interfaceId.setData(interfaceIdBytes);
+         interfaceId.setLength((short) interfaceIdBytes.length);
+         options.add(interfaceId);
+         log.debug("interfaceId write srcMac {} portString {}",
+                   HexString.toHexString(clientSoureMacBytes, ":"), inPortString);
+         dhcp6Relay.setOptions(options);
+         udpPacket.setPayload(dhcp6Relay);
+         udpPacket.resetChecksum();
+         ipv6Packet.setPayload(udpPacket);
+         ipv6Packet.setHopLimit((byte) 64);
+         etherReply.setPayload(ipv6Packet);
+         if (directConnFlag || indirectDhcpServerIp == null) {
+             return new InternalPacket(etherReply, dhcpServerConnectPoint);
+         } else {
+             return new InternalPacket(etherReply, indirectDhcpServerConnectPoint);
+         }
+     }
 
     /**
      *
@@ -962,6 +956,44 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      */
     private InternalPacket processDhcp6PacketFromServer(PacketContext context,
                                                         Ethernet receivedPacket, Set<Interface> recevingInterfaces) {
+
+        ConnectPoint receivedFrom = context.inPacket().receivedFrom();
+        DeviceId receivedFromDevice = receivedFrom.deviceId();
+
+        // TODO: refactor
+        DhcpServerInfo serverInfo;
+        Ip6Address dhcpServerIp = null;
+        ConnectPoint dhcpServerConnectPoint = null;
+        MacAddress dhcpConnectMac = null;
+        VlanId dhcpConnectVlan = null;
+        Ip6Address dhcpGatewayIp = null;
+
+        Ip6Address indirectDhcpServerIp = null;
+        ConnectPoint indirectDhcpServerConnectPoint = null;
+        MacAddress indirectDhcpConnectMac = null;
+        VlanId indirectDhcpConnectVlan = null;
+        Ip6Address indirectDhcpGatewayIp = null;
+        Ip6Address indirectRelayAgentIpFromCfg = null;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        }
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+            indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6(receivedFromDevice).orElse(null);
+        }
+
         // get dhcp6 header.
         Ethernet etherReply = receivedPacket.duplicate();
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
@@ -970,17 +1002,17 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         Boolean directConnFlag = directlyConnected(dhcp6Relay);
         ConnectPoint inPort = context.inPacket().receivedFrom();
-        if ((directConnFlag || (!directConnFlag && this.indirectDhcpServerIp == null))
-             && !inPort.equals(this.dhcpServerConnectPoint)) {
+        if ((directConnFlag || (!directConnFlag && indirectDhcpServerIp == null))
+             && !inPort.equals(dhcpServerConnectPoint)) {
             log.warn("Receiving port {} is not the same as server connect point {} for direct or indirect-null",
-                    inPort, this.dhcpServerConnectPoint);
+                    inPort, dhcpServerConnectPoint);
             return null;
         }
 
-        if (!directConnFlag && this.indirectDhcpServerIp != null &&
-                                !inPort.equals(this.indirectDhcpServerConnectPoint)) {
+        if (!directConnFlag && indirectDhcpServerIp != null &&
+                                !inPort.equals(indirectDhcpServerConnectPoint)) {
             log.warn("Receiving port {} is not the same as server connect point {} for indirect",
-                    inPort, this.indirectDhcpServerConnectPoint);
+                    inPort, indirectDhcpServerConnectPoint);
             return null;
         }
 
@@ -1084,13 +1116,11 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     @Override
     public void setDefaultDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
         setDhcpServerConfigs(configs, defaultServerInfoList);
-        reloadServerSettings();
     }
 
     @Override
     public void setIndirectDhcpServerConfigs(Collection<DhcpServerConfig> configs) {
         setDhcpServerConfigs(configs, indirectServerInfoList);
-        reloadServerSettings();
     }
 
     public void setDhcpServerConfigs(Collection<DhcpServerConfig> configs, List<DhcpServerInfo> serverInfoList) {
@@ -1186,7 +1216,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private void hostUpdated(Host host) {
         hostUpdated(host, defaultServerInfoList);
         hostUpdated(host, indirectServerInfoList);
-        reloadServerSettings();
     }
 
     private void hostUpdated(Host host, List<DhcpServerInfo> serverInfoList) {
@@ -1220,7 +1249,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private void hostRemoved(Host host) {
         hostRemoved(host, defaultServerInfoList);
         hostRemoved(host, indirectServerInfoList);
-        reloadServerSettings();
     }
 
     private void hostRemoved(Host host, List<DhcpServerInfo> serverInfoList) {
@@ -1243,28 +1271,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     cancelDhcpPacket(serverIp);
                 }
             }
-        }
-    }
-
-    private void reloadServerSettings() {
-        DhcpServerInfo serverInfo;
-        if (!defaultServerInfoList.isEmpty()) {
-            serverInfo = defaultServerInfoList.get(0);
-            this.dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
-            this.dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            this.dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            this.dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-            this.dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
-        }
-
-        if (!indirectServerInfoList.isEmpty()) {
-            serverInfo = indirectServerInfoList.get(0);
-            this.indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
-            this.indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-            this.indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-            this.indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-            this.indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
-            this.indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6().orElse(null);
         }
     }
 
@@ -1291,9 +1297,18 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @return the Interface facing to the server; null if not found
      */
     private Interface getServerInterface() {
-        if (dhcpServerConnectPoint == null || dhcpConnectVlan == null) {
+        DhcpServerInfo serverInfo;
+        ConnectPoint dhcpServerConnectPoint;
+        VlanId dhcpConnectVlan;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        } else {
             return null;
         }
+
         return interfaceService.getInterfacesByPort(dhcpServerConnectPoint)
                 .stream()
                 .filter(iface -> interfaceContainsVlan(iface, dhcpConnectVlan))
@@ -1308,9 +1323,19 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @return the Interface facing to the server; null if not found
      */
     private Interface getIndirectServerInterface() {
-        if (indirectDhcpServerConnectPoint == null || indirectDhcpConnectVlan == null) {
+        DhcpServerInfo serverInfo;
+
+        ConnectPoint indirectDhcpServerConnectPoint;
+        VlanId indirectDhcpConnectVlan;
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        } else {
             return getServerInterface();
         }
+
         return interfaceService.getInterfacesByPort(indirectDhcpServerConnectPoint)
                 .stream()
                 .filter(iface -> interfaceContainsVlan(iface, indirectDhcpConnectVlan))

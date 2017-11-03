@@ -20,11 +20,15 @@ package org.onosproject.dhcprelay.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,14 +42,15 @@ public class DhcpServerConfig {
     private static final String DHCP_SERVER_IP = "serverIps";
     private static final String DHCP_GATEWAY_IP = "gatewayIps";
     private static final String RELAY_AGENT_IP = "relayAgentIps";
+    private static final String IPV4 = "ipv4";
+    private static final String IPV6 = "ipv6";
 
     protected ConnectPoint connectPoint;
     protected Ip4Address serverIp4Addr;
     protected Ip4Address gatewayIp4Addr;
-    protected Ip4Address relayAgentIp4Addr;
     protected Ip6Address serverIp6Addr;
     protected Ip6Address gatewayIp6Addr;
-    protected Ip6Address relayAgentIp6Addr;
+    protected Map<DeviceId, Pair<Ip4Address, Ip6Address>> relayAgentIps = Maps.newHashMap();
 
     protected DhcpServerConfig() {
         // empty config not allowed here
@@ -90,17 +95,19 @@ public class DhcpServerConfig {
             });
         }
         if (config.has(RELAY_AGENT_IP)) {
-            ArrayNode relayAgentIps = (ArrayNode) config.path(RELAY_AGENT_IP);
-            relayAgentIps.forEach(node -> {
-                if (node.isTextual()) {
-                    IpAddress ip = IpAddress.valueOf(node.asText());
-                    if (ip.isIp4() && relayAgentIp4Addr == null) {
-                        relayAgentIp4Addr = ip.getIp4Address();
-                    }
-                    if (ip.isIp6() && relayAgentIp6Addr == null) {
-                        relayAgentIp6Addr = ip.getIp6Address();
-                    }
+            JsonNode relayAgentIpsNode = config.path(RELAY_AGENT_IP);
+            relayAgentIpsNode.fields().forEachRemaining(e -> {
+                DeviceId deviceId = DeviceId.deviceId(e.getKey());
+                JsonNode ips = e.getValue();
+                Ip4Address ipv4 = null;
+                Ip6Address ipv6 = null;
+                if (ips.has(IPV4)) {
+                    ipv4 = Ip4Address.valueOf(ips.get(IPV4).asText());
                 }
+                if (ips.has(IPV6)) {
+                    ipv6 = Ip6Address.valueOf(ips.get(IPV6).asText());
+                }
+                relayAgentIps.put(deviceId, Pair.of(ipv4, ipv6));
             });
         }
 
@@ -172,25 +179,46 @@ public class DhcpServerConfig {
     }
 
     /**
-     * Returns the optional IPv4 address for relay agent, if configured.
+     * Returns the optional IPv4 address for relay agent for given device,
+     * if configured.
      * This option is used if we want to replace the giaddr field in DHCPv4
      * payload.
      *
+     * @param deviceId the device
      * @return the giaddr; empty value if not set
      */
-    public Optional<Ip4Address> getRelayAgentIp4() {
-        return Optional.ofNullable(relayAgentIp4Addr);
+    public Optional<Ip4Address> getRelayAgentIp4(DeviceId deviceId) {
+        Pair<Ip4Address, Ip6Address> relayAgentIp = relayAgentIps.get(deviceId);
+        if (relayAgentIp == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(relayAgentIp.getLeft());
     }
 
     /**
-     * Returns the optional IPv6 address for relay agent, if configured.
+     * Returns the optional IPv6 address for relay agent for given device,
+     * if configured.
      * This option is used if we want to replace the link-address field in DHCPv6
      * payload.
      *
-     * @return the giaddr; empty value if not set
+     * @param deviceId the device
+     * @return the link-addr; empty value if not set
      */
-    public Optional<Ip6Address> getRelayAgentIp6() {
-        return Optional.ofNullable(relayAgentIp6Addr);
+    public Optional<Ip6Address> getRelayAgentIp6(DeviceId deviceId) {
+        Pair<Ip4Address, Ip6Address> relayAgentIp = relayAgentIps.get(deviceId);
+        if (relayAgentIp == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(relayAgentIp.getRight());
+    }
+
+    /**
+     * Gets all relay agent ips and device mapping.
+     *
+     * @return the mapping
+     */
+    public Map<DeviceId, Pair<Ip4Address, Ip6Address>> getRelayAgentIps() {
+        return relayAgentIps;
     }
 
     @Override
@@ -205,16 +233,14 @@ public class DhcpServerConfig {
         return Objects.equal(connectPoint, that.connectPoint) &&
                 Objects.equal(serverIp4Addr, that.serverIp4Addr) &&
                 Objects.equal(gatewayIp4Addr, that.gatewayIp4Addr) &&
-                Objects.equal(relayAgentIp4Addr, that.relayAgentIp4Addr) &&
                 Objects.equal(serverIp6Addr, that.serverIp6Addr) &&
                 Objects.equal(gatewayIp6Addr, that.gatewayIp6Addr) &&
-                Objects.equal(relayAgentIp6Addr, that.relayAgentIp6Addr);
+                Objects.equal(relayAgentIps, that.relayAgentIps);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(connectPoint, serverIp4Addr, gatewayIp4Addr,
-                                relayAgentIp4Addr, serverIp6Addr, gatewayIp6Addr,
-                                relayAgentIp6Addr);
+                                serverIp6Addr, gatewayIp6Addr, relayAgentIps);
     }
 }

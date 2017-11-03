@@ -18,6 +18,7 @@ package org.onosproject.dhcprelay.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
@@ -43,6 +44,7 @@ public class DhcpServerInfo extends DhcpServerConfig {
      * @param version DHCP version for the server
      */
     public DhcpServerInfo(DhcpServerConfig config, Version version) {
+        this.relayAgentIps = Maps.newHashMap(config.getRelayAgentIps());
         this.connectPoint = config.getDhcpServerConnectPoint().orElse(null);
         this.version = version;
 
@@ -50,12 +52,10 @@ public class DhcpServerInfo extends DhcpServerConfig {
             case DHCP_V4:
                 this.serverIp4Addr = config.getDhcpServerIp4().orElse(null);
                 this.gatewayIp4Addr = config.getDhcpGatewayIp4().orElse(null);
-                this.relayAgentIp4Addr = config.getRelayAgentIp4().orElse(null);
                 break;
             case DHCP_V6:
                 this.serverIp6Addr = config.getDhcpServerIp6().orElse(null);
                 this.gatewayIp6Addr = config.getDhcpGatewayIp6().orElse(null);
-                this.relayAgentIp6Addr = config.getRelayAgentIp6().orElse(null);
                 break;
             default:
                 break;
@@ -119,14 +119,12 @@ public class DhcpServerInfo extends DhcpServerConfig {
             case DHCP_V4:
                 toStringHelper
                         .add("serverIp4Addr", serverIp4Addr)
-                        .add("gatewayIp4Addr", gatewayIp4Addr)
-                        .add("relayAgentIp4Addr", relayAgentIp4Addr);
+                        .add("gatewayIp4Addr", gatewayIp4Addr);
                 break;
             case DHCP_V6:
                 toStringHelper
                         .add("serverIp6Addr", serverIp6Addr)
-                        .add("gatewayIp6Addr", gatewayIp6Addr)
-                        .add("relayAgentIp6Addr", relayAgentIp6Addr);
+                        .add("gatewayIp6Addr", gatewayIp6Addr);
                 break;
             default:
                 break;

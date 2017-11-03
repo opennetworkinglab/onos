@@ -631,12 +631,16 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
      */
     private Ethernet processDhcpPacketFromClient(PacketContext context,
                                                  Ethernet ethernetPacket) {
+        ConnectPoint receivedFrom = context.inPacket().receivedFrom();
+        DeviceId receivedFromDevice = receivedFrom.deviceId();
+
         // get dhcp header.
         Ethernet etherReply = ethernetPacket.duplicate();
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
 
+        // TODO: refactor
         VlanId dhcpConnectVlan = null;
         MacAddress dhcpConnectMac = null;
         Ip4Address dhcpServerIp = null;
@@ -652,7 +656,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
             dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
             dhcpServerIp = serverInfo.getDhcpServerIp4().orElse(null);
-            relayAgentIp = serverInfo.getRelayAgentIp4().orElse(null);
+            relayAgentIp = serverInfo.getRelayAgentIp4(receivedFromDevice).orElse(null);
         }
 
         if (!indirectServerInfoList.isEmpty()) {
@@ -660,7 +664,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             indirectDhcpConnectVlan = indirectServerInfo.getDhcpConnectVlan().orElse(null);
             indirectDhcpConnectMac = indirectServerInfo.getDhcpConnectMac().orElse(null);
             indirectDhcpServerIp = indirectServerInfo.getDhcpServerIp4().orElse(null);
-            indirectRelayAgentIp = indirectServerInfo.getRelayAgentIp4().orElse(null);
+            indirectRelayAgentIp = indirectServerInfo.getRelayAgentIp4(receivedFromDevice).orElse(null);
         }
 
         Ip4Address clientInterfaceIp =
