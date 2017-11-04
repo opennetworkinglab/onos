@@ -54,6 +54,7 @@
                   to fix locale errors for non-US developers. However, it breaks
                   SonarQube's test coverage, so moving here for now. -->
         <argLine>-Duser.language=en -Duser.region=US</argLine>
+        <grpccore.version>1.3.0</grpccore.version>
     </properties>
 
     <dependencyManagement>
@@ -674,6 +675,12 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+            <version>${grpccore.version}</version>
         </dependency>
     </dependencies>
 

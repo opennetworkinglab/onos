@@ -32,6 +32,8 @@
 
     <modules>
         <module>api</module>
+	<module>proto</module>
+	<module>ctl</module>
     </modules>
 
     <!--<properties>

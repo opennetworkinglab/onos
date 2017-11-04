@@ -68,10 +68,10 @@
 
         <module>models</module>
 
-        <module>pipelines/basic</module>
-
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
+
+        <module>pipelines</module>
     </modules>
 
     <!--<repositories>-->
