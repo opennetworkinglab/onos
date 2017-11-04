@@ -1266,7 +1266,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                  getSwitchInfoString());
 
         if (dispatcher != null) {
-            dispatcher.shutdown();
+            dispatcher.shutdownNow();
         }
 
          if (thisdpid != 0) {
