@@ -45,7 +45,19 @@ public class DocumentTreeEvent<V> {
          * Signifies an existing node being deleted.
          */
         DELETED,
+        /**
+         * Signifies beginning of Transaction events.
+         *
+         * Note: {@link DocumentTreeEvent#path()} will contain
+         * single element representing TransactionId.
+         */
         TRANSACTION_START,
+        /**
+         * Signifies end of Transaction events.
+         *
+         * Note: {@link DocumentTreeEvent#path()} will contain
+         * single element representing TransactionId.
+         */
         TRANSACTION_END
     }
 
@@ -79,6 +91,7 @@ public class DocumentTreeEvent<V> {
         this.newValue = newValue;
         this.oldValue = oldValue;
     }
+
     /**
      * Constructs a new {@code DocumentTreeEvent}.
      *

@@ -16,6 +16,8 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -30,7 +32,6 @@ import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.Versioned;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 
@@ -48,11 +49,11 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     public DefaultDocumentTree() {
         AtomicLong versionCounter = new AtomicLong(0);
         versionSupplier = versionCounter::incrementAndGet;
-        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), Ordering.NATURAL, null);
+        root = new DefaultDocumentTreeNode<>(ROOT_PATH, null, versionSupplier.get(), Ordering.NATURAL, null);
     }
 
     public DefaultDocumentTree(Supplier<Long> versionSupplier, Ordering ordering) {
-        root = new DefaultDocumentTreeNode<V>(ROOT_PATH, null, versionSupplier.get(), ordering, null);
+        root = new DefaultDocumentTreeNode<>(ROOT_PATH, null, versionSupplier.get(), ordering, null);
         this.versionSupplier = versionSupplier;
     }
 
@@ -188,7 +189,7 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     private DefaultDocumentTreeNode<V> getNode(DocumentPath path) {
         Iterator<String> pathElements = path.pathElements().iterator();
         DefaultDocumentTreeNode<V> currentNode = root;
-        Preconditions.checkState("root".equals(pathElements.next()), "Path should start with root");
+        checkArgument("root".equals(pathElements.next()), "Path should start with root: %s", path);
         while (pathElements.hasNext() &&  currentNode != null) {
             currentNode = (DefaultDocumentTreeNode<V>) currentNode.child(pathElements.next());
         }
