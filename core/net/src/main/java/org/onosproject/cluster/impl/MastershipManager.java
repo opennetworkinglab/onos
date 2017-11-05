@@ -123,7 +123,7 @@ public class MastershipManager
     @Property(name = "rebalanceRolesOnUpgrade",
             boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
             label = "Automatically rebalance roles following an upgrade")
-    protected boolean rebalanceRolesOnUpgrade;
+    protected boolean rebalanceRolesOnUpgrade = DEFAULT_REBALANCE_ROLES_ON_UPGRADE;
 
     @Activate
     public void activate() {
