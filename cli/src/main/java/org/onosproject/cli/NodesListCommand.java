@@ -54,7 +54,7 @@ public class NodesListCommand extends AbstractShellCommand {
                 Instant lastUpdated = service.getLastUpdatedInstant(node.id());
                 String timeAgo = "Never";
                 if (lastUpdated != null) {
-                    timeAgo = Tools.timeAgo(lastUpdated.getEpochSecond());
+                    timeAgo = Tools.timeAgo(lastUpdated.toEpochMilli());
                 }
                 Version version = service.getVersion(node.id());
                 print(FMT, node.id(), node.ip(), node.tcpPort(),
