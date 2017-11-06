@@ -78,6 +78,9 @@ public class MastershipManagerTest {
     private static final DeviceId DID1 = DeviceId.deviceId("foo:d1");
     private static final DeviceId DID2 = DeviceId.deviceId("foo:d2");
     private static final DeviceId DID3 = DeviceId.deviceId("foo:d3");
+    private static final DeviceId DID4 = DeviceId.deviceId("foo:d4");
+    private static final DeviceId DID5 = DeviceId.deviceId("foo:d5");
+    private static final DeviceId DID6 = DeviceId.deviceId("foo:d6");
     private static final NodeId NID1 = NodeId.nodeId("n1");
     private static final NodeId NID2 = NodeId.nodeId("n2");
     private static final NodeId NID3 = NodeId.nodeId("n3");
@@ -217,6 +220,36 @@ public class MastershipManagerTest {
         mgr.setRole(NID_OTHER, DEV_MASTER, MASTER);
         mgr.setRole(NID_LOCAL, DEV_MASTER, MASTER);
         assertEquals("inconsistent terms: ", 3, ts.getMastershipTerm(DEV_MASTER).termNumber());
+    }
+
+    @Test
+    public void balanceWithOrphans() {
+        // Setup cluster of three nodes
+        testClusterService.put(CNODE1, ControllerNode.State.ACTIVE);
+        testClusterService.put(CNODE2, ControllerNode.State.INACTIVE);
+        testClusterService.put(CNODE3, ControllerNode.State.ACTIVE);
+
+        // Pre-assign some devices to each of the node
+        // Leave some devices as orphans assigned to a downed node
+        assignRoles(NID1, ImmutableSet.of(DID1, DID2, DID3, DID4));
+        assignRoles(NID2, ImmutableSet.of(DID5));
+        assignRoles(NID3, ImmutableSet.of(DID6));
+
+        // Trigger load balancing
+        mgr.balanceRoles();
+
+        // Make sure we have a balanced load
+        // Make sure that we no longer have any orphans
+        assertEquals("incorrect balance for node 1", 3, mgr.getDevicesOf(NID1).size());
+        assertEquals("incorrect balance for node 2", 0, mgr.getDevicesOf(NID2).size());
+        assertEquals("incorrect balance for node 3", 3, mgr.getDevicesOf(NID3).size());
+    }
+
+    private void assignRoles(NodeId nid, Set<DeviceId> deviceIds) {
+        Set<DeviceId> all = ImmutableSet.of(DID1, DID2, DID3, DID4, DID5, DID6);
+        for (DeviceId did : all) {
+            mgr.setRole(nid, did, deviceIds.contains(did) ? MASTER : STANDBY);
+        }
     }
 
     @Test
