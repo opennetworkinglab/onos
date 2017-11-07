@@ -55,8 +55,10 @@ import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -161,6 +163,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DhcpFpmPrefixStore dhcpFpmPrefixStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -170,6 +175,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected ApplicationId appId;
     protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
     private InternalHostListener hostListener = new InternalHostListener();
+
+    private Boolean dhcpFpmEnabled = false;
 
     private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
     private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
@@ -664,6 +671,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                             HexString.toHexString(nextHopIp.toOctets(), ":"));
 
                     routeStore.removeRoute(routeForPrefix);
+                    if (this.dhcpFpmEnabled) {
+                        dhcpFpmPrefixStore.removeFpmRecord(ipPrefix);
+                    }
                 }
             }
         }
@@ -745,6 +755,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     Route routeForPrefix = new Route(Route.Source.STATIC, ipPrefix, nextHopIp);
                     log.warn("adding Route of PD for indirectly connected.");
                     routeStore.updateRoute(routeForPrefix);
+                    if (this.dhcpFpmEnabled) {
+                        FpmRecord record = new FpmRecord(ipPrefix, nextHopIp, FpmRecord.Type.DHCP_RELAY);
+                        dhcpFpmPrefixStore.addFpmRecord(ipPrefix, record);
+                    }
                 }
             }
         }
@@ -834,19 +848,15 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         etherReply.setDestinationMACAddress(dhcpConnectMac);
         etherReply.setVlanID(dhcpConnectVlan.toShort());
-
         IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
         byte[] peerAddress = clientIpv6.getSourceAddress();
         ipv6Packet.setSourceAddress(ipFacingServer.toOctets());
         ipv6Packet.setDestinationAddress(dhcpServerIp.toOctets());
-
         UDP udpPacket = (UDP) ipv6Packet.getPayload();
         udpPacket.setSourcePort(UDP.DHCP_V6_SERVER_PORT);
         DHCP6 dhcp6Packet = (DHCP6) udpPacket.getPayload();
         byte[] dhcp6PacketByte = dhcp6Packet.serialize();
 
-        // notify onos and quagga to release PD
-        //releasePD(dhcp6Packet);
         ConnectPoint clientConnectionPoint = context.inPacket().receivedFrom();
         VlanId vlanIdInUse = VlanId.vlanId(clientPacket.getVlanID());
         Interface clientInterface = interfaceService.getInterfacesByPort(clientConnectionPoint)
@@ -857,8 +867,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         DHCP6 dhcp6Relay = new DHCP6();
         dhcp6Relay.setMsgType(DHCP6.MsgType.RELAY_FORW.value());
-        // link address: server uses the address to identify the link on which the client
-        // is located.
         if (directConnFlag) {
             dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
             log.debug("direct connection: relayAgentIp obtained dynamically {}",
@@ -882,7 +890,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                  etherReply.setDestinationMACAddress(indirectDhcpConnectMac);
                  etherReply.setVlanID(indirectDhcpConnectVlan.toShort());
                  ipv6Packet.setDestinationAddress(indirectDhcpServerIp.toOctets());
-
              }
              if (indirectRelayAgentIpFromCfg == null) {
                  dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
@@ -1111,6 +1118,11 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
         }
         return null;
+    }
+
+    @Override
+    public void setDhcpFpmEnabled(Boolean enabled) {
+       dhcpFpmEnabled = enabled;
     }
 
     @Override

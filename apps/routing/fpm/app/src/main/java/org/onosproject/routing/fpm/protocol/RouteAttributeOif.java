@@ -19,6 +19,7 @@ package org.onosproject.routing.fpm.protocol;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.DeserializationException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -37,7 +38,7 @@ public final class RouteAttributeOif extends RouteAttribute {
      * @param type type
      * @param outputInterface output interface
      */
-    private RouteAttributeOif(int length, int type, long outputInterface) {
+    public RouteAttributeOif(int length, int type, long outputInterface) {
         super(length, type);
 
         this.outputInterface = outputInterface;
@@ -76,5 +77,18 @@ public final class RouteAttributeOif extends RouteAttribute {
 
             return new RouteAttributeOif(length, type, outputInterface);
         };
+    }
+
+    /**
+     * Encode the RouteAttributeOif contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    @Override
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeShort(Short.reverseBytes((short) length()));
+        cb.writeShort(Short.reverseBytes((short) type()));
+        cb.writeInt(Integer.reverseBytes((int) outputInterface));
     }
 }

@@ -21,6 +21,8 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Gateway route attribute.
@@ -38,7 +40,7 @@ public final class RouteAttributeGateway extends RouteAttribute {
      * @param type type
      * @param gateway gateway address
      */
-    private RouteAttributeGateway(int length, int type, IpAddress gateway) {
+    public RouteAttributeGateway(int length, int type, IpAddress gateway) {
         super(length, type);
 
         this.gateway = gateway;
@@ -83,4 +85,26 @@ public final class RouteAttributeGateway extends RouteAttribute {
         };
     }
 
+    /**
+     * Encode the RouteAttributeGateway contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    @Override
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeShort(Short.reverseBytes((short) length()));
+        cb.writeShort(Short.reverseBytes((short) type()));
+
+        ChannelBuffer buffer =  ChannelBuffers.copiedBuffer(gateway.toOctets());
+        if (length() == Ip6Address.BYTE_LENGTH +
+                RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
+            cb.writeBytes(buffer, Ip6Address.BYTE_LENGTH);
+        } else if (length() == Ip4Address.BYTE_LENGTH +
+                RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
+            cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
+        } else {
+            throw new RuntimeException("Gateway address length incorrect!");
+        }
+    }
 }

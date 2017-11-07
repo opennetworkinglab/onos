@@ -19,6 +19,7 @@ package org.onosproject.routing.fpm.protocol;
 import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.DeserializationException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
@@ -114,4 +115,12 @@ public abstract class RouteAttribute {
 
         return decoder.decodeAttribute(tlvLength, type, value);
     }
+
+    /**
+     * Encode the RouteAttribute into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    public abstract void encode(ChannelBuffer cb);
+
 }

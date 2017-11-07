@@ -50,7 +50,11 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-routing-fpm-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>

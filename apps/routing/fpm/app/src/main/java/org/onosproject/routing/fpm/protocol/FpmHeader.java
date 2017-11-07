@@ -20,6 +20,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.DeserializationException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import java.nio.ByteBuffer;
 
 import static org.onlab.packet.PacketUtils.checkInput;
@@ -29,6 +31,7 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public final class FpmHeader {
     public static final int FPM_HEADER_LENGTH = 4;
+    public static final int FPM_MESSAGE_MAX_LENGTH = 4096;
 
     public static final short FPM_VERSION_1 = 1;
     public static final short FPM_VERSION_ONOS_EXT = 32;
@@ -60,7 +63,7 @@ public final class FpmHeader {
      * @param length length
      * @param netlink netlink header
      */
-    private FpmHeader(short version, short type, int length, Netlink netlink) {
+    public FpmHeader(short version, short type, int length, Netlink netlink) {
         this.version = version;
         this.type = type;
         this.length = length;
@@ -148,5 +151,22 @@ public final class FpmHeader {
         Netlink netlink = Netlink.decode(buffer, bb.position(), bb.limit() - bb.position());
 
         return new FpmHeader(version, type, messageLength, netlink);
+    }
+
+    /**
+     * Encode the FpmHeader contents into a ChannelBuffer.
+     *
+     * @return filled in ChannelBuffer
+     */
+   public ChannelBuffer encode() {
+
+        ChannelBuffer cb = ChannelBuffers.buffer(FPM_MESSAGE_MAX_LENGTH);
+
+        cb.writeByte(version);
+        cb.writeByte(type);
+        cb.writeShort(length);
+
+        netlink.encode(cb);
+        return cb;
     }
 }

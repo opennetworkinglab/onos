@@ -19,6 +19,7 @@ package org.onosproject.routing.fpm.protocol;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.DeserializationException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import java.nio.ByteBuffer;
 
 import static org.onlab.packet.PacketUtils.checkInput;
@@ -32,6 +33,9 @@ import static org.onlab.packet.PacketUtils.checkInput;
 public final class Netlink {
 
     public static final int NETLINK_HEADER_LENGTH = 16;
+
+    public static final int NETLINK_REQUEST = 0x01;
+    public static final int NETLINK_CREATE = 0x400;
 
     private final long length;
     private final NetlinkMessageType type;
@@ -51,7 +55,7 @@ public final class Netlink {
      * @param processPortId port ID
      * @param rtNetlink netlink routing message
      */
-    private Netlink(long length, NetlinkMessageType type, int flags, long sequence,
+    public Netlink(long length, NetlinkMessageType type, int flags, long sequence,
                     long processPortId, RtNetlink rtNetlink) {
         this.length = length;
         this.type = type;
@@ -166,6 +170,22 @@ public final class Netlink {
                 sequence,
                 processPortId,
                 rtNetlink);
+    }
+
+    /**
+     * Encode the Netlink contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeInt(Integer.reverseBytes((int) length));
+        cb.writeShort(Short.reverseBytes((short) type.type()));
+        cb.writeShort(Short.reverseBytes((short) flags));
+        cb.writeInt(Integer.reverseBytes((int) sequence));
+        cb.writeInt(Integer.reverseBytes((int) processPortId));
+
+        rtNetlink.encode(cb);
     }
 
 }

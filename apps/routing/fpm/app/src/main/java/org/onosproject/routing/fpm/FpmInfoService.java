@@ -29,4 +29,11 @@ public interface FpmInfoService {
      * @return a map of FPM peer with related information
      */
     Map<FpmPeer, FpmPeerInfo> peers();
+
+    /**
+     * Returns true if pushing routes to Quagga is emabled.
+     *
+     * @return true or false
+     */
+    boolean isPdPushEnabled();
 }

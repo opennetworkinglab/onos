@@ -19,5 +19,14 @@
         <command>
             <action class="org.onosproject.dhcprelay.cli.DhcpRelayCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.dhcprelay.cli.DhcpFpmRoutesCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.dhcprelay.cli.DhcpFpmAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.dhcprelay.cli.DhcpFpmDeleteCommand"/>
+        </command>
     </command-bundle>
 </blueprint>

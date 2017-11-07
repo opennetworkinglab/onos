@@ -1598,4 +1598,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             flowObjectiveService.apply(deviceId, fwd);
         });
     }
+
+    @Override
+    public void setDhcpFpmEnabled(Boolean enabled) {
+        // v4 does not use fpm. Do nothing.
+    }
 }

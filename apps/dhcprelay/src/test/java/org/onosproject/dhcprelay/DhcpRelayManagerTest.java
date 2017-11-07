@@ -100,6 +100,10 @@ import org.onosproject.net.packet.PacketContextAdapter;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.store.StoreDelegate;
+
+
+
+
 import org.osgi.service.component.ComponentContext;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.IPv6;
@@ -321,6 +325,7 @@ public class DhcpRelayManagerTest {
         mockDhcpRelayStore = new MockDhcpRelayStore();
         manager.dhcpRelayStore = mockDhcpRelayStore;
         manager.deviceService = deviceService;
+
 
         manager.interfaceService = new MockInterfaceService();
         flowObjectiveService = EasyMock.niceMock(FlowObjectiveService.class);
@@ -1292,7 +1297,7 @@ public class DhcpRelayManagerTest {
 
         byte[] macAddr = new byte[MacAddress.MAC_ADDRESS_LENGTH];
         byte[] port =  new byte[optionData.length - MacAddress.MAC_ADDRESS_LENGTH -
-                VLAN_LEN - SEPARATOR_LEN * 2];
+                                VLAN_LEN - SEPARATOR_LEN * 2];
         short vlan;
         bb.get(macAddr);
         bb.get();  // separator

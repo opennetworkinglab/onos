@@ -169,4 +169,12 @@ public interface DhcpHandler {
      * @param config the config
      */
     void updateIgnoreVlanConfig(IgnoreDhcpConfig config);
+
+    /**
+     * Sets DHCP FPM Enable state.
+     *
+     * @param dhcpFpmFlag flag indicating dhcpFpmEnable state
+     */
+    default void setDhcpFpmEnabled(Boolean dhcpFpmFlag) { }
+
 }

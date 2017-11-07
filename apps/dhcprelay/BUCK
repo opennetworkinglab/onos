@@ -6,12 +6,18 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
     '//apps/route-service/api:onos-apps-route-service-api',
+    '//apps/routing/fpm/api:onos-apps-routing-fpm-api',
 ]
 
 TEST_DEPS = [
     '//lib:TEST',
     '//apps/route-service/api:onos-apps-route-service-api-tests',
     '//core/api:onos-api-tests',
+]
+
+BUNDLES = [
+    '//apps/dhcprelay:onos-apps-dhcprelay',
+    '//apps/routing/fpm/api:onos-apps-routing-fpm-api',
 ]
 
 osgi_jar_with_tests (
@@ -26,4 +32,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'DHCP Relay Agent Application.',
     required_apps = [ 'org.onosproject.route-service' ],
+    included_bundles = BUNDLES,
 )

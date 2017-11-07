@@ -17,10 +17,11 @@
 
 package org.onosproject.dhcprelay.api;
 
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.dhcprelay.store.DhcpRecord;
+import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.HostId;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -63,4 +64,42 @@ public interface DhcpRelayService {
      * @return list of indirect DHCP server information
      */
     List<DhcpServerInfo> getIndirectDhcpServerInfoList();
+
+    /**
+     * Add DHCP FPM record to store.
+     *
+     * @param prefix the prefix
+     * @param fpmRecord the fpmRecord
+     */
+    void addFpmRecord(IpPrefix prefix, FpmRecord fpmRecord);
+
+    /**
+     * Delete DHCP FPM record from store.
+     *
+     * @param prefix the prefix
+     * @return DHCP record from store; empty value if it does not exist.
+     */
+    Optional<FpmRecord> removeFpmRecord(IpPrefix prefix);
+
+    /**
+     * Gets PD route record for specific prefix.
+     *
+     * @param prefix PD prefix
+     * @return the PD route record from store
+     */
+    Optional<FpmRecord> getFpmRecord(IpPrefix prefix);
+
+    /**
+     * Gets all PD route records from store.
+     *
+     * @return all PD records from store
+     */
+    Collection<FpmRecord> getFpmRecords();
+
+    /**
+     * Determine if DHCP FPM feature is enabled or not.
+     *
+     * @return boolean value
+     */
+    public boolean isDhcpFpmEnabled();
 }

@@ -19,6 +19,7 @@ package org.onosproject.routing.fpm.protocol;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.DeserializationException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -37,7 +38,7 @@ public final class RouteAttributePriority extends RouteAttribute {
      * @param type type
      * @param priority priority
      */
-    private RouteAttributePriority(int length, int type, long priority) {
+    public RouteAttributePriority(int length, int type, long priority) {
         super(length, type);
 
         this.priority = priority;
@@ -78,4 +79,16 @@ public final class RouteAttributePriority extends RouteAttribute {
         };
     }
 
+    /**
+     * Encode the RouteAttributePriority contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+    */
+    @Override
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeShort(Short.reverseBytes((short) length()));
+        cb.writeShort(Short.reverseBytes((short) type()));
+        cb.writeInt(Integer.reverseBytes((int) priority));
+    }
 }

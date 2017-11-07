@@ -23,6 +23,7 @@ import org.onlab.packet.DeserializationException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -34,7 +35,9 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public final class RtNetlink {
 
-    private static final int RT_NETLINK_LENGTH = 12;
+    public static final int RT_ADDRESS_FAMILY_INET = 2;
+    public static final int RT_ADDRESS_FAMILY_INET6 = 10;
+    public static final int RT_NETLINK_LENGTH = 12;
 
     private static final int MASK = 0xff;
 
@@ -64,7 +67,7 @@ public final class RtNetlink {
      * @param flags flags
      * @param attributes list of attributes
      */
-    private RtNetlink(short addressFamily,
+    public RtNetlink(short addressFamily,
                       int dstLength,
                       int srcLength,
                       short tos,
@@ -242,6 +245,29 @@ public final class RtNetlink {
                 type,
                 flags,
                 attributes);
+    }
+
+
+    /**
+     * Encode the RtNetlink contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeByte(addressFamily);
+        cb.writeByte(dstLength);
+        cb.writeByte(srcLength);
+        cb.writeByte(tos);
+        cb.writeByte(table);
+        cb.writeByte(protocol.value());
+        cb.writeByte(scope);
+        cb.writeByte(type);
+        cb.writeInt(Integer.reverseBytes((int) flags));
+
+        for (RouteAttribute attribute : attributes()) {
+            attribute.encode(cb);
+        }
     }
 
 }

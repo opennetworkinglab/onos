@@ -41,6 +41,9 @@ public class FpmConnectionsList extends AbstractShellCommand {
     protected void execute() {
         FpmInfoService fpmInfo = get(FpmInfoService.class);
 
+        if (fpmInfo.isPdPushEnabled()) {
+            print("PD Pushing is enabled/disbled.");
+        }
         fpmInfo.peers().entrySet().stream()
                 .sorted(Comparator.<Map.Entry<FpmPeer, FpmPeerInfo>, IpAddress>comparing(e -> e.getKey().address())
                         .thenComparing(e -> e.getKey().port()))

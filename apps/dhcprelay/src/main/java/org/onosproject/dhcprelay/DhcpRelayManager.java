@@ -45,6 +45,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
@@ -57,8 +58,11 @@ import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.EnableDhcpFpmConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
+import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.Device;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.net.Host;
@@ -85,6 +89,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,30 +116,39 @@ public class DhcpRelayManager implements DhcpRelayService {
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, DefaultDhcpRelayConfig>(APP_SUBJECT_FACTORY,
-                                                                     DefaultDhcpRelayConfig.class,
-                                                                     DefaultDhcpRelayConfig.KEY,
-                                                                     true) {
+                    DefaultDhcpRelayConfig.class,
+                    DefaultDhcpRelayConfig.KEY,
+                    true) {
                 @Override
                 public DefaultDhcpRelayConfig createConfig() {
                     return new DefaultDhcpRelayConfig();
                 }
             },
             new ConfigFactory<ApplicationId, IndirectDhcpRelayConfig>(APP_SUBJECT_FACTORY,
-                                                                      IndirectDhcpRelayConfig.class,
-                                                                      IndirectDhcpRelayConfig.KEY,
-                                                                      true) {
+                    IndirectDhcpRelayConfig.class,
+                    IndirectDhcpRelayConfig.KEY,
+                    true) {
                 @Override
                 public IndirectDhcpRelayConfig createConfig() {
                     return new IndirectDhcpRelayConfig();
                 }
             },
             new ConfigFactory<ApplicationId, IgnoreDhcpConfig>(APP_SUBJECT_FACTORY,
-                                                               IgnoreDhcpConfig.class,
-                                                               IgnoreDhcpConfig.KEY,
-                                                               true) {
+                    IgnoreDhcpConfig.class,
+                    IgnoreDhcpConfig.KEY,
+                    true) {
                 @Override
                 public IgnoreDhcpConfig createConfig() {
                     return new IgnoreDhcpConfig();
+                }
+            },
+            new ConfigFactory<ApplicationId, EnableDhcpFpmConfig>(APP_SUBJECT_FACTORY,
+                    EnableDhcpFpmConfig.class,
+                    EnableDhcpFpmConfig.KEY,
+                    false) {
+                @Override
+                public EnableDhcpFpmConfig createConfig() {
+                    return new EnableDhcpFpmConfig();
                 }
             }
     );
@@ -163,6 +177,9 @@ public class DhcpRelayManager implements DhcpRelayService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DhcpFpmPrefixStore dhcpFpmPrefixStore;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
             target = "(version=4)")
     protected DhcpHandler v4Handler;
@@ -175,9 +192,14 @@ public class DhcpRelayManager implements DhcpRelayService {
             label = "Enable Address resolution protocol")
     protected boolean arpEnabled = true;
 
+    @Property(name = "dhcpFpmEnabled", boolValue = false,
+            label = "Enable DhcpRelay Fpm")
+    protected boolean dhcpFpmEnabled = false;
+
     protected DeviceListener deviceListener = new InternalDeviceListener();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ApplicationId appId;
+
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -196,7 +218,7 @@ public class DhcpRelayManager implements DhcpRelayService {
 
         // Enable distribute route store
         compCfgService.preSetProperty(ROUTE_STORE_IMPL,
-                                      "distributed", Boolean.TRUE.toString());
+                               "distributed", Boolean.TRUE.toString());
         compCfgService.registerProperties(getClass());
 
         deviceService.addListener(deviceListener);
@@ -223,7 +245,7 @@ public class DhcpRelayManager implements DhcpRelayService {
         if (flag != null) {
             arpEnabled = flag;
             log.info("Address resolution protocol is {}",
-                     arpEnabled ? "enabled" : "disabled");
+                    arpEnabled ? "enabled" : "disabled");
         }
 
         if (arpEnabled) {
@@ -231,6 +253,25 @@ public class DhcpRelayManager implements DhcpRelayService {
         } else {
             cancelArpPackets();
         }
+
+        flag = Tools.isPropertyEnabled(properties, "dhcpFpmEnabled");
+        if (flag != null) {
+            boolean oldValue = dhcpFpmEnabled;
+            dhcpFpmEnabled = flag;
+            log.info("DhcpRelay FPM is {}",
+                    dhcpFpmEnabled ? "enabled" : "disabled");
+
+            if (dhcpFpmEnabled && !oldValue) {
+                log.info("Dhcp Fpm is enabled.");
+                processDhcpFpmRoutes(true);
+            }
+            if (!dhcpFpmEnabled && oldValue) {
+                log.info("Dhcp Fpm is disabled.");
+                processDhcpFpmRoutes(false);
+            }
+            v6Handler.setDhcpFpmEnabled(dhcpFpmEnabled);
+        }
+
     }
 
     private static List<TrafficSelector> buildClientDhcpSelectors() {
@@ -294,6 +335,14 @@ public class DhcpRelayManager implements DhcpRelayService {
             v4Handler.updateIgnoreVlanConfig(null);
             v6Handler.updateIgnoreVlanConfig(null);
         }
+    }
+
+    private void processDhcpFpmRoutes(Boolean add) {
+        // needs to restore/remove fpm
+    }
+
+    public boolean isDhcpFpmEnabled() {
+        return dhcpFpmEnabled;
     }
 
     /**
@@ -529,5 +578,25 @@ public class DhcpRelayManager implements DhcpRelayService {
             v4Handler.updateIgnoreVlanConfig(config);
             v6Handler.updateIgnoreVlanConfig(config);
         }
+    }
+
+
+
+    public Optional<FpmRecord> getFpmRecord(IpPrefix prefix) {
+        return dhcpFpmPrefixStore.getFpmRecord(prefix);
+    }
+
+    public Collection<FpmRecord> getFpmRecords() {
+        return dhcpFpmPrefixStore.getFpmRecords();
+    }
+
+    @Override
+    public void addFpmRecord(IpPrefix prefix, FpmRecord fpmRecord) {
+        dhcpFpmPrefixStore.addFpmRecord(prefix, fpmRecord);
+    }
+
+    @Override
+    public Optional<FpmRecord> removeFpmRecord(IpPrefix prefix) {
+        return dhcpFpmPrefixStore.removeFpmRecord(prefix);
     }
 }

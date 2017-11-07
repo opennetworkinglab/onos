@@ -21,6 +21,8 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Destination address route attribute.
@@ -36,7 +38,7 @@ public final class RouteAttributeDst extends RouteAttribute {
      * @param type type
      * @param dstAddress destination address
      */
-    private RouteAttributeDst(int length, int type, IpAddress dstAddress) {
+    public RouteAttributeDst(int length, int type, IpAddress dstAddress) {
         super(length, type);
 
         this.dstAddress = dstAddress;
@@ -79,5 +81,28 @@ public final class RouteAttributeDst extends RouteAttribute {
 
             return new RouteAttributeDst(length, type, dstAddress);
         };
+    }
+
+    /**
+     * Encode the RouteAttributeDst contents into the ChannelBuffer.
+     *
+     * @param cb channelbuffer to be filled in
+     */
+    @Override
+    public void encode(ChannelBuffer cb) {
+
+        cb.writeShort(Short.reverseBytes((short) length()));
+        cb.writeShort(Short.reverseBytes((short) type()));
+
+        ChannelBuffer buffer =  ChannelBuffers.copiedBuffer(dstAddress.toOctets());
+        if (length() == Ip6Address.BYTE_LENGTH +
+                RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
+            cb.writeBytes(buffer, Ip6Address.BYTE_LENGTH);
+        } else if (length() == Ip4Address.BYTE_LENGTH +
+                RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
+            cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
+        } else {
+            throw new RuntimeException("Dst address length incorrect!");
+        }
     }
 }

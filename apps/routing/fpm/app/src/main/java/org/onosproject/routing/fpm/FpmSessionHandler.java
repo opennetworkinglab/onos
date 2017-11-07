@@ -42,6 +42,7 @@ public class FpmSessionHandler extends IdleStateAwareChannelHandler {
 
     private final FpmListener fpmListener;
 
+    private final FpmManager fpmManager;
     private Channel channel;
     private FpmPeer us;
 
@@ -51,9 +52,11 @@ public class FpmSessionHandler extends IdleStateAwareChannelHandler {
     /**
      * Class constructor.
      *
+     * @param fpmMgr manager
      * @param fpmListener listener for FPM messages
      */
-    public FpmSessionHandler(FpmListener fpmListener) {
+    public FpmSessionHandler(FpmManager fpmMgr, FpmListener fpmListener) {
+        this.fpmManager = fpmMgr;
         this.fpmListener = checkNotNull(fpmListener);
     }
 
@@ -114,6 +117,8 @@ public class FpmSessionHandler extends IdleStateAwareChannelHandler {
         }
 
         channel = ctx.getChannel();
+        fpmManager.addSessionChannel(e.getChannel());
+        fpmManager.processStaticRoutes(e.getChannel());
     }
 
     @Override
@@ -130,6 +135,7 @@ public class FpmSessionHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        fpmManager.removeSessionChannel(e.getChannel());
     }
 
     private void handleDisconnect() {
