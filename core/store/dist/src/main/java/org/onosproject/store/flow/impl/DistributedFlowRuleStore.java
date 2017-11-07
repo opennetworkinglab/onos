@@ -338,19 +338,33 @@ public class DistributedFlowRuleStore
     @Override
     @SuppressWarnings("unchecked")
     public FlowEntry getFlowEntry(FlowRule rule) {
-        DocumentPath path = getPathFor(rule.deviceId(), rule.id());
-        Versioned<Map<StoredFlowEntry, StoredFlowEntry>> flowEntries = flows.get(path);
-        return flowEntries != null ? flowEntries.value().get(rule) : null;
+        DeviceId deviceId = rule.deviceId();
+        if (mastershipService.getMasterFor(deviceId) != null) {
+            DocumentPath path = getPathFor(deviceId, rule.id());
+            Versioned<Map<StoredFlowEntry, StoredFlowEntry>> flowEntries = flows.get(path);
+            return flowEntries != null ? flowEntries.value().get(rule) : null;
+        } else {
+            log.debug("Failed to getFlowEntries: No master for {}", deviceId);
+            return null;
+        }
+
+
     }
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        DocumentPath path = getPathFor(deviceId);
-        try {
-            return getFlowEntries(path);
-        } catch (NoSuchDocumentPathException e) {
+        if (mastershipService.getMasterFor(deviceId) != null) {
+            DocumentPath path = getPathFor(deviceId);
+            try {
+                return getFlowEntries(path);
+            } catch (NoSuchDocumentPathException e) {
+                return Collections.emptyList();
+            }
+        } else {
+            log.debug("Failed to getFlowEntries: No master for {}", deviceId);
             return Collections.emptyList();
         }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -703,18 +717,29 @@ public class DistributedFlowRuleStore
 
     @Override
     public Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId) {
-        List<TableStatisticsEntry> tableStats = deviceTableStats.get(deviceId);
-        if (tableStats == null) {
+        if (mastershipService.getMasterFor(deviceId) != null) {
+            List<TableStatisticsEntry> tableStats = deviceTableStats.get(deviceId);
+            if (tableStats == null) {
+                return Collections.emptyList();
+            }
+            return ImmutableList.copyOf(tableStats);
+        } else {
+            log.debug("Failed to getTableStatistics: No master for {}", deviceId);
             return Collections.emptyList();
         }
-        return ImmutableList.copyOf(tableStats);
+
     }
 
     @Override
     public long getActiveFlowRuleCount(DeviceId deviceId) {
-        return Streams.stream(getTableStatistics(deviceId))
-                .mapToLong(TableStatisticsEntry::activeFlowEntries)
-                .sum();
+        if (mastershipService.getMasterFor(deviceId) != null) {
+            return Streams.stream(getTableStatistics(deviceId))
+                    .mapToLong(TableStatisticsEntry::activeFlowEntries)
+                    .sum();
+        } else {
+            log.debug("Failed to getActiveFlowRuleCount: No master for {}", deviceId);
+            return 0;
+        }
     }
 
     private class InternalTableStatsListener
