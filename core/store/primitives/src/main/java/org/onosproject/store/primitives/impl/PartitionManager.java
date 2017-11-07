@@ -357,6 +357,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                     .stream()
                     .filter(PartitionDiff::hasChanged)
                     .forEach(diff -> activePartitions.get(diff.partitionId()).onUpdate(diff.newValue()));
+        currentClusterMetadata.set(clusterMetadata);
     }
 
     private class InternalClusterEventListener implements ClusterEventListener {
