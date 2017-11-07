@@ -54,6 +54,8 @@ import org.onlab.packet.dhcp.Dhcp6IaPdOption;
 import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
 import org.onlab.packet.dhcp.Dhcp6IaPrefixOption;
 import org.onlab.packet.dhcp.Dhcp6Option;
+import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
+import org.onlab.packet.dhcp.Dhcp6Duid;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -358,6 +360,7 @@ public class DhcpRelayManagerTest {
         // properties
         Dictionary<String, Object> dictionary = createNiceMock(Dictionary.class);
         expect(dictionary.get("arpEnabled")).andReturn(true).anyTimes();
+        expect(dictionary.get("dhcpPollInterval")).andReturn(120).anyTimes();
         ComponentContext context = createNiceMock(ComponentContext.class);
         expect(context.getProperties()).andReturn(dictionary).anyTimes();
 
@@ -1233,6 +1236,14 @@ public class DhcpRelayManagerTest {
         iaAddressOption.setValidLifetime(1200);
         iaAddressOption.setLength((short) Dhcp6IaAddressOption.DEFAULT_LEN);
 
+        Dhcp6ClientIdOption clientIdOption = new Dhcp6ClientIdOption();
+        Dhcp6Duid dhcp6Duip = new Dhcp6Duid();
+        dhcp6Duip.setDuidType(Dhcp6Duid.DuidType.DUID_LLT);
+        dhcp6Duip.setHardwareType((short) 0x01);   // Ethernet
+        dhcp6Duip.setDuidTime(1234);
+        dhcp6Duip.setLinkLayerAddress(CLIENT_MAC.toBytes());
+        clientIdOption.setDuid(dhcp6Duip);
+
         Dhcp6IaNaOption iaNaOption = new Dhcp6IaNaOption();
         iaNaOption.setCode(DHCP6.OptionCode.IA_NA.value());
         iaNaOption.setIaId(0);
@@ -1265,6 +1276,7 @@ public class DhcpRelayManagerTest {
         dhcp6.setMsgType(msgType);
         List<Dhcp6Option> dhcp6Options = new ArrayList<Dhcp6Option>();
         dhcp6Options.add(iaNaOption);
+        dhcp6Options.add(clientIdOption);
         dhcp6Options.add(iaPdOption);
         dhcp6.setOptions(dhcp6Options);
 

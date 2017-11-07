@@ -111,6 +111,38 @@ public class DHCP6 extends BasePacket {
                     return null;
             }
         }
+        public static String  getMsgTypeStr(final MsgType msgType) {
+            switch (msgType) {
+                case SOLICIT:
+                    return "SOLICIT";
+                case ADVERTISE:
+                    return "ADVERTISE";
+                case REQUEST:
+                    return "REQUEST";
+                case CONFIRM:
+                    return "CONFIRM";
+                case RENEW:
+                    return "RENEW";
+                case REBIND:
+                    return "REBIND";
+                case REPLY:
+                    return "REPLY";
+                case RELEASE:
+                    return "RELEASE";
+                case DECLINE:
+                    return "DECLINE";
+                case RECONFIGURE:
+                    return "RECONFIGURE";
+                case INFORMATION_REQUEST:
+                    return "INFORMATION_REQUEST";
+                case RELAY_FORW:
+                    return "RELAY_FORW";
+                case RELAY_REPL:
+                    return "RELAY_REPL";
+                default:
+                    return "NULL";
+            }
+        }
     }
 
     /**
