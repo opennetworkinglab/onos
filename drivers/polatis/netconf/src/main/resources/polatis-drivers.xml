@@ -17,6 +17,8 @@
 <drivers>
     <driver name="polatis-netconf" extends="" manufacturer="Polatis"
             hwVersion="" swVersion="">
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.polatis.netconf.PolatisDeviceDescription"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"

@@ -18,12 +18,17 @@ package org.onosproject.drivers.polatis.netconf;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.optical.OpticalDevice;
 
 /**
  * Loader for Polatis device drivers.
  */
 @Component(immediate = true)
 public class PolatisDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
 
     public PolatisDriversLoader() {
         super("/polatis-drivers.xml");
