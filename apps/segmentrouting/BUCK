@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
     '//cli:onos-cli',
+    '//core/common:onos-core-common',
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
