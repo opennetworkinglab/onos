@@ -302,14 +302,13 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             newServerInfo.setDhcpConnectVlan(host.vlan());
             newServerInfo.setDhcpConnectMac(host.mac());
         }
-        // Add new server info
-        serverInfoList.add(0, newServerInfo);
 
-        // Remove duplicated server info
-        Set<DhcpServerInfo> nonDupServerInfoList = Sets.newLinkedHashSet();
-        nonDupServerInfoList.addAll(serverInfoList);
-        serverInfoList.clear();
-        serverInfoList.addAll(nonDupServerInfoList);
+        // Add new server info
+        synchronized (this) {
+            serverInfoList.clear();
+            serverInfoList.add(0, newServerInfo);
+        }
+
         requestDhcpPacket(serverIp);
     }
 

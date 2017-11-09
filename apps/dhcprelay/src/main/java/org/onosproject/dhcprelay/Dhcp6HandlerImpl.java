@@ -1153,13 +1153,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             newServerInfo.setDhcpConnectMac(host.mac());
         }
         // Add new server info
-        serverInfoList.add(0, newServerInfo);
-
-        // Remove duplicated server info
-        Set<DhcpServerInfo> nonDupServerInfoList = Sets.newLinkedHashSet();
-        nonDupServerInfoList.addAll(serverInfoList);
-        serverInfoList.clear();
-        serverInfoList.addAll(nonDupServerInfoList);
+        synchronized (this) {
+            serverInfoList.clear();
+            serverInfoList.add(0, newServerInfo);
+        }
         requestDhcpPacket(serverIp);
     }
 
