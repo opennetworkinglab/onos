@@ -810,7 +810,7 @@ public class DeviceManager
     }
 
     /**
-     * Reaasert role for specified device connected to this node.
+     * Reassert role for specified device connected to this node.
      *
      * @param did      device identifier
      * @param nextRole role to apply. If NONE is specified,
