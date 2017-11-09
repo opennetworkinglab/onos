@@ -22,6 +22,7 @@ import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.HostId;
@@ -49,6 +50,7 @@ public class DhcpRecord {
     private DHCP.MsgType ip4Status;
 
     private Ip6Address ip6Address;
+    private IpPrefix pdPrefix;
     private DHCP6.MsgType ip6Status;
 
     private long lastSeen;
@@ -155,6 +157,26 @@ public class DhcpRecord {
      */
     public DhcpRecord ip6Address(Ip6Address ip6Address) {
         this.ip6Address = ip6Address;
+        return this;
+    }
+
+    /**
+     * Gets IPv6 PD address which assigned to the host.
+     *
+     * @return the PD IP address assigned to the host
+     */
+    public Optional<IpPrefix> pdPrefix() {
+        return Optional.ofNullable(pdPrefix);
+    }
+
+    /**
+     * Sets IPv6 PD address.
+     *
+     * @param pdPrefix the IPv6 PD address
+     * @return the DHCP record
+     */
+    public DhcpRecord pdPrefix(IpPrefix pdPrefix) {
+        this.pdPrefix = pdPrefix;
         return this;
     }
 
@@ -292,6 +314,7 @@ public class DhcpRecord {
         newRecord.ip4Address = ip4Address;
         newRecord.ip4Status = ip4Status;
         newRecord.ip6Address = ip6Address;
+        newRecord.pdPrefix = pdPrefix;
         newRecord.ip6Status = ip6Status;
         newRecord.lastSeen = lastSeen;
         return newRecord;
@@ -300,7 +323,7 @@ public class DhcpRecord {
     @Override
     public int hashCode() {
         return Objects.hash(locations, macAddress, vlanId, ip4Address, ip4Status,
-                            nextHop, nextHopTemp, ip6Address, ip6Status, lastSeen);
+                            nextHop, nextHopTemp, ip6Address, pdPrefix, ip6Status, lastSeen);
     }
 
     @Override
@@ -320,6 +343,7 @@ public class DhcpRecord {
                 Objects.equals(nextHop, that.nextHop) &&
                 Objects.equals(nextHopTemp, that.nextHopTemp) &&
                 Objects.equals(ip6Address, that.ip6Address) &&
+                Objects.equals(pdPrefix, that.pdPrefix) &&
                 Objects.equals(ip6Status, that.ip6Status) &&
                 Objects.equals(lastSeen, that.lastSeen) &&
                 Objects.equals(directlyConnected, that.directlyConnected);
@@ -336,6 +360,7 @@ public class DhcpRecord {
                 .add("nextHop", nextHop)
                 .add("nextHopTemp", nextHopTemp)
                 .add("ip6Address", ip6Address)
+                .add("pdPrefix", pdPrefix)
                 .add("ip6State", ip6Status)
                 .add("lastSeen", lastSeen)
                 .add("directlyConnected", directlyConnected)

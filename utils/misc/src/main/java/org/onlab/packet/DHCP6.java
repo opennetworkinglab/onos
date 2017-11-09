@@ -79,6 +79,38 @@ public class DHCP6 extends BasePacket {
         public byte value() {
             return this.value;
         }
+        public static MsgType getType(final int value) {
+            switch (value) {
+                case 1:
+                    return SOLICIT;
+                case 2:
+                    return ADVERTISE;
+                case 3:
+                    return REQUEST;
+                case 4:
+                    return CONFIRM;
+                case 5:
+                    return RENEW;
+                case 6:
+                    return REBIND;
+                case 7:
+                    return REPLY;
+                case 8:
+                    return RELEASE;
+                case 9:
+                    return DECLINE;
+                case 10:
+                    return RECONFIGURE;
+                case 11:
+                    return INFORMATION_REQUEST;
+                case 12:
+                    return RELAY_FORW;
+                case 13:
+                    return RELAY_REPL;
+                default:
+                    return null;
+            }
+        }
     }
 
     /**
