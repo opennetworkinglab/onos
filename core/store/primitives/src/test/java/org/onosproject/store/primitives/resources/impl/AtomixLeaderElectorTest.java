@@ -36,9 +36,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class AtomixLeaderElectorTest extends AtomixTestBase<AtomixLeaderElector> {
 
-    NodeId node1 = new NodeId("node1");
-    NodeId node2 = new NodeId("node2");
-    NodeId node3 = new NodeId("node3");
+    NodeId node1 = new NodeId("4");
+    NodeId node2 = new NodeId("5");
+    NodeId node3 = new NodeId("6");
 
     @Override
     protected RaftService createService() {
@@ -64,13 +64,20 @@ public class AtomixLeaderElectorTest extends AtomixTestBase<AtomixLeaderElector>
             assertEquals(node1, result.candidates().get(0));
         }).join();
 
-        AtomixLeaderElector elector2 = newPrimitive("test-elector-run");
-        elector2.run("foo", node2).thenAccept(result -> {
+        elector1.run("bar", node1).thenAccept(result -> {
             assertEquals(node1, result.leaderNodeId());
             assertEquals(1, result.leader().term());
-            assertEquals(2, result.candidates().size());
+            assertEquals(1, result.candidates().size());
             assertEquals(node1, result.candidates().get(0));
-            assertEquals(node2, result.candidates().get(1));
+        }).join();
+
+        AtomixLeaderElector elector2 = newPrimitive("test-elector-run");
+        elector2.run("bar", node2).thenAccept(result -> {
+            assertEquals(node2, result.leaderNodeId());
+            assertEquals(2, result.leader().term());
+            assertEquals(2, result.candidates().size());
+            assertEquals(node2, result.candidates().get(0));
+            assertEquals(node1, result.candidates().get(1));
         }).join();
     }
 
@@ -257,6 +264,50 @@ public class AtomixLeaderElectorTest extends AtomixTestBase<AtomixLeaderElector>
             assertEquals(node1, result.newValue().leaderNodeId());
             assertEquals(1, result.newValue().candidates().size());
             assertEquals(node1, result.newValue().candidates().get(0));
+        }).join();
+    }
+
+    @Test
+    public void testLeaderBalance() throws Throwable {
+        AtomixLeaderElector elector1 = newPrimitive("test-elector-leader-session-close");
+        elector1.run("foo", node1).join();
+        elector1.run("bar", node1).join();
+        elector1.run("baz", node1).join();
+
+        AtomixLeaderElector elector2 = newPrimitive("test-elector-leader-session-close");
+        elector2.run("foo", node2).join();
+        elector2.run("bar", node2).join();
+        elector2.run("baz", node2).join();
+
+        AtomixLeaderElector elector3 = newPrimitive("test-elector-leader-session-close");
+        elector3.run("foo", node3).join();
+        elector3.run("bar", node3).join();
+        elector3.run("baz", node3).join();
+
+        LeaderEventListener listener = new LeaderEventListener();
+        elector2.addChangeListener(listener).join();
+
+        elector1.proxy.close();
+
+        listener.nextEvent().thenAccept(result -> {
+            assertEquals(node3, result.newValue().leaderNodeId());
+            assertEquals(2, result.newValue().candidates().size());
+            assertEquals(node3, result.newValue().candidates().get(0));
+            assertEquals(node2, result.newValue().candidates().get(1));
+        }).join();
+
+        listener.nextEvent().thenAccept(result -> {
+            assertEquals(node2, result.newValue().leaderNodeId());
+            assertEquals(2, result.newValue().candidates().size());
+            assertEquals(node2, result.newValue().candidates().get(0));
+            assertEquals(node3, result.newValue().candidates().get(1));
+        });
+
+        listener.nextEvent().thenAccept(result -> {
+            assertEquals(node2, result.newValue().leaderNodeId());
+            assertEquals(2, result.newValue().candidates().size());
+            assertEquals(node2, result.newValue().candidates().get(0));
+            assertEquals(node3, result.newValue().candidates().get(1));
         }).join();
     }
 
