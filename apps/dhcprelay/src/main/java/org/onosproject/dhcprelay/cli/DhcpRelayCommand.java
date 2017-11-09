@@ -49,6 +49,8 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     private static final String NA = "N/A";
     private static final String STATUS_FMT = "[%s, %s]";
     private static final String STATUS_FMT_NH = "[%s via %s, %s]";
+    private static final String STATUS_FMT_V6 = "[%s, %s, %s]";
+    private static final String STATUS_FMT_V6_NH = "[%s, %s via %s, %s]";
     private static final String DEFAULT_SERVERS = "Default DHCP servers:";
     private static final String INDIRECT_SERVERS = "Indirect DHCP servers:";
 
@@ -135,13 +137,22 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     }
 
     private String ip6State(DhcpRecord record) {
-        String nextHopIp = findNextHopIp(IpAddress::isIp6,
+        String nextHopIp = findNextHopIp6(IpAddress::isIp6,
                                          record.nextHop().orElse(null),
                                          record.vlanId());
-        return ipState(record.ip6Address().map(Object::toString).orElse(NA),
-                       record.ip6Status().map(Object::toString).orElse(NA),
-                       record.directlyConnected(),
-                       nextHopIp);
+
+        if (record.directlyConnected()) {
+            return String.format(STATUS_FMT_V6,
+                    record.ip6Address().map(Object::toString).orElse(NA),
+                    record.pdPrefix().map(Object::toString).orElse(NA),
+                    record.ip6Status().map(Object::toString).orElse(NA));
+        } else {
+            return String.format(STATUS_FMT_V6_NH,
+                    record.ip6Address().map(Object::toString).orElse(NA),
+                    record.pdPrefix().map(Object::toString).orElse(NA),
+                    nextHopIp,
+                    record.ip6Status().map(Object::toString).orElse(NA));
+        }
     }
 
     private String ipState(String ipAddress, String status,
@@ -158,6 +169,7 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         if (ipFilter == null || nextHopMac == null || vlanId == null) {
             return NA;
         }
+
         Host host = HOST_SERVICE.getHost(HostId.hostId(nextHopMac, vlanId));
         if (host == null) {
             return NA;
@@ -165,6 +177,23 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         return host.ipAddresses().stream()
                 .filter(ipFilter)
                 .filter(ip -> !ip.isLinkLocal())
+                .map(Object::toString)
+                .findFirst()
+                .orElse(NA);
+    }
+
+    private String findNextHopIp6(Predicate<IpAddress> ipFilter, MacAddress nextHopMac, VlanId vlanId) {
+        if (ipFilter == null || nextHopMac == null || vlanId == null) {
+            return NA;
+        }
+
+        Host host = HOST_SERVICE.getHost(HostId.hostId(nextHopMac, vlanId));
+        if (host == null) {
+            return NA;
+        }
+        return host.ipAddresses().stream()
+                .filter(ipFilter)
+                .filter(ip -> ip.isLinkLocal())
                 .map(Object::toString)
                 .findFirst()
                 .orElse(NA);
