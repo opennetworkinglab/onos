@@ -115,7 +115,7 @@
                         </Embed-Dependency>
                         <Embed-Transitive>false</Embed-Transitive>
                         <Bundle-NativeCode>
-                            META-INF/native/libnetty_transport_native_epoll_x86_64.so;osname=linux;processor=x86_64,
+                            META-INF/native/libnetty-transport-native-epoll.so;osname=linux;processor=x86_64,
                             *
                         </Bundle-NativeCode>
                         <Import-Package>

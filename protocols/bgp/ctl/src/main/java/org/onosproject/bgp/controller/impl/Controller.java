@@ -221,7 +221,7 @@ public class Controller {
      */
     public void start() {
         log.info("Started");
-        if (!PlatformDependent.isWindows() && !PlatformDependent.maybeSuperUser()) {
+        if (!PlatformDependent.isWindows() && !PlatformDependent.isRoot()) {
             portNumber = BGP_PRIVILEGED_PORT;
         } else {
             portNumber = BGP_PORT_NUM;

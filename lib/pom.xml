@@ -37,7 +37,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos-build-conf.version>1.12.0-SNAPSHOT</onos-build-conf.version>
-        <netty4.version>4.1.16.Final</netty4.version>
+        <netty4.version>4.1.8.Final</netty4.version>
         <openflowj.version>3.2.0.onos</openflowj.version>
         <onos-maven-plugin.version>1.10</onos-maven-plugin.version>
         <onos-yang-tools.version>2.3.0-b3</onos-yang-tools.version>
