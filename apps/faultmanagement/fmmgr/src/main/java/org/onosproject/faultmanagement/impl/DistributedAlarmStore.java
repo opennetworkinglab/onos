@@ -118,7 +118,7 @@ public class DistributedAlarmStore
     public void createOrUpdateAlarm(Alarm alarm) {
         Alarm existing = alarmsMap.get(alarm.id());
         if (Objects.equals(existing, alarm)) {
-            log.info("Received identical alarm, no operation needed on {}", alarm.id());
+            log.debug("Received identical alarm, no operation needed on {}", alarm.id());
         } else {
             alarms.put(alarm.id(), alarm);
         }
