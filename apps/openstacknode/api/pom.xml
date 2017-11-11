@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-openstacknode</artifactId>
-        <version>1.12.0-SNAPSHOT</version>
+        <version>1.12.0-b2</version>
     </parent>
 
     <artifactId>onos-apps-openstacknode-api</artifactId>
