@@ -1387,6 +1387,9 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
         String methodName = requestMethod.get(requestId);
         sf.set(FromJsonUtil.jsonResultParser(response, methodName));
+
+        requestResult.remove(requestId);
+        requestMethod.remove(requestId);
     }
 
     @Override
