@@ -23,6 +23,7 @@ import org.onosproject.net.behaviour.DefaultQosDescription;
 import org.onosproject.net.behaviour.QosConfigBehaviour;
 import org.onosproject.net.behaviour.QosDescription;
 import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -32,6 +33,8 @@ import org.onosproject.ovsdb.controller.OvsdbQos;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -115,6 +118,18 @@ public class OvsdbQosConfig extends AbstractHandlerBehaviour implements QosConfi
     public void deleteQoS(QosId qosId) {
         OvsdbClientService ovsdbClient = getOvsdbClient(handler());
         ovsdbClient.dropQos(qosId);
+    }
+
+    @Override
+    public void insertQueues(QosId qosId, Map<Long, QueueDescription> queues) {
+        OvsdbClientService ovsdbClient = getOvsdbClient(handler());
+        ovsdbClient.bindQueues(qosId, queues);
+    }
+
+    @Override
+    public void deleteQueues(QosId qosId, List<Long> queueKeys) {
+        OvsdbClientService ovsdbClient = getOvsdbClient(handler());
+        ovsdbClient.unbindQueues(qosId, queueKeys);
     }
 
     // OvsdbNodeId(IP) is used in the adaptor while DeviceId(ovsdb:IP)

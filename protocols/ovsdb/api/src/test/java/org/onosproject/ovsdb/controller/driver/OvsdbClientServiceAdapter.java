@@ -18,6 +18,7 @@ package org.onosproject.ovsdb.controller.driver;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
@@ -26,6 +27,7 @@ import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueDescription;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -117,6 +119,16 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public Set<OvsdbQos> getQoses() {
       return null;
+    }
+
+    @Override
+    public void bindQueues(QosId qosId, Map<Long, QueueDescription> queues) {
+
+    }
+
+    @Override
+    public void unbindQueues(QosId qosId, List<Long> queueKeys) {
+
     }
 
     @Override

@@ -18,6 +18,8 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Behaviour for handling various operations for qos configurations.
@@ -51,4 +53,20 @@ public interface QosConfigBehaviour extends HandlerBehaviour {
      * @param qosId qos identifier
      */
     void deleteQoS(QosId qosId);
+
+    /**
+     * bind queue to qos.
+     *
+     * @param  qosId the qos name
+     * @param  queues qos queues, map of QueueKey - QueueDescription
+     */
+    void insertQueues(QosId qosId, Map<Long, QueueDescription> queues);
+
+    /**
+     * delete queue from qos.
+     *
+     * @param  qosId the qos name
+     * @param  queueKeys queue id to delete
+     */
+    void deleteQueues(QosId qosId, List<Long> queueKeys);
 }

@@ -16,6 +16,7 @@
 package org.onosproject.ovsdb.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
@@ -24,6 +25,7 @@ import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueDescription;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
@@ -123,6 +125,22 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return set of qoses; empty if no qos is find
      */
     Set<OvsdbQos> getQoses();
+
+    /**
+     * Bind Queue to QoS.
+     *
+     * @param qosId qos identifier
+     * @param queues the Queue key and Queue description
+     */
+    void bindQueues(QosId qosId, Map<Long, QueueDescription> queues);
+
+    /**
+     * Unbind Queue from QoS.
+     *
+     * @param qosId qos identifier
+     * @param queueKeys queue key
+     */
+    void unbindQueues(QosId qosId, List<Long> queueKeys);
 
     /**
      * Creates queues. limits the rate of each flow

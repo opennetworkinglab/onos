@@ -43,6 +43,7 @@ import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueDescription;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -771,6 +772,107 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
         return ovsdbQoses;
     }
+
+    @Override
+    public void bindQueues(QosId qosId, Map<Long, QueueDescription> queues) {
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+        OvsdbRowStore qosRowStore = getRowStore(DATABASENAME, QOS);
+        if (qosRowStore == null) {
+            log.debug("The qos uuid is null");
+            return;
+        }
+        OvsdbRowStore queueRowStore = getRowStore(DATABASENAME, QUEUE);
+        if (queueRowStore == null) {
+            log.debug("The queue uuid is null");
+            return;
+        }
+
+        ConcurrentMap<String, Row> qosTableRows = qosRowStore.getRowStore();
+        ConcurrentMap<String, Row> queueTableRows = queueRowStore.getRowStore();
+
+        Row qosRow = qosTableRows.values().stream().filter(r -> {
+            OvsdbMap ovsdbMap = (OvsdbMap) (r.getColumn(EXTERNAL_ID).data());
+            return qosId.name().equals(ovsdbMap.map().get(QOS_EXTERNAL_ID_KEY));
+        }).findFirst().orElse(null);
+
+        if (qosRow == null) {
+            log.warn("Can't find QoS {}", qosId);
+            return;
+        }
+
+        Uuid qosUuid = qosRow.uuid();
+
+        Map<Long, Uuid> newQueues = new HashMap<Long, Uuid>();
+        for (Map.Entry<Long, QueueDescription> entry : queues.entrySet()) {
+            Row queueRow = queueTableRows.values().stream().filter(r -> {
+                OvsdbMap ovsdbMap = (OvsdbMap) (r.getColumn(EXTERNAL_ID).data());
+                return entry.getValue().queueId().name().equals(ovsdbMap.map().get(QUEUE_EXTERNAL_ID_KEY));
+            }).findFirst().orElse(null);
+            if (queueRow != null) {
+                newQueues.put(entry.getKey(), queueRow.uuid());
+            }
+        }
+
+        // update the qos table
+        ArrayList<Operation> operations = Lists.newArrayList();
+        Condition condition = ConditionUtil.isEqual(UUID, qosUuid);
+        Mutation mutation = MutationUtil.insert(QUEUES, newQueues);
+        List<Condition> conditions = Collections.singletonList(condition);
+        List<Mutation> mutations = Collections.singletonList(mutation);
+        operations.add(new Mutate(dbSchema.getTableSchema(QOS), conditions, mutations));
+
+        transactConfig(DATABASENAME, operations);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void unbindQueues(QosId qosId, List<Long> queueKeys) {
+        DatabaseSchema dbSchema = schema.get(DATABASENAME);
+        OvsdbRowStore qosRowStore = getRowStore(DATABASENAME, QOS);
+        if (qosRowStore == null) {
+            return;
+        }
+
+        ConcurrentMap<String, Row> qosTableRows = qosRowStore.getRowStore();
+
+        Row qosRow = qosTableRows.values().stream().filter(r -> {
+            OvsdbMap ovsdbMap = (OvsdbMap) (r.getColumn(EXTERNAL_ID).data());
+            return qosId.name().equals(ovsdbMap.map().get(QOS_EXTERNAL_ID_KEY));
+        }).findFirst().orElse(null);
+
+        if (qosRow == null) {
+            log.warn("Can't find QoS {}", qosId);
+            return;
+        }
+
+        Map<Long, Uuid> deleteQueuesMap = new HashMap<>();
+        Map<Integer, Uuid> queuesMap = ((OvsdbMap) qosRow.getColumn(QUEUES).data()).map();
+
+        queueKeys.forEach(key -> {
+            if (queuesMap.containsKey(key.intValue())) {
+                deleteQueuesMap.put(key, queuesMap.get(key.intValue()));
+            }
+        });
+
+        if (deleteQueuesMap.size() != 0) {
+            TableSchema parentTableSchema = dbSchema
+                    .getTableSchema(QOS);
+            ColumnSchema parentColumnSchema = parentTableSchema
+                    .getColumnSchema(QUEUES);
+
+            Mutation mutation = MutationUtil.delete(parentColumnSchema.name(), OvsdbMap.ovsdbMap(deleteQueuesMap));
+            List<Mutation> mutations = Collections.singletonList(mutation);
+
+            Condition condition = ConditionUtil.isEqual(UUID, qosRow.uuid());
+            List<Condition> conditionList = Collections.singletonList(condition);
+            List<Operation> operations = Collections.singletonList(
+                    new Mutate(parentTableSchema, conditionList, mutations));
+
+            transactConfig(DATABASENAME, operations);
+        }
+    }
+
 
     @Override
     public boolean createQueue(OvsdbQueue ovsdbQueue) {
