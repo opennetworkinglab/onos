@@ -318,6 +318,9 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
      * Monitors the metadata url for any updates and notifies providerService accordingly.
      */
     private void watchUrl(String metadataUrl) {
+        if (!isAvailable()) {
+            return;
+        }
         // TODO: We are merely polling the url.
         // This can be easily addressed for files. For http urls we need to move to a push style protocol.
         try {
