@@ -71,19 +71,4 @@ header udp_t {
     bit<16> checksum;
 }
 
-struct headers_t {
-    ethernet_t ethernet;
-    ipv4_t ipv4;
-    tcp_t tcp;
-    udp_t udp;
-    packet_out_header_t packet_out;
-    packet_in_header_t packet_in;
-}
-
-struct local_metadata_t {
-    bit<16>       l4_src_port;
-    bit<16>       l4_dst_port;
-    next_hop_id_t next_hop_id;
-}
-
 #endif

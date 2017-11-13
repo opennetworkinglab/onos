@@ -17,8 +17,24 @@
       ]
     },
     {
-      "name" : "ethernet_t",
+      "name" : "packet_out_header_t",
       "id" : 1,
+      "fields" : [
+        ["egress_port", 9, false],
+        ["_padding", 7, false]
+      ]
+    },
+    {
+      "name" : "packet_in_header_t",
+      "id" : 2,
+      "fields" : [
+        ["ingress_port", 9, false],
+        ["_padding_0", 7, false]
+      ]
+    },
+    {
+      "name" : "ethernet_t",
+      "id" : 3,
       "fields" : [
         ["dst_addr", 48, false],
         ["src_addr", 48, false],
@@ -27,7 +43,7 @@
     },
     {
       "name" : "ipv4_t",
-      "id" : 2,
+      "id" : 4,
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
@@ -45,7 +61,7 @@
     },
     {
       "name" : "tcp_t",
-      "id" : 3,
+      "id" : 5,
       "fields" : [
         ["src_port", 16, false],
         ["dst_port", 16, false],
@@ -62,28 +78,12 @@
     },
     {
       "name" : "udp_t",
-      "id" : 4,
+      "id" : 6,
       "fields" : [
         ["src_port", 16, false],
         ["dst_port", 16, false],
         ["length_", 16, false],
         ["checksum", 16, false]
-      ]
-    },
-    {
-      "name" : "packet_out_header_t",
-      "id" : 5,
-      "fields" : [
-        ["egress_port", 9, false],
-        ["_padding", 7, false]
-      ]
-    },
-    {
-      "name" : "packet_in_header_t",
-      "id" : 6,
-      "fields" : [
-        ["ingress_port", 9, false],
-        ["_padding_0", 7, false]
       ]
     },
     {
@@ -128,44 +128,44 @@
       "pi_omit" : true
     },
     {
-      "name" : "ethernet",
-      "id" : 2,
-      "header_type" : "ethernet_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "ipv4",
-      "id" : 3,
-      "header_type" : "ipv4_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "tcp",
-      "id" : 4,
-      "header_type" : "tcp_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
-      "name" : "udp",
-      "id" : 5,
-      "header_type" : "udp_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
       "name" : "packet_out",
-      "id" : 6,
+      "id" : 2,
       "header_type" : "packet_out_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_in",
-      "id" : 7,
+      "id" : 3,
       "header_type" : "packet_in_header_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ethernet",
+      "id" : 4,
+      "header_type" : "ethernet_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "ipv4",
+      "id" : 5,
+      "header_type" : "ipv4_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "tcp",
+      "id" : 6,
+      "header_type" : "tcp_t",
+      "metadata" : false,
+      "pi_omit" : true
+    },
+    {
+      "name" : "udp",
+      "id" : 7,
+      "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
     }
@@ -176,12 +176,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5]
   ],
   "enums" : [],
   "parsers" : [
@@ -413,7 +413,7 @@
       "name" : "deparser",
       "id" : 0,
       "source_info" : {
-        "filename" : "include/parsers.p4",
+        "filename" : "./include/parsers.p4",
         "line" : 72,
         "column" : 8,
         "source_fragment" : "deparser"
@@ -427,7 +427,7 @@
       "name" : "port_counters_ingress.ingress_port_counter",
       "id" : 0,
       "source_info" : {
-        "filename" : "include/port_counters.p4",
+        "filename" : "./include/port_counters.p4",
         "line" : 26,
         "column" : 38,
         "source_fragment" : "ingress_port_counter"
@@ -451,7 +451,7 @@
       "name" : "port_counters_egress.egress_port_counter",
       "id" : 3,
       "source_info" : {
-        "filename" : "include/port_counters.p4",
+        "filename" : "./include/port_counters.p4",
         "line" : 36,
         "column" : 38,
         "source_fragment" : "egress_port_counter"
@@ -487,7 +487,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/actions.p4",
+            "filename" : "./include/actions.p4",
             "line" : 28,
             "column" : 36,
             "source_fragment" : "port; ..."
@@ -518,7 +518,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/actions.p4",
+            "filename" : "./include/actions.p4",
             "line" : 28,
             "column" : 36,
             "source_fragment" : "port; ..."
@@ -544,7 +544,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/headers.p4",
+            "filename" : "./include/headers.p4",
             "line" : 19,
             "column" : 24,
             "source_fragment" : "255; ..."
@@ -561,7 +561,7 @@
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "include/actions.p4",
+            "filename" : "./include/actions.p4",
             "line" : 32,
             "column" : 4,
             "source_fragment" : "mark_to_drop()"
@@ -598,7 +598,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/table0.p4",
+            "filename" : "./include/table0.p4",
             "line" : 30,
             "column" : 8,
             "source_fragment" : "local_metadata.next_hop_id = next_hop_id"
@@ -624,7 +624,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 27,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec = hdr.packet_out.egress_port"
@@ -639,7 +639,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 28,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.setInvalid()"
@@ -691,7 +691,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/port_counters.p4",
+            "filename" : "./include/port_counters.p4",
             "line" : 29,
             "column" : 8,
             "source_fragment" : "ingress_port_counter.count((bit<32>) standard_metadata.ingress_port)"
@@ -713,7 +713,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 38,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
@@ -732,7 +732,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 39,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
@@ -784,7 +784,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/port_counters.p4",
+            "filename" : "./include/port_counters.p4",
             "line" : 39,
             "column" : 8,
             "source_fragment" : "egress_port_counter.count((bit<32>) standard_metadata.egress_port)"
@@ -799,7 +799,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 34,
+        "line" : 35,
         "column" : 8,
         "source_fragment" : "ingress"
       },
@@ -855,7 +855,7 @@
           "name" : "table0_control.table0",
           "id" : 2,
           "source_info" : {
-            "filename" : "include/table0.p4",
+            "filename" : "./include/table0.p4",
             "line" : 33,
             "column" : 10,
             "source_fragment" : "table0"
@@ -932,7 +932,7 @@
           "name" : "wcmp_control.wcmp_table",
           "id" : 3,
           "source_info" : {
-            "filename" : "include/wcmp.p4",
+            "filename" : "./include/wcmp.p4",
             "line" : 30,
             "column" : 10,
             "source_fragment" : "wcmp_table"
@@ -996,7 +996,7 @@
           "name" : "node_3",
           "id" : 0,
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 26,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port == CPU_PORT"
@@ -1022,7 +1022,7 @@
           "name" : "node_6",
           "id" : 1,
           "source_info" : {
-            "filename" : "include/wcmp.p4",
+            "filename" : "./include/wcmp.p4",
             "line" : 48,
             "column" : 12,
             "source_fragment" : "local_metadata.next_hop_id != 0"
@@ -1051,7 +1051,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "basic.p4",
-        "line" : 50,
+        "line" : 51,
         "column" : 8,
         "source_fragment" : "egress"
       },
@@ -1110,7 +1110,7 @@
           "name" : "node_11",
           "id" : 2,
           "source_info" : {
-            "filename" : "include/packet_io.p4",
+            "filename" : "./include/packet_io.p4",
             "line" : 37,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_port == CPU_PORT"

@@ -18,6 +18,7 @@
 #include <v1model.p4>
 
 #include "include/headers.p4"
+#include "include/custom_headers.p4"
 #include "include/defines.p4"
 #include "include/parsers.p4"
 #include "include/actions.p4"
