@@ -32,13 +32,10 @@
 
     <modules>
         <module>api</module>
-	<module>proto</module>
-	<module>ctl</module>
+        <module>proto</module>
+        <module>ctl</module>
+        <module>model</module>
     </modules>
-
-    <!--<properties>
-        <onos.app.name>org.onosproject.drivers</onos.app.name>
-    </properties>-->
 
     <dependencies>
 

@@ -42,7 +42,6 @@
         <module>rpc-nb</module>
         <module>protobuf-nb</module>
         <module>grpc</module>
-        <module>bmv2</module>
     </modules>
 
     <dependencies>

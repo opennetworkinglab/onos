@@ -29,7 +29,6 @@
     <description>ONOS P4Runtime Proto</description>
 
     <properties>
-        <os.detected.classifier>linux-x86_64</os.detected.classifier>
         <protobuf.version>3.0.2</protobuf.version>
         <piCommit>a8814a8ac40838a9df83fe47a17a025b69026fcf</piCommit>
         <piBaseUrl>https://github.com/p4lang/PI.git</piBaseUrl>
@@ -60,6 +59,15 @@
     </dependencies>
 
     <build>
+
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.5.0.Final</version>
+            </extension>
+        </extensions>
+
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
