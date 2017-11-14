@@ -1,0 +1,109 @@
+<!--
+  ~  Copyright 2017-present Open Networking Foundation
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~  Unless required by applicable law or agreed to in writing, software
+  ~  distributed under the License is distributed on an "AS IS" BASIS,
+  ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~  See the License for the specific language governing permissions and
+  ~  limitations under the License.
+  -->
+<scenario name="net-setup-vnet2" description="Virtual Network (vnet2) setup steps">
+    <group name="Net-Setup-Vnet2">
+
+        <step name="Get-TenantId" unless="${tenantId}"
+              exec="echo @stc tenantId=TestTenant"/>
+
+        <step name="Set-PhysicalDevice1" unless="${physicalDevice1}"
+              exec="echo @stc physicalDevice1=of:0000000000000003"/>
+
+        <step name="Set-PhysicalPort1" unless="${physicalPort1}"
+              exec="echo @stc physicalPort1=2"/>
+
+        <step name="Set-PhysicalDevice2" unless="${physicalDevice2}"
+              exec="echo @stc physicalDevice2=of:0000000000000002"/>
+
+        <step name="Set-PhysicalPort2" unless="${physicalPort2}"
+              exec="echo @stc physicalPort2=3"/>
+
+        <step name="Set-VirtualDevice1-Setup" unless="${virtualDevice1}"
+              exec="echo @stc virtualDevice1=of:1122334455660003"/>
+
+        <step name="Set-VirtualDevice2-Setup" unless="${virtualDevice2}"
+              exec="echo @stc virtualDevice2=of:1122334455660004"/>
+
+        <step name="Set-VirtualHost1-Id-Setup" unless="${virtualHost1Id}"
+              exec="echo @stc virtualHost1Id=00:00:00:00:00:03"/>
+
+        <step name="Set-VirtualHost2-Id-Setup" unless="${virtualHost2Id}"
+              exec="echo @stc virtualHost2Id=00:00:00:00:00:02"/>
+
+        <step name="Create-Tenant" requires="~Get-TenantId"
+              exec="onos ${OCI} vnet-add-tenant ${tenantId}"/>
+
+        <step name="Query-Tenant" requires="^"
+              exec="onos-check-vnet ${OCI} checkTenant ${tenantId}"/>
+
+        <step name="Create-Vnet" requires="^"
+              exec="onos ${OCI} vnet-create ${tenantId}"/>
+
+        <step name="Query-Vnet" requires="^"
+              exec="onos-check-vnet ${OCI} getNetworkId ${tenantId}"/>
+
+        <step name="Create-VirtualDevice-1" requires="^"
+              exec="onos ${OCI} vnet-create-device ${networkId} ${virtualDevice1}"/>
+
+        <step name="Create-VirtualDevice-2" requires="^"
+              exec="onos ${OCI} vnet-create-device ${networkId} ${virtualDevice2}"/>
+
+        <step name="Show-VirtualDevice" requires="^"
+              exec="onos ${OCI} vnet-devices ${networkId}"/>
+
+        <step name="Create-VirtualPort-11" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice1} 1 ${physicalDevice1} 1"/>
+
+        <step name="Create-VirtualPort-12" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice1} 2 ${physicalDevice1} ${physicalPort1}"/>
+
+        <step name="Create-VirtualPort-21" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice2} 1 ${physicalDevice2} 1"/>
+
+        <step name="Create-VirtualPort-22" requires="^"
+              exec="onos ${OCI} vnet-create-port ${networkId} ${virtualDevice2} 2 ${physicalDevice2} ${physicalPort2}"/>
+
+        <step name="Show-VirtualPorts-1" requires="^"
+              exec="onos ${OCI} vnet-ports ${networkId} ${virtualDevice1}"/>
+
+        <step name="Show-VirtualPorts-2" requires="^"
+              exec="onos ${OCI} vnet-ports ${networkId} ${virtualDevice2}"/>
+
+        <step name="Check-PhysicalPorts" requires="^"
+              exec="onos ${OCI} links | grep ${physicalDevice1}/${physicalPort1} | grep ${physicalDevice2}/${physicalPort2}"/>
+
+        <step name="Create-Bidirectional-VirtualLink" requires="^"
+              exec="onos -f ${OCI} vnet-create-link --bidirectional ${networkId} ${virtualDevice2} 2 ${virtualDevice1} 2"/>
+
+        <step name="Show-VirtualLink-Setup" requires="^"
+              exec="onos -f ${OCI} vnet-links ${networkId}"/>
+
+        <step name="Create-VirtualHost-1" requires="^"
+              exec="onos ${OCI} vnet-create-host ${networkId} ${virtualHost1Id} 65535 ${virtualDevice1} 1"/>
+
+        <step name="Create-VirtualHost-2" requires="^"
+              exec="onos ${OCI} vnet-create-host ${networkId} ${virtualHost2Id} 65535 ${virtualDevice2} 1"/>
+
+        <step name="Show-VirtualHosts-Setup" requires="^"
+              exec="onos ${OCI} vnet-hosts ${networkId}"/>
+
+        <step name="Show-PhysicalHosts-1" requires="^"
+              exec="onos ${OCI} hosts"/>
+
+        <step name="Show-PhysicalLinks-1" requires="^"
+              exec="onos ${OCI} links"/>
+    </group>
+</scenario>
