@@ -135,13 +135,6 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
 
             PiTableId piTableId = tableModel.id();
 
-            // Only dump tables that are exposed by the interpreter.
-            // The reason is that some P4 targets (e.g. BMv2's simple_switch) use more table than those defined in the
-            // P4 program, to implement other capabilities, e.g. action execution in control flow.
-            if (!interpreter.mapPiTableId(piTableId).isPresent()) {
-                continue; // next table
-            }
-
             Collection<PiTableEntry> installedEntries;
             try {
                 // TODO: optimize by dumping entries and counters in parallel, from ALL tables with the same request.

@@ -461,17 +461,10 @@ public abstract class AbstractUpgradableFabricApp {
         if (!device.is(PiPipelineInterpreter.class)) {
             throw new FlowRuleGeneratorException(format("Device %s has no PiPipelineInterpreter", did));
         }
-        final PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
-        final int flowRuleTableId;
-        if (interpreter.mapPiTableId(tableId).isPresent()) {
-            flowRuleTableId = interpreter.mapPiTableId(tableId).get();
-        } else {
-            throw new FlowRuleGeneratorException(format("Unknown table '%s' in interpreter", tableId));
-        }
 
         return DefaultFlowRule.builder()
                 .forDevice(did)
-                .forTable(flowRuleTableId)
+                .forTable(tableId)
                 .fromApp(appId)
                 .withPriority(FLOW_PRIORITY)
                 .makePermanent();

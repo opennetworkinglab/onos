@@ -64,7 +64,8 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
 
     /**
      * Returns an integer table ID equivalent to the given PI table ID. If not present, it means that the given PI table
-     * ID refers to a table that does not exist, or that cannot be used for flow rule operations.
+     * ID cannot be mapped to any integer table ID, because such mapping would be meaningless or because such PI table
+     * ID is not defined by the pipeline model.
      *
      * @param piTableId PI table ID
      * @return numeric table ID
@@ -84,8 +85,10 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
             throws PiInterpreterException;
 
     /**
-     * Returns a PI direct counter ID for the given table, if present. If not present, it means that the given table
-     * does not support direct counters.
+     * Returns a PI direct counter ID for the given table to be used to to compute flow entry statistics, if present. If
+     * not present, it means that the given table does not offer any counter suitable for the purpose of computing flow
+     * rule statistics. Other direct counters might be defined for the given table (check pipeline model), however none
+     * of them should be used for flow entry statistics except for this one.
      *
      * @param piTableId table ID
      * @return optional direct counter ID
