@@ -65,6 +65,8 @@ import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
  */
 public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour implements PiPipelineInterpreter {
 
+    private static final String DOT =  ".";
+    private static final String HDR = "hdr";
     private static final String TABLE0 = "table0";
     private static final String IP_PROTO_FILTER_TABLE = "ip_proto_filter_table";
     private static final String SEND_TO_CPU = "send_to_cpu";
@@ -77,10 +79,10 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
     private static final String STANDARD_METADATA = "standard_metadata";
     private static final int PORT_FIELD_BITWIDTH = 9;
 
-    private static final PiMatchFieldId INGRESS_PORT_ID = PiMatchFieldId.of(STANDARD_METADATA + ".ingress_port");
-    private static final PiMatchFieldId ETH_DST_ID = PiMatchFieldId.of(ETHERNET + ".dst_addr");
-    private static final PiMatchFieldId ETH_SRC_ID = PiMatchFieldId.of(ETHERNET + ".src_addr");
-    private static final PiMatchFieldId ETH_TYPE_ID = PiMatchFieldId.of(ETHERNET + ".ether_type");
+    private static final PiMatchFieldId INGRESS_PORT_ID = PiMatchFieldId.of(STANDARD_METADATA + DOT + "ingress_port");
+    private static final PiMatchFieldId ETH_DST_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "dst_addr");
+    private static final PiMatchFieldId ETH_SRC_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "src_addr");
+    private static final PiMatchFieldId ETH_TYPE_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "ether_type");
     private static final PiTableId TABLE0_ID = PiTableId.of(TABLE0);
     private static final PiTableId IP_PROTO_FILTER_TABLE_ID = PiTableId.of(IP_PROTO_FILTER_TABLE);
 
