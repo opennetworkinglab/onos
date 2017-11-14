@@ -171,7 +171,7 @@ public class ClusterManager
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
             // Clean up persistent state associated with previous cluster configuration.
-            Tools.removeDirectory(System.getProperty("karaf.data") + "/partitions");
+            Tools.removeDirectory(System.getProperty("karaf.data") + "/db/partitions/");
             systemService.reboot("now", SystemService.Swipe.NONE);
         } catch (Exception e) {
             log.error("Unable to reboot container", e);
