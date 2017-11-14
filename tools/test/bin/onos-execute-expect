@@ -1,27 +1,46 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
 # Executes a command on the given ONOS instance and matches the output
-# to the passed one.
+# to the passed after X retries.
 # First argument is the IP address of the machine to run the command on,
 # then you pass the command and it's arguments if needed, then --expect and
-# after it the string of what the output should be.
+# after it the string of what the output should be or --retry and the maximum
+# retries with 5 seconds delay between them
 # Example:
-# onos-execute-expect 1.1.1.1 fooCommand fooParamenter --expect fooOutputString
+# onos-execute-expect 1.1.1.1 fooCommand fooParamenter --retry 5 --expect fooOutputString
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
-ip=$1
+
+retry=0
 cmd=""
-for a in ${*:2}; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $a"; done
-expect="${@: -1}"
-onos $ip $cmd > $aux
-cat $aux
-grep -q $expect $aux && echo "expected value found" && exit 0
+expct=""
+
+for ((i=1; i<=$#; i++))
+do
+	if [ "${!i}" = "--expect" ]; then
+		next=$((i+1))
+		expct="${!next}"
+		i=$i+1
+	elif [ "${!i}" = "--retry" ]; then
+		next=$((i+1))
+		retry="${!next}"
+		i=$i+1
+	else
+		cmd="$cmd ${!i}";
+	fi
+done
+
+until [ $retry -eq -1 ]
+do
+	onos $cmd > $aux
+	cat $aux
+	grep -q $expct $aux && echo "expected value found" && exit 0
+	retry=$[$retry-1]
+	sleep 5
+done
 exit 1
-
-
