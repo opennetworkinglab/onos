@@ -72,11 +72,6 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-bmv2-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-drivers-default</artifactId>
             <version>${project.version}</version>
         </dependency>
