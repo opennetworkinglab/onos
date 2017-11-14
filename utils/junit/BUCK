@@ -2,6 +2,7 @@ SRC_DEPS = [
     '//lib:junit',
     '//lib:hamcrest-all',
     '//lib:guava',
+    '//lib:slf4j-api',
 ]
 
 TEST_DEPS = [

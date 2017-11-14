@@ -139,9 +139,11 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     @Override
     public void setClusterMetadata(ClusterMetadata metadata) {
         try {
-            Files.createParentDirs(CONFIG_FILE);
-            mapper.writeValue(CONFIG_FILE, metadata);
-            providerService.clusterMetadataChanged(new Versioned<>(metadata, CONFIG_FILE.lastModified()));
+            File configFile = new File(metadataUrl.replaceFirst("file://", ""));
+            Files.createParentDirs(configFile);
+            mapper.writeValue(configFile, metadata);
+            cachedMetadata.set(fetchMetadata(metadataUrl));
+            providerService.clusterMetadataChanged(new Versioned<>(metadata, configFile.lastModified()));
         } catch (IOException e) {
             Throwables.propagate(e);
         }
