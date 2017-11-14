@@ -15,27 +15,17 @@
  */
 package org.onosproject.ovsdb.controller.driver;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import io.netty.channel.Channel;
-
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -94,40 +84,26 @@ import org.onosproject.ovsdb.rfc.utils.MutationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGES;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.CONTROLLER;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.DATABASENAME;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID_INTERFACE_ID;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACE;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACES;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRROR;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRRORS;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.PORTS;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT_QOS;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS_EXTERNAL_ID_KEY;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUES;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE_EXTERNAL_ID_KEY;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.TYPEVXLAN;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.UUID;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE_CONTROLLER;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT_ERROR;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.*;
 
 /**
  * An representation of an ovsdb client.
@@ -1396,13 +1372,18 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         DatabaseSchema dbSchema = schema.get(dbName);
         if (dbSchema != null) {
             Function<List<JsonNode>, List<OperationResult>> rowFunction = (input -> {
-                log.debug("Get ovsdb operation result");
-                List<OperationResult> result = FromJsonUtil.jsonNodeToOperationResult(input, operations);
-                if (result == null) {
-                    log.debug("The operation result is null");
-                    return null;
+                try {
+                    log.debug("Get ovsdb operation result");
+                    List<OperationResult> result = FromJsonUtil.jsonNodeToOperationResult(input, operations);
+                    if (result == null) {
+                        log.debug("The operation result is null");
+                        return null;
+                    }
+                    return result;
+                } catch (Exception e) {
+                    log.error("Exception while parsing result", e);
                 }
-                return result;
+                return null;
             });
             return Futures.transform(transact(dbSchema, operations), rowFunction);
         }
