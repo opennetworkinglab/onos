@@ -18,6 +18,7 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiActionId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -60,9 +61,8 @@ public class PiActionIdTest {
      */
     @Test
     public void testConstruction() {
-        final String id = DEC_TTL;
-        final PiActionId actionId = PiActionId.of(id);
+        final PiActionId actionId = PiActionId.of(DEC_TTL);
         assertThat(actionId, is(notNullValue()));
-        assertThat(actionId.name(), is(id));
+        assertThat(actionId.id(), is(DEC_TTL));
     }
 }

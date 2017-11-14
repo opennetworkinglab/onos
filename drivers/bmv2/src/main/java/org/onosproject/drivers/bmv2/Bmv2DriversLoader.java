@@ -20,7 +20,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**
- * Loader for P4Runtime device drivers.
+ * Loader for BMv2 device drivers.
  */
 @Component(immediate = true)
 public class Bmv2DriversLoader extends AbstractDriverLoader {

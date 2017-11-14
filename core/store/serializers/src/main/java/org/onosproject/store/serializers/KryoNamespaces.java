@@ -202,31 +202,40 @@ import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.pi.model.PiActionGroupType;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiCounterType;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.model.PiMeterType;
+import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.model.PiTableId;
+import org.onosproject.net.pi.model.PiTableType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiControlMetadata;
+import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
-import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiPipeconfConfig;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 import org.onosproject.net.provider.ProviderId;
@@ -601,34 +610,43 @@ public final class KryoNamespaces {
             .register(DomainConstraint.class)
             .register(
                     // PI model
+                    PiActionGroupType.class,
+                    PiActionId.class,
+                    PiActionParamId.class,
+                    PiActionProfileId.class,
+                    PiControlMetadataId.class,
+                    PiCounterId.class,
+                    PiCounterType.class,
+                    PiMatchFieldId.class,
                     PiMatchType.class,
+                    PiMeterId.class,
+                    PiMeterType.class,
+                    PiPacketOperationType.class,
                     PiPipeconfId.class,
+                    PiTableId.class,
+                    PiTableType.class,
                     // PI Runtime
                     PiAction.class,
                     PiActionGroup.class,
                     PiActionGroupId.class,
                     PiActionGroupMember.class,
                     PiActionGroupMemberId.class,
-                    PiActionId.class,
                     PiActionParam.class,
-                    PiActionParamId.class,
+                    PiControlMetadata.class,
+                    PiCounterCellData.class,
+                    PiCounterCellId.class,
                     PiExactFieldMatch.class,
                     PiFieldMatch.class,
                     PiGroupKey.class,
-                    PiHeaderFieldId.class,
                     PiLpmFieldMatch.class,
                     PiMatchKey.class,
-                    PiPacketMetadata.class,
-                    PiPacketMetadataId.class,
                     PiPacketOperation.class,
                     PiPipeconfConfig.class,
                     PiRangeFieldMatch.class,
                     PiTableAction.class,
                     PiTableEntry.class,
-                    PiTableId.class,
                     PiTernaryFieldMatch.class,
                     PiValidFieldMatch.class,
-                    PiActionProfileId.class,
                     // Other
                     PiCriterion.class,
                     PiInstruction.class

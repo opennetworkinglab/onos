@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.ETH_HEADER_NAME;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.ETH_TYPE;
 
@@ -33,12 +35,13 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.ETH_TYPE;
  * Unit tests for PiExactFieldMatch class.
  */
 public class PiExactFieldMatchTest {
-    final ImmutableByteSequence value1 = copyFrom(0x0800);
-    final ImmutableByteSequence value2 = copyFrom(0x0806);
-    final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(ETH_HEADER_NAME, ETH_TYPE);
-    PiExactFieldMatch piExactFieldMatch1 = new PiExactFieldMatch(piHeaderField, value1);
-    PiExactFieldMatch sameAsPiExactFieldMatch1 = new PiExactFieldMatch(piHeaderField, value1);
-    PiExactFieldMatch piExactFieldMatch2 = new PiExactFieldMatch(piHeaderField, value2);
+
+    private final ImmutableByteSequence value1 = copyFrom(0x0800);
+    private final ImmutableByteSequence value2 = copyFrom(0x0806);
+    private final PiMatchFieldId piMatchField = PiMatchFieldId.of(ETH_HEADER_NAME + DOT + ETH_TYPE);
+    private PiExactFieldMatch piExactFieldMatch1 = new PiExactFieldMatch(piMatchField, value1);
+    private PiExactFieldMatch sameAsPiExactFieldMatch1 = new PiExactFieldMatch(piMatchField, value1);
+    private PiExactFieldMatch piExactFieldMatch2 = new PiExactFieldMatch(piMatchField, value2);
 
     /**
      * Checks that the PiExactFieldMatch class is immutable.
@@ -65,8 +68,8 @@ public class PiExactFieldMatchTest {
     @Test
     public void testConstruction() {
         final ImmutableByteSequence value = copyFrom(0x0806);
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(ETH_HEADER_NAME, ETH_TYPE);
-        PiExactFieldMatch piExactFieldMatch = new PiExactFieldMatch(piHeaderField, value);
+        final PiMatchFieldId piMatchField = PiMatchFieldId.of(ETH_HEADER_NAME + DOT + ETH_TYPE);
+        PiExactFieldMatch piExactFieldMatch = new PiExactFieldMatch(piMatchField, value);
         assertThat(piExactFieldMatch, is(notNullValue()));
         assertThat(piExactFieldMatch.value(), is(value));
         assertThat(piExactFieldMatch.type(), is(PiMatchType.EXACT));

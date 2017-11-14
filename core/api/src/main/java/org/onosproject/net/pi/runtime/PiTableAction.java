@@ -19,19 +19,15 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 
 /**
- * An action that can be executed as a consequence of a match in a match+action table of a protocol-independent
- * pipeline.
+ * Instance of an action that can be executed as a consequence of a match in a match+action table of a
+ * protocol-independent pipeline.
  */
 @Beta
 public interface PiTableAction {
 
     /**
-     * Type of this action.
-     *
-     * @return a type
+     * Types of table action.
      */
-    Type type();
-
     enum Type {
         /**
          * Simple action with runtime parameters set by the control plane.
@@ -48,4 +44,11 @@ public interface PiTableAction {
          */
         GROUP_MEMBER_ID
     }
+
+    /**
+     * Type of this action.
+     *
+     * @return a type
+     */
+    Type type();
 }

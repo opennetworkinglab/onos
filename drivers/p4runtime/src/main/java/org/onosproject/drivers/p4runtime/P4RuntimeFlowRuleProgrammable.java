@@ -24,16 +24,15 @@ import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
+import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
-import org.onosproject.net.pi.runtime.PiTranslationService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.runtime.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 import org.onosproject.p4runtime.api.P4RuntimeFlowRuleWrapper;
 import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;
@@ -53,7 +52,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.*;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
+import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.MODIFY;
 
 /**
  * Implementation of the flow rule programmable behaviour for P4Runtime.
@@ -132,7 +133,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
 
         for (PiTableModel tableModel : pipelineModel.tables()) {
 
-            PiTableId piTableId = PiTableId.of(tableModel.name());
+            PiTableId piTableId = tableModel.id();
 
             // Only dump tables that are exposed by the interpreter.
             // The reason is that some P4 targets (e.g. BMv2's simple_switch) use more table than those defined in the
@@ -162,12 +163,12 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
                         cellDatas = client.readAllCounterCells(Collections.singleton(piCounterId), pipeconf).get();
                     } else {
                         Set<PiCounterCellId> cellIds = installedEntries.stream()
-                                .map(entry -> PiDirectCounterCellId.of(piCounterId, entry))
+                                .map(entry -> PiCounterCellId.ofDirect(piCounterId, entry))
                                 .collect(Collectors.toSet());
                         cellDatas = client.readCounterCells(cellIds, pipeconf).get();
                     }
                     counterCellMap = cellDatas.stream()
-                            .collect(Collectors.toMap(c -> ((PiDirectCounterCellId) c.cellId()).tableEntry(), c -> c));
+                            .collect(Collectors.toMap(c -> (c.cellId()).tableEntry(), c -> c));
                 } else {
                     counterCellMap = Collections.emptyMap();
                 }

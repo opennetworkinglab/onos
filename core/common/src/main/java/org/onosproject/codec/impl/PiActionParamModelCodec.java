@@ -32,7 +32,7 @@ public class PiActionParamModelCodec extends JsonCodec<PiActionParamModel> {
     @Override
     public ObjectNode encode(PiActionParamModel param, CodecContext context) {
         ObjectNode result = context.mapper().createObjectNode();
-        result.put(NAME, param.name());
+        result.put(NAME, param.id().toString());
         result.put(BIT_WIDTH, param.bitWidth());
         return result;
     }

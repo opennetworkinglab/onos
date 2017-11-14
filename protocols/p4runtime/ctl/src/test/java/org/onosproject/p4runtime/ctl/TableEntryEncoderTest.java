@@ -22,17 +22,17 @@ import org.easymock.EasyMock;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import p4.P4RuntimeOuterClass.Action;
 import p4.P4RuntimeOuterClass.TableEntry;
@@ -55,9 +55,11 @@ import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
  * Test for P4 runtime table entry encoder.
  */
 public class TableEntryEncoderTest {
+    private static final String DOT = ".";
     private static final String TABLE_0 = "table0";
     private static final String SET_EGRESS_PORT = "set_egress_port";
     private static final String PORT = "port";
+    private static final String HDR = "hdr";
     private static final String ETHERNET = "ethernet";
     private static final String DST_ADDR = "dstAddr";
     private static final String SRC_ADDR = "srcAddr";
@@ -77,10 +79,10 @@ public class TableEntryEncoderTest {
     private final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(defaultPipeconf);
     private final ImmutableByteSequence ethAddr = fit(copyFrom(rand.nextInt()), 48);
     private final ImmutableByteSequence portValue = copyFrom((short) rand.nextInt());
-    private final PiHeaderFieldId ethDstAddrFieldId = PiHeaderFieldId.of(ETHERNET, DST_ADDR);
-    private final PiHeaderFieldId ethSrcAddrFieldId = PiHeaderFieldId.of(ETHERNET, SRC_ADDR);
-    private final PiHeaderFieldId inPortFieldId = PiHeaderFieldId.of(STANDARD_METADATA, INGRESS_PORT);
-    private final PiHeaderFieldId ethTypeFieldId = PiHeaderFieldId.of(ETHERNET, ETHER_TYPE);
+    private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + DST_ADDR);
+    private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + SRC_ADDR);
+    private final PiMatchFieldId inPortFieldId = PiMatchFieldId.of(STANDARD_METADATA + DOT + INGRESS_PORT);
+    private final PiMatchFieldId ethTypeFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + ETHER_TYPE);
     private final PiActionParamId portParamId = PiActionParamId.of(PORT);
     private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
     private final PiTableId tableId = PiTableId.of(TABLE_0);
@@ -117,7 +119,7 @@ public class TableEntryEncoderTest {
         int tableId = browser.tables().getByName(TABLE_0).getPreamble().getId();
         int actionId = browser.actions().getByName(SET_EGRESS_PORT).getPreamble().getId();
 
-        assertThat(browser.matchFields(tableId).hasName(STANDARD_METADATA + "." + INGRESS_PORT), is(true));
+        assertThat(browser.matchFields(tableId).hasName(STANDARD_METADATA + DOT + INGRESS_PORT), is(true));
         assertThat(browser.actionParams(actionId).hasName(PORT), is(true));
 
         // TODO: improve, assert browsing other entities (counters, meters, etc.)
@@ -152,12 +154,12 @@ public class TableEntryEncoderTest {
         Action actionMsg = tableEntryMsg.getAction().getAction();
 
         // Action ID.
-        int p4InfoActionId = browser.actions().getByName(outActionId.name()).getPreamble().getId();
+        int p4InfoActionId = browser.actions().getByName(outActionId.toString()).getPreamble().getId();
         int encodedActionId = actionMsg.getActionId();
         assertThat(encodedActionId, is(p4InfoActionId));
 
         // Action param ID.
-        int p4InfoActionParamId = browser.actionParams(p4InfoActionId).getByName(portParamId.name()).getId();
+        int p4InfoActionParamId = browser.actionParams(p4InfoActionId).getByName(portParamId.toString()).getId();
         int encodedActionParamId = actionMsg.getParams(0).getParamId();
         assertThat(encodedActionParamId, is(p4InfoActionParamId));
 

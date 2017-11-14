@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Configuration of a protocol-independent pipeline that includes a pipeline model, a collection of
- * pipeline-specific behaviours implementation, and extensions.
+ * Configuration of a protocol-independent pipeline that includes a pipeline model, a collection of pipeline-specific
+ * behaviour implementations, and extensions.
  */
 @Beta
 public interface PiPipeconf {
@@ -75,13 +75,13 @@ public interface PiPipeconf {
      * @param type extension type
      * @return extension input stream
      */
-    // FIXME: this is a sloppy way of handling extensions.
     Optional<InputStream> extension(ExtensionType type);
 
     /**
      * Type of extension of a protocol-independent pipeline configuration.
      */
     enum ExtensionType {
+
         /**
          * The P4Info as returned by the p4c compiler in text format.
          */

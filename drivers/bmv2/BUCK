@@ -4,7 +4,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:minimal-json',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//protocols/p4runtime/model:onos-protocols-p4runtime-model',
     '//drivers/p4runtime:onos-drivers-p4runtime',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
@@ -13,7 +13,6 @@ COMPILE_DEPS = [
 
 BUNDLES = [
     ':onos-drivers-bmv2',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
 ]
 
 osgi_jar(

@@ -1,0 +1,11 @@
+PROTOBUF_VER = '3.0.2'
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
+    '//lib:protobuf-java-' + PROTOBUF_VER,
+]
+
+osgi_jar(
+    deps = COMPILE_DEPS,
+)

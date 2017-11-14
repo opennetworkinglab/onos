@@ -16,14 +16,13 @@
 
 package org.onosproject.pipelines.basic;
 
-import org.onosproject.net.pi.runtime.PiActionId;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiCounterType;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
-import org.onosproject.net.pi.runtime.PiPacketMetadataId;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.model.PiTableId;
 
 /**
  * Constants for the basic.p4 program.
@@ -32,29 +31,36 @@ public final class BasicConstants {
 
     // TODO: constants could be auto-generated starting from the P4info.
 
+    private static final String TABLE0_CONTROL = "table0_control";
+    private static final String WCMP_CONTROL = "wcmp_control";
+
     // Header field IDs
+    public static final String DOT =  ".";
+    public static final String HDR = "hdr";
     public static final String ETHERNET = "ethernet";
     public static final String LOCAL_METADATA = "local_metadata";
     public static final String STANDARD_METADATA = "standard_metadata";
-    public static final PiHeaderFieldId HDR_IN_PORT_ID = PiHeaderFieldId.of(STANDARD_METADATA, "ingress_port");
-    public static final PiHeaderFieldId HDR_ETH_DST_ID = PiHeaderFieldId.of(ETHERNET, "dst_addr");
-    public static final PiHeaderFieldId HDR_ETH_SRC_ID = PiHeaderFieldId.of(ETHERNET, "src_addr");
-    public static final PiHeaderFieldId HDR_ETH_TYPE_ID = PiHeaderFieldId.of(ETHERNET, "ether_type");
-    public static final PiHeaderFieldId HDR_NEXT_HOP_ID = PiHeaderFieldId.of(LOCAL_METADATA, "next_hop_id");
-    public static final PiHeaderFieldId HDR_SELECTOR_ID = PiHeaderFieldId.of(LOCAL_METADATA, "selector");
+    public static final PiMatchFieldId HDR_IN_PORT_ID = PiMatchFieldId.of(STANDARD_METADATA + DOT + "ingress_port");
+    public static final PiMatchFieldId HDR_ETH_DST_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "dst_addr");
+    public static final PiMatchFieldId HDR_ETH_SRC_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "src_addr");
+    public static final PiMatchFieldId HDR_ETH_TYPE_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "ether_type");
+    public static final PiMatchFieldId HDR_NEXT_HOP_ID = PiMatchFieldId.of(LOCAL_METADATA + DOT + "next_hop_id");
+    public static final PiMatchFieldId HDR_SELECTOR_ID = PiMatchFieldId.of(LOCAL_METADATA + DOT + "selector");
     // Table IDs
-    public static final PiTableId TBL_TABLE0_ID = PiTableId.of("table0_control.table0");
-    public static final PiTableId TBL_WCMP_TABLE_ID = PiTableId.of("wcmp_control.wcmp_table");
+    public static final PiTableId TBL_TABLE0_ID = PiTableId.of(TABLE0_CONTROL + DOT  + "table0");
+    public static final PiTableId TBL_WCMP_TABLE_ID = PiTableId.of(WCMP_CONTROL + DOT  + "wcmp_table");
     // Counter IDs
-    public static final PiCounterId CNT_TABLE0_ID = PiCounterId.of("table0_control.table0_counter",
-                                                                   PiCounterType.DIRECT);
-    public static final PiCounterId CNT_WCMP_TABLE_ID = PiCounterId.of("wcmp_control.wcmp_table_counter",
-                                                                       PiCounterType.DIRECT);
+    public static final PiCounterId CNT_EGRESS_PORT_COUNTER_ID =
+            PiCounterId.of("port_counters_egress.egress_port_counter");
+    public static final PiCounterId CNT_INGRESS_PORT_COUNTER_ID =
+            PiCounterId.of("port_counters_ingress.ingress_port_counter");
+    public static final PiCounterId CNT_TABLE0_ID = PiCounterId.of(TABLE0_CONTROL + DOT  + "table0_counter");
+    public static final PiCounterId CNT_WCMP_TABLE_ID = PiCounterId.of(WCMP_CONTROL + DOT  + "wcmp_table_counter");
     // Action IDs
     public static final PiActionId ACT_NOACTION_ID = PiActionId.of("NoAction");
     public static final PiActionId ACT_DROP_ID = PiActionId.of("_drop");
     public static final PiActionId ACT_SET_EGRESS_PORT_ID = PiActionId.of("set_egress_port");
-    public static final PiActionId ACT_SET_NEXT_HOP_ID = PiActionId.of("table0_control.set_next_hop_id");
+    public static final PiActionId ACT_SET_NEXT_HOP_ID = PiActionId.of(TABLE0_CONTROL + DOT  + "set_next_hop_id");
     public static final PiActionId ACT_SEND_TO_CPU_ID = PiActionId.of("send_to_cpu");
     // Action Param IDs
     public static final PiActionParamId ACT_PRM_PORT_ID = PiActionParamId.of("port");
@@ -62,8 +68,8 @@ public final class BasicConstants {
     // Action Profile IDs
     public static final PiActionProfileId ACT_PRF_WCMP_SELECTOR_ID = PiActionProfileId.of("wcmp_selector");
     // Packet Metadata IDs
-    public static final PiPacketMetadataId PKT_META_EGRESS_PORT_ID = PiPacketMetadataId.of("egress_port");
-    public static final PiPacketMetadataId PKT_META_INGRESS_PORT_ID = PiPacketMetadataId.of("ingress_port");
+    public static final PiControlMetadataId PKT_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");
+    public static final PiControlMetadataId PKT_META_INGRESS_PORT_ID = PiControlMetadataId.of("ingress_port");
     // Bitwidths
     public static final int PORT_BITWIDTH = 9;
 

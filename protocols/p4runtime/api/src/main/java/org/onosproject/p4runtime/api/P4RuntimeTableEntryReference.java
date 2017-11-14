@@ -19,8 +19,8 @@ package org.onosproject.p4runtime.api;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiMatchKey;
-import org.onosproject.net.pi.runtime.PiTableId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

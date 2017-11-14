@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
 
@@ -33,15 +35,15 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
  * Unit tests for PiTernaryFieldMatch class.
  */
 public class PiTernaryFieldMatchTest {
-    final ImmutableByteSequence value1 = copyFrom(0x0a010101);
-    final ImmutableByteSequence mask1 = copyFrom(0x00ffffff);
-    final ImmutableByteSequence value2 = copyFrom(0x0a010102);
-    final ImmutableByteSequence mask2 = copyFrom(0x0000ffff);
+    private final ImmutableByteSequence value1 = copyFrom(0x0a010101);
+    private final ImmutableByteSequence mask1 = copyFrom(0x00ffffff);
+    private final ImmutableByteSequence value2 = copyFrom(0x0a010102);
+    private final ImmutableByteSequence mask2 = copyFrom(0x0000ffff);
 
-    final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(IPV4_HEADER_NAME, DST_ADDR);
-    PiTernaryFieldMatch piTernaryFieldMatch1 = new PiTernaryFieldMatch(piHeaderField, value1, mask1);
-    PiTernaryFieldMatch sameAsPiTernaryFieldMatch1 = new PiTernaryFieldMatch(piHeaderField, value1, mask1);
-    PiTernaryFieldMatch piTernaryFieldMatch2 = new PiTernaryFieldMatch(piHeaderField, value2, mask2);
+    private final PiMatchFieldId piMatchField = PiMatchFieldId.of(IPV4_HEADER_NAME + DOT + DST_ADDR);
+    private PiTernaryFieldMatch piTernaryFieldMatch1 = new PiTernaryFieldMatch(piMatchField, value1, mask1);
+    private PiTernaryFieldMatch sameAsPiTernaryFieldMatch1 = new PiTernaryFieldMatch(piMatchField, value1, mask1);
+    private PiTernaryFieldMatch piTernaryFieldMatch2 = new PiTernaryFieldMatch(piMatchField, value2, mask2);
 
     /**
      * Checks that the PiTernaryFieldMatch class is immutable.
@@ -69,8 +71,8 @@ public class PiTernaryFieldMatchTest {
     public void testConstruction() {
         final ImmutableByteSequence value = copyFrom(0x0a01010a);
         final ImmutableByteSequence mask = copyFrom(0x00ffffff);
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(IPV4_HEADER_NAME, DST_ADDR);
-        PiTernaryFieldMatch piTernaryFieldMatch = new PiTernaryFieldMatch(piHeaderField, value, mask);
+        final PiMatchFieldId piMatchField = PiMatchFieldId.of(IPV4_HEADER_NAME + DOT + DST_ADDR);
+        PiTernaryFieldMatch piTernaryFieldMatch = new PiTernaryFieldMatch(piMatchField, value, mask);
         assertThat(piTernaryFieldMatch, is(notNullValue()));
         assertThat(piTernaryFieldMatch.value(), is(value));
         assertThat(piTernaryFieldMatch.mask(), is(mask));

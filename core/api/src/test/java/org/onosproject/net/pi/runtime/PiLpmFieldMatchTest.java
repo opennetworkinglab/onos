@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
 
@@ -33,13 +35,13 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
  * Unit tests for PiLpmFieldMatch class.
  */
 public class PiLpmFieldMatchTest {
-    final ImmutableByteSequence value1 = copyFrom(0x0a010101);
-    final ImmutableByteSequence value2 = copyFrom(0x0a010102);
-    int prefixLength = 24;
-    final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(IPV4_HEADER_NAME, DST_ADDR);
-    PiLpmFieldMatch piLpmFieldMatch1 = new PiLpmFieldMatch(piHeaderField, value1, prefixLength);
-    PiLpmFieldMatch sameAsPiLpmFieldMatch1 = new PiLpmFieldMatch(piHeaderField, value1, prefixLength);
-    PiLpmFieldMatch piLpmFieldMatch2 = new PiLpmFieldMatch(piHeaderField, value2, prefixLength);
+    private final ImmutableByteSequence value1 = copyFrom(0x0a010101);
+    private final ImmutableByteSequence value2 = copyFrom(0x0a010102);
+    private int prefixLength = 24;
+    private final PiMatchFieldId piMatchField = PiMatchFieldId.of(IPV4_HEADER_NAME + DOT + DST_ADDR);
+    private PiLpmFieldMatch piLpmFieldMatch1 = new PiLpmFieldMatch(piMatchField, value1, prefixLength);
+    private PiLpmFieldMatch sameAsPiLpmFieldMatch1 = new PiLpmFieldMatch(piMatchField, value1, prefixLength);
+    private PiLpmFieldMatch piLpmFieldMatch2 = new PiLpmFieldMatch(piMatchField, value2, prefixLength);
 
     /**
      * Checks that the PiLpmFieldMatch class is immutable.
@@ -67,8 +69,8 @@ public class PiLpmFieldMatchTest {
     public void testConstruction() {
         final ImmutableByteSequence value = copyFrom(0x0a01010a);
         int prefix = 24;
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(IPV4_HEADER_NAME, DST_ADDR);
-        PiLpmFieldMatch piLpmFieldMatch = new PiLpmFieldMatch(piHeaderField, value, prefix);
+        final PiMatchFieldId piMatchField = PiMatchFieldId.of(IPV4_HEADER_NAME + DOT + DST_ADDR);
+        PiLpmFieldMatch piLpmFieldMatch = new PiLpmFieldMatch(piMatchField, value, prefix);
         assertThat(piLpmFieldMatch, is(notNullValue()));
         assertThat(piLpmFieldMatch.value(), is(value));
         assertThat(piLpmFieldMatch.prefixLength(), is(prefix));

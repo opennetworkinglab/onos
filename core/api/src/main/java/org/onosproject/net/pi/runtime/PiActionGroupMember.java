@@ -23,7 +23,7 @@ import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Member of an action group in a protocol-independent pipeline.
+ * Instance of a member of an action group in a protocol-independent pipeline.
  */
 @Beta
 public final class PiActionGroupMember {
@@ -57,8 +57,8 @@ public final class PiActionGroupMember {
     }
 
     /**
-     * Returns the weight associated to this member. Valid if the action group is of type {@link
-     * PiActionGroup.Type#SELECT}.
+     * Returns the weight associated to this member. Meaningful if the action group of this member is of type {@link
+     * org.onosproject.net.pi.model.PiActionGroupType#SELECT}.
      *
      * @return weight
      */
@@ -139,7 +139,8 @@ public final class PiActionGroupMember {
         }
 
         /**
-         * Sets the weight of this member. Valid if the action group is of type {@link PiActionGroup.Type#SELECT}.
+         * Sets the weight of this member. Meaningful only if the action group is of type {@link
+         * org.onosproject.net.pi.model.PiActionGroupType#SELECT}.
          * <p>
          * Default value is 0.
          *

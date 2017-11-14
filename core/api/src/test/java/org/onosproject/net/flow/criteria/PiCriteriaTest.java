@@ -18,9 +18,9 @@ package org.onosproject.net.flow.criteria;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
@@ -38,195 +38,168 @@ import static org.onlab.util.ImmutableByteSequence.copyFrom;
  */
 public class PiCriteriaTest {
 
-    PiHeaderFieldId piEthHeaderFieldId = PiHeaderFieldId.of("ethernet_t", "etherType");
-    byte[] matchExactBytes1 = {0x08, 0x00};
-    byte[] matchExactBytes2 = {0x08, 0x06};
-    Criterion matchPiExactByte1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactBytes1).build();
-    Criterion sameAsMatchPiExactByte1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactBytes1).build();
-    Criterion matchPiExactByte2 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactBytes2).build();
+    private PiMatchFieldId ethMatchFieldId = PiMatchFieldId.of("ethernet_t.etherType");
+    private byte[] matchExactBytes1 = {0x08, 0x00};
+    private byte[] matchExactBytes2 = {0x08, 0x06};
+    private Criterion matchPiExactByte1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactBytes1).build();
+    private Criterion sameAsMatchPiExactByte1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactBytes1).build();
+    private Criterion matchPiExactByte2 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactBytes2).build();
 
-    short matchExactShort1 = 0x800;
-    short matchExactShort2 = 0x806;
-    Criterion matchPiExactShort1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactShort1).build();
-    Criterion sameAsMatchPiExactShort1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactShort1).build();
-    Criterion matchPiExactShort2 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactShort2).build();
+    private short matchExactShort1 = 0x800;
+    private short matchExactShort2 = 0x806;
+    private Criterion matchPiExactShort1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactShort1).build();
+    private Criterion sameAsMatchPiExactShort1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactShort1).build();
+    private Criterion matchPiExactShort2 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactShort2).build();
 
-    int matchExactInt1 = 0x800;
-    int matchExactInt2 = 0x806;
-    Criterion matchPiExactInt1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactInt1).build();
-    Criterion sameAsMatchPiExactInt1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactInt1).build();
-    Criterion matchPiExactInt2 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactInt2).build();
+    private int matchExactInt1 = 0x800;
+    private int matchExactInt2 = 0x806;
+    private Criterion matchPiExactInt1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactInt1).build();
+    private Criterion sameAsMatchPiExactInt1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactInt1).build();
+    private Criterion matchPiExactInt2 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactInt2).build();
 
-    long matchExactLong1 = 0x800;
-    long matchExactLong2 = 0x806;
-    Criterion matchPiExactLong1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactLong1).build();
-    Criterion sameAsMatchPiExactLong1 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactLong1).build();
-    Criterion matchPiExactLong2 = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactLong2).build();
+    private long matchExactLong1 = 0x800;
+    private long matchExactLong2 = 0x806;
+    private Criterion matchPiExactLong1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactLong1).build();
+    private Criterion sameAsMatchPiExactLong1 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactLong1).build();
+    private Criterion matchPiExactLong2 = PiCriterion.builder()
+            .matchExact(ethMatchFieldId, matchExactLong2).build();
 
-    PiHeaderFieldId piIpv4HeaderFieldId = PiHeaderFieldId.of("ipv4_t", "dstAddr");
-    int mask = 0x00ffffff;
-    byte[] matchLpmBytes1 = {0x0a, 0x01, 0x01, 0x01};
-    byte[] matchLpmBytes2 = {0x0a, 0x01, 0x01, 0x02};
-    Criterion matchPiLpmByte1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmBytes1, mask).build();
-    Criterion sameAsMatchPiLpmByte1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmBytes1, mask).build();
-    Criterion matchPiLpmByte2 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmBytes2, mask).build();
+    private PiMatchFieldId ipv4MatchFieldId = PiMatchFieldId.of("ipv4_t.dstAddr");
+    private int mask = 0x00ffffff;
+    private byte[] matchLpmBytes1 = {0x0a, 0x01, 0x01, 0x01};
+    private byte[] matchLpmBytes2 = {0x0a, 0x01, 0x01, 0x02};
+    private Criterion matchPiLpmByte1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmBytes1, mask).build();
+    private Criterion sameAsMatchPiLpmByte1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmBytes1, mask).build();
+    private Criterion matchPiLpmByte2 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmBytes2, mask).build();
 
-    short matchLpmShort1 = 0x0a0a;
-    short matchLpmShort2 = 0x0a0b;
-    Criterion matchPiLpmShort1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmShort1, mask).build();
-    Criterion sameAsMatchPiLpmShort1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId,
-            matchLpmShort1, mask)
-            .build();
-    Criterion matchPiLpmShort2 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmShort2, mask).build();
+    private short matchLpmShort1 = 0x0a0a;
+    private short matchLpmShort2 = 0x0a0b;
+    private Criterion matchPiLpmShort1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmShort1, mask).build();
+    private Criterion sameAsMatchPiLpmShort1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmShort1, mask).build();
+    private Criterion matchPiLpmShort2 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmShort2, mask).build();
 
-    int matchLpmInt1 = 0x0a010101;
-    int matchLpmInt2 = 0x0a010102;
-    Criterion matchPiLpmInt1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmInt1, mask).build();
-    Criterion sameAsMatchPiLpmInt1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmInt1, mask).build();
-    Criterion matchPiLpmInt2 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmInt2, mask).build();
+    private int matchLpmInt1 = 0x0a010101;
+    private int matchLpmInt2 = 0x0a010102;
+    private Criterion matchPiLpmInt1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmInt1, mask).build();
+    private Criterion sameAsMatchPiLpmInt1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmInt1, mask).build();
+    private Criterion matchPiLpmInt2 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmInt2, mask).build();
 
-    long matchLpmLong1 = 0x0a010101;
-    long matchLpmLong2 = 0x0a010102;
-    Criterion matchPiLpmLong1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmLong1, mask).build();
-    Criterion sameAsMatchPiLpmLong1 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmLong1, mask).build();
-    Criterion matchPiLpmLong2 = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmLong2, mask).build();
+    private long matchLpmLong1 = 0x0a010101;
+    private long matchLpmLong2 = 0x0a010102;
+    private Criterion matchPiLpmLong1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmLong1, mask).build();
+    private Criterion sameAsMatchPiLpmLong1 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmLong1, mask).build();
+    private Criterion matchPiLpmLong2 = PiCriterion.builder()
+            .matchLpm(ipv4MatchFieldId, matchLpmLong2, mask).build();
 
 
-    byte[] matchTernaryBytes1 = {0x0a, 0x01, 0x01, 0x01};
-    byte[] matchTernaryBytes2 = {0x0a, 0x01, 0x01, 0x02};
-    byte[] matchTernaryMaskBytes = {0x7f, 0x7f, 0x7f, 0x00};
-    Criterion matchPiTernaryByte1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryBytes1,
-            matchTernaryMaskBytes)
-            .build();
-    Criterion sameAsMatchPiTernaryByte1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryBytes1,
-            matchTernaryMaskBytes)
-            .build();
-    Criterion matchPiTernaryByte2 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryBytes2,
-            matchTernaryMaskBytes)
-            .build();
+    private byte[] matchTernaryBytes1 = {0x0a, 0x01, 0x01, 0x01};
+    private byte[] matchTernaryBytes2 = {0x0a, 0x01, 0x01, 0x02};
+    private byte[] matchTernaryMaskBytes = {0x7f, 0x7f, 0x7f, 0x00};
+    private Criterion matchPiTernaryByte1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryBytes1, matchTernaryMaskBytes).build();
+    private Criterion sameAsMatchPiTernaryByte1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryBytes1, matchTernaryMaskBytes).build();
+    private Criterion matchPiTernaryByte2 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryBytes2, matchTernaryMaskBytes).build();
 
-    short matchTernaryShort1 = 0x0a0a;
-    short matchTernaryShort2 = 0x0a0b;
-    short matchTernaryMaskShort = 0xff0;
-    Criterion matchPiTernaryShort1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryShort1,
-            matchTernaryMaskShort)
-            .build();
-    Criterion sameAsMatchPiTernaryShort1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryShort1,
-            matchTernaryMaskShort)
-            .build();
-    Criterion matchPiTernaryShort2 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryShort2,
-            matchTernaryMaskShort)
-            .build();
+    private short matchTernaryShort1 = 0x0a0a;
+    private short matchTernaryShort2 = 0x0a0b;
+    private short matchTernaryMaskShort = 0xff0;
+    private Criterion matchPiTernaryShort1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryShort1, matchTernaryMaskShort).build();
+    private Criterion sameAsMatchPiTernaryShort1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryShort1, matchTernaryMaskShort).build();
+    private Criterion matchPiTernaryShort2 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryShort2, matchTernaryMaskShort).build();
 
-    int matchTernaryInt1 = 0x0a010101;
-    int matchTernaryInt2 = 0x0a010102;
-    int matchTernaryMaskInt = 0xffff;
-    Criterion matchPiTernaryInt1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryInt1,
-            matchTernaryMaskInt)
-            .build();
-    Criterion sameAsMatchPiTernaryInt1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryInt1,
-            matchTernaryMaskInt)
-            .build();
-    Criterion matchPiTernaryInt2 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryInt2,
-            matchTernaryMaskInt)
-            .build();
+    private int matchTernaryInt1 = 0x0a010101;
+    private int matchTernaryInt2 = 0x0a010102;
+    private int matchTernaryMaskInt = 0xffff;
+    private Criterion matchPiTernaryInt1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryInt1, matchTernaryMaskInt).build();
+    private Criterion sameAsMatchPiTernaryInt1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryInt1, matchTernaryMaskInt).build();
+    private Criterion matchPiTernaryInt2 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryInt2, matchTernaryMaskInt).build();
 
-    long matchTernaryLong1 = 0x0a010101;
-    long matchTernaryLong2 = 0x0a010102;
-    long matchTernaryMaskLong = 0xffff;
-    Criterion matchPiTernaryLong1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryLong1,
-            matchTernaryMaskLong)
-            .build();
-    Criterion sameAsMatchPiTernaryLong1 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryLong1,
-            matchTernaryMaskLong)
-            .build();
-    Criterion matchPiTernaryLong2 = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId,
-            matchTernaryLong2,
-            matchTernaryMaskLong)
-            .build();
+    private long matchTernaryLong1 = 0x0a010101;
+    private long matchTernaryLong2 = 0x0a010102;
+    private long matchTernaryMaskLong = 0xffff;
+    private Criterion matchPiTernaryLong1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryLong1, matchTernaryMaskLong).build();
+    private Criterion sameAsMatchPiTernaryLong1 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryLong1, matchTernaryMaskLong).build();
+    private Criterion matchPiTernaryLong2 = PiCriterion.builder()
+            .matchTernary(ipv4MatchFieldId, matchTernaryLong2, matchTernaryMaskLong).build();
 
-    Criterion matchPiValid1 = PiCriterion.builder().matchValid(piIpv4HeaderFieldId, false).build();
-    Criterion sameAsMatchPiValid1 = PiCriterion.builder().matchValid(piIpv4HeaderFieldId, false).build();
-    Criterion matchPiValid2 = PiCriterion.builder().matchValid(piIpv4HeaderFieldId, true).build();
+    private Criterion matchPiValid1 = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
+    private Criterion sameAsMatchPiValid1 = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
+    private Criterion matchPiValid2 = PiCriterion.builder().matchValid(ipv4MatchFieldId, true).build();
 
-    byte[] matchRangeBytes1 = {0x10};
-    byte[] matchRangeBytes2 = {0x20};
-    byte[] matchRangeHighBytes = {0x30};
-    Criterion matchPiRangeByte1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeBytes1,
-            matchRangeHighBytes)
-            .build();
-    Criterion sameAsMatchPiRangeByte1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeBytes1,
-            matchRangeHighBytes)
-            .build();
-    Criterion matchPiRangeByte2 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeBytes2,
-            matchRangeHighBytes)
-            .build();
+    private byte[] matchRangeBytes1 = {0x10};
+    private byte[] matchRangeBytes2 = {0x20};
+    private byte[] matchRangeHighBytes = {0x30};
+    private Criterion matchPiRangeByte1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeBytes1, matchRangeHighBytes).build();
+    private Criterion sameAsMatchPiRangeByte1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeBytes1, matchRangeHighBytes).build();
+    private Criterion matchPiRangeByte2 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeBytes2, matchRangeHighBytes).build();
 
-    short matchRangeShort1 = 0x100;
-    short matchRangeShort2 = 0x200;
-    short matchRangeHighShort = 0x300;
-    Criterion matchPiRangeShort1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeShort1,
-            matchRangeHighShort)
-            .build();
-    Criterion sameAsMatchPiRangeShort1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeShort1,
-            matchRangeHighShort)
-            .build();
-    Criterion matchPiRangeShort2 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeShort2,
-            matchRangeHighShort)
-            .build();
+    private short matchRangeShort1 = 0x100;
+    private short matchRangeShort2 = 0x200;
+    private short matchRangeHighShort = 0x300;
+    private Criterion matchPiRangeShort1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeShort1, matchRangeHighShort).build();
+    private Criterion sameAsMatchPiRangeShort1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeShort1, matchRangeHighShort).build();
+    private Criterion matchPiRangeShort2 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeShort2, matchRangeHighShort).build();
 
-    int matchRangeInt1 = 0x100;
-    int matchRangeInt2 = 0x200;
-    int matchRangeHighInt = 0x300;
-    Criterion matchPiRangeInt1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeInt1,
-            matchRangeHighInt)
-            .build();
-    Criterion sameAsMatchPiRangeInt1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeInt1,
-            matchRangeHighInt)
-            .build();
-    Criterion matchPiRangeInt2 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeInt2,
-            matchRangeHighInt)
-            .build();
+    private int matchRangeInt1 = 0x100;
+    private int matchRangeInt2 = 0x200;
+    private int matchRangeHighInt = 0x300;
+    private Criterion matchPiRangeInt1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeInt1, matchRangeHighInt).build();
+    private Criterion sameAsMatchPiRangeInt1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeInt1, matchRangeHighInt).build();
+    private Criterion matchPiRangeInt2 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeInt2, matchRangeHighInt).build();
 
-    long matchRangeLong1 = 0x100;
-    long matchRangeLong2 = 0x200;
-    long matchRangeHighLong = 0x300;
-    Criterion matchPiRangeLong1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeLong1,
-            matchRangeHighLong)
-            .build();
-    Criterion sameAsMatchPiRangeLong1 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeLong1,
-            matchRangeHighLong)
-            .build();
-    Criterion matchPiRangeLong2 = PiCriterion.builder().matchRange(piIpv4HeaderFieldId,
-            matchRangeLong2,
-            matchRangeHighLong)
-            .build();
+    private long matchRangeLong1 = 0x100;
+    private long matchRangeLong2 = 0x200;
+    private long matchRangeHighLong = 0x300;
+    private Criterion matchPiRangeLong1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeLong1, matchRangeHighLong).build();
+    private Criterion sameAsMatchPiRangeLong1 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeLong1, matchRangeHighLong).build();
+    private Criterion matchPiRangeLong2 = PiCriterion.builder()
+            .matchRange(ipv4MatchFieldId, matchRangeLong2, matchRangeHighLong).build();
 
     /**
-     * Checks that a Criterion object has the proper type, and then converts
-     * it to the proper type.
+     * Checks that a Criterion object has the proper type, and then converts it to the proper type.
      *
      * @param criterion Criterion object to convert
      * @param type      Enumerated type value for the Criterion class
@@ -248,28 +221,28 @@ public class PiCriteriaTest {
     @Test
     public void testExactMatchPiMethod() {
 
-        Criterion matchPiBytes = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactBytes1).build();
+        Criterion matchPiBytes = PiCriterion.builder().matchExact(ethMatchFieldId, matchExactBytes1).build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchBytes = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactBytes1));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiExactFieldMatch(ethMatchFieldId, copyFrom(matchExactBytes1));
         assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
-        Criterion matchPiShort = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactShort1).build();
+        Criterion matchPiShort = PiCriterion.builder().matchExact(ethMatchFieldId, matchExactShort1).build();
         PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchShort = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactShort1));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiExactFieldMatch(ethMatchFieldId, copyFrom(matchExactShort1));
         assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
-        Criterion matchPiInt = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactInt1).build();
+        Criterion matchPiInt = PiCriterion.builder().matchExact(ethMatchFieldId, matchExactInt1).build();
         PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchInt = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactInt1));
+                                                     PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiExactFieldMatch(ethMatchFieldId, copyFrom(matchExactInt1));
         assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
-        Criterion matchPiLong = PiCriterion.builder().matchExact(piEthHeaderFieldId, matchExactLong1).build();
+        Criterion matchPiLong = PiCriterion.builder().matchExact(ethMatchFieldId, matchExactLong1).build();
         PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchLong = new PiExactFieldMatch(piEthHeaderFieldId, copyFrom(matchExactLong1));
+                                                      PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiExactFieldMatch(ethMatchFieldId, copyFrom(matchExactLong1));
         assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
@@ -279,28 +252,28 @@ public class PiCriteriaTest {
     @Test
     public void testLpmMatchPiMethod() {
 
-        Criterion matchPiBytes = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmBytes1, mask).build();
+        Criterion matchPiBytes = PiCriterion.builder().matchLpm(ipv4MatchFieldId, matchLpmBytes1, mask).build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchBytes = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmBytes1), mask);
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiLpmFieldMatch(ipv4MatchFieldId, copyFrom(matchLpmBytes1), mask);
         assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
-        Criterion matchPiShort = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmShort1, mask).build();
+        Criterion matchPiShort = PiCriterion.builder().matchLpm(ipv4MatchFieldId, matchLpmShort1, mask).build();
         PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchShort = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmShort1), mask);
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiLpmFieldMatch(ipv4MatchFieldId, copyFrom(matchLpmShort1), mask);
         assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
-        Criterion matchPiInt = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmInt1, mask).build();
+        Criterion matchPiInt = PiCriterion.builder().matchLpm(ipv4MatchFieldId, matchLpmInt1, mask).build();
         PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchInt = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmInt1), mask);
+                                                     PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiLpmFieldMatch(ipv4MatchFieldId, copyFrom(matchLpmInt1), mask);
         assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
-        Criterion matchPiLong = PiCriterion.builder().matchLpm(piIpv4HeaderFieldId, matchLpmLong1, mask).build();
+        Criterion matchPiLong = PiCriterion.builder().matchLpm(ipv4MatchFieldId, matchLpmLong1, mask).build();
         PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchLong = new PiLpmFieldMatch(piIpv4HeaderFieldId, copyFrom(matchLpmLong1), mask);
+                                                      PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiLpmFieldMatch(ipv4MatchFieldId, copyFrom(matchLpmLong1), mask);
         assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
@@ -310,40 +283,40 @@ public class PiCriteriaTest {
     @Test
     public void testTernaryMatchPiMethod() {
 
-        Criterion matchPiBytes = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryBytes1,
-                matchTernaryMaskBytes)
+        Criterion matchPiBytes = PiCriterion.builder().matchTernary(ipv4MatchFieldId, matchTernaryBytes1,
+                                                                    matchTernaryMaskBytes)
                 .build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchBytes = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryBytes1),
-                copyFrom(matchTernaryMaskBytes));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiTernaryFieldMatch(ipv4MatchFieldId, copyFrom(matchTernaryBytes1),
+                                                                  copyFrom(matchTernaryMaskBytes));
         assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
-        Criterion matchPiShort = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryShort1,
-                matchTernaryMaskShort)
+        Criterion matchPiShort = PiCriterion.builder().matchTernary(ipv4MatchFieldId, matchTernaryShort1,
+                                                                    matchTernaryMaskShort)
                 .build();
         PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchShort = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryShort1),
-                copyFrom(matchTernaryMaskShort));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiTernaryFieldMatch(ipv4MatchFieldId, copyFrom(matchTernaryShort1),
+                                                                  copyFrom(matchTernaryMaskShort));
         assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
-        Criterion matchPiInt = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryInt1,
-                matchTernaryMaskInt)
+        Criterion matchPiInt = PiCriterion.builder().matchTernary(ipv4MatchFieldId, matchTernaryInt1,
+                                                                  matchTernaryMaskInt)
                 .build();
         PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchInt = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryInt1),
-                copyFrom(matchTernaryMaskInt));
+                                                     PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiTernaryFieldMatch(ipv4MatchFieldId, copyFrom(matchTernaryInt1),
+                                                                copyFrom(matchTernaryMaskInt));
         assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
-        Criterion matchPiLong = PiCriterion.builder().matchTernary(piIpv4HeaderFieldId, matchTernaryLong1,
-                matchTernaryMaskLong)
+        Criterion matchPiLong = PiCriterion.builder().matchTernary(ipv4MatchFieldId, matchTernaryLong1,
+                                                                   matchTernaryMaskLong)
                 .build();
         PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchLong = new PiTernaryFieldMatch(piIpv4HeaderFieldId, copyFrom(matchTernaryLong1),
-                copyFrom(matchTernaryMaskLong));
+                                                      PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiTernaryFieldMatch(ipv4MatchFieldId, copyFrom(matchTernaryLong1),
+                                                                 copyFrom(matchTernaryMaskLong));
         assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 
@@ -353,10 +326,10 @@ public class PiCriteriaTest {
     @Test
     public void testValidMatchPiMethod() {
 
-        Criterion matchPiBytes = PiCriterion.builder().matchValid(piIpv4HeaderFieldId, true).build();
+        Criterion matchPiBytes = PiCriterion.builder().matchValid(ipv4MatchFieldId, true).build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatch = new PiValidFieldMatch(piIpv4HeaderFieldId, true);
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatch = new PiValidFieldMatch(ipv4MatchFieldId, true);
         assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatch));
     }
 
@@ -366,40 +339,40 @@ public class PiCriteriaTest {
     @Test
     public void testRangeMatchPiMethod() {
 
-        Criterion matchPiBytes = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeBytes1,
-                matchRangeHighBytes)
+        Criterion matchPiBytes = PiCriterion.builder().matchRange(ipv4MatchFieldId, matchRangeBytes1,
+                                                                  matchRangeHighBytes)
                 .build();
         PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchBytes = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeBytes1),
-                copyFrom(matchRangeHighBytes));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiRangeFieldMatch(ipv4MatchFieldId, copyFrom(matchRangeBytes1),
+                                                                copyFrom(matchRangeHighBytes));
         assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
 
-        Criterion matchPiShort = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeShort1,
-                matchRangeHighShort)
+        Criterion matchPiShort = PiCriterion.builder().matchRange(ipv4MatchFieldId, matchRangeShort1,
+                                                                  matchRangeHighShort)
                 .build();
         PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchShort = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeShort1),
-                copyFrom(matchRangeHighShort));
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiRangeFieldMatch(ipv4MatchFieldId, copyFrom(matchRangeShort1),
+                                                                copyFrom(matchRangeHighShort));
         assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
 
-        Criterion matchPiInt = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeInt1,
-                matchRangeHighInt)
+        Criterion matchPiInt = PiCriterion.builder().matchRange(ipv4MatchFieldId, matchRangeInt1,
+                                                                matchRangeHighInt)
                 .build();
         PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchInt = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeInt1),
-                copyFrom(matchRangeHighInt));
+                                                     PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiRangeFieldMatch(ipv4MatchFieldId, copyFrom(matchRangeInt1),
+                                                              copyFrom(matchRangeHighInt));
         assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
 
-        Criterion matchPiLong = PiCriterion.builder().matchRange(piIpv4HeaderFieldId, matchRangeLong1,
-                matchRangeHighLong)
+        Criterion matchPiLong = PiCriterion.builder().matchRange(ipv4MatchFieldId, matchRangeLong1,
+                                                                 matchRangeHighLong)
                 .build();
         PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
-                PiCriterion.class);
-        PiFieldMatch expectedMatchLong = new PiRangeFieldMatch(piIpv4HeaderFieldId, copyFrom(matchRangeLong1),
-                copyFrom(matchRangeHighLong));
+                                                      PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiRangeFieldMatch(ipv4MatchFieldId, copyFrom(matchRangeLong1),
+                                                               copyFrom(matchRangeHighLong));
         assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
     }
 

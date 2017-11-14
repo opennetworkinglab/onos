@@ -20,7 +20,7 @@ import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
 
 /**
- * An identifier of a protocol-independent pipeline configuration.
+ * An identifier of a protocol-independent pipeline configuration, unique within the scope of ONOS.
  */
 @Beta
 public final class PiPipeconfId extends Identifier<String> {

@@ -18,6 +18,7 @@ package org.onosproject.drivers.bmv2;
 
 import org.apache.commons.io.IOUtils;
 import org.onosproject.drivers.p4runtime.AbstractP4RuntimePipelineProgrammable;
+import org.onosproject.net.behaviour.PiPipelineProgrammable;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.pipelines.basic.PipeconfLoader;
 
@@ -30,7 +31,8 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 /**
  * Implementation of the PiPipelineProgrammable behavior for BMv2.
  */
-public class Bmv2PipelineProgrammable extends AbstractP4RuntimePipelineProgrammable {
+public class Bmv2PipelineProgrammable extends AbstractP4RuntimePipelineProgrammable
+        implements PiPipelineProgrammable {
 
     @Override
     public ByteBuffer createDeviceDataBuffer(PiPipeconf pipeconf) {

@@ -16,12 +16,11 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiCounterType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
-import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.slf4j.Logger;
 import p4.P4RuntimeOuterClass.CounterData;
@@ -120,27 +119,25 @@ final class CounterEntryCodec {
         int counterId;
         Entity entity;
         // Encode PI cell ID into entity message and add to read request.
-        switch (cellId.type()) {
+        switch (cellId.counterType()) {
             case INDIRECT:
                 counterId = browser.counters().getByName(cellId.counterId().id()).getPreamble().getId();
-                PiIndirectCounterCellId indCellId = (PiIndirectCounterCellId) cellId;
                 entity = Entity.newBuilder().setCounterEntry(CounterEntry.newBuilder()
                                                                      .setCounterId(counterId)
-                                                                     .setIndex(indCellId.index())
+                                                                     .setIndex(cellId.index())
                                                                      .build())
                         .build();
                 break;
             case DIRECT:
                 counterId = browser.directCounters().getByName(cellId.counterId().id()).getPreamble().getId();
-                PiDirectCounterCellId dirCellId = (PiDirectCounterCellId) cellId;
                 DirectCounterEntry.Builder entryBuilder = DirectCounterEntry.newBuilder().setCounterId(counterId);
-                if (!dirCellId.tableEntry().equals(PiTableEntry.EMTPY)) {
-                    entryBuilder.setTableEntry(TableEntryEncoder.encode(dirCellId.tableEntry(), pipeconf));
+                if (!cellId.tableEntry().equals(PiTableEntry.EMTPY)) {
+                    entryBuilder.setTableEntry(TableEntryEncoder.encode(cellId.tableEntry(), pipeconf));
                 }
                 entity = Entity.newBuilder().setDirectCounterEntry(entryBuilder.build()).build();
                 break;
             default:
-                throw new EncodeException(format("Unrecognized PI counter cell ID type '%s'", cellId.type()));
+                throw new EncodeException(format("Unrecognized PI counter cell ID type '%s'", cellId.counterType()));
         }
         counterIdMap.put(counterId, cellId.counterId());
 
@@ -169,17 +166,23 @@ final class CounterEntryCodec {
 
         PiCounterId piCounterId = counterIdMap.get(counterId);
 
+        if (!pipeconf.pipelineModel().counter(piCounterId).isPresent()) {
+            throw new EncodeException(format(
+                    "Unable to find counter '%s' in pipeline model", counterId));
+        }
+        PiCounterType piCounterType = pipeconf.pipelineModel().counter(piCounterId).get().counterType();
+
         // Compute PI cell ID.
         PiCounterCellId piCellId;
 
-        switch (piCounterId.type()) {
+        switch (piCounterType) {
             case INDIRECT:
                 if (entity.getEntityCase() != COUNTER_ENTRY) {
                     throw new EncodeException(format(
                             "Counter ID '%s' is indirect, but processed entity is %s",
                             piCounterId, entity.getEntityCase()));
                 }
-                piCellId = PiIndirectCounterCellId.of(piCounterId,
+                piCellId = PiCounterCellId.ofIndirect(piCounterId,
                                                       entity.getCounterEntry().getIndex());
                 break;
             case DIRECT:
@@ -190,10 +193,10 @@ final class CounterEntryCodec {
                 }
                 PiTableEntry piTableEntry = TableEntryEncoder.decode(entity.getDirectCounterEntry().getTableEntry(),
                                                                      pipeconf);
-                piCellId = PiDirectCounterCellId.of(piCounterId, piTableEntry);
+                piCellId = PiCounterCellId.ofDirect(piCounterId, piTableEntry);
                 break;
             default:
-                throw new EncodeException(format("Unrecognized PI counter ID type '%s'", piCounterId.type()));
+                throw new EncodeException(format("Unrecognized PI counter ID type '%s'", piCounterType));
         }
 
         return new PiCounterCellData(piCellId, counterData.getPacketCount(), counterData.getByteCount());

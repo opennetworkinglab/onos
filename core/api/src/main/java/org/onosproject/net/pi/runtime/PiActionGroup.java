@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.onosproject.net.pi.model.PiActionGroupType;
+import org.onosproject.net.pi.model.PiActionProfileId;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,27 +31,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Action group of a protocol-independent pipeline.
+ * Instance of an action group of a protocol-independent pipeline.
  */
 @Beta
 public final class PiActionGroup {
 
-    /**
-     * Type of action group.
-     */
-    public enum Type {
-        /**
-         * Load-balancing among different members in a group.
-         */
-        SELECT
-    }
-
     private final PiActionGroupId id;
-    private final Type type;
+    private final PiActionGroupType type;
     private final ImmutableSet<PiActionGroupMember> members;
     private final PiActionProfileId piActionProfileId;
 
-    private PiActionGroup(PiActionGroupId id, Type type,
+    private PiActionGroup(PiActionGroupId id, PiActionGroupType type,
                           ImmutableSet<PiActionGroupMember> members,
                           PiActionProfileId piActionProfileId) {
         this.id = id;
@@ -72,7 +64,7 @@ public final class PiActionGroup {
      *
      * @return action group type
      */
-    public Type type() {
+    public PiActionGroupType type() {
         return type;
     }
 
@@ -139,7 +131,7 @@ public final class PiActionGroup {
     public static final class Builder {
 
         private PiActionGroupId id;
-        private Type type;
+        private PiActionGroupType type;
         private Map<PiActionGroupMemberId, PiActionGroupMember> members = Maps.newHashMap();
         private PiActionProfileId piActionProfileId;
 
@@ -164,7 +156,7 @@ public final class PiActionGroup {
          * @param type action group type
          * @return this
          */
-        public Builder withType(Type type) {
+        public Builder withType(PiActionGroupType type) {
             this.type = type;
             return this;
         }

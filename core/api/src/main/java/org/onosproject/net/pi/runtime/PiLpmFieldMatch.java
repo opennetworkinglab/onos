@@ -19,13 +19,14 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Longest-prefix field match in a protocol-independent pipeline.
+ * Instance of a longest-prefix field match in a protocol-independent pipeline.
  */
 @Beta
 public final class PiLpmFieldMatch extends PiFieldMatch {
@@ -40,7 +41,7 @@ public final class PiLpmFieldMatch extends PiFieldMatch {
      * @param value        value
      * @param prefixLength prefix length
      */
-    public PiLpmFieldMatch(PiHeaderFieldId fieldId, ImmutableByteSequence value, int prefixLength) {
+    public PiLpmFieldMatch(PiMatchFieldId fieldId, ImmutableByteSequence value, int prefixLength) {
         super(fieldId);
         this.value = checkNotNull(value);
         this.prefixLength = prefixLength;

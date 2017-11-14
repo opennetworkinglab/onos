@@ -20,6 +20,9 @@ import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiActionGroupType;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import java.util.Collection;
 
@@ -37,36 +40,36 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
  */
 public class PiActionGroupTest {
 
-    final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
-    final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
+    private final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
+    private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
 
-    final PiActionGroupMember piActionGroupMember = PiActionGroupMember.builder()
+    private final PiActionGroupMember piActionGroupMember = PiActionGroupMember.builder()
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    PiActionGroupId piActionGroupId = PiActionGroupId.of(10);
-    PiActionGroup piActionGroup1 = PiActionGroup.builder()
+    private PiActionGroupId piActionGroupId = PiActionGroupId.of(10);
+    private PiActionGroup piActionGroup1 = PiActionGroup.builder()
             .addMember(piActionGroupMember)
             .withId(piActionGroupId)
-            .withType(PiActionGroup.Type.SELECT)
+            .withType(PiActionGroupType.SELECT)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
-    PiActionGroup sameAsPiActionGroup1 = PiActionGroup.builder()
+    private PiActionGroup sameAsPiActionGroup1 = PiActionGroup.builder()
             .addMember(piActionGroupMember)
             .withId(piActionGroupId)
-            .withType(PiActionGroup.Type.SELECT)
+            .withType(PiActionGroupType.SELECT)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
-    PiActionGroupId piActionGroupId2 = PiActionGroupId.of(20);
-    PiActionGroup piActionGroup2 = PiActionGroup.builder()
+    private PiActionGroupId piActionGroupId2 = PiActionGroupId.of(20);
+    private PiActionGroup piActionGroup2 = PiActionGroup.builder()
             .addMember(piActionGroupMember)
             .withId(piActionGroupId2)
-            .withType(PiActionGroup.Type.SELECT)
+            .withType(PiActionGroupType.SELECT)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
@@ -102,7 +105,7 @@ public class PiActionGroupTest {
         piActionGroupMembers.add(piActionGroupMember);
         assertThat(piActionGroup1, is(notNullValue()));
         assertThat(piActionGroup1.id(), is(piActionGroupId));
-        assertThat(piActionGroup1.type(), is(PiActionGroup.Type.SELECT));
+        assertThat(piActionGroup1.type(), is(PiActionGroupType.SELECT));
         assertThat("Incorrect members value",
                    CollectionUtils.isEqualCollection(piActionGroup1.members(), piActionGroupMembers));
     }

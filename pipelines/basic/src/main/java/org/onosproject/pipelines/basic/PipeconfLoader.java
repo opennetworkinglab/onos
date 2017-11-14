@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
@@ -32,6 +31,8 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.p4runtime.model.P4InfoParser;
+import org.onosproject.p4runtime.model.P4InfoParserException;
 
 import java.net.URL;
 import java.util.Collection;
@@ -75,10 +76,10 @@ public final class PipeconfLoader {
     private static PiPipeconf buildBasicPipeconf() {
         final URL jsonUrl = PipeconfLoader.class.getResource(BASIC_JSON_PATH);
         final URL p4InfoUrl = PipeconfLoader.class.getResource(BASIC_P4INFO);
-        final PiPipelineModel model = Bmv2PipelineModelParser.parse(jsonUrl);
+
         return DefaultPiPipeconf.builder()
                 .withId(BASIC_PIPECONF_ID)
-                .withPipelineModel(model)
+                .withPipelineModel(parseP4Info(p4InfoUrl))
                 .addBehaviour(PiPipelineInterpreter.class, BasicInterpreterImpl.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
@@ -92,15 +93,23 @@ public final class PipeconfLoader {
     private static PiPipeconf buildEcmpPipeconf() {
         final URL jsonUrl = PipeconfLoader.class.getResource(ECMP_JSON_PATH);
         final URL p4InfoUrl = PipeconfLoader.class.getResource(ECMP_P4INFO);
-        final PiPipelineModel model = Bmv2PipelineModelParser.parse(jsonUrl);
+
         return DefaultPiPipeconf.builder()
                 .withId(ECMP_PIPECONF_ID)
-                .withPipelineModel(model)
+                .withPipelineModel(parseP4Info(p4InfoUrl))
                 .addBehaviour(PiPipelineInterpreter.class, EcmpInterpreterImpl.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
                 .build();
+    }
+
+    private static PiPipelineModel parseP4Info(URL p4InfoUrl) {
+        try {
+            return P4InfoParser.parse(p4InfoUrl);
+        } catch (P4InfoParserException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

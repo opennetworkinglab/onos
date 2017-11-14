@@ -19,9 +19,9 @@ package org.onosproject.net.flow.criteria;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
@@ -40,14 +40,14 @@ import static org.onlab.util.ImmutableByteSequence.copyFrom;
 @Beta
 public final class PiCriterion implements Criterion {
 
-    private final ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatchMap;
+    private final ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatchMap;
 
     /**
      * Creates a new protocol-independent criterion for the given match fields.
      *
      * @param fieldMatchMap field match map
      */
-    private PiCriterion(ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatchMap) {
+    private PiCriterion(ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatchMap) {
         this.fieldMatchMap = fieldMatchMap;
     }
 
@@ -66,7 +66,7 @@ public final class PiCriterion implements Criterion {
      * @param fieldId field identifier
      * @return optional field match
      */
-    public Optional<PiFieldMatch> fieldMatch(PiHeaderFieldId fieldId) {
+    public Optional<PiFieldMatch> fieldMatch(PiMatchFieldId fieldId) {
         return Optional.ofNullable(fieldMatchMap.get(fieldId));
     }
 
@@ -115,7 +115,7 @@ public final class PiCriterion implements Criterion {
     public static final class Builder {
 
         // Use map to guarantee that there's only one field match per field id.
-        private final ImmutableMap.Builder<PiHeaderFieldId, PiFieldMatch> fieldMatchMapBuilder = ImmutableMap.builder();
+        private final ImmutableMap.Builder<PiMatchFieldId, PiFieldMatch> fieldMatchMapBuilder = ImmutableMap.builder();
 
         private Builder() {
             // ban constructor.
@@ -128,7 +128,7 @@ public final class PiCriterion implements Criterion {
          * @param value   exact match value
          * @return this
          */
-        public Builder matchExact(PiHeaderFieldId fieldId, short value) {
+        public Builder matchExact(PiMatchFieldId fieldId, short value) {
             fieldMatchMapBuilder.put(fieldId, new PiExactFieldMatch(fieldId, copyFrom(value)));
             return this;
         }
@@ -140,7 +140,7 @@ public final class PiCriterion implements Criterion {
          * @param value   exact match value
          * @return this
          */
-        public Builder matchExact(PiHeaderFieldId fieldId, int value) {
+        public Builder matchExact(PiMatchFieldId fieldId, int value) {
             fieldMatchMapBuilder.put(fieldId, new PiExactFieldMatch(fieldId, copyFrom(value)));
             return this;
         }
@@ -152,7 +152,7 @@ public final class PiCriterion implements Criterion {
          * @param value   exact match value
          * @return this
          */
-        public Builder matchExact(PiHeaderFieldId fieldId, long value) {
+        public Builder matchExact(PiMatchFieldId fieldId, long value) {
             fieldMatchMapBuilder.put(fieldId, new PiExactFieldMatch(fieldId, copyFrom(value)));
             return this;
         }
@@ -164,7 +164,7 @@ public final class PiCriterion implements Criterion {
          * @param value   exact match value
          * @return this
          */
-        public Builder matchExact(PiHeaderFieldId fieldId, byte[] value) {
+        public Builder matchExact(PiMatchFieldId fieldId, byte[] value) {
             fieldMatchMapBuilder.put(fieldId, new PiExactFieldMatch(fieldId, copyFrom(value)));
             return this;
         }
@@ -177,7 +177,7 @@ public final class PiCriterion implements Criterion {
          * @param mask    ternary match mask
          * @return this
          */
-        public Builder matchTernary(PiHeaderFieldId fieldId, short value, short mask) {
+        public Builder matchTernary(PiMatchFieldId fieldId, short value, short mask) {
             fieldMatchMapBuilder.put(fieldId, new PiTernaryFieldMatch(fieldId, copyFrom(value), copyFrom(mask)));
             return this;
         }
@@ -190,7 +190,7 @@ public final class PiCriterion implements Criterion {
          * @param mask    ternary match mask
          * @return this
          */
-        public Builder matchTernary(PiHeaderFieldId fieldId, int value, int mask) {
+        public Builder matchTernary(PiMatchFieldId fieldId, int value, int mask) {
             fieldMatchMapBuilder.put(fieldId, new PiTernaryFieldMatch(fieldId, copyFrom(value), copyFrom(mask)));
             return this;
         }
@@ -203,7 +203,7 @@ public final class PiCriterion implements Criterion {
          * @param mask    ternary match mask
          * @return this
          */
-        public Builder matchTernary(PiHeaderFieldId fieldId, long value, long mask) {
+        public Builder matchTernary(PiMatchFieldId fieldId, long value, long mask) {
             fieldMatchMapBuilder.put(fieldId, new PiTernaryFieldMatch(fieldId, copyFrom(value), copyFrom(mask)));
             return this;
         }
@@ -216,7 +216,7 @@ public final class PiCriterion implements Criterion {
          * @param mask    ternary match mask
          * @return this
          */
-        public Builder matchTernary(PiHeaderFieldId fieldId, byte[] value, byte[] mask) {
+        public Builder matchTernary(PiMatchFieldId fieldId, byte[] value, byte[] mask) {
             fieldMatchMapBuilder.put(fieldId, new PiTernaryFieldMatch(fieldId, copyFrom(value), copyFrom(mask)));
             return this;
         }
@@ -229,7 +229,7 @@ public final class PiCriterion implements Criterion {
          * @param prefixLength lpm match prefix length
          * @return this
          */
-        public Builder matchLpm(PiHeaderFieldId fieldId, short value, int prefixLength) {
+        public Builder matchLpm(PiMatchFieldId fieldId, short value, int prefixLength) {
             fieldMatchMapBuilder.put(fieldId, new PiLpmFieldMatch(fieldId, copyFrom(value), prefixLength));
             return this;
         }
@@ -242,7 +242,7 @@ public final class PiCriterion implements Criterion {
          * @param prefixLength lpm match prefix length
          * @return this
          */
-        public Builder matchLpm(PiHeaderFieldId fieldId, int value, int prefixLength) {
+        public Builder matchLpm(PiMatchFieldId fieldId, int value, int prefixLength) {
             fieldMatchMapBuilder.put(fieldId, new PiLpmFieldMatch(fieldId, copyFrom(value), prefixLength));
             return this;
         }
@@ -255,7 +255,7 @@ public final class PiCriterion implements Criterion {
          * @param prefixLength lpm match prefix length
          * @return this
          */
-        public Builder matchLpm(PiHeaderFieldId fieldId, long value, int prefixLength) {
+        public Builder matchLpm(PiMatchFieldId fieldId, long value, int prefixLength) {
             fieldMatchMapBuilder.put(fieldId, new PiLpmFieldMatch(fieldId, copyFrom(value), prefixLength));
             return this;
         }
@@ -268,7 +268,7 @@ public final class PiCriterion implements Criterion {
          * @param prefixLength lpm match prefix length
          * @return this
          */
-        public Builder matchLpm(PiHeaderFieldId fieldId, byte[] value, int prefixLength) {
+        public Builder matchLpm(PiMatchFieldId fieldId, byte[] value, int prefixLength) {
             fieldMatchMapBuilder.put(fieldId, new PiLpmFieldMatch(fieldId, copyFrom(value), prefixLength));
             return this;
         }
@@ -280,7 +280,7 @@ public final class PiCriterion implements Criterion {
          * @param flag    a boolean value
          * @return this
          */
-        public Builder matchValid(PiHeaderFieldId fieldId, boolean flag) {
+        public Builder matchValid(PiMatchFieldId fieldId, boolean flag) {
             fieldMatchMapBuilder.put(fieldId, new PiValidFieldMatch(fieldId, flag));
             return this;
         }
@@ -293,7 +293,7 @@ public final class PiCriterion implements Criterion {
          * @param high    range match high value
          * @return this
          */
-        public Builder matchRange(PiHeaderFieldId fieldId, short low, short high) {
+        public Builder matchRange(PiMatchFieldId fieldId, short low, short high) {
             fieldMatchMapBuilder.put(fieldId, new PiRangeFieldMatch(fieldId, copyFrom(low), copyFrom(high)));
             return this;
         }
@@ -306,7 +306,7 @@ public final class PiCriterion implements Criterion {
          * @param high    range match high value
          * @return this
          */
-        public Builder matchRange(PiHeaderFieldId fieldId, int low, int high) {
+        public Builder matchRange(PiMatchFieldId fieldId, int low, int high) {
             fieldMatchMapBuilder.put(fieldId, new PiRangeFieldMatch(fieldId, copyFrom(low), copyFrom(high)));
             return this;
         }
@@ -319,7 +319,7 @@ public final class PiCriterion implements Criterion {
          * @param high    range match high value
          * @return this
          */
-        public Builder matchRange(PiHeaderFieldId fieldId, long low, long high) {
+        public Builder matchRange(PiMatchFieldId fieldId, long low, long high) {
             fieldMatchMapBuilder.put(fieldId, new PiRangeFieldMatch(fieldId, copyFrom(low), copyFrom(high)));
             return this;
         }
@@ -332,7 +332,7 @@ public final class PiCriterion implements Criterion {
          * @param high    range match high value
          * @return this
          */
-        public Builder matchRange(PiHeaderFieldId fieldId, byte[] low, byte[] high) {
+        public Builder matchRange(PiMatchFieldId fieldId, byte[] low, byte[] high) {
             fieldMatchMapBuilder.put(fieldId, new PiRangeFieldMatch(fieldId, copyFrom(low), copyFrom(high)));
             return this;
         }
@@ -343,7 +343,7 @@ public final class PiCriterion implements Criterion {
          * @return PiCriterion
          */
         public PiCriterion build() {
-            ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatchMap = fieldMatchMapBuilder.build();
+            ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatchMap = fieldMatchMapBuilder.build();
             checkArgument(fieldMatchMap.size() > 0, "Cannot build PI criterion with 0 field matches");
             return new PiCriterion(fieldMatchMap);
         }

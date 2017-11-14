@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -32,11 +33,11 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.SRC_ADDR;
  * Unit tests for PiActionParam class.
  */
 public class PiActionParamTest {
-    ImmutableByteSequence value1 = copyFrom(0x0a010101);
-    ImmutableByteSequence value2 = copyFrom(0x0a010102);
-    final PiActionParam piActionParam1 = new PiActionParam(PiActionParamId.of(DST_ADDR), value1);
-    final PiActionParam sameAsPiActionParam1 = new PiActionParam(PiActionParamId.of(DST_ADDR), value1);
-    final PiActionParam piActionParam2 = new PiActionParam(PiActionParamId.of(DST_ADDR), value2);
+    private ImmutableByteSequence value1 = copyFrom(0x0a010101);
+    private ImmutableByteSequence value2 = copyFrom(0x0a010102);
+    private final PiActionParam piActionParam1 = new PiActionParam(PiActionParamId.of(DST_ADDR), value1);
+    private final PiActionParam sameAsPiActionParam1 = new PiActionParam(PiActionParamId.of(DST_ADDR), value1);
+    private final PiActionParam piActionParam2 = new PiActionParam(PiActionParamId.of(DST_ADDR), value2);
 
     /**
      * Checks that the PiActionParam class is immutable.

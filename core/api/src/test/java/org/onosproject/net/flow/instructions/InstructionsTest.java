@@ -34,10 +34,10 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.StatTriggerField;
 import org.onosproject.net.flow.StatTriggerFlag;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
 import java.util.EnumMap;

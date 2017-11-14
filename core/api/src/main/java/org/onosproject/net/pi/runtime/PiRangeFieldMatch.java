@@ -19,13 +19,14 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Range field match in a protocol-independent pipeline.
+ * Instance of a range field match in a protocol-independent pipeline.
  */
 @Beta
 public final class PiRangeFieldMatch extends PiFieldMatch {
@@ -40,7 +41,7 @@ public final class PiRangeFieldMatch extends PiFieldMatch {
      * @param lowValue  low value
      * @param highValue high value
      */
-    public PiRangeFieldMatch(PiHeaderFieldId fieldId, ImmutableByteSequence lowValue,
+    public PiRangeFieldMatch(PiMatchFieldId fieldId, ImmutableByteSequence lowValue,
                              ImmutableByteSequence highValue) {
         super(fieldId);
         this.lowValue = checkNotNull(lowValue);

@@ -43,6 +43,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
@@ -169,13 +170,13 @@ public class PiTranslatorServiceTest {
                 .addEqualityGroup(entry1, entry2)
                 .testEquals();
 
-        int numMatchParams = pipeconf.pipelineModel().table(TBL_TABLE0_ID.id()).get().matchFields().size();
+        int numMatchParams = pipeconf.pipelineModel().table(TBL_TABLE0_ID).get().matchFields().size();
         // parse values stored in entry1
         PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_IN_PORT_ID).get();
         PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_DST_ID).get();
         PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_SRC_ID).get();
         PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_TYPE_ID).get();
-        Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TBL_TABLE0_ID.id()).get().supportsAging()
+        Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TBL_TABLE0_ID).get().supportsAging()
                 ? Optional.of((double) rule1.timeout()) : Optional.empty();
 
         // check that the number of parameters in the entry is the same as the number of table keys
@@ -245,7 +246,7 @@ public class PiTranslatorServiceTest {
         assertThat("Group ID must be equal",
                    piGroup1.id().id(), is(equalTo(GROUP_ID.id())));
         assertThat("Group type must be SELECT",
-                   piGroup1.type(), is(equalTo(PiActionGroup.Type.SELECT)));
+                   piGroup1.type(), is(equalTo(PiActionGroupType.SELECT)));
         assertThat("Action profile ID must be equal",
                    piGroup1.actionProfileId(), is(equalTo(ACT_PRF_WCMP_SELECTOR_ID)));
 

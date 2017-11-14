@@ -18,6 +18,8 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -32,22 +34,22 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
  */
 public class PiActionGroupMemberTest {
 
-    final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
-    final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
+    private final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
+    private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
 
-    final PiActionGroupMember piActionGroupMember1 = PiActionGroupMember.builder()
+    private final PiActionGroupMember piActionGroupMember1 = PiActionGroupMember.builder()
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    final PiActionGroupMember sameAsPiActionGroupMember1 = PiActionGroupMember.builder()
+    private final PiActionGroupMember sameAsPiActionGroupMember1 = PiActionGroupMember.builder()
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    final PiActionGroupMember piActionGroupMember2 = PiActionGroupMember.builder()
+    private final PiActionGroupMember piActionGroupMember2 = PiActionGroupMember.builder()
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(20)

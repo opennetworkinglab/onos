@@ -25,24 +25,25 @@ import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.grpc.ctl.GrpcControllerImpl;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.model.PiActionGroupType;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
+import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiMatchKey;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
-import org.onosproject.net.pi.runtime.PiPacketMetadataId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.ctl.P4RuntimeClientImpl;
@@ -60,8 +61,8 @@ import java.util.concurrent.ExecutionException;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onlab.util.ImmutableByteSequence.ofZeros;
+import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
-import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.P4RuntimeOuterClass.ActionProfileGroup.Type.SELECT;
 import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
@@ -75,6 +76,7 @@ public class P4RuntimeTest {
     private static final String GRPC_SERVER_ADDR = "192.168.56.102";
     private static final int GRPC_SERVER_PORT = 55044;
 
+    private static final String DOT = ".";
     private static final String TABLE_0 = "table0";
     private static final String SET_EGRESS_PORT = "set_egress_port";
     private static final String PORT = "port";
@@ -100,10 +102,10 @@ public class P4RuntimeTest {
 
     private final ImmutableByteSequence ethAddr = fit(copyFrom(1), 48);
     private final ImmutableByteSequence portValue = copyFrom((short) 1);
-    private final PiHeaderFieldId ethDstAddrFieldId = PiHeaderFieldId.of(ETHERNET, DST_ADDR);
-    private final PiHeaderFieldId ethSrcAddrFieldId = PiHeaderFieldId.of(ETHERNET, SRC_ADDR);
-    private final PiHeaderFieldId inPortFieldId = PiHeaderFieldId.of(STANDARD_METADATA, INGRESS_PORT);
-    private final PiHeaderFieldId ethTypeFieldId = PiHeaderFieldId.of(ETHERNET, ETHER_TYPE);
+    private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(ETHERNET + DOT + DST_ADDR);
+    private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(ETHERNET + DOT + SRC_ADDR);
+    private final PiMatchFieldId inPortFieldId = PiMatchFieldId.of(STANDARD_METADATA + DOT + INGRESS_PORT);
+    private final PiMatchFieldId ethTypeFieldId = PiMatchFieldId.of(ETHERNET + DOT + ETHER_TYPE);
     private final PiActionParamId portParamId = PiActionParamId.of(PORT);
     private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
     private final PiTableId tableId = PiTableId.of(TABLE_0);
@@ -201,8 +203,8 @@ public class P4RuntimeTest {
         PiPacketOperation packetOperation = PiPacketOperation.builder()
                 .withData(fit(copyFrom(1), 48 + 48 + 16))
                 .withType(PACKET_OUT)
-                .withMetadata(PiPacketMetadata.builder()
-                                      .withId(PiPacketMetadataId.of("egress_port"))
+                .withMetadata(PiControlMetadata.builder()
+                                      .withId(PiControlMetadataId.of("egress_port"))
                                       .withValue(fit(copyFrom(255), 9))
                                       .build())
                 .build();
@@ -267,7 +269,7 @@ public class P4RuntimeTest {
             members.add(member);
         }
         PiActionGroup actionGroup = PiActionGroup.builder()
-                .withType(PiActionGroup.Type.SELECT)
+                .withType(PiActionGroupType.SELECT)
                 .withActionProfileId(actionProfileId)
                 .withId(groupId)
                 .addMembers(members)

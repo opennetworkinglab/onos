@@ -18,6 +18,7 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -60,8 +61,8 @@ public class PiActionParamIdTest {
     @Test
     public void testConstruction() {
         final String param = SRC_ADDR;
-        final PiActionParamId actionParamId = PiActionParamId.of(SRC_ADDR);
+        final PiActionParamId actionParamId = PiActionParamId.of(param);
         assertThat(actionParamId, is(notNullValue()));
-        assertThat(actionParamId.name(), is(param));
+        assertThat(actionParamId.id(), is(param));
     }
 }

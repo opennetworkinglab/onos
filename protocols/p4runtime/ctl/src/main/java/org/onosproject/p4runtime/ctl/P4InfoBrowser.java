@@ -74,14 +74,7 @@ final class P4InfoBrowser {
                     String tableName = entity.getPreamble().getName();
                     EntityBrowser<MatchField> matchFieldBrowser = new EntityBrowser<>(format(
                             "match field for table '%s'", tableName));
-                    entity.getMatchFieldsList().forEach(m -> {
-                        // FIXME: nasty hack needed to provide compatibility with BMv2-based pipeline models.
-                        // Indeed in the BMv2 JSON header fields have format like "ethernet.srd_addr", while in P4Info
-                        // the same will be "hdr.ethernet.srd_addr".
-                        // To be removed when ONOS-7066 will be implemented.
-                        String simpleName = extractMatchFieldSimpleName(m.getName());
-                        matchFieldBrowser.add(simpleName, null, m.getId(), m);
-                    });
+                    entity.getMatchFieldsList().forEach(m -> matchFieldBrowser.add(m.getName(), null, m.getId(), m));
                     matchFields.put(tableId, matchFieldBrowser);
                 });
 
@@ -123,19 +116,6 @@ final class P4InfoBrowser {
                     entity.getMetadataList().forEach(m -> metadataBrowser.add(m.getName(), null, m.getId(), m));
                     ctrlPktMetadatasMetadata.put(ctrlPktMetadataId, metadataBrowser);
                 });
-    }
-
-    static String extractMatchFieldSimpleName(String name) {
-        // Removes the leading "hdr." or other scope identifier.
-        // E.g.: "hdr.ethernet.etherType" becomes "ethernet.etherType"
-        String[] pieces = name.split("\\.");
-        if (pieces.length == 3) {
-            return pieces[1] + "." + pieces[2];
-        } else if (pieces.length == 2) {
-            return name;
-        } else {
-            throw new UnsupportedOperationException("Invalid match field name: " + name);
-        }
     }
 
     /**

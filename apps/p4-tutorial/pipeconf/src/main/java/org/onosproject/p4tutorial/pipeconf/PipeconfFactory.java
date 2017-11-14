@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.bmv2.model.Bmv2PipelineModelParser;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
@@ -31,6 +30,8 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.p4runtime.model.P4InfoParser;
+import org.onosproject.p4runtime.model.P4InfoParserException;
 
 import java.net.URL;
 
@@ -46,18 +47,6 @@ public final class PipeconfFactory {
     public static final PiPipeconfId PIPECONF_ID = new PiPipeconfId("p4-tutorial-pipeconf");
     private static final URL P4INFO_URL = PipeconfFactory.class.getResource("/main.p4info");
     private static final URL BMV2_JSON_URL = PipeconfFactory.class.getResource("/main.json");
-    private static final PiPipelineModel PIPELINE_MODEL = Bmv2PipelineModelParser.parse(BMV2_JSON_URL);
-
-    private static final PiPipeconf PIPECONF = DefaultPiPipeconf.builder()
-            .withId(PIPECONF_ID)
-            .withPipelineModel(PIPELINE_MODEL)
-            .addBehaviour(PiPipelineInterpreter.class, PipelineInterpreterImpl.class)
-            .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
-            // Since main.p4 defines only 1 table, we re-use the existing single-table pipeliner.
-            .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
-            .addExtension(P4_INFO_TEXT, P4INFO_URL)
-            .addExtension(BMV2_JSON, BMV2_JSON_URL)
-            .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
@@ -65,11 +54,31 @@ public final class PipeconfFactory {
     @Activate
     public void activate() {
         // Registers the pipeconf at component activation.
-        piPipeconfService.register(PIPECONF);
+        piPipeconfService.register(buildPipeconf());
     }
 
     @Deactivate
     public void deactivate() {
-        piPipeconfService.remove(PIPECONF.id());
+        piPipeconfService.remove(PIPECONF_ID);
+    }
+
+    private PiPipeconf buildPipeconf() {
+        final PiPipelineModel pipelineModel;
+        try {
+            pipelineModel = P4InfoParser.parse(P4INFO_URL);
+        } catch (P4InfoParserException e) {
+            throw new RuntimeException(e);
+        }
+
+        return DefaultPiPipeconf.builder()
+                .withId(PIPECONF_ID)
+                .withPipelineModel(pipelineModel)
+                .addBehaviour(PiPipelineInterpreter.class, PipelineInterpreterImpl.class)
+                .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
+                // Since main.p4 defines only 1 table, we re-use the existing single-table pipeliner.
+                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addExtension(P4_INFO_TEXT, P4INFO_URL)
+                .addExtension(BMV2_JSON, BMV2_JSON_URL)
+                .build();
     }
 }

@@ -21,13 +21,19 @@ import com.google.common.testing.EqualsTester;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.model.PiTableId;
 
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onosproject.net.pi.runtime.PiConstantsTest.*;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DROP;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.IPV4_HEADER_NAME;
 
 /**
  * Unit tests for PiTableEntry class.
@@ -94,11 +100,11 @@ public class PiTableEntryTest {
         long cookie = 0xfff0323;
         int priority = 100;
         double timeout = 1000;
-        PiHeaderFieldId piHeaderFieldId = PiHeaderFieldId.of(IPV4_HEADER_NAME, DST_ADDR);
-        PiFieldMatch piFieldMatch = new PiExactFieldMatch(piHeaderFieldId, ImmutableByteSequence.copyFrom(0x0a010101));
+        PiMatchFieldId piMatchFieldId = PiMatchFieldId.of(IPV4_HEADER_NAME + DOT + DST_ADDR);
+        PiFieldMatch piFieldMatch = new PiExactFieldMatch(piMatchFieldId, ImmutableByteSequence.copyFrom(0x0a010101));
         PiAction piAction = PiAction.builder().withId(PiActionId.of(DROP)).build();
-        final Map<PiHeaderFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
-        fieldMatches.put(piHeaderFieldId, piFieldMatch);
+        final Map<PiMatchFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
+        fieldMatches.put(piMatchFieldId, piFieldMatch);
         final PiTableEntry piTableEntry = PiTableEntry.builder()
                 .forTable(piTableId)
                 .withMatchKey(PiMatchKey.builder()
@@ -112,6 +118,8 @@ public class PiTableEntryTest {
 
         assertThat(piTableEntry.table(), is(piTableId));
         assertThat(piTableEntry.cookie(), is(cookie));
+        assertThat("Priority must be set", piTableEntry.priority().isPresent());
+        assertThat("Timeout must be set", piTableEntry.timeout().isPresent());
         assertThat(piTableEntry.priority().get(), is(priority));
         assertThat(piTableEntry.timeout().get(), is(timeout));
         assertThat("Incorrect match param value",

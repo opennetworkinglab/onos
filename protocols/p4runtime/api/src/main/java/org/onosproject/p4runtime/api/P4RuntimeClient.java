@@ -19,13 +19,13 @@ package org.onosproject.p4runtime.api;
 import com.google.common.annotations.Beta;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
+import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiCounterId;
+import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiTableId;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

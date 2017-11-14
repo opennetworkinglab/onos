@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +27,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.VID;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.VLAN_HEADER_NAME;
 
@@ -33,15 +35,15 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.VLAN_HEADER_NAME;
  * Unit tests for PiRangeFieldMatch class.
  */
 public class PiRangeFieldMatchTest {
-    final ImmutableByteSequence high1 = copyFrom(0x10);
-    final ImmutableByteSequence low1 = copyFrom(0x00);
-    final ImmutableByteSequence high2 = copyFrom(0x30);
-    final ImmutableByteSequence low2 = copyFrom(0x40);
+    private final ImmutableByteSequence high1 = copyFrom(0x10);
+    private final ImmutableByteSequence low1 = copyFrom(0x00);
+    private final ImmutableByteSequence high2 = copyFrom(0x30);
+    private final ImmutableByteSequence low2 = copyFrom(0x40);
 
-    final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(VLAN_HEADER_NAME, VID);
-    PiRangeFieldMatch piRangeFieldMatch1 = new PiRangeFieldMatch(piHeaderField, low1, high1);
-    PiRangeFieldMatch sameAsPiRangeFieldMatch1 = new PiRangeFieldMatch(piHeaderField, low1, high1);
-    PiRangeFieldMatch piRangeFieldMatch2 = new PiRangeFieldMatch(piHeaderField, low2, high2);
+    private final PiMatchFieldId piMatchField = PiMatchFieldId.of(VLAN_HEADER_NAME + DOT + VID);
+    private PiRangeFieldMatch piRangeFieldMatch1 = new PiRangeFieldMatch(piMatchField, low1, high1);
+    private PiRangeFieldMatch sameAsPiRangeFieldMatch1 = new PiRangeFieldMatch(piMatchField, low1, high1);
+    private PiRangeFieldMatch piRangeFieldMatch2 = new PiRangeFieldMatch(piMatchField, low2, high2);
 
     /**
      * Checks that the PiRangeFieldMatch class is immutable.
@@ -69,8 +71,8 @@ public class PiRangeFieldMatchTest {
     public void testConstruction() {
         final ImmutableByteSequence high = copyFrom(0x50);
         final ImmutableByteSequence low = copyFrom(0x00);
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(VLAN_HEADER_NAME, VID);
-        PiRangeFieldMatch piRangeFieldMatch = new PiRangeFieldMatch(piHeaderField, low, high);
+        final PiMatchFieldId piMatchField = PiMatchFieldId.of(VLAN_HEADER_NAME + DOT + VID);
+        PiRangeFieldMatch piRangeFieldMatch = new PiRangeFieldMatch(piMatchField, low, high);
         assertThat(piRangeFieldMatch, is(notNullValue()));
         assertThat(piRangeFieldMatch.lowValue(), is(low));
         assertThat(piRangeFieldMatch.highValue(), is(high));

@@ -16,7 +16,7 @@
 
 package org.onosproject.pipelines.basic;
 
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiTableId;
 
 /**
  * Constants for the ecmp.p4 program.

@@ -17,11 +17,13 @@
 package org.onosproject.net.pi.runtime;
 
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.ETH_HEADER_NAME;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.ETH_TYPE;
 
@@ -41,10 +43,10 @@ public class PiFieldMatchTest {
 
     @Test
     public void basics() {
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(ETH_HEADER_NAME, ETH_TYPE);
-        PiFieldMatch piFieldMatch = new PiExactFieldMatch(piHeaderField, copyFrom(0x0806));
+        final PiMatchFieldId piMatchField = PiMatchFieldId.of(ETH_HEADER_NAME + DOT + ETH_TYPE);
+        PiFieldMatch piFieldMatch = new PiExactFieldMatch(piMatchField, copyFrom(0x0806));
 
-        assertEquals(piFieldMatch.fieldId(), piHeaderField);
+        assertEquals(piFieldMatch.fieldId(), piMatchField);
         assertEquals(piFieldMatch.type(), PiMatchType.EXACT);
     }
 }

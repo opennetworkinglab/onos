@@ -17,7 +17,7 @@
 package org.onosproject.pipelines.basic;
 
 import com.google.common.collect.ImmutableBiMap;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiTableId;
 
 import java.util.Optional;
 

@@ -18,23 +18,14 @@ package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.pi.model.PiActionModel;
-import org.onosproject.net.pi.model.PiHeaderFieldModel;
-import org.onosproject.net.pi.model.PiHeaderModel;
-import org.onosproject.net.pi.model.PiHeaderTypeModel;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
-import org.onosproject.net.pi.model.PiTableMatchFieldModel;
-import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.slf4j.Logger;
@@ -42,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 public class PipeconfViewMessageHandler extends UiMessageHandler {
     private static final Logger log =
@@ -61,7 +51,7 @@ public class PipeconfViewMessageHandler extends UiMessageHandler {
 
     private class PipeconfRequestHandler extends RequestHandler {
 
-        public PipeconfRequestHandler() {
+        PipeconfRequestHandler() {
             super(PIPECONF_REQUEST);
         }
 
@@ -103,122 +93,13 @@ public class PipeconfViewMessageHandler extends UiMessageHandler {
                 sendMessage(NO_PIPECONF_RESP, null);
                 return;
             }
-            PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
-            PiPipelineModel pipelineModel =
-                    filteredOutAdditionalData(pipeconf.get().pipelineModel(), interpreter);
+            PiPipelineModel pipelineModel = pipeconf.get().pipelineModel();
 
             ObjectNode pipelineModelData =
                     codecContext.encode(pipelineModel, PiPipelineModel.class);
             responseData.set(PIPELINE_MODEL, pipelineModelData);
 
             sendMessage(PIPECONF_RESP, responseData);
-        }
-    }
-
-    private PiPipelineModel filteredOutAdditionalData(PiPipelineModel piPipelineModel,
-                                                      PiPipelineInterpreter interpreter) {
-        if (interpreter == null) {
-            // Do nothing if there is no interpreter
-            return piPipelineModel;
-        }
-        // filter out actions, headers and tables if not exists in interpreter
-        Set<PiHeaderTypeModel> newHeaderTypesModels = Sets.newHashSet();
-        Set<PiHeaderModel> newHeaderModels = Sets.newHashSet();
-        Set<PiActionModel> newActionModels = Sets.newHashSet();
-        Set<PiTableModel> newTableModels = Sets.newHashSet();
-
-        piPipelineModel.tables().forEach(table -> {
-            String tableName = table.name();
-            PiTableId tableId = PiTableId.of(tableName);
-
-            if (interpreter.mapPiTableId(tableId).isPresent()) {
-                newTableModels.add(table);
-
-                newActionModels.addAll(table.actions());
-                table.matchFields().stream()
-                        .map(PiTableMatchFieldModel::field)
-                        .map(PiHeaderFieldModel::header)
-                        .forEach(header -> {
-                            newHeaderModels.add(header);
-                            newHeaderTypesModels.add(header.type());
-                        });
-
-            }
-        });
-
-        return new FilteredPipelineModel(newHeaderTypesModels,
-                                         newHeaderModels,
-                                         newActionModels,
-                                         newTableModels);
-    }
-
-    /**
-     * Pipeline model for UI message.
-     * FIXME: Is it necessary to create this class?
-     */
-    private class FilteredPipelineModel implements PiPipelineModel {
-
-        private Set<PiHeaderTypeModel> headerTypesModels;
-        private Set<PiHeaderModel> headerModels;
-        private Set<PiActionModel> actionModels;
-        private Set<PiTableModel> tableModels;
-
-        public FilteredPipelineModel(Set<PiHeaderTypeModel> headerTypesModels,
-                                     Set<PiHeaderModel> headerModels,
-                                     Set<PiActionModel> actionModels,
-                                     Set<PiTableModel> tableModels) {
-            this.headerTypesModels = headerTypesModels;
-            this.headerModels = headerModels;
-            this.actionModels = actionModels;
-            this.tableModels = tableModels;
-        }
-
-        @Override
-        public Optional<PiHeaderTypeModel> headerType(String name) {
-            return headerTypesModels.stream()
-                    .filter(headerType -> headerType.name().equals(name))
-                    .findFirst();
-        }
-
-        @Override
-        public Collection<PiHeaderTypeModel> headerTypes() {
-            return headerTypesModels;
-        }
-
-        @Override
-        public Optional<PiHeaderModel> header(String name) {
-            return headerModels.stream()
-                    .filter(headerModel -> headerModel.name().equals(name))
-                    .findFirst();
-        }
-
-        @Override
-        public Collection<PiHeaderModel> headers() {
-            return headerModels;
-        }
-
-        @Override
-        public Optional<PiActionModel> action(String name) {
-            return actionModels.stream()
-                    .filter(actionModel -> actionModel.name().equals(name))
-                    .findFirst();
-        }
-
-        @Override
-        public Collection<PiActionModel> actions() {
-            return actionModels;
-        }
-
-        @Override
-        public Optional<PiTableModel> table(String name) {
-            return tableModels.stream()
-                    .filter(tableModel -> tableModel.name().equals(name))
-                    .findFirst();
-        }
-
-        @Override
-        public Collection<PiTableModel> tables() {
-            return tableModels;
         }
     }
 }

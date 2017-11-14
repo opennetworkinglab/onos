@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.pi.model.PiTableId;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Table entry in a protocol-independent pipeline.
+ * Instance of a table entry in a protocol-independent pipeline.
  */
 @Beta
 public final class PiTableEntry {
@@ -99,8 +100,8 @@ public final class PiTableEntry {
     }
 
     /**
-     * Returns the priority of this table entry, if present.
-     * If the priority value is not present, then this table entry has no explicit priority.
+     * Returns the priority of this table entry, if present. If the priority value is not present, then this table entry
+     * has no explicit priority.
      *
      * @return optional priority
      */
@@ -109,8 +110,8 @@ public final class PiTableEntry {
     }
 
     /**
-     * Returns the timeout in seconds of this table entry, if present.
-     * If the timeout value is not present, then this table entry is meant to be permanent.
+     * Returns the timeout in seconds of this table entry, if present. If the timeout value is not present, then this
+     * table entry is meant to be permanent.
      *
      * @return optional timeout value in seconds
      */

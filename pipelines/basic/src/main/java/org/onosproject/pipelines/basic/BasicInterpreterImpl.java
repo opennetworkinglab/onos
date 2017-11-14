@@ -22,7 +22,6 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -33,14 +32,14 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
+import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
-import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -55,7 +54,7 @@ import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
-import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
+import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_DROP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_NOACTION_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
@@ -88,8 +87,8 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
                     .put(TBL_TABLE0_ID, CNT_TABLE0_ID)
                     .put(TBL_WCMP_TABLE_ID, CNT_WCMP_TABLE_ID)
                     .build();
-    private static final ImmutableBiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP =
-            new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()
+    private static final ImmutableBiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
+            new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
                     .put(Criterion.Type.IN_PORT, HDR_IN_PORT_ID)
                     .put(Criterion.Type.ETH_DST, HDR_ETH_DST_ID)
                     .put(Criterion.Type.ETH_SRC, HDR_ETH_SRC_ID)
@@ -183,7 +182,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
     }
 
     @Override
-    public InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetIn)
+    public InboundPacket mapInboundPacket(PiPacketOperation packetIn)
             throws PiInterpreterException {
         // Assuming that the packet is ethernet, which is fine since basic.p4
         // can deparse only ethernet packets.
@@ -196,36 +195,37 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
         }
 
         // Returns the ingress port packet metadata.
-        Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas()
+        Optional<PiControlMetadata> packetMetadata = packetIn.metadatas()
                 .stream().filter(m -> m.id().equals(PKT_META_INGRESS_PORT_ID))
                 .findFirst();
 
         if (packetMetadata.isPresent()) {
             ImmutableByteSequence portByteSequence = packetMetadata.get().value();
             short s = portByteSequence.asReadOnlyBuffer().getShort();
-            ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(s));
+            ConnectPoint receivedFrom = new ConnectPoint(packetIn.deviceId(), PortNumber.portNumber(s));
             ByteBuffer rawData = ByteBuffer.wrap(packetIn.data().asArray());
             return new DefaultInboundPacket(receivedFrom, ethPkt, rawData);
         } else {
             throw new PiInterpreterException(format(
                     "Missing metadata '%s' in packet-in received from '%s': %s",
-                    PKT_META_INGRESS_PORT_ID, deviceId, packetIn));
+                    PKT_META_INGRESS_PORT_ID, packetIn.deviceId(), packetIn));
         }
     }
 
     private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber)
             throws PiInterpreterException {
-        PiPacketMetadata metadata = createPacketMetadata(portNumber);
+        PiControlMetadata metadata = createPacketMetadata(portNumber);
         return PiPacketOperation.builder()
+                .forDevice(this.data().deviceId())
                 .withType(PACKET_OUT)
                 .withData(copyFrom(data))
                 .withMetadatas(ImmutableList.of(metadata))
                 .build();
     }
 
-    private PiPacketMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
+    private PiControlMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
         try {
-            return PiPacketMetadata.builder()
+            return PiControlMetadata.builder()
                     .withId(PKT_META_EGRESS_PORT_ID)
                     .withValue(fit(copyFrom(portNumber), PORT_BITWIDTH))
                     .build();
@@ -236,12 +236,12 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<PiHeaderFieldId> mapCriterionType(Criterion.Type type) {
+    public Optional<PiMatchFieldId> mapCriterionType(Criterion.Type type) {
         return Optional.ofNullable(CRITERION_MAP.get(type));
     }
 
     @Override
-    public Optional<Criterion.Type> mapPiHeaderFieldId(PiHeaderFieldId headerFieldId) {
+    public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId headerFieldId) {
         return Optional.ofNullable(CRITERION_MAP.inverse().get(headerFieldId));
     }
 

@@ -35,12 +35,12 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.criteria.PiCriterion;
-import org.onosproject.net.pi.model.PiPipelineProgrammable;
+import org.onosproject.net.behaviour.PiPipelineProgrammable;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.p4tutorial.pipeconf.PipeconfFactory;
 import org.slf4j.Logger;
 
@@ -116,7 +116,7 @@ public class IcmpDropper {
     }
 
     private void installDropRule(DeviceId deviceId) {
-        PiHeaderFieldId ipv4ProtoFieldId = PiHeaderFieldId.of("ipv4", "protocol");
+        PiMatchFieldId ipv4ProtoFieldId = PiMatchFieldId.of("ipv4.protocol");
         PiActionId dropActionId = PiActionId.of("_drop");
 
         PiCriterion piCriterion = PiCriterion.builder()

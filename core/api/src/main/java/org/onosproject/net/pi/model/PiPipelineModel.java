@@ -28,57 +28,12 @@ import java.util.Optional;
 public interface PiPipelineModel {
 
     /**
-     * Returns the header type associated with the given name, if present.
+     * Returns the table model associated with the given ID, if present.
      *
-     * @param name string value
-     * @return optional header type model
-     */
-    Optional<PiHeaderTypeModel> headerType(String name);
-
-    /**
-     * Returns the collection of all header types defined by this pipeline model.
-     *
-     * @return collection of header types
-     */
-    Collection<PiHeaderTypeModel> headerTypes();
-
-    /**
-     * Returns the header instance associated with the given name, if present.
-     *
-     * @param name string value
-     * @return optional header instance model
-     */
-    Optional<PiHeaderModel> header(String name);
-
-    /**
-     * Returns the collection of all header instance models defined by this pipeline model.
-     *
-     * @return collection of header types
-     */
-    Collection<PiHeaderModel> headers();
-
-    /**
-     * Returns the action model associated with the given name, if present.
-     *
-     * @param name string value
-     * @return optional action model
-     */
-    Optional<PiActionModel> action(String name);
-
-    /**
-     * Returns the collection of all action models defined by this pipeline model.
-     *
-     * @return collection of actions
-     */
-    Collection<PiActionModel> actions();
-
-    /**
-     * Returns the table model associated with the given name, if present.
-     *
-     * @param name string value
+     * @param tableId table ID
      * @return optional table model
      */
-    Optional<PiTableModel> table(String name);
+    Optional<PiTableModel> table(PiTableId tableId);
 
     /**
      * Returns the collection of all table models defined by this pipeline model.
@@ -86,4 +41,57 @@ public interface PiPipelineModel {
      * @return collection of actions
      */
     Collection<PiTableModel> tables();
+
+    /**
+     * Returns the counter model associated with the given ID, id present.
+     *
+     * @param counterId counter ID
+     * @return optional counter model
+     */
+    Optional<PiCounterModel> counter(PiCounterId counterId);
+
+    /**
+     * Returns all counter models defined by this pipeline model.
+     *
+     * @return collection of counter models
+     */
+    Collection<PiCounterModel> counters();
+
+    /**
+     * Returns the meter model associated with the given ID, id present.
+     *
+     * @param meterId meter ID
+     * @return optional meter model
+     */
+    Optional<PiMeterModel> meter(PiMeterId meterId);
+
+    /**
+     * Returns all meter models defined by this pipeline model.
+     *
+     * @return collection of meter models
+     */
+    Collection<PiMeterModel> meters();
+
+    /**
+     * Returns the action profile model associated with the given ID, id present.
+     *
+     * @param actionProfileId action profile ID
+     * @return optional action profile model
+     */
+    Optional<PiActionProfileModel> actionProfiles(PiActionProfileId actionProfileId);
+
+    /**
+     * Returns all action profile models defined by this pipeline model.
+     *
+     * @return collection of action profile models
+     */
+    Collection<PiActionProfileModel> actionProfiles();
+
+    /**
+     * Returns the packet operation model of the given type, if present.
+     *
+     * @param type packet operation type
+     * @return packet operation model
+     */
+    Optional<PiPacketOperationModel> packetOperationModel(PiPacketOperationType type);
 }

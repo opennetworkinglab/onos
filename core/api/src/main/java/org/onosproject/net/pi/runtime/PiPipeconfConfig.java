@@ -21,7 +21,7 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.pi.model.PiPipeconfId;
 
 /**
- * Configuration fot the PiPipeconf susbystem.
+ * Configuration for the PiPipeconf susbystem.
  */
 @Beta
 public class PiPipeconfConfig extends Config<DeviceId> {

@@ -20,22 +20,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 import org.slf4j.Logger;
@@ -381,19 +381,7 @@ final class TableEntryEncoder {
 
         int tableId = tableInfo.getPreamble().getId();
         String fieldMatchName = browser.matchFields(tableId).getById(fieldMatchMsg.getFieldId()).getName();
-
-        // FIXME: nasty hack needed to provide compatibility with BMv2-based pipeline models.
-        // Indeed in the BMv2 JSON header fields have format like "ethernet.srd_addr", while in P4Info
-        // the same will be "hdr.ethernet.srd_addr".
-        // To be removed when ONOS-7066 will be implemented.
-        fieldMatchName = P4InfoBrowser.extractMatchFieldSimpleName(fieldMatchName);
-
-        // FIXME: Add support for decoding of stacked header names.
-        String[] pieces = fieldMatchName.split("\\.");
-        if (pieces.length != 2) {
-            throw new EncodeException(format("unrecognized field match name '%s'", fieldMatchName));
-        }
-        PiHeaderFieldId headerFieldId = PiHeaderFieldId.of(pieces[0], pieces[1]);
+        PiMatchFieldId headerFieldId = PiMatchFieldId.of(fieldMatchName);
 
         FieldMatch.FieldMatchTypeCase typeCase = fieldMatchMsg.getFieldMatchTypeCase();
 
@@ -469,13 +457,13 @@ final class TableEntryEncoder {
     static Action encodePiAction(PiAction piAction, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException, EncodeException {
 
-        int actionId = browser.actions().getByName(piAction.id().name()).getPreamble().getId();
+        int actionId = browser.actions().getByName(piAction.id().toString()).getPreamble().getId();
 
         Action.Builder actionMsgBuilder =
                 Action.newBuilder().setActionId(actionId);
 
         for (PiActionParam p : piAction.parameters()) {
-            P4InfoOuterClass.Action.Param paramInfo = browser.actionParams(actionId).getByName(p.id().name());
+            P4InfoOuterClass.Action.Param paramInfo = browser.actionParams(actionId).getByName(p.id().toString());
             ByteString paramValue = ByteString.copyFrom(p.value().asReadOnlyBuffer());
             assertSize(format("param '%s' of action '%s'", p.id(), piAction.id()),
                        paramValue, paramInfo.getBitwidth());

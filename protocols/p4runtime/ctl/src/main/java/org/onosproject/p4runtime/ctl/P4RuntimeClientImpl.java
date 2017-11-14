@@ -32,19 +32,18 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiCounterType;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiDirectCounterCellId;
-import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.slf4j.Logger;
@@ -107,7 +106,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             WriteOperationType.MODIFY, Update.Type.MODIFY,
             WriteOperationType.DELETE, Update.Type.DELETE
     );
-    private static final String ARBITRATION_RESULT_MASTER = "Is master";
 
     private final Logger log = getLogger(getClass());
 
@@ -225,15 +223,20 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         Set<PiCounterCellId> cellIds = Sets.newHashSet();
 
         for (PiCounterId counterId : counterIds) {
-            switch (counterId.type()) {
+            if (!pipeconf.pipelineModel().counter(counterId).isPresent()) {
+                log.warn("Unable to find counter '{}' in pipeline model",  counterId);
+                continue;
+            }
+            PiCounterType counterType = pipeconf.pipelineModel().counter(counterId).get().counterType();
+            switch (counterType) {
                 case INDIRECT:
-                    cellIds.add(PiIndirectCounterCellId.of(counterId, 0));
+                    cellIds.add(PiCounterCellId.ofIndirect(counterId, 0));
                     break;
                 case DIRECT:
-                    cellIds.add(PiDirectCounterCellId.of(counterId, PiTableEntry.EMTPY));
+                    cellIds.add(PiCounterCellId.ofDirect(counterId, PiTableEntry.EMTPY));
                     break;
                 default:
-                    log.warn("Unrecognized PI counter ID '{}'", counterId.type());
+                    log.warn("Unrecognized PI counter type '{}'", counterType);
             }
         }
 
@@ -460,7 +463,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             return;
         }
         // Decode packet message and post event.
-        PiPacketOperation packetOperation = PacketIOCodec.decodePacketIn(packetInMsg, pipeconf);
+        PiPacketOperation packetOperation = PacketIOCodec.decodePacketIn(packetInMsg, pipeconf, deviceId);
         DefaultPacketIn packetInEventSubject = new DefaultPacketIn(deviceId, packetOperation);
         P4RuntimeEvent event = new P4RuntimeEvent(P4RuntimeEvent.Type.PACKET_IN, packetInEventSubject);
         log.debug("Received packet in: {}", event);

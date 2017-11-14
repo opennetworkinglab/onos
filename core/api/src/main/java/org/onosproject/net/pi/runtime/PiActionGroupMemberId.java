@@ -20,7 +20,8 @@ import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
 
 /**
- * Identifier of a member of an action group in a protocol-independent pipeline.
+ * Identifier of a member of an action group in a protocol-independent pipeline, unique withing the scope on an action
+ * profile.
  */
 @Beta
 public final class PiActionGroupMemberId extends Identifier<Integer> implements PiTableAction {

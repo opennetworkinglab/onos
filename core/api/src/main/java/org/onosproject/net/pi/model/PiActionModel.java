@@ -18,7 +18,7 @@ package org.onosproject.net.pi.model;
 
 import com.google.common.annotations.Beta;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -26,26 +26,27 @@ import java.util.Optional;
  */
 @Beta
 public interface PiActionModel {
-    /**
-     * Returns the name of this action.
-     *
-     * @return a string value
-     */
-    String name();
 
     /**
-     * Returns the model of this action's parameter defined by the given name, if present.
+     * Returns the ID of the action.
      *
-     * @param name action name
+     * @return action ID
+     */
+    PiActionId id();
+
+    /**
+     * Returns the model of the action's parameter defined by the given ID, if present.
+     *
+     * @param paramId parameter ID
      * @return action parameter model
      */
-    Optional<PiActionParamModel> param(String name);
+    Optional<PiActionParamModel> param(PiActionParamId paramId);
 
     /**
-     * Returns the list of action parameter models, ordered according to the same action parameters
-     * defined in the pipeline model.
+     * Returns the collection of all parameter models for the action, or an empty collection if this action has no
+     * parameters.
      *
-     * @return list of action parameter models
+     * @return collection of action parameter models
      */
-    List<PiActionParamModel> params();
+    Collection<PiActionParamModel> params();
 }

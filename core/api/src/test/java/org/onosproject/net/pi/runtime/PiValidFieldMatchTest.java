@@ -18,12 +18,14 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.DOT;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.VID;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.VLAN_HEADER_NAME;
 
@@ -31,13 +33,12 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.VLAN_HEADER_NAME;
  * Unit tests for PiValidFieldMatch class.
  */
 public class PiValidFieldMatchTest {
-
-    final boolean isValid1 = true;
-    final boolean isValid2 = false;
-    final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(VLAN_HEADER_NAME, VID);
-    PiValidFieldMatch piValidFieldMatch1 = new PiValidFieldMatch(piHeaderField, isValid1);
-    PiValidFieldMatch sameAsPiValidFieldMatch1 = new PiValidFieldMatch(piHeaderField, isValid1);
-    PiValidFieldMatch piValidFieldMatch2 = new PiValidFieldMatch(piHeaderField, isValid2);
+    private final boolean isValid1 = true;
+    private final boolean isValid2 = false;
+    private final PiMatchFieldId piMatchField = PiMatchFieldId.of(VLAN_HEADER_NAME + DOT + VID);
+    private PiValidFieldMatch piValidFieldMatch1 = new PiValidFieldMatch(piMatchField, isValid1);
+    private PiValidFieldMatch sameAsPiValidFieldMatch1 = new PiValidFieldMatch(piMatchField, isValid1);
+    private PiValidFieldMatch piValidFieldMatch2 = new PiValidFieldMatch(piMatchField, isValid2);
 
     /**
      * Checks that the PiValidFieldMatch class is immutable.
@@ -63,11 +64,8 @@ public class PiValidFieldMatchTest {
      */
     @Test
     public void testConstruction() {
-        final boolean isValid = true;
-        final PiHeaderFieldId piHeaderField = PiHeaderFieldId.of(VLAN_HEADER_NAME, VID);
-        PiValidFieldMatch piTernaryFieldMatch = new PiValidFieldMatch(piHeaderField, isValid);
-        assertThat(piTernaryFieldMatch, is(notNullValue()));
-        assertThat(piTernaryFieldMatch.isValid(), is(isValid));
-        assertThat(piTernaryFieldMatch.type(), is(PiMatchType.VALID));
+        assertThat(piValidFieldMatch1, is(notNullValue()));
+        assertThat(piValidFieldMatch1.isValid(), is(isValid1));
+        assertThat(piValidFieldMatch1.type(), is(PiMatchType.VALID));
     }
 }

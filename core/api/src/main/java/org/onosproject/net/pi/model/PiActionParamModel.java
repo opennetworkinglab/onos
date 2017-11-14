@@ -19,21 +19,22 @@ package org.onosproject.net.pi.model;
 import com.google.common.annotations.Beta;
 
 /**
- * Model of an action parameter in a protocol-independent pipeline.
+ * Model of an action runtime parameter in a protocol-independent pipeline.
  */
 @Beta
 public interface PiActionParamModel {
-    /**
-     * Returns the name of this action parameter.
-     *
-     * @return a string value
-     */
-    String name();
 
     /**
-     * Return the bit width of this action parameter.
+     * Returns the ID of this action parameter.
      *
-     * @return an integer value
+     * @return action parameter ID
+     */
+    PiActionParamId id();
+
+    /**
+     * Return the size in bits of this action parameter.
+     *
+     * @return size in bits
      */
     int bitWidth();
 }

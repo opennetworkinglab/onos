@@ -28,25 +28,47 @@ import java.util.Optional;
 public interface PiTableModel {
 
     /**
-     * Returns the name of this table.
+     * Returns the ID of this table.
      *
      * @return a string value
      */
-    String name();
+    PiTableId id();
+
+    /**
+     * Returns the type of this table.
+     *
+     * @return table type
+     */
+    PiTableType tableType();
+
+    /**
+     * Returns the model of the action profile that implements this table. Meaningful if this table is of type {@link
+     * PiTableType#INDIRECT}, otherwise returns null.
+     *
+     * @return action profile ID
+     */
+    PiActionProfileModel actionProfile();
 
     /**
      * Returns the maximum number of entries supported by this table.
      *
      * @return an integer value
      */
-    int maxSize();
+    long maxSize();
 
     /**
-     * Returns true if this table has counters, false otherwise.
+     * Returns a collection of direct counters associated to this table.
      *
-     * @return a boolean value
+     * @return collection of direct counters
      */
-    boolean hasCounters();
+    Collection<PiCounterModel> counters();
+
+    /**
+     * Returns a collection of direct meters associated to this table.
+     *
+     * @return collection of direct meters
+     */
+    Collection<PiMeterModel> meters();
 
     /**
      * Returns true if this table supports aging, false otherwise.
@@ -60,7 +82,7 @@ public interface PiTableModel {
      *
      * @return a collection of match field models
      */
-    Collection<PiTableMatchFieldModel> matchFields();
+    Collection<PiMatchFieldModel> matchFields();
 
     /**
      * Returns the actions supported by this table.
@@ -70,12 +92,35 @@ public interface PiTableModel {
     Collection<PiActionModel> actions();
 
     /**
-     * Returns the action model associated with the given name, if present.
-     * If not present, it means that this table does not support such an action.
+     * Returns the model of the default action associated with this table, if any.
      *
-     * @param name string value
+     * @return optional default action model
+     */
+    Optional<PiActionModel> defaultAction();
+
+    /**
+     * Returns true if the default action has mutable parameters that can be changed at runtime, false otherwise.
+     *
+     * @return true if the default action has mutable parameters, false otherwise
+     */
+    boolean hasDefaultMutableParams();
+
+    /**
+     * Returns the action model associated with the given ID, if present. If not present, it means that this table does
+     * not support such an action.
+     *
+     * @param actionId action ID
      * @return optional action model
      */
-    Optional<PiActionModel> action(String name);
+    Optional<PiActionModel> action(PiActionId actionId);
+
+    /**
+     * Returns the match field model associated with the given ID, if present. If not present, it means that this table
+     * does not support such a match field.
+     *
+     * @param matchFieldId match field ID
+     * @return optional match field model
+     */
+    Optional<PiMatchFieldModel> matchField(PiMatchFieldId matchFieldId);
 
 }

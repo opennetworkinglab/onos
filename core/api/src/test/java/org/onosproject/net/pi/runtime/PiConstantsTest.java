@@ -15,30 +15,36 @@
  */
 package org.onosproject.net.pi.runtime;
 
+import org.onosproject.net.pi.model.PiActionProfileId;
+
 /**
- * Unit tests for PiActionId class.
+ * Constants for Pi* unit tests.
  */
 public final class PiConstantsTest {
-    private PiConstantsTest() {
-    }
-    public static final String MOD_NW_DST = "mod_nw_dst";
-    public static final String DEC_TTL = "dec_ttl";
-    public static final String MOD_VLAN_VID = "mod_vlan_vid";
+
+    static final String DOT = ".";
+    static final String MOD_NW_DST = "mod_nw_dst";
+    static final String DEC_TTL = "dec_ttl";
+    static final String MOD_VLAN_VID = "mod_vlan_vid";
     public static final String DROP = "drop";
 
-    public static final String IPV4_HEADER_NAME = "ipv4_t";
-    public static final String ETH_HEADER_NAME = "ethernet_t";
-    public static final String VLAN_HEADER_NAME = "vlan_tag_t";
+    static final String IPV4_HEADER_NAME = "ipv4_t";
+    static final String ETH_HEADER_NAME = "ethernet_t";
+    static final String VLAN_HEADER_NAME = "vlan_tag_t";
 
     public static final String ETH_TYPE = "etherType";
     public static final String DST_ADDR = "dstAddr";
-    public static final String SRC_ADDR = "srcAddr";
-    public static final String VID = "vid";
+    static final String SRC_ADDR = "srcAddr";
+    static final String VID = "vid";
     public static final String PORT = "port";
 
-    public static final String EGRESS_PORT = "egress_port";
-    public static final String INGRESS_PORT = "ingress_port";
+    static final String EGRESS_PORT = "egress_port";
+    static final String INGRESS_PORT = "ingress_port";
 
-    public static final PiActionProfileId ACTION_PROF_ID =
+    static final PiActionProfileId ACTION_PROF_ID =
             PiActionProfileId.of("Test action profile");
+
+    private PiConstantsTest() {
+        // Hides constructor.
+    }
 }

@@ -19,13 +19,14 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Ternary field match in a protocol-independent pipeline.
+ * Instance of a ternary field match in a protocol-independent pipeline.
  */
 @Beta
 public final class PiTernaryFieldMatch extends PiFieldMatch {
@@ -37,21 +38,16 @@ public final class PiTernaryFieldMatch extends PiFieldMatch {
      * Creates a new ternary field match.
      *
      * @param fieldId field identifier
-     * @param value value
-     * @param mask  mask
+     * @param value   value
+     * @param mask    mask
      */
-    public PiTernaryFieldMatch(PiHeaderFieldId fieldId, ImmutableByteSequence value,
+    public PiTernaryFieldMatch(PiMatchFieldId fieldId, ImmutableByteSequence value,
                                ImmutableByteSequence mask) {
         super(fieldId);
         this.value = checkNotNull(value);
         this.mask = checkNotNull(mask);
         checkArgument(value.size() == mask.size() && value.size() > 0,
                       "Value and mask must have same non-zero size");
-    }
-
-    @Override
-    public PiMatchType type() {
-        return PiMatchType.TERNARY;
     }
 
     /**
@@ -70,6 +66,11 @@ public final class PiTernaryFieldMatch extends PiFieldMatch {
      */
     public ImmutableByteSequence mask() {
         return mask;
+    }
+
+    @Override
+    public PiMatchType type() {
+        return PiMatchType.TERNARY;
     }
 
     @Override

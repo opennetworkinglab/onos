@@ -23,7 +23,6 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -35,17 +34,17 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiActionParamId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
-import org.onosproject.net.pi.runtime.PiPacketMetadata;
-import org.onosproject.net.pi.runtime.PiPacketMetadataId;
+import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
-import org.onosproject.net.pi.runtime.PiTableId;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -59,7 +58,7 @@ import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
-import static org.onosproject.net.pi.runtime.PiPacketOperation.Type.PACKET_OUT;
+import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 
 /**
  * Implementation of a PI interpreter for the main.p4 program.
@@ -78,10 +77,10 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
     private static final String STANDARD_METADATA = "standard_metadata";
     private static final int PORT_FIELD_BITWIDTH = 9;
 
-    private static final PiHeaderFieldId INGRESS_PORT_ID = PiHeaderFieldId.of(STANDARD_METADATA, "ingress_port");
-    private static final PiHeaderFieldId ETH_DST_ID = PiHeaderFieldId.of(ETHERNET, "dst_addr");
-    private static final PiHeaderFieldId ETH_SRC_ID = PiHeaderFieldId.of(ETHERNET, "src_addr");
-    private static final PiHeaderFieldId ETH_TYPE_ID = PiHeaderFieldId.of(ETHERNET, "ether_type");
+    private static final PiMatchFieldId INGRESS_PORT_ID = PiMatchFieldId.of(STANDARD_METADATA + ".ingress_port");
+    private static final PiMatchFieldId ETH_DST_ID = PiMatchFieldId.of(ETHERNET + ".dst_addr");
+    private static final PiMatchFieldId ETH_SRC_ID = PiMatchFieldId.of(ETHERNET + ".src_addr");
+    private static final PiMatchFieldId ETH_TYPE_ID = PiMatchFieldId.of(ETHERNET + ".ether_type");
     private static final PiTableId TABLE0_ID = PiTableId.of(TABLE0);
     private static final PiTableId IP_PROTO_FILTER_TABLE_ID = PiTableId.of(IP_PROTO_FILTER_TABLE);
 
@@ -89,8 +88,8 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
             0, TABLE0_ID,
             1, IP_PROTO_FILTER_TABLE_ID);
 
-    private static final BiMap<Criterion.Type, PiHeaderFieldId> CRITERION_MAP =
-            new ImmutableBiMap.Builder<Criterion.Type, PiHeaderFieldId>()
+    private static final BiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
+            new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
                     .put(Criterion.Type.IN_PORT, INGRESS_PORT_ID)
                     .put(Criterion.Type.ETH_DST, ETH_DST_ID)
                     .put(Criterion.Type.ETH_SRC, ETH_SRC_ID)
@@ -177,7 +176,7 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
     }
 
     @Override
-    public InboundPacket mapInboundPacket(DeviceId deviceId, PiPacketOperation packetIn)
+    public InboundPacket mapInboundPacket(PiPacketOperation packetIn)
             throws PiInterpreterException {
         // We assume that the packet is ethernet, which is fine since default.p4 can deparse only ethernet packets.
         Ethernet ethPkt;
@@ -188,34 +187,36 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
         }
 
         // Returns the ingress port packet metadata.
-        Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas().stream()
-                .filter(metadata -> metadata.id().name().equals(INGRESS_PORT))
+        Optional<PiControlMetadata> packetMetadata = packetIn.metadatas().stream()
+                .filter(metadata -> metadata.id().toString().equals(INGRESS_PORT))
                 .findFirst();
 
         if (packetMetadata.isPresent()) {
             ImmutableByteSequence portByteSequence = packetMetadata.get().value();
             short s = portByteSequence.asReadOnlyBuffer().getShort();
-            ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(s));
+            ConnectPoint receivedFrom = new ConnectPoint(packetIn.deviceId(), PortNumber.portNumber(s));
             return new DefaultInboundPacket(receivedFrom, ethPkt, packetIn.data().asReadOnlyBuffer());
         } else {
             throw new PiInterpreterException(format(
-                    "Missing metadata '%s' in packet-in received from '%s': %s", INGRESS_PORT, deviceId, packetIn));
+                    "Missing metadata '%s' in packet-in received from '%s': %s",
+                    INGRESS_PORT, packetIn.deviceId(), packetIn));
         }
     }
 
     private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber) throws PiInterpreterException {
-        PiPacketMetadata metadata = createPacketMetadata(portNumber);
+        PiControlMetadata metadata = createControlMetadata(portNumber);
         return PiPacketOperation.builder()
+                .forDevice(this.data().deviceId())
                 .withType(PACKET_OUT)
                 .withData(copyFrom(data))
                 .withMetadatas(ImmutableList.of(metadata))
                 .build();
     }
 
-    private PiPacketMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
+    private PiControlMetadata createControlMetadata(long portNumber) throws PiInterpreterException {
         try {
-            return PiPacketMetadata.builder()
-                    .withId(PiPacketMetadataId.of(EGRESS_PORT))
+            return PiControlMetadata.builder()
+                    .withId(PiControlMetadataId.of(EGRESS_PORT))
                     .withValue(fit(copyFrom(portNumber), PORT_FIELD_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
@@ -224,12 +225,12 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
     }
 
     @Override
-    public Optional<PiHeaderFieldId> mapCriterionType(Criterion.Type type) {
+    public Optional<PiMatchFieldId> mapCriterionType(Criterion.Type type) {
         return Optional.ofNullable(CRITERION_MAP.get(type));
     }
 
     @Override
-    public Optional<Criterion.Type> mapPiHeaderFieldId(PiHeaderFieldId headerFieldId) {
+    public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId headerFieldId) {
         return Optional.ofNullable(CRITERION_MAP.inverse().get(headerFieldId));
     }
 

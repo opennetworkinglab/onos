@@ -27,7 +27,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.pi.runtime.PiTableId;
+import org.onosproject.net.pi.model.PiTableId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;

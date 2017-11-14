@@ -1,0 +1,126 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.p4runtime.model;
+
+import com.google.common.collect.ImmutableMap;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiActionProfileModel;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiCounterModel;
+import org.onosproject.net.pi.model.PiMeterId;
+import org.onosproject.net.pi.model.PiMeterModel;
+import org.onosproject.net.pi.model.PiPacketOperationModel;
+import org.onosproject.net.pi.model.PiPacketOperationType;
+import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiTableId;
+import org.onosproject.net.pi.model.PiTableModel;
+
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * Implementation of PiPipelineModel for P4Runtime.
+ */
+final class P4PipelineModel implements PiPipelineModel {
+
+    private final ImmutableMap<PiTableId, PiTableModel> tables;
+    private final ImmutableMap<PiCounterId, PiCounterModel> counters;
+    private final ImmutableMap<PiMeterId, PiMeterModel> meters;
+    private final ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles;
+    private final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations;
+
+    P4PipelineModel(
+            ImmutableMap<PiTableId, PiTableModel> tables,
+            ImmutableMap<PiCounterId, PiCounterModel> counters,
+            ImmutableMap<PiMeterId, PiMeterModel> meters,
+            ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles,
+            ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations) {
+        this.tables = tables;
+        this.counters = counters;
+        this.meters = meters;
+        this.actionProfiles = actionProfiles;
+        this.packetOperations = packetOperations;
+    }
+
+    @Override
+    public Optional<PiTableModel> table(PiTableId tableId) {
+        return Optional.ofNullable(tables.get(tableId));
+    }
+
+    @Override
+    public Collection<PiTableModel> tables() {
+        return tables.values();
+    }
+
+    @Override
+    public Optional<PiCounterModel> counter(PiCounterId counterId) {
+        return Optional.ofNullable(counters.get(counterId));
+    }
+
+    @Override
+    public Collection<PiCounterModel> counters() {
+        return counters.values();
+    }
+
+    @Override
+    public Optional<PiMeterModel> meter(PiMeterId meterId) {
+        return Optional.ofNullable(meters.get(meterId));
+    }
+
+    @Override
+    public Collection<PiMeterModel> meters() {
+        return meters.values();
+    }
+
+    @Override
+    public Optional<PiActionProfileModel> actionProfiles(PiActionProfileId actionProfileId) {
+        return Optional.ofNullable(actionProfiles.get(actionProfileId));
+    }
+
+    @Override
+    public Collection<PiActionProfileModel> actionProfiles() {
+        return actionProfiles.values();
+    }
+
+    @Override
+    public Optional<PiPacketOperationModel> packetOperationModel(PiPacketOperationType type) {
+        return Optional.ofNullable(packetOperations.get(type));
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tables, counters, meters, actionProfiles, packetOperations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final P4PipelineModel other = (P4PipelineModel) obj;
+        return Objects.equals(this.tables, other.tables)
+                && Objects.equals(this.counters, other.counters)
+                && Objects.equals(this.meters, other.meters)
+                && Objects.equals(this.actionProfiles, other.actionProfiles)
+                && Objects.equals(this.packetOperations, other.packetOperations);
+    }
+}

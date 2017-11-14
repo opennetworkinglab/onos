@@ -22,7 +22,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
 
 /**
- * A service to translate ONOS entities to protocol-independent ones.
+ * A service to translate protocol-dependent entities to protocol-independent ones.
  */
 @Beta
 public interface PiTranslationService {

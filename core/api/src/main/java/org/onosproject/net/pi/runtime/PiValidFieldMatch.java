@@ -18,10 +18,11 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 /**
- * A valid field match in a protocol-independent pipeline.
+ * Instance of a valid field match in a protocol-independent pipeline.
  */
 @Beta
 public final class PiValidFieldMatch extends PiFieldMatch {
@@ -34,7 +35,7 @@ public final class PiValidFieldMatch extends PiFieldMatch {
      * @param fieldId field identifier
      * @param isValid validity flag
      */
-    public PiValidFieldMatch(PiHeaderFieldId fieldId, boolean isValid) {
+    public PiValidFieldMatch(PiMatchFieldId fieldId, boolean isValid) {
         super(fieldId);
         this.isValid = isValid;
     }

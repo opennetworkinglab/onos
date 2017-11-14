@@ -20,7 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
+import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 
 /**

@@ -19,12 +19,13 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Runtime parameter of an action in a match+action table of a protocol-independent pipeline.
+ * Instance of an action runtime parameter in a match+action table of a protocol-independent pipeline.
  */
 @Beta
 public final class PiActionParam {

@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -32,9 +33,9 @@ public final class PiMatchKey {
 
     public static final PiMatchKey EMPTY = builder().build();
 
-    private final ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatches;
+    private final ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatches;
 
-    private PiMatchKey(ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatches) {
+    private PiMatchKey(ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatches) {
         this.fieldMatches = fieldMatches;
     }
 
@@ -53,7 +54,7 @@ public final class PiMatchKey {
      * @param fieldId field identifier
      * @return optional field match
      */
-    public Optional<PiFieldMatch> fieldMatch(PiHeaderFieldId fieldId) {
+    public Optional<PiFieldMatch> fieldMatch(PiMatchFieldId fieldId) {
         return Optional.ofNullable(fieldMatches.get(fieldId));
     }
 
@@ -95,7 +96,7 @@ public final class PiMatchKey {
      */
     public static final class Builder {
 
-        private final ImmutableMap.Builder<PiHeaderFieldId, PiFieldMatch> fieldMatchesBuilder = ImmutableMap.builder();
+        private final ImmutableMap.Builder<PiMatchFieldId, PiFieldMatch> fieldMatchesBuilder = ImmutableMap.builder();
 
         private Builder() {
             // hides constructor.
@@ -129,7 +130,7 @@ public final class PiMatchKey {
          * @return match key
          */
         public PiMatchKey build() {
-            ImmutableMap<PiHeaderFieldId, PiFieldMatch> fieldMatches = fieldMatchesBuilder.build();
+            ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatches = fieldMatchesBuilder.build();
             return new PiMatchKey(fieldMatches);
         }
     }

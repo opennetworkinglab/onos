@@ -1,7 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:minimal-json',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//protocols/p4runtime/model:onos-protocols-p4runtime-model',
     '//drivers/default:onos-drivers-default',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
 ]
@@ -12,8 +12,6 @@ osgi_jar (
 
 BUNDLES = [
     '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf',
-    '//drivers/default:onos-drivers-default',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
 ]
 
 onos_app (

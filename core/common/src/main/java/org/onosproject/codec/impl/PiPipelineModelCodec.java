@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.pi.model.PiActionModel;
-import org.onosproject.net.pi.model.PiHeaderModel;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableModel;
 
@@ -29,19 +28,17 @@ import org.onosproject.net.pi.model.PiTableModel;
  * Codec for PiPipelineModel.
  */
 public class PiPipelineModelCodec extends JsonCodec<PiPipelineModel> {
-    private static final String HEADERS = "headers";
     private static final String ACTIONS = "actions";
     private static final String TABLES = "tables";
 
     @Override
     public ObjectNode encode(PiPipelineModel pipeline, CodecContext context) {
         ObjectNode result = context.mapper().createObjectNode();
-        ArrayNode headers = result.putArray(HEADERS);
-        pipeline.headers().stream()
-                .map(header -> context.encode(header, PiHeaderModel.class))
-                .forEach(headers::add);
         ArrayNode actions = result.putArray(ACTIONS);
-        pipeline.actions().stream()
+        pipeline.tables()
+                .stream()
+                .flatMap(piTableModel -> piTableModel.actions().stream())
+                .distinct()
                 .map(action -> context.encode(action, PiActionModel.class))
                 .forEach(actions::add);
         ArrayNode tables = result.putArray(TABLES);

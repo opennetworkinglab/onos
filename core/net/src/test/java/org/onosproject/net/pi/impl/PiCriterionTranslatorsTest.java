@@ -57,8 +57,8 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -67,7 +67,9 @@ import java.util.Random;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
-import static org.onosproject.net.pi.model.PiMatchType.*;
+import static org.onosproject.net.pi.model.PiMatchType.EXACT;
+import static org.onosproject.net.pi.model.PiMatchType.LPM;
+import static org.onosproject.net.pi.model.PiMatchType.TERNARY;
 
 /**
  * Tests for CriterionTranslators.
@@ -75,7 +77,7 @@ import static org.onosproject.net.pi.model.PiMatchType.*;
 public class PiCriterionTranslatorsTest {
 
     private Random random = new Random();
-    private final PiHeaderFieldId fieldId = PiHeaderFieldId.of("foo", "bar");
+    private final PiMatchFieldId fieldId = PiMatchFieldId.of("foo.bar");
 
     @Test
     public void testEthCriterion() throws Exception {

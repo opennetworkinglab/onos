@@ -18,7 +18,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//lib:slf4j-jdk14',
-    '//incubator/bmv2/model:onos-incubator-bmv2-model',
+    '//protocols/p4runtime/model:onos-protocols-p4runtime-model',
     # gRPC dependencies
     '//lib:grpc-protobuf-' + GRPC_VER,
     '//lib:grpc-protobuf-lite-' + GRPC_VER,

@@ -19,7 +19,8 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import java.util.Collection;
 
@@ -35,13 +36,13 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
  * Unit tests for PiAction class.
  */
 public class PiActionTest {
-    final PiAction piAction1 = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
+    private final PiAction piAction1 = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
-    final PiAction sameAsPiAction1 = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
+    private final PiAction sameAsPiAction1 = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
-    final PiAction piAction2 = PiAction.builder().withId(PiActionId.of("set_egress_port_0")).build();
+    private final PiAction piAction2 = PiAction.builder().withId(PiActionId.of("set_egress_port_0")).build();
 
     /**
      * Checks that the PiAction class is immutable.

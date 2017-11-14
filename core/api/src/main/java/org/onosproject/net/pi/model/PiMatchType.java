@@ -23,22 +23,27 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public enum PiMatchType {
+
     /**
      * Exact match type.
      */
     EXACT,
+
     /**
      * Ternary match type.
      */
     TERNARY,
+
     /**
      * Longest-prefix match type.
      */
     LPM,
+
     /**
      * Valid match type.
      */
     VALID,
+
     /**
      * Range match type.
      */

@@ -18,6 +18,8 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.base.Objects;
 import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiTableId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

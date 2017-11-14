@@ -19,6 +19,7 @@ package org.onosproject.net.pi.impl;
 import org.onosproject.net.Device;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -64,7 +65,7 @@ final class PiGroupTranslator {
 
         switch (group.type()) {
             case SELECT:
-                piActionGroupBuilder.withType(PiActionGroup.Type.SELECT);
+                piActionGroupBuilder.withType(PiActionGroupType.SELECT);
                 break;
             default:
                 throw new PiTranslationException(format("Group type %s not supported", group.type()));

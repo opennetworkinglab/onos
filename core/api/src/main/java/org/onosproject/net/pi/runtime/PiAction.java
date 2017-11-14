@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,8 +31,7 @@ import java.util.StringJoiner;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Instance of an action, and its runtime parameters, of a table entry in a protocol-independent
- * pipeline.
+ * Instance of an action, and its runtime parameters, of a table entry in a protocol-independent pipeline.
  */
 @Beta
 public final class PiAction implements PiTableAction {
@@ -64,8 +65,8 @@ public final class PiAction implements PiTableAction {
     }
 
     /**
-     * Returns all runtime parameters of this action.
-     * Return an empty collection if the action doesn't take any runtime parameters.
+     * Returns all runtime parameters of this action. Return an empty collection if the action doesn't take any runtime
+     * parameters.
      *
      * @return list of byte sequences
      */

@@ -16,23 +16,24 @@
 
 package org.onosproject.net.pi.runtime;
 
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Header's field match in a protocol-independent pipeline.
+ * Instance of a field match in a protocol-independent pipeline.
  */
 public abstract class PiFieldMatch {
 
-    private final PiHeaderFieldId fieldId;
+    private final PiMatchFieldId fieldId;
 
     /**
      * Creates a new field match for the given header field identifier.
      *
      * @param fieldId field identifier.
      */
-    PiFieldMatch(PiHeaderFieldId fieldId) {
+    PiFieldMatch(PiMatchFieldId fieldId) {
         this.fieldId = checkNotNull(fieldId);
     }
 
@@ -42,7 +43,7 @@ public abstract class PiFieldMatch {
      *
      * @return a header field ID value
      */
-    public final PiHeaderFieldId fieldId() {
+    public final PiMatchFieldId fieldId() {
         return fieldId;
     }
 

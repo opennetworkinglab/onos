@@ -16,7 +16,7 @@
   -->
 <drivers>
     <driver name="tofino" manufacturer="Barefoot Networks" hwVersion="1.0" swVersion="1.0" extends="p4runtime">
-        <behaviour api="org.onosproject.net.pi.model.PiPipelineProgrammable"
+        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
     </driver>
 </drivers>

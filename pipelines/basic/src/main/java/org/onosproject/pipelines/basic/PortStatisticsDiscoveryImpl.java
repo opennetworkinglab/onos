@@ -24,11 +24,10 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiCounterId;
-import org.onosproject.net.pi.runtime.PiIndirectCounterCellId;
 import org.onosproject.net.pi.runtime.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
@@ -42,7 +41,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.onosproject.net.pi.runtime.PiCounterType.INDIRECT;
+import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
+import static org.onosproject.pipelines.basic.BasicConstants.CNT_EGRESS_PORT_COUNTER_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.CNT_INGRESS_PORT_COUNTER_ID;
 
 /**
  * Implementation of the PortStatisticsBehaviour for basic.p4.
@@ -51,19 +52,13 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String SCOPE = "port_counters_control";
-    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("port_counters_ingress",
-                                                                         "ingress_port_counter", INDIRECT);
-    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("port_counters_egress",
-                                                                        "egress_port_counter", INDIRECT);
-
     /**
      * Returns the ID of the ingress port counter.
      *
      * @return counter ID
      */
     public PiCounterId ingressCounterId() {
-        return INGRESS_COUNTER_ID;
+        return CNT_INGRESS_PORT_COUNTER_ID;
     }
 
     /**
@@ -72,7 +67,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
      * @return counter ID
      */
     public PiCounterId egressCounterId() {
-        return EGRESS_COUNTER_ID;
+        return CNT_EGRESS_PORT_COUNTER_ID;
     }
 
     @Override
@@ -106,8 +101,8 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
         Set<PiCounterCellId> counterCellIds = Sets.newHashSet();
         portStatBuilders.keySet().forEach(p -> {
             // Counter cell/index = port number.
-            counterCellIds.add(PiIndirectCounterCellId.of(ingressCounterId(), p));
-            counterCellIds.add(PiIndirectCounterCellId.of(egressCounterId(), p));
+            counterCellIds.add(PiCounterCellId.ofIndirect(ingressCounterId(), p));
+            counterCellIds.add(PiCounterCellId.ofIndirect(egressCounterId(), p));
         });
 
         Collection<PiCounterCellData> counterEntryResponse;
@@ -120,11 +115,11 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
         }
 
         counterEntryResponse.forEach(counterData -> {
-            if (counterData.cellId().type() != INDIRECT) {
-                log.warn("Invalid counter data type {}, skipping", counterData.cellId().type());
+            if (counterData.cellId().counterType() != INDIRECT) {
+                log.warn("Invalid counter data type {}, skipping", counterData.cellId().counterType());
                 return;
             }
-            PiIndirectCounterCellId indCellId = (PiIndirectCounterCellId) counterData.cellId();
+            PiCounterCellId indCellId = counterData.cellId();
             if (!portStatBuilders.containsKey(indCellId.index())) {
                 log.warn("Unrecognized counter index {}, skipping", counterData);
                 return;

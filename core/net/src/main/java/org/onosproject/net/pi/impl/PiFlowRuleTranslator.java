@@ -29,22 +29,22 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.pi.model.PiActionModel;
 import org.onosproject.net.pi.model.PiActionParamModel;
+import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.model.PiMatchFieldModel;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
-import org.onosproject.net.pi.model.PiTableMatchFieldModel;
+import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTableId;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +128,7 @@ final class PiFlowRuleTranslator {
                 tableEntryBuilder.withTimeout((double) rule.timeout());
             } else {
                 log.warn("Flow rule is temporary, but table '{}' doesn't support " +
-                                 "aging, translating to permanent.", tableModel.name());
+                                 "aging, translating to permanent.", tableModel.id());
             }
 
         }
@@ -159,7 +159,7 @@ final class PiFlowRuleTranslator {
 
     private static PiTableModel getTableModel(PiTableId piTableId, PiPipelineModel pipelineModel)
             throws PiTranslationException {
-        return pipelineModel.table(piTableId.toString())
+        return pipelineModel.table(piTableId)
                 .orElseThrow(() -> new PiTranslationException(format(
                         "Not such a table in pipeline model: %s", piTableId)));
     }
@@ -221,24 +221,24 @@ final class PiFlowRuleTranslator {
     private static PiTableAction checkPiAction(PiAction piAction, PiTableModel table)
             throws PiTranslationException {
         // Table supports this action?
-        PiActionModel actionModel = table.action(piAction.id().name()).orElseThrow(
+        PiActionModel actionModel = table.action(piAction.id()).orElseThrow(
                 () -> new PiTranslationException(format("Not such action '%s' for table '%s'",
-                                                        piAction.id(), table.name())));
+                                                        piAction.id(), table.id())));
 
         // Is the number of runtime parameters correct?
         if (actionModel.params().size() != piAction.parameters().size()) {
             throw new PiTranslationException(format(
                     "Wrong number of runtime parameters for action '%s', expected %d but found %d",
-                    actionModel.name(), actionModel.params().size(), piAction.parameters().size()));
+                    actionModel.id(), actionModel.params().size(), piAction.parameters().size()));
         }
 
         // Forge a new action instance with well-sized parameters.
         // The same comment as in typeCheckFieldMatch() about duplicating field match instances applies here.
         PiAction.Builder newActionBuilder = PiAction.builder().withId(piAction.id());
         for (PiActionParam param : piAction.parameters()) {
-            PiActionParamModel paramModel = actionModel.param(param.id().name())
+            PiActionParamModel paramModel = actionModel.param(param.id())
                     .orElseThrow(() -> new PiTranslationException(format(
-                            "Not such parameter '%s' for action '%s'", param.id(), actionModel.name())));
+                            "Not such parameter '%s' for action '%s'", param.id(), actionModel)));
             try {
                 newActionBuilder.withParameter(new PiActionParam(param.id(),
                                                                  fit(param.value(), paramModel.bitWidth())));
@@ -260,16 +260,16 @@ final class PiFlowRuleTranslator {
                                                                   TrafficSelector selector, PiTableModel tableModel)
             throws PiTranslationException {
 
-        Map<PiHeaderFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
+        Map<PiMatchFieldId, PiFieldMatch> fieldMatches = Maps.newHashMap();
 
         // If present, find a PiCriterion and get its field matches as a map. Otherwise, use an empty map.
-        Map<PiHeaderFieldId, PiFieldMatch> piCriterionFields = selector.criteria().stream()
+        Map<PiMatchFieldId, PiFieldMatch> piCriterionFields = selector.criteria().stream()
                 .filter(c -> c.type().equals(PROTOCOL_INDEPENDENT))
                 .map(c -> (PiCriterion) c)
                 .findFirst()
                 .map(PiCriterion::fieldMatches)
                 .map(c -> {
-                    Map<PiHeaderFieldId, PiFieldMatch> fieldMap = Maps.newHashMap();
+                    Map<PiMatchFieldId, PiFieldMatch> fieldMap = Maps.newHashMap();
                     c.forEach(fieldMatch -> fieldMap.put(fieldMatch.fieldId(), fieldMatch));
                     return fieldMap;
                 })
@@ -277,31 +277,20 @@ final class PiFlowRuleTranslator {
 
         Set<Criterion> translatedCriteria = Sets.newHashSet();
         Set<Criterion> ignoredCriteria = Sets.newHashSet();
-        Set<PiHeaderFieldId> usedPiCriterionFields = Sets.newHashSet();
-        Set<PiHeaderFieldId> ignoredPiCriterionFields = Sets.newHashSet();
+        Set<PiMatchFieldId> usedPiCriterionFields = Sets.newHashSet();
+        Set<PiMatchFieldId> ignoredPiCriterionFields = Sets.newHashSet();
 
-        for (PiTableMatchFieldModel fieldModel : tableModel.matchFields()) {
+        for (PiMatchFieldModel fieldModel : tableModel.matchFields()) {
 
-            PiHeaderFieldId fieldId = PiHeaderFieldId.of(fieldModel.field().header().name(),
-                                                         fieldModel.field().type().name(),
-                                                         fieldModel.field().header().index());
+            PiMatchFieldId fieldId = fieldModel.id();
 
-            // FIXME: workaround until ONOS-7066 is resolved
-            if (fieldId.id().startsWith("scalars")) {
-                String newFieldId = fieldId.id()
-                        .replace("scalars.", "")
-                        .replace("_t.", ".");
-                String[] piecies = newFieldId.split("\\.");
-                fieldId = PiHeaderFieldId.of(piecies[0], piecies[1]);
-            }
-
-            int bitWidth = fieldModel.field().type().bitWidth();
+            int bitWidth = fieldModel.bitWidth();
             int fieldByteWidth = (int) Math.ceil((double) bitWidth / 8);
 
             Optional<Criterion.Type> criterionType =
                     interpreter == null
                             ? Optional.empty()
-                            : interpreter.mapPiHeaderFieldId(fieldId);
+                            : interpreter.mapPiMatchFieldId(fieldId);
 
             Criterion criterion = criterionType.map(selector::getCriterion).orElse(null);
 
@@ -378,7 +367,7 @@ final class PiFlowRuleTranslator {
         if (skippedCriteriaJoiner.length() > 0) {
             throw new PiTranslationException(format(
                     "The following criteria cannot be translated for table '%s': %s",
-                    tableModel.name(), skippedCriteriaJoiner.toString()));
+                    tableModel.id(), skippedCriteriaJoiner.toString()));
         }
 
         // Check if all fields found in PiCriterion have been used.
@@ -389,13 +378,13 @@ final class PiFlowRuleTranslator {
         if (skippedPiFieldsJoiner.length() > 0) {
             throw new PiTranslationException(format(
                     "The following PiCriterion field matches are not supported in table '%s': %s",
-                    tableModel.name(), skippedPiFieldsJoiner.toString()));
+                    tableModel.id(), skippedPiFieldsJoiner.toString()));
         }
 
         return fieldMatches.values();
     }
 
-    private static PiFieldMatch typeCheckFieldMatch(PiFieldMatch fieldMatch, PiTableMatchFieldModel fieldModel)
+    private static PiFieldMatch typeCheckFieldMatch(PiFieldMatch fieldMatch, PiMatchFieldModel fieldModel)
             throws PiTranslationException {
 
         // Check parameter type and size
@@ -405,7 +394,7 @@ final class PiFlowRuleTranslator {
                     fieldMatch.fieldId(), fieldModel.matchType().name(), fieldMatch.type().name()));
         }
 
-        int modelBitWidth = fieldModel.field().type().bitWidth();
+        int modelBitWidth = fieldModel.bitWidth();
 
         /*
         Here we try to be robust against wrong size fields with the goal of having PiCriterion independent of the

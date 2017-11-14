@@ -16,7 +16,7 @@
   -->
 <drivers>
     <driver name="bmv2" manufacturer="p4.org" hwVersion="master" swVersion="master" extends="p4runtime">
-        <behaviour api="org.onosproject.net.pi.model.PiPipelineProgrammable"
+        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
     </driver>
 </drivers>

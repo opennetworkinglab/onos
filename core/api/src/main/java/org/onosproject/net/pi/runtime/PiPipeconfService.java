@@ -41,10 +41,9 @@ public interface PiPipeconfService {
     void register(PiPipeconf pipeconf) throws IllegalStateException;
 
     /**
-     * Unregisters the Pipeconf identified by the given PiPipeconfId.
-     * Unregistering a Pipeconf removes it from the ONOS controller, thus making it un-capable
-     * of controlling (e.g installing flow rules) the devices that have the pipeconf's p4 program deployed.
-     * For now this method DOES NOT remove the p4 program from the devices.
+     * Unregisters the Pipeconf identified by the given PiPipeconfId. Unregistering a Pipeconf removes it from the ONOS
+     * controller, thus making it un-capable of controlling (e.g installing flow rules) the devices that have the
+     * pipeconf's P4 program deployed. For now this method DOES NOT remove the P4 program from the devices.
      *
      * @param pipeconfId a pipeconfId
      * @throws IllegalStateException if the same pipeconf identifier is already registered.
@@ -59,8 +58,8 @@ public interface PiPipeconfService {
     Iterable<PiPipeconf> getPipeconfs();
 
     /**
-     * Returns the pipeconf instance associated with the given identifier, if present.
-     * If not present, it means that no pipeconf with such identifier has been registered so far.
+     * Returns the pipeconf instance associated with the given identifier, if present. If not present, it means that no
+     * pipeconf with such identifier has been registered so far.
      *
      * @param id a pipeconf identifier
      * @return an optional pipeconf
@@ -68,10 +67,9 @@ public interface PiPipeconfService {
     Optional<PiPipeconf> getPipeconf(PiPipeconfId id);
 
     /**
-     * Binds the given pipeconf to the given infrastructure device. As a result of this method call,
-     * if the given pipeconf exposes any pipeline-specific behaviours, those will be merged to the
-     * device's driver. Returns a completable future to provide async methods with a boolean if the merge
-     * of the drivers succeeded.
+     * Binds the given pipeconf to the given infrastructure device. As a result of this method call, if the given
+     * pipeconf exposes any pipeline-specific behaviours, those will be merged to the device's driver. Returns a
+     * completable future to provide async methods with a boolean if the merge of the drivers succeeded.
      *
      * @param deviceId   a device identifier
      * @param pipeconfId a pipeconf identifier
@@ -82,8 +80,8 @@ public interface PiPipeconfService {
     CompletableFuture<Boolean> bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId);
 
     /**
-     * Returns the pipeconf identifier currently associated with the given device identifier, if
-     * present. If not present, it means no pipeconf has been associated with that device so far.
+     * Returns the pipeconf identifier currently associated with the given device identifier, if present. If not
+     * present, it means no pipeconf has been associated with that device so far.
      *
      * @param deviceId device identifier
      * @return an optional pipeconf identifier

@@ -80,10 +80,10 @@ import org.onosproject.net.pi.impl.CriterionTranslators.TunnelIdCriterionTransla
 import org.onosproject.net.pi.impl.CriterionTranslators.UdpPortCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.VlanIdCriterionTranslator;
 import org.onosproject.net.pi.impl.CriterionTranslators.VlanPcpCriterionTranslator;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
-import org.onosproject.net.pi.runtime.PiHeaderFieldId;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -140,14 +140,14 @@ final class CriterionTranslatorHelper {
     /**
      * Translates a given criterion instance to a PiFieldMatch with the given id, match type, and bit-width.
      *
-     * @param fieldId   PI header field identifier
+     * @param fieldId   PI match field identifier
      * @param criterion criterion
      * @param matchType match type
      * @param bitWidth  size of the field match in bits
      * @return a PI field match
      * @throws PiTranslationException if the criterion cannot be translated (see exception message)
      */
-    static PiFieldMatch translateCriterion(Criterion criterion, PiHeaderFieldId fieldId, PiMatchType matchType,
+    static PiFieldMatch translateCriterion(Criterion criterion, PiMatchFieldId fieldId, PiMatchType matchType,
                                            int bitWidth)
             throws PiTranslationException {
 

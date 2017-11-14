@@ -17,10 +17,11 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Maps;
+import org.onosproject.net.pi.model.PiActionGroupType;
+import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionProfileId;
 import p4.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.P4RuntimeOuterClass.ActionProfileGroup.Member;
 import p4.P4RuntimeOuterClass.ActionProfileMember;
@@ -118,7 +119,7 @@ public final class ActionProfileGroupEncoder {
             case UNSPECIFIED:
                 // FIXME: PI returns unspecified for select groups. Remove this case when PI bug will be fixed.
             case SELECT:
-                piActionGroupBuilder.withType(PiActionGroup.Type.SELECT);
+                piActionGroupBuilder.withType(PiActionGroupType.SELECT);
                 break;
             default:
                 throw new EncodeException(format("Action profile type %s is not supported",
