@@ -102,6 +102,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         module.addDeserializer(NodeId.class, new NodeIdDeserializer());
         module.addSerializer(ControllerNode.class, new ControllerNodeSerializer());
         module.addDeserializer(ControllerNode.class, new ControllerNodeDeserializer());
+        module.addSerializer(Partition.class, new PartitionSerializer());
         module.addDeserializer(Partition.class, new PartitionDeserializer());
         module.addSerializer(PartitionId.class, new PartitionIdSerializer());
         module.addDeserializer(PartitionId.class, new PartitionIdDeserializer());
@@ -245,6 +246,21 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                                    version);
         } catch (IOException e) {
             throw Throwables.propagate(e);
+        }
+    }
+
+    private static class PartitionSerializer extends JsonSerializer<Partition> {
+        @Override
+        public void serialize(Partition partition, JsonGenerator jgen, SerializerProvider serializerProvider)
+                throws IOException, JsonProcessingException {
+            jgen.writeStartObject();
+            jgen.writeNumberField("id", partition.getId().asInt());
+            jgen.writeArrayFieldStart("members");
+            for (NodeId nodeId : partition.getMembers()) {
+                jgen.writeString(nodeId.id());
+            }
+            jgen.writeEndArray();
+            jgen.writeEndObject();
         }
     }
 
