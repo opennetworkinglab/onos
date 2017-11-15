@@ -592,7 +592,9 @@ public class NetL3VpnManager {
                                                             devMod);
         ResourceData resData = modelConverter.createDataNode(driMod);
         addToStore(resData);
-        checkAndUpdateTunnel(inst, id);
+        // TODO: Enable tunnel creation on-demand. Uncomment below after
+        // complete validation
+        //checkAndUpdateTunnel(inst, id);
         return info;
     }
 
@@ -941,7 +943,9 @@ public class NetL3VpnManager {
                         driverService, devMod);
                 ResourceData resData = modelConverter.createDataNode(driMod);
                 deleteFromStore(resData);
-                tnlHandler.deleteTunnel(dev, instance.vpnName());
+                // TODO: Enable tunnel creation on-demand. Uncomment below after
+                // complete validation
+                // tnlHandler.deleteTunnel(dev, instance.vpnName());
             }
             l3VpnStore.removeVpnInstance(instance.vpnName());
         }
