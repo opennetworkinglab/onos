@@ -53,10 +53,22 @@
     <driver name="corsa-CDP6410" extends="corsa-v39"
             manufacturer="Corsa" hwVersion="CDP6410-A00" swVersion="corsa-ovs-datapath 1.4.105.4">
     </driver>
-    <driver name="corsa-l2-overlay" extends="default"
+    <driver name="corsa-l2-overlay-v2" extends="default"
             manufacturer="Corsa" hwVersion="CDP2.*" swVersion="corsa-ovs-datapath 1.5\..*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.drivers.corsa.CorsaL2OverlayPipeline"/>
+        <behaviour api="org.onosproject.net.behaviour.VlanQuery"
+                   impl="org.onosproject.driver.query.FullVlanAvailable"/>
+    </driver>
+    <driver name="corsa-l2-overlay-v3" extends="default"
+            manufacturer="Corsa" hwVersion="CDP2.*" swVersion="0.030001.16">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.corsa.CorsaL2OverlayPipeline"/>
+        <behaviour api="org.onosproject.net.behaviour.VlanQuery"
+                   impl="org.onosproject.driver.query.FullVlanAvailable"/>
+    </driver>
+    <driver name="corsa-l2-overlay-default" extends="default"
+            manufacturer="Corsa" hwVersion="CDP2.*" swVersion="0\..*">
         <behaviour api="org.onosproject.net.behaviour.VlanQuery"
                    impl="org.onosproject.driver.query.FullVlanAvailable"/>
     </driver>
