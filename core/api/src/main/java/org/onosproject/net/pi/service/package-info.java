@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-
-package org.onosproject.net.pi.runtime;
-
-import com.google.common.annotations.Beta;
-import org.onosproject.store.StoreDelegate;
-
 /**
- * Pipeconf store delegate abstraction.
+ * Service abstractions for runtime control of a protocol-independent pipeline.
  */
-@Beta
-public interface PiPipeconfMappingStoreDelegate extends StoreDelegate<PiPipeconfDeviceMappingEvent> {
-}
+package org.onosproject.net.pi.service;

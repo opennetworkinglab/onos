@@ -43,9 +43,9 @@ import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.runtime.PiPipeconfConfig;
-import org.onosproject.net.pi.runtime.PiPipeconfMappingStore;
-import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.net.pi.service.PiPipeconfConfig;
+import org.onosproject.net.pi.service.PiPipeconfMappingStore;
+import org.onosproject.net.pi.service.PiPipeconfService;
 import org.slf4j.Logger;
 
 import java.util.HashMap;

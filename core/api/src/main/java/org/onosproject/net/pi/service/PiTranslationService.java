@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.runtime;
+package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiTableEntry;
 
 /**
  * A service to translate protocol-dependent entities to protocol-independent ones.

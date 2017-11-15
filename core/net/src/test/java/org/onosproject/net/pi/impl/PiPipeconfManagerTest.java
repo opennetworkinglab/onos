@@ -47,7 +47,7 @@ import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
-import org.onosproject.net.pi.runtime.PiPipeconfConfig;
+import org.onosproject.net.pi.service.PiPipeconfConfig;
 import org.onosproject.pipelines.basic.PipeconfLoader;
 
 import java.io.IOException;

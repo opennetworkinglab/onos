@@ -39,7 +39,7 @@ import org.onosproject.net.behaviour.PiPipelineProgrammable;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
-import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.p4tutorial.pipeconf.PipeconfFactory;
 import org.slf4j.Logger;

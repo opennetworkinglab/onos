@@ -13,29 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.pi.runtime;
+
+
+package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.Config;
-import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Configuration for the PiPipeconf susbystem.
+ * Pipeconf store delegate abstraction.
  */
 @Beta
-public class PiPipeconfConfig extends Config<DeviceId> {
-
-    public static final String PIPIPECONFID = "piPipeconfId";
-
-    @Override
-    public boolean isValid() {
-        return hasOnlyFields(PIPIPECONFID);
-        //TODO will reinstate after synchonization of events
-        //&& !piPipeconfId().id().equals("");
-    }
-
-    public PiPipeconfId piPipeconfId() {
-        return new PiPipeconfId(get(PIPIPECONFID, ""));
-    }
+public interface PiPipeconfMappingStoreDelegate extends StoreDelegate<PiPipeconfDeviceMappingEvent> {
 }

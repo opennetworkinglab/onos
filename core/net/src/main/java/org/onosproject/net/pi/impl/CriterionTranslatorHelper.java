@@ -92,7 +92,7 @@ import java.util.Map;
 import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
 import static org.onosproject.net.pi.impl.CriterionTranslator.CriterionTranslatorException;
-import static org.onosproject.net.pi.runtime.PiTranslationService.PiTranslationException;
+import static org.onosproject.net.pi.service.PiTranslationService.PiTranslationException;
 
 /**
  * Helper class to translate criterion instances to PI field matches.

@@ -25,7 +25,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
-import org.onosproject.net.pi.runtime.PiPipeconfService;
+import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.slf4j.Logger;

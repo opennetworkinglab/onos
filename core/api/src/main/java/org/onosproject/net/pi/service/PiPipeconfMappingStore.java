@@ -15,7 +15,7 @@
  */
 
 
-package org.onosproject.net.pi.runtime;
+package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;

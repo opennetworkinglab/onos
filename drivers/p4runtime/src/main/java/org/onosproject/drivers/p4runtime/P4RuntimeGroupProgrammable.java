@@ -30,7 +30,7 @@ import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeGroupReference;
 import org.onosproject.p4runtime.api.P4RuntimeGroupWrapper;

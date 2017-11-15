@@ -30,7 +30,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

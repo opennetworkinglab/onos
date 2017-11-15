@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.runtime;
+package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
@@ -24,7 +24,7 @@ import org.onosproject.net.DeviceId;
  * Entity that represents pipeconf to device binding events.
  */
 @Beta
-public class PiPipeconfDeviceMappingEvent extends AbstractEvent<PiPipeconfDeviceMappingEvent.Type, DeviceId> {
+public final class PiPipeconfDeviceMappingEvent extends AbstractEvent<PiPipeconfDeviceMappingEvent.Type, DeviceId> {
 
     /**
      * Type of pipeconf to device mapping event.

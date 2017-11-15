@@ -15,6 +15,6 @@
  */
 
 /**
- * Base abstractions fot runtime control of a protocol-independent pipeline.
+ * Classes abstracting entities for runtime control of a protocol-independent packet processing pipeline.
  */
 package org.onosproject.net.pi.runtime;

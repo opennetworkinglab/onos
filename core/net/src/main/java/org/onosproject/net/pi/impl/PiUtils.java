@@ -22,7 +22,7 @@ import org.onosproject.net.flow.TableId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
-import org.onosproject.net.pi.runtime.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -62,7 +62,7 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.PROTOCOL_INDEPEND
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
 import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
 import static org.onosproject.net.pi.impl.PiUtils.translateTableId;
-import static org.onosproject.net.pi.runtime.PiTranslationService.PiTranslationException;
+import static org.onosproject.net.pi.service.PiTranslationService.PiTranslationException;
 
 /**
  * Implementation of flow rule translation logic.

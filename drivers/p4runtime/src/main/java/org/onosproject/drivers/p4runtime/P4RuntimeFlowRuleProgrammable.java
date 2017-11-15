@@ -32,7 +32,7 @@ import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.runtime.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 import org.onosproject.p4runtime.api.P4RuntimeFlowRuleWrapper;
 import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;

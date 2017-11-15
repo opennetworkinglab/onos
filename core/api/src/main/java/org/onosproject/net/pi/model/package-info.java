@@ -15,6 +15,6 @@
  */
 
 /**
- * Base abstractions of a protocol-independent packet processing pipeline.
+ * Model abstractions of a protocol-independent packet processing pipeline.
  */
 package org.onosproject.net.pi.model;
