@@ -31,6 +31,9 @@ import static org.onosproject.net.behaviour.trafficcontrol.Policer.Unit.MB_PER_S
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DROP;
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DSCP_CLASS;
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DSCP_PRECEDENCE;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.COMMITTED;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.EXCESS;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.PEAK;
 
 /**
  * Test class for policer implementation.
@@ -73,6 +76,7 @@ public class PolicerTest {
         TokenBucket tokenBucket = DefaultTokenBucket.builder()
                 .withBurstSize(0)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Create a policer with above token bucket
         Policer policer = DefaultPolicer.builder()
@@ -106,6 +110,7 @@ public class PolicerTest {
         TokenBucket tokenBucket = DefaultTokenBucket.builder()
                 .withRate(1)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Create a policer with above token bucket
         Policer policer = DefaultPolicer.builder()
@@ -140,6 +145,7 @@ public class PolicerTest {
                 .withRate(1)
                 .withAction(DSCP_PRECEDENCE)
                 .withDscp((short) 2)
+                .withType(COMMITTED)
                 .build();
         // Create a policer with above token bucket
         Policer policer = DefaultPolicer.builder()
@@ -174,12 +180,14 @@ public class PolicerTest {
                 .withRate(1)
                 .withAction(DSCP_PRECEDENCE)
                 .withDscp((short) 2)
+                .withType(COMMITTED)
                 .build();
         // Create token bucket for excess rate
         TokenBucket erTokenBucket = DefaultTokenBucket.builder()
                 .withRate(1)
                 .withBurstSize(4 * 1500)
                 .withAction(DROP)
+                .withType(EXCESS)
                 .build();
         // Create a policer with above token buckets
         Policer policer = DefaultPolicer.builder()
@@ -218,6 +226,7 @@ public class PolicerTest {
                 .withRate(1250)
                 .withBurstSize(10 * 1500)
                 .withAction(DROP)
+                .withType(PEAK)
                 .build();
         // Create token bucket for committed rate at 1Mb/s
         TokenBucket crTokenBucket = DefaultTokenBucket.builder()
@@ -225,6 +234,7 @@ public class PolicerTest {
                 .withRate(125)
                 .withAction(DSCP_CLASS)
                 .withDscp((short) 10)
+                .withType(COMMITTED)
                 .build();
         // Create a policer with above token buckets
         Policer policer = DefaultPolicer.builder()
@@ -304,12 +314,14 @@ public class PolicerTest {
         TokenBucket blockTokenBucket = DefaultTokenBucket.builder()
                 .withBurstSize(0)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Create a mark traffic token bucket
         TokenBucket markTokenBucket = DefaultTokenBucket.builder()
                 .withBurstSize(0)
                 .withAction(DSCP_CLASS)
                 .withDscp((short) 10)
+                .withType(COMMITTED)
                 .build();
         // Create first policer
         Policer policerOne = DefaultPolicer.builder()

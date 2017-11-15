@@ -36,8 +36,26 @@ public interface TokenBucket {
     short MIN_DSCP = 0;
 
     /**
+     * Token bucket type.
+     */
+    enum Type {
+        /**
+         * Committed rate.
+         */
+        COMMITTED,
+        /**
+         * Excess rate.
+         */
+        EXCESS,
+        /**
+         * Peak rate.
+         */
+        PEAK
+    }
+
+    /**
      * Action applied to the exceeding traffic.
-     * Action depends on the tocken bucket type
+     * Action in general depends on the token bucket type.
      */
     enum Action {
         /**
@@ -88,6 +106,13 @@ public interface TokenBucket {
      * @return the dscp value for this token bucket
      */
     short dscp();
+
+    /**
+     * Token bucket type.
+     *
+     * @return the token bucket type
+     */
+    Type type();
 
     /**
      * Stats which reports how many packets have been
@@ -150,6 +175,16 @@ public interface TokenBucket {
          * @return this
          */
         Builder withDscp(short dscp);
+
+        /**
+         * Assigns the type to this token bucket.
+         * <p>
+         * Note: mandatory setter for this builder
+         * </p>
+         * @param type the type
+         * @return this
+         */
+        Builder withType(Type type);
 
         /**
          * Builds the token bucket based on the specified

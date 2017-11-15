@@ -18,6 +18,7 @@ package org.onosproject.net.behaviour.trafficcontrol;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
+import org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -36,16 +37,18 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
     private final long burstSize;
     private final Action action;
     private final short dscp;
+    private final Type type;
 
     // Mutable parameters
     private long processedPackets;
     private long processedBytes;
 
-    private DefaultTokenBucket(long r, long bS, Action a, short d) {
+    private DefaultTokenBucket(long r, long bS, Action a, short d, Type t) {
         rate = r;
         burstSize = bS;
         action = a;
         dscp = d;
+        type = t;
     }
 
     @Override
@@ -66,6 +69,11 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
     @Override
     public short dscp() {
         return dscp;
+    }
+
+    @Override
+    public Type type() {
+        return type;
     }
 
     @Override
@@ -94,7 +102,8 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
                 .add("rate", rate())
                 .add("burstSize", burstSize())
                 .add("action", action())
-                .add("dscp", dscp()).toString();
+                .add("dscp", dscp())
+                .add("type", type()).toString();
     }
 
     @Override
@@ -109,12 +118,13 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
         return rate == that.rate &&
                 burstSize == that.burstSize &&
                 Objects.equal(action, that.action) &&
-                dscp == that.dscp;
+                dscp == that.dscp &&
+                Objects.equal(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(rate, burstSize, action, dscp);
+        return Objects.hashCode(rate, burstSize, action, dscp, type);
     }
 
     /**
@@ -136,6 +146,7 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
         private long burstSize = 2 * 1500;
         private Action action;
         private short dscp;
+        private Type type;
 
         @Override
         public TokenBucket.Builder withRate(long r) {
@@ -162,9 +173,16 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
         }
 
         @Override
+        public TokenBucket.Builder withType(Type t) {
+            type = t;
+            return this;
+        }
+
+        @Override
         public DefaultTokenBucket build() {
-            // Not null condition on the action
+            // Not null condition on the action and on the type
             checkNotNull(action, "Must specify an action");
+            checkNotNull(type, "Must specify a type");
 
             // If action is based on DSCP modification
             if (action == DSCP_CLASS || action == DSCP_PRECEDENCE) {
@@ -173,7 +191,7 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
             }
 
             // Finally we build the token bucket
-            return new DefaultTokenBucket(rate, burstSize, action, dscp);
+            return new DefaultTokenBucket(rate, burstSize, action, dscp, type);
         }
     }
 }

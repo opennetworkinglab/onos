@@ -26,6 +26,9 @@ import static org.junit.Assert.*;
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DROP;
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DSCP_CLASS;
 import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Action.DSCP_PRECEDENCE;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.COMMITTED;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.EXCESS;
+import static org.onosproject.net.behaviour.trafficcontrol.TokenBucket.Type.PEAK;
 
 /**
  * Test class for TokenBucket.
@@ -50,6 +53,7 @@ public class TokenBucketTest {
         TokenBucket drop = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Not null
         assertThat(drop, notNullValue());
@@ -59,6 +63,8 @@ public class TokenBucketTest {
         assertThat(drop.burstSize(), is(2 * 1500L));
         // Action should be drop
         assertThat(drop.action(), is(DROP));
+        // For committed rate
+        assertThat(drop.type(), is(COMMITTED));
     }
 
     /**
@@ -67,22 +73,25 @@ public class TokenBucketTest {
     @Test
     public void testDscpPrecCreation() {
         // Create a dscp precedence token bucket
-        TokenBucket drop = DefaultTokenBucket.builder()
+        TokenBucket mark = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DSCP_PRECEDENCE)
                 .withBurstSize(6 * 1500)
                 .withDscp(DSCP_PREC)
+                .withType(EXCESS)
                 .build();
         // Not null
-        assertThat(drop, notNullValue());
+        assertThat(mark, notNullValue());
         // Rate should be equal to RATE
-        assertThat(drop.rate(), is(RATE));
+        assertThat(mark.rate(), is(RATE));
         // Burst size should be equal to 6xMTU
-        assertThat(drop.burstSize(), is(6 * 1500L));
+        assertThat(mark.burstSize(), is(6 * 1500L));
         // Action should increase dscp drop precedence
-        assertThat(drop.action(), is(DSCP_PRECEDENCE));
+        assertThat(mark.action(), is(DSCP_PRECEDENCE));
         // Dcsp drop precedence should be increased of 2
-        assertThat(drop.dscp(), is(DSCP_PREC));
+        assertThat(mark.dscp(), is(DSCP_PREC));
+        // For excess rate
+        assertThat(mark.type(), is(EXCESS));
     }
 
     /**
@@ -91,21 +100,24 @@ public class TokenBucketTest {
     @Test
     public void testDscpClassCreation() {
         // Create a dscp class token bucket
-        TokenBucket drop = DefaultTokenBucket.builder()
+        TokenBucket mark = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DSCP_CLASS)
                 .withDscp(DSCP_CL)
+                .withType(PEAK)
                 .build();
         // Not null
-        assertThat(drop, notNullValue());
+        assertThat(mark, notNullValue());
         // Rate should be equal to RATE
-        assertThat(drop.rate(), is(RATE));
+        assertThat(mark.rate(), is(RATE));
         // Burst size should be equal to 2xMTU
-        assertThat(drop.burstSize(), is(2 * 1500L));
+        assertThat(mark.burstSize(), is(2 * 1500L));
         // Action should be drop
-        assertThat(drop.action(), is(DSCP_CLASS));
+        assertThat(mark.action(), is(DSCP_CLASS));
         // Dcsp drop precedence should be increased of 2
-        assertThat(drop.dscp(), is(DSCP_CL));
+        assertThat(mark.dscp(), is(DSCP_CL));
+        // For peak rate
+        assertThat(mark.type(), is(PEAK));
     }
 
     /**
@@ -122,7 +134,7 @@ public class TokenBucketTest {
         // Define expected exception
         exceptionNullAction.expect(NullPointerException.class);
         // Create a token bucket without action
-        TokenBucket drop = DefaultTokenBucket.builder()
+        DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .build();
     }
@@ -141,10 +153,11 @@ public class TokenBucketTest {
         // Define expected exception
         exceptionWrongDscp.expect(IllegalArgumentException.class);
         // Create a token bucket with wrong dscp
-        TokenBucket drop = DefaultTokenBucket.builder()
+        DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DSCP_PRECEDENCE)
                 .withDscp(WRONG_DSCP)
+                .withType(COMMITTED)
                 .build();
     }
 
@@ -157,17 +170,20 @@ public class TokenBucketTest {
         TokenBucket drop = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Create a mark token bucket
         TokenBucket mark = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DSCP_PRECEDENCE)
                 .withDscp(DSCP_PREC)
+                .withType(COMMITTED)
                 .build();
         // Create a copy of the drop token bucket
         TokenBucket copyDrop = DefaultTokenBucket.builder()
                 .withRate(RATE)
                 .withAction(DROP)
+                .withType(COMMITTED)
                 .build();
         // Verify equality
         assertEquals(drop, copyDrop);
