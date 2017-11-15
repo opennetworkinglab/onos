@@ -196,5 +196,4 @@ public interface DhcpHandler {
      * @param dhcpFpmFlag flag indicating dhcpFpmEnable state
      */
     default void setDhcpFpmEnabled(Boolean dhcpFpmFlag) { }
-
 }

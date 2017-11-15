@@ -103,6 +103,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.dhcprelay.Dhcp6HandlerUtil.InternalPacket;
 
+
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Collection;
@@ -767,21 +768,28 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         }
 
         record.addLocation(new HostLocation(location, System.currentTimeMillis()));
+
         if (leafMsgType == DHCP6.MsgType.REPLY.value()) {
             if (ipInfo != null) {
                 log.debug("IP6 address is being stored into dhcp-relay store.");
                 log.debug("IP6 address {}", HexString.toHexString(ipInfo.ip6Address.toOctets(), ":"));
                 record.ip6Address(ipInfo.ip6Address);
+                record.updateAddrPrefTime(ipInfo.prefTime);
+                record.updateLastIp6Update();
             } else {
                 log.debug("IP6 address is not returned from server. Maybe only PD is returned.");
             }
             if (pdInfo != null) {
                 log.debug("IP6 PD address {}",
                         HexString.toHexString(pdInfo.pdPrefix.address().toOctets(), ":"));
+                record.pdPrefix(pdInfo.pdPrefix);
+                record.updatePdPrefTime(pdInfo.prefTime);
+                record.updateLastPdUpdate();
             } else {
                 log.debug("IP6 PD address is not returned from server. Maybe only IPAddress is returned.");
             }
         }
+
         record.getV6Counters().incrementCounter(dhcp6HandlerUtil.getMsgTypeStr(leafMsgType));
         record.ip6Status(DHCP6.MsgType.getType(leafMsgType));
         record.setDirectlyConnected(directConnFlag);
@@ -1476,8 +1484,106 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      *
      * @param val poll interval value in seconds
      */
+    @Override
     public void setDhcp6PollInterval(int val) {
         dhcp6PollInterval = val;
     }
 
- }
+    /**
+     * get the dhcp6 lease expiry poll interval value.
+     * This is a private function
+     * @return  poll interval value in seconds
+     */
+    private int getDhcp6PollInterval() {
+        return dhcp6PollInterval;
+    }
+
+    /**
+     * Find lease-expired ipaddresses and pd prefixes.
+     * Removing host/route/fpm entries.
+     */
+    public void timeTick() {
+        long currentTime = System.currentTimeMillis();
+        Collection<DhcpRecord> records = dhcpRelayStore.getDhcpRecords();
+
+        log.debug("timeTick called currenttime {} records num {} ", currentTime, records.size());
+
+        records.forEach(record -> {
+                    boolean addrOrPdRemoved = false;
+                    DHCP6.MsgType ip6Status = record.ip6Status().orElse(null);
+                    if (ip6Status == null) {
+                        log.debug("record is not valid v6 record.");
+                        return;
+                    }
+
+                    if ((currentTime - record.getLastIp6Update()) >
+                            ((record.addrPrefTime() + getDhcp6PollInterval() / 2) * 1000)) {
+                        // remove ipaddress from host/route table
+                        IpAddress ip = record.ip6Address().orElse(null);
+                        if (ip != null) {
+                            if (record.directlyConnected()) {
+                                providerService.removeIpFromHost(HostId.hostId(record.macAddress(),
+                                        record.vlanId()), ip);
+                            } else {
+                                MacAddress gwMac = record.nextHop().orElse(null);
+                                if (gwMac == null) {
+                                    log.warn("Can't find gateway mac address from record {} for ip6Addr", record);
+                                    return;
+                                }
+                                IpAddress nextHopIp = getFirstIpByHost(record.directlyConnected(),
+                                        gwMac,
+                                        record.vlanId());
+                                Route route = new Route(Route.Source.STATIC, ip.toIpPrefix(), nextHopIp);
+                                routeStore.removeRoute(route);
+                            }
+                            record.updateAddrPrefTime(0);
+                            record.ip6Address(null);
+                            addrOrPdRemoved = true;
+                            dhcpRelayStore.updateDhcpRecord(HostId.hostId(record.macAddress(),
+                                    record.vlanId()), record);
+                            log.warn("IP6 address is set to null. delta {} lastUpdate {} addrPrefTime {}",
+                                    (currentTime - record.getLastIp6Update()), record.getLastIp6Update(),
+                                    record.addrPrefTime());
+                        }
+                    }
+                    if ((currentTime - record.getLastPdUpdate()) >
+                            ((record.pdPrefTime() + getDhcp6PollInterval() / 2) * 1000)) {
+                        // remove PD from route/fpm table
+                        IpPrefix pdIpPrefix = record.pdPrefix().orElse(null);
+                        if (pdIpPrefix != null) {
+                            if (record.directlyConnected()) {
+                                providerService.removeIpFromHost(HostId.hostId(record.macAddress(), record.vlanId()),
+                                        pdIpPrefix.address().getIp6Address());
+                            } else {
+                                MacAddress gwMac = record.nextHop().orElse(null);
+                                if (gwMac == null) {
+                                    log.warn("Can't find gateway mac address from record {} for PD prefix", record);
+                                    return;
+                                }
+                                IpAddress nextHopIp = getFirstIpByHost(record.directlyConnected(),
+                                        gwMac,
+                                        record.vlanId());
+                                Route route = new Route(Route.Source.STATIC, pdIpPrefix, nextHopIp);
+                                routeStore.removeRoute(route);
+                                if (this.dhcpFpmEnabled) {
+                                    dhcpFpmPrefixStore.removeFpmRecord(pdIpPrefix);
+                                }
+                            }
+                            record.updatePdPrefTime(0);
+                            record.pdPrefix(null);
+                            addrOrPdRemoved = true;
+                            dhcpRelayStore.updateDhcpRecord(HostId.hostId(record.macAddress(),
+                                    record.vlanId()), record);
+                            log.warn("PD prefix is set to null.delta {} pdPrefTime {}",
+                                    (currentTime - record.getLastPdUpdate()), record.pdPrefTime());
+                        }
+                    }
+                    if (addrOrPdRemoved &&
+                            !record.ip6Address().isPresent() && !record.pdPrefix().isPresent()) {
+                        log.warn("ip6Status {} IP6 address and IP6 PD both are null. Remove record.", ip6Status);
+                        dhcpRelayStore.removeDhcpRecord(HostId.hostId(record.macAddress(), record.vlanId()));
+                    }
+                }
+        );
+    }
+}
