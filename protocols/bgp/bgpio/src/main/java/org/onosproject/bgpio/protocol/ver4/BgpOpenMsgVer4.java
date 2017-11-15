@@ -209,24 +209,26 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
 
             // Read Capabilities if optional parameter length is greater than 0
             if (optParaLen != 0) {
-                // Read optional parameter type
-                optParaType = cb.readByte();
+                while (cb.readableBytes() > 0) {
+                    // Read optional parameter type
+                    optParaType = cb.readByte();
 
-                // Read optional parameter length
-                capParaLen = cb.readByte();
+                    // Read optional parameter length
+                    capParaLen = cb.readByte();
 
-                if (cb.readableBytes() < capParaLen) {
-                    throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, (byte) 0, null);
-                }
+                    if (cb.readableBytes() < capParaLen) {
+                        throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, (byte) 0, null);
+                    }
 
-                ChannelBuffer capaCb = cb.readBytes(capParaLen);
+                    ChannelBuffer capaCb = cb.readBytes(capParaLen);
 
-                // Parse capabilities only if optional parameter type is 2
-                if ((optParaType == OPT_PARA_TYPE_CAPABILITY) && (capParaLen != 0)) {
-                    capabilityTlv = parseCapabilityTlv(capaCb);
-                } else {
-                    throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR,
-                        BgpErrorType.UNSUPPORTED_OPTIONAL_PARAMETER, null);
+                    // Parse capabilities only if optional parameter type is 2
+                    if ((optParaType == OPT_PARA_TYPE_CAPABILITY) && (capParaLen != 0)) {
+                        capabilityTlv = parseCapabilityTlv(capaCb);
+                    } else {
+                        throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR,
+                                BgpErrorType.UNSUPPORTED_OPTIONAL_PARAMETER, null);
+                    }
                 }
             }
             return new BgpOpenMsgVer4(bgpHeader, version, asNumber, holdTime, bgpId, capabilityTlv);
