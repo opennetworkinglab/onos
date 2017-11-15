@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 BVER=2.3
-SVER=2.3-SNAPSHOT
+SVER=2.4-SNAPSHOT
 
 YANG_TOOLS_ROOT=${YANG_TOOLS_ROOT:-~/onos-yang-tools}
 
