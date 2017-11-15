@@ -41,8 +41,8 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     private static final String HEADER = "DHCP relay records ([D]: Directly connected):";
     private static final String NO_RECORDS = "No DHCP relay record found";
     private static final String HOST = "id=%s/%s, locations=%s%s, last-seen=%s, IPv4=%s, IPv6=%s";
-    private static final String DHCP_SERVER_GW = "DHCP Server: %s, %s via %s (Mac: %s, relay IP overwrite: %s)";
-    private static final String DHCP_SERVER = "DHCP Server: %s, %s (Mac: %s, relay IP overwrite: %s)";
+    private static final String DHCP_SERVER_GW = "DHCP Server: %s, %s via %s (Mac: %s)";
+    private static final String DHCP_SERVER = "DHCP Server: %s, %s (Mac: %s)";
     private static final String MISSING_SERVER_CFG = "DHCP Server info not available";
     private static final String DIRECTLY = "[D]";
     private static final String EMPTY = "";
