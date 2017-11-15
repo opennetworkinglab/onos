@@ -90,7 +90,7 @@ def grpc_jar(
     proto_paths = [],
     srcs = [],
     src_string = '', # Useful to build proto files external to the ONOS sources, using BUCK's environment variables.
-    proto_match_patterns = [ "**/proto/**/*.proto" ],
+    proto_match_patterns = [ "src/main/proto/**/*.proto" ],
     protoc_version = DEFAULT_PROTOC_VERSION,
     plugin_version = DEFAULT_GRPC_PLUGIN_VERSION,
     include_std_lib = False,
