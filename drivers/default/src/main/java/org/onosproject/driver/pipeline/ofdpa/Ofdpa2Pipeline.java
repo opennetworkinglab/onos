@@ -21,7 +21,6 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -984,24 +983,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 // and therefore is safe to be replaced with L4 src port matching.
                 // We need to revisit this if L4 dst port is used for other purpose in the future.
                 if (!supportIpv6L4Dst() && isIpv6(fwd.selector())) {
-                    TpPort tpPort = (criterion instanceof TcpPortCriterion) ?
-                            ((TcpPortCriterion) criterion).tcpPort() :
-                            ((UdpPortCriterion) criterion).udpPort();
-                    TpPort tpMask = (criterion instanceof TcpPortCriterion) ?
-                            ((TcpPortCriterion) criterion).mask() :
-                            ((UdpPortCriterion) criterion).mask();
                     switch (criterion.type()) {
                         case UDP_DST:
-                            sbuilder.matchUdpSrc(tpPort);
-                            break;
                         case UDP_DST_MASKED:
-                            sbuilder.matchUdpSrcMasked(tpPort, tpMask);
-                            break;
                         case TCP_DST:
-                            sbuilder.matchTcpSrc(tpPort);
-                            break;
                         case TCP_DST_MASKED:
-                            sbuilder.matchTcpSrcMasked(tpPort, tpMask);
                             break;
                         default:
                             sbuilder.add(criterion);
