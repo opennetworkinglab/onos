@@ -19,61 +19,67 @@ package org.onosproject.ra;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Modified;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.NeighborDiscoveryOptions;
+import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceEvent;
 import org.onosproject.net.intf.InterfaceListener;
 import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.ra.config.RouterAdvertisementDeviceConfig;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.osgi.service.component.ComponentContext;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.nio.ByteBuffer;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
-import java.util.AbstractMap;
-
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -118,10 +124,10 @@ public class RouterAdvertisementManager {
     public MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public DeviceService deviceService;
+    protected NetworkConfigRegistry networkConfigRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry networkConfigRegistry;
+    protected DeviceService deviceService;
 
     @Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
             label = "Thread pool capacity")
@@ -148,7 +154,8 @@ public class RouterAdvertisementManager {
     protected boolean raGlobalConfigStatus = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS;
 
     @GuardedBy(value = "this")
-    private final Map<ConnectPoint, ScheduledFuture<?>> transmitters = new LinkedHashMap<>();
+    private final Map<ConnectPoint, Map.Entry<ScheduledFuture<?>, List<InterfaceIpAddress>>> transmitters =
+            new LinkedHashMap<>();
 
     @GuardedBy(value = "this")
     private final Map<DeviceId, List<InterfaceIpAddress>> globalPrefixes = new LinkedHashMap<>();
@@ -163,7 +170,7 @@ public class RouterAdvertisementManager {
                     prefixEntry = new AbstractMap.SimpleEntry<>(i.connectPoint(), i.ipAddressesList());
                 }
                 return prefixEntry;
-    };
+            };
 
     private ScheduledExecutorService executors = null;
 
@@ -185,33 +192,22 @@ public class RouterAdvertisementManager {
     private class InternalInterfaceListener implements InterfaceListener {
         @Override
         public void event(InterfaceEvent event) {
-            Interface i = event.subject();
             switch (event.type()) {
                 case INTERFACE_ADDED:
-                    if (mastershipService.getLocalRole(i.connectPoint().deviceId())
-                            == MastershipRole.MASTER) {
-                        activateRouterAdvertisement(i.connectPoint(),
-                                i.ipAddressesList());
-                    }
+                case INTERFACE_UPDATED:
+                    clearTxWorkers();
+                    loadGlobalPrefixConfig();
+                    setupTxWorkers();
+                    log.info("Configuration updated for {}", event.subject());
                     break;
                 case INTERFACE_REMOVED:
+                    Interface i = event.subject();
                     if (mastershipService.getLocalRole(i.connectPoint().deviceId())
                             == MastershipRole.MASTER) {
-                        deactivateRouterAdvertisement(i.connectPoint(),
-                                i.ipAddressesList());
-                    }
-                    break;
-                case INTERFACE_UPDATED:
-                    if (mastershipService.getLocalRole(i.connectPoint().deviceId())
-                            == MastershipRole.MASTER) {
-                        deactivateRouterAdvertisement(i.connectPoint(),
-                                i.ipAddressesList());
-                        activateRouterAdvertisement(i.connectPoint(),
-                                i.ipAddressesList());
+                        deactivateRouterAdvertisement(i.connectPoint());
                     }
                     break;
                 default:
-                    break;
             }
         }
     }
@@ -221,21 +217,21 @@ public class RouterAdvertisementManager {
     // Enables RA threads on 'connectPoint' with configured IPv6s
     private synchronized void activateRouterAdvertisement(ConnectPoint connectPoint,
                                                           List<InterfaceIpAddress> addresses) {
-        RAWorkerThread worker = new RAWorkerThread(connectPoint, addresses, raThreadDelay);
+        RAWorkerThread worker = new RAWorkerThread(connectPoint, addresses, raThreadDelay, null, null);
         ScheduledFuture<?> handler = executors.scheduleAtFixedRate(worker, raThreadDelay,
                 raThreadDelay, TimeUnit.SECONDS);
-        transmitters.put(connectPoint, handler);
+        transmitters.put(connectPoint, new AbstractMap.SimpleEntry<>(handler, addresses));
     }
 
     // Disables already activated RA threads on 'connectPoint'
-    private synchronized void deactivateRouterAdvertisement(ConnectPoint connectPoint,
-                                                            List<InterfaceIpAddress> addresses) {
-        // Note : Parameter addresses not used now, kept for future.
+    private synchronized List<InterfaceIpAddress> deactivateRouterAdvertisement(ConnectPoint connectPoint) {
         if (connectPoint != null) {
-            ScheduledFuture<?> handler = transmitters.get(connectPoint);
-            handler.cancel(false);
+            Map.Entry<ScheduledFuture<?>, List<InterfaceIpAddress>> details = transmitters.get(connectPoint);
+            details.getKey().cancel(false);
             transmitters.remove(connectPoint);
+            return details.getValue();
         }
+        return null;
     }
 
     private synchronized void setupThreadPool() {
@@ -264,7 +260,7 @@ public class RouterAdvertisementManager {
 
     // Clear out Tx threads.
     private synchronized void clearTxWorkers() {
-        transmitters.entrySet().stream().forEach(i -> i.getValue().cancel(false));
+        transmitters.entrySet().stream().forEach(i -> i.getValue().getKey().cancel(false));
         transmitters.clear();
     }
 
@@ -293,33 +289,83 @@ public class RouterAdvertisementManager {
         });
     }
 
+    // Handler for network configuration updates
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(RouterAdvertisementDeviceConfig.class)) {
+            if (event.configClass().equals(RouterAdvertisementDeviceConfig.class)
+                    || event.configClass().equals(InterfaceConfig.class)) {
                 switch (event.type()) {
                     case CONFIG_ADDED:
-                        log.info("Router Advertisement device Config added for {}", event.subject());
-                        clearTxWorkers();
-                        loadGlobalPrefixConfig();
-                        setupTxWorkers();
-                        break;
                     case CONFIG_UPDATED:
-                        log.info("Router Advertisement device updated for {}", event.subject());
                         clearTxWorkers();
                         loadGlobalPrefixConfig();
                         setupTxWorkers();
+                        log.info("Configuration updated for {}", event.subject());
                         break;
-                    default :
-                        break;
+                    default:
                 }
             }
         }
-
     }
-    private final InternalNetworkConfigListener networkConfigListener
-                = new InternalNetworkConfigListener();
 
+    private final InternalNetworkConfigListener networkConfigListener
+            = new InternalNetworkConfigListener();
+
+    // Handler for device updates
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                case PORT_UPDATED:
+                case PORT_ADDED:
+                case DEVICE_UPDATED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    clearTxWorkers();
+                    setupTxWorkers();
+                    log.trace("Processed device event {} on {}", event.type(), event.subject());
+                    break;
+                default:
+            }
+        }
+    }
+
+    private final InternalDeviceListener internalDeviceListener =
+            new InternalDeviceListener();
+
+    // Processor for Solicited RA packets
+    private class InternalPacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            }
+
+            // Ensure packet is IPv6 Solicited RA
+            InboundPacket pkt = context.inPacket();
+            Ethernet ethernet = pkt.parsed();
+            if ((ethernet == null) || (ethernet.getEtherType() != Ethernet.TYPE_IPV6)) {
+                return;
+            }
+            IPv6 ipv6Packet = (IPv6) ethernet.getPayload();
+            if (ipv6Packet.getNextHeader() != IPv6.PROTOCOL_ICMP6) {
+                return;
+            }
+            ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
+            if (icmp6Packet.getIcmpType() != ICMP6.ROUTER_SOLICITATION) {
+                return;
+            }
+
+            // Start solicited-RA handling thread
+            SolicitedRAWorkerThread sraWorkerThread = new SolicitedRAWorkerThread(pkt);
+            executors.schedule(sraWorkerThread, 0, TimeUnit.SECONDS);
+        }
+    }
+
+    InternalPacketProcessor processor = null;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -327,10 +373,17 @@ public class RouterAdvertisementManager {
         appId = coreService.registerApplication(APP_NAME);
         componentConfigService.registerProperties(getClass());
 
+        // Packet processor for handling Router Solicitations
+        processor = new InternalPacketProcessor();
+        packetService.addProcessor(processor, PacketProcessor.director(3));
+
         // Setup global prefix loading components
         networkConfigRegistry.addListener(networkConfigListener);
         networkConfigRegistry.registerConfigFactory(deviceConfigFactory);
         loadGlobalPrefixConfig();
+
+        // Dynamic device updates handling
+        deviceService.addListener(internalDeviceListener);
 
         // Setup pool and worker threads for existing interfaces
         setupPoolAndTxWorkers();
@@ -409,6 +462,10 @@ public class RouterAdvertisementManager {
         // Unregister resources.
         componentConfigService.unregisterProperties(getClass(), false);
         interfaceService.removeListener(interfaceListener);
+        networkConfigRegistry.removeListener(networkConfigListener);
+        networkConfigRegistry.unregisterConfigFactory(deviceConfigFactory);
+        packetService.removeProcessor(processor);
+        deviceService.removeListener(internalDeviceListener);
 
         // Clear pool & threads
         clearPoolAndTxWorkers();
@@ -420,6 +477,8 @@ public class RouterAdvertisementManager {
         ConnectPoint connectPoint;
         List<InterfaceIpAddress> ipAddresses;
         int retransmitPeriod;
+        MacAddress solicitHostMac;
+        byte[] solicitHostAddress;
 
         // Various fixed values in RA packet
         public static final byte RA_HOP_LIMIT = (byte) 0xff;
@@ -431,10 +490,13 @@ public class RouterAdvertisementManager {
         public static final int RA_RETRANSMIT_CALIBRATION_PERIOD = 1;
 
 
-        RAWorkerThread(ConnectPoint connectPoint, List<InterfaceIpAddress> ipAddresses, int period) {
+        RAWorkerThread(ConnectPoint connectPoint, List<InterfaceIpAddress> ipAddresses, int period,
+                       MacAddress macAddress, byte[] ipv6Address) {
             this.connectPoint = connectPoint;
             this.ipAddresses = ipAddresses;
             retransmitPeriod = period;
+            solicitHostMac = macAddress;
+            solicitHostAddress = ipv6Address;
         }
 
         public void run() {
@@ -497,7 +559,7 @@ public class RouterAdvertisementManager {
             // IPv6 header filling.
             byte[] ip6AllNodesAddress = Ip6Address.valueOf("ff02::1").toOctets();
             IPv6 ipv6 = new IPv6();
-            ipv6.setDestinationAddress(ip6AllNodesAddress);
+            ipv6.setDestinationAddress((solicitHostAddress == null) ? ip6AllNodesAddress : solicitHostAddress);
             /* RA packet L2 source address created from port MAC address.
              * Note : As per RFC-4861 RAs should be sent from link-local address.
              */
@@ -516,8 +578,9 @@ public class RouterAdvertisementManager {
             byte[] l2Ipv6MulticastAddress = MacAddress.IPV6_MULTICAST.toBytes();
             IntStream.range(1, 4).forEach(i -> l2Ipv6MulticastAddress[l2Ipv6MulticastAddress.length - i] =
                     ip6AllNodesAddress[ip6AllNodesAddress.length - i]);
-
-            ethernet.setDestinationMACAddress(MacAddress.valueOf(l2Ipv6MulticastAddress));
+            // Provide unicast address for Solicit RA replays
+            ethernet.setDestinationMACAddress((solicitHostMac == null) ?
+                    MacAddress.valueOf(l2Ipv6MulticastAddress) : solicitHostMac);
             ethernet.setSourceMACAddress(macAddress.get().toBytes());
             ethernet.setEtherType(EthType.EtherType.IPV6.ethType().toShort());
             ethernet.setVlanID(Ethernet.VLAN_UNTAGGED);
@@ -530,6 +593,48 @@ public class RouterAdvertisementManager {
             OutboundPacket packet = new DefaultOutboundPacket(connectPoint.deviceId(),
                     treatment, stream);
             packetService.emit(packet);
+            log.trace("Transmitted Unsolicited Router Advertisement on {}", connectPoint);
         }
     }
+
+    // Worker thread for processing IPv6 Solicited RA packets.
+    public class SolicitedRAWorkerThread implements Runnable {
+
+        private InboundPacket packet;
+
+        SolicitedRAWorkerThread(InboundPacket packet) {
+            this.packet = packet;
+        }
+
+        @Override
+        public void run() {
+
+            // TODO : Validate Router Solicitation
+
+            // Pause already running unsolicited RA threads in received connect point
+            ConnectPoint connectPoint = packet.receivedFrom();
+            List<InterfaceIpAddress> addresses = deactivateRouterAdvertisement(connectPoint);
+
+            /* Multicast RA(ie. Unsolicited RA) TX time is not preciously tracked so to make sure that
+             * Unicast RA(ie. Router Solicitation Response) is TXed before Mulicast RA
+             * logic adapted here is disable Mulicast RA, TX Unicast RA and then restore Multicast RA.
+             */
+            log.trace("Processing Router Solicitations from {}", connectPoint);
+            try {
+                Ethernet ethernet = packet.parsed();
+                IPv6 ipv6 = (IPv6) ethernet.getPayload();
+                RAWorkerThread worker = new RAWorkerThread(connectPoint,
+                        addresses, raThreadDelay, ethernet.getSourceMAC(), ipv6.getSourceAddress());
+                // TODO : Estimate TX time as in RFC 4861, Section 6.2.6 and schedule TX based on it
+                CompletableFuture<Void> sraHandlerFuture = CompletableFuture.runAsync(worker, executors);
+                sraHandlerFuture.get();
+            } catch (Exception e) {
+                log.error("Failed to respond to router solicitation. {}", e);
+            } finally {
+                activateRouterAdvertisement(connectPoint, addresses);
+                log.trace("Restored Unsolicited Router Advertisements on {}", connectPoint);
+            }
+        }
+    }
+
 }
