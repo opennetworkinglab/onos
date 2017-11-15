@@ -49,6 +49,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.PortConfigOperator;
 import org.onosproject.net.config.PortConfigOperatorRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.DeviceAnnotationConfig;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
@@ -168,6 +169,7 @@ public class DeviceManager
 
     // not part of portOps. must be executed at the end
     private PortAnnotationOperator portAnnotationOp;
+    private DeviceAnnotationOperator deviceAnnotationOp;
 
     private static final MessageSubject PORT_UPDOWN_SUBJECT =
             new MessageSubject("port-updown-req");
@@ -198,6 +200,7 @@ public class DeviceManager
     @Activate
     public void activate() {
         portAnnotationOp = new PortAnnotationOperator(networkConfigService);
+        deviceAnnotationOp = new DeviceAnnotationOperator(networkConfigService);
         portOpsIndex.put(PortAnnotationConfig.class, portAnnotationOp);
 
         backgroundService = newSingleThreadScheduledExecutor(
@@ -986,7 +989,8 @@ public class DeviceManager
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
                     && (event.configClass().equals(BasicDeviceConfig.class)
                     || portOpsIndex.containsKey(event.configClass())
-                    || event.configClass().equals(PortDescriptionsConfig.class));
+                    || event.configClass().equals(PortDescriptionsConfig.class)
+                    || event.configClass().equals(DeviceAnnotationConfig.class));
         }
 
         @Override
@@ -1024,6 +1028,17 @@ public class DeviceManager
                             .collect(Collectors.toList());
                     complete.addAll(portConfig.portDescriptions());
                     store.updatePorts(dp.id(), did, complete);
+            } else if (event.configClass().equals(DeviceAnnotationConfig.class)) {
+                DeviceId did = (DeviceId) event.subject();
+                DeviceProvider dp = getProvider(did);
+                Device dev = getDevice(did);
+                DeviceDescription desc =
+                        (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
+                Optional<Config> prevConfig = event.prevConfig();
+                desc = deviceAnnotationOp.combine(did, desc, prevConfig);
+                if (desc != null && dp != null) {
+                    de = store.createOrUpdateDevice(dp.id(), did, desc);
+                }
             } else if (portOpsIndex.containsKey(event.configClass())) {
                 ConnectPoint cpt = (ConnectPoint) event.subject();
                 DeviceId did = cpt.deviceId();

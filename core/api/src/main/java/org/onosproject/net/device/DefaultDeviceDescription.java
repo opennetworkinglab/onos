@@ -154,6 +154,18 @@ public class DefaultDeviceDescription extends AbstractDescription
              base.chassisId(), defaultAvailable, annotations);
     }
 
+    /**
+     * Creates a device description using the supplied information.
+     *
+     * @param base base
+     * @param annotations annotations
+     * @return device description
+     */
+    public static DefaultDeviceDescription copyReplacingAnnotation(DeviceDescription base,
+                                                                   SparseAnnotations annotations) {
+        return new DefaultDeviceDescription(base, annotations);
+    }
+
     @Override
     public URI deviceUri() {
         return uri;

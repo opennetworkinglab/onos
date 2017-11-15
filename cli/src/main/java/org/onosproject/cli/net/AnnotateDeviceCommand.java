@@ -17,19 +17,11 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DefaultDeviceDescription;
-import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.DeviceProvider;
-import org.onosproject.net.device.DeviceProviderRegistry;
-import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.DeviceAnnotationConfig;
 import org.onosproject.net.provider.ProviderId;
 
 /**
@@ -54,57 +46,30 @@ public class AnnotateDeviceCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String value = null;
 
+    @Option(name = "--remove-config",
+            description = "Remove annotation config")
+    private boolean removeCfg = false;
+
     @Override
     protected void execute() {
-        DeviceService service = get(DeviceService.class);
-        Device device = service.getDevice(DeviceId.deviceId(uri));
+        NetworkConfigService netcfgService = get(NetworkConfigService.class);
+        DeviceId deviceId = DeviceId.deviceId(uri);
 
-        DeviceProviderRegistry registry = get(DeviceProviderRegistry.class);
-        DeviceProvider provider = new AnnotationProvider();
-        try {
-            DeviceProviderService providerService = registry.register(provider);
-            providerService.deviceConnected(device.id(), description(device, key, value));
-        } finally {
-            registry.unregister(provider);
+        if (key == null) {
+            print("[ERROR] Annotation key not specified.");
+            return;
         }
-    }
-
-    private DeviceDescription description(Device device, String key, String value) {
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        if (value != null) {
-            builder.set(key, value);
+        DeviceAnnotationConfig cfg = netcfgService.getConfig(deviceId, DeviceAnnotationConfig.class);
+        if (cfg == null) {
+            cfg = new DeviceAnnotationConfig(deviceId);
+        }
+        if (removeCfg) {
+            // remove config about entry
+            cfg.annotation(key);
         } else {
-            builder.remove(key);
+            // add remove request config
+            cfg.annotation(key, value);
         }
-        return new DefaultDeviceDescription(device.id().uri(), device.type(),
-                                            device.manufacturer(), device.hwVersion(),
-                                            device.swVersion(), device.serialNumber(),
-                                            device.chassisId(), false, builder.build());
-    }
-
-    // Token provider entity
-    private static final class AnnotationProvider
-            extends AbstractProvider implements DeviceProvider {
-        private AnnotationProvider() {
-            super(PID);
-        }
-
-        @Override
-        public void triggerProbe(DeviceId deviceId) {
-        }
-
-        @Override
-        public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-        }
-
-        @Override
-        public boolean isReachable(DeviceId deviceId) {
-            return false;
-        }
-
-        @Override
-        public void changePortState(DeviceId deviceId, PortNumber portNumber,
-                                    boolean enable) {
-        }
+        netcfgService.applyConfig(deviceId, DeviceAnnotationConfig.class, cfg.node());
     }
 }
