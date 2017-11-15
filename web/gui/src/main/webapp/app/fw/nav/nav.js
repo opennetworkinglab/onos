@@ -25,6 +25,7 @@
 
     // internal state
     var navShown = false;
+    var ovParamsDataNs = {};
 
     function updatePane() {
         var vis = navShown ? 'visible' : 'hidden';
@@ -51,8 +52,19 @@
         return false;
     }
 
+    function isEmpty(obj) {
+        for (var x in obj) { return false; }
+        return true;
+    }
+
     function navTo(path, params) {
+
         var url;
+        if (params.hasOwnProperty('ovParams') && !isEmpty(params.ovParams) ) {
+            ovParamsDataNs = params.ovParams;
+            delete params.ovParams;
+        }
+
         if (!path) {
             $log.warn('Not a valid navigation path');
             return null;
@@ -68,6 +80,11 @@
         url = $location.absUrl();
         $log.log('Navigating to ', url);
         $window.location.href = url;
+
+    }
+
+    function getOvParamsData() {
+        return ovParamsDataNs;
     }
 
     angular.module('onosNav', [])
@@ -84,11 +101,12 @@
         .factory('NavService',
             ['$log', '$location', '$window', 'FnService',
 
-            function (_$log_, _$location_, _$window_, _fs_) {
+            function (_$log_, _$location_, _$window_, _fs_ ) {
                 $log = _$log_;
                 $location = _$location_;
                 $window = _$window_;
                 fs = _fs_;
+
 
                 return {
                     showNav: showNav,
@@ -96,6 +114,7 @@
                     toggleNav: toggleNav,
                     hideIfShown: hideIfShown,
                     navTo: navTo,
+                    navPassedData: getOvParamsData,
                 };
         }]);
 

@@ -98,6 +98,8 @@
             spr: 'S',
             // NOTE: toolbar state is handled separately
         };
+    // Params passed to overlay.
+    var ovParams = {};
 
     function init(_api_) {
         api = _api_;
@@ -304,12 +306,17 @@
         persistTopoPrefs('toolbar');
     }
 
-    function selectOverlay(ovid) {
+    function getOverlayParams(typeOfOverlay) {
+        return ovParams;
+    }
+
+    function selectOverlay(ovid, params) {
         var idx = ovIndex[defaultOverlay] || 0,
             pidx = (ovid === null) ? 0 : ovIndex[ovid] || -1;
         if (pidx >= 0 && pidx < ovRset.size()) {
             idx = pidx;
         }
+        ovParams = params;
         ovRset.selectedIndex(idx);
     }
 
@@ -341,6 +348,7 @@
                 toggleToolbar: toggleToolbar,
                 selectOverlay: selectOverlay,
                 defaultPrefs: defaultPrefsState,
+                paramsOverlay: getOverlayParams,
                 fnkey: fnkey,
                 setLionBundle: function (bundle) { topoLion = bundle; },
             };

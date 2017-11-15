@@ -31,7 +31,7 @@
     // references to injected services
     var $scope, $log, $loc, $timeout,
         fs, ks, zs, gs, ms, sus, flash, wss, ps, th, tds, t3s, tes, tfs, tps,
-        tis, tms, tss, tls, tos, fltr, ttbs, tspr, tov;
+        tis, tms, tss, tls, tos, fltr, ttbs, tspr, tov, ns;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -596,7 +596,7 @@
             'TopoSelectService', 'TopoLinkService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoToolbarService',
             'TopoMapService', 'TopoSpriteService', 'TooltipService',
-            'TopoOverlayService', 'LionService',
+            'TopoOverlayService', 'LionService','NavService',
 
                 function (_$scope_, _$log_, _$loc_, _$timeout_, _$cookies_,
                   _fs_, mast, _ks_, _zs_,
@@ -607,7 +607,7 @@
                   _tss_, _tls_, _tts_,
                   _tos_, _fltr_, _ttbs_,
                   _tms_, _tspr_, _ttip_,
-                  _tov_, lion) {
+                  _tov_, lion, _ns_) {
 
             var params = _$loc_.search(),
                 selOverlay = params.overlayId,
@@ -654,6 +654,7 @@
             tspr = _tspr_;
             tov = _tov_;
             tss = _tss_;
+            ns = _ns_;
 
             tms.start({
                 toggleMap: toggleMap,
@@ -661,7 +662,9 @@
                 setMap: setMap,
             });
 
-            // pull intent data from the query string...
+            $scope.ovParamsData = ns.navPassedData();
+
+                    // pull intent data from the query string...
             if (params.key && params.appId && params.appName) {
                 $scope.intentData = {
                     key: params.key,
@@ -670,6 +673,7 @@
                     intentType: params.intentType,
                 };
             }
+
 
             $scope.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -749,7 +753,7 @@
 
             restoreConfigFromPrefs();
 
-            ttbs.selectOverlay(selOverlay || prefsState.ovid);
+            ttbs.selectOverlay(selOverlay || prefsState.ovid, $scope.ovParamsData);
 
             $log.debug('registered overlays...', tov.list());
             $log.log('OvTopoCtrl has been created');
