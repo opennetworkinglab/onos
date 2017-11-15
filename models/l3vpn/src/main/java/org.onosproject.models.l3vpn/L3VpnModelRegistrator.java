@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.l3vpn.netl3vpn.impl;
+package org.onosproject.models.l3vpn;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
@@ -40,7 +40,7 @@ public class L3VpnModelRegistrator extends AbstractYangModelRegistrator {
      * Creates L3VPN model registrator.
      */
     public L3VpnModelRegistrator() {
-        super(IetfL3VpnSvc.class, getAppInfo());
+        super(L3VpnModelRegistrator.class, getAppInfo());
     }
 
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.huawei;
+package org.onosproject.models.huawei;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
@@ -45,24 +45,24 @@ public class HuaweiModelRegistrator extends AbstractYangModelRegistrator {
      * Creates L3VPN model registrator.
      */
     public HuaweiModelRegistrator() {
-        super(NeBgpcomm.class, getAppInfo());
+        super(HuaweiModelRegistrator.class, getAppInfo());
     }
 
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
-        appInfo.put(new DefaultYangModuleId("NeBgpcomm.class", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-bgpcomm", "2014-12-25"),
                     new DefaultAppModuleInfo(NeBgpcomm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-bgpcomm-type", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-bgpcomm-type", "2014-12-25"),
                     new DefaultAppModuleInfo(NeBgpcommType.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpn-api", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpn-api", "2014-12-25"),
                     new DefaultAppModuleInfo(NeL3VpnApi.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm", "2014-12-25"),
                     new DefaultAppModuleInfo(NeL3Vpncomm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm-type", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm-type", "2014-12-25"),
                     new DefaultAppModuleInfo(NeL3VpncommType.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-tnlm", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-tnlm", "2014-12-25"),
                     new DefaultAppModuleInfo(NeTnlm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-tnlm-type", "2014-00-25"),
+        appInfo.put(new DefaultYangModuleId("ne-tnlm-type", "2014-12-25"),
                     new DefaultAppModuleInfo(NeTnlmType.class, null));
         return ImmutableMap.copyOf(appInfo);
     }

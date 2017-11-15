@@ -2,4 +2,6 @@
 yang_model (
   app_name = 'org.onosproject.models.huawei',
   title = 'Huawei YANG Models',
+  custom_registrator = True,
+  deps = [ '//lib:CORE_DEPS' ]
 )
