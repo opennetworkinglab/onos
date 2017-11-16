@@ -107,7 +107,8 @@ public final class RestconfUtils {
     }
 
     /**
-     * Convert URI to ResourceId.
+     * Convert URI to ResourceId. If the URI represents the datastore resource
+     * (i.e., the root of datastore), a null is returned.
      *
      * @param uri URI of the data resource
      * @return resource identifier

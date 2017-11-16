@@ -54,9 +54,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static org.onosproject.d.config.ResourceIds.parentOf;
 import static org.onosproject.restconf.utils.RestconfUtils.convertDataNodeToJson;
 import static org.onosproject.restconf.utils.RestconfUtils.convertJsonToDataNode;
-import static org.onosproject.restconf.utils.RestconfUtils.convertUriToRid;
 import static org.onosproject.restconf.utils.RestconfUtils.rmLastPathSegment;
 import static org.onosproject.yang.model.DataNode.Type.MULTI_INSTANCE_NODE;
 import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
@@ -107,29 +107,30 @@ public class RestconfManager implements RestconfService {
     @Override
     public ObjectNode runGetOperationOnDataResource(URI uri)
             throws RestconfException {
-        ResourceId rid = convertUriToRid(uri);
+        DataResourceLocator rl = DataResourceLocator.newInstance(uri);
         // TODO: define Filter (if there is any requirement).
         Filter filter = Filter.builder().build();
         DataNode dataNode;
 
         try {
-            if (!dynamicConfigService.nodeExist(rid)) {
+            if (!dynamicConfigService.nodeExist(rl.ridForDynConfig())) {
                 return null;
             }
-            dataNode = dynamicConfigService.readNode(rid, filter);
+            dataNode = dynamicConfigService.readNode(rl.ridForDynConfig(), filter);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
                                         INTERNAL_SERVER_ERROR);
         }
-        ObjectNode rootNode = convertDataNodeToJson(rid, dataNode);
+        ObjectNode rootNode = convertDataNodeToJson(rl.ridForYangRuntime(), dataNode);
         return rootNode;
     }
 
     @Override
     public void runPostOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException {
-        ResourceData receivedData = convertJsonToDataNode(uri, rootNode);
+        DataResourceLocator rl = DataResourceLocator.newInstance(uri);
+        ResourceData receivedData = convertJsonToDataNode(rl.uriForYangRuntime(), rootNode);
         ResourceId rid = receivedData.resourceId();
         List<DataNode> dataNodeList = receivedData.dataNodes();
         if (dataNodeList.size() > 1) {
@@ -143,7 +144,7 @@ public class RestconfManager implements RestconfService {
         }
 
         try {
-            dynamicConfigService.createNode(rid, dataNode);
+            dynamicConfigService.createNode(rl.ridForDynConfig(), dataNode);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
@@ -154,9 +155,8 @@ public class RestconfManager implements RestconfService {
     @Override
     public void runPutOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException {
-        ResourceId rid = convertUriToRid(uri);
-        ResourceData receivedData = convertJsonToDataNode(rmLastPathSegment(uri), rootNode);
-        ResourceId parentRid = receivedData.resourceId();
+        DataResourceLocator rl = DataResourceLocator.newInstance(uri);
+        ResourceData receivedData = convertJsonToDataNode(rmLastPathSegment(rl.uriForYangRuntime()), rootNode);
         List<DataNode> dataNodeList = receivedData.dataNodes();
         if (dataNodeList.size() > 1) {
             log.warn("There are more than one Data Node can be proceed: {}", dataNodeList.size());
@@ -168,10 +168,10 @@ public class RestconfManager implements RestconfService {
              * If the data node already exists, then replace it.
              * Otherwise, create it.
              */
-            if (dynamicConfigService.nodeExist(rid)) {
-                dynamicConfigService.replaceNode(parentRid, dataNode);
+            if (dynamicConfigService.nodeExist(rl.ridForDynConfig())) {
+                dynamicConfigService.replaceNode(parentOf(rl.ridForDynConfig()), dataNode);
             } else {
-                dynamicConfigService.createNode(parentRid, dataNode);
+                dynamicConfigService.createNode(parentOf(rl.ridForDynConfig()), dataNode);
             }
 
         } catch (FailedException e) {
@@ -184,10 +184,10 @@ public class RestconfManager implements RestconfService {
     @Override
     public void runDeleteOperationOnDataResource(URI uri)
             throws RestconfException {
-        ResourceId rid = convertUriToRid(uri);
+        DataResourceLocator rl = DataResourceLocator.newInstance(uri);
         try {
-            if (dynamicConfigService.nodeExist(rid)) {
-                dynamicConfigService.deleteNode(rid);
+            if (dynamicConfigService.nodeExist(rl.ridForDynConfig())) {
+                dynamicConfigService.deleteNode(rl.ridForDynConfig());
             }
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
@@ -199,7 +199,8 @@ public class RestconfManager implements RestconfService {
     @Override
     public void runPatchOperationOnDataResource(URI uri, ObjectNode rootNode)
             throws RestconfException {
-        ResourceData receivedData = convertJsonToDataNode(rmLastPathSegment(uri), rootNode);
+        DataResourceLocator rl = DataResourceLocator.newInstance(uri);
+        ResourceData receivedData = convertJsonToDataNode(rmLastPathSegment(rl.uriForYangRuntime()), rootNode);
         ResourceId rid = receivedData.resourceId();
         List<DataNode> dataNodeList = receivedData.dataNodes();
         if (dataNodeList.size() > 1) {
@@ -213,7 +214,7 @@ public class RestconfManager implements RestconfService {
         }
 
         try {
-            dynamicConfigService.updateNode(rid, dataNode);
+            dynamicConfigService.updateNode(parentOf(rl.ridForDynConfig()), dataNode);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",

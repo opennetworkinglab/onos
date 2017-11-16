@@ -15,12 +15,7 @@
  */
 package org.onosproject.d.config;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Iterator;
-import java.util.Objects;
-
+import com.google.common.annotations.Beta;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafListKey;
@@ -30,7 +25,11 @@ import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 
-import com.google.common.annotations.Beta;
+import java.util.Iterator;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Utility related to ResourceId.
@@ -52,7 +51,7 @@ public abstract class ResourceIds {
      * Builds the ResourceId of specified {@code node}.
      *
      * @param parent ResourceId of {@code node} parent
-     * @param node to create ResourceId.
+     * @param node   to create ResourceId.
      * @return ResourceId of {@code node}
      */
     public static ResourceId resourceId(ResourceId parent, DataNode node) {
@@ -69,27 +68,27 @@ public abstract class ResourceIds {
 
         SchemaId sid = node.key().schemaId();
         switch (node.type()) {
-        case MULTI_INSTANCE_LEAF_VALUE_NODE:
-            builder.addLeafListBranchPoint(sid.name(), sid.namespace(),
-                                           ((LeafListKey) node.key()).asString());
-            break;
+            case MULTI_INSTANCE_LEAF_VALUE_NODE:
+                builder.addLeafListBranchPoint(sid.name(), sid.namespace(),
+                                               ((LeafListKey) node.key()).asString());
+                break;
 
-        case MULTI_INSTANCE_NODE:
-            builder.addBranchPointSchema(sid.name(), sid.namespace());
-            for (KeyLeaf keyLeaf : ((ListKey) node.key()).keyLeafs()) {
-                builder.addKeyLeaf(keyLeaf.leafSchema().name(),
-                                   keyLeaf.leafSchema().namespace(),
-                                   keyLeaf.leafValAsString());
-            }
-            break;
+            case MULTI_INSTANCE_NODE:
+                builder.addBranchPointSchema(sid.name(), sid.namespace());
+                for (KeyLeaf keyLeaf : ((ListKey) node.key()).keyLeafs()) {
+                    builder.addKeyLeaf(keyLeaf.leafSchema().name(),
+                                       keyLeaf.leafSchema().namespace(),
+                                       keyLeaf.leafValAsString());
+                }
+                break;
 
-        case SINGLE_INSTANCE_LEAF_VALUE_NODE:
-        case SINGLE_INSTANCE_NODE:
-            builder.addBranchPointSchema(sid.name(), sid.namespace());
-            break;
+            case SINGLE_INSTANCE_LEAF_VALUE_NODE:
+            case SINGLE_INSTANCE_NODE:
+                builder.addBranchPointSchema(sid.name(), sid.namespace());
+                break;
 
-        default:
-            throw new IllegalArgumentException("Unknown type " + node);
+            default:
+                throw new IllegalArgumentException("Unknown type " + node);
 
         }
 
@@ -100,7 +99,7 @@ public abstract class ResourceIds {
      * Concats {@code path} after {@code prefix}.
      *
      * @param prefix path
-     * @param path to append after {@code path}
+     * @param path   to append after {@code path}
      * @return concatenated ResouceId
      */
     public static ResourceId concat(ResourceId prefix, ResourceId path) {
@@ -118,7 +117,7 @@ public abstract class ResourceIds {
     /**
      * Returns {@code child} as relative ResourceId against {@code base}.
      *
-     * @param base ResourceId
+     * @param base  ResourceId
      * @param child ResourceId to relativize
      * @return relative ResourceId
      */
@@ -135,7 +134,7 @@ public abstract class ResourceIds {
 
             checkArgument(Objects.equals(b, c),
                           "%s is not a prefix of %s.\n" +
-                          "b:%s != c:%s",
+                                  "b:%s != c:%s",
                           base, child,
                           b, c);
         }
@@ -145,16 +144,46 @@ public abstract class ResourceIds {
     }
 
     /**
+     * Removes the root node from {@code path}.
+     *
+     * @param path given resource ID
+     * @return resource ID without root node
+     */
+    public static ResourceId removeRootNode(ResourceId path) {
+        if (!startsWithRootNode(path)) {
+            return path;
+        }
+
+        return ResourceId.builder().append(path.nodeKeys().subList(1,
+                                                                   path.nodeKeys().size())).build();
+    }
+
+    /**
+     * Returns the resource ID of the parent data node pointed by {@code path}.
+     *
+     * @param path resource ID of the given data node
+     * @return resource ID of the parent data node
+     */
+    public static ResourceId parentOf(ResourceId path) {
+        try {
+            return path.copyBuilder().removeLastKey().build();
+        } catch (CloneNotSupportedException e) {
+            log.error("Could not copy {}", path, e);
+            throw new IllegalArgumentException("Could not copy " + path, e);
+        }
+    }
+
+    /**
      * Tests if {@code child} starts with {@code prefix}.
      *
      * @param prefix expected
-     * @param child to test
+     * @param child  to test
      * @return true if {@code child} starts with {@code prefix}
      */
     public static boolean isPrefix(ResourceId prefix, ResourceId child) {
 
         return child.nodeKeys().size() >= prefix.nodeKeys().size() &&
-               prefix.nodeKeys().equals(child.nodeKeys().subList(0, prefix.nodeKeys().size()));
+                prefix.nodeKeys().equals(child.nodeKeys().subList(0, prefix.nodeKeys().size()));
     }
 
     public static boolean startsWithRootNode(ResourceId path) {
