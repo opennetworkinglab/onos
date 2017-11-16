@@ -19,7 +19,11 @@ package org.onosproject.models.l3vpn;
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.IetfBgpL3Vpn;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.IetfInterfaces;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.IetfIp;
 import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.IetfL3VpnSvc;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.IetfNetworkInstance;
 import org.onosproject.yang.gen.v1.l3vpnsvcext.rev20160730.L3VpnSvcExt;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
@@ -49,6 +53,15 @@ public class L3VpnModelRegistrator extends AbstractYangModelRegistrator {
                     new DefaultAppModuleInfo(IetfL3VpnSvc.class, null));
         appInfo.put(new DefaultYangModuleId("l3vpn-svc-ext", "2016-07-30"),
                     new DefaultAppModuleInfo(L3VpnSvcExt.class, null));
+        appInfo.put(new DefaultYangModuleId("ietf-interfaces", "2014-05-08"),
+                    new DefaultAppModuleInfo(IetfInterfaces.class, null));
+        appInfo.put(new DefaultYangModuleId("ietf-bgp-l3vpn", "2016-09-09"),
+                    new DefaultAppModuleInfo(IetfBgpL3Vpn.class, null));
+        appInfo.put(new DefaultYangModuleId("ietf-ip", "2014-06-16"),
+                    new DefaultAppModuleInfo(IetfIp.class, null));
+        appInfo.put(new DefaultYangModuleId("ietf-network-instance",
+                                            "2016-06-23"),
+                    new DefaultAppModuleInfo(IetfNetworkInstance.class, null));
         return ImmutableMap.copyOf(appInfo);
     }
 }
