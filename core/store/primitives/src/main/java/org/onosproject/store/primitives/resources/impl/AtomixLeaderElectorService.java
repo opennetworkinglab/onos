@@ -428,6 +428,22 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             this.elections = elections;
         }
 
+        private void sortRegistrations(String topic, List<Registration> registrations) {
+            registrations.sort((a, b) -> ComparisonChain.start()
+                    .compare(countLeaders(topic, a), countLeaders(topic, b))
+                    .compare(a.sessionId, b.sessionId)
+                    .result());
+        }
+
+        private long countLeaders(String topic, Registration registration) {
+            return elections.entrySet().stream()
+                    .filter(entry -> !entry.getKey().equals(topic))
+                    .filter(entry -> entry.getValue().leader != null)
+                    .filter(entry -> entry.getValue().leader.nodeId.id()
+                            .equals(sessions().getSession(registration.sessionId).memberId().id()))
+                    .count();
+        }
+
         public ElectionState cleanup(String topic, RaftSession session, Supplier<Long> termCounter) {
             Optional<Registration> registration =
                     registrations.stream().filter(r -> r.sessionId() == session.sessionId().id()).findFirst();
@@ -438,22 +454,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
                                 .collect(Collectors.toList());
                 if (leader.sessionId() == session.sessionId().id()) {
                     if (!updatedRegistrations.isEmpty()) {
-                        updatedRegistrations.sort((a, b) -> {
-                            long aCount = elections.entrySet().stream()
-                                    .filter(entry -> !entry.getKey().equals(topic)
-                                            && entry.getValue().leader.nodeId.id()
-                                            .equals(sessions().getSession(a.sessionId).memberId().id()))
-                                    .count();
-                            long bCount = elections.entrySet().stream()
-                                    .filter(entry -> !entry.getKey().equals(topic)
-                                            && entry.getValue().leader.nodeId.id()
-                                            .equals(sessions().getSession(b.sessionId).memberId().id()))
-                                    .count();
-                            return ComparisonChain.start()
-                                    .compare(aCount, bCount)
-                                    .compare(a.sessionId, b.sessionId)
-                                    .result();
-                        });
+                        sortRegistrations(topic, updatedRegistrations);
                         return new ElectionState(updatedRegistrations,
                                 updatedRegistrations.get(0),
                                 termCounter.get(),
@@ -517,22 +518,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             if (!registrations.stream().anyMatch(r -> r.sessionId() == registration.sessionId())) {
                 List<Registration> updatedRegistrations = new LinkedList<>(registrations);
                 updatedRegistrations.add(registration);
-                updatedRegistrations.sort((a, b) -> {
-                    long aCount = elections.entrySet().stream()
-                            .filter(entry -> !entry.getKey().equals(topic)
-                                    && entry.getValue().leader.nodeId.id()
-                                    .equals(sessions().getSession(a.sessionId).memberId().id()))
-                            .count();
-                    long bCount = elections.entrySet().stream()
-                            .filter(entry -> !entry.getKey().equals(topic)
-                                    && entry.getValue().leader.nodeId.id()
-                                    .equals(sessions().getSession(b.sessionId).memberId().id()))
-                            .count();
-                    return ComparisonChain.start()
-                            .compare(aCount, bCount)
-                            .compare(a.sessionId, b.sessionId)
-                            .result();
-                });
+                sortRegistrations(topic, updatedRegistrations);
                 Registration firstRegistration = updatedRegistrations.get(0);
                 Registration leader = this.leader;
                 long term = this.term;
