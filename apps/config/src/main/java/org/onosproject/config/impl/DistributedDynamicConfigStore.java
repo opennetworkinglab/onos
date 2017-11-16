@@ -57,6 +57,7 @@ import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -108,6 +109,7 @@ public class DistributedDynamicConfigStore
                 .register(ListKey.class)
                 .register(KeyLeaf.class)
                 .register(BigInteger.class)
+                .register(BigDecimal.class)
                 .register(LinkedHashMap.class);
         keystore = storageService.<DataNode.Type>documentTreeBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
