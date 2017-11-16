@@ -167,8 +167,7 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         assertTrue("The tenantId set should be empty.", tenantIdCollection.isEmpty());
 
         // Validate that the events were all received in the correct order.
-        validateEvents(VirtualNetworkEvent.Type.TENANT_UNREGISTERED,
-                       VirtualNetworkEvent.Type.TENANT_REGISTERED,
+        validateEvents(VirtualNetworkEvent.Type.TENANT_REGISTERED,
                        VirtualNetworkEvent.Type.TENANT_REGISTERED,
                        VirtualNetworkEvent.Type.TENANT_UNREGISTERED,
                        VirtualNetworkEvent.Type.TENANT_UNREGISTERED);
@@ -302,7 +301,7 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         assertTrue("The virtual device set should be empty.", virtualDevices1.isEmpty());
 
         // Validate that the events were all received in the correct order.
-        validateEvents((Enum[]) expectedEventTypes.toArray(
+        validateEvents(expectedEventTypes.toArray(
                 new VirtualNetworkEvent.Type[expectedEventTypes.size()]));
     }
 
@@ -631,7 +630,7 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
 
         // Validate that the events were all received in the correct order.
-        validateEvents((Enum[]) expectedEventTypes.toArray(
+        validateEvents(expectedEventTypes.toArray(
                 new VirtualNetworkEvent.Type[expectedEventTypes.size()]));
     }
 
