@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import org.onosproject.store.primitives.DefaultDistributedSet;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -41,7 +40,7 @@ public final class TestDistributedSet<E> extends DistributedSetAdapter<E> {
      * @param setName name to be assigned to this set
      */
     public TestDistributedSet(String setName) {
-        set = new HashSet<>();
+        set = Sets.newConcurrentHashSet();
         listeners = new LinkedList<>();
         this.setName = setName;
     }
