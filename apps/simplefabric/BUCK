@@ -1,0 +1,27 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:concurrent-trees',
+]
+
+BUNDLES = [
+    '//apps/simplefabric:onos-apps-simplefabric',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+  title = 'SimpleFabric',
+  category = 'Traffic Steering',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'Simple Fabric application',
+  required_apps = [ 'org.onosproject.openflow-base', 'org.onosproject.lldpprovider', 'org.onosproject.hostprovider' ],
+)
