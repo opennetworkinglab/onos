@@ -126,7 +126,10 @@
       "fields" : [
         ["icmp_type", 8, false],
         ["icmp_code", 8, false],
-        ["checksum", 16, false]
+        ["checksum", 16, false],
+        ["identifier", 16, false],
+        ["sequence_number", 16, false],
+        ["timestamp", 64, false]
       ]
     },
     {
@@ -1410,7 +1413,7 @@
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
-      "order" : ["packet_in", "ethernet", "vlan_tag", "inner_vlan_tag", "mpls", "arp", "ipv4", "ipv6", "tcp", "udp"]
+      "order" : ["packet_in", "ethernet", "vlan_tag", "inner_vlan_tag", "mpls", "arp", "ipv4", "ipv6", "tcp", "udp", "icmp"]
     }
   ],
   "meter_arrays" : [],
@@ -1525,7 +1528,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "./include/checksum.p4",
-        "line" : 56,
+        "line" : 48,
         "column" : 8,
         "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
       },
@@ -1582,27 +1585,6 @@
       "id" : 1,
       "source_info" : {
         "filename" : "./include/checksum.p4",
-        "line" : 73,
-        "column" : 8,
-        "source_fragment" : "verify_checksum(hdr.icmp.isValid(), ..."
-      },
-      "algo" : "csum16",
-      "input" : [
-        {
-          "type" : "field",
-          "value" : ["icmp", "icmp_type"]
-        },
-        {
-          "type" : "field",
-          "value" : ["icmp", "icmp_code"]
-        }
-      ]
-    },
-    {
-      "name" : "calc_1",
-      "id" : 2,
-      "source_info" : {
-        "filename" : "./include/checksum.p4",
         "line" : 24,
         "column" : 8,
         "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
@@ -1652,27 +1634,6 @@
         {
           "type" : "field",
           "value" : ["ipv4", "dst_addr"]
-        }
-      ]
-    },
-    {
-      "name" : "calc_2",
-      "id" : 3,
-      "source_info" : {
-        "filename" : "./include/checksum.p4",
-        "line" : 41,
-        "column" : 8,
-        "source_fragment" : "update_checksum(hdr.icmp.isValid(), ..."
-      },
-      "algo" : "csum16",
-      "input" : [
-        {
-          "type" : "field",
-          "value" : ["icmp", "icmp_type"]
-        },
-        {
-          "type" : "field",
-          "value" : ["icmp", "icmp_code"]
         }
       ]
     }
@@ -5260,23 +5221,9 @@
     {
       "name" : "cksum_0",
       "id" : 1,
-      "target" : ["icmp", "checksum"],
-      "type" : "generic",
-      "calculation" : "calc_0"
-    },
-    {
-      "name" : "cksum_1",
-      "id" : 2,
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
-      "calculation" : "calc_1"
-    },
-    {
-      "name" : "cksum_2",
-      "id" : 3,
-      "target" : ["icmp", "checksum"],
-      "type" : "generic",
-      "calculation" : "calc_2"
+      "calculation" : "calc_0"
     }
   ],
   "force_arith" : [],

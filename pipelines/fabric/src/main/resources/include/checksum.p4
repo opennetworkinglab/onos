@@ -38,14 +38,6 @@ control FabricComputeChecksum(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum,
             HashAlgorithm.csum16
         );
-        update_checksum(hdr.icmp.isValid(),
-            {
-                hdr.icmp.icmp_type,
-                hdr.icmp.icmp_code
-            },
-            hdr.icmp.checksum,
-            HashAlgorithm.csum16
-        );
     }
 }
 
@@ -68,14 +60,6 @@ control FabricVerifyChecksum(inout parsed_headers_t hdr,
                 hdr.ipv4.dst_addr
             },
             hdr.ipv4.hdr_checksum,
-            HashAlgorithm.csum16
-        );
-        verify_checksum(hdr.icmp.isValid(),
-            {
-                hdr.icmp.icmp_type,
-                hdr.icmp.icmp_code
-            },
-            hdr.icmp.checksum,
             HashAlgorithm.csum16
         );
     }
