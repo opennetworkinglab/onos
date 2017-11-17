@@ -71,6 +71,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.upgrade.UpgradeService;
 import org.slf4j.Logger;
 
 import java.time.Instant;
@@ -142,6 +143,9 @@ public class DeviceManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipTermService termService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected UpgradeService upgradeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
@@ -463,7 +467,7 @@ public class DeviceManager
 
             // isReachable but was not MASTER or STANDBY, get a role and apply
             // Note: NONE triggers request to MastershipService
-            reassertRole(deviceId, mastershipService.getLocalRole(deviceId));
+            reassertRole(deviceId, NONE);
         }
     }
 
@@ -819,25 +823,43 @@ public class DeviceManager
     private void reassertRole(final DeviceId did,
                               final MastershipRole nextRole) {
 
-        switch (nextRole) {
+        MastershipRole myNextRole = nextRole;
+        if (myNextRole == NONE && upgradeService.isLocalActive()) {
+            try {
+                mastershipService.requestRoleFor(did).get();
+                MastershipTerm term = termService.getMastershipTerm(did);
+                if (term != null && localNodeId.equals(term.master())) {
+                    myNextRole = MASTER;
+                } else {
+                    myNextRole = STANDBY;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Interrupted waiting for Mastership", e);
+            } catch (ExecutionException e) {
+                log.error("Encountered an error waiting for Mastership", e);
+            }
+        }
+
+        switch (myNextRole) {
             case MASTER:
                 final Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
                     store.markOnline(did);
                 }
                 // TODO: should apply role only if there is mismatch
-                log.debug("Applying role {} to {}", nextRole, did);
+                log.debug("Applying role {} to {}", myNextRole, did);
                 if (!applyRoleAndProbe(did, MASTER)) {
-                    log.warn("Unsuccessful applying role {} to {}", nextRole, did);
+                    log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
                     // immediately failed to apply role
                     mastershipService.relinquishMastership(did);
                     // FIXME disconnect?
                 }
                 break;
             case STANDBY:
-                log.debug("Applying role {} to {}", nextRole, did);
+                log.debug("Applying role {} to {}", myNextRole, did);
                 if (!applyRoleAndProbe(did, STANDBY)) {
-                    log.warn("Unsuccessful applying role {} to {}", nextRole, did);
+                    log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
                     // immediately failed to apply role
                     mastershipService.relinquishMastership(did);
                     // FIXME disconnect?
