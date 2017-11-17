@@ -61,6 +61,10 @@ public class PacketDriverProvider extends AbstractProvider implements PacketProv
     }
 
     private PacketProgrammable getPacketProgrammable(DeviceId deviceId) {
+        if (deviceService == null) {
+            log.debug("Packet encountered but device service is not ready, dropping");
+            return null;
+        }
         Device device = deviceService.getDevice(deviceId);
         if (device.is(PacketProgrammable.class)) {
             return device.as(PacketProgrammable.class);

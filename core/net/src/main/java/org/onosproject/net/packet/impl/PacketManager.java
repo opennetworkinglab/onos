@@ -130,8 +130,8 @@ public class PacketManager
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
-        store.existingRequests().forEach(this::pushToAllDevices);
         defaultProvider.init(deviceService);
+        store.existingRequests().forEach(this::pushToAllDevices);
         log.info("Started");
     }
 
