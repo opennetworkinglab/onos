@@ -30,6 +30,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.group.Group;
@@ -39,19 +40,24 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Driver for HP3800 hybrid switches.
+ * Driver for HP hybrid switches employing V3 hardware module.
+ * NOT TESTED ON V3 HARDWARE DEVICES
+ *
+ * - HP2930
+ * - HP3810
+ * - HP5400R, depends on switch configuration if "no-allow-v2-modules" it operates as V3
  *
  * Refer to the device manual to check unsupported features and features supported in hardware
  *
  */
 
-public class HPPipelineV3800 extends AbstractHPPipeline {
+public class HPPipelineV3 extends AbstractHPPipeline {
 
     private final Logger log = getLogger(getClass());
 
     @Override
     protected FlowRule.Builder setDefaultTableIdForFlowObjective(FlowRule.Builder ruleBuilder) {
-        log.debug("HP V3800 Driver - Setting default table id to hardware table {}", HP_HARDWARE_TABLE);
+        log.debug("HP V3 Driver - Setting default table id to hardware table {}", HP_HARDWARE_TABLE);
         return ruleBuilder.forTable(HP_HARDWARE_TABLE);
     }
 
@@ -99,7 +105,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
     @Override
     protected void initHardwareCriteria() {
-        log.debug("HP V3800 Driver - Initializing hardware supported criteria");
+        log.debug("HP V3 Driver - Initializing hardware supported criteria");
 
         hardwareCriteria.add(Criterion.Type.IN_PORT);
         hardwareCriteria.add(Criterion.Type.VLAN_VID);
@@ -120,22 +126,31 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
     @Override
     protected void initHardwareInstructions() {
-        log.debug("HP V3800 Driver - Initializing hardware supported instructions");
+        log.debug("HP V3 Driver - Initializing hardware supported instructions");
 
         hardwareInstructions.add(Instruction.Type.OUTPUT);
 
-        //Only modification of VLAN priority (VLAN_PCP) is supported in hardware
         hardwareInstructions.add(Instruction.Type.L2MODIFICATION);
-
         hardwareInstructionsL2mod.add(L2ModificationInstruction.L2SubType.ETH_SRC);
         hardwareInstructionsL2mod.add(L2ModificationInstruction.L2SubType.ETH_DST);
         hardwareInstructionsL2mod.add(L2ModificationInstruction.L2SubType.VLAN_ID);
         hardwareInstructionsL2mod.add(L2ModificationInstruction.L2SubType.VLAN_PCP);
 
-        //Only GROUP of type ALL is supported in hardware
-        //Moreover, for hardware support, each bucket must contain one and only one instruction of type OUTPUT
-        hardwareInstructions.add(Instruction.Type.GROUP);
+        hardwareInstructions.add(Instruction.Type.L3MODIFICATION);
+        hardwareInstructionsL3mod.add(L3ModificationInstruction.L3SubType.IPV4_SRC);
+        hardwareInstructionsL3mod.add(L3ModificationInstruction.L3SubType.IPV4_DST);
 
+        hardwareInstructions.add(Instruction.Type.L4MODIFICATION);
+        hardwareInstructionsL4mod.add(L4ModificationInstruction.L4SubType.TCP_DST);
+        hardwareInstructionsL4mod.add(L4ModificationInstruction.L4SubType.UDP_DST);
+        hardwareInstructionsL4mod.add(L4ModificationInstruction.L4SubType.TCP_SRC);
+        hardwareInstructionsL4mod.add(L4ModificationInstruction.L4SubType.UDP_SRC);
+
+        /** Only GROUP of type ALL is supported in hardware.
+         *
+         * Moreover, each bucket must contain one and only one instruction of type OUTPUT
+         */
+        hardwareInstructions.add(Instruction.Type.GROUP);
         hardwareGroups.add(Group.Type.ALL);
 
         //TODO also L3MODIFICATION of IP_DSCP is supported in hardware
@@ -148,7 +163,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
         for (Criterion criterion : fwd.selector().criteria()) {
             if (this.unsupportedCriteria.contains(criterion.type())) {
-                log.warn("HP V3800 Driver - unsupported criteria {}", criterion.type());
+                log.warn("HP V3 Driver - unsupported criteria {}", criterion.type());
 
                 unsupportedFeatures = true;
             }
@@ -156,14 +171,14 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
         for (Instruction instruction : fwd.treatment().allInstructions()) {
             if (this.unsupportedInstructions.contains(instruction.type())) {
-                log.warn("HP V3800 Driver - unsupported instruction {}", instruction.type());
+                log.warn("HP V3 Driver - unsupported instruction {}", instruction.type());
 
                 unsupportedFeatures = true;
             }
 
             if (instruction.type() == Instruction.Type.L2MODIFICATION) {
                 if (this.unsupportedL2mod.contains(((L2ModificationInstruction) instruction).subtype())) {
-                    log.warn("HP V3800 Driver - unsupported L2MODIFICATION instruction {}",
+                    log.warn("HP V3 Driver - unsupported L2MODIFICATION instruction {}",
                             ((L2ModificationInstruction) instruction).subtype());
 
                     unsupportedFeatures = true;
@@ -172,7 +187,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
             if (instruction.type() == Instruction.Type.L3MODIFICATION) {
                 if (this.unsupportedL3mod.contains(((L3ModificationInstruction) instruction).subtype())) {
-                    log.warn("HP V3800 Driver - unsupported L3MODIFICATION instruction {}",
+                    log.warn("HP V3 Driver - unsupported L3MODIFICATION instruction {}",
                             ((L3ModificationInstruction) instruction).subtype());
 
                     unsupportedFeatures = true;
@@ -187,13 +202,13 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
     protected int tableIdForForwardingObjective(ForwardingObjective fwd) {
         boolean hardwareProcess = true;
 
-        log.debug("HP V3800 Driver - Evaluating the ForwardingObjective for proper TableID");
+        log.debug("HP V3 Driver - Evaluating the ForwardingObjective for proper TableID");
 
         //Check criteria supported in hardware
         for (Criterion criterion : fwd.selector().criteria()) {
 
             if (!this.hardwareCriteria.contains(criterion.type())) {
-                log.warn("HP V3800 Driver - criterion {} only supported in SOFTWARE", criterion.type());
+                log.warn("HP V3 Driver - criterion {} only supported in SOFTWARE", criterion.type());
 
                 hardwareProcess = false;
                 break;
@@ -203,7 +218,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
             if (criterion.type() == Criterion.Type.ETH_TYPE) {
 
                 if (((EthTypeCriterion) criterion).ethType().toShort() == Ethernet.TYPE_VLAN) {
-                    log.warn("HP V3800 Driver -  ETH_TYPE == VLAN (0x8100) is only supported in software");
+                    log.warn("HP V3 Driver -  ETH_TYPE == VLAN (0x8100) is only supported in software");
 
                     hardwareProcess = false;
                     break;
@@ -212,12 +227,13 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
         }
 
-        //Check if a CLEAR action is included
-        if (fwd.treatment().clearedDeferred()) {
-            log.warn("HP V3800 Driver - CLEAR action only supported in SOFTWARE");
+        //TODO: CLEAR ations should be supported by V3 hardware modules - To be TESTED
+        //This commented code is required if  CLEAR action is not supported in hardware
+        /*if (fwd.treatment().clearedDeferred()) {
+            log.warn("HP V3 Driver - CLEAR action only supported in SOFTWARE");
 
             hardwareProcess = false;
-        }
+        }*/
 
         //If criteria can be processed in hardware, then check treatment
         if (hardwareProcess) {
@@ -225,7 +241,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
                 //Check if the instruction type is contained in the hardware instruction
                 if (!this.hardwareInstructions.contains(instruction.type())) {
-                    log.warn("HP V3800 Driver - instruction {} only supported in SOFTWARE", instruction.type());
+                    log.warn("HP V3 Driver - instruction {} only supported in SOFTWARE", instruction.type());
 
                     hardwareProcess = false;
                     break;
@@ -236,7 +252,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                  */
                 if (instruction.type() == Instruction.Type.OUTPUT) {
                     if (((Instructions.OutputInstruction) instruction).port() == PortNumber.CONTROLLER) {
-                        log.warn("HP V3800 Driver - Forwarding to CONTROLLER only supported in software");
+                        log.warn("HP V3 Driver - Forwarding to CONTROLLER only supported in software");
 
                         hardwareProcess = false;
                         break;
@@ -247,8 +263,32 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                 if (instruction.type() == Instruction.Type.L2MODIFICATION) {
 
                     if (!this.hardwareInstructionsL2mod.contains(((L2ModificationInstruction) instruction).subtype())) {
-                        log.warn("HP V3800 Driver - L2MODIFICATION.subtype {} only supported in SOFTWARE",
+                        log.warn("HP V3 Driver - L2MODIFICATION.subtype {} only supported in SOFTWARE",
                                 ((L2ModificationInstruction) instruction).subtype());
+
+                        hardwareProcess = false;
+                        break;
+                    }
+                }
+
+                //Check if the specific L3MODIFICATION.subtype is supported in hardware
+                if (instruction.type() == Instruction.Type.L3MODIFICATION) {
+
+                    if (!this.hardwareInstructionsL3mod.contains(((L3ModificationInstruction) instruction).subtype())) {
+                        log.warn("HP V3 Driver - L3MODIFICATION.subtype {} only supported in SOFTWARE",
+                                ((L3ModificationInstruction) instruction).subtype());
+
+                        hardwareProcess = false;
+                        break;
+                    }
+                }
+
+                //Check if the specific L4MODIFICATION.subtype is supported in hardware
+                if (instruction.type() == Instruction.Type.L4MODIFICATION) {
+
+                    if (!this.hardwareInstructionsL4mod.contains(((L4ModificationInstruction) instruction).subtype())) {
+                        log.warn("HP V3 Driver - L4MODIFICATION.subtype {} only supported in SOFTWARE",
+                                ((L4ModificationInstruction) instruction).subtype());
 
                         hardwareProcess = false;
                         break;
@@ -272,7 +312,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                             groupInstalled = true;
 
                             if (group.type() != Group.Type.ALL) {
-                                log.warn("HP V3800 Driver - group type {} only supported in SOFTWARE",
+                                log.warn("HP V3 Driver - group type {} only supported in SOFTWARE",
                                         group.type().toString());
                                 hardwareProcess = false;
                             }
@@ -282,7 +322,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                     }
 
                     if (!groupInstalled) {
-                        log.warn("HP V3800 Driver - referenced group is not installed on the device.");
+                        log.warn("HP V3 Driver - referenced group is not installed on the device.");
                         hardwareProcess = false;
                     }
                 }
@@ -290,12 +330,12 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
         }
 
         if (hardwareProcess) {
-            log.warn("HP V3800 Driver - This flow rule is supported in HARDWARE");
+            log.warn("HP V3 Driver - This flow rule is supported in HARDWARE");
             return HP_HARDWARE_TABLE;
         } else {
             //TODO: create a specific flow in table 100 to redirect selected traffic on table 200
 
-            log.warn("HP V3800 Driver - This flow rule is only supported in SOFTWARE");
+            log.warn("HP V3 Driver - This flow rule is only supported in SOFTWARE");
             return HP_SOFTWARE_TABLE;
         }
     }

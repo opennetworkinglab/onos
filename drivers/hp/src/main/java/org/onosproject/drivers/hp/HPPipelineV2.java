@@ -39,19 +39,25 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Driver for HP3800 hybrid switches.
+ * Driver for HP hybrid switches employing V2 hardware module.
+ *
+ * - HP2920
+ * - HP3800, tested
+ * - HP5400, depends on switch configuration if "no-allow-v1-modules" it operates as V2
+ * - HP5400R, depends on switch configuration if "allow-v2-modules" it operates as V2
+ * - HP8200, depends on switch configuration if "no-allow-v1-modules" it operates as V2
  *
  * Refer to the device manual to check unsupported features and features supported in hardware
  *
  */
 
-public class HPPipelineV3800 extends AbstractHPPipeline {
+public class HPPipelineV2 extends AbstractHPPipeline {
 
     private final Logger log = getLogger(getClass());
 
     @Override
     protected FlowRule.Builder setDefaultTableIdForFlowObjective(FlowRule.Builder ruleBuilder) {
-        log.debug("HP V3800 Driver - Setting default table id to hardware table {}", HP_HARDWARE_TABLE);
+        log.debug("HP V2 Driver - Setting default table id to hardware table {}", HP_HARDWARE_TABLE);
         return ruleBuilder.forTable(HP_HARDWARE_TABLE);
     }
 
@@ -99,7 +105,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
     @Override
     protected void initHardwareCriteria() {
-        log.debug("HP V3800 Driver - Initializing hardware supported criteria");
+        log.debug("HP V2 Driver - Initializing hardware supported criteria");
 
         hardwareCriteria.add(Criterion.Type.IN_PORT);
         hardwareCriteria.add(Criterion.Type.VLAN_VID);
@@ -120,7 +126,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
     @Override
     protected void initHardwareInstructions() {
-        log.debug("HP V3800 Driver - Initializing hardware supported instructions");
+        log.debug("HP V2 Driver - Initializing hardware supported instructions");
 
         hardwareInstructions.add(Instruction.Type.OUTPUT);
 
@@ -148,7 +154,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
         for (Criterion criterion : fwd.selector().criteria()) {
             if (this.unsupportedCriteria.contains(criterion.type())) {
-                log.warn("HP V3800 Driver - unsupported criteria {}", criterion.type());
+                log.warn("HP V2 Driver - unsupported criteria {}", criterion.type());
 
                 unsupportedFeatures = true;
             }
@@ -156,14 +162,14 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
         for (Instruction instruction : fwd.treatment().allInstructions()) {
             if (this.unsupportedInstructions.contains(instruction.type())) {
-                log.warn("HP V3800 Driver - unsupported instruction {}", instruction.type());
+                log.warn("HP V2 Driver - unsupported instruction {}", instruction.type());
 
                 unsupportedFeatures = true;
             }
 
             if (instruction.type() == Instruction.Type.L2MODIFICATION) {
                 if (this.unsupportedL2mod.contains(((L2ModificationInstruction) instruction).subtype())) {
-                    log.warn("HP V3800 Driver - unsupported L2MODIFICATION instruction {}",
+                    log.warn("HP V2 Driver - unsupported L2MODIFICATION instruction {}",
                             ((L2ModificationInstruction) instruction).subtype());
 
                     unsupportedFeatures = true;
@@ -172,7 +178,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
             if (instruction.type() == Instruction.Type.L3MODIFICATION) {
                 if (this.unsupportedL3mod.contains(((L3ModificationInstruction) instruction).subtype())) {
-                    log.warn("HP V3800 Driver - unsupported L3MODIFICATION instruction {}",
+                    log.warn("HP V2 Driver - unsupported L3MODIFICATION instruction {}",
                             ((L3ModificationInstruction) instruction).subtype());
 
                     unsupportedFeatures = true;
@@ -187,34 +193,45 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
     protected int tableIdForForwardingObjective(ForwardingObjective fwd) {
         boolean hardwareProcess = true;
 
-        log.debug("HP V3800 Driver - Evaluating the ForwardingObjective for proper TableID");
+        log.debug("HP V2 Driver - Evaluating the ForwardingObjective for proper TableID");
 
         //Check criteria supported in hardware
         for (Criterion criterion : fwd.selector().criteria()) {
 
             if (!this.hardwareCriteria.contains(criterion.type())) {
-                log.warn("HP V3800 Driver - criterion {} only supported in SOFTWARE", criterion.type());
+                log.warn("HP V2 Driver - criterion {} only supported in SOFTWARE", criterion.type());
 
                 hardwareProcess = false;
                 break;
             }
 
-            //HP3800 does not support hardware match on ETH_TYPE of value TYPE_VLAN
+            //V2 does not support hardware match on ETH_TYPE of value TYPE_VLAN (tested on HP3800 16.04)
             if (criterion.type() == Criterion.Type.ETH_TYPE) {
 
                 if (((EthTypeCriterion) criterion).ethType().toShort() == Ethernet.TYPE_VLAN) {
-                    log.warn("HP V3800 Driver -  ETH_TYPE == VLAN (0x8100) is only supported in software");
+                    log.warn("HP V2 Driver - ETH_TYPE == VLAN (0x8100) is only supported in software");
 
                     hardwareProcess = false;
                     break;
                 }
             }
 
+            //HP2920 cannot match in hardware the ETH_DST in non-IP packets - TO BE REFINED AND TESTED
+            if (deviceHwVersion.contains("2920")) {
+
+                 if (criterion.type() == Criterion.Type.ETH_DST) {
+                     log.warn("HP V2 Driver (specific for HP2920) " +
+                             "- criterion {} only supported in SOFTWARE", criterion.type());
+
+                     hardwareProcess = false;
+                     break;
+                 }
+            }
         }
 
         //Check if a CLEAR action is included
         if (fwd.treatment().clearedDeferred()) {
-            log.warn("HP V3800 Driver - CLEAR action only supported in SOFTWARE");
+            log.warn("HP V2 Driver - CLEAR action only supported in SOFTWARE");
 
             hardwareProcess = false;
         }
@@ -225,7 +242,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
 
                 //Check if the instruction type is contained in the hardware instruction
                 if (!this.hardwareInstructions.contains(instruction.type())) {
-                    log.warn("HP V3800 Driver - instruction {} only supported in SOFTWARE", instruction.type());
+                    log.warn("HP V2 Driver - instruction {} only supported in SOFTWARE", instruction.type());
 
                     hardwareProcess = false;
                     break;
@@ -236,7 +253,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                  */
                 if (instruction.type() == Instruction.Type.OUTPUT) {
                     if (((Instructions.OutputInstruction) instruction).port() == PortNumber.CONTROLLER) {
-                        log.warn("HP V3800 Driver - Forwarding to CONTROLLER only supported in software");
+                        log.warn("HP V2 Driver - Forwarding to CONTROLLER only supported in software");
 
                         hardwareProcess = false;
                         break;
@@ -247,7 +264,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                 if (instruction.type() == Instruction.Type.L2MODIFICATION) {
 
                     if (!this.hardwareInstructionsL2mod.contains(((L2ModificationInstruction) instruction).subtype())) {
-                        log.warn("HP V3800 Driver - L2MODIFICATION.subtype {} only supported in SOFTWARE",
+                        log.warn("HP V2 Driver - L2MODIFICATION.subtype {} only supported in SOFTWARE",
                                 ((L2ModificationInstruction) instruction).subtype());
 
                         hardwareProcess = false;
@@ -272,7 +289,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                             groupInstalled = true;
 
                             if (group.type() != Group.Type.ALL) {
-                                log.warn("HP V3800 Driver - group type {} only supported in SOFTWARE",
+                                log.warn("HP V2 Driver - group type {} only supported in SOFTWARE",
                                         group.type().toString());
                                 hardwareProcess = false;
                             }
@@ -282,7 +299,7 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
                     }
 
                     if (!groupInstalled) {
-                        log.warn("HP V3800 Driver - referenced group is not installed on the device.");
+                        log.warn("HP V2 Driver - referenced group is not installed on the device.");
                         hardwareProcess = false;
                     }
                 }
@@ -290,12 +307,12 @@ public class HPPipelineV3800 extends AbstractHPPipeline {
         }
 
         if (hardwareProcess) {
-            log.warn("HP V3800 Driver - This flow rule is supported in HARDWARE");
+            log.warn("HP V2 Driver - This flow rule is supported in HARDWARE");
             return HP_HARDWARE_TABLE;
         } else {
             //TODO: create a specific flow in table 100 to redirect selected traffic on table 200
 
-            log.warn("HP V3800 Driver - This flow rule is only supported in SOFTWARE");
+            log.warn("HP V2 Driver - This flow rule is only supported in SOFTWARE");
             return HP_SOFTWARE_TABLE;
         }
     }

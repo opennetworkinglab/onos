@@ -14,26 +14,96 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<!--
+  ~ hp-switch drivers supports HP switches of types V1-V2-V3
+  ~
+  ~ Currently supported V1 switches  HP2910, HP3500, HP6200, HP6600
+  ~ Currently supported V2 switches  HP2920, HP3800, HP5400, HP8200
+  ~ Currently supported V3 switches  HP2930, HP3810, HP5400R
+  ~
+  ~ Switches 5400 and 8200 support V1 and V2 depending on switch configuration
+  ~ Switch 5400R supports V2 and V3 depending on switch configuration
+  ~
+  ~ Supported features and features supported in hardware increase from V1->V2->V3
+  ~ If the switch model is not recognized it will operate as V1
+  ~
+  ~ Driver tested for HP3500 and HP3800
+ -->
+
+<!--
+  ~ aruba-switch drivers recognizes Aruba switches
+  ~
+  ~ Currently supported Aruba switches: Aruba 7000, Aruba 7200
+  ~
+  ~ These switches simply operate using default ONOS driver, TO BE TESTED
+ -->
+
 <drivers>
-    <driver name="hp-switch" extends="default" manufacturer="(HP|Aruba)" swVersion=".*">
+    <driver name="hp-switch" extends="default" manufacturer="HP" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.drivers.hp.HPPipelineV3800"/>
+                   impl="org.onosproject.drivers.hp.HPPipelineV1"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.drivers.hp.HPSwitchHandshaker"/>
     </driver>
 
-    <driver name="hp-2920"  extends="hp-switch" hwVersion=".*2920.*"/>
-    <driver name="hp-2930"  extends="hp-switch" hwVersion=".*2930.*"/>
-    <driver name="hp-3500"  extends="hp-switch" hwVersion=".*3500.*"/>
-    <driver name="hp-3800"  extends="hp-switch" hwVersion=".*3800.*"/>
-    <driver name="hp-3810"  extends="hp-switch" hwVersion=".*3810.*"/>
-    <driver name="hp-5400"  extends="hp-switch" hwVersion=".*54[0-9][0-9]z.*"/>
-    <driver name="hp-5400R" extends="hp-switch" hwVersion=".*54[0-9][0-9]R.*"/>
-    <driver name="hp-6200"  extends="hp-switch" hwVersion=".*6200.*"/>
-    <driver name="hp-6600"  extends="hp-switch" hwVersion=".*6600.*"/>
-    <driver name="hp-8200"  extends="hp-switch" hwVersion=".*82[0-9][0-9].*"/>
+    <driver name="hp-2910"  extends="hp-switch" hwVersion=".*2910.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV1"/>
+    </driver>
 
-    <driver name="aruba-7000" extends="hp-switch,ovs" hwVersion=".*Aruba70[0-9][0-9].*"/>
-    <driver name="aruba-7200" extends="hp-switch,ovs" hwVersion=".*Aruba72[0-9][0-9].*"/>
+    <driver name="hp-2920"  extends="hp-switch" hwVersion=".*2920.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+               impl="org.onosproject.drivers.hp.HPPipelineV2"/>
+    </driver>
+
+    <driver name="hp-2930"  extends="hp-switch" hwVersion=".*2930.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV3"/>
+    </driver>
+
+    <driver name="hp-3500"  extends="hp-switch" hwVersion=".*3500.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV1"/>
+    </driver>
+
+    <driver name="hp-3800"  extends="hp-switch" hwVersion=".*3800.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV2"/>
+    </driver>
+
+    <driver name="hp-3810"  extends="hp-switch" hwVersion=".*3810.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV3"/>
+    </driver>
+
+    <driver name="hp-5400"  extends="hp-switch" hwVersion=".*54[0-9][0-9]z.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV2"/>
+    </driver>
+
+    <driver name="hp-5400R" extends="hp-switch" hwVersion=".*54[0-9][0-9]R.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV3"/>
+    </driver>
+
+    <driver name="hp-6200"  extends="hp-switch" hwVersion=".*6200.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV1"/>
+    </driver>
+
+    <driver name="hp-6600"  extends="hp-switch" hwVersion=".*6600.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV1"/>
+    </driver>
+
+    <driver name="hp-8200"  extends="hp-switch" hwVersion=".*82[0-9][0-9].*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.drivers.hp.HPPipelineV2"/>
+    </driver>
+
+    <driver name="aruba-switch" extends="default" manufacturer="Aruba" swVersion=".*"/>
+    <driver name="aruba-7000" extends="aruba-switch" hwVersion=".*Aruba70[0-9][0-9].*"/>
+    <driver name="aruba-7200" extends="aruba-switch" hwVersion=".*Aruba72[0-9][0-9].*"/>
 
 </drivers>

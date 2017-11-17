@@ -22,33 +22,35 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableList;
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.Ethernet;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.flow.DefaultFlowRule;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
-import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -56,28 +58,100 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.meter.MeterService;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.net.flow.FlowRule.Builder;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.slf4j.LoggerFactory.getLogger;
 
-
 /**
  * Abstraction of the HP pipeline handler.
- * Possibly compliant with all HP OF switches but tested only with HP3800.
+ * Possibly compliant with all HP switches: tested with HP3800 (v2 module) and HP3500 (v1 module).
+ *
+ * These switches supports multiple OpenFlow instances.
+ * Each instance can be created with different pipeline models.
+ * This driver refers to OpenFlow instances created with "pipeline-model standard-match"
+ *
+ * With this model Table 100 is used for all entries that can be processed in hardware,
+ * whereas table 200 is used for entries processed in software.
+ *
+ * Trying to install a flow entries only supported in software in table 100 generates
+ * an OpenFlow error message from the switch.
+ *
+ * Installation of a flow entry supported in hardware in table 200 is allowed. But it strongly
+ * degrades forwarding performance.
+ *
+ * ---------------------------------------------
+ * --- SELECTION OF PROPER TABLE ID ---
+ * --- from device manual OpenFlow v1.3 for firmware 16.04 - (Appendix A)
+ * ---------------------------------------------
+ * --- Hardware differences between v1, v2 and v3 modules affect which features are supported
+ * in hardware/software. In this driver "TableIdForForwardingObjective()" function selects the
+ * proper table ID considering the hardware features of the device and the actual FlowObjective.
+ *
+ * ---------------------------------------------
+ * --- HPE switches support OpenFlow version 1.3.1 with following limitations.
+ * --- from device manual OpenFlow v1.3 for firmware 16.04 - (Appendix A)
+ *
+ *** UNSUPPORTED FLOW MATCHES --- (implemented using unsupported_criteria)
+ * ---------------------------------------------
+ * - METADATA - DONE
+ * - IP_ECN - DONE
+ * - SCTP_SRC, SCTP_DST - DONE
+ * - IPV6_ND_SLL, IPV6_ND_TLL - DONE
+ * - MPLS_LABEL, MPLS_TC, MPLS_BOS - DONE
+ * - PBB_ISID - DONE
+ * - TUNNEL_ID - DONE
+ * - IPV6_EXTHDR - DONE
+ *
+ *** UNSUPPORTED ACTIONS ---
+ * ---------------------------------------------
+ * - METADATA - DONE
+ * - QUEUE - DONE
+ * - OFPP_TABLE action - TODO
+ * - MPLS actions: Push-MPLS, Pop-MPLS, Set-MPLS TTL, Decrement MPLS TTL - DONE
+ * - Push-PBB, Pop-PBB actions - TODO
+ * - Copy TTL inwards/outwards actions - DONE
+ * - Decrement IP TTL - DONE
+ *
+ * ---------------------------------------------
+ * --- OTHER UNSUPPORTED FEATURES ---
+ * --- from device manual OpenFlow v1.3 for firmware 16.04
+ * ---------------------------------------------
+ * - Port commands: OFPPC_NO_STP, OFPPC_NO_RECV, OFPPC_NO_RECV_STP, OFPPC_NO_FWD - TODO
+ * - Handling of IP Fragments: OFPC_IP_REASM, OFPC_FRAG_REASM - TODO
+ *
+ * TODO MINOR: include above actions in the lists of unsupported features
+ *
+ * With current implementation, in case of unsupported features a WARNING message in generated
+ * in the ONOS log, but FlowRule is sent anyway to the device.
+ * The device will reply with an OFP_ERROR message.
+ * Use "debug openflow events" and "debug openflow errors" on the device to locally
+ * visualize detailed information on the specific error.
+ *
+ * TODO MAJOR: use OFP_TABLE_FEATURE messages to automate learning of unsupported features
+ *
  */
+
 public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
-
     protected static final String APPLICATION_ID = "org.onosproject.drivers.hp.HPPipeline";
+
+    protected static final int HP_TABLE_ZERO = 0;
+    protected static final int HP_HARDWARE_TABLE = 100;
+    protected static final int HP_SOFTWARE_TABLE = 200;
+
     public static final int CACHE_ENTRY_EXPIRATION_PERIOD = 20;
+
     private final Logger log = getLogger(getClass());
     protected FlowRuleService flowRuleService;
     protected GroupService groupService;
@@ -86,6 +160,8 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
     protected DeviceId deviceId;
     protected ApplicationId appId;
     protected DeviceService deviceService;
+    protected Device device;
+    protected String deviceHwVersion;
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(GroupKey.class)
             .register(DefaultGroupKey.class)
@@ -103,20 +179,58 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
                 }
             }).build();
 
+    /** Lists of unsupported features (firmware version K 16.04)
+     * If a FlowObjective uses one of these features a warning log message is generated.
+     */
+    protected Set<Criterion.Type> unsupportedCriteria = new HashSet<>();
+    protected Set<Instruction.Type> unsupportedInstructions = new HashSet<>();
+    protected Set<L2ModificationInstruction.L2SubType> unsupportedL2mod = new HashSet<>();
+    protected Set<L3ModificationInstruction.L3SubType> unsupportedL3mod = new HashSet<>();
+
+    /** Lists of Criteria and Instructions supported in hardware
+     * If a FlowObjective uses one of these features the FlowRule is intalled in HP_SOFTWARE_TABLE.
+     */
+    protected Set<Criterion.Type> hardwareCriteria = new HashSet<>();
+    protected Set<Instruction.Type> hardwareInstructions = new HashSet<>();
+    protected Set<L2ModificationInstruction.L2SubType> hardwareInstructionsL2mod = new HashSet<>();
+    protected Set<L3ModificationInstruction.L3SubType> hardwareInstructionsL3mod = new HashSet<>();
+    protected Set<L4ModificationInstruction.L4SubType> hardwareInstructionsL4mod = new HashSet<>();
+    protected Set<Group.Type> hardwareGroups = new HashSet<>();
+
     /**
      * Sets default table id.
-     * HP3800 switches have 3 tables, so one of them has to be default.
+     * Using this solution all flow rules are installed on the "default" table
      *
      * @param ruleBuilder flow rule builder to be set table id
      * @return flow rule builder with set table id for flow
      */
     protected abstract FlowRule.Builder setDefaultTableIdForFlowObjective(Builder ruleBuilder);
 
+    /**
+     * Return the proper table ID depending on the specific ForwardingObjective.
+     *
+     * HP switches supporting openflow have 3 tables (Pipeline Model: Standard Match)
+     * Table 0 is just a shortcut to table 100
+     * Table 100/200 are respectively used for rules processed in HARDWARE/SOFTWARE
+     *
+     * @param fwd ForwardingObjective
+     * @return table id
+     */
+    protected abstract int tableIdForForwardingObjective(ForwardingObjective fwd);
+
+    /**
+     * Return TRUE if ForwardingObjective fwd includes unsupported features.
+     *
+     * @param fwd ForwardingObjective
+     * @return boolean
+     */
+    protected abstract boolean checkUnSupportedFeatures(ForwardingObjective fwd);
+
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
+        serviceDirectory = context.directory();
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         groupService = serviceDirectory.get(GroupService.class);
@@ -126,13 +240,115 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
 
         appId = coreService.registerApplication(APPLICATION_ID);
 
-        initializePipeline();
+        device = deviceService.getDevice(deviceId);
+        deviceHwVersion = device.hwVersion();
+
+        //Initialization of model specific features
+        log.info("HP Driver - Initializing unsupported features for switch {}", deviceHwVersion);
+        initUnSupportedFeatures();
+
+        log.debug("HP Driver - Initializing features supported in hardware");
+        initHardwareCriteria();
+        initHardwareInstructions();
+
+        log.debug("HP Driver - Initializing pipeline");
+        installHPTableZero();
+        installHPHardwareTable();
+        installHPSoftwareTable();
     }
 
     /**
-     * Initializes pipeline.
+     * UnSupported features are specific of each model.
      */
-    protected abstract void initializePipeline();
+    protected abstract void initUnSupportedFeatures();
+
+    /**
+     * Criteria supported in hardware are specific of each model.
+     */
+    protected abstract void initHardwareCriteria();
+
+    /**
+     * Instructions supported in hardware are specific of each model.
+     */
+    protected abstract void initHardwareInstructions();
+
+    /**
+     * HP Table 0 initialization.
+     * Installs rule goto HP_HARDWARE_TABLE in HP_TABLE_ZERO
+     */
+    private void installHPTableZero() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.transition(HP_HARDWARE_TABLE);
+
+        FlowRule rule = DefaultFlowRule.builder().forDevice(this.deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(0)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(HP_TABLE_ZERO)
+                .build();
+
+        this.applyRules(true, rule);
+    }
+
+    /**
+     * HP hardware table initialization.
+     * Installs rule goto HP_SOFTWARE_TABLE in HP_HARDWARE_TABLE
+     */
+    private void installHPHardwareTable() {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        //treatment.setOutput(PortNumber.NORMAL);
+        treatment.transition(HP_SOFTWARE_TABLE);
+
+        FlowRule rule = DefaultFlowRule.builder().forDevice(this.deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(0)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(HP_HARDWARE_TABLE)
+                .build();
+
+        this.applyRules(true, rule);
+    }
+
+    /**
+     * Applies FlowRule.
+     * Installs or removes FlowRule.
+     *
+     * @param install - whether to install or remove rule
+     * @param rule    - the rule to be installed or removed
+     */
+    private void applyRules(boolean install, FlowRule rule) {
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+
+        ops = install ? ops.add(rule) : ops.remove(rule);
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.trace("HP Driver: provisioned " + rule.toString());
+
+                log.debug("HP Driver: - applyRules onSuccess rule {}", rule.toString());
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.debug("HP Driver: applyRules onError rule: "
+                        + rule.toString() + " in table: " + rule.tableId());
+            }
+        }));
+    }
+
+    /**
+     * HP software table initialization.
+     * No rules required.
+     */
+    private void installHPSoftwareTable() {}
 
     protected void pass(Objective obj) {
         obj.context().ifPresent(context -> context.onSuccess(obj));
@@ -148,36 +364,33 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
         if (fwd.treatment() != null) {
             // Deal with SPECIFIC and VERSATILE in the same manner.
 
-            TrafficTreatment.Builder noClearTreatment = DefaultTrafficTreatment.builder();
-            fwd.treatment().allInstructions().stream()
-                    .filter(i -> i.type() != Instruction.Type.QUEUE).forEach(noClearTreatment::add);
-            if (fwd.treatment().metered() != null) {
-                noClearTreatment.meter(fwd.treatment().metered().meterId());
+            /** If UNSUPPORTED features included in ForwardingObjective a warning message is generated.
+             * FlowRule is anyway sent to the device, device will reply with an OFP_ERROR.
+             * Moreover, checkUnSupportedFeatures function generates further warnings specifying
+             * each unsupported feature.
+             * */
+            if (checkUnSupportedFeatures(fwd)) {
+                log.warn("HP Driver - specified ForwardingObjective contains UNSUPPORTED FEATURES");
             }
 
-            TrafficSelector.Builder noVlanSelector = DefaultTrafficSelector.builder();
-            fwd.selector().criteria().stream()
-                    .filter(c -> c.type() != Criterion.Type.ETH_TYPE || (c.type() == Criterion.Type.ETH_TYPE
-                            && ((EthTypeCriterion) c).ethType().toShort() != Ethernet.TYPE_VLAN))
-                    .forEach(noVlanSelector::add);
-
-            // Then we create a new forwarding rule without the unsupported actions
+            //Create the FlowRule starting from the ForwardingObjective
             FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                     .forDevice(deviceId)
-                    .withSelector(noVlanSelector.build())
-                    .withTreatment(noClearTreatment.build())
-                    .withPriority(fwd.priority())
+                    .withSelector(fwd.selector())
+                    .withTreatment(fwd.treatment())
                     .withPriority(fwd.priority())
                     .fromApp(fwd.appId());
 
-            //TODO: check whether ForwardingObjective can specify table
-            setDefaultTableIdForFlowObjective(ruleBuilder);
+            //Table to be used depends on the specific switch hardware and ForwardingObjective
+            ruleBuilder.forTable(tableIdForForwardingObjective(fwd));
 
             if (fwd.permanent()) {
                 ruleBuilder.makePermanent();
             } else {
                 ruleBuilder.makeTemporary(fwd.timeout());
             }
+
+            log.debug("HP Driver - installing fwd.treatment {}", fwd.toString());
 
             installObjective(ruleBuilder, fwd);
 
@@ -246,33 +459,35 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
 
         switch (objective.op()) {
             case ADD:
-                log.trace("Requested installation of objective " + objective.toString());
+                log.trace("HP Driver - Requested ADD of objective " + objective.toString());
                 FlowRule addRule = ruleBuilder.build();
-                log.trace("built rule is " + addRule.toString());
+
+                log.trace("HP Driver - built rule is " + addRule.toString());
                 flowBuilder.add(addRule);
                 break;
             case REMOVE:
-                log.trace("Requested installation of objective " + objective.toString());
+                log.trace("HP Driver - Requested REMOVE of objective " + objective.toString());
                 FlowRule removeRule = ruleBuilder.build();
-                log.trace("built rule is " + removeRule.toString());
+
+                log.trace("HP Driver - built rule is " + removeRule.toString());
                 flowBuilder.remove(removeRule);
                 break;
             default:
-                log.warn("Unknown operation {}", objective.op());
+                log.warn("HP Driver - Unknown operation {}", objective.op());
         }
 
         flowRuleService.apply(flowBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 objective.context().ifPresent(context -> context.onSuccess(objective));
-                log.trace("Installed objective " + objective.toString());
+                log.trace("HP Driver - Installed objective " + objective.toString());
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 objective.context()
                         .ifPresent(context -> context.onError(objective, ObjectiveError.FLOWINSTALLATIONFAILED));
-                log.trace("Objective installation failed" + objective.toString());
+                log.trace("HP Driver - Objective installation failed" + objective.toString());
             }
         }));
     }
@@ -341,14 +556,14 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
         for (Criterion c : filt.conditions()) {
             if (c.type() == Criterion.Type.ETH_DST) {
                 EthCriterion eth = (EthCriterion) c;
-                FlowRule.Builder rule = processEthFiler(filt, eth, port);
+                FlowRule.Builder rule = processEthFilter(filt, eth, port);
                 rule.forDevice(deviceId)
                         .fromApp(applicationId);
                 ops = install ? ops.add(rule.build()) : ops.remove(rule.build());
 
             } else if (c.type() == Criterion.Type.VLAN_VID) {
                 VlanIdCriterion vlan = (VlanIdCriterion) c;
-                FlowRule.Builder rule = processVlanFiler(filt, vlan, port);
+                FlowRule.Builder rule = processVlanFilter(filt, vlan, port);
                 rule.forDevice(deviceId)
                         .fromApp(applicationId);
                 ops = install ? ops.add(rule.build()) : ops.remove(rule.build());
@@ -371,21 +586,21 @@ public abstract class AbstractHPPipeline extends AbstractHandlerBehaviour implem
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 pass(filt);
-                log.trace("Applied filtering rules");
+                log.trace("HP Driver - Applied filtering rules");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
-                log.info("Failed to apply filtering rules");
+                log.trace("HP Driver - Failed to apply filtering rules");
             }
         }));
     }
 
-    protected abstract Builder processEthFiler(FilteringObjective filt,
+    protected abstract Builder processEthFilter(FilteringObjective filt,
                                                EthCriterion eth, PortCriterion port);
 
-    protected abstract Builder processVlanFiler(FilteringObjective filt,
+    protected abstract Builder processVlanFilter(FilteringObjective filt,
                                                 VlanIdCriterion vlan, PortCriterion port);
 
     protected abstract Builder processIpFilter(FilteringObjective filt,
