@@ -229,6 +229,7 @@ ONOS_APPS = [
     '//apps/routeradvertisement:onos-apps-routeradvertisement-oar',
     '//apps/powermanagement:onos-apps-powermanagement-oar',
     '//apps/t3:onos-apps-t3-oar',
+    '//apps/simplefabric:onos-apps-simplefabric-oar',
 ]
 
 PROTOCOL_APPS = [
