@@ -1,0 +1,11 @@
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.cluster.models";
+
+import "cluster/NodeIdProto.proto";
+
+package cluster;
+
+message RoleInfoProto {
+    cluster.NodeIdProto master = 1;
+    repeated cluster.NodeIdProto backups = 2;
+}
