@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.file.Files.delete;
 import static java.nio.file.Files.walkFileTree;
 import static org.onlab.util.GroupedThreadFactory.groupedThreadFactory;
@@ -842,4 +843,33 @@ public abstract class Tools {
                                         ZoneId.systemDefault());
     }
 
+    /**
+     * Returns smaller of the two Comparable values.
+     *
+     * @param l an argument
+     * @param r another argument
+     * @return the smaller of {@code l} or {@code r}
+     * @param <C> Comparable type
+     * @throws NullPointerException if any of the arguments were null.
+     */
+    public static <C extends Comparable<? super C>> C min(C l, C r) {
+        checkNotNull(l, "l cannot be null");
+        checkNotNull(r, "r cannot be null");
+        return l.compareTo(r) <= 0 ? l : r;
+    }
+
+    /**
+     * Returns larger of the two Comparable values.
+     *
+     * @param l an argument
+     * @param r another argument
+     * @return the larger of {@code l} or {@code r}
+     * @param <C> Comparable type
+     * @throws NullPointerException if any of the arguments were null.
+     */
+    public static <C extends Comparable<? super C>> C max(C l, C r) {
+        checkNotNull(l, "l cannot be null");
+        checkNotNull(r, "r cannot be null");
+        return l.compareTo(r) >= 0 ? l : r;
+    }
 }

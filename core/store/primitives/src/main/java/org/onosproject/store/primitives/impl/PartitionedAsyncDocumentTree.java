@@ -16,12 +16,14 @@
 package org.onosproject.store.primitives.impl;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
@@ -158,26 +160,58 @@ public class PartitionedAsyncDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Version> begin(TransactionId transactionId) {
-        throw new UnsupportedOperationException();
+        return partitions().stream()
+            .map(p -> p.begin(transactionId))
+            // returning lowest Version
+            .reduce((f1, f2) -> f1.thenCombine(f2, Tools::min))
+            .orElse(Tools.exceptionalFuture(new IllegalStateException("Empty partitions?")));
     }
 
     @Override
     public CompletableFuture<Boolean> prepare(TransactionLog<NodeUpdate<V>> transactionLog) {
-        throw new UnsupportedOperationException();
+        Map<AsyncDocumentTree<V>, List<NodeUpdate<V>>> perPart =
+                transactionLog.records().stream()
+                    .collect(Collectors.groupingBy(nu -> partition(nu.path())));
+
+        // must walk all partitions to ensure empty TransactionLog will
+        // be issued against no-op partitions in order for commit to succeed
+        return partitions().stream()
+                .map(p -> p.prepare(new TransactionLog<>(transactionLog.transactionId(),
+                                    transactionLog.version(),
+                                    perPart.getOrDefault(p, ImmutableList.of()))))
+                .reduce((f1, f2) -> f1.thenCombine(f2, Boolean::logicalAnd))
+                .orElse(CompletableFuture.completedFuture(true));
     }
 
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<NodeUpdate<V>> transactionLog) {
-        throw new UnsupportedOperationException();
+        // Note: cannot call prepareAndCommit on each partition,
+        // must check all partitions are prepare()-ed first.
+        return prepare(transactionLog)
+                .thenApply(prepOk -> {
+                    if (prepOk) {
+                        commit(transactionLog.transactionId());
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        throw new UnsupportedOperationException();
+        return CompletableFuture.allOf(partitions().stream()
+                                           .map(p -> p.commit(transactionId))
+                                           .toArray(CompletableFuture[]::new)
+                                       );
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        throw new UnsupportedOperationException();
+        return CompletableFuture.allOf(partitions().stream()
+                                       .map(p -> p.rollback(transactionId))
+                                       .toArray(CompletableFuture[]::new)
+                                   );
     }
 }

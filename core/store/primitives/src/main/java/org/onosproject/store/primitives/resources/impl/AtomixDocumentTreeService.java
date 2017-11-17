@@ -405,6 +405,8 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             DocumentPath path = record.path();
             checkState(preparedKeys.remove(path), "path is not prepared");
 
+            // FIXME revisit this block, it never respects NodeUpdate type
+
             Versioned<byte[]> previousValue = null;
             try {
                 previousValue = docTree.removeNode(path);
@@ -428,7 +430,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             }
         }
 
-        DocumentTreeEvent<byte[]> end = new DocumentTreeEvent<byte[]>(
+        DocumentTreeEvent<byte[]> end = new DocumentTreeEvent<>(
                 DocumentPath.from(transactionScope.transactionLog().transactionId().toString()),
                 Type.TRANSACTION_END,
                 Optional.empty(),
@@ -522,7 +524,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
          * @return the transaction commit log
          */
         TransactionLog<NodeUpdate<byte[]>> transactionLog() {
-            checkState(isPrepared());
+            checkState(isPrepared(), "Transaction not prepared");
             return transactionLog;
         }
 
