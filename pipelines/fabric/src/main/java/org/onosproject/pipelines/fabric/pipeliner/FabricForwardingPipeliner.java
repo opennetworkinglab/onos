@@ -29,6 +29,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
@@ -95,6 +96,7 @@ public class FabricForwardingPipeliner {
 
         VlanIdCriterion vlanIdCriterion = null;
         EthCriterion ethDstCriterion = null;
+        IPCriterion ipDstCriterion = null;
 
         for (Criterion criterion : criteria) {
             switch (criterion.type()) {
@@ -103,6 +105,9 @@ public class FabricForwardingPipeliner {
                     break;
                 case VLAN_VID:
                     vlanIdCriterion = (VlanIdCriterion) criterion;
+                    break;
+                case IPV4_DST:
+                    ipDstCriterion = (IPCriterion) criterion;
                     break;
                 default:
                     log.warn("Unsupported criterion {}", criterion);
@@ -120,6 +125,8 @@ public class FabricForwardingPipeliner {
                 processL2BroadcastRule(vlanIdCriterion, fwd, resultBuilder);
                 break;
             case IPV4_UNICAST:
+                processIpv4UnicastRule(ipDstCriterion, fwd, resultBuilder);
+                break;
             case IPV4_MULTICAST:
             case IPV6_UNICAST:
             case IPV6_MULTICAST:
@@ -190,6 +197,32 @@ public class FabricForwardingPipeliner {
                 .makePermanent()
                 .forDevice(deviceId)
                 .forTable(FabricConstants.TBL_BRIDGING_ID)
+                .build();
+
+        resultBuilder.addFlowRule(flowRule);
+    }
+
+    private void processIpv4UnicastRule(IPCriterion ipDstCriterion, ForwardingObjective fwd,
+                                        PipelinerTranslationResult.Builder resultBuilder) {
+        checkNotNull(ipDstCriterion, "IP dst criterion should not be null");
+        if (fwd.nextId() == null) {
+            log.warn("Forwarding objective for IPv4 unicast should contains next id");
+            resultBuilder.setError(ObjectiveError.BADPARAMS);
+            return;
+        }
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchIPDst(ipDstCriterion.ip())
+                .build();
+
+        TrafficTreatment treatment = buildSetNextIdTreatment(fwd.nextId());
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .makePermanent()
+                .forDevice(deviceId)
+                .forTable(FabricConstants.TBL_UNICAST_V4_ID)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);

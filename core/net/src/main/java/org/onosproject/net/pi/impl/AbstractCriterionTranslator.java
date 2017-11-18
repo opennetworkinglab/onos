@@ -127,6 +127,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
                 break;
             case LPM:
                 mask = getMaskFromPrefixLength(prefixLength, value.size());
+                break;
             default:
                 throw new RuntimeException("Unrecognized init type " + initType.name());
         }
@@ -163,8 +164,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
      * @return a byte sequence
      */
     private ImmutableByteSequence getMaskFromPrefixLength(int prefixLength, int maskSize) {
-        // TODO: implement.
-        throw new RuntimeException("getMaskFromPrefixLength() not implemented yet.");
+        return ImmutableByteSequence.prefixOnes(maskSize, prefixLength);
     }
 
     /**
@@ -175,7 +175,32 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
      * @return optional prefix length
      */
     private Optional<Integer> getPrefixLengthFromMask(ImmutableByteSequence mask) {
-        // TODO: implement.
-        throw new RuntimeException("getPrefixLengthFromMask() not implemented yet.");
+        Integer prefixLength = 0;
+
+        byte[] byteArray = mask.asArray();
+        int byteArrayIndex = 0;
+        while (byteArrayIndex < byteArray.length && byteArray[byteArrayIndex] == (byte) 0xff) {
+            prefixLength += Byte.SIZE;
+            byteArrayIndex++;
+        }
+
+        byte byteVal = byteArray[byteArrayIndex];
+        while (byteVal != 0) {
+            if ((byteVal & Integer.MIN_VALUE) != Integer.MIN_VALUE) {
+                return Optional.empty();
+            }
+            prefixLength++;
+            byteVal <<= 1;
+        }
+
+        byteArrayIndex++;
+        while (byteArrayIndex < byteArray.length) {
+            if (byteArray[byteArrayIndex] != 0) {
+                return Optional.empty();
+            }
+            byteArrayIndex++;
+        }
+
+        return Optional.of(prefixLength);
     }
 }

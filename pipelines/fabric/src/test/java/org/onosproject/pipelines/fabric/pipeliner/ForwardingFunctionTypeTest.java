@@ -67,7 +67,6 @@ public class ForwardingFunctionTypeTest {
     }
 
     @Test
-    @Ignore
     public void testIpv4Unicast() {
         selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)

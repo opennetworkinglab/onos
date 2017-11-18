@@ -157,7 +157,6 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
     }
 
     @Test
-    @Ignore
     public void testIPv4Unicast() {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)

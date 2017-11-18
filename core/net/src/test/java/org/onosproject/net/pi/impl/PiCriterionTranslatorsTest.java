@@ -25,6 +25,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.ArpHaCriterion;
 import org.onosproject.net.flow.criteria.ArpOpCriterion;
@@ -481,5 +482,36 @@ public class PiCriterionTranslatorsTest {
         PiExactFieldMatch exactMatch = (PiExactFieldMatch) translateCriterion(criterion, fieldId, EXACT, bitWidth);
 
         assertThat(exactMatch.value().asReadOnlyBuffer().get(), is(criterion.ipEcn()));
+    }
+
+    @Test
+    public void testLpmToTernaryTranslation() throws Exception {
+        IpPrefix ipPrefix = IpPrefix.valueOf("10.0.0.1/23");
+        int bitWidth = ipPrefix.address().toOctets().length * Byte.SIZE;
+
+        IPCriterion criterion = (IPCriterion) Criteria.matchIPDst(ipPrefix);
+        PiTernaryFieldMatch ternaryMatch =
+                (PiTernaryFieldMatch) translateCriterion(criterion, fieldId, TERNARY, bitWidth);
+
+        ImmutableByteSequence expectedMask = ImmutableByteSequence.prefixOnes(Integer.BYTES, 23);
+        ImmutableByteSequence expectedValue = ImmutableByteSequence.copyFrom(ipPrefix.address().toOctets());
+
+        assertThat(ternaryMatch.mask(), is(expectedMask));
+        assertThat(ternaryMatch.value(), is(expectedValue));
+    }
+
+    @Test
+    public void testTernaryToLpmTranslation() throws Exception {
+        EthCriterion criterion =
+                (EthCriterion) Criteria.matchEthDstMasked(MacAddress.ONOS,
+                                                          MacAddress.IPV4_MULTICAST_MASK);
+
+        PiLpmFieldMatch lpmMatch =
+                (PiLpmFieldMatch) translateCriterion(criterion, fieldId, LPM,
+                                                     MacAddress.MAC_ADDRESS_LENGTH * Byte.SIZE);
+        ImmutableByteSequence expectedValue = ImmutableByteSequence.copyFrom(MacAddress.ONOS.toBytes());
+
+        assertThat(lpmMatch.prefixLength(), is(25));
+        assertThat(lpmMatch.value(), is(expectedValue));
     }
 }

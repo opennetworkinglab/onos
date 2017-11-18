@@ -66,6 +66,19 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         testSimple(treatment);
     }
 
+    /**
+     * Test program set mac and output rule for Simple table.
+     */
+    @Test
+    public void testSimpleOutputWithMacTranslation() {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setEthSrc(ROUTER_MAC)
+                .setEthDst(HOST_MAC)
+                .setOutput(PORT_1)
+                .build();
+        testSimple(treatment);
+    }
+
     private void testSimple(TrafficTreatment treatment) {
         NextObjective nextObjective = DefaultNextObjective.builder()
                 .withId(NEXT_ID_1)
