@@ -232,7 +232,7 @@ public final class ResourceIdParser {
     }
 
     public static String[] getService(ResourceId path) {
-        String[] res = null;
+        String[] res = new String[2];
         if (path == null) {
             return res;
         }
