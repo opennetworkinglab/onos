@@ -1308,7 +1308,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         } else {
             return null;
         }
-
+        if (dhcpServerConnectPoint == null || dhcpConnectVlan == null) {
+            log.info("Default DHCP server {} not resolve yet", serverInfo.getDhcpGatewayIp6());
+            return null;
+        }
         return interfaceService.getInterfacesByPort(dhcpServerConnectPoint)
                 .stream()
                 .filter(iface -> interfaceContainsVlan(iface, dhcpConnectVlan))
@@ -1335,7 +1338,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         } else {
             return getServerInterface();
         }
-
+        if (indirectDhcpServerConnectPoint == null || indirectDhcpConnectVlan == null) {
+            log.info("Indirect DHCP server {} not resolve yet", serverInfo.getDhcpGatewayIp6());
+            return null;
+        }
         return interfaceService.getInterfacesByPort(indirectDhcpServerConnectPoint)
                 .stream()
                 .filter(iface -> interfaceContainsVlan(iface, indirectDhcpConnectVlan))
