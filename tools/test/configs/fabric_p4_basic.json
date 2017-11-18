@@ -1,0 +1,34 @@
+{
+    "ports" : {
+        "device:bmv2:1/1" : {
+            "interfaces" : [
+                {
+                    "ips" : [ "10.0.0.254/24" ],
+                    "vlan-untagged": 10
+                }
+            ]
+        },
+        "device:bmv2:1/2" : {
+            "interfaces" : [
+                {
+                    "ips" : [ "10.0.0.254/24" ],
+                    "vlan-untagged": 10
+                }
+            ]
+        }
+    },
+    "devices" : {
+        "device:bmv2:1" : {
+            "segmentrouting" : {
+                "name" : "s1",
+                "ipv4NodeSid" : 1,
+                "ipv4Loopback" : "192.168.0.1",
+                "ipv6NodeSid" : 1,
+                "ipv6Loopback" : "2000::c0a8:1",
+                "routerMac" : "00:00:00:00:aa:01",
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
+            }
+        }
+    }
+}
