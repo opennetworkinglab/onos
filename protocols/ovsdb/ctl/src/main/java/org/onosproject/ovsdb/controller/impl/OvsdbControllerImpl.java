@@ -199,8 +199,7 @@ public class OvsdbControllerImpl implements OvsdbController {
      * Dispatches event to the north.
      *
      * @param clientService OvsdbClientService instance
-     * @param newRow        a new row
-     * @param oldRow        an old row
+     * @param row           a new row
      * @param eventType     type of event
      * @param dbSchema      ovsdb database schema
      */
@@ -384,11 +383,18 @@ public class OvsdbControllerImpl implements OvsdbController {
 
         @Override
         public void removeConnectedNode(OvsdbNodeId nodeId) {
-            ovsdbClients.remove(nodeId);
-            log.debug("Node connection is removed");
-            for (OvsdbNodeListener l : ovsdbNodeListener) {
-                l.nodeRemoved(nodeId);
-            }
+            requestNotification.forEach((k, v) -> {
+                if (v.nodeId().equals(nodeId)) {
+                    requestNotification.remove(k);
+                    requestDbName.remove(k);
+
+                    ovsdbClients.remove(nodeId);
+                    log.debug("Node connection is removed");
+                    for (OvsdbNodeListener l : ovsdbNodeListener) {
+                        l.nodeRemoved(nodeId);
+                    }
+                }
+            });
         }
     }
 

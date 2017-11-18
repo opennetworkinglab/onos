@@ -1813,7 +1813,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     @Override
     public void disconnect() {
         channel.disconnect();
-        this.agent.removeConnectedNode(nodeId);
     }
 
     @Override
