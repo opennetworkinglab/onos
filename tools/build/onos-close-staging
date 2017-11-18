@@ -17,7 +17,7 @@ BASE_URL = 'https://oss.sonatype.org/service/local/'
 GROUP_ID = 'org.onosproject'
 ARTIFACT = 'onos-api'
 VERSION = os.environ['ONOS_VERSION']
-MAX_TRIES = 3
+MAX_TRIES = 10
 
 # Performs an HTTP GET up to MAX_TRIES times
 def get(url):
