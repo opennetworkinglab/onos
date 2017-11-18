@@ -77,7 +77,8 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
     /*
     If true, we avoid querying the device and return the content of the ENTRY_STORE.
      */
-    private boolean ignoreDeviceWhenGet = false;
+    // TODO: set to false after bmv2/PI bug fixed
+    private boolean ignoreDeviceWhenGet = true;
 
     /*
     If true, we read all direct counters of a table with one request. Otherwise, send as many request as the number of
