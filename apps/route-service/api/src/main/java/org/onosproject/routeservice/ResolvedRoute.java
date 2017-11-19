@@ -151,7 +151,7 @@ public class ResolvedRoute {
 
     @Override
     public int hashCode() {
-        return Objects.hash(route, nextHopMac, nextHopVlan, location);
+        return Objects.hash(route, nextHopMac, nextHopVlan);
     }
 
     @Override
@@ -168,8 +168,7 @@ public class ResolvedRoute {
 
         return Objects.equals(this.route, that.route) &&
                 Objects.equals(this.nextHopMac, that.nextHopMac) &&
-                Objects.equals(this.nextHopVlan, that.nextHopVlan) &&
-                Objects.equals(this.location, that.location);
+                Objects.equals(this.nextHopVlan, that.nextHopVlan);
     }
 
     @Override
@@ -178,7 +177,6 @@ public class ResolvedRoute {
                 .add("route", route)
                 .add("nextHopMac", nextHopMac)
                 .add("nextHopVlan", nextHopVlan)
-                .add("location", location)
                 .toString();
     }
 }
