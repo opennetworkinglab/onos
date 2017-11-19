@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -80,4 +81,24 @@ public final class MulticastData {
         return new MulticastData();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), source, sinks, isEmpty);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof MulticastData)) {
+            return false;
+        }
+        final MulticastData other = (MulticastData) obj;
+
+        return super.equals(obj) &&
+                Objects.equals(source(), other.source()) &&
+                Objects.equals(sinks(), other.sinks()) &&
+                Objects.equals(isEmpty, other.isEmpty);
+    }
 }
