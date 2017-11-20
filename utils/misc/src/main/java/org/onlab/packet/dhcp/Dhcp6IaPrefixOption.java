@@ -199,7 +199,7 @@ public final class Dhcp6IaPrefixOption extends Dhcp6Option {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof Dhcp6IaAddressOption)) {
+        if (!(obj instanceof Dhcp6IaPrefixOption)) {
             return false;
         }
         final Dhcp6IaPrefixOption other = (Dhcp6IaPrefixOption) obj;

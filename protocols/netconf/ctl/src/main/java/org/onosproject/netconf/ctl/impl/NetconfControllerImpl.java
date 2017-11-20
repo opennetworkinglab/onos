@@ -351,7 +351,7 @@ public class NetconfControllerImpl implements NetconfController {
         @Override
         public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
                 throws NetconfException {
-            if (NetconfSshClientLib.ETHZ_SSH2.equals(netconfDeviceInfo.sshClientLib()) ||
+            if (NetconfSshClientLib.ETHZ_SSH2.equals(netconfDeviceInfo.sshClientLib().orElse(null)) ||
                     NetconfSshClientLib.ETHZ_SSH2.equals(sshLibrary)) {
                 log.info("Creating NETCONF session to {} with {}",
                             netconfDeviceInfo.name(), NetconfSshClientLib.ETHZ_SSH2);

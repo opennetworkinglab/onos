@@ -182,6 +182,7 @@ public class DynamicDeviceConfigSynchronizer
             case NODE_ADDED:
             case NODE_REPLACED:
                 request = SetRequest.builder().replace(relPath, node).build();
+                break;
             case NODE_UPDATED:
                 // Event has no pay load, only thing we can do is replace.
                 request = SetRequest.builder().replace(relPath, node).build();

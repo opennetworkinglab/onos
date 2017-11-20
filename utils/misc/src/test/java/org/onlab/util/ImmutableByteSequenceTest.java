@@ -17,6 +17,8 @@
 package org.onlab.util;
 
 import com.google.common.testing.EqualsTester;
+
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,9 +44,9 @@ public class ImmutableByteSequenceTest {
     public void testCopy() throws Exception {
 
         byte byteValue = (byte) 1;
-        short shortValue = (short) byteValue;
-        int intValue = (int) byteValue;
-        long longValue = (long) byteValue;
+        short shortValue = byteValue;
+        int intValue = byteValue;
+        long longValue = byteValue;
         byte[] arrayValue = new byte[64];
         arrayValue[63] = byteValue;
         ByteBuffer bufferValue = ByteBuffer.allocate(64).put(arrayValue);
@@ -82,7 +84,7 @@ public class ImmutableByteSequenceTest {
     @Test
     public void testEndianness() throws Exception {
 
-        long longValue = new Random().nextLong();
+        long longValue = RandomUtils.nextLong();
 
         // creates a new sequence from a big-endian buffer
         ByteBuffer bbBigEndian = ByteBuffer
