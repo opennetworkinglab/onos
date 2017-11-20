@@ -696,6 +696,80 @@ public class HostHandlerTest {
     }
 
     @Test
+    public void testDelayedIpAndLocation() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(HOST_IP11), false);
+        Host host3 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+
+        // Add a dual-home host with only one location and no IP
+        // Expect: only bridging redirection works
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(0, ROUTING_TABLE.size());
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Discover IP
+        // Expect: routing redirection should also work
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_UPDATED, host2, host1));
+        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Discover location
+        // Expect: cancel all redirections
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host3, host2));
+        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+    }
+
+    @Test
+    public void testDelayedIpAndLocation2() throws Exception {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31), Sets.newHashSet(), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(), false);
+        Host host3 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+
+        // Add a dual-home host with only one location and no IP
+        // Expect: only bridging redirection works
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+        assertEquals(0, ROUTING_TABLE.size());
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Discover Location
+        // Expect: cancel bridging redirections
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        assertEquals(0, ROUTING_TABLE.size());
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
+        // Discover IP
+        // Expect: add IP rules to both location
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_UPDATED, host3, host2));
+        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+    }
+
+    @Test
     public void testDualHomedHostUpdated() throws Exception {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11, HOST_LOC21), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
