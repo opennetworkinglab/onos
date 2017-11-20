@@ -254,20 +254,43 @@ public class HostHandler {
     }
 
     void processHostUpdatedEvent(HostEvent event) {
-        MacAddress mac = event.subject().mac();
-        VlanId vlanId = event.subject().vlan();
+        MacAddress hostMac = event.subject().mac();
+        VlanId hostVlanId = event.subject().vlan();
         Set<HostLocation> locations = event.subject().locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.info("Host {}/{} is updated", mac, vlanId);
+        log.info("Host {}/{} is updated", hostMac, hostVlanId);
 
         locations.stream().filter(srManager::isMasterOf).forEach(location -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
-                    processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, true)
+                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
             );
             Sets.difference(newIps, prevIps).forEach(ip ->
-                    processRoutingRule(location.deviceId(), location.port(), mac, vlanId, ip, false)
+                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
             );
+        });
+
+        // Use the pair link temporarily before the second location of a dual-homed host shows up.
+        // This do not affect single-homed hosts since the flow will be blocked in
+        // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
+        locations.forEach(location -> {
+            srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
+                if (srManager.mastershipService.isLocalMaster(pairDeviceId) &&
+                        locations.stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
+                    srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
+                        // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
+                        //       when the host is untagged
+                        VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+
+                        Sets.difference(prevIps, newIps).forEach(ip ->
+                                processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, ip, true)
+                        );
+                        Sets.difference(newIps, prevIps).forEach(ip ->
+                                processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, ip, false)
+                        );
+                    });
+                }
+            });
         });
     }
 
