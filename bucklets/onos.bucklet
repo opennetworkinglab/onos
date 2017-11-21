@@ -91,7 +91,7 @@ def java_doc(
       srcs = srcs,
       out = name + '.jar',
       visibility = visibility,
-)
+    )
 
 def sonar(
     name,
@@ -168,7 +168,8 @@ def osgi_jar(
 
   onos_jar(
       name = name,
-      srcs = srcs + glob(['src/main/webapp/**']),
+      # FIXME webapp path hard coded here probably is not right
+      srcs = srcs + glob(['src/main/webapp/**'], excludes = ['src/main/webapp/tests/**']),
       deps = deps,
       visibility = visibility,
       resources = resources,
