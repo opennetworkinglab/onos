@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//incubator/api:onos-incubator-api'
+    '//incubator/api:onos-incubator-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli'
 ]
 
 osgi_jar (
