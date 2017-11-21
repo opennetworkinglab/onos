@@ -1,0 +1,64 @@
+syntax="proto3";
+option java_package = "org.onosproject.grpc.nb.mastership";
+
+package nb.mastership;
+
+import "net/MastershipRoleProto.proto";
+import "cluster/RoleInfoProto.proto";
+import "cluster/NodeIdProto.proto";
+
+message getLocalRoleRequest {
+    string device_id = 1;
+}
+
+message getLocalRoleReply {
+    .net.MastershipRoleProto mastership_role = 1;
+}
+
+message isLocalMasterRequest {
+    string device_id = 1;
+}
+
+message isLocalMasterReply {
+    bool is_local_master = 1;
+}
+
+message requestRoleForSyncRequest {
+    string device_id = 1;
+}
+
+message requestRoleForSyncReply {
+    .net.MastershipRoleProto mastership_role = 1;
+}
+
+message relinquishMastershipSyncRequest {
+    string device_id = 1;
+}
+
+message relinquishMastershipSyncReply {
+}
+
+message getMasterForRequest {
+    string device_id = 1;
+}
+
+message getMasterForReply {
+    .cluster.NodeIdProto node_id = 1;
+}
+
+message getNodesForRequest {
+    string device_id = 1;
+}
+
+message getNodesForReply {
+    .cluster.RoleInfoProto role_info = 1;
+}
+
+service MastershipService {
+    rpc getLocalRole(getLocalRoleRequest) returns (getLocalRoleReply) {}
+    rpc isLocalMaster(isLocalMasterRequest) returns (isLocalMasterReply) {}
+    rpc requestRoleForSync(requestRoleForSyncRequest) returns (requestRoleForSyncReply) {}
+    rpc relinquishMastershipSync(relinquishMastershipSyncRequest) returns (relinquishMastershipSyncReply) {}
+    rpc getMasterFor(getMasterForRequest) returns (getMasterForReply) {}
+    rpc getNodesFor(getNodesForRequest) returns (getNodesForReply) {}
+}
