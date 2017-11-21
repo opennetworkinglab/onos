@@ -126,8 +126,8 @@ public final class FabricConstants {
     public static final PiActionId ACT_PUSH_INTERNAL_VLAN_ID = PiActionId.of("filtering.push_internal_vlan");
     public static final PiActionId ACT_SET_VLAN_OUTPUT_ID = PiActionId.of("next.set_vlan_output");
     public static final PiActionId ACT_NOACTION_ID = PiActionId.of("NoAction");
-    public static final PiActionId ACT_PUSH_MPLS_AND_NEXT_V6_ID = PiActionId.of("forwarding.push_mpls_and_next_v6");
-    public static final PiActionId ACT_PUSH_MPLS_AND_NEXT_V4_ID = PiActionId.of("forwarding.push_mpls_and_next_v4");
+    public static final PiActionId ACT_MPLS_ROUTING_V4_ID = PiActionId.of("next.mpls_routing_v4");
+    public static final PiActionId ACT_MPLS_ROUTING_V6_ID = PiActionId.of("next.mpls_routing_v6");
     public static final PiActionId ACT_SET_FORWARDING_TYPE_ID = PiActionId.of("filtering.set_forwarding_type");
     public static final PiActionId ACT_POP_MPLS_AND_NEXT_ID = PiActionId.of("forwarding.pop_mpls_and_next");
     public static final PiActionId ACT_SET_NEXT_TYPE_ID = PiActionId.of("next.set_next_type");
@@ -150,7 +150,7 @@ public final class FabricConstants {
     public static final PiActionParamId ACT_PRM_NEXT_ID_ID = PiActionParamId.of("next_id");
 
     // Action Profile IDs
-    public static final PiActionProfileId ACT_PRF_ECMP_SELECTOR_ID = PiActionProfileId.of("ecmp_selector");
+    public static final PiActionProfileId ACT_PRF_ECMP_SELECTOR_ID = PiActionProfileId.of("next.ecmp_selector");
 
     // Packet Metadata IDs
     public static final PiControlMetadataId CTRL_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");

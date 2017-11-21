@@ -106,7 +106,6 @@ public class ForwardingFunctionTypeTest {
     }
 
     @Test
-    @Ignore
     public void testMplsUnicast() {
         selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.MPLS_UNICAST)

@@ -29,6 +29,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.pipelines.fabric.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricInterpreter;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -39,6 +40,7 @@ public abstract class FabricPipelinerTest {
     static final DeviceId DEVICE_ID = DeviceId.deviceId("device:bmv2:11");
     static final int PRIORITY = 100;
     static final PortNumber PORT_1 = PortNumber.portNumber(1);
+    static final PortNumber PORT_2 = PortNumber.portNumber(2);
     static final VlanId VLAN_100 = VlanId.vlanId("100");
     static final MacAddress HOST_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     static final MacAddress ROUTER_MAC = MacAddress.valueOf("00:00:00:00:02:01");
@@ -71,6 +73,7 @@ public abstract class FabricPipelinerTest {
             .build();
 
     FabricPipeliner pipeliner;
+    FabricInterpreter interpreter;
 
     @Before
     public void setup() {
@@ -82,5 +85,6 @@ public abstract class FabricPipelinerTest {
         replay(serviceDirectory, pipelinerContext);
 
         pipeliner.init(DEVICE_ID, pipelinerContext);
+        interpreter = new FabricInterpreter();
     }
 }

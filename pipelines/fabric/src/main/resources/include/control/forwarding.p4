@@ -49,33 +49,10 @@ control Forwarding (
         fabric_metadata.next_id = next_id;
     }
 
-    action push_mpls (mpls_label_t label, bit<3> tc) {
-        //Suppose that the maximum number of label is one.
-        hdr.mpls.setValid();
-        hdr.ethernet.ether_type = ETHERTYPE_MPLS;
-        hdr.mpls.label = label;
-        hdr.mpls.tc = tc;
-        hdr.mpls.bos = 1;
-        hdr.mpls.ttl = 64;
-    }
-
-    action push_mpls_and_next_v4 (mpls_label_t label,
-                                  next_id_t next_id) {
-        set_next_id(next_id);
-        push_mpls(label, hdr.ipv4.diffserv[7:5]);
-    }
-
-    action push_mpls_and_next_v6 (mpls_label_t label, next_id_t next_id) {
-        set_next_id(next_id);
-        push_mpls(label, hdr.ipv6.traffic_class[7:5]);
-    }
-
     action duplicate_to_controller() {
         fabric_metadata.next_type = NEXT_TYPE_PUNT;
         standard_metadata.egress_spec = CPU_PORT;
     }
-
-
 
     table bridging {
         key = {
@@ -107,7 +84,6 @@ control Forwarding (
 
         actions = {
             set_next_id;
-            push_mpls_and_next_v4;
         }
         counters = unicast_v4_counter;
     }
@@ -131,7 +107,6 @@ control Forwarding (
 
         actions = {
             set_next_id;
-            push_mpls_and_next_v6;
         }
         counters = unicast_v6_counter;
     }

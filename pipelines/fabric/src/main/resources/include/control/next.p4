@@ -73,6 +73,28 @@ control Next (
         rewrite_smac(smac);
     }
 
+    action push_mpls (mpls_label_t label, bit<3> tc) {
+        //Suppose that the maximum number of label is one.
+        hdr.mpls.setValid();
+        hdr.ethernet.ether_type = ETHERTYPE_MPLS;
+        hdr.mpls.label = label;
+        hdr.mpls.tc = tc;
+        hdr.mpls.bos = 1; // BOS = TRUE
+        hdr.mpls.ttl = DEFAULT_MPLS_TTL;
+    }
+
+    action mpls_routing_v4 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing(port_num, smac, dmac);
+        push_mpls(label, hdr.ipv4.diffserv[7:5]);
+    }
+
+    action mpls_routing_v6 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing(port_num, smac, dmac);
+        push_mpls(label, hdr.ipv6.traffic_class[7:5]);
+    }
+
     table next_id_mapping {
         key = {
             fabric_metadata.next_id: exact;
@@ -112,6 +134,8 @@ control Next (
 
         actions = {
             l3_routing;
+            mpls_routing_v4;
+            mpls_routing_v6;
         }
 
         implementation = ecmp_selector;

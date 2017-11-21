@@ -30,6 +30,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
@@ -97,6 +98,7 @@ public class FabricForwardingPipeliner {
         VlanIdCriterion vlanIdCriterion = null;
         EthCriterion ethDstCriterion = null;
         IPCriterion ipDstCriterion = null;
+        MplsCriterion mplsCriterion = null;
 
         for (Criterion criterion : criteria) {
             switch (criterion.type()) {
@@ -108,6 +110,13 @@ public class FabricForwardingPipeliner {
                     break;
                 case IPV4_DST:
                     ipDstCriterion = (IPCriterion) criterion;
+                    break;
+                case MPLS_LABEL:
+                    mplsCriterion = (MplsCriterion) criterion;
+                    break;
+                case ETH_TYPE:
+                case MPLS_BOS:
+                    // do nothing
                     break;
                 default:
                     log.warn("Unsupported criterion {}", criterion);
@@ -127,10 +136,12 @@ public class FabricForwardingPipeliner {
             case IPV4_UNICAST:
                 processIpv4UnicastRule(ipDstCriterion, fwd, resultBuilder);
                 break;
+            case MPLS:
+                processMplsRule(mplsCriterion, fwd, resultBuilder);
+                break;
             case IPV4_MULTICAST:
             case IPV6_UNICAST:
             case IPV6_MULTICAST:
-            case MPLS:
             default:
                 log.warn("Unsupported forwarding function type {}", criteria);
                 resultBuilder.setError(ObjectiveError.UNSUPPORTED);
@@ -228,6 +239,41 @@ public class FabricForwardingPipeliner {
         resultBuilder.addFlowRule(flowRule);
     }
 
+    private void processMplsRule(MplsCriterion mplsCriterion, ForwardingObjective fwd,
+                                 PipelinerTranslationResult.Builder resultBuilder) {
+        checkNotNull(mplsCriterion, "Mpls criterion should not be null");
+        if (fwd.nextId() == null) {
+            log.warn("Forwarding objective for MPLS should contains next id");
+            resultBuilder.setError(ObjectiveError.BADPARAMS);
+            return;
+        }
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .add(mplsCriterion)
+                .build();
+
+        PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+                                                      ImmutableByteSequence.copyFrom(fwd.nextId().byteValue()));
+        PiAction nextIdAction = PiAction.builder()
+                .withId(FabricConstants.ACT_POP_MPLS_AND_NEXT_ID)
+                .withParameter(nextIdParam)
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(nextIdAction)
+                .build();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .makePermanent()
+                .forDevice(deviceId)
+                .forTable(FabricConstants.TBL_MPLS_ID)
+                .build();
+
+        resultBuilder.addFlowRule(flowRule);
+    }
+
     private static TrafficTreatment buildSetNextIdTreatment(Integer nextId) {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
@@ -240,5 +286,4 @@ public class FabricForwardingPipeliner {
                 .piTableAction(nextIdAction)
                 .build();
     }
-
 }

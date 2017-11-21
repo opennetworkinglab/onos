@@ -20,7 +20,7 @@
 #define MAX_PORTS 511
 
 typedef bit<3>  fwd_type_t;
-typedef bit<32>  next_id_t;
+typedef bit<32> next_id_t;
 typedef bit<3>  next_type_t;
 typedef bit<20> mpls_label_t;
 typedef bit<9>  port_num_t;
@@ -59,5 +59,7 @@ const next_type_t NEXT_TYPE_SIMPLE = 0;
 const next_type_t NEXT_TYPE_HASHED = 1;
 const next_type_t NEXT_TYPE_BROADCAST = 2;
 const next_type_t NEXT_TYPE_PUNT = 3;
+
+const bit<8> DEFAULT_MPLS_TTL = 64;
 
 #endif

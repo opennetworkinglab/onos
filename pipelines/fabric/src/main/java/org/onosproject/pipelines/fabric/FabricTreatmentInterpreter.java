@@ -18,6 +18,7 @@ package org.onosproject.pipelines.fabric;
 
 import com.google.common.collect.ImmutableList;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.PortNumber;
@@ -27,24 +28,26 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter.PiInterpreterException;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.slf4j.Logger;
 
 import java.util.List;
 
 import static java.lang.String.format;
 import static org.onosproject.net.flow.instructions.Instruction.Type.L2MODIFICATION;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_SRC;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 final class FabricTreatmentInterpreter {
+    private static final Logger log = getLogger(FabricTreatmentInterpreter.class);
     private static final String INVALID_TREATMENT = "Invalid treatment for %s block: %s";
 
     // Hide default constructor
@@ -149,11 +152,15 @@ final class FabricTreatmentInterpreter {
     /*
      * In Next block, we need to implement these actions:
      * output
-     * output_ecmp
      * set_vlan_output
+     * l3_routing
+     * mpls_routing_v4
      *
      * Unsupported, using PiAction directly:
-     * set_mcast_group
+     * set_next_type
+     *
+     * Unsupported, need to find a way to implement it
+     * mpls_routing_v6
      */
 
     public static PiAction mapNextTreatment(TrafficTreatment treatment)
@@ -163,29 +170,36 @@ final class FabricTreatmentInterpreter {
         ModEtherInstruction modEthDstInst = null;
         ModEtherInstruction modEthSrcInst = null;
         ModVlanIdInstruction modVlanIdInst = null;
+        ModMplsLabelInstruction modMplsInst = null;
 
-        // TODO: use matrix to store the combination of instruction
+        // TODO: add NextFunctionType (like ForwardingFunctionType)
         for (Instruction inst : insts) {
             switch (inst.type()) {
                 case L2MODIFICATION:
                     L2ModificationInstruction l2Inst = (L2ModificationInstruction) inst;
-
-                    if (l2Inst.subtype() == ETH_SRC) {
-                        modEthSrcInst = (ModEtherInstruction) l2Inst;
-                    }
-
-                    if (l2Inst.subtype() == ETH_DST) {
-                        modEthDstInst = (ModEtherInstruction) l2Inst;
-                    }
-
-                    if (l2Inst.subtype() == VLAN_ID) {
-                        modVlanIdInst = (ModVlanIdInstruction) l2Inst;
+                    switch (l2Inst.subtype()) {
+                        case ETH_SRC:
+                            modEthSrcInst = (ModEtherInstruction) l2Inst;
+                            break;
+                        case ETH_DST:
+                            modEthDstInst = (ModEtherInstruction) l2Inst;
+                            break;
+                        case VLAN_ID:
+                            modVlanIdInst = (ModVlanIdInstruction) l2Inst;
+                            break;
+                        case MPLS_LABEL:
+                            modMplsInst = (ModMplsLabelInstruction) l2Inst;
+                            break;
+                        default:
+                            log.warn("Unsupported l2 instruction sub type: {}", l2Inst.subtype());
+                            break;
                     }
                     break;
                 case OUTPUT:
                     outInst = (OutputInstruction) inst;
                     break;
                 default:
+                    log.warn("Unsupported instruction sub type: {}", inst.type());
                     break;
             }
         }
@@ -217,13 +231,36 @@ final class FabricTreatmentInterpreter {
         }
 
         if (modEthDstInst != null && modEthSrcInst != null) {
-            // output and rewrite src/dst mac
             MacAddress srcMac = modEthSrcInst.mac();
             MacAddress dstMac = modEthDstInst.mac();
             PiActionParam srcMacParam = new PiActionParam(FabricConstants.ACT_PRM_SMAC_ID,
                                                           ImmutableByteSequence.copyFrom(srcMac.toBytes()));
             PiActionParam dstMacParam = new PiActionParam(FabricConstants.ACT_PRM_DMAC_ID,
                                                           ImmutableByteSequence.copyFrom(dstMac.toBytes()));
+
+            if (modMplsInst != null) {
+                // MPLS routing
+                MplsLabel mplsLabel = modMplsInst.label();
+                try {
+                    ImmutableByteSequence mplsValue =
+                            ImmutableByteSequence.fit(ImmutableByteSequence.copyFrom(mplsLabel.toInt()), 20);
+                    PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsValue);
+                    return PiAction.builder()
+                            // FIXME: fins a way to determine v4 or v6
+                            .withId(FabricConstants.ACT_MPLS_ROUTING_V4_ID)
+                            .withParameters(ImmutableList.of(portNumParam,
+                                                             srcMacParam,
+                                                             dstMacParam,
+                                                             mplsParam))
+                            .build();
+                } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+                    // Basically this won't happened because we already limited
+                    // size of mpls value to 20 bits (0xFFFFF)
+                    throw new PiInterpreterException(format(INVALID_TREATMENT, "next", treatment));
+                }
+            }
+
+            // L3 routing
             return PiAction.builder()
                     .withId(FabricConstants.ACT_L3_ROUTING_ID)
                     .withParameters(ImmutableList.of(portNumParam,

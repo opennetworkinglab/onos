@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.PortNumber;
@@ -38,6 +39,7 @@ public class FabricInterpreterTest {
     private static final PortNumber PORT_1 = PortNumber.portNumber(1);
     private static final MacAddress SRC_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     private static final MacAddress DST_MAC = MacAddress.valueOf("00:00:00:00:00:02");
+    private static final MplsLabel MPLS_10 = MplsLabel.mplsLabel(10);
 
     private FabricInterpreter interpreter;
 
@@ -196,6 +198,35 @@ public class FabricInterpreterTest {
                 .withParameters(ImmutableList.of(vlanParam, portParam))
                 .build();
 
+        assertEquals(expectedAction, mappedAction);
+    }
+
+    @Test
+    public void testMplsRoutingTreatment() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setEthDst(DST_MAC)
+                .setEthSrc(SRC_MAC)
+                .pushMpls()
+                .copyTtlOut()
+                .setMpls(MPLS_10)
+                .setOutput(PORT_1)
+                .build();
+        PiAction mappedAction = interpreter.mapTreatment(treatment,
+                                                         FabricConstants.TBL_HASHED_ID);
+        short portNumVal = (short) PORT_1.toLong();
+        PiActionParam ethSrcParam = new PiActionParam(FabricConstants.ACT_PRM_SMAC_ID,
+                                                      ImmutableByteSequence.copyFrom(SRC_MAC.toBytes()));
+        PiActionParam ethDstParam = new PiActionParam(FabricConstants.ACT_PRM_DMAC_ID,
+                                                      ImmutableByteSequence.copyFrom(DST_MAC.toBytes()));
+        PiActionParam portParam = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
+                                                    ImmutableByteSequence.copyFrom(portNumVal));
+        ImmutableByteSequence mplsVal =
+                ImmutableByteSequence.fit(ImmutableByteSequence.copyFrom(MPLS_10.toInt()), 20);
+        PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsVal);
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.ACT_MPLS_ROUTING_V4_ID)
+                .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam, mplsParam))
+                .build();
         assertEquals(expectedAction, mappedAction);
     }
 }

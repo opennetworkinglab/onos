@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
@@ -28,15 +29,24 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_ECMP_SELECTOR_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
 
 /**
  * Test cases for fabric.p4 pipeline next control block.
@@ -96,20 +106,39 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         assertEquals(2, flowRulesInstalled.size());
         assertTrue(groupsInstalled.isEmpty());
 
-        FlowRule actualFlowRule;
-        FlowRule expectedFlowRule;
+        verifyNextIdMapping(flowRulesInstalled.get(0), NEXT_TYPE_SIMPLE);
 
-        // Next id mapping table
-        actualFlowRule = flowRulesInstalled.get(0);
-        byte[] nextIdVal = new byte[]{NEXT_ID_1.byteValue()};
+        // Simple table
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, nextIdVal)
+                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .build();
+        TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
+                .matchPi(nextIdCriterion)
+                .build();
+        FlowRule actualFlowRule = flowRulesInstalled.get(1);
+        FlowRule expectedFlowRule = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .fromApp(APP_ID)
+                .makePermanent()
+                // FIXME: currently next objective doesn't support priority, ignore this
+                .withPriority(0)
+                .forTable(FabricConstants.TBL_SIMPLE_ID)
+                .withSelector(nextIdSelector)
+                .withTreatment(treatment)
+                .build();
+        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
+    }
+
+    private void verifyNextIdMapping(FlowRule flowRule, byte nextType) {
+        FlowRule expectedFlowRule;
+        PiCriterion nextIdCriterion = PiCriterion.builder()
+                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
         PiActionParam setNextToSimpleParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_TYPE_ID,
-                                                               ImmutableByteSequence.copyFrom(NEXT_TYPE_SIMPLE));
+                                                               ImmutableByteSequence.copyFrom(nextType));
         PiAction setNextToSimpleAction = PiAction.builder()
                 .withId(FabricConstants.ACT_SET_NEXT_TYPE_ID)
                 .withParameter(setNextToSimpleParam)
@@ -127,29 +156,87 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .withSelector(nextIdSelector)
                 .withTreatment(setNextTypeTreatment)
                 .build();
-        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
-
-        // Simple table
-        actualFlowRule = flowRulesInstalled.get(1);
-        expectedFlowRule = DefaultFlowRule.builder()
-                .forDevice(DEVICE_ID)
-                .fromApp(APP_ID)
-                .makePermanent()
-                // FIXME: currently next objective doesn't support priority, ignore this
-                .withPriority(0)
-                .forTable(FabricConstants.TBL_SIMPLE_ID)
-                .withSelector(nextIdSelector)
-                .withTreatment(treatment)
-                .build();
-        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
+        assertTrue(expectedFlowRule.exactMatch(flowRule));
     }
 
     /**
      * Test program ecmp output group for Hashed table.
      */
     @Test
-    @Ignore
-    public void testHashedOutput() {
+    public void testHashedOutput() throws Exception {
+        TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
+                .setEthSrc(ROUTER_MAC)
+                .setEthDst(HOST_MAC)
+                .setOutput(PORT_1)
+                .build();
+        TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
+                .setEthSrc(ROUTER_MAC)
+                .setEthDst(HOST_MAC)
+                .setOutput(PORT_2)
+                .build();
+
+        NextObjective nextObjective = DefaultNextObjective.builder()
+                .withId(NEXT_ID_1)
+                .withPriority(PRIORITY)
+                .addTreatment(treatment1)
+                .addTreatment(treatment2)
+                .withType(NextObjective.Type.HASHED)
+                .makePermanent()
+                .fromApp(APP_ID)
+                .add();
+
+        PipelinerTranslationResult result = pipeliner.pipelinerNext.next(nextObjective);
+
+        // Should generates 2 flows and 1 group
+        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
+        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
+        assertEquals(2, flowRulesInstalled.size());
+        assertEquals(1, groupsInstalled.size());
+
+        verifyNextIdMapping(flowRulesInstalled.get(0), NEXT_TYPE_HASHED);
+
+        // Hashed table
+        PiCriterion nextIdCriterion = PiCriterion.builder()
+                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .build();
+        TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
+                .matchPi(nextIdCriterion)
+                .build();
+        PiActionGroupId actionGroupId = PiActionGroupId.of(NEXT_ID_1);
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(actionGroupId)
+                .build();
+        FlowRule actualFlowRule = flowRulesInstalled.get(1);
+        FlowRule expectedFlowRule = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .fromApp(APP_ID)
+                .makePermanent()
+                // FIXME: currently next objective doesn't support priority, ignore this
+                .withPriority(0)
+                .forTable(TBL_HASHED_ID)
+                .withSelector(nextIdSelector)
+                .withTreatment(treatment)
+                .build();
+        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
+
+        // Group
+        GroupDescription actualGroup = groupsInstalled.get(0);
+        List<TrafficTreatment> treatments = ImmutableList.of(treatment1, treatment2);
+
+        List<GroupBucket> buckets = treatments.stream()
+                .map(DefaultGroupBucket::createSelectGroupBucket)
+                .collect(Collectors.toList());
+        GroupBuckets groupBuckets = new GroupBuckets(buckets);
+        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_ECMP_SELECTOR_ID, NEXT_ID_1);
+        GroupDescription expectedGroup = new DefaultGroupDescription(
+                DEVICE_ID,
+                GroupDescription.Type.SELECT,
+                groupBuckets,
+                groupKey,
+                NEXT_ID_1,
+                APP_ID
+        );
+        assertEquals(expectedGroup, actualGroup);
 
     }
 

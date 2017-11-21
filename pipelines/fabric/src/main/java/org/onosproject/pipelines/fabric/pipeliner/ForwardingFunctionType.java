@@ -65,9 +65,14 @@ public enum ForwardingFunctionType {
     IPV6_MULTICAST,
 
     /**
-     * MPLS, with EtherType, MPLS label and MPLS BOS criterion.
+     * MPLS, with EtherType, MPLS label and MPLS BOS(true) criterion.
      */
     MPLS,
+
+    /**
+     * Pseudo-wire, with EtherType, MPLS label and MPLS BOS(false) criterion.
+     */
+    PW,
 
     /**
      * Unsupported type.

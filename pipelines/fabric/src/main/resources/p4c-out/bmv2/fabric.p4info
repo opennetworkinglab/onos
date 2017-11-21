@@ -135,9 +135,6 @@ tables {
     id: 16829931
   }
   action_refs {
-    id: 16788751
-  }
-  action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
@@ -186,9 +183,6 @@ tables {
   }
   action_refs {
     id: 16829931
-  }
-  action_refs {
-    id: 16827504
   }
   action_refs {
     id: 16800567
@@ -445,6 +439,12 @@ tables {
     id: 16804266
   }
   action_refs {
+    id: 16841192
+  }
+  action_refs {
+    id: 16788519
+  }
+  action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
@@ -557,40 +557,6 @@ actions {
 }
 actions {
   preamble {
-    id: 16788751
-    name: "forwarding.push_mpls_and_next_v4"
-    alias: "push_mpls_and_next_v4"
-  }
-  params {
-    id: 1
-    name: "label"
-    bitwidth: 20
-  }
-  params {
-    id: 2
-    name: "next_id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16827504
-    name: "forwarding.push_mpls_and_next_v6"
-    alias: "push_mpls_and_next_v6"
-  }
-  params {
-    id: 1
-    name: "label"
-    bitwidth: 20
-  }
-  params {
-    id: 2
-    name: "next_id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
     id: 16805452
     name: "forwarding.duplicate_to_controller"
     alias: "duplicate_to_controller"
@@ -674,6 +640,60 @@ actions {
     id: 2
     name: "smac"
     bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 16841192
+    name: "next.mpls_routing_v4"
+    alias: "mpls_routing_v4"
+  }
+  params {
+    id: 1
+    name: "port_num"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "dmac"
+    bitwidth: 48
+  }
+  params {
+    id: 4
+    name: "label"
+    bitwidth: 20
+  }
+}
+actions {
+  preamble {
+    id: 16788519
+    name: "next.mpls_routing_v6"
+    alias: "mpls_routing_v6"
+  }
+  params {
+    id: 1
+    name: "port_num"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "dmac"
+    bitwidth: 48
+  }
+  params {
+    id: 4
+    name: "label"
+    bitwidth: 20
   }
 }
 action_profiles {
