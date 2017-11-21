@@ -18,9 +18,12 @@ package org.onosproject.pi.demo.app.ecmp;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Component;
-import org.onlab.util.ImmutableByteSequence;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Path;
@@ -29,12 +32,17 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.Topology;
@@ -42,37 +50,44 @@ import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.pi.demo.app.common.AbstractUpgradableFabricApp;
 import org.onosproject.pipelines.basic.PipeconfLoader;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
-import static org.onlab.packet.EthType.EtherType.IPV4;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_NEXT_HOP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_NEXT_HOP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_NEXT_HOP_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
-import static org.onosproject.pipelines.basic.EcmpConstants.TBL_ECMP_TABLE_ID;
-
+import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
- * Implementation of an upgradable fabric app for the ECMP pipeconf.
+ * Implementation of an upgradable fabric app for the Basic pipeconf (basic.p4)
+ * with ECMP support.
  */
 @Component(immediate = true)
 public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
     private static final String APP_NAME = "org.onosproject.pi-ecmp";
 
-    private static final Map<DeviceId, Map<Set<PortNumber>, Short>> DEVICE_GROUP_ID_MAP = Maps.newHashMap();
+    private static final Map<DeviceId, Map<Set<PortNumber>, Short>>
+            DEVICE_GROUP_ID_MAP = Maps.newHashMap();
+
+    private final Set<Pair<DeviceId, GroupKey>> groupKeys = Sets.newHashSet();
 
     public EcmpFabricApp() {
-        super(APP_NAME, singleton(PipeconfLoader.ECMP_PIPECONF));
+        super(APP_NAME, singleton(PipeconfLoader.BASIC_PIPECONF));
+    }
+
+    @Deactivate
+    public void deactivate() {
+        groupKeys.forEach(pair -> groupService.removeGroup(
+                pair.getLeft(), pair.getRight(), appId));
+        super.deactivate();
     }
 
     @Override
@@ -82,8 +97,10 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     }
 
     @Override
-    public List<FlowRule> generateLeafRules(DeviceId leaf, Host srcHost, Collection<Host> dstHosts,
-                                            Collection<DeviceId> availableSpines, Topology topo)
+    public List<FlowRule> generateLeafRules(DeviceId leaf, Host localHost,
+                                            Set<Host> remoteHosts,
+                                            Set<DeviceId> availableSpines,
+                                            Topology topo)
             throws FlowRuleGeneratorException {
 
         // Get ports which connect this leaf switch to hosts.
@@ -91,18 +108,19 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
                 .stream()
                 .filter(port -> !isFabricPort(port, topo))
                 .map(Port::number)
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         // Get ports which connect this leaf to the given available spines.
         TopologyGraph graph = topologyService.getGraph(topo);
-        Set<PortNumber> fabricPorts = graph.getEdgesFrom(new DefaultTopologyVertex(leaf))
+        Set<PortNumber> fabricPorts = graph
+                .getEdgesFrom(new DefaultTopologyVertex(leaf))
                 .stream()
                 .filter(e -> availableSpines.contains(e.dst().deviceId()))
                 .map(e -> e.link().src().port())
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
         if (hostPorts.size() != 1 || fabricPorts.size() == 0) {
-            log.error("Leaf switch has invalid port configuration: hostPorts={}, fabricPorts={}",
+            log.error("Leaf has invalid port configuration: hostPorts={}, fabricPorts={}",
                       hostPorts.size(), fabricPorts.size());
             throw new FlowRuleGeneratorException();
         }
@@ -110,41 +128,40 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
 
         List<FlowRule> rules = Lists.newArrayList();
 
-        TrafficTreatment treatment;
-        if (fabricPorts.size() > 1) {
-            // Do ECMP.
-            Pair<PiTableAction, List<FlowRule>> result = provisionEcmpPiTableAction(leaf, fabricPorts);
-            rules.addAll(result.getRight());
-            treatment = DefaultTrafficTreatment.builder().piTableAction(result.getLeft()).build();
-        } else {
-            // Output on port.
-            PortNumber outPort = fabricPorts.iterator().next();
-            treatment = DefaultTrafficTreatment.builder().setOutput(outPort).build();
-        }
+        // From local host to remote ones.
+        for (Host remoteHost : remoteHosts) {
+            int groupId = provisionGroup(leaf, fabricPorts);
 
-        // From srHost to dstHosts.
-        for (Host dstHost : dstHosts) {
-            FlowRule rule = flowRuleBuilder(leaf, TBL_TABLE0_ID)
-                    .withSelector(
-                            DefaultTrafficSelector.builder()
-                                    .matchInPort(hostPort)
-                                    .matchEthType(IPV4.ethType().toShort())
-                                    .matchEthSrc(srcHost.mac())
-                                    .matchEthDst(dstHost.mac())
-                                    .build())
-                    .withTreatment(treatment)
+            rules.add(groupFlowRule(leaf, groupId));
+
+            PiTableAction piTableAction = PiAction.builder()
+                    .withId(ACT_SET_NEXT_HOP_ID)
+                    .withParameter(new PiActionParam(
+                            ACT_PRM_NEXT_HOP_ID,
+                            copyFrom(groupId)))
                     .build();
-            rules.add(rule);
+
+            for (IpAddress ipAddr : remoteHost.ipAddresses()) {
+                FlowRule rule = flowRuleBuilder(leaf, TBL_TABLE0_ID)
+                        .withSelector(
+                                DefaultTrafficSelector.builder()
+                                        .matchIPDst(ipAddr.toIpPrefix())
+                                        .build())
+                        .withTreatment(
+                                DefaultTrafficTreatment.builder()
+                                        .piTableAction(piTableAction)
+                                        .build())
+                        .build();
+                rules.add(rule);
+            }
         }
 
-        // From fabric ports to this leaf host.
-        for (PortNumber port : fabricPorts) {
+        // From remote hosts to the local one
+        for (IpAddress dstIpAddr : localHost.ipAddresses()) {
             FlowRule rule = flowRuleBuilder(leaf, TBL_TABLE0_ID)
                     .withSelector(
                             DefaultTrafficSelector.builder()
-                                    .matchInPort(port)
-                                    .matchEthType(IPV4.ethType().toShort())
-                                    .matchEthDst(srcHost.mac())
+                                    .matchIPDst(dstIpAddr.toIpPrefix())
                                     .build())
                     .withTreatment(
                             DefaultTrafficTreatment.builder()
@@ -158,97 +175,105 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
     }
 
     @Override
-    public List<FlowRule> generateSpineRules(DeviceId deviceId, Collection<Host> dstHosts, Topology topo)
+    public List<FlowRule> generateSpineRules(DeviceId spine, Set<Host> hosts,
+                                             Topology topo)
             throws FlowRuleGeneratorException {
 
         List<FlowRule> rules = Lists.newArrayList();
 
-        // for each host
-        for (Host dstHost : dstHosts) {
+        // For each host pair (src -> dst)
+        for (Host dstHost : hosts) {
 
-            Set<Path> paths = topologyService.getPaths(topo, deviceId, dstHost.location().deviceId());
+            Set<Path> paths = topologyService.getPaths(
+                    topo, spine, dstHost.location().deviceId());
 
             if (paths.size() == 0) {
-                log.warn("Can't find any path between spine {} and host {}", deviceId, dstHost);
+                log.warn("No path between spine {} and host {}",
+                         spine, dstHost);
                 throw new FlowRuleGeneratorException();
             }
 
-            TrafficTreatment treatment;
+            Set<PortNumber> ports = paths.stream()
+                    .map(p -> p.src().port())
+                    .collect(toSet());
 
-            if (paths.size() == 1) {
-                // Only one path, do output on port.
-                PortNumber port = paths.iterator().next().src().port();
-                treatment = DefaultTrafficTreatment.builder().setOutput(port).build();
-            } else {
-                // Multiple paths, do ECMP.
-                Set<PortNumber> portNumbers = paths.stream().map(p -> p.src().port()).collect(toSet());
-                Pair<PiTableAction, List<FlowRule>> result = provisionEcmpPiTableAction(deviceId, portNumbers);
-                rules.addAll(result.getRight());
-                treatment = DefaultTrafficTreatment.builder().piTableAction(result.getLeft()).build();
-            }
+            int groupId = provisionGroup(spine, ports);
 
-            FlowRule rule = flowRuleBuilder(deviceId, TBL_TABLE0_ID)
-                    .withSelector(
-                            DefaultTrafficSelector.builder()
-                                    .matchEthType(IPV4.ethType().toShort())
-                                    .matchEthDst(dstHost.mac())
-                                    .build())
-                    .withTreatment(treatment)
+            rules.add(groupFlowRule(spine, groupId));
+
+            PiTableAction piTableAction = PiAction.builder()
+                    .withId(ACT_SET_NEXT_HOP_ID)
+                    .withParameter(new PiActionParam(ACT_PRM_NEXT_HOP_ID,
+                                                     copyFrom(groupId)))
                     .build();
 
-            rules.add(rule);
+            for (IpAddress dstIpAddr : dstHost.ipAddresses()) {
+                FlowRule rule = flowRuleBuilder(spine, TBL_TABLE0_ID)
+                        .withSelector(DefaultTrafficSelector.builder()
+                                              .matchIPDst(dstIpAddr.toIpPrefix())
+                                              .build())
+                        .withTreatment(DefaultTrafficTreatment.builder()
+                                               .piTableAction(piTableAction)
+                                               .build())
+                        .build();
+                rules.add(rule);
+            }
         }
 
         return rules;
     }
 
-    private Pair<PiTableAction, List<FlowRule>> provisionEcmpPiTableAction(DeviceId deviceId,
-                                                                           Set<PortNumber> fabricPorts)
+    /**
+     * Provisions an ECMP group for the given device and set of ports, returns
+     * the group ID.
+     */
+    private int provisionGroup(DeviceId deviceId, Set<PortNumber> ports)
             throws FlowRuleGeneratorException {
 
-        // Install ECMP group table entries that map from hash values to actual fabric ports...
-        int groupId = groupIdOf(deviceId, fabricPorts);
-        if (fabricPorts.size() != HASHED_LINKS) {
-            throw new FlowRuleGeneratorException(format(
-                    "Invalid number of fabric ports for %s, expected %d but found %d",
-                    deviceId, HASHED_LINKS, fabricPorts.size()));
-        }
-        Iterator<PortNumber> portIterator = fabricPorts.iterator();
-        List<FlowRule> rules = Lists.newArrayList();
-        for (short i = 0; i < HASHED_LINKS; i++) {
-            FlowRule rule = flowRuleBuilder(deviceId, TBL_ECMP_TABLE_ID)
-                    .withSelector(
-                            buildEcmpTrafficSelector(groupId, i))
-                    .withTreatment(
-                            DefaultTrafficTreatment.builder()
-                                    .setOutput(portIterator.next())
-                                    .build())
-                    .build();
-            rules.add(rule);
-        }
+        int groupId = groupIdOf(deviceId, ports);
 
-        PiTableAction piTableAction = buildEcmpPiTableAction(groupId);
+        // Group buckets
+        List<GroupBucket> bucketList = ports.stream()
+                .map(port -> DefaultTrafficTreatment.builder()
+                        .setOutput(port)
+                        .build())
+                .map(DefaultGroupBucket::createSelectGroupBucket)
+                .collect(Collectors.toList());
 
-        return Pair.of(piTableAction, rules);
+        // Group cookie (with action profile ID)
+        PiGroupKey groupKey = new PiGroupKey(TBL_WCMP_TABLE_ID,
+                                             ACT_PRF_WCMP_SELECTOR_ID,
+                                             groupId);
+
+        log.info("Adding group {} to {}...", groupId, deviceId);
+        groupService.addGroup(
+                new DefaultGroupDescription(deviceId,
+                                            GroupDescription.Type.SELECT,
+                                            new GroupBuckets(bucketList),
+                                            groupKey,
+                                            groupId,
+                                            appId));
+
+        groupKeys.add(ImmutablePair.of(deviceId, groupKey));
+
+        return groupId;
     }
 
-    private PiTableAction buildEcmpPiTableAction(int groupId) {
-
-        return PiAction.builder()
-                .withId(ACT_SET_NEXT_HOP_ID)
-                .withParameter(new PiActionParam(ACT_PRM_NEXT_HOP_ID,
-                                                 ImmutableByteSequence.copyFrom(groupId)))
-                .build();
-    }
-
-    private TrafficSelector buildEcmpTrafficSelector(int groupId, int selector) {
-        Criterion ecmpCriterion = PiCriterion.builder()
-                .matchExact(HDR_NEXT_HOP_ID, groupId)
-                .matchExact(HDR_SELECTOR_ID, selector)
-                .build();
-
-        return DefaultTrafficSelector.builder()
-                .matchPi((PiCriterion) ecmpCriterion)
+    private FlowRule groupFlowRule(DeviceId deviceId, int groupId)
+            throws FlowRuleGeneratorException {
+        return flowRuleBuilder(deviceId, TBL_WCMP_TABLE_ID)
+                .withSelector(
+                        DefaultTrafficSelector.builder()
+                                .matchPi(
+                                        PiCriterion.builder()
+                                                .matchExact(HDR_NEXT_HOP_ID,
+                                                            groupId)
+                                                .build())
+                                .build())
+                .withTreatment(
+                        DefaultTrafficTreatment.builder()
+                                .piTableAction(PiActionGroupId.of(groupId))
+                                .build())
                 .build();
     }
 

@@ -46,6 +46,7 @@ import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.onosproject.net.pi.service.PiTranslationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,17 +63,16 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.PROTOCOL_INDEPEND
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
 import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
 import static org.onosproject.net.pi.impl.PiUtils.translateTableId;
-import static org.onosproject.net.pi.service.PiTranslationService.PiTranslationException;
 
 /**
  * Implementation of flow rule translation logic.
  */
-final class PiFlowRuleTranslator {
+final class PiFlowRuleTranslatorImpl {
 
     public static final int MAX_PI_PRIORITY = (int) Math.pow(2, 24);
-    private static final Logger log = LoggerFactory.getLogger(PiFlowRuleTranslator.class);
+    private static final Logger log = LoggerFactory.getLogger(PiFlowRuleTranslatorImpl.class);
 
-    private PiFlowRuleTranslator() {
+    private PiFlowRuleTranslatorImpl() {
         // Hide constructor.
     }
 

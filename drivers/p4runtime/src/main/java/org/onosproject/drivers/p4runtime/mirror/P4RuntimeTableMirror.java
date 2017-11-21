@@ -14,28 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.service;
+package org.onosproject.drivers.p4runtime.mirror;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.net.pi.runtime.PiTableEntryHandle;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * Mirror of table entries installed on a P4Runtime device.
  */
-@Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+public interface P4RuntimeTableMirror
+        extends P4RuntimeMirror<PiTableEntryHandle, PiTableEntry> {
 }

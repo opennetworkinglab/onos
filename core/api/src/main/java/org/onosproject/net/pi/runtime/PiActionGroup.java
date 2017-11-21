@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Instance of an action group of a protocol-independent pipeline.
  */
 @Beta
-public final class PiActionGroup {
+public final class PiActionGroup implements PiEntity {
 
     private final PiActionGroupId id;
     private final PiActionGroupType type;
@@ -123,6 +123,11 @@ public final class PiActionGroup {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public PiEntityType piEntityType() {
+        return PiEntityType.GROUP;
     }
 
     /**

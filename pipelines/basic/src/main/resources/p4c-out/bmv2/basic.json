@@ -13,8 +13,7 @@
         ["tmp_0", 32, false],
         ["local_metadata_t.l4_src_port", 16, false],
         ["local_metadata_t.l4_dst_port", 16, false],
-        ["local_metadata_t.next_hop_id", 16, false],
-        ["local_metadata_t.selector", 16, false]
+        ["local_metadata_t.next_hop_id", 16, false]
       ]
     },
     {

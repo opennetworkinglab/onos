@@ -116,7 +116,7 @@ public class IcmpDropper {
     }
 
     private void installDropRule(DeviceId deviceId) {
-        PiMatchFieldId ipv4ProtoFieldId = PiMatchFieldId.of("ipv4.protocol");
+        PiMatchFieldId ipv4ProtoFieldId = PiMatchFieldId.of("hdr.ipv4.protocol");
         PiActionId dropActionId = PiActionId.of("_drop");
 
         PiCriterion piCriterion = PiCriterion.builder()

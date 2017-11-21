@@ -19,23 +19,17 @@ package org.onosproject.net.pi.service;
 import com.google.common.annotations.Beta;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * Signals that an error was encountered while translating an entity.
  */
 @Beta
-public interface PiTranslationService {
+public final class PiTranslationException extends Exception {
 
     /**
-     * Returns a flow rule translator.
+     * Creates a new exception with the given message.
      *
-     * @return flow rule translator
+     * @param message a message
      */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+    public PiTranslationException(String message) {
+        super(message);
+    }
 }

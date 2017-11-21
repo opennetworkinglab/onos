@@ -17,25 +17,13 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.pi.runtime.PiTableEntry;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * A translator of flow rules to PI table entries.
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+public interface PiFlowRuleTranslator
+        extends PiTranslator<FlowRule, PiTableEntry> {
 }

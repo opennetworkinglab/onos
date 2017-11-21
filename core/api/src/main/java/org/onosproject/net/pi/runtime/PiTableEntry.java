@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Instance of a table entry in a protocol-independent pipeline.
  */
 @Beta
-public final class PiTableEntry {
+public final class PiTableEntry implements PiEntity {
 
     public static final PiTableEntry EMTPY = new PiTableEntry();
 
@@ -158,6 +158,11 @@ public final class PiTableEntry {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public PiEntityType piEntityType() {
+        return PiEntityType.TABLE_ENTRY;
     }
 
     public static final class Builder {

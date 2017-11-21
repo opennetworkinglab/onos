@@ -18,12 +18,13 @@ package org.onosproject.net.flow;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.service.PiTranslatable;
 
 /**
  * Represents a generalized match &amp; action pair to be applied to an
  * infrastructure device.
  */
-public interface FlowRule {
+public interface FlowRule extends PiTranslatable {
 
     IndexTableId DEFAULT_TABLE = IndexTableId.of(0);
     int MAX_TIMEOUT = 60;

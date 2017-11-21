@@ -14,28 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.service;
-
-import com.google.common.annotations.Beta;
-
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * P4 Runtime device mirror.
  */
-@Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
-}
+package org.onosproject.drivers.p4runtime.mirror;

@@ -17,25 +17,14 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.pi.runtime.PiActionGroup;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * A PI translation store that keeps track of which groups have been
+ * translated to which PI action groups.
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+public interface PiGroupTranslationStore
+        extends PiTranslationStore<Group, PiActionGroup> {
 }

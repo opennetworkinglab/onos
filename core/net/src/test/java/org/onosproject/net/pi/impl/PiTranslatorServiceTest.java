@@ -67,7 +67,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
-import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.MAX_PI_PRIORITY;
+import static org.onosproject.net.pi.impl.PiFlowRuleTranslatorImpl.MAX_PI_PRIORITY;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
@@ -80,7 +80,7 @@ import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
- * Tests for {@link PiFlowRuleTranslator}.
+ * Tests for {@link PiFlowRuleTranslatorImpl}.
  */
 @SuppressWarnings("ConstantConditions")
 public class PiTranslatorServiceTest {
@@ -161,8 +161,8 @@ public class PiTranslatorServiceTest {
                 .withPriority(priority)
                 .build();
 
-        PiTableEntry entry1 = PiFlowRuleTranslator.translate(rule1, pipeconf, null);
-        PiTableEntry entry2 = PiFlowRuleTranslator.translate(rule1, pipeconf, null);
+        PiTableEntry entry1 = PiFlowRuleTranslatorImpl.translate(rule1, pipeconf, null);
+        PiTableEntry entry2 = PiFlowRuleTranslatorImpl.translate(rule1, pipeconf, null);
 
         // check equality, i.e. same rules must produce same entries
         new EqualsTester()
@@ -236,8 +236,8 @@ public class PiTranslatorServiceTest {
     @Test
     public void testTranslateGroups() throws Exception {
 
-        PiActionGroup piGroup1 = PiGroupTranslator.translate(GROUP, pipeconf, null);
-        PiActionGroup piGroup2 = PiGroupTranslator.translate(GROUP, pipeconf, null);
+        PiActionGroup piGroup1 = PiGroupTranslatorImpl.translate(GROUP, pipeconf, null);
+        PiActionGroup piGroup2 = PiGroupTranslatorImpl.translate(GROUP, pipeconf, null);
 
         new EqualsTester()
                 .addEqualityGroup(piGroup1, piGroup2)

@@ -19,23 +19,9 @@ package org.onosproject.net.pi.service;
 import com.google.common.annotations.Beta;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * Abstraction of protocol-dependent (PD) entity that can be translated to an
+ * equivalent protocol-independent (PI) one.
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+public interface PiTranslatable {
 }

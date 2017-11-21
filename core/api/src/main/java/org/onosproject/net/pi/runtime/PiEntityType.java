@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.service;
+package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * Type of runtime entity of a protocol-independent pipeline.
  */
 @Beta
-public interface PiTranslationService {
+public enum PiEntityType {
+    /**
+     * Table entry.
+     */
+    TABLE_ENTRY,
 
     /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
+     * Action profile group.
      */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+    GROUP
 }

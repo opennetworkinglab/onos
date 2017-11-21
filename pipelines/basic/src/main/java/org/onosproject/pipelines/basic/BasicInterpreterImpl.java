@@ -66,6 +66,8 @@ import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_IN_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_IPV4_DST_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_IPV4_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_EGRESS_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_INGRESS_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.PORT_BITWIDTH;
@@ -93,6 +95,8 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
                     .put(Criterion.Type.ETH_DST, HDR_ETH_DST_ID)
                     .put(Criterion.Type.ETH_SRC, HDR_ETH_SRC_ID)
                     .put(Criterion.Type.ETH_TYPE, HDR_ETH_TYPE_ID)
+                    .put(Criterion.Type.IPV4_SRC, HDR_IPV4_SRC_ID)
+                    .put(Criterion.Type.IPV4_DST, HDR_IPV4_DST_ID)
                     .build();
 
     @Override

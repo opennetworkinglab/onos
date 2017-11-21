@@ -28,6 +28,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -79,6 +82,9 @@ public class PiPipeconfManager implements PiPipeconfService {
     protected NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -86,6 +92,9 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PiPipeconfMappingStore pipeconfMappingStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
 
     // Registered pipeconf are replicated through the app subsystem and registered on app activated events.
     protected ConcurrentHashMap<PiPipeconfId, PiPipeconf> piPipeconfs = new ConcurrentHashMap<>();
@@ -200,21 +209,28 @@ public class PiPipeconfManager implements PiPipeconfService {
                     // due to 1:1:1 pipeconf:driver:provider maybe find better way
                     DriverProvider provider = new PiPipeconfDriverProviderInternal(completeDriver);
 
-                    //we register to the dirver susbystem the driver provider containing the merged driver
+                    //we register to the driver susbystem the driver provider containing the merged driver
                     driverAdminService.registerProvider(provider);
                 }
 
                 // Changing the configuration for the device to enforce the full driver with pipipeconf
-                // and base behaviours
-                ObjectNode newCfg = (ObjectNode) basicDeviceConfig.node();
-                newCfg = newCfg.put(DRIVER, completeDriverName);
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode newCfgNode = mapper.convertValue(newCfg, JsonNode.class);
-                cfgService.applyConfig(deviceId, BasicDeviceConfig.class, newCfgNode);
-                // Completable future is needed for when this method will also apply the pipeline to the device.
-                // FIXME (maybe): the pipeline is currently applied by the general device provider. But we store here
-                // the association between device and pipeconf.
-                pipeconfMappingStore.createOrUpdateBinding(deviceId, pipeconfId);
+                // and base behaviours, updating binding only first time something changes
+                NodeId leaderNodeId = leadershipService.getLeader("deploy-" +
+                        deviceId.toString() + "-pipeconf");
+                NodeId localNodeId = clusterService.getLocalNode().id();
+
+                if (!basicDeviceConfig.driver().equals(completeDriverName) && localNodeId.equals(leaderNodeId)) {
+                    ObjectNode newCfg = (ObjectNode) basicDeviceConfig.node();
+                    newCfg = newCfg.put(DRIVER, completeDriverName);
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode newCfgNode = mapper.convertValue(newCfg, JsonNode.class);
+                    log.debug("New driver {} for device {}", completeDriverName, deviceId);
+                    cfgService.applyConfig(deviceId, BasicDeviceConfig.class, newCfgNode);
+                    // Completable future is needed for when this method will also apply the pipeline to the device.
+                    // FIXME (maybe): the pipeline is currently applied by the general device provider.
+                    // But we store here the association between device and pipeconf.
+                    pipeconfMappingStore.createOrUpdateBinding(deviceId, pipeconfId);
+                }
                 operationResult.complete(true);
             }
         });

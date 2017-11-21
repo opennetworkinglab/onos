@@ -35,7 +35,8 @@ class ONOSHost(Host):
     def config(self, **params):
         r = super(Host, self).config(**params)
         for off in ["rx", "tx", "sg"]:
-            cmd = "/sbin/ethtool --offload %s %s off" % (self.defaultIntf(), off)
+            cmd = "/sbin/ethtool --offload %s %s off"\
+                  % (self.defaultIntf(), off)
             self.cmd(cmd)
         # disable IPv6
         self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
@@ -52,7 +53,8 @@ class ONOSBmv2Switch(Switch):
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn", elogger=False,
                  persistent=False, grpcPort=None, thriftPort=None, netcfg=True, dryrun=False,
-                 pipeconfId="", pktdump=False, valgrind=False, **kwargs):
+                 pipeconfId="", pktdump=False, valgrind=False, netcfgDelay=0,
+                 **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
         self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
@@ -71,6 +73,7 @@ class ONOSBmv2Switch(Switch):
         self.netcfg = parseBoolean(netcfg)
         self.dryrun = parseBoolean(dryrun)
         self.valgrind = parseBoolean(valgrind)
+        self.netcfgDelay = netcfgDelay
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
         self.pipeconfId = pipeconfId
         if persistent:
@@ -229,11 +232,13 @@ class ONOSBmv2Switch(Switch):
             out = self.cmd(cmdStr)
             if out:
                 print out
-            if self.netcfg and self.valgrind:
-                # With valgrind, it takes some time before the gRPC server is available.
-                # Wait before pushing the netcfg.
-                info("\n*** Waiting %d seconds before pushing the config to ONOS...\n" % VALGRIND_SLEEP)
-                time.sleep(VALGRIND_SLEEP)
+            if self.netcfg:
+                if self.valgrind:
+                    # With valgrind, it takes some time before the gRPC server is available.
+                    # Wait before pushing the netcfg.
+                    info("\n*** Waiting %d seconds before pushing the config to ONOS...\n" % VALGRIND_SLEEP)
+                    time.sleep(VALGRIND_SLEEP)
+                time.sleep(self.netcfgDelay)
 
         try:  # onos.py
             clist = controllers[0].nodes()

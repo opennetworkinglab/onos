@@ -16,11 +16,12 @@
 package org.onosproject.net.group;
 
 import org.onosproject.core.GroupId;
+import org.onosproject.net.pi.service.PiTranslatable;
 
 /**
  * ONOS representation of group that is stored in the system.
  */
-public interface Group extends GroupDescription {
+public interface Group extends GroupDescription, PiTranslatable {
     /**
      * State of the group object in ONOS.
      */

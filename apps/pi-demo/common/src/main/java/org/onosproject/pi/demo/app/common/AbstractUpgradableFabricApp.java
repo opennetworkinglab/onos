@@ -16,7 +16,6 @@
 
 package org.onosproject.pi.demo.app.common;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,6 +42,7 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
@@ -55,6 +55,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyVertex;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -81,17 +82,19 @@ import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Abstract implementation of an app providing fabric connectivity for a 2-stage Clos topology of P4Runtime devices.
+ * Abstract implementation of an app providing fabric connectivity for a 2-stage
+ * Clos topology of P4Runtime devices.
  */
 @Component(immediate = true)
 public abstract class AbstractUpgradableFabricApp {
 
-    private static final Map<String, AbstractUpgradableFabricApp> APP_HANDLES = Maps.newConcurrentMap();
+    private static final Map<String, AbstractUpgradableFabricApp>
+            APP_HANDLES = Maps.newConcurrentMap();
 
     // TOPO_SIZE should be the same of the --size argument when running bmv2-demo.py
     private static final int TOPO_SIZE = 2;
     private static final boolean WITH_IMBALANCED_STRIPING = false;
-    protected static final int HASHED_LINKS = TOPO_SIZE + (WITH_IMBALANCED_STRIPING ? 1 : 0);
+    private static final int HASHED_LINKS = TOPO_SIZE + (WITH_IMBALANCED_STRIPING ? 1 : 0);
 
     private static final int FLOW_PRIORITY = 100;
     private static final int CHECK_TOPOLOGY_INTERVAL_SECONDS = 5;
@@ -122,6 +125,9 @@ public abstract class AbstractUpgradableFabricApp {
     private FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupService groupService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ApplicationAdminService appService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -137,7 +143,7 @@ public abstract class AbstractUpgradableFabricApp {
     private AbstractUpgradableFabricApp otherApp;
 
     private boolean flowRuleGenerated = false;
-    private ApplicationId appId;
+    protected ApplicationId appId;
 
     private Collection<PiPipeconf> appPipeconfs;
 
@@ -156,7 +162,8 @@ public abstract class AbstractUpgradableFabricApp {
      * @param appName      app name
      * @param appPipeconfs collection of compatible pipeconfs
      */
-    protected AbstractUpgradableFabricApp(String appName, Collection<PiPipeconf> appPipeconfs) {
+    protected AbstractUpgradableFabricApp(String appName,
+                                          Collection<PiPipeconf> appPipeconfs) {
         this.appName = checkNotNull(appName);
         this.appPipeconfs = checkNotNull(appPipeconfs);
         checkArgument(appPipeconfs.size() > 0, "appPipeconfs cannot have size 0");
@@ -171,11 +178,13 @@ public abstract class AbstractUpgradableFabricApp {
 
         if (APP_HANDLES.size() > 0) {
             if (APP_HANDLES.size() > 1) {
-                throw new IllegalStateException("Found more than 1 active app handles");
+                throw new IllegalStateException(
+                        "Found more than 1 active app handles");
             }
             otherAppFound = true;
             otherApp = APP_HANDLES.values().iterator().next();
-            log.info("Found other fabric app active, signaling to freeze to {}...", otherApp.appName);
+            log.info("Found other fabric app active, signaling to freeze to {}...",
+                     otherApp.appName);
             otherApp.setAppFreezed(true);
         }
 
@@ -221,12 +230,12 @@ public abstract class AbstractUpgradableFabricApp {
             pipeconfFlags = Maps.newConcurrentMap();
         }
 
-        /*
-        Schedules a thread that periodically checks the topology, as soon as it corresponds to the expected
-        one, it generates the necessary flow rules and starts the deploy process on each device.
-         */
-        scheduledExecutorService.scheduleAtFixedRate(this::checkTopologyAndGenerateFlowRules,
-                                                     0, CHECK_TOPOLOGY_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        // Schedules a thread that periodically checks the topology, as soon as
+        // it corresponds to the expected one, it generates the necessary flow
+        // rules and starts the deploy process on each device.
+        scheduledExecutorService.scheduleAtFixedRate(
+                this::checkTopologyAndGenerateFlowRules,
+                0, CHECK_TOPOLOGY_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     private void setAppFreezed(boolean appFreezed) {
@@ -239,7 +248,8 @@ public abstract class AbstractUpgradableFabricApp {
     }
 
     /**
-     * Perform device initialization. Returns true if the operation was successful, false otherwise.
+     * Perform device initialization. Returns true if the operation was
+     * successful, false otherwise.
      *
      * @param deviceId a device id
      * @return a boolean value
@@ -247,8 +257,8 @@ public abstract class AbstractUpgradableFabricApp {
     public abstract boolean initDevice(DeviceId deviceId);
 
     /**
-     * Generates a list of flow rules for the given leaf switch, source host, destination hosts, spine switches and
-     * topology.
+     * Generates a list of flow rules for the given leaf switch, source host,
+     * destination hosts, spine switches and topology.
      *
      * @param leaf     a leaf device id
      * @param srcHost  a source host
@@ -258,12 +268,15 @@ public abstract class AbstractUpgradableFabricApp {
      * @return a list of flow rules
      * @throws FlowRuleGeneratorException if flow rules cannot be generated
      */
-    public abstract List<FlowRule> generateLeafRules(DeviceId leaf, Host srcHost, Collection<Host> dstHosts,
-                                                     Collection<DeviceId> spines, Topology topology)
+    public abstract List<FlowRule> generateLeafRules(DeviceId leaf, Host srcHost,
+                                                     Set<Host> dstHosts,
+                                                     Set<DeviceId> spines,
+                                                     Topology topology)
             throws FlowRuleGeneratorException;
 
     /**
-     * Generates a list of flow rules for the given spine switch, destination hosts and topology.
+     * Generates a list of flow rules for the given spine switch, destination
+     * hosts and topology.
      *
      * @param deviceId a spine device id
      * @param dstHosts a collection of destination hosts
@@ -271,7 +284,9 @@ public abstract class AbstractUpgradableFabricApp {
      * @return a list of flow rules
      * @throws FlowRuleGeneratorException if flow rules cannot be generated
      */
-    public abstract List<FlowRule> generateSpineRules(DeviceId deviceId, Collection<Host> dstHosts, Topology topology)
+    public abstract List<FlowRule> generateSpineRules(DeviceId deviceId,
+                                                      Set<Host> dstHosts,
+                                                      Topology topology)
             throws FlowRuleGeneratorException;
 
     private void deployAllDevices() {
@@ -301,7 +316,7 @@ public abstract class AbstractUpgradableFabricApp {
      *
      * @param device a device
      */
-    public void deployDevice(Device device) {
+    private void deployDevice(Device device) {
 
         DeviceId deviceId = device.id();
 
@@ -317,7 +332,7 @@ public abstract class AbstractUpgradableFabricApp {
                     pipeconfFlags.put(device.id(), true);
                 } else {
                     log.warn("Wrong pipeconf for {}, expecting {}, but found {}, aborting deploy",
-                             deviceId, MoreObjects.toStringHelper(appPipeconfs),
+                             deviceId, Arrays.toString(appPipeconfs.toArray()),
                              piPipeconfService.ofDevice(deviceId).get());
                     return;
                 }
@@ -331,7 +346,8 @@ public abstract class AbstractUpgradableFabricApp {
             // Install rules.
             if (!ruleFlags.getOrDefault(deviceId, false) &&
                     deviceFlowRules.containsKey(deviceId)) {
-                log.info("Installing {} rules for {}...", deviceFlowRules.get(deviceId).size(), deviceId);
+                log.info("Installing {} rules for {}...",
+                         deviceFlowRules.get(deviceId).size(), deviceId);
                 installFlowRules(deviceFlowRules.get(deviceId));
                 ruleFlags.put(deviceId, true);
             }
@@ -352,7 +368,8 @@ public abstract class AbstractUpgradableFabricApp {
     }
 
     /**
-     * Generates flow rules to provide host-to-host connectivity for the given topology and hosts.
+     * Generates flow rules to provide host-to-host connectivity for the given
+     * topology and hosts.
      */
     private synchronized void checkTopologyAndGenerateFlowRules() {
 
@@ -374,7 +391,7 @@ public abstract class AbstractUpgradableFabricApp {
                 .forEach(did -> (isSpine(did, topo) ? spines : leafs).add(did));
 
         if (spines.size() != TOPO_SIZE || leafs.size() != TOPO_SIZE) {
-            log.info("Invalid leaf/spine switches count, aborting... > leafCount={}, spineCount={}",
+            log.info("Invalid leaf/spine count, aborting... > leafCount={}, spineCount={}",
                      spines.size(), leafs.size());
             return;
         }
@@ -383,7 +400,8 @@ public abstract class AbstractUpgradableFabricApp {
             int portCount = deviceService.getPorts(did).size();
             // Expected port count: num leafs + 1 redundant leaf link (if imbalanced)
             if (portCount != HASHED_LINKS) {
-                log.info("Invalid port count for spine, aborting... > deviceId={}, portCount={}", did, portCount);
+                log.info("Invalid port count for spine, aborting... > deviceId={}, portCount={}",
+                         did, portCount);
                 return;
             }
         }
@@ -391,7 +409,8 @@ public abstract class AbstractUpgradableFabricApp {
             int portCount = deviceService.getPorts(did).size();
             // Expected port count: num spines + host port + 1 redundant spine link
             if (portCount != HASHED_LINKS + 1) {
-                log.info("Invalid port count for leaf, aborting... > deviceId={}, portCount={}", did, portCount);
+                log.info("Invalid port count for leaf, aborting... > deviceId={}, portCount={}",
+                         did, portCount);
                 return;
             }
         }
@@ -400,7 +419,8 @@ public abstract class AbstractUpgradableFabricApp {
         Map<DeviceId, Host> hostMap = Maps.newHashMap();
         hosts.forEach(h -> hostMap.put(h.location().deviceId(), h));
         if (hosts.size() != TOPO_SIZE || !leafs.equals(hostMap.keySet())) {
-            log.info("Wrong host configuration, aborting... > hostCount={}, hostMapz={}", hosts.size(), hostMap);
+            log.info("Wrong host configuration, aborting... > hostCount={}, hostMapz={}",
+                     hosts.size(), hostMap);
             return;
         }
 
@@ -409,14 +429,18 @@ public abstract class AbstractUpgradableFabricApp {
         try {
             for (DeviceId deviceId : leafs) {
                 Host srcHost = hostMap.get(deviceId);
-                Set<Host> dstHosts = hosts.stream().filter(h -> h != srcHost).collect(toSet());
-                newFlowRules.addAll(generateLeafRules(deviceId, srcHost, dstHosts, spines, topo));
+                Set<Host> dstHosts = hosts.stream()
+                        .filter(h -> h != srcHost)
+                        .collect(toSet());
+                newFlowRules.addAll(generateLeafRules(deviceId, srcHost,
+                                                      dstHosts, spines, topo));
             }
             for (DeviceId deviceId : spines) {
                 newFlowRules.addAll(generateSpineRules(deviceId, hosts, topo));
             }
         } catch (FlowRuleGeneratorException e) {
-            log.warn("Exception while executing flow rule generator: {}", e.getMessage());
+            log.warn("Exception while executing flow rule generator: {}",
+                     e.getMessage());
             return;
         }
 
@@ -428,12 +452,13 @@ public abstract class AbstractUpgradableFabricApp {
 
         // All good!
         // Divide flow rules per device id...
-        ImmutableMap.Builder<DeviceId, List<FlowRule>> mapBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<DeviceId, List<FlowRule>> mapBuilder =
+                ImmutableMap.builder();
         concat(spines.stream(), leafs.stream())
-                .map(deviceId -> ImmutableList.copyOf(newFlowRules
-                                                              .stream()
-                                                              .filter(fr -> fr.deviceId().equals(deviceId))
-                                                              .iterator()))
+                .map(deviceId -> ImmutableList.copyOf(
+                        newFlowRules.stream()
+                                .filter(fr -> fr.deviceId().equals(deviceId))
+                                .iterator()))
                 .forEach(frs -> mapBuilder.put(frs.get(0).deviceId(), frs));
         this.deviceFlowRules = mapBuilder.build();
 
@@ -443,7 +468,8 @@ public abstract class AbstractUpgradableFabricApp {
         // Avoid other executions to modify the generated flow rules.
         flowRuleGenerated = true;
 
-        log.info("Generated {} flow rules for {} devices", newFlowRules.size(), spines.size() + leafs.size());
+        log.info("Generated {} flow rules for {} devices",
+                 newFlowRules.size(), spines.size() + leafs.size());
 
         spawnTask(this::deployAllDevices);
     }
@@ -455,11 +481,13 @@ public abstract class AbstractUpgradableFabricApp {
      * @param tableId a table id
      * @return a new flow rule builder
      */
-    protected FlowRule.Builder flowRuleBuilder(DeviceId did, PiTableId tableId) throws FlowRuleGeneratorException {
+    protected FlowRule.Builder flowRuleBuilder(DeviceId did, PiTableId tableId)
+            throws FlowRuleGeneratorException {
 
         final Device device = deviceService.getDevice(did);
         if (!device.is(PiPipelineInterpreter.class)) {
-            throw new FlowRuleGeneratorException(format("Device %s has no PiPipelineInterpreter", did));
+            throw new FlowRuleGeneratorException(format(
+                    "Device %s has no PiPipelineInterpreter", did));
         }
 
         return DefaultFlowRule.builder()
@@ -486,12 +514,13 @@ public abstract class AbstractUpgradableFabricApp {
 
     protected boolean isFabricPort(Port port, Topology topology) {
         // True if the port connects this device to another infrastructure device.
-        return topologyService.isInfrastructure(topology, new ConnectPoint(port.element().id(), port.number()));
+        return topologyService.isInfrastructure(
+                topology, new ConnectPoint(port.element().id(), port.number()));
     }
 
     /**
-     * A listener of device events that executes a device deploy task each time a device is added, updated or
-     * re-connects.
+     * A listener of device events that executes a device deploy task each time
+     * a device is added, updated or re-connects.
      */
     private class InternalDeviceListener implements DeviceListener {
         @Override
@@ -512,12 +541,12 @@ public abstract class AbstractUpgradableFabricApp {
     /**
      * An exception occurred while generating flow rules for this fabric.
      */
-    public class FlowRuleGeneratorException extends Exception {
+    public static class FlowRuleGeneratorException extends Exception {
 
         public FlowRuleGeneratorException() {
         }
 
-        public FlowRuleGeneratorException(String msg) {
+        FlowRuleGeneratorException(String msg) {
             super(msg);
         }
     }

@@ -168,6 +168,8 @@ public class GrpcControllerImpl implements GrpcController {
                 doDummyMessage(channels.get(channelId));
                 return true;
             } catch (IOException e) {
+                log.warn("Error in sending dummy message to device {}", channelId);
+                log.debug("Exception ", e);
                 return false;
             }
         } finally {

@@ -17,25 +17,17 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.pi.runtime.PiEntity;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * A service to translate protocol-dependent (PD) entities to
- * protocol-independent (PI) ones.
+ * PI translation store delegate abstraction.
+ *
+ * @param <T> PD entity class (translatable to PI)
+ * @param <E> PI entity class
  */
 @Beta
-public interface PiTranslationService {
-
-    /**
-     * Returns a flow rule translator.
-     *
-     * @return flow rule translator
-     */
-    PiFlowRuleTranslator flowRuleTranslator();
-
-    /**
-     * Returns a group translator.
-     *
-     * @return group translator
-     */
-    PiGroupTranslator groupTranslator();
+public interface PiTranslationStoreDelegate
+        <T extends PiTranslatable, E extends PiEntity>
+        extends StoreDelegate<PiTranslationEvent<T, E>> {
 }
