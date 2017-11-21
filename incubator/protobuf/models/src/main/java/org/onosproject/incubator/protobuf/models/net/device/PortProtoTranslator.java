@@ -19,8 +19,7 @@ import org.onosproject.grpc.net.device.models.PortDescriptionProtoOuterClass.Por
 import org.onosproject.grpc.net.device.models.PortEnumsProto;
 import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass;
 import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.PortStatisticsProto;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.incubator.protobuf.models.net.AnnotationsTranslator;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -30,9 +29,6 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * gRPC message conversion related utilities for port service.
@@ -52,7 +48,7 @@ public final class PortProtoTranslator {
         boolean isEnabled = portDescription.getIsEnabled();
         Port.Type type = translate(portDescription.getType());
         long portSpeed = portDescription.getPortSpeed();
-        SparseAnnotations annotations = asAnnotations(portDescription.getAnnotationsMap());
+        SparseAnnotations annotations = AnnotationsTranslator.asAnnotations(portDescription.getAnnotationsMap());
         // TODO How to deal with more specific Port...
         return new DefaultPortDescription(number, isEnabled, type, portSpeed, annotations);
     }
@@ -69,7 +65,7 @@ public final class PortProtoTranslator {
                 .setIsEnabled(portDescription.isEnabled())
                 .setType(translate(portDescription.type()))
                 .setPortSpeed(portDescription.portSpeed())
-                .putAllAnnotations(asMap(portDescription.annotations()))
+                .putAllAnnotations(AnnotationsTranslator.asMap(portDescription.annotations()))
                 .build();
     }
 
@@ -160,44 +156,6 @@ public final class PortProtoTranslator {
                 .setPacketsReceived(portStatistics.packetsReceived())
                 .setPacketsSent(portStatistics.packetsSent())
                 .build();
-    }
-
-
-    // may be this can be moved to Annotation itself or AnnotationsUtils
-    /**
-     * Converts Annotations to Map of Strings.
-     *
-     * @param annotations {@link Annotations}
-     * @return Map of annotation key and values
-     */
-    public static Map<String, String> asMap(Annotations annotations) {
-        if (annotations instanceof DefaultAnnotations) {
-            return ((DefaultAnnotations) annotations).asMap();
-        }
-        Map<String, String> map = new HashMap<>();
-        annotations.keys()
-                .forEach(k -> map.put(k, annotations.value(k)));
-
-        return map;
-    }
-
-    // may be this can be moved to Annotation itself or AnnotationsUtils
-    /**
-     * Converts Map of Strings to {@link SparseAnnotations}.
-     *
-     * @param annotations Map of annotation key and values
-     * @return {@link SparseAnnotations}
-     */
-    public static SparseAnnotations asAnnotations(Map<String, String> annotations) {
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        annotations.entrySet().forEach(e -> {
-            if (e.getValue() != null) {
-                builder.set(e.getKey(), e.getValue());
-            } else {
-                builder.remove(e.getKey());
-            }
-        });
-        return builder.build();
     }
 
     // Utility class not intended for instantiation.

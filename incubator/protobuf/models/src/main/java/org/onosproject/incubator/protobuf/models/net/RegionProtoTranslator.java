@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 package org.onosproject.incubator.protobuf.models.net;
+
 import com.google.common.base.Strings;
-import org.onosproject.incubator.protobuf.models.net.region.RegionEnumsProtoTranslator;
-
-
-
 import org.onosproject.cluster.NodeId;
 import org.onosproject.grpc.net.models.RegionProtoOuterClass;
+import org.onosproject.incubator.protobuf.models.net.region.RegionEnumsProtoTranslator;
 import org.onosproject.net.Annotations;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
@@ -31,7 +27,6 @@ import org.onosproject.net.region.RegionId;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,7 +56,7 @@ public final class RegionProtoTranslator {
             masters.add(nodeIdSet);
         });
 
-        Annotations annots = asAnnotations(region.getAnnotations());
+        Annotations annots = AnnotationsTranslator.asAnnotations(region.getAnnotations());
 
         return new DefaultRegion(id, name, type, annots, masters);
     }
@@ -87,25 +82,6 @@ public final class RegionProtoTranslator {
                                                .build())
                                        .collect(Collectors.toList()))
                 .build();
-    }
-
-    // may be this can be moved to Annotation itself or AnnotationsUtils
-    /**
-     * Converts Map of Strings to {@link SparseAnnotations}.
-     *
-     * @param annotations Map of annotation key and values
-     * @return {@link SparseAnnotations}
-     */
-    public static SparseAnnotations asAnnotations(Map<String, String> annotations) {
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        annotations.entrySet().forEach(e -> {
-            if (e.getValue() != null) {
-                builder.set(e.getKey(), e.getValue());
-            } else {
-                builder.remove(e.getKey());
-            }
-        });
-        return builder.build();
     }
 
     // Utility class not intended for instantiation.

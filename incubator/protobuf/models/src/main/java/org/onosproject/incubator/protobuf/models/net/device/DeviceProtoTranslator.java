@@ -19,18 +19,14 @@ import org.onlab.packet.ChassisId;
 import org.onosproject.grpc.net.device.models.DeviceDescriptionProtoOuterClass;
 import org.onosproject.grpc.net.device.models.DeviceDescriptionProtoOuterClass.DeviceDescriptionProto;
 import org.onosproject.grpc.net.device.models.DeviceEnumsProto.DeviceTypeProto;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.incubator.protobuf.models.net.AnnotationsTranslator;
 import org.onosproject.net.Device.Type;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * gRPC message conversion related utilities for device service.
@@ -59,7 +55,7 @@ public final class DeviceProtoTranslator {
                 hwVersion, swVersion, serialNumber,
                 chassis,
                 defaultAvailable,
-                asAnnotations(deviceDescription.getAnnotationsMap()));
+                AnnotationsTranslator.asAnnotations(deviceDescription.getAnnotationsMap()));
     }
 
     /**
@@ -80,7 +76,7 @@ public final class DeviceProtoTranslator {
                 .setSerialNumber(deviceDescription.serialNumber())
                 .setChassisId(deviceDescription.chassisId().toString())
                 .setIsDefaultAvailable(deviceDescription.isDefaultAvailable())
-                .putAllAnnotations(asMap(deviceDescription.annotations()))
+                .putAllAnnotations(AnnotationsTranslator.asMap(deviceDescription.annotations()))
                 .build();
     }
 
@@ -170,44 +166,6 @@ public final class DeviceProtoTranslator {
                 log.warn("Unexpected Device.Type: {}", type);
                 return DeviceTypeProto.OTHER;
         }
-    }
-
-
-    // may be this can be moved to Annotation itself or AnnotationsUtils
-    /**
-     * Converts Annotations to Map of Strings.
-     *
-     * @param annotations {@link Annotations}
-     * @return Map of annotation key and values
-     */
-    public static Map<String, String> asMap(Annotations annotations) {
-        if (annotations instanceof DefaultAnnotations) {
-            return ((DefaultAnnotations) annotations).asMap();
-        }
-        Map<String, String> map = new HashMap<>();
-        annotations.keys()
-                .forEach(k -> map.put(k, annotations.value(k)));
-
-        return map;
-    }
-
-    // may be this can be moved to Annotation itself or AnnotationsUtils
-    /**
-     * Converts Map of Strings to {@link SparseAnnotations}.
-     *
-     * @param annotations Map of annotation key and values
-     * @return {@link SparseAnnotations}
-     */
-    public static SparseAnnotations asAnnotations(Map<String, String> annotations) {
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        annotations.entrySet().forEach(e -> {
-            if (e.getValue() != null) {
-                builder.set(e.getKey(), e.getValue());
-            } else {
-                builder.remove(e.getKey());
-            }
-        });
-        return builder.build();
     }
 
     // Utility class not intended for instantiation.
