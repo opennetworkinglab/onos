@@ -227,6 +227,8 @@ import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiEntity;
+import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiGroupKey;
@@ -239,6 +241,8 @@ import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
+import org.onosproject.net.pi.service.PiTranslatable;
+import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
@@ -637,6 +641,8 @@ public final class KryoNamespaces {
                     PiControlMetadata.class,
                     PiCounterCellData.class,
                     PiCounterCellId.class,
+                    PiEntity.class,
+                    PiEntityType.class,
                     PiExactFieldMatch.class,
                     PiFieldMatch.class,
                     PiGroupKey.class,
@@ -649,6 +655,9 @@ public final class KryoNamespaces {
                     PiTableEntry.class,
                     PiTernaryFieldMatch.class,
                     PiValidFieldMatch.class,
+                    // PI service
+                    PiTranslatedEntity.class,
+                    PiTranslatable.class,
                     // Other
                     PiCriterion.class,
                     PiInstruction.class

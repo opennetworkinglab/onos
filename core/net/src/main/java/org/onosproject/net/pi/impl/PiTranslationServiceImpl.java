@@ -28,11 +28,16 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.net.pi.service.PiTranslatable;
 import org.onosproject.net.pi.service.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 /**
  * Implementation of the protocol-independent translation service.
@@ -48,6 +53,9 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private PiTranslationStore translationStore;
+
     @Activate
     public void activate() {
         log.info("Started");
@@ -59,19 +67,43 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     }
 
     @Override
-    public PiTableEntry translateFlowRule(FlowRule rule, PiPipeconf pipeconf) throws PiTranslationException {
-        return PiFlowRuleTranslator.translate(rule, pipeconf, getDevice(rule.deviceId()));
+    public PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf)
+            throws PiTranslationException {
+        final PiTableEntry piTableEntry = PiFlowRuleTranslator
+                .translate(rule, pipeconf, getDevice(rule.deviceId()));
+        translationStore.addOrUpdate(rule, piTableEntry, pipeconf.id());
+        return piTableEntry;
     }
 
     @Override
-    public PiActionGroup translateGroup(Group group, PiPipeconf pipeconf) throws PiTranslationException {
-        return PiGroupTranslator.translate(group, pipeconf, getDevice(group.deviceId()));
+    public Optional<FlowRule> lookup(PiTableEntry piTableEntry,
+                                     PiPipeconfId pipeconfId) {
+        final PiTranslatable original = translationStore
+                .lookup(piTableEntry, pipeconfId);
+        return original == null
+                ? Optional.empty()
+                : Optional.of((FlowRule) original);
+    }
+
+    @Override
+    public PiActionGroup translate(Group group, PiPipeconf pipeconf)
+            throws PiTranslationException {
+        return PiGroupTranslator.translate(group, pipeconf,
+                                           getDevice(group.deviceId()));
+    }
+
+    @Override
+    public Optional<Group> lookup(PiActionGroup piActionGroup,
+                                  PiPipeconfId pipeconfId) {
+        // TODO: implement learning and lookup of groups
+        return Optional.empty();
     }
 
     private Device getDevice(DeviceId deviceId) throws PiTranslationException {
         final Device device = deviceService.getDevice(deviceId);
         if (device == null) {
-            throw new PiTranslationException("Unable to get device " + deviceId);
+            throw new PiTranslationException(
+                    "Unable to get device " + deviceId);
         }
         return device;
     }

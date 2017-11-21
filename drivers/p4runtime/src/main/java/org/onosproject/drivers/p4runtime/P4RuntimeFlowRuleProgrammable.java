@@ -242,7 +242,7 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
             PiTableEntry piTableEntry;
 
             try {
-                piTableEntry = piTranslationService.translateFlowRule(rule, pipeconf);
+                piTableEntry = piTranslationService.translate(rule, pipeconf);
             } catch (PiTranslationService.PiTranslationException e) {
                 log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
                 continue; // next rule

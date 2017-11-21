@@ -103,7 +103,7 @@ public class P4RuntimeGroupProgrammable extends AbstractP4RuntimeHandlerBehaviou
 
         PiActionGroup piActionGroup;
         try {
-            piActionGroup = piTranslationService.translateGroup(group, pipeconf);
+            piActionGroup = piTranslationService.translate(group, pipeconf);
         } catch (PiTranslationService.PiTranslationException e) {
             log.warn("Unable translate group, aborting group operation {}: {}", groupOp.opType(), e.getMessage());
             return;
