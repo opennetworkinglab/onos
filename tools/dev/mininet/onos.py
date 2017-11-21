@@ -364,14 +364,11 @@ class ONOSNode( Controller ):
             time.sleep( 1 )
         info( ' ssh-port' )
         waitListening( server=self, port=KarafPort, callback=self.sanityCheck )
-        info( ' openflow-port' )
-        waitListening( server=self, port=OpenFlowPort,
-                       callback=self.sanityCheck )
-        info( ' client' )
+        info( ' protocol' )
         while True:
             result = quietRun( '%s -h %s "apps -a"' %
                                ( self.client, self.IP() ), shell=True )
-            if 'openflow' in result:
+            if 'openflow' in result or 'p4runtime' in result:
                 break
             info( '.' )
             self.sanityCheck()
@@ -380,7 +377,7 @@ class ONOSNode( Controller ):
         while True:
             result = quietRun( '%s -h %s "nodes"' %
                                ( self.client, self.IP() ), shell=True )
-            nodeStr = 'id=%s, address=%s:%s, state=READY, updated' %\
+            nodeStr = 'id=%s, address=%s:%s, state=READY' %\
                       ( self.IP(), self.IP(), CopycatPort )
             if nodeStr in result:
                 break
