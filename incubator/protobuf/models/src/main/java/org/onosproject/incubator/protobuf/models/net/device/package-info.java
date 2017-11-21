@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * Utilities to handle ProtoBuf version of ONOS network models.
+ * Utilities to handle ProtoBuf version of ONOS device models.
  */
-package org.onosproject.incubator.protobuf.models;
+package org.onosproject.incubator.protobuf.models.net.device;

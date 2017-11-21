@@ -5,6 +5,7 @@ package nb.net.device;
 
 import "net/DeviceProto.proto";
 import "net/device/DeviceEnumsProto.proto";
+import "net/MastershipRoleProto.proto";
 import "net/device/PortStatisticsProto.proto";
 import "net/PortProto.proto";
 import "net/ConnectPointProto.proto";
@@ -44,7 +45,7 @@ message getRoleRequest {
 }
 
 message getRoleReply {
-    .net.device.MastershipRoleProto role = 1;
+    .net.MastershipRoleProto role = 1;
 }
 
 message getPortsRequest {

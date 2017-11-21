@@ -16,13 +16,16 @@
 package org.onosproject.incubator.protobuf.models.net;
 
 import org.onosproject.grpc.net.models.LinkProtoOuterClass;
-import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.incubator.protobuf.models.net.link.LinkEnumsProtoTranslator;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.provider.ProviderId;
+
+import java.util.Map;
 
 /**
  * gRPC LinkProto message to equivalent ONOS Link conversion related utilities.
@@ -44,7 +47,7 @@ public final class LinkProtoTranslator {
         ConnectPoint src = ConnectPointProtoTranslator.translate(link.getSrc()).get();
         ConnectPoint dst = ConnectPointProtoTranslator.translate(link.getDst()).get();
         Link.Type type = LinkEnumsProtoTranslator.translate(link.getType()).get();
-        Annotations annots = ProtobufUtils.asAnnotations(link.getAnnotations());
+        Annotations annots = asAnnotations(link.getAnnotations());
         Boolean isExpected = link.getIsExpected();
         return DefaultLink.builder().state(state)
                 .annotations(annots)
@@ -55,7 +58,6 @@ public final class LinkProtoTranslator {
                 .isExpected(isExpected)
                 .build();
     }
-
 
     /**
      * Translates {@link org.onosproject.net.Link} to gRPC LinkCore message.
@@ -75,6 +77,25 @@ public final class LinkProtoTranslator {
                 .setType(LinkEnumsProtoTranslator.translate(link.type()))
                 .setIsExpected(link.isExpected())
                 .build();
+    }
+
+    // may be this can be moved to Annotation itself or AnnotationsUtils
+    /**
+     * Converts Map of Strings to {@link SparseAnnotations}.
+     *
+     * @param annotations Map of annotation key and values
+     * @return {@link SparseAnnotations}
+     */
+    public static SparseAnnotations asAnnotations(Map<String, String> annotations) {
+        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        annotations.entrySet().forEach(e -> {
+            if (e.getValue() != null) {
+                builder.set(e.getKey(), e.getValue());
+            } else {
+                builder.remove(e.getKey());
+            }
+        });
+        return builder.build();
     }
 
     // Utility class not intended for instantiation.

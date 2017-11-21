@@ -15,7 +15,6 @@
  */
 package org.onosproject.incubator.protobuf.services.nb;
 
-
 import com.google.common.annotations.Beta;
 import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
@@ -27,6 +26,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.grpc.net.device.models.PortEnumsProto;
 import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.PortStatisticsProto;
 import org.onosproject.grpc.nb.net.device.DeviceServiceGrpc.DeviceServiceImplBase;
+import org.onosproject.grpc.net.models.MastershipRoleProtoOuterClass;
 import org.onosproject.grpc.net.models.PortProtoOuterClass.PortProto;
 import org.onosproject.grpc.net.device.models.DeviceEnumsProto;
 import org.onosproject.protobuf.api.GrpcServiceRegistry;
@@ -35,17 +35,16 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.incubator.protobuf.models.GrpcNbDeviceServiceUtil;
+import org.onosproject.incubator.protobuf.models.net.device.DeviceProtoTranslator;
 import org.slf4j.Logger;
 
 import static org.onosproject.grpc.nb.net.device.DeviceServiceNb.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-
 /**
  * A server that provides access to the methods exposed by {@link DeviceService}.
  * TODO this requires major refactoring, translation should be delegated to calls to
- * TODO{@link GrpcNbDeviceServiceUtil}.
+ * TODO{@link DeviceProtoTranslator}.
  */
 @Beta
 @Component(immediate = true)
@@ -180,8 +179,8 @@ public class GrpcNbDeviceService {
                             StreamObserver<getRoleReply> responseObserver) {
             DeviceId deviceId = DeviceId.deviceId(request.getDeviceId());
             MastershipRole role = deviceService.getRole(deviceId);
-            DeviceEnumsProto.MastershipRoleProto mastershipRole =
-                    DeviceEnumsProto.MastershipRoleProto.valueOf(role.toString());
+            MastershipRoleProtoOuterClass.MastershipRoleProto mastershipRole =
+                    MastershipRoleProtoOuterClass.MastershipRoleProto.valueOf(role.toString());
             responseObserver.onNext(getRoleReply.newBuilder()
                     .setRole(mastershipRole).build());
             responseObserver.onCompleted();

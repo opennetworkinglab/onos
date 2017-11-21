@@ -3,12 +3,6 @@ option java_package = "org.onosproject.grpc.net.device.models";
 
 package net.device;
 
-enum MastershipRoleProto {
-    NONE = 0;
-    MASTER = 1;
-    STANDBY = 2;
-}
-
 enum DeviceTypeProto {
     OTHER = 0;
     SWITCH = 1;
