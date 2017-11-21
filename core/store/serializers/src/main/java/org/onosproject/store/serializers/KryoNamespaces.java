@@ -707,6 +707,10 @@ public final class KryoNamespaces {
             )
             .register(Upgrade.class)
             .register(Upgrade.Status.class)
+            .register(L3ModificationInstruction.ModArpEthInstruction.class,
+                    L3ModificationInstruction.ModArpEthInstruction.class,
+                    L3ModificationInstruction.ModArpOpInstruction.class,
+                    L3ModificationInstruction.ModArpIPInstruction.class)
             .build("API");
 
     /**

@@ -21,6 +21,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,6 +40,7 @@ public class DefaultMoveExtensionTreatment extends AbstractExtension
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(Map.class)
+            .register(HashMap.class)
             .build("DefaultMoveExtensionTreatment");
 
     /**
@@ -74,7 +76,7 @@ public class DefaultMoveExtensionTreatment extends AbstractExtension
         values.put("nBits", nBits);
         values.put("src", src);
         values.put("dst", dst);
-        values.put("type", ExtensionTreatmentType.ExtensionTreatmentTypes.valueOf(type.toString()).ordinal());
+        values.put("type", type.type());
         return appKryo.serialize(values);
     }
 
