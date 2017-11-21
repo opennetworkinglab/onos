@@ -104,6 +104,20 @@
                impl="org.onosproject.driver.pipeline.ofdpa.Ofdpa3QmxPipeline"/>
     </driver>
 
+    <!-- Driver for OFDPA Premium version -->
+    <driver name="as7712-32x-premium" extends="ofdpa3"
+            manufacturer="Broadcom Ltd\." hwVersion="as7712-32x" swVersion="OF-DPA Premium.*">
+    </driver>
+
+    <driver name="as5912-54x-premium" extends="qmx-ofdpa3"
+            manufacturer="Broadcom Ltd\." hwVersion="as5912-54x" swVersion="OF-DPA Premium.*">
+    </driver>
+
+    <driver name="as5916-54x-premium" extends="qmx-ofdpa3"
+            manufacturer="Broadcom Ltd\." hwVersion="as5916-54x" swVersion="OF-DPA Premium.*">
+    </driver>
+
+    <!-- OFDPA drivers from vendors -->
     <driver name="accton-ofdpa3" extends="ofdpa3"
             manufacturer="Accton Corp\." hwVersion=".*" swVersion="ofdpa .*">
     </driver>
