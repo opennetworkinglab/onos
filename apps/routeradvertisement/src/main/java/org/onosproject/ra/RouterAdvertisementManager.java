@@ -18,6 +18,7 @@ package org.onosproject.ra;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -87,12 +88,14 @@ import java.util.stream.IntStream;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Manages IPv6 Router Advertisements.
  */
+@Service
 @Component(immediate = true)
-public class RouterAdvertisementManager {
+public class RouterAdvertisementManager implements RoutingAdvertisementService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private static final String PROP_RA_THREADS_POOL = "raPoolSize";
@@ -159,6 +162,11 @@ public class RouterAdvertisementManager {
 
     @GuardedBy(value = "this")
     private final Map<DeviceId, List<InterfaceIpAddress>> globalPrefixes = new LinkedHashMap<>();
+
+    @Override
+    public ImmutableMap<DeviceId, List<InterfaceIpAddress>> getGlobalPrefixes() {
+        return ImmutableMap.copyOf(globalPrefixes);
+    }
 
     private Function<Interface, Map.Entry<ConnectPoint, List<InterfaceIpAddress>>> prefixGenerator =
             i -> {
