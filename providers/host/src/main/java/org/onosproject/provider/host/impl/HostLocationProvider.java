@@ -407,10 +407,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 Host existingHost = hostService.getHost(hid);
                 if (existingHost != null) {
                     Set<HostLocation> prevLocations = existingHost.locations();
-                    newLocations.addAll(prevLocations);
 
-                    if (!existingHost.locations().contains(hloc)) {
+                    if (prevLocations.stream().noneMatch(loc -> loc.deviceId().equals(hloc.deviceId()))) {
+                        // New location is on a device that we haven't seen before
+                        // Could be a dual-home host. Append new location and send out the probe
+                        newLocations.addAll(prevLocations);
                         probeLocations(existingHost);
+                    } else {
+                        // Move within the same switch
+                        // Simply replace old location that is on the same device
+                        prevLocations.stream().filter(loc -> !loc.deviceId().equals(hloc.deviceId()))
+                                .forEach(newLocations::add);
                     }
                 }
             }
