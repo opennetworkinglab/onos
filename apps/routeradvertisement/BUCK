@@ -6,8 +6,13 @@ COMPILE_DEPS = [
     '//cli:onos-cli'
 ]
 
-osgi_jar (
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
 onos_app (
