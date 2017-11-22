@@ -42,11 +42,13 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     private final Map<K, Versioned<V>> map;
     private final String mapName;
     private final AtomicLong counter = new AtomicLong(0);
+    private final Serializer serializer;
 
-    private TestConsistentMap(String mapName) {
+    private TestConsistentMap(String mapName, Serializer serializer) {
         map = new HashMap<>();
         listeners = new LinkedList<>();
         this.mapName = mapName;
+        this.serializer = serializer;
     }
 
     private Versioned<V> version(V v) {
@@ -111,7 +113,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
             AtomicReference<Versioned<V>> previousValue = new AtomicReference<>();
             Versioned<V> result = map.compute(key, (k, v) -> {
                     updated.set(true);
-                    previousValue.set(v);
+                    previousValue.set(serializer.decode(serializer.encode(v)));
                     return version(remappingFunction.apply(k, Versioned.valueOrNull(v)));
                 });
             if (updated.get()) {
@@ -127,7 +129,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
         Versioned<V> result = map.compute(key, (k, v) -> {
             if (v != null) {
                 updated.set(true);
-                previousValue.set(v);
+                previousValue.set(serializer.decode(serializer.encode(v)));
                 return version(remappingFunction.apply(k, v.value()));
             }
             return v;
@@ -145,7 +147,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
         AtomicReference<Versioned<V>> previousValue = new AtomicReference<>();
         Versioned<V> result = map.compute(key, (k, v) -> {
             if (condition.test(Versioned.valueOrNull(v))) {
-                previousValue.set(v);
+                previousValue.set(serializer.decode(serializer.encode(v)));
                 updated.set(true);
                 return version(remappingFunction.apply(k, Versioned.valueOrNull(v)));
             }
@@ -296,7 +298,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
         @Override
         public ConsistentMap<K, V> build() {
-            return new TestConsistentMap<>(name());
+            return new TestConsistentMap<>(name(), serializer());
         }
 
         @Override

@@ -16,6 +16,7 @@
 package org.onosproject.incubator.store.meter.impl;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.math.RandomUtils;
@@ -25,6 +26,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -90,6 +92,18 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     private static final String AVAILABLEMETERIDSTORE = "onos-meters-available-store";
     private static final String METERIDSTORE = "onos-meters-id-store";
 
+    private static final KryoNamespace.Builder APP_KRYO_BUILDER = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(MeterKey.class)
+            .register(MeterData.class)
+            .register(DefaultMeter.class)
+            .register(DefaultBand.class)
+            .register(Band.Type.class)
+            .register(MeterState.class)
+            .register(Meter.Unit.class);
+
+    private Serializer serializer = Serializer.using(Lists.newArrayList(APP_KRYO_BUILDER.build()));
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private StorageService storageService;
 
@@ -140,15 +154,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
         meters = storageService.<MeterKey, MeterData>consistentMapBuilder()
                     .withName(METERSTORE)
-                    .withSerializer(Serializer.using(KryoNamespaces.API,
-                                                     MeterKey.class,
-                                                     MeterData.class,
-                                                     DefaultMeter.class,
-                                                     DefaultBand.class,
-                                                     Band.Type.class,
-                                                     MeterState.class,
-                                                     Meter.Unit.class,
-                                                     MeterFailReason.class)).build();
+                    .withSerializer(serializer).build();
 
         meters.addListener(mapListener);
 
