@@ -28,9 +28,20 @@ import org.onosproject.net.DeviceId;
 @Beta
 public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
 
+    private PiActionGroupHandle(DeviceId deviceId, PiActionGroup group) {
+        super(deviceId, group);
+    }
 
-    private PiActionGroupHandle(DeviceId deviceId, PiActionGroup actionGroup) {
-        super(deviceId, actionGroup);
+    /**
+     * Creates a new handle for the given device ID and PI action group.
+     *
+     * @param deviceId device ID
+     * @param group PI action group
+     * @return PI action group handle
+     */
+    public static PiActionGroupHandle of(DeviceId deviceId,
+                                         PiActionGroup group) {
+        return new PiActionGroupHandle(deviceId, group);
     }
 
     @Override
