@@ -38,12 +38,15 @@ public final class BasicConstants {
     public static final String DOT =  ".";
     public static final String HDR = "hdr";
     public static final String ETHERNET = "ethernet";
+    public static final String IPV4 = "ipv4";
     public static final String LOCAL_METADATA = "local_metadata";
     public static final String STANDARD_METADATA = "standard_metadata";
     public static final PiMatchFieldId HDR_IN_PORT_ID = PiMatchFieldId.of(STANDARD_METADATA + DOT + "ingress_port");
     public static final PiMatchFieldId HDR_ETH_DST_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "dst_addr");
     public static final PiMatchFieldId HDR_ETH_SRC_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "src_addr");
     public static final PiMatchFieldId HDR_ETH_TYPE_ID = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + "ether_type");
+    public static final PiMatchFieldId HDR_IPV4_DST_ID = PiMatchFieldId.of(HDR + DOT + IPV4 + DOT + "dst_addr");
+    public static final PiMatchFieldId HDR_IPV4_SRC_ID = PiMatchFieldId.of(HDR + DOT + IPV4 + DOT + "src_addr");
     public static final PiMatchFieldId HDR_NEXT_HOP_ID = PiMatchFieldId.of(LOCAL_METADATA + DOT + "next_hop_id");
     public static final PiMatchFieldId HDR_SELECTOR_ID = PiMatchFieldId.of(LOCAL_METADATA + DOT + "selector");
     // Table IDs
@@ -66,7 +69,7 @@ public final class BasicConstants {
     public static final PiActionParamId ACT_PRM_PORT_ID = PiActionParamId.of("port");
     public static final PiActionParamId ACT_PRM_NEXT_HOP_ID = PiActionParamId.of("next_hop_id");
     // Action Profile IDs
-    public static final PiActionProfileId ACT_PRF_WCMP_SELECTOR_ID = PiActionProfileId.of("wcmp_selector");
+    public static final PiActionProfileId ACT_PRF_WCMP_SELECTOR_ID = PiActionProfileId.of("wcmp_control.wcmp_selector");
     // Packet Metadata IDs
     public static final PiControlMetadataId PKT_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");
     public static final PiControlMetadataId PKT_META_INGRESS_PORT_ID = PiControlMetadataId.of("ingress_port");

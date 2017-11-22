@@ -50,14 +50,9 @@ public final class PipeconfLoader {
     private static final String BASIC_JSON_PATH = "/p4c-out/bmv2/basic.json";
     private static final String BASIC_P4INFO = "/p4c-out/bmv2/basic.p4info";
 
-    private static final PiPipeconfId ECMP_PIPECONF_ID = new PiPipeconfId("org.onosproject.pipelines.ecmp");
-    private static final String ECMP_JSON_PATH = "/p4c-out/bmv2/ecmp.json";
-    private static final String ECMP_P4INFO = "/p4c-out/bmv2/ecmp.p4info";
-
     public static final PiPipeconf BASIC_PIPECONF = buildBasicPipeconf();
-    public static final PiPipeconf ECMP_PIPECONF = buildEcmpPipeconf();
 
-    private static final Collection<PiPipeconf> ALL_PIPECONFS = ImmutableList.of(BASIC_PIPECONF, ECMP_PIPECONF);
+    private static final Collection<PiPipeconf> ALL_PIPECONFS = ImmutableList.of(BASIC_PIPECONF);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
@@ -87,21 +82,6 @@ public final class PipeconfLoader {
                 .addExtension(BMV2_JSON, jsonUrl)
                 // Put here other target-specific extensions,
                 // e.g. Tofino's bin and context.json.
-                .build();
-    }
-
-    private static PiPipeconf buildEcmpPipeconf() {
-        final URL jsonUrl = PipeconfLoader.class.getResource(ECMP_JSON_PATH);
-        final URL p4InfoUrl = PipeconfLoader.class.getResource(ECMP_P4INFO);
-
-        return DefaultPiPipeconf.builder()
-                .withId(ECMP_PIPECONF_ID)
-                .withPipelineModel(parseP4Info(p4InfoUrl))
-                .addBehaviour(PiPipelineInterpreter.class, EcmpInterpreterImpl.class)
-                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
-                .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
-                .addExtension(P4_INFO_TEXT, p4InfoUrl)
-                .addExtension(BMV2_JSON, jsonUrl)
                 .build();
     }
 
