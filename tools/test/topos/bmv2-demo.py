@@ -42,8 +42,12 @@ from mininet.node import RemoteController, Host
 from mininet.topo import Topo
 
 
+def getCmdBg(cmd, logfile="/dev/null"):
+    return "{} > {} 2>&1 &".format(cmd, logfile)
+
+
 class ClosTopo(Topo):
-    "2 stage Clos topology"
+    """2 stage Clos topology"""
 
     def __init__(self, args, **opts):
         # Initialize topology and default options
@@ -58,16 +62,17 @@ class ClosTopo(Topo):
 
         for switchId in bmv2SwitchIds:
             deviceId = int(switchId[1:])
-            # Use first number in device id to calculate latitude (row number)
+            # Use first number in device id to calculate latitude (row number),
+            # use second to calculate longitude (column number)
             latitude = SWITCH_BASE_LATITUDE + (deviceId // 10) * BASE_SHIFT
-
-            # Use second number in device id to calculate longitude (column number)
             longitude = BASE_LONGITUDE + (deviceId % 10) * BASE_SHIFT
+
             bmv2Switches[switchId] = self.addSwitch(switchId,
                                                     cls=ONOSBmv2Switch,
-                                                    loglevel="warn",
+                                                    loglevel=args.log_level,
                                                     deviceId=deviceId,
-                                                    netcfg=False,
+                                                    netcfg=True,
+                                                    netcfgDelay=0.5,
                                                     longitude=longitude,
                                                     latitude=latitude,
                                                     pipeconfId=args.pipeconf_id)
@@ -75,14 +80,17 @@ class ClosTopo(Topo):
         for i in range(1, args.size + 1):
             for j in range(1, args.size + 1):
                 if i == j:
-                    # 2 links
-                    self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
+                    self.addLink(bmv2Switches["s1%d" % i],
+                                 bmv2Switches["s2%d" % j],
                                  cls=TCLink, bw=DEFAULT_SW_BW)
                     if args.with_imbalanced_striping:
-                        self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
+                        # 2 links
+                        self.addLink(bmv2Switches["s1%d" % i],
+                                     bmv2Switches["s2%d" % j],
                                      cls=TCLink, bw=DEFAULT_SW_BW)
                 else:
-                    self.addLink(bmv2Switches["s1%d" % i], bmv2Switches["s2%d" % j],
+                    self.addLink(bmv2Switches["s1%d" % i],
+                                 bmv2Switches["s2%d" % j],
                                  cls=TCLink, bw=DEFAULT_SW_BW)
 
         for hostId in range(1, args.size + 1):
@@ -90,11 +98,12 @@ class ClosTopo(Topo):
                                 cls=DemoHost,
                                 ip="10.0.0.%d/24" % hostId,
                                 mac='00:00:00:00:00:%02x' % hostId)
-            self.addLink(host, bmv2Switches["s1%d" % hostId], cls=TCLink, bw=DEFAULT_HOST_BW)
+            self.addLink(host, bmv2Switches["s1%d" % hostId],
+                         cls=TCLink, bw=DEFAULT_HOST_BW)
 
 
 class DemoHost(ONOSHost):
-    "Demo host"
+    """Demo host"""
 
     def __init__(self, name, **params):
         ONOSHost.__init__(self, name, **params)
@@ -109,10 +118,11 @@ class DemoHost(ONOSHost):
         self.cmd(self.getInfiniteCmdBg("iperf -s -u"))
 
     def startIperfClient(self, h, flowBw="512k", numFlows=5, duration=5):
-        iperfCmd = "iperf -c{} -u -b{} -P{} -t{}".format(h.IP(), flowBw, numFlows, duration)
-        self.cmd(self.getInfiniteCmdBg(iperfCmd, sleep=0))
+        iperfCmd = "iperf -c{} -u -b{} -P{} -t{}".format(
+            h.IP(), flowBw, numFlows, duration)
+        self.cmd(self.getInfiniteCmdBg(iperfCmd, delay=0))
 
-    def stop(self):
+    def stop(self, **kwargs):
         self.cmd("killall iperf")
         self.cmd("killall ping")
         self.cmd("killall arping")
@@ -127,28 +137,27 @@ class DemoHost(ONOSHost):
         )
         print "**********"
 
-    def getInfiniteCmdBg(self, cmd, logfile="/dev/null", sleep=1):
+    def getInfiniteCmdBg(self, cmd, logfile="/dev/null", delay=1):
         return "(while [ -e {} ]; " \
                "do {}; " \
                "sleep {}; " \
-               "done;) > {} 2>&1 &".format(self.exectoken, cmd, sleep, logfile)
-
-    def getCmdBg(self, cmd, logfile="/dev/null"):
-        return "{} > {} 2>&1 &".format(cmd, logfile)
+               "done;) > {} 2>&1 &".format(self.exectoken, cmd, delay, logfile)
 
 
 def generateNetcfg(onosIp, net, args):
     netcfg = OrderedDict()
+
+    netcfg['hosts'] = {}
     netcfg['devices'] = {}
     netcfg['links'] = {}
-    netcfg['hosts'] = {}
-    # Device configs
-    for sw in net.switches:
-        srcIp = sw.getSourceIp(onosIp)
-        netcfg['devices'][sw.onosDeviceId] = sw.getDeviceConfig(srcIp)
+
+    if args.full_netcfg:
+        # Device configs
+        for sw in net.switches:
+            srcIp = sw.getSourceIp(onosIp)
+            netcfg['devices'][sw.onosDeviceId] = sw.getDeviceConfig(srcIp)
 
     hostLocations = {}
-    # Link configs
     for link in net.links:
         switchPort = link.intf1.name.split('-')
         sw1Name = switchPort[0]  # s11
@@ -172,14 +181,18 @@ def generateNetcfg(onosIp, net, args):
             hostLocations[sw2.name] = '%s/%s' % (sw1.onosDeviceId, port1)
             continue
 
-        for linkId in ('%s/%s-%s/%s' % (sw1.onosDeviceId, port1, sw2.onosDeviceId, port2),
-                       '%s/%s-%s/%s' % (sw2.onosDeviceId, port2, sw1.onosDeviceId, port1)):
-            netcfg['links'][linkId] = {
-                'basic': {
-                    'type': 'DIRECT',
-                    'bandwidth': DEFAULT_SW_BW
+        if args.full_netcfg:
+            # Link configs
+            for linkId in ('%s/%s-%s/%s' % (sw1.onosDeviceId, port1,
+                                            sw2.onosDeviceId, port2),
+                           '%s/%s-%s/%s' % (sw2.onosDeviceId, port2,
+                                            sw1.onosDeviceId, port1)):
+                netcfg['links'][linkId] = {
+                    'basic': {
+                        'type': 'DIRECT',
+                        'bandwidth': DEFAULT_SW_BW
+                    }
                 }
-            }
 
     # Host configs
     longitude = BASE_LONGITUDE
@@ -203,13 +216,14 @@ def generateNetcfg(onosIp, net, args):
         }
         netcfg['hosts'][hostId] = hostConfig
 
-    netcfg["apps"] = {
-        "org.onosproject.core": {
-            "core": {
-                "linkDiscoveryMode": "STRICT"
+    if args.full_netcfg:
+        netcfg["apps"] = {
+            "org.onosproject.core": {
+                "core": {
+                    "linkDiscoveryMode": "STRICT"
+                }
             }
         }
-    }
 
     print "Writing network config to %s" % TEMP_NETCFG_FILE
     with open(TEMP_NETCFG_FILE, 'w') as tempFile:
@@ -233,7 +247,7 @@ def main(args):
 
     print "Network started"
 
-    # Generate background traffic.
+    # Always generate background pings.
     sleep(3)
     for (h1, h2) in combinations(net.hosts, 2):
         h1.startPingBg(h2)
@@ -246,14 +260,17 @@ def main(args):
 
     print "Iperf servers started"
 
-    # sleep(4)
-    # print "Starting traffic from h1 to h3..."
-    # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
+    if args.bg_traffic:
+        sleep(4)
+        print "Starting iperf clients..."
+        net.hosts[0].startIperfClient(net.hosts[-1], flowBw="400k",
+                                      numFlows=50, duration=10)
 
     generateNetcfg(onosIp, net, args)
 
     if args.netcfg_sleep > 0:
-        print "Waiting %d seconds before pushing config to ONOS..." % args.netcfg_sleep
+        print "Waiting %d seconds before pushing config to ONOS..." \
+              % args.netcfg_sleep
         sleep(args.netcfg_sleep)
 
     print "Pushing config to ONOS..."
@@ -275,12 +292,25 @@ if __name__ == '__main__':
                         type=str, action="store", required=False)
     parser.add_argument('--size', help='Number of leaf/spine switches',
                         type=int, action="store", required=False, default=2)
-    parser.add_argument('--with-imbalanced-striping', help='Topology with imbalanced striping',
-                        type=bool, action="store", required=False, default=False)
+    parser.add_argument('--with-imbalanced-striping',
+                        help='Topology with imbalanced striping',
+                        type=bool, action="store", required=False,
+                        default=False)
     parser.add_argument('--pipeconf-id', help='Pipeconf ID for switches',
                         type=str, action="store", required=False, default='')
-    parser.add_argument('--netcfg-sleep', help='Seconds to wait before pushing config to ONOS',
+    parser.add_argument('--netcfg-sleep',
+                        help='Seconds to wait before pushing config to ONOS',
                         type=int, action="store", required=False, default=5)
-    args = parser.parse_args()
+    parser.add_argument('--log-level', help='BMv2 log level',
+                        type=str, action="store", required=False,
+                        default='warn')
+    parser.add_argument('--full-netcfg',
+                        help='Generate full netcfg JSON with links and devices',
+                        type=bool, action="store", required=False,
+                        default=False)
+    parser.add_argument('--bg-traffic',
+                        help='Starts background traffic',
+                        type=bool, action="store", required=False,
+                        default=False)
     setLogLevel('info')
-    main(args)
+    main(parser.parse_args())
