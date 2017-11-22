@@ -16,12 +16,15 @@
 
 package org.onosproject.incubator.store.meter.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.TestApplicationId;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -44,6 +47,7 @@ import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterState;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collections;
@@ -125,6 +129,13 @@ public class DistributedMeterStoreTest {
         TestUtils.setField(meterStore, "clusterService", new TestClusterService());
         TestUtils.setField(meterStore, "mastershipService", new TestMastershipService());
         TestUtils.setField(meterStore, "driverService", new TestDriverService());
+
+        // Inject TestApplicationId into the DistributedMeterStore serializer
+        KryoNamespace.Builder testKryoBuilder = TestUtils.getField(meterStore, "APP_KRYO_BUILDER");
+        testKryoBuilder.register(TestApplicationId.class);
+        Serializer testSerializer = Serializer.using(Lists.newArrayList(testKryoBuilder.build()));
+        TestUtils.setField(meterStore, "serializer", testSerializer);
+
         // Activate the store
         meterStore.activate();
     }
