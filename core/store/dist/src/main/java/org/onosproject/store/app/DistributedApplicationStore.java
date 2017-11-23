@@ -515,8 +515,8 @@ public class DistributedApplicationStore extends ApplicationArchive
                 }
                 setupApplicationAndNotify(appId, newApp.app(), newApp.state());
             } else if (event.type() == MapEvent.Type.REMOVE) {
-                notifyDelegate(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
                 purgeApplication(appId.name());
+                notifyDelegate(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
             }
         }
     }
