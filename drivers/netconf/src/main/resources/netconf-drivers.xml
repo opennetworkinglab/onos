@@ -16,19 +16,17 @@
   -->
 <drivers>
     <!--This driver is for simulated NETCONF devices through of-config tool on top og OVSDB-->
-    <driver name="ovs-netconf" manufacturer="" hwVersion="" swVersion="">
-        <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
-                   impl="org.onosproject.drivers.netconf.NetconfControllerConfig"/>
-        <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
-                   impl="org.onosproject.drivers.netconf.NetconfConfigGetter"/>
-        <behaviour api="org.onosproject.net.behaviour.ConfigSetter"
-                   impl="org.onosproject.drivers.netconf.NetconfConfigSetter"/>
-    </driver>
     <driver name="netconf" manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
                    impl="org.onosproject.drivers.netconf.NetconfConfigGetter"/>
         <behaviour api="org.onosproject.net.behaviour.ConfigSetter"
                    impl="org.onosproject.drivers.netconf.NetconfConfigSetter"/>
+    </driver>
+    <driver name="ovs-netconf" manufacturer="" hwVersion="" swVersion="" extends="netconf">
+        <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
+                   impl="org.onosproject.drivers.netconf.NetconfControllerConfig"/>
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.netconf.OvsNetconfDeviceDescriptionDiscovery"/>
     </driver>
 </drivers>
 
