@@ -100,6 +100,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private static final String APP_ID = "org.onosproject.openflow-base";
     private static final String DEFAULT_OFPORT = "6633,6653";
     private static final int DEFAULT_WORKER_THREADS = 0;
+    protected static final String SCHEME = "of";
 
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
@@ -607,7 +608,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            return event.subject().type() != CONTROLLER && event.type() == DEVICE_REMOVED;
+            return event.subject().type() != CONTROLLER && event.type() == DEVICE_REMOVED
+                    && event.subject().id().uri().getScheme().equals(SCHEME);
         }
 
         @Override
