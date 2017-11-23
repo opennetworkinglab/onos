@@ -388,63 +388,72 @@ public class NetconfDeviceProvider extends AbstractProvider
         log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
                   deviceId, config.ip(), config.port(), config.username());
         storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
-        retriedPortDiscoveryMap.putIfAbsent(deviceId, new AtomicInteger(0));
+        retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
             providerService.deviceConnected(deviceId, deviceDescription);
         }
         try {
-            checkAndUpdateDevice(deviceId, deviceDescription);
+            checkAndUpdateDevice(deviceId, deviceDescription, true);
         } catch (Exception e) {
             log.error("Unhandled exception checking {}", deviceId, e);
         }
     }
 
-    private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription) {
+    private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription, boolean newlyConnected) {
         Device device = deviceService.getDevice(deviceId);
         if (device == null) {
-            log.debug("Device {} has not been added to store, " +
-                             "since it's not reachable", deviceId);
-        } else {
-            boolean isReachable = isReachable(deviceId);
-            if (isReachable && !deviceService.isAvailable(deviceId)) {
-                if (device.is(DeviceDescriptionDiscovery.class)) {
-                    if (mastershipService.isLocalMaster(deviceId)) {
-                        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
-                                device.as(DeviceDescriptionDiscovery.class);
-                        DeviceDescription updatedDeviceDescription =
-                                deviceDescriptionDiscovery.discoverDeviceDetails();
-                        if (updatedDeviceDescription != null &&
-                                !descriptionEquals(device, updatedDeviceDescription)) {
-                            providerService.deviceConnected(
-                                    deviceId, new DefaultDeviceDescription(
-                                            updatedDeviceDescription, true,
-                                            updatedDeviceDescription.annotations()));
-                        } else if (updatedDeviceDescription == null) {
-                            providerService.deviceConnected(
-                                    deviceId, new DefaultDeviceDescription(
-                                            deviceDescription, true,
-                                            deviceDescription.annotations()));
-                        }
-                    }
-                } else {
-                    log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
-                                     "using DefaultDeviceDescription", deviceId);
+            log.debug("Device {} has not been added to store, since it's not reachable", deviceId);
+            return;
+        }
+        boolean isReachable = isReachable(deviceId);
+        if (!isReachable && deviceService.isAvailable(deviceId)) {
+            providerService.deviceDisconnected(deviceId);
+            return;
+        } else if (newlyConnected) {
+            retriedPortDiscoveryMap.putIfAbsent(deviceId, new AtomicInteger(0));
+            updateDeviceDescription(deviceId, deviceDescription, device);
+        }
+        if (isReachable && deviceService.isAvailable(deviceId) &&
+                mastershipService.isLocalMaster(deviceId)) {
+            //if ports are not discovered, retry the discovery
+            if (deviceService.getPorts(deviceId).isEmpty() &&
+                    retriedPortDiscoveryMap.get(deviceId).getAndIncrement() < maxRetries) {
+                discoverPorts(deviceId);
+            }
+            updatePortStatistics(device);
+        }
+    }
+
+    private void updateDeviceDescription(DeviceId deviceId, DeviceDescription deviceDescription, Device device) {
+        if (device.is(DeviceDescriptionDiscovery.class)) {
+            if (mastershipService.isLocalMaster(deviceId)) {
+                DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                        device.as(DeviceDescriptionDiscovery.class);
+                DeviceDescription updatedDeviceDescription =
+                        deviceDescriptionDiscovery.discoverDeviceDetails();
+                if (updatedDeviceDescription == null && deviceDescription == null) {
+                    log.debug("Both descriptions are null, skipping updates");
+                    return;
+                }
+                if (updatedDeviceDescription == null) {
                     providerService.deviceConnected(
                             deviceId, new DefaultDeviceDescription(
-                                    deviceDescription, true, deviceDescription.annotations()));
+                                    deviceDescription, true,
+                                    deviceDescription.annotations()));
+                } else if (deviceDescription == null ||
+                        descriptionEquals(device, updatedDeviceDescription)) {
+                    providerService.deviceConnected(
+                            deviceId, new DefaultDeviceDescription(
+                                    updatedDeviceDescription, true,
+                                    updatedDeviceDescription.annotations()));
                 }
-            } else if (!isReachable && deviceService.isAvailable(deviceId)) {
-                providerService.deviceDisconnected(deviceId);
-            } else if (isReachable && deviceService.isAvailable(deviceId) &&
-                    mastershipService.isLocalMaster(deviceId)) {
-
-                //if ports are not discovered, retry the discovery
-                if (deviceService.getPorts(deviceId).isEmpty() &&
-                        retriedPortDiscoveryMap.get(deviceId).getAndIncrement() < maxRetries) {
-                    discoverPorts(deviceId);
-                }
-                updatePortStatistics(device);
             }
+        } else {
+            log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
+                             "using DefaultDeviceDescription", deviceId);
+            providerService.deviceConnected(
+                    deviceId, new DefaultDeviceDescription(
+                            deviceDescription, true, deviceDescription.annotations()));
         }
     }
 
@@ -481,7 +490,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                     cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
             DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
             storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
-            checkAndUpdateDevice(deviceId, deviceDescription);
+            checkAndUpdateDevice(deviceId, deviceDescription, false);
         });
     }
 
@@ -637,8 +646,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            DeviceId deviceId = event.subject().id();
             if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
                 executor.execute(() -> discoverPorts(event.subject().id()));
+            } else if (event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
+                if (deviceService.isAvailable(deviceId)) {
+                    log.info("Availability changed to true, discovering ports and description");
+                    checkAndUpdateDevice(deviceId, null, true);
+                    //doDeviceUpdate(deviceId);
+                }
             } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
                 log.debug("removing device {}", event.subject().id());
                 controller.disconnectDevice(event.subject().id(), true);
