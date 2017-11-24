@@ -313,6 +313,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
         OpenFlowSwitch sw = this.getSwitch(dpid);
+        if (log.isTraceEnabled()) {
+            log.trace("Processing message from switch {} via openflow: {}", dpid, msg);
+        }
 
         // Check if someone is waiting for this message
         ConcurrentMap<Long, CompletableFuture<OFMessage>> xids = responses.get(dpid);
