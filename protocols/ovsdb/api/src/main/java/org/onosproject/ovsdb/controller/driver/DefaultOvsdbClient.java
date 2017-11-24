@@ -534,15 +534,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return;
         }
 
-        Set<Uuid> newControllerUuids = new HashSet<>();
-
         Set<ControllerInfo> newControllers = new HashSet<>(controllers);
         List<Controller> removeControllers = new ArrayList<>();
         oldControllers.forEach(controller -> {
             ControllerInfo controllerInfo = new ControllerInfo((String) controller.getTargetColumn().data());
             if (newControllers.contains(controllerInfo)) {
                 newControllers.remove(controllerInfo);
-                newControllerUuids.add(controller.getRow().uuid());
             } else {
                 removeControllers.add(controller);
             }
@@ -560,23 +557,10 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                     .createTable(dbSchema, OvsdbTable.CONTROLLER);
             controller.setTarget(c.target());
             return controller;
-        }).forEach(c -> {
-            String uuid = insertConfig(CONTROLLER, UUID, BRIDGE, BRIDGE_CONTROLLER, bridgeUuid.value(),
-                                       c.getRow());
-            newControllerUuids.add(Uuid.uuid(uuid));
+        }).forEach(c -> insertConfig(CONTROLLER, UUID, BRIDGE, BRIDGE_CONTROLLER,
+                                    bridgeUuid.value(),
+                                    c.getRow()));
 
-        });
-
-        OvsdbRowStore rowStore = getRowStore(DATABASENAME, BRIDGE);
-        if (rowStore == null) {
-            log.debug("There is no bridge table");
-            return;
-        }
-
-        Row bridgeRow = rowStore.getRow(bridgeUuid.value());
-        Bridge bridge = (Bridge) TableGenerator.getTable(dbSchema, bridgeRow, OvsdbTable.BRIDGE);
-        bridge.setController(OvsdbSet.ovsdbSet(newControllerUuids));
-        updateConfig(BRIDGE, UUID, bridgeUuid.value(), bridge.getRow());
     }
 
     @Override
