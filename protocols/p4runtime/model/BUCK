@@ -6,6 +6,9 @@ COMPILE_DEPS = [
     '//lib:protobuf-java-' + PROTOBUF_VER,
 ]
 
-osgi_jar(
-    deps = COMPILE_DEPS,
+TEST_DEPS = [
+]
+
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS + TEST_DEPS,
 )

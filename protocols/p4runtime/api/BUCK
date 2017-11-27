@@ -5,6 +5,13 @@ COMPILE_DEPS = [
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
 ]
 
-osgi_jar(
+TEST_DEPS = [
+    '//core/api:onos-api-tests',
+    '//lib:TEST',
+    '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
+]
+
+osgi_jar_with_tests(
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
