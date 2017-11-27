@@ -152,11 +152,11 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
-                                                           "device-installer-%d", log));
+                    "device-installer-%d", log));
     protected ScheduledExecutorService connectionExecutor
             = newScheduledThreadPool(CORE_POOL_SIZE,
-                                     groupedThreads("onos/netconfdeviceprovider",
-                                                    "connection-executor-%d", log));
+            groupedThreads("onos/netconfdeviceprovider",
+                    "connection-executor-%d", log));
 
     protected DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
@@ -175,9 +175,9 @@ public class NetconfDeviceProvider extends AbstractProvider
                 }
             },
             new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
-                                                                    NetconfProviderConfig.class,
-                                                                    "devices",
-                                                                    true) {
+                    NetconfProviderConfig.class,
+                    "devices",
+                    true) {
                 @Override
                 public NetconfProviderConfig createConfig() {
                     return new NetconfProviderConfig();
@@ -232,7 +232,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (context != null) {
             Dictionary<?, ?> properties = context.getProperties();
             pollFrequency = Tools.getIntegerProperty(properties, "pollFrequency",
-                                                     DEFAULT_POLL_FREQUENCY_SECONDS);
+                    DEFAULT_POLL_FREQUENCY_SECONDS);
             log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
 
             maxRetries = Tools.getIntegerProperty(properties, "maxRetries",
@@ -253,8 +253,8 @@ public class NetconfDeviceProvider extends AbstractProvider
     // every DEFAULT_POLL_FREQUENCY_SECONDS seconds.
     private ScheduledFuture schedulePolling() {
         return connectionExecutor.scheduleAtFixedRate(exceptionSafe(this::checkAndUpdateDevices),
-                                                      pollFrequency / 10,
-                                                      pollFrequency, TimeUnit.SECONDS);
+                pollFrequency / 10,
+                pollFrequency, TimeUnit.SECONDS);
     }
 
     private Runnable exceptionSafe(Runnable runnable) {
@@ -360,7 +360,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 log.debug("Netconf device {} removed from Netconf subController", deviceId);
             } else {
                 log.warn("Netconf device {} does not exist in the store, " +
-                                 "it may already have been removed", deviceId);
+                        "it may already have been removed", deviceId);
             }
         }
     }
@@ -386,7 +386,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
         DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
         log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
-                  deviceId, config.ip(), config.port(), config.username());
+                deviceId, config.ip(), config.port(), config.username());
         storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
         retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
@@ -410,7 +410,6 @@ public class NetconfDeviceProvider extends AbstractProvider
             providerService.deviceDisconnected(deviceId);
             return;
         } else if (newlyConnected) {
-            retriedPortDiscoveryMap.putIfAbsent(deviceId, new AtomicInteger(0));
             updateDeviceDescription(deviceId, deviceDescription, device);
         }
         if (isReachable && deviceService.isAvailable(deviceId) &&
@@ -431,26 +430,22 @@ public class NetconfDeviceProvider extends AbstractProvider
                         device.as(DeviceDescriptionDiscovery.class);
                 DeviceDescription updatedDeviceDescription =
                         deviceDescriptionDiscovery.discoverDeviceDetails();
-                if (updatedDeviceDescription == null && deviceDescription == null) {
-                    log.debug("Both descriptions are null, skipping updates");
-                    return;
-                }
-                if (updatedDeviceDescription == null) {
-                    providerService.deviceConnected(
-                            deviceId, new DefaultDeviceDescription(
-                                    deviceDescription, true,
-                                    deviceDescription.annotations()));
-                } else if (deviceDescription == null ||
-                        descriptionEquals(device, updatedDeviceDescription)) {
+                if (updatedDeviceDescription != null &&
+                        !descriptionEquals(device, updatedDeviceDescription)) {
                     providerService.deviceConnected(
                             deviceId, new DefaultDeviceDescription(
                                     updatedDeviceDescription, true,
                                     updatedDeviceDescription.annotations()));
+                } else if (updatedDeviceDescription == null) {
+                    providerService.deviceConnected(
+                            deviceId, new DefaultDeviceDescription(
+                                    deviceDescription, true,
+                                    deviceDescription.annotations()));
                 }
             }
         } else {
             log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
-                             "using DefaultDeviceDescription", deviceId);
+                    "using DefaultDeviceDescription", deviceId);
             providerService.deviceConnected(
                     deviceId, new DefaultDeviceDescription(
                             deviceDescription, true, deviceDescription.annotations()));
@@ -463,11 +458,11 @@ public class NetconfDeviceProvider extends AbstractProvider
             Collection<PortStatistics> portStatistics = d.discoverPortStatistics();
             if (portStatistics != null) {
                 providerService.updatePortStatistics(device.id(),
-                                                     portStatistics);
+                        portStatistics);
             }
         } else {
             log.debug("No port statistics getter behaviour for device {}",
-                      device.id());
+                    device.id());
         }
     }
 
@@ -551,12 +546,12 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (device.is(PortDiscovery.class)) {
             PortDiscovery portConfig = device.as(PortDiscovery.class);
             providerService.updatePorts(deviceId,
-                                        portConfig.getPorts());
+                    portConfig.getPorts());
         } else if (device.is(DeviceDescriptionDiscovery.class)) {
             DeviceDescriptionDiscovery deviceDescriptionDiscovery =
                     device.as(DeviceDescriptionDiscovery.class);
             providerService.updatePorts(deviceId,
-                                        deviceDescriptionDiscovery.discoverPortDetails());
+                    deviceDescriptionDiscovery.discoverPortDetails());
         } else {
             log.warn("No portGetter behaviour for device {}", deviceId);
         }
@@ -577,7 +572,7 @@ public class NetconfDeviceProvider extends AbstractProvider
             return DeviceId.deviceId(new URI(NETCONF, ip + ":" + port, null));
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Unable to build deviceID for device "
-                                                       + ip + ":" + port, e);
+                    + ip + ":" + port, e);
         }
     }
 
@@ -625,7 +620,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 executor.execute(() -> connectDevice((NetconfDeviceConfig) event.config().get()));
             } else {
                 log.warn("Injecting device via this Json is deprecated, " +
-                                 "please put configuration under devices/ as shown in the wiki");
+                        "please put configuration under devices/ as shown in the wiki");
                 translateConfig();
             }
 
@@ -646,15 +641,8 @@ public class NetconfDeviceProvider extends AbstractProvider
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            DeviceId deviceId = event.subject().id();
             if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
                 executor.execute(() -> discoverPorts(event.subject().id()));
-            } else if (event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
-                if (deviceService.isAvailable(deviceId)) {
-                    log.info("Availability changed to true, discovering ports and description");
-                    checkAndUpdateDevice(deviceId, null, true);
-                    //doDeviceUpdate(deviceId);
-                }
             } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
                 log.debug("removing device {}", event.subject().id());
                 controller.disconnectDevice(event.subject().id(), true);
