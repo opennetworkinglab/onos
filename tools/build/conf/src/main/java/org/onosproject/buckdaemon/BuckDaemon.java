@@ -16,12 +16,13 @@
 
 package org.onosproject.buckdaemon;
 
-import com.google.common.io.ByteStreams;
 import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import org.onosproject.checkstyle.CheckstyleRunner;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -34,11 +35,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Buck daemon process.
@@ -95,7 +96,7 @@ public final class BuckDaemon {
                     Process p = Runtime.getRuntime().exec(cmd);
                     p.waitFor();
                     if (p.exitValue() != 0) {
-                        System.err.println("shutting down...");
+                        debug("shutting down...");
                         System.exit(0);
                     }
                 } catch (IOException | InterruptedException e) {
@@ -115,7 +116,7 @@ public final class BuckDaemon {
         FileChannel channel = FileChannel.open(portLockPath, WRITE, CREATE);
         FileLock lock = channel.tryLock();
         if (lock == null) {
-            System.out.println("Server is already running");
+            debug("Server is already running");
             System.exit(1);
         } //else, hold the lock until the JVM exits
 
@@ -130,7 +131,7 @@ public final class BuckDaemon {
             try {
                 channel.truncate(0);
                 channel.close();
-                System.err.println("tear down...");
+                debug("tear down...");
                 Files.delete(portLockPath);
             } catch (IOException e) {
                 //no-op: shutting down
@@ -142,6 +143,7 @@ public final class BuckDaemon {
         int port = server.getLocalPort();
         channel.truncate(0);
         channel.write(ByteBuffer.wrap(Integer.toString(port).getBytes()));
+        channel.force(false); // flush the port number to disk
 
         // Instantiate a Checkstyle runner and executor; serve until exit...
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -171,26 +173,34 @@ public final class BuckDaemon {
         @Override
         public void run() {
             try {
-                BuckTaskContext context = new BuckTaskContext(socket.getInputStream());
-                String taskName = context.taskName();
-                if (!taskName.isEmpty()) {
+                try {
+                    socket.setSoTimeout(1_000); //reads should time out after 1 second
+                    BuckTaskContext context = new BuckTaskContext(socket.getInputStream());
+
+                    String taskName = context.taskName();
                     BuckTask task = tasks.get(taskName);
                     if (task != null) {
-                        System.out.println(String.format("Executing task '%s'", taskName));
+                        debug(String.format("Executing task '%s'", taskName));
                         try {
                             task.execute(context);
                             for (String line : context.output()) {
-                                output(socket, line);
+                                send(socket, line);
                             }
-                        // TODO should we catch Exception, RuntimeException, or something specific?
+                            // TODO should we catch Exception, RuntimeException, or something specific?
                         } catch (Throwable e) {
                             e.printStackTrace(new PrintStream(socket.getOutputStream()));
                         }
                     } else {
                         String message = String.format("No task named '%s'", taskName);
-                        System.out.print(message);
-                        output(socket, message);
+                        debug(message);
+                        send(socket, message);
                     }
+                } catch (Throwable e) {
+                    StringWriter writer = new StringWriter();
+                    e.printStackTrace(new PrintWriter(writer));
+                    String stacktrace = writer.toString();
+                    debug(stacktrace);
+                    send(socket, stacktrace);
                 }
                 socket.getOutputStream().flush();
                 socket.close();
@@ -199,8 +209,13 @@ public final class BuckDaemon {
             }
         }
 
-        private void output(Socket socket, String line) throws IOException {
-            socket.getOutputStream().write((line + "\n").getBytes());
-        }
+    }
+
+    private static void send(Socket socket, String line) throws IOException {
+        socket.getOutputStream().write((line + "\n").getBytes());
+    }
+
+    private static void debug(String message) {
+        // no-op; print to System.out if needed
     }
 }
