@@ -37,7 +37,7 @@ public class DevicePortStateCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "portNumber", description = "Port Number",
             required = true, multiValued = false)
-    Integer portNumber = null;
+    String portNumber = null;
 
     @Argument(index = 2, name = "portState",
             description = "Desired State. Either \"enable\" or \"disable\".",
@@ -53,7 +53,7 @@ public class DevicePortStateCommand extends AbstractShellCommand {
             print(" %s", "Device does not exist");
             return;
         }
-        PortNumber pnum = PortNumber.portNumber(portNumber);
+        PortNumber pnum = PortNumber.fromString(portNumber);
         Port p = deviceService.getPort(dev.id(), pnum);
         if (p == null) {
             print(" %s", "Port does not exist");
