@@ -15,9 +15,12 @@
  */
 package org.onosproject.yang;
 
+import com.google.common.collect.ImmutableMap;
 import org.onosproject.models.microsemi.MicrosemiModelRegistrator;
 import org.onosproject.yang.compiler.datamodel.YangNode;
 import org.onosproject.yang.compiler.tool.YangNodeInfo;
+import org.onosproject.yang.model.YangModuleId;
+import org.onosproject.yang.runtime.AppModuleInfo;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
 import org.onosproject.yang.runtime.YangModelRegistry;
@@ -26,7 +29,9 @@ import org.onosproject.yang.runtime.impl.DefaultYangModelRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 import static org.onosproject.yang.compiler.tool.YangCompilerManager.deSerializeDataModel;
@@ -64,6 +69,14 @@ public class MockMicrosemiRegistrator extends MicrosemiModelRegistrator {
             ioe.printStackTrace();
             fail();
         }
+    }
+
+
+    public void addAppInfo(Map<YangModuleId, AppModuleInfo> map) {
+        Map<YangModuleId, AppModuleInfo> appInfoCopy = new HashMap<>();
+        appInfoCopy.putAll(appInfo);
+        appInfoCopy.putAll(map);
+        appInfo = ImmutableMap.copyOf(appInfoCopy);
     }
 
     public YangModelRegistry registry() {

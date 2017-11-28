@@ -156,10 +156,9 @@ public class IetfSystemManager extends AbstractYangServiceImpl
         rpc.append("xmlns:sysms=\"http://www.microsemi.com/microsemi-edge-assure/msea-system\">");
         rpc.append("<platform>");
         rpc.append("<os-release/>");
-//FIXME: This has been commented out until the augment of common models issue with onos-yang-tools is sorted
-//        rpc.append("<sysms:device-identification>");
-//        rpc.append("<sysms:serial-number/>");
-//        rpc.append("</sysms:device-identification>");
+        rpc.append("<sysms:device-identification>");
+        rpc.append("<sysms:serial-number/>");
+        rpc.append("</sysms:device-identification>");
         rpc.append("</platform>");
         rpc.append("<clock>");
         rpc.append("<current-datetime/>");
