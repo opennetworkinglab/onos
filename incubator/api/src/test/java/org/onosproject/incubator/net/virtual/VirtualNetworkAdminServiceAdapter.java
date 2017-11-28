@@ -112,4 +112,14 @@ public class VirtualNetworkAdminServiceAdapter
     public void removeVirtualPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
 
     }
+
+    @Override
+    public VirtualNetwork getVirtualNetwork(NetworkId networkId) {
+        return null;
+    }
+
+    @Override
+    public TenantId getTenantId(NetworkId networkId) {
+        return null;
+    }
 }

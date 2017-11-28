@@ -88,6 +88,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
@@ -171,6 +172,43 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
                        VirtualNetworkEvent.Type.TENANT_REGISTERED,
                        VirtualNetworkEvent.Type.TENANT_UNREGISTERED,
                        VirtualNetworkEvent.Type.TENANT_UNREGISTERED);
+    }
+
+    /**
+     * Test method {@code getTenantId()} for registered virtual network.
+     */
+    @Test
+    public void testGetTenantIdForRegisteredVirtualNetwork() {
+        VirtualNetwork virtualNetwork = setupVirtualNetworkTopology(tenantIdValue1);
+        TenantId tenantId = manager.getTenantId(virtualNetwork.id());
+
+        assertThat(tenantId.toString(), is(tenantIdValue1));
+    }
+
+    /**
+     * Test method {@code getTenantId()} for null virtual network id.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testGetTenantIdForNullVirtualNetwork() {
+        manager.getTenantId(null);
+    }
+
+    /**
+     * Test method {@code getVirtualNetwork()} for registered virtual network.
+     */
+    @Test
+    public void testGetVirtualNetworkForRegisteredNetwork() {
+        VirtualNetwork virtualNetwork = setupVirtualNetworkTopology(tenantIdValue1);
+
+        assertNotNull("Registered virtual network is null", manager.getVirtualNetwork(virtualNetwork.id()));
+    }
+
+    /**
+     * Test method {@code getVirtualNetwork()} for null virtual network id.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testGetVirtualForNullVirtualNetworkId() {
+        manager.getVirtualNetwork(null);
     }
 
     /**
@@ -745,12 +783,12 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
 
 
     /**
-     * Method to create the virtual network for further testing.
+     * Method to create the virtual network for {@code tenantIdValue} for further testing.
      **/
-    private VirtualNetwork setupVirtualNetworkTopology() {
-        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+    private VirtualNetwork setupVirtualNetworkTopology(String tenantIdValue) {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue));
         VirtualNetwork virtualNetwork =
-                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue));
 
         VirtualDevice virtualDevice1 =
                 manager.createVirtualDevice(virtualNetwork.id(), DID1);
@@ -829,7 +867,7 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
      */
     @Test
     public void testTopologyChanged() {
-        VirtualNetwork virtualNetwork = setupVirtualNetworkTopology();
+        VirtualNetwork virtualNetwork = setupVirtualNetworkTopology(tenantIdValue1);
         VirtualNetworkProviderService providerService =
                 manager.createProviderService(topologyProvider);
 

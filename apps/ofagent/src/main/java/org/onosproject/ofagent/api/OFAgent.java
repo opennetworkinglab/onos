@@ -16,6 +16,7 @@
 package org.onosproject.ofagent.api;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 
 import java.util.Set;
 
@@ -24,6 +25,8 @@ import java.util.Set;
  * network and the external OpenFlow controllers.
  */
 public interface OFAgent {
+
+    String TRACER_LOG_TENANT_ID_PREFIX = "OFAGENT_tenantId:";
 
     enum State {
 
@@ -44,6 +47,13 @@ public interface OFAgent {
      * @return id of the virtual network
      */
     NetworkId networkId();
+
+    /**
+     * Returns the identifier of the tenant which owns virtual network this agent cares for.
+     *
+     * @return id of the tenant
+     */
+    TenantId tenantId();
 
     /**
      * Returns the external OpenFlow controllers of the virtual network.
@@ -87,6 +97,14 @@ public interface OFAgent {
          * @return of agent builder
          */
         Builder networkId(NetworkId networkId);
+
+        /**
+         * Returns OF agent builder with the supplied tenant ID.
+         *
+         * @param tenantId id of the virtual network
+         * @return of agent builder
+         */
+        Builder tenantId(TenantId tenantId);
 
         /**
          * Returns OF agent builder with the supplied controllers.

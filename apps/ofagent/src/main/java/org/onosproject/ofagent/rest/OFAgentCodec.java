@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFController;
 import org.onosproject.ofagent.impl.DefaultOFAgent;
@@ -45,6 +46,7 @@ public final class OFAgentCodec extends JsonCodec<OFAgent> {
         ObjectNode ofAgentNode = mapper.createObjectNode();
         ofAgentNode
                 .put("networkId", ofAgent.networkId().toString())
+                .put("tenantId", ofAgent.tenantId().toString())
                 .put("state", ofAgent.state().toString());
 
         ArrayNode controllers = mapper.createArrayNode();
@@ -59,6 +61,9 @@ public final class OFAgentCodec extends JsonCodec<OFAgent> {
         JsonNode networkId = json.get("networkId");
         checkNotNull(networkId);
 
+        JsonNode tenantId = json.get("tenantId");
+        checkNotNull(tenantId);
+
         checkNotNull(json.get("controllers"));
         checkState(json.get("controllers").isArray());
         Set<OFController> controllers = Sets.newHashSet();
@@ -67,6 +72,7 @@ public final class OFAgentCodec extends JsonCodec<OFAgent> {
 
         return DefaultOFAgent.builder()
                 .networkId(NetworkId.networkId(networkId.asLong()))
+                .tenantId(TenantId.tenantId(tenantId.asText()))
                 .controllers(controllers)
                 .state(OFAgent.State.STOPPED)
                 .build();

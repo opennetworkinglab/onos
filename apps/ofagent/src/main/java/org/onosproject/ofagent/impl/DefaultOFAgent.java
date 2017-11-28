@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFController;
 
@@ -33,13 +34,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class DefaultOFAgent implements OFAgent {
 
     private final NetworkId networkId;
+    private final TenantId tenantId;
+
     private final Set<OFController> controllers;
     private final State state;
 
-    private DefaultOFAgent(NetworkId networkId,
+    private DefaultOFAgent(NetworkId networkId, TenantId tenantId,
                            Set<OFController> controllers,
                            State state) {
         this.networkId = networkId;
+        this.tenantId = tenantId;
         this.controllers = controllers;
         this.state = state;
     }
@@ -47,6 +51,11 @@ public final class DefaultOFAgent implements OFAgent {
     @Override
     public NetworkId networkId() {
         return networkId;
+    }
+
+    @Override
+    public TenantId tenantId() {
+        return tenantId;
     }
 
     @Override
@@ -83,6 +92,7 @@ public final class DefaultOFAgent implements OFAgent {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("networkId", this.networkId)
+                .add("tenantId", this.tenantId)
                 .add("controllers", this.controllers)
                 .add("state", this.state)
                 .toString();
@@ -100,6 +110,7 @@ public final class DefaultOFAgent implements OFAgent {
     public static final class Builder implements OFAgent.Builder {
 
         private NetworkId networkId;
+        private TenantId tenantId;
         private Set<OFController> controllers = Sets.newHashSet();
         private State state;
 
@@ -109,15 +120,17 @@ public final class DefaultOFAgent implements OFAgent {
         @Override
         public OFAgent build() {
             checkNotNull(networkId, "Network ID cannot be null");
+            checkNotNull(tenantId, "Tenant ID cannot be null");
             checkNotNull(state, "State cannot be null");
             controllers = controllers == null ? ImmutableSet.of() : controllers;
 
-            return new DefaultOFAgent(networkId, controllers, state);
+            return new DefaultOFAgent(networkId, tenantId, controllers, state);
         }
 
         @Override
         public Builder from(OFAgent ofAgent) {
             this.networkId = ofAgent.networkId();
+            this.tenantId = ofAgent.tenantId();
             this.controllers = Sets.newHashSet(ofAgent.controllers());
             this.state = ofAgent.state();
             return this;
@@ -126,6 +139,12 @@ public final class DefaultOFAgent implements OFAgent {
         @Override
         public Builder networkId(NetworkId networkId) {
             this.networkId = networkId;
+            return this;
+        }
+
+        @Override
+        public Builder tenantId(TenantId tenantId) {
+            this.tenantId = tenantId;
             return this;
         }
 

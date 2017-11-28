@@ -49,6 +49,7 @@ import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.onosproject.ofagent.api.OFSwitchCapabilities;
 import org.onosproject.ofagent.api.OFSwitchService;
@@ -176,7 +177,9 @@ public final class DefaultOFSwitch implements OFSwitch {
         this.flowRuleService = virtualNetworkService.get(networkId, FlowRuleService.class);
         this.groupService = virtualNetworkService.get(networkId, GroupService.class);
         this.meterService = virtualNetworkService.get(networkId, MeterService.class);
-        log = LoggerFactory.getLogger(getClass().getName() + " : " + dpid);
+
+        log = LoggerFactory.getLogger(OFAgent.TRACER_LOG_TENANT_ID_PREFIX + virtualNetworkService.getTenantId(networkId)
+                                              + " " + getClass().getSimpleName() + " : " + dpid);
     }
 
     public static DefaultOFSwitch of(DatapathId dpid, OFSwitchCapabilities capabilities,

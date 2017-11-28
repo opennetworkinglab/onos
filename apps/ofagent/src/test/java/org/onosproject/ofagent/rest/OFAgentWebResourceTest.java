@@ -29,6 +29,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.rest.BaseResource;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFAgentAdminService;
 import org.onosproject.ofagent.api.OFAgentService;
@@ -94,19 +95,27 @@ public class OFAgentWebResourceTest extends ResourceTest {
     private static final NetworkId NETWORK_2 = NetworkId.networkId(2);
     private static final NetworkId NETWORK = NetworkId.networkId(3);
 
+
+    private static final TenantId TENANT_1 = TenantId.tenantId("Tenant_1");
+    private static final TenantId TENANT_2 = TenantId.tenantId("Tenant_2");
+    private static final TenantId TENANT = TenantId.tenantId("Tenant");
+
     private static final OFAgent OF_AGENT = DefaultOFAgent.builder()
             .networkId(NETWORK)
+            .tenantId(TENANT)
             .controllers(CONTROLLER_SET)
             .state(STOPPED)
             .build();
 
     private Set<OFAgent> agents = Sets.newHashSet(DefaultOFAgent.builder()
                                                   .networkId(NETWORK_1)
+                                                  .tenantId(TENANT_1)
                                                   .controllers(CONTROLLER_SET_1)
                                                   .state(STOPPED)
                                                   .build(),
                                           DefaultOFAgent.builder()
                                                   .networkId(NETWORK_2)
+                                                  .tenantId(TENANT_2)
                                                   .controllers(CONTROLLER_SET_2)
                                                   .state(STOPPED)
                                                   .build(),
@@ -166,6 +175,9 @@ public class OFAgentWebResourceTest extends ResourceTest {
             String expectedJsonStringNetworkId = "\"networkId\":\"" + ofAgent.networkId().id() + "\"";
             assertThat(response, containsString(expectedJsonStringNetworkId));
 
+            String expectedJsonStringTenantId = "\"tenantId\":\"" + ofAgent.tenantId().id() + "\"";
+            assertThat(response, containsString(expectedJsonStringTenantId));
+
             String expectedJsonStringState = "\"state\":\"" + ofAgent.state() + "\"";
             assertThat(response, containsString(expectedJsonStringState));
 
@@ -219,8 +231,9 @@ public class OFAgentWebResourceTest extends ResourceTest {
         final Response response = wt.path("service/ofagent/" + NETWORK).request().get();
         final JsonObject result = Json.parse(response.readEntity(String.class)).asObject();
         assertThat(result, notNullValue());
-        assertThat(result.names(), hasSize(3));
+        assertThat(result.names(), hasSize(4));
         assertThat(result.get("networkId").asString(), is(NETWORK.id().toString()));
+        assertThat(result.get("tenantId").asString(), is(TENANT.id()));
         assertThat(result.get("state").asString(), is(STOPPED.toString()));
 
         verify(mockOFAgentService);

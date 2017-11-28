@@ -46,6 +46,24 @@ public interface VirtualNetworkService
     Set<VirtualNetwork> getVirtualNetworks(TenantId tenantId);
 
     /**
+     * Returns the virtual network matching the network identifier.
+     *
+     * @param networkId virtual network identifier
+     * @return virtual network instance
+     * @throws org.onlab.util.ItemNotFoundException if no such network found
+     */
+    VirtualNetwork getVirtualNetwork(NetworkId networkId);
+
+    /**
+     * Returns {@code tenantId} for specified virtual network id.
+     *
+     * @param networkId virtual network identifier
+     * @return tenantId tenant identifier
+     * @throws org.onlab.util.ItemNotFoundException if no such network found
+     */
+    TenantId getTenantId(NetworkId networkId);
+
+    /**
      * Returns a collection of all virtual devices in the specified network.
      *
      * @param networkId network identifier

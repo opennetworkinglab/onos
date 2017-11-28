@@ -26,6 +26,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFAgentEvent;
 import org.onosproject.ofagent.api.OFAgentEvent.Type;
@@ -72,6 +73,7 @@ public class DistributedOFAgentStore extends AbstractStore<OFAgentEvent, OFAgent
             .register(OFAgent.class)
             .register(OFAgent.State.class)
             .register(NetworkId.class)
+            .register(TenantId.class)
             .register(DefaultOFAgent.class)
             .register(OFController.class)
             .register(DefaultOFController.class)
@@ -155,7 +157,8 @@ public class DistributedOFAgentStore extends AbstractStore<OFAgentEvent, OFAgent
             switch (event.type()) {
                 case INSERT:
                     eventExecutor.execute(() -> {
-                        log.debug("OFAgent for network {} created", event.key());
+                        log.debug(OFAgent.TRACER_LOG_TENANT_ID_PREFIX + event.newValue().value().tenantId()
+                                          + " OFAgent for network {} created", event.key());
                         notifyDelegate(new OFAgentEvent(
                                 Type.OFAGENT_CREATED,
                                 event.newValue().value()));
@@ -163,13 +166,15 @@ public class DistributedOFAgentStore extends AbstractStore<OFAgentEvent, OFAgent
                     break;
                 case UPDATE:
                     eventExecutor.execute(() -> {
-                        log.debug("OFAgent for network {} updated", event.key());
+                        log.debug(OFAgent.TRACER_LOG_TENANT_ID_PREFIX + event.newValue().value().tenantId()
+                                          + " OFAgent for network {} updated", event.key());
                         processUpdated(event.oldValue().value(), event.newValue().value());
                     });
                     break;
                 case REMOVE:
                     eventExecutor.execute(() -> {
-                        log.debug("OFAgent for network {} removed", event.key());
+                        log.debug(OFAgent.TRACER_LOG_TENANT_ID_PREFIX + event.oldValue().value().tenantId()
+                                          + " OFAgent for network {} removed", event.key());
                         notifyDelegate(new OFAgentEvent(
                                 Type.OFAGENT_REMOVED,
                                 event.oldValue().value()));

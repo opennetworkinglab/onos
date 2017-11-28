@@ -320,15 +320,17 @@ public class VirtualNetworkManager
         return store.getNetworks(tenantId);
     }
 
-    /**
-     * Returns the virtual network matching the network identifier.
-     *
-     * @param networkId network identifier
-     * @return virtual network
-     */
-    private VirtualNetwork getVirtualNetwork(NetworkId networkId) {
+    @Override
+    public VirtualNetwork getVirtualNetwork(NetworkId networkId) {
         checkNotNull(networkId, NETWORK_NULL);
         return store.getNetwork(networkId);
+    }
+
+    @Override
+    public TenantId getTenantId(NetworkId networkId) {
+        VirtualNetwork virtualNetwork = getVirtualNetwork(networkId);
+        checkNotNull(virtualNetwork, "The network does not exist.");
+        return virtualNetwork.tenantId();
     }
 
     @Override

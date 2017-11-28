@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFController;
 
@@ -51,26 +52,33 @@ public class DefaultOFAgentTest {
     private static final NetworkId NETWORK_1 = NetworkId.networkId(1);
     private static final NetworkId NETWORK_2 = NetworkId.networkId(2);
 
+    private static final TenantId TENANT_1 = TenantId.tenantId("Tenant_1");
+    private static final TenantId TENANT_2 = TenantId.tenantId("Tenant_2");
+
     private static final OFAgent OFAGENT = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .controllers(CONTROLLER_1)
             .state(STOPPED)
             .build();
 
     private static final OFAgent SAME_AS_OFAGENT_1 = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .controllers(CONTROLLER_2)
             .state(STOPPED)
             .build();
 
     private static final OFAgent SAME_AS_OFAGENT_2 = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .controllers(CONTROLLER_1)
             .state(STARTED)
             .build();
 
     private static final OFAgent ANOTHER_OFAGENT = DefaultOFAgent.builder()
             .networkId(NETWORK_2)
+            .tenantId(TENANT_2)
             .controllers(CONTROLLER_1)
             .state(STOPPED)
             .build();

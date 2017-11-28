@@ -28,6 +28,8 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.EventListener;
 import org.onosproject.event.EventSink;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkServiceAdapter;
 
@@ -251,6 +253,16 @@ public class AbstractVirtualListenerManagerTest {
 
         public TestVirtualNetworkManager() {
             serviceDirectory.add(EventDeliveryService.class, dispatcher);
+        }
+
+        @Override
+        public VirtualNetwork getVirtualNetwork(NetworkId networkId) {
+            return null;
+        }
+
+        @Override
+        public TenantId getTenantId(NetworkId networkId) {
+            return null;
         }
 
         @Override

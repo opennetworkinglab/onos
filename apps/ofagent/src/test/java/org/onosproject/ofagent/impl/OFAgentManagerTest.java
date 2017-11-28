@@ -34,6 +34,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFAgentEvent;
@@ -76,25 +77,32 @@ public class OFAgentManagerTest {
     private static final NetworkId NETWORK_1 = NetworkId.networkId(1);
     private static final NetworkId NETWORK_2 = NetworkId.networkId(2);
 
+    private static final TenantId TENANT_1 = TenantId.tenantId("Tenant_1");
+    private static final TenantId TENANT_2 = TenantId.tenantId("Tenant_2");
+
     private static final OFAgent OFAGENT_1 = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .state(STOPPED)
             .build();
 
     private static final OFAgent OFAGENT_1_CTRL_1 = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .controllers(CONTROLLER_1)
             .state(STOPPED)
             .build();
 
     private static final OFAgent OFAGENT_1_CTRL_2 = DefaultOFAgent.builder()
             .networkId(NETWORK_1)
+            .tenantId(TENANT_1)
             .controllers(CONTROLLER_2)
             .state(STOPPED)
             .build();
 
     private static final OFAgent OFAGENT_2 = DefaultOFAgent.builder()
             .networkId(NETWORK_2)
+            .tenantId(TENANT_2)
             .state(STOPPED)
             .build();
 

@@ -22,6 +22,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFAgentAdminService;
 import org.onosproject.ofagent.api.OFController;
@@ -29,6 +31,8 @@ import org.onosproject.ofagent.impl.DefaultOFAgent;
 import org.onosproject.ofagent.impl.DefaultOFController;
 
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Creates a new OFAagent.
@@ -60,14 +64,18 @@ public class OFAgentCreateCommand extends AbstractShellCommand {
                     TpPort.tpPort(Integer.valueOf(temp[1]))));
         }
 
+        VirtualNetworkService virtualNetworkService = get(VirtualNetworkService.class);
+        TenantId tenantId = virtualNetworkService.getTenantId(NetworkId.networkId(networkId));
+        checkNotNull(tenantId, "Virtual network %s does not have tenant.", networkId);
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
         OFAgent ofAgent = DefaultOFAgent.builder()
                 .networkId(NetworkId.networkId(networkId))
+                .tenantId(tenantId)
                 .controllers(ctrls)
                 .state(OFAgent.State.STOPPED)
                 .build();
         adminService.createAgent(ofAgent);
-        print("Successfully created OFAgent for network %s", networkId);
+        print("Successfully created OFAgent for network %s, tenant %s", networkId, tenantId);
     }
 
     private boolean isValidController(String ctrl) {
