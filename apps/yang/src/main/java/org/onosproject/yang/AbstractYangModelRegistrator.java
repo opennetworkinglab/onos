@@ -44,7 +44,7 @@ public abstract class AbstractYangModelRegistrator {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Class<?> loaderClass;
 
-    private Map<YangModuleId, AppModuleInfo> appInfo;
+    protected Map<YangModuleId, AppModuleInfo> appInfo;
     protected YangModel model;
     private ModelRegistrationParam registrationParam;
 

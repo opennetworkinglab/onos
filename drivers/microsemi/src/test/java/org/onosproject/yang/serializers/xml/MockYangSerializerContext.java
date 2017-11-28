@@ -16,6 +16,7 @@
 package org.onosproject.yang.serializers.xml;
 
 import org.onosproject.yang.MockMicrosemiRegistrator;
+import org.onosproject.yang.MockYangRegistrator;
 import org.onosproject.yang.model.SchemaContext;
 import org.onosproject.yang.runtime.Annotation;
 import org.onosproject.yang.runtime.DefaultAnnotation;
@@ -27,19 +28,22 @@ import java.util.List;
 
 public class MockYangSerializerContext implements YangSerializerContext {
 
-    private static MockMicrosemiRegistrator schemaProvider =
+    private static MockMicrosemiRegistrator schemaProviderMicrosemi =
             new MockMicrosemiRegistrator();
+    private static MockYangRegistrator schemaProviderYang =
+            new MockYangRegistrator();
     private static final String NETCONF_NS =
             "urn:ietf:params:xml:ns:netconf:base:1.0";
     private static final String XMNLS_NC = "xmlns:xc";
 
     public MockYangSerializerContext() {
-        schemaProvider.activate();
+        schemaProviderMicrosemi.addAppInfo(schemaProviderYang.getAppInfo());
+        schemaProviderMicrosemi.activate();
     }
 
     @Override
     public SchemaContext getContext() {
-        DefaultYangModelRegistry registry = (DefaultYangModelRegistry) schemaProvider.registry();
+        DefaultYangModelRegistry registry = (DefaultYangModelRegistry) schemaProviderMicrosemi.registry();
         return registry;
     }
 
