@@ -17,11 +17,12 @@
 package org.onosproject.buckdaemon;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
+import com.google.common.collect.Lists;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -33,17 +34,36 @@ public class BuckTaskContext {
 
     private final String taskName;
     private final ImmutableList<String> input;
-    private final List<String> output = new ArrayList<>();
+    private final List<String> output;
 
-    BuckTaskContext(InputStream inputString) throws IOException {
-        String[] split = new String(ByteStreams.toByteArray(inputString)).split("\n");
-        checkArgument(split.length >= 1, "Request must contain at least task type");
-        this.taskName = split[0];
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (int i = 1; i < split.length; i++) {
-            builder.add(split[i]);
+    BuckTaskContext(InputStream inputStream) throws IOException {
+        ImmutableList<String> lines = slurpInput(inputStream);
+        checkArgument(lines.size() >= 1 && !lines.get(0).isEmpty(),
+                "Request must contain at least task type");
+        this.taskName = lines.get(0);
+        this.input = lines.subList(1, lines.size());
+        this.output = Lists.newArrayList();
+    }
+
+    /**
+     * Reads all input, line by line, from a stream until an empty line or EOF is encountered.
+     *
+     * @param stream input stream
+     * @return the lines of the input
+     * @throws IOException
+     */
+    private static ImmutableList<String> slurpInput(InputStream stream) throws IOException {
+        ImmutableList.Builder<String> lines = ImmutableList.builder();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+        while(true) {
+            String line = bufferedReader.readLine();
+            if (line == null || line.trim().length() == 0) {
+                // Empty line or EOF
+                break;
+            }
+            lines.add(line);
         }
-        input = builder.build();
+        return lines.build();
     }
 
     /**

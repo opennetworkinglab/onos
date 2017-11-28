@@ -23,7 +23,8 @@ def checkstyle(
 
     if srcs and jar_target:
         base = get_base_path()
-        files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs])
+        # module name; base filepath; files (line-separated); empty line (to signify end of stream)
+        files = '%s\n%s\n' % (name, base) + '\n'.join(['%s/%s' % (base, s) for s in srcs]) + '\n\n'
 
         genrule(
                 name = name + '-checkstyle-files',
@@ -45,7 +46,9 @@ def checkstyle(
                     '$(location //tools/build/conf:checkstyle-xml)',
                     '$(location //tools/build/conf:suppressions-xml)',
                     ],
-                test_rule_timeout_ms = 20000,
+
+                #TODO test_rule_timeout_ms seems to be ignored on Linux
+                test_rule_timeout_ms = 45000,
                 labels = [ 'checkstyle' ],
         )
 

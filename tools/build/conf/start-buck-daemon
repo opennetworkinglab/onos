@@ -41,7 +41,7 @@ function port() {
 }
 
 function check_socket() {
-    nc localhost $(port) < /dev/null 2>/dev/null
+    printf "\n" | nc localhost $(port) 2>/dev/null
     return $?
 }
 
