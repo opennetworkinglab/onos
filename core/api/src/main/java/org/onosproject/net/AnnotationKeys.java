@@ -137,6 +137,13 @@ public final class AnnotationKeys {
     public static final String PORT_MAC = "portMac";
 
     /**
+     * Annotation key for the admin state.
+     * The value of this key is expected to be "enabled" or "disabled"
+     *
+     */
+    public static final String ADMIN_STATE = "adminState";
+
+    /**
      * Annotation key for the router ID.
      */
     public static final String ROUTER_ID = "routerId";

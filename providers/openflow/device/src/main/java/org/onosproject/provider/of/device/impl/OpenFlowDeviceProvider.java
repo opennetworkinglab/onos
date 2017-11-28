@@ -725,7 +725,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
                     && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString()).build();
+            boolean adminDown = port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            SparseAnnotations annotations = makePortAnnotation(port.getName(),
+                                                               port.getHwAddr().toString(),
+                                                               adminDown).build();
 
             OFExpPortDescPropOpticalTransport firstProp = port.getProperties().get(0);
             OFPortOpticalTransportSignalType sigType = firstProp.getPortSignalType();
@@ -789,10 +792,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          *
          * @param portName the port name
          * @param portMac the port mac
-         * @return annotation builder containing port name and/or port MAC if any of
-         *          the two is found, empty otherwise
+         * @param adminDown the port admin state
+         * @return annotation builder containing port admin state, port name
+         *          and/or port MAC if any of the two is found
          */
-        private DefaultAnnotations.Builder makePortAnnotation(String portName, String portMac) {
+        private DefaultAnnotations.Builder makePortAnnotation(String portName, String portMac, boolean adminDown) {
             DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
             String pName = Strings.emptyToNull(portName);
             String pMac = Strings.emptyToNull(portMac);
@@ -802,6 +806,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (pMac != null) {
                 builder.set(AnnotationKeys.PORT_MAC, pMac);
             }
+            String adminState = adminDown ? "disabled" : "enabled";
+            builder.set(AnnotationKeys.ADMIN_STATE, adminState);
             return builder;
         }
 
@@ -825,8 +831,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             boolean enabled =
                     !port.getState().contains(OFPortState.LINK_DOWN) &&
                     !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            boolean adminDown = port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Builder annotations = makePortAnnotation(port.getName(),
-                                                     port.getHwAddr().toString());
+                                                               port.getHwAddr().toString(),
+                                                               adminDown);
 
             Optional<OFPortDescPropEthernet> ether = port.getProperties().stream()
                 .filter(OFPortDescPropEthernet.class::isInstance)
@@ -940,7 +948,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     !port.getState().contains(OFPortState.LINK_DOWN) &&
                             !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString()).build();
+            boolean adminDown = port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            SparseAnnotations annotations = makePortAnnotation(port.getName(),
+                                                               port.getHwAddr().toString(),
+                                                               adminDown).build();
             return new DefaultPortDescription(portNo, enabled, type,
                                               portSpeed(port), annotations);
         }
@@ -962,7 +973,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
                     && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString()).build();
+            boolean adminDown = port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            SparseAnnotations annotations = makePortAnnotation(port.getName(),
+                                                               port.getHwAddr().toString(),
+                                                               adminDown).build();
 
             if (port.getVersion() == OFVersion.OF_13
                     && ptype == PortDescPropertyType.OPTICAL_TRANSPORT) {
@@ -1040,7 +1054,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             // FIXME when Calient OF agent reports port status
             boolean enabled = true;
-            SparseAnnotations annotations = makePortAnnotation(name, port.getHwAddr().toString()).build();
+            boolean adminDown = false;
+            SparseAnnotations annotations = makePortAnnotation(name, port.getHwAddr().toString(), adminDown).build();
 
             // S160 data sheet
             // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch
