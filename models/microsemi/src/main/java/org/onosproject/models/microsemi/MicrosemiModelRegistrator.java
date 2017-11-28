@@ -17,7 +17,6 @@ package org.onosproject.models.microsemi;
 
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.yang.AbstractYangModelRegistrator;
-import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystem;
 import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.IetfSystemMicrosemi;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfm;
@@ -47,13 +46,6 @@ public class MicrosemiModelRegistrator extends AbstractYangModelRegistrator {
         sysMicrosemiFeatures.add("serial-number");
         appInfo.put(new DefaultYangModuleId("ietf-system-microsemi", "2016-05-05"),
                     new DefaultAppModuleInfo(IetfSystemMicrosemi.class, sysMicrosemiFeatures));
-
-        List<String> systemFeatures = new ArrayList<>();
-        systemFeatures.add("local-users");
-        systemFeatures.add("authentication");
-        systemFeatures.add("ntp");
-        appInfo.put(new DefaultYangModuleId("ietf-system", "2014-08-06"),
-                new DefaultAppModuleInfo(IetfSystem.class, systemFeatures));
 
         appInfo.put(new DefaultYangModuleId("msea-uni-evc-service", "2016-03-17"),
                 new DefaultAppModuleInfo(MseaUniEvcService.class, null));

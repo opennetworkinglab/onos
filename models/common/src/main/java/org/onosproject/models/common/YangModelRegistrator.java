@@ -18,6 +18,7 @@ package org.onosproject.models.common;
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.IetfInetTypes;
+import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystem;
 import org.onosproject.yang.gen.v1.ietfyangtypes.rev20130715.IetfYangTypes;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.yang.model.DefaultYangModuleId;
@@ -25,7 +26,9 @@ import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;
 import org.onosproject.yang.runtime.DefaultAppModuleInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component(immediate = true)
@@ -40,6 +43,13 @@ public class YangModelRegistrator extends AbstractYangModelRegistrator {
                     new DefaultAppModuleInfo(IetfInetTypes.class, null));
         appInfo.put(new DefaultYangModuleId("ietf-yang-types", "2013-07-15"),
                     new DefaultAppModuleInfo(IetfYangTypes.class, null));
+
+        List<String> systemFeatures = new ArrayList<>();
+        systemFeatures.add("local-users");
+        systemFeatures.add("authentication");
+        systemFeatures.add("ntp");
+        appInfo.put(new DefaultYangModuleId("ietf-system", "2014-08-06"),
+                    new DefaultAppModuleInfo(IetfSystem.class, systemFeatures));
         return ImmutableMap.copyOf(appInfo);
         // TODO: Do some other registration tasks...
     }
