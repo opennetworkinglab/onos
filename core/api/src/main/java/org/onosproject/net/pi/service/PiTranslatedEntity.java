@@ -17,29 +17,34 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiEntityType;
+import org.onosproject.net.pi.runtime.PiHandle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Representation of the result of a PD-to-PI translation.
+ * Representation of the result of a PD-to-PI translation associated to a PI
+ * entity handle.
  */
 @Beta
-public final class PiTranslatedEntity {
+public final class PiTranslatedEntity<T extends PiTranslatable, E extends PiEntity> {
 
-    private final PiTranslatable original;
-    private final PiEntity translated;
-    private final PiPipeconfId pipeconfId;
-    private final PiEntityType type;
+    private final T original;
+    private final E translated;
+    private final PiHandle<E> handle;
 
-    public PiTranslatedEntity(PiTranslatable original, PiEntity translated,
-                              PiPipeconfId pipeconfId) {
+    /**
+     * Creates a new translated entity.
+     *
+     * @param original PD entity
+     * @param translated PI entity
+     * @param handle PI entity handle
+     */
+    public PiTranslatedEntity(T original, E translated, PiHandle<E> handle) {
         this.original = checkNotNull(original);
         this.translated = checkNotNull(translated);
-        this.pipeconfId = checkNotNull(pipeconfId);
-        this.type = checkNotNull(translated.piEntityType());
+        this.handle = checkNotNull(handle);
     }
 
     /**
@@ -48,7 +53,7 @@ public final class PiTranslatedEntity {
      * @return type of the translated entity
      */
     public final PiEntityType entityType() {
-        return type;
+        return translated.piEntityType();
     }
 
     /**
@@ -56,7 +61,7 @@ public final class PiTranslatedEntity {
      *
      * @return instance of PI translatable entity
      */
-    public final PiTranslatable original() {
+    public final T original() {
         return original;
     }
 
@@ -65,18 +70,16 @@ public final class PiTranslatedEntity {
      *
      * @return PI entity
      */
-    public final PiEntity translated() {
+    public final E translated() {
         return translated;
     }
 
     /**
-     * The ID of the pipeconf for which this translation is valid. In other
-     * words, the PI entity is guaranteed to be functionally equivalent to the
-     * PD one when applied to a device configured with such pipeconf.
+     * Returns the PI entity handle.
      *
-     * @return PI pipeconf ID
+     * @return PI entity handle
      */
-    public final PiPipeconfId pipeconfId() {
-        return pipeconfId;
+    public final PiHandle<E> handle() {
+        return handle;
     }
 }

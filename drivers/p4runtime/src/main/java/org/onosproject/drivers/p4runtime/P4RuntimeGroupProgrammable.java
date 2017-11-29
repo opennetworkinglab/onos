@@ -30,7 +30,7 @@ import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.service.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeGroupReference;
 import org.onosproject.p4runtime.api.P4RuntimeGroupWrapper;
@@ -103,8 +103,8 @@ public class P4RuntimeGroupProgrammable extends AbstractP4RuntimeHandlerBehaviou
 
         PiActionGroup piActionGroup;
         try {
-            piActionGroup = piTranslationService.translate(group, pipeconf);
-        } catch (PiTranslationService.PiTranslationException e) {
+            piActionGroup = piTranslationService.groupTranslator().translate(group, pipeconf);
+        } catch (PiTranslationException e) {
             log.warn("Unable translate group, aborting group operation {}: {}", groupOp.opType(), e.getMessage());
             return;
         }

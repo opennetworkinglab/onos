@@ -29,21 +29,21 @@ import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
-import org.onosproject.net.pi.service.PiTranslationService.PiTranslationException;
+import org.onosproject.net.pi.service.PiTranslationException;
 
 import java.nio.ByteBuffer;
 
 import static java.lang.String.format;
-import static org.onosproject.net.pi.impl.PiFlowRuleTranslator.translateTreatment;
+import static org.onosproject.net.pi.impl.PiFlowRuleTranslatorImpl.translateTreatment;
 import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
 import static org.onosproject.net.pi.runtime.PiTableAction.Type.ACTION;
 
 /**
  * Implementation of group translation logic.
  */
-final class PiGroupTranslator {
+final class PiGroupTranslatorImpl {
 
-    private PiGroupTranslator() {
+    private PiGroupTranslatorImpl() {
         // Hides constructor.
     }
 

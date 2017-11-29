@@ -32,7 +32,7 @@ import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
-import org.onosproject.net.pi.service.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 import org.onosproject.p4runtime.api.P4RuntimeFlowRuleWrapper;
 import org.onosproject.p4runtime.api.P4RuntimeTableEntryReference;
@@ -242,8 +242,8 @@ public class P4RuntimeFlowRuleProgrammable extends AbstractP4RuntimeHandlerBehav
             PiTableEntry piTableEntry;
 
             try {
-                piTableEntry = piTranslationService.translate(rule, pipeconf);
-            } catch (PiTranslationService.PiTranslationException e) {
+                piTableEntry = piTranslationService.flowRuleTranslator().translate(rule, pipeconf);
+            } catch (PiTranslationException e) {
                 log.warn("Unable to translate flow rule: {} - {}", e.getMessage(), rule);
                 continue; // next rule
             }

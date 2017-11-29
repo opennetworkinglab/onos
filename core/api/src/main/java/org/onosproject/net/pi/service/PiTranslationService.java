@@ -17,14 +17,6 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiTableEntry;
-
-import java.util.Optional;
 
 /**
  * A service to translate protocol-dependent (PD) entities to
@@ -34,65 +26,16 @@ import java.util.Optional;
 public interface PiTranslationService {
 
     /**
-     * Returns a PI table entry equivalent to the given flow rule for the given
-     * protocol-independent pipeline configuration.
+     * Returns a flow rule translator.
      *
-     * @param rule     a flow rule
-     * @param pipeconf a pipeline configuration
-     * @return a table entry
-     * @throws PiTranslationException if the flow rule cannot be translated
+     * @return flow rule translator
      */
-    PiTableEntry translate(FlowRule rule, PiPipeconf pipeconf)
-            throws PiTranslationException;
+    PiFlowRuleTranslator flowRuleTranslator();
 
     /**
-     * Returns a PI action group equivalent to the given group for the given
-     * protocol-independent pipeline configuration.
+     * Returns a group translator.
      *
-     * @param group    a group
-     * @param pipeconf a pipeline configuration
-     * @return a PI action group
-     * @throws PiTranslationException if the group cannot be translated
+     * @return group translator
      */
-    PiActionGroup translate(Group group, PiPipeconf pipeconf)
-            throws PiTranslationException;
-
-    /**
-     * Returns a flow rule previously translated to the given PI table entry,
-     * for the given pipeconf ID, if present. If not present it means that such
-     * flow rule was never translated in the first place.
-     *
-     * @param piTableEntry PI table entry
-     * @param pipeconfId   pipeconf ID
-     * @return optional flow rule
-     */
-    Optional<FlowRule> lookup(PiTableEntry piTableEntry,
-                              PiPipeconfId pipeconfId);
-
-    /**
-     * Returns a group previously translated to the given PI action group, for
-     * the given pipeconf ID, if present. If not present it means that such
-     * group was never translated in the first place.
-     *
-     * @param piActionGroup PI action group
-     * @param pipeconfId    pipeconf ID
-     * @return optional group
-     */
-    Optional<Group> lookup(PiActionGroup piActionGroup,
-                           PiPipeconfId pipeconfId);
-
-    /**
-     * Signals that an error was encountered while translating an entity.
-     */
-    class PiTranslationException extends Exception {
-
-        /**
-         * Creates a new exception with the given message.
-         *
-         * @param message a message
-         */
-        public PiTranslationException(String message) {
-            super(message);
-        }
-    }
+    PiGroupTranslator groupTranslator();
 }

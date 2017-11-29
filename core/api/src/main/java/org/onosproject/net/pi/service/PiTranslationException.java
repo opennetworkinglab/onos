@@ -17,17 +17,19 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.pi.runtime.PiEntity;
-import org.onosproject.store.StoreDelegate;
 
 /**
- * PI translation store delegate abstraction.
- *
- * @param <T> PD entity class (translatable to PI)
- * @param <E> PI entity class
+ * Signals that an error was encountered while translating an entity.
  */
 @Beta
-public interface PiTranslationStoreDelegate
-        <T extends PiTranslatable, E extends PiEntity>
-        extends StoreDelegate<PiTranslationEvent<T, E>> {
+public final class PiTranslationException extends Exception {
+
+    /**
+     * Creates a new exception with the given message.
+     *
+     * @param message a message
+     */
+    public PiTranslationException(String message) {
+        super(message);
+    }
 }

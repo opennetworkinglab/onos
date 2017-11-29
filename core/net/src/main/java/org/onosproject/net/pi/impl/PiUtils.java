@@ -22,7 +22,7 @@ import org.onosproject.net.flow.TableId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
-import org.onosproject.net.pi.service.PiTranslationService;
+import org.onosproject.net.pi.service.PiTranslationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,23 +60,23 @@ final class PiUtils {
     }
 
     static PiTableId translateTableId(TableId tableId, PiPipelineInterpreter interpreter)
-            throws PiTranslationService.PiTranslationException {
+            throws PiTranslationException {
         switch (tableId.type()) {
             case PIPELINE_INDEPENDENT:
                 return (PiTableId) tableId;
             case INDEX:
                 IndexTableId indexId = (IndexTableId) tableId;
                 if (interpreter == null) {
-                    throw new PiTranslationService.PiTranslationException(format(
+                    throw new PiTranslationException(format(
                             "Unable to map table ID '%d' from index to PI: missing interpreter", indexId.id()));
                 } else if (!interpreter.mapFlowRuleTableId(indexId.id()).isPresent()) {
-                    throw new PiTranslationService.PiTranslationException(format(
+                    throw new PiTranslationException(format(
                             "Unable to map table ID '%d' from index to PI: missing ID in interpreter", indexId.id()));
                 } else {
                     return interpreter.mapFlowRuleTableId(indexId.id()).get();
                 }
             default:
-                throw new PiTranslationService.PiTranslationException(format(
+                throw new PiTranslationException(format(
                         "Unrecognized table ID type %s", tableId.type().name()));
         }
     }

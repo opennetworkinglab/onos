@@ -17,17 +17,13 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.pi.runtime.PiEntity;
-import org.onosproject.store.StoreDelegate;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.pi.runtime.PiActionGroup;
 
 /**
- * PI translation store delegate abstraction.
- *
- * @param <T> PD entity class (translatable to PI)
- * @param <E> PI entity class
+ * A translator of groups to PI action groups.
  */
 @Beta
-public interface PiTranslationStoreDelegate
-        <T extends PiTranslatable, E extends PiEntity>
-        extends StoreDelegate<PiTranslationEvent<T, E>> {
+public interface PiGroupTranslator
+        extends PiTranslator<Group, PiActionGroup> {
 }

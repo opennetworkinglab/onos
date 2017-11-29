@@ -220,6 +220,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionGroupHandle;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
@@ -232,6 +233,7 @@ import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiGroupKey;
+import org.onosproject.net.pi.runtime.PiHandle;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
@@ -241,6 +243,7 @@ import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.runtime.PiValidFieldMatch;
+import org.onosproject.net.pi.runtime.PiTableEntryHandle;
 import org.onosproject.net.pi.service.PiTranslatable;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.provider.ProviderId;
@@ -634,6 +637,7 @@ public final class KryoNamespaces {
                     // PI Runtime
                     PiAction.class,
                     PiActionGroup.class,
+                    PiActionGroupHandle.class,
                     PiActionGroupId.class,
                     PiActionGroupMember.class,
                     PiActionGroupMemberId.class,
@@ -646,6 +650,7 @@ public final class KryoNamespaces {
                     PiExactFieldMatch.class,
                     PiFieldMatch.class,
                     PiGroupKey.class,
+                    PiHandle.class,
                     PiLpmFieldMatch.class,
                     PiMatchKey.class,
                     PiPacketOperation.class,
@@ -656,6 +661,7 @@ public final class KryoNamespaces {
                     PiTernaryFieldMatch.class,
                     PiValidFieldMatch.class,
                     // PI service
+                    PiTableEntryHandle.class,
                     PiTranslatedEntity.class,
                     PiTranslatable.class,
                     // Other

@@ -17,17 +17,14 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.pi.runtime.PiEntity;
-import org.onosproject.store.StoreDelegate;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.pi.runtime.PiTableEntry;
 
 /**
- * PI translation store delegate abstraction.
- *
- * @param <T> PD entity class (translatable to PI)
- * @param <E> PI entity class
+ * A PI translation store that keeps track of which flow rules have been
+ * translated to which PI table entries.
  */
 @Beta
-public interface PiTranslationStoreDelegate
-        <T extends PiTranslatable, E extends PiEntity>
-        extends StoreDelegate<PiTranslationEvent<T, E>> {
+public interface PiFlowRuleTranslationStore
+        extends PiTranslationStore<FlowRule, PiTableEntry> {
 }

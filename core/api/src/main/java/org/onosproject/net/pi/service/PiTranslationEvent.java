@@ -18,14 +18,15 @@ package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.pi.runtime.PiEntity;
 
 /**
  * Signals an event related to the translation of a protocol-dependent (PD)
  * entity to a protocol-independent (PI) one.
  */
 @Beta
-public final class PiTranslationEvent
-        extends AbstractEvent<PiTranslationEvent.Type, PiTranslatedEntity> {
+public final class PiTranslationEvent<T extends PiTranslatable, E extends PiEntity>
+        extends AbstractEvent<PiTranslationEvent.Type, PiTranslatedEntity<T, E>> {
 
     /**
      * Type of event.
@@ -50,7 +51,7 @@ public final class PiTranslationEvent
      * @param type    type of event
      * @param subject subject of event
      */
-    public PiTranslationEvent(Type type, PiTranslatedEntity subject) {
+    public PiTranslationEvent(Type type, PiTranslatedEntity<T, E> subject) {
         super(type, subject);
     }
 }
