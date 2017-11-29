@@ -772,76 +772,85 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param clientPacket client ethernet packet
      * @param clientInterfaces set of client side interfaces
      */
-     private InternalPacket processDhcp6PacketFromClient(PacketContext context,
-                                                         Ethernet clientPacket, Set<Interface> clientInterfaces) {
-         ConnectPoint receivedFrom = context.inPacket().receivedFrom();
-         DeviceId receivedFromDevice = receivedFrom.deviceId();
-         DhcpServerInfo serverInfo;
-         Ip6Address dhcpServerIp = null;
-         ConnectPoint dhcpServerConnectPoint = null;
-         MacAddress dhcpConnectMac = null;
-         VlanId dhcpConnectVlan = null;
-         Ip6Address dhcpGatewayIp = null;
-         Ip6Address indirectDhcpServerIp = null;
-         ConnectPoint indirectDhcpServerConnectPoint = null;
-         MacAddress indirectDhcpConnectMac = null;
-         VlanId indirectDhcpConnectVlan = null;
-         Ip6Address indirectDhcpGatewayIp = null;
-         Ip6Address indirectRelayAgentIpFromCfg = null;
-         if (!defaultServerInfoList.isEmpty()) {
-             serverInfo = defaultServerInfoList.get(0);
-             dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
-             dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-             dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-             dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-             dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
-         }
-         if (!indirectServerInfoList.isEmpty()) {
-             serverInfo = indirectServerInfoList.get(0);
-             indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
-             indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
-             indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
-             indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-             indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
-             indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6(receivedFromDevice).orElse(null);
-         }
-         Ip6Address relayAgentIp = getRelayAgentIPv6Address(clientInterfaces);
-         MacAddress relayAgentMac = clientInterfaces.iterator().next().mac();
-         if (relayAgentIp == null || relayAgentMac == null) {
-             log.warn("Missing DHCP relay agent interface Ipv6 addr config for "
-                              + "packet from client on port: {}. Aborting packet processing",
-                      clientInterfaces.iterator().next().connectPoint());
-             return null;
-         }
-         // get dhcp6 header.
-         IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
-         UDP clientUdp = (UDP) clientIpv6.getPayload();
-         DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
-         boolean directConnFlag = directlyConnected(clientDhcp6);
-         Interface serverInterface = directConnFlag ? getServerInterface() : getIndirectServerInterface();
-         if (serverInterface == null) {
-             log.warn("Can't get {} server interface, ignore", directConnFlag ? "direct" : "indirect");
-             return null;
-         }
-         Ip6Address ipFacingServer = getFirstIpFromInterface(serverInterface);
-         MacAddress macFacingServer = serverInterface.mac();
-         if (ipFacingServer == null || macFacingServer == null) {
-             log.warn("No IP v6 address for server Interface {}", serverInterface);
-             return null;
-         }
-         Ethernet etherReply = clientPacket.duplicate();
-         etherReply.setSourceMACAddress(macFacingServer);
-         if ((directConnFlag && dhcpConnectMac == null)  ||
-                 !directConnFlag && indirectDhcpConnectMac == null && dhcpConnectMac == null)   {
-             log.warn("Packet received from {} connected client.", directConnFlag ? "directly" : "indirectly");
-             log.warn("DHCP6 {} not yet resolved .. Aborting DHCP packet processing from client on port: {}",
-                      (dhcpGatewayIp == null) ? "server IP " + dhcpServerIp
-                              : "gateway IP " + dhcpGatewayIp,
-                      clientInterfaces.iterator().next().connectPoint());
-             return null;
-         }
-         if (dhcpServerConnectPoint == null) {
-             log.warn("DHCP6 server connection point direct {} directConn {} indirectConn {} is not set up yet",
+    private InternalPacket processDhcp6PacketFromClient(PacketContext context,
+                                                        Ethernet clientPacket, Set<Interface> clientInterfaces) {
+        ConnectPoint receivedFrom = context.inPacket().receivedFrom();
+        DeviceId receivedFromDevice = receivedFrom.deviceId();
+        DhcpServerInfo serverInfo;
+        Ip6Address dhcpServerIp = null;
+        ConnectPoint dhcpServerConnectPoint = null;
+        MacAddress dhcpConnectMac = null;
+        VlanId dhcpConnectVlan = null;
+        Ip6Address dhcpGatewayIp = null;
+        Ip6Address indirectDhcpServerIp = null;
+        ConnectPoint indirectDhcpServerConnectPoint = null;
+        MacAddress indirectDhcpConnectMac = null;
+        VlanId indirectDhcpConnectVlan = null;
+        Ip6Address indirectDhcpGatewayIp = null;
+        Ip6Address indirectRelayAgentIpFromCfg = null;
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        }
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+            indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6(receivedFromDevice).orElse(null);
+        }
+        Ip6Address relayAgentIp = getRelayAgentIPv6Address(clientInterfaces);
+        MacAddress relayAgentMac = clientInterfaces.iterator().next().mac();
+        if (relayAgentIp == null || relayAgentMac == null) {
+            log.warn("Missing DHCP relay agent interface Ipv6 addr config for "
+                             + "packet from client on port: {}. Aborting packet processing",
+                     clientInterfaces.iterator().next().connectPoint());
+            return null;
+        }
+        // get dhcp6 header.
+        IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
+        UDP clientUdp = (UDP) clientIpv6.getPayload();
+        DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
+        boolean directConnFlag = directlyConnected(clientDhcp6);
+        Interface serverInterface;
+        if (directConnFlag) {
+            serverInterface = getServerInterface();
+        } else {
+            serverInterface = getIndirectServerInterface();
+            if (serverInterface == null) {
+                // Indirect server interface not found, use default server interface
+                serverInterface = getServerInterface();
+            }
+        }
+        if (serverInterface == null) {
+            log.warn("Can't get {} server interface, ignore", directConnFlag ? "direct" : "indirect");
+            return null;
+        }
+        Ip6Address ipFacingServer = getFirstIpFromInterface(serverInterface);
+        MacAddress macFacingServer = serverInterface.mac();
+        if (ipFacingServer == null || macFacingServer == null) {
+            log.warn("No IP v6 address for server Interface {}", serverInterface);
+            return null;
+        }
+        Ethernet etherReply = (Ethernet) clientPacket.duplicate();
+        etherReply.setSourceMACAddress(macFacingServer);
+        if ((directConnFlag && dhcpConnectMac == null)  ||
+                !directConnFlag && indirectDhcpConnectMac == null && dhcpConnectMac == null)   {
+            log.warn("Packet received from {} connected client.", directConnFlag ? "directly" : "indirectly");
+            log.warn("DHCP6 {} not yet resolved .. Aborting DHCP packet processing from client on port: {}",
+                     (dhcpGatewayIp == null) ? "server IP " + dhcpServerIp
+                             : "gateway IP " + dhcpGatewayIp,
+                     clientInterfaces.iterator().next().connectPoint());
+            return null;
+        }
+        if (dhcpServerConnectPoint == null) {
+            log.warn("DHCP6 server connection point direct {} directConn {} indirectConn {} is not set up yet",
                      directConnFlag, dhcpServerConnectPoint, indirectDhcpServerConnectPoint);
             return null;
         }
