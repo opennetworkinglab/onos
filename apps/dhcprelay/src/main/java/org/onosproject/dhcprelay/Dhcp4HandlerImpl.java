@@ -1533,7 +1533,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
      * @param op the operation, ADD to install; REMOVE to uninstall rules
      */
     private void processIgnoreVlanRule(DeviceId deviceId, VlanId vlanId, Objective.Operation op) {
-        TrafficTreatment dropTreatment = DefaultTrafficTreatment.builder().wipeDeferred().build();
         AtomicInteger installedCount = new AtomicInteger(DHCP_SELECTORS.size());
         DHCP_SELECTORS.forEach(trafficSelector -> {
             TrafficSelector selector = DefaultTrafficSelector.builder(trafficSelector)
@@ -1544,7 +1543,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                     .withFlag(ForwardingObjective.Flag.VERSATILE)
                     .withSelector(selector)
                     .withPriority(IGNORE_CONTROL_PRIORITY)
-                    .withTreatment(dropTreatment)
+                    .withTreatment(DefaultTrafficTreatment.emptyTreatment())
                     .fromApp(appId);
 
 
