@@ -43,6 +43,14 @@ public interface DhcpRelayService {
     Collection<DhcpRecord> getDhcpRecords();
 
     /**
+     * Updates DHCP record for specific host id (mac + vlan).
+     *
+     * @param hostId the id of host
+     * @param dhcpRecord the DHCP record of the host
+     */
+    void updateDhcpRecord(HostId hostId, DhcpRecord dhcpRecord);
+
+    /**
      * Gets mac address of DHCP server.
      *
      * @return the mac address of DHCP server; empty if not exist
@@ -102,4 +110,5 @@ public interface DhcpRelayService {
      * @return boolean value
      */
     public boolean isDhcpFpmEnabled();
+
 }

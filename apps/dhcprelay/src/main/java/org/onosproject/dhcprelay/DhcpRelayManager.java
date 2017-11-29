@@ -93,6 +93,11 @@ import org.onosproject.net.packet.PacketService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import static org.onlab.util.Tools.groupedThreads;
+
 
 import com.google.common.collect.ImmutableSet;
 
@@ -153,6 +158,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             }
     );
 
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgService;
 
@@ -192,14 +198,30 @@ public class DhcpRelayManager implements DhcpRelayService {
             label = "Enable Address resolution protocol")
     protected boolean arpEnabled = true;
 
+    @Property(name = "dhcpPollInterval", intValue = 24 * 3600,
+            label = "dhcp relay poll interval")
+    protected int dhcpPollInterval = 24 * 3600;
+
     @Property(name = "dhcpFpmEnabled", boolValue = false,
             label = "Enable DhcpRelay Fpm")
     protected boolean dhcpFpmEnabled = false;
+
+
+    private ScheduledExecutorService timerExecutor;
 
     protected DeviceListener deviceListener = new InternalDeviceListener();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ApplicationId appId;
 
+    /**
+     *   One second timer.
+     */
+    class Dhcp6Timer implements Runnable {
+        @Override
+        public void run() {
+            v6Handler.timeTick();
+        }
+    };
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -214,6 +236,14 @@ public class DhcpRelayManager implements DhcpRelayService {
         //add the packet processor
         packetService.addProcessor(dhcpRelayPacketProcessor, PacketProcessor.director(0));
 
+        timerExecutor = Executors.newScheduledThreadPool(1,
+                groupedThreads("dhcpRelay",
+                        "config-reloader-%d", log));
+        timerExecutor.scheduleAtFixedRate(new Dhcp6Timer(),
+                0,
+                dhcpPollInterval,
+                TimeUnit.SECONDS);
+
         modified(context);
 
         // Enable distribute route store
@@ -222,6 +252,9 @@ public class DhcpRelayManager implements DhcpRelayService {
         compCfgService.registerProperties(getClass());
 
         deviceService.addListener(deviceListener);
+
+
+
         log.info("DHCP-RELAY Started");
     }
 
@@ -233,6 +266,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         cancelArpPackets();
         compCfgService.unregisterProperties(getClass(), false);
         deviceService.removeListener(deviceListener);
+        timerExecutor.shutdown();
+
         log.info("DHCP-RELAY Stopped");
     }
 
@@ -252,6 +287,21 @@ public class DhcpRelayManager implements DhcpRelayService {
             requestArpPackets();
         } else {
             cancelArpPackets();
+        }
+
+        int intervalVal = Tools.getIntegerProperty(properties, "dhcpPollInterval");
+        log.info("DhcpRelay poll interval new {} old {}", intervalVal, dhcpPollInterval);
+        if (intervalVal !=  dhcpPollInterval) {
+            timerExecutor.shutdown();
+            dhcpPollInterval = intervalVal;
+            timerExecutor = Executors.newScheduledThreadPool(1,
+                    groupedThreads("dhcpRelay",
+                            "config-reloader-%d", log));
+            timerExecutor.scheduleAtFixedRate(new Dhcp6Timer(),
+                        0,
+                        dhcpPollInterval > 1 ? dhcpPollInterval : 1,
+                        TimeUnit.SECONDS);
+            v6Handler.setDhcp6PollInterval(dhcpPollInterval);
         }
 
         flag = Tools.isPropertyEnabled(properties, "dhcpFpmEnabled");
@@ -368,7 +418,10 @@ public class DhcpRelayManager implements DhcpRelayService {
     public Collection<DhcpRecord> getDhcpRecords() {
         return dhcpRelayStore.getDhcpRecords();
     }
-
+    @Override
+    public void updateDhcpRecord(HostId hostId, DhcpRecord dhcpRecord) {
+        dhcpRelayStore.updateDhcpRecord(hostId, dhcpRecord);
+    }
     @Override
     public Optional<MacAddress> getDhcpServerMacAddress() {
         // TODO: depreated it
@@ -617,4 +670,6 @@ public class DhcpRelayManager implements DhcpRelayService {
     public Optional<FpmRecord> removeFpmRecord(IpPrefix prefix) {
         return dhcpFpmPrefixStore.removeFpmRecord(prefix);
     }
+
+
 }

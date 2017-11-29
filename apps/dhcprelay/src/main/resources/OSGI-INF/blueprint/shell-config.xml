@@ -18,6 +18,10 @@
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
             <action class="org.onosproject.dhcprelay.cli.DhcpRelayCommand"/>
+            <completers>
+                <ref component-id="dhcpRelayCounterCompleter"/>
+                <ref component-id="dhcpRelayResetCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.dhcprelay.cli.DhcpFpmRoutesCommand"/>
@@ -28,5 +32,13 @@
         <command>
             <action class="org.onosproject.dhcprelay.cli.DhcpFpmDeleteCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.dhcprelay.cli.DhcpRelayAggCountersCommand"/>
+            <completers>
+                <ref component-id="dhcpRelayResetCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
+    <bean id="dhcpRelayCounterCompleter" class="org.onosproject.dhcprelay.cli.DhcpRelayCounterCompleter"/>
+    <bean id="dhcpRelayResetCompleter" class="org.onosproject.dhcprelay.cli.DhcpRelayResetCompleter"/>
 </blueprint>

@@ -53,8 +53,16 @@ public class DhcpRecord {
     private IpPrefix pdPrefix;
     private DHCP6.MsgType ip6Status;
 
+
     private long lastSeen;
+    private long lastIp6Update;
+    private long lastPdUpdate;
+
     private boolean directlyConnected;
+    private long addrPrefTime;
+    private long pdPrefTime;
+    private DhcpRelayCounters v6Counters;
+
 
     /**
      * Creates a DHCP record for a host (mac + vlan).
@@ -69,6 +77,7 @@ public class DhcpRecord {
         this.vlanId = hostId.vlanId();
         this.lastSeen = System.currentTimeMillis();
         this.directlyConnected = false;
+        this.v6Counters = new DhcpRelayCounters();
     }
 
     /**
@@ -200,6 +209,84 @@ public class DhcpRecord {
     }
 
     /**
+     * Gets the latest time this record updated with ip6 Address.
+     *
+     * @return the last time received DHCP packet provide ip6 Address
+     */
+    public long getLastIp6Update() {
+        return lastIp6Update;
+    }
+
+    /**
+     * Updates the update time of this record is given ip6 Address.
+     *
+     * @return the DHCP record
+     */
+    public DhcpRecord updateLastIp6Update() {
+        lastIp6Update = System.currentTimeMillis();
+        return this;
+    }
+
+    /**
+     * Gets the latest time this record updated with pd Prefix.
+     *
+     * @return the last time received DHCP packet provide pd Prefix
+     */
+    public long getLastPdUpdate() {
+        return lastPdUpdate;
+    }
+
+    /**
+     * Updates the update time of this record is given pd Prefix.
+     *
+     * @return the DHCP record
+     */
+    public DhcpRecord updateLastPdUpdate() {
+        lastPdUpdate = System.currentTimeMillis();
+        return this;
+    }
+
+    /**
+     * Gets the IP Address preferred time for this record.
+     *
+     * @return the preferred lease time for this ip address
+     */
+    public long addrPrefTime() {
+        return addrPrefTime;
+    }
+
+    /**
+     * Updates the IP Address preferred time of this record.
+     *
+     * @param prefTime preferred liftme
+     * @return the DHCP record
+     */
+    public DhcpRecord updateAddrPrefTime(long prefTime) {
+        addrPrefTime = prefTime;
+        return this;
+    }
+
+    /**
+     * Gets the PD Prefix preferred time for this record.
+     *
+     * @return the preferred lease time for this PD prefix
+     */
+    public long pdPrefTime() {
+        return pdPrefTime;
+    }
+
+    /**
+     * Updates the PD Prefix preferred time of this record.
+     *
+     * @param prefTime preferred liftme
+     * @return the DHCP record
+     */
+    public DhcpRecord updatePdPrefTime(long prefTime) {
+        pdPrefTime = prefTime;
+        return this;
+    }
+
+    /**
      * Indicated that the host is direct connected to the network or not.
      *
      * @return true if the host is directly connected to the network; false otherwise
@@ -301,6 +388,15 @@ public class DhcpRecord {
     }
 
     /**
+     * Gets dhcp relay counters.
+     *
+     * @return the counter object
+     */
+    public DhcpRelayCounters getV6Counters() {
+        return v6Counters;
+    }
+
+    /**
      * Clone this DHCP record.
      *
      * @return the DHCP record which cloned
@@ -317,13 +413,20 @@ public class DhcpRecord {
         newRecord.pdPrefix = pdPrefix;
         newRecord.ip6Status = ip6Status;
         newRecord.lastSeen = lastSeen;
+        newRecord.lastIp6Update = lastIp6Update;
+        newRecord.lastPdUpdate = lastPdUpdate;
+        newRecord.addrPrefTime = addrPrefTime;
+        newRecord.pdPrefTime = pdPrefTime;
+        newRecord.v6Counters = v6Counters;
+
         return newRecord;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(locations, macAddress, vlanId, ip4Address, ip4Status,
-                            nextHop, nextHopTemp, ip6Address, pdPrefix, ip6Status, lastSeen);
+                nextHop, nextHopTemp, ip6Address, pdPrefix, ip6Status, lastSeen,
+                lastIp6Update, lastPdUpdate, addrPrefTime, pdPrefTime, v6Counters);
     }
 
     @Override
@@ -346,7 +449,12 @@ public class DhcpRecord {
                 Objects.equals(pdPrefix, that.pdPrefix) &&
                 Objects.equals(ip6Status, that.ip6Status) &&
                 Objects.equals(lastSeen, that.lastSeen) &&
-                Objects.equals(directlyConnected, that.directlyConnected);
+                Objects.equals(lastIp6Update, that.lastIp6Update) &&
+                Objects.equals(lastPdUpdate, that.lastPdUpdate) &&
+                Objects.equals(directlyConnected, that.directlyConnected) &&
+                Objects.equals(addrPrefTime, that.addrPrefTime) &&
+                Objects.equals(pdPrefTime, that.pdPrefTime) &&
+                Objects.equals(v6Counters, that.v6Counters);
     }
 
     @Override
@@ -363,7 +471,12 @@ public class DhcpRecord {
                 .add("pdPrefix", pdPrefix)
                 .add("ip6State", ip6Status)
                 .add("lastSeen", lastSeen)
+                .add("lastIp6Update", lastIp6Update)
+                .add("lastPdUpdate", lastPdUpdate)
                 .add("directlyConnected", directlyConnected)
+                .add("addPrefTime", addrPrefTime)
+                .add("pdPrefTime", pdPrefTime)
+                .add("v6Counters", v6Counters)
                 .toString();
     }
 }

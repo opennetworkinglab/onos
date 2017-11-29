@@ -52,6 +52,7 @@ public class DistributedDhcpRelayStore implements DhcpRelayStore {
             .register(DhcpRecord.class)
             .register(DHCP.MsgType.class)
             .register(DHCP6.MsgType.class)
+            .register(DhcpRelayCounters.class)
             .build();
 
     private Logger log = getLogger(getClass());
