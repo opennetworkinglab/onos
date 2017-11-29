@@ -24,17 +24,11 @@ import org.onosproject.store.service.DocumentTreeEvent;
  * Atomix document tree events.
  */
 public enum AtomixDocumentTreeEvents implements EventType {
-    CHANGE("change");
-
-    private final String id;
-
-    AtomixDocumentTreeEvents(String id) {
-        this.id = id;
-    }
+    CHANGE;
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()
