@@ -24,15 +24,10 @@ pipeline {
                             ONOS_ROOT=`pwd`
                             source tools/build/envDefaults
                             onos-buck test
-                        '''
-                    },
-                    "javadocs": {
-                        sh '''#!/bin/bash -l
-                            ONOS_ROOT=`pwd`
-                            source tools/build/envDefaults
                             onos-buck build //docs:external //docs:internal --show-output
                         '''
                     },
+                    // additional steps here (STC, docker buld, etc)
                 )
             }
         }
