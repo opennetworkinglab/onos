@@ -48,11 +48,11 @@ inout standard_metadata_t standard_metadata) {
 control FabricEgress (inout parsed_headers_t hdr,
                       inout fabric_metadata_t fabric_metadata,
                       inout standard_metadata_t standard_metadata) {
-    PacketIoEgress() pktIoEgress;
+    PacketIoEgress() pkt_io_egress;
     EgressNextControl() egress_next;
     apply {
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
-        pktIoEgress.apply(hdr, fabric_metadata, standard_metadata);
+        pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
     }
 }
 

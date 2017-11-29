@@ -24,21 +24,10 @@ control Next (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
-    direct_counter(CounterType.packets_and_bytes) simple_counter;
-    direct_counter(CounterType.packets_and_bytes) hashed_counter;
-    direct_counter(CounterType.packets_and_bytes) broadcast_counter;
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
 
     action output(port_num_t port_num) {
         standard_metadata.egress_spec = port_num;
-        if(!hdr.mpls.isValid()) {
-            if(hdr.ipv4.isValid()) {
-                hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
-            }
-            else if (hdr.ipv6.isValid()) {
-                hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
-            }
-        }
     }
 
     action set_vlan_output(vlan_id_t new_vlan_id, port_num_t port_num){
@@ -69,25 +58,29 @@ control Next (
     }
 
     action push_mpls (mpls_label_t label, bit<3> tc) {
-        //Suppose that the maximum number of label is one.
+        // Suppose that the maximum number of label is one.
         hdr.mpls.setValid();
         hdr.ethernet.ether_type = ETHERTYPE_MPLS;
         hdr.mpls.label = label;
         hdr.mpls.tc = tc;
-        hdr.mpls.bos = 1; // BOS = TRUE
+        hdr.mpls.bos = 1w1; // BOS = TRUE
         hdr.mpls.ttl = DEFAULT_MPLS_TTL;
     }
 
     action mpls_routing_v4 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
                             mpls_label_t label) {
         l3_routing(port_num, smac, dmac);
-        push_mpls(label, hdr.ipv4.diffserv[7:5]);
+
+        // TODO: set tc according to diffserv from ipv4
+        push_mpls(label, 3w0);
     }
 
     action mpls_routing_v6 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
                             mpls_label_t label) {
         l3_routing(port_num, smac, dmac);
-        push_mpls(label, hdr.ipv6.traffic_class[7:5]);
+
+        // TODO: set tc according to traffic_class from ipv4
+        push_mpls(label, 3w0);
     }
 
     table simple {
@@ -100,18 +93,14 @@ control Next (
             set_vlan_output;
             l3_routing;
         }
-        counters = simple_counter;
     }
 
     table hashed {
         key = {
             fabric_metadata.next_id: exact;
-            hdr.ipv4.src_addr: selector;
-            hdr.ipv4.dst_addr: selector;
-            hdr.ipv4.protocol: selector;
-            hdr.ipv6.src_addr: selector;
-            hdr.ipv6.dst_addr: selector;
-            hdr.ipv6.next_hdr: selector;
+            hdr.ethernet.dst_addr: selector;
+            hdr.ethernet.src_addr: selector;
+            fabric_metadata.ip_proto: selector;
             fabric_metadata.l4_src_port: selector;
             fabric_metadata.l4_dst_port: selector;
         }
@@ -123,7 +112,6 @@ control Next (
         }
 
         implementation = ecmp_selector;
-        counters = hashed_counter;
     }
 
     /*
@@ -136,11 +124,19 @@ control Next (
         actions = {
             set_mcast_group;
         }
-        counters = broadcast_counter;
     }
 
     apply {
-        simple.apply();
+        if (simple.apply().hit) {
+            if (!hdr.mpls.isValid()) {
+                if(hdr.ipv4.isValid()) {
+                    hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+                }
+                else if (hdr.ipv6.isValid()) {
+                    hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
+                }
+            }
+        }
         hashed.apply();
         broadcast.apply();
     }
@@ -154,6 +150,11 @@ control EgressNextControl (
     apply {
         // pop internal vlan if the meta is set
         if (fabric_metadata.pop_vlan_at_egress) {
+            if (hdr.mpls.isValid()) {
+                hdr.ethernet.ether_type = ETHERTYPE_MPLS;
+            } else {
+                hdr.ethernet.ether_type = fabric_metadata.original_ether_type;
+            }
             hdr.vlan_tag.setInvalid();
         }
     }

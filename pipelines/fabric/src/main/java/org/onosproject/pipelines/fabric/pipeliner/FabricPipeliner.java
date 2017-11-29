@@ -197,8 +197,8 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
                 .thenApplyAsync(groupSuccess -> groupSuccess && installFlows(objective, flowRules))
                 .thenAcceptAsync(callback)
                 .exceptionally((ex) -> {
-                    log.warn("Got unexpected exception while applying translation result {}",
-                             result);
+                    log.warn("Got unexpected exception while applying translation result {}: {}",
+                             result, ex);
                     fail(objective, ObjectiveError.UNKNOWN);
                     return null;
                 });

@@ -27,13 +27,9 @@ control Forwarding (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    direct_counter(CounterType.packets_and_bytes) bridging_counter;
-    direct_counter(CounterType.packets_and_bytes) mpls_counter;
-    direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
-    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
-    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
-    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
-    direct_counter(CounterType.packets_and_bytes) acl_counter;
+    action drop() {
+        mark_to_drop();
+    }
 
     action set_next_id(next_id_t next_id) {
         fabric_metadata.next_id = next_id;
@@ -41,11 +37,6 @@ control Forwarding (
 
     action pop_mpls_and_next(next_id_t next_id) {
         hdr.mpls.setInvalid();
-        if (hdr.ipv4.isValid()) {
-            hdr.ethernet.ether_type = ETHERTYPE_IPV4;
-        } else {
-            hdr.ethernet.ether_type = ETHERTYPE_IPV6;
-        }
         fabric_metadata.next_id = next_id;
     }
 
@@ -62,7 +53,6 @@ control Forwarding (
         actions = {
             set_next_id;
         }
-        counters = bridging_counter;
     }
 
     table mpls {
@@ -73,7 +63,6 @@ control Forwarding (
         actions = {
             pop_mpls_and_next;
         }
-        counters = mpls_counter;
     }
 
     table unicast_v4 {
@@ -84,7 +73,6 @@ control Forwarding (
         actions = {
             set_next_id;
         }
-        counters = unicast_v4_counter;
     }
 
     table multicast_v4 {
@@ -96,7 +84,6 @@ control Forwarding (
         actions = {
             set_next_id;
         }
-        counters = multicast_v4_counter;
     }
 
     table unicast_v6 {
@@ -107,7 +94,6 @@ control Forwarding (
         actions = {
             set_next_id;
         }
-        counters = unicast_v6_counter;
     }
 
     table multicast_v6 {
@@ -119,33 +105,27 @@ control Forwarding (
         actions = {
             set_next_id;
         }
-        counters = multicast_v6_counter;
     }
 
     table acl {
         key = {
-            standard_metadata.ingress_port: ternary;
-            fabric_metadata.ip_proto: ternary;
-            hdr.ethernet.dst_addr: ternary;
-            hdr.ethernet.src_addr: ternary;
-            hdr.ethernet.ether_type: ternary;
-            hdr.vlan_tag.vlan_id: ternary;
-            hdr.vlan_tag.pri: ternary;
-            hdr.mpls.tc: ternary;
-            hdr.mpls.bos: ternary;
-            hdr.mpls.label: ternary;
-            hdr.ipv4.src_addr: ternary;
-            hdr.ipv4.dst_addr: ternary;
-            hdr.ipv4.protocol: ternary;
-            hdr.ipv6.src_addr: ternary;
-            hdr.ipv6.dst_addr: ternary;
-            hdr.ipv6.next_hdr: ternary;
-            hdr.tcp.src_port: ternary;
-            hdr.tcp.dst_port: ternary;
-            hdr.udp.src_port: ternary;
-            hdr.udp.dst_port: ternary;
-            hdr.icmp.icmp_type: ternary;
-            hdr.icmp.icmp_code: ternary;
+            standard_metadata.ingress_port: ternary; // 9
+            fabric_metadata.ip_proto: ternary; // 8
+            fabric_metadata.l4_src_port: ternary; // 16
+            fabric_metadata.l4_dst_port: ternary; // 16
+
+            hdr.ethernet.dst_addr: ternary; // 48
+            hdr.ethernet.src_addr: ternary; // 48
+            fabric_metadata.original_ether_type: ternary; //16
+            hdr.vlan_tag.vlan_id: ternary; // 12
+            hdr.mpls.bos: ternary; // 1
+            hdr.mpls.label: ternary; // 20
+            hdr.ipv4.src_addr: ternary; // 32
+            hdr.ipv4.dst_addr: ternary; // 32
+            hdr.ipv6.src_addr: ternary; // 128
+            hdr.ipv6.dst_addr: ternary; // 128
+            hdr.icmp.icmp_type: ternary; // 8
+            hdr.icmp.icmp_code: ternary; // 8
         }
 
         actions = {
@@ -156,12 +136,21 @@ control Forwarding (
         }
 
         const default_action = nop();
-        counters = acl_counter;
+        size = 256;
     }
 
     apply {
         if(fabric_metadata.fwd_type == FWD_BRIDGING) bridging.apply();
-        else if (fabric_metadata.fwd_type == FWD_MPLS) mpls.apply();
+        else if (fabric_metadata.fwd_type == FWD_MPLS) {
+            mpls.apply();
+            if (hdr.ipv4.isValid()) {
+                hdr.ethernet.ether_type = ETHERTYPE_IPV4;
+                fabric_metadata.original_ether_type = ETHERTYPE_IPV4;
+            } else {
+                hdr.ethernet.ether_type = ETHERTYPE_IPV6;
+                fabric_metadata.original_ether_type = ETHERTYPE_IPV6;
+            }
+        }
         else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
         else if (fabric_metadata.fwd_type == FWD_IPV4_MULTICAST) multicast_v4.apply();
         else if (fabric_metadata.fwd_type == FWD_IPV6_UNICAST) unicast_v6.apply();

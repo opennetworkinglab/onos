@@ -22,11 +22,13 @@
 @controller_header("packet_in")
 header packet_in_header_t {
     port_num_t ingress_port;
+    bit<7> _pad;
 }
 
 @controller_header("packet_out")
 header packet_out_header_t {
     port_num_t egress_port;
+    bit<7> _pad;
 }
 
 header ethernet_t {
@@ -121,6 +123,7 @@ struct fabric_metadata_t {
     bit<8> ip_proto;
     bit<16> l4_src_port;
     bit<16> l4_dst_port;
+    bit<16> original_ether_type;
 }
 
 struct parsed_headers_t {

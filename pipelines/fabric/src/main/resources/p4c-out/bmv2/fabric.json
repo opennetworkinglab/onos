@@ -1,5 +1,5 @@
 {
-  "program" : "fabric.p4",
+  "program" : "p4c-out/bmv2/fabric.p4i",
   "__meta__" : {
     "version" : [2, 7],
     "compiler" : "https://github.com/p4lang/p4c"
@@ -9,16 +9,18 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
-        ["tmp", 161, false],
+        ["tmp_0", 161, false],
         ["tmp_1", 32, false],
         ["tmp_2", 32, false],
+        ["next_tmp_0", 1, false],
         ["fabric_metadata_t.fwd_type", 3, false],
         ["fabric_metadata_t.next_id", 32, false],
         ["fabric_metadata_t.pop_vlan_at_egress", 1, false],
         ["fabric_metadata_t.ip_proto", 8, false],
         ["fabric_metadata_t.l4_src_port", 16, false],
         ["fabric_metadata_t.l4_dst_port", 16, false],
-        ["_padding_2", 3, false]
+        ["fabric_metadata_t.original_ether_type", 16, false],
+        ["_padding_0", 2, false]
       ]
     },
     {
@@ -137,7 +139,7 @@
       "id" : 10,
       "fields" : [
         ["egress_port", 9, false],
-        ["_padding", 7, false]
+        ["_pad", 7, false]
       ]
     },
     {
@@ -145,7 +147,7 @@
       "id" : 11,
       "fields" : [
         ["ingress_port", 9, false],
-        ["_padding_0", 7, false]
+        ["_pad", 7, false]
       ]
     },
     {
@@ -170,13 +172,13 @@
         ["resubmit_flag", 1, false],
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
-        ["_padding_1", 4, false]
+        ["_padding", 4, false]
       ]
     }
   ],
   "headers" : [
     {
-      "name" : "tmp_0",
+      "name" : "tmp",
       "id" : 0,
       "header_type" : "ipv4_t",
       "metadata" : false,
@@ -359,6 +361,19 @@
                 }
               ],
               "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ethernet", "ether_type"]
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
@@ -518,7 +533,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp"]
+                  "value" : ["scalars", "tmp_0"]
                 },
                 {
                   "type" : "lookahead",
@@ -533,7 +548,7 @@
                   "parameters" : [
                     {
                       "type" : "header",
-                      "value" : "tmp_0"
+                      "value" : "tmp"
                     }
                   ],
                   "op" : "add_header"
@@ -545,7 +560,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "version"]
+                  "value" : ["tmp", "version"]
                 },
                 {
                   "type" : "expression",
@@ -563,7 +578,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -591,7 +606,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "ihl"]
+                  "value" : ["tmp", "ihl"]
                 },
                 {
                   "type" : "expression",
@@ -609,7 +624,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -637,7 +652,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "diffserv"]
+                  "value" : ["tmp", "diffserv"]
                 },
                 {
                   "type" : "expression",
@@ -655,7 +670,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -683,7 +698,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "total_len"]
+                  "value" : ["tmp", "total_len"]
                 },
                 {
                   "type" : "expression",
@@ -701,7 +716,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -729,7 +744,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "identification"]
+                  "value" : ["tmp", "identification"]
                 },
                 {
                   "type" : "expression",
@@ -747,7 +762,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -775,7 +790,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "flags"]
+                  "value" : ["tmp", "flags"]
                 },
                 {
                   "type" : "expression",
@@ -793,7 +808,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -821,7 +836,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "frag_offset"]
+                  "value" : ["tmp", "frag_offset"]
                 },
                 {
                   "type" : "expression",
@@ -839,7 +854,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -867,7 +882,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "ttl"]
+                  "value" : ["tmp", "ttl"]
                 },
                 {
                   "type" : "expression",
@@ -885,7 +900,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -913,7 +928,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "protocol"]
+                  "value" : ["tmp", "protocol"]
                 },
                 {
                   "type" : "expression",
@@ -931,7 +946,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -959,7 +974,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "hdr_checksum"]
+                  "value" : ["tmp", "hdr_checksum"]
                 },
                 {
                   "type" : "expression",
@@ -977,7 +992,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -1005,7 +1020,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "src_addr"]
+                  "value" : ["tmp", "src_addr"]
                 },
                 {
                   "type" : "expression",
@@ -1023,7 +1038,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -1051,7 +1066,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "dst_addr"]
+                  "value" : ["tmp", "dst_addr"]
                 },
                 {
                   "type" : "expression",
@@ -1069,7 +1084,7 @@
                               "op" : ">>",
                               "left" : {
                                 "type" : "field",
-                                "value" : ["scalars", "tmp"]
+                                "value" : ["scalars", "tmp_0"]
                               },
                               "right" : {
                                 "type" : "hexstr",
@@ -1097,7 +1112,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["tmp_0", "$valid$"]
+                  "value" : ["tmp", "$valid$"]
                 },
                 {
                   "type" : "expression",
@@ -1107,7 +1122,7 @@
                       "op" : "&",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "tmp"]
+                        "value" : ["scalars", "tmp_0"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -1140,7 +1155,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["tmp_0", "version"]
+              "value" : ["tmp", "version"]
             }
           ]
         },
@@ -1409,7 +1424,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "./include/parser.p4",
-        "line" : 134,
+        "line" : 135,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1419,80 +1434,8 @@
   "meter_arrays" : [],
   "counter_arrays" : [
     {
-      "name" : "filtering.ingress_port_vlan_counter",
-      "id" : 0,
-      "is_direct" : true,
-      "binding" : "filtering.ingress_port_vlan"
-    },
-    {
-      "name" : "filtering.fwd_classifier_counter",
-      "id" : 1,
-      "is_direct" : true,
-      "binding" : "filtering.fwd_classifier"
-    },
-    {
-      "name" : "forwarding.bridging_counter",
-      "id" : 2,
-      "is_direct" : true,
-      "binding" : "forwarding.bridging"
-    },
-    {
-      "name" : "forwarding.mpls_counter",
-      "id" : 3,
-      "is_direct" : true,
-      "binding" : "forwarding.mpls"
-    },
-    {
-      "name" : "forwarding.unicast_v4_counter",
-      "id" : 4,
-      "is_direct" : true,
-      "binding" : "forwarding.unicast_v4"
-    },
-    {
-      "name" : "forwarding.multicast_v4_counter",
-      "id" : 5,
-      "is_direct" : true,
-      "binding" : "forwarding.multicast_v4"
-    },
-    {
-      "name" : "forwarding.unicast_v6_counter",
-      "id" : 6,
-      "is_direct" : true,
-      "binding" : "forwarding.unicast_v6"
-    },
-    {
-      "name" : "forwarding.multicast_v6_counter",
-      "id" : 7,
-      "is_direct" : true,
-      "binding" : "forwarding.multicast_v6"
-    },
-    {
-      "name" : "forwarding.acl_counter",
-      "id" : 8,
-      "is_direct" : true,
-      "binding" : "forwarding.acl"
-    },
-    {
-      "name" : "next.simple_counter",
-      "id" : 9,
-      "is_direct" : true,
-      "binding" : "next.simple"
-    },
-    {
-      "name" : "next.hashed_counter",
-      "id" : 10,
-      "is_direct" : true,
-      "binding" : "next.hashed"
-    },
-    {
-      "name" : "next.broadcast_counter",
-      "id" : 11,
-      "is_direct" : true,
-      "binding" : "next.broadcast"
-    },
-    {
       "name" : "port_counters_control.egress_port_counter",
-      "id" : 12,
+      "id" : 0,
       "source_info" : {
         "filename" : "./include/control/port_counter.p4",
         "line" : 23,
@@ -1504,7 +1447,7 @@
     },
     {
       "name" : "port_counters_control.ingress_port_counter",
-      "id" : 13,
+      "id" : 1,
       "source_info" : {
         "filename" : "./include/control/port_counter.p4",
         "line" : 24,
@@ -1522,7 +1465,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "./include/checksum.p4",
-        "line" : 48,
+        "line" : 51,
         "column" : 8,
         "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
       },
@@ -1579,7 +1522,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "./include/checksum.p4",
-        "line" : 24,
+        "line" : 25,
         "column" : 8,
         "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
       },
@@ -1647,38 +1590,16 @@
       "primitives" : []
     },
     {
-      "name" : "drop",
+      "name" : "NoAction",
       "id" : 2,
       "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "drop",
-          "parameters" : [],
-          "source_info" : {
-            "filename" : "./include/control/../action.p4",
-            "line" : 25,
-            "column" : 4,
-            "source_fragment" : "mark_to_drop()"
-          }
-        }
-      ]
+      "primitives" : []
     },
     {
-      "name" : "drop",
+      "name" : "NoAction",
       "id" : 3,
       "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "drop",
-          "parameters" : [],
-          "source_info" : {
-            "filename" : "./include/control/../action.p4",
-            "line" : 25,
-            "column" : 4,
-            "source_fragment" : "mark_to_drop()"
-          }
-        }
-      ]
+      "primitives" : []
     },
     {
       "name" : "NoAction",
@@ -1723,20 +1644,25 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "filtering.drop",
       "id" : 11,
       "runtime_data" : [],
-      "primitives" : []
-    },
-    {
-      "name" : "NoAction",
-      "id" : 12,
-      "runtime_data" : [],
-      "primitives" : []
+      "primitives" : [
+        {
+          "op" : "drop",
+          "parameters" : [],
+          "source_info" : {
+            "filename" : "./include/control/filtering.p4",
+            "line" : 29,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop()"
+          }
+        }
+      ]
     },
     {
       "name" : "filtering.set_vlan",
-      "id" : 13,
+      "id" : 12,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1758,7 +1684,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 32,
+            "line" : 33,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
           }
@@ -1767,7 +1693,7 @@
     },
     {
       "name" : "filtering.push_internal_vlan",
-      "id" : 14,
+      "id" : 13,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1785,7 +1711,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 38,
+            "line" : 39,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setValid()"
           }
@@ -1804,7 +1730,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 39,
+            "line" : 40,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.cfi = 0"
           }
@@ -1823,7 +1749,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 40,
+            "line" : 41,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.pri = 0"
           }
@@ -1834,6 +1760,25 @@
             {
               "type" : "field",
               "value" : ["vlan_tag", "ether_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/filtering.p4",
+            "line" : 42,
+            "column" : 8,
+            "source_fragment" : "hdr.vlan_tag.ether_type = hdr.ethernet.ether_type"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
             },
             {
               "type" : "hexstr",
@@ -1861,7 +1806,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 32,
+            "line" : 33,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id; ..."
           }
@@ -1890,7 +1835,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 45,
+            "line" : 47,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = true"
           }
@@ -1899,7 +1844,7 @@
     },
     {
       "name" : "filtering.set_forwarding_type",
-      "id" : 15,
+      "id" : 14,
       "runtime_data" : [
         {
           "name" : "fwd_type",
@@ -1921,9 +1866,26 @@
           ],
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 49,
+            "line" : 51,
             "column" : 8,
             "source_fragment" : "fabric_metadata.fwd_type = fwd_type"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "forwarding.drop",
+      "id" : 15,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "drop",
+          "parameters" : [],
+          "source_info" : {
+            "filename" : "./include/control/forwarding.p4",
+            "line" : 31,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop()"
           }
         }
       ]
@@ -1952,7 +1914,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -1983,7 +1945,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2014,7 +1976,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2045,7 +2007,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2076,7 +2038,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2107,7 +2069,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 39,
+            "line" : 35,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2134,108 +2096,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 43,
+            "line" : 39,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setInvalid()"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "ether_type"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "hexstr",
-                    "value" : "0x0800"
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ethernet", "ether_type"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "==",
-                      "left" : {
-                        "type" : "field",
-                        "value" : ["ipv4", "$valid$"]
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x01"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 45,
-            "column" : 12,
-            "source_fragment" : "hdr.ethernet.ether_type ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "ether_type"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "hexstr",
-                    "value" : "0x86dd"
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ethernet", "ether_type"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "not",
-                      "left" : null,
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 47,
-            "column" : 12,
-            "source_fragment" : "hdr.ethernet.ether_type ="
           }
         },
         {
@@ -2252,7 +2115,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 49,
+            "line" : 40,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -2278,7 +2141,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/../define.p4",
-            "line" : 47,
+            "line" : 48,
             "column" : 28,
             "source_fragment" : "255; ..."
           }
@@ -2309,208 +2172,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         }
       ]
@@ -2543,7 +2207,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 45,
+            "line" : 34,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
           }
@@ -2572,7 +2236,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 48,
+            "line" : 37,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = false"
           }
@@ -2591,208 +2255,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         }
       ]
@@ -2829,7 +2294,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 53,
+            "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -2848,7 +2313,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 57,
+            "line" : 46,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -2867,208 +2332,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         }
       ]
@@ -3105,7 +2371,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 53,
+            "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -3124,7 +2390,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 57,
+            "line" : 46,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -3143,208 +2409,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         }
       ]
@@ -3377,7 +2444,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 67,
+            "line" : 56,
             "column" : 8,
             "source_fragment" : "standard_metadata.mcast_grp = gid"
           }
@@ -3396,7 +2463,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 53,
+            "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -3439,7 +2506,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 53,
+            "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -3458,7 +2525,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 57,
+            "line" : 46,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -3477,208 +2544,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         },
         {
@@ -3691,7 +2559,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 73,
+            "line" : 62,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
           }
@@ -3729,7 +2597,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 75,
+            "line" : 64,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
           }
@@ -3742,46 +2610,13 @@
               "value" : ["mpls", "tc"]
             },
             {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "&",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : ">>",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "diffserv"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x5"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "hexstr",
-                    "value" : "0x07"
-                  }
-                }
-              }
+              "type" : "hexstr",
+              "value" : "0x00"
             }
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 76,
+            "line" : 65,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
           }
@@ -3800,9 +2635,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 77,
+            "line" : 66,
             "column" : 8,
-            "source_fragment" : "hdr.mpls.bos = 1"
+            "source_fragment" : "hdr.mpls.bos = 1w1"
           }
         },
         {
@@ -3862,7 +2697,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 53,
+            "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -3881,7 +2716,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 57,
+            "line" : 46,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -3900,208 +2735,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "line" : 30,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv4", "ttl"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "ttl"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv4", "ttl"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "!=",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["mpls", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv4", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 36,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv4.ttl ="
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ipv6", "hop_limit"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "?",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "+",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "hop_limit"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["ipv6", "hop_limit"]
-                  },
-                  "cond" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "and",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "and",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "!=",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["mpls", "$valid$"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x01"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "not",
-                              "left" : null,
-                              "right" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "==",
-                                  "left" : {
-                                    "type" : "field",
-                                    "value" : ["ipv4", "$valid$"]
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0x01"
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "==",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "$valid$"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 39,
-            "column" : 16,
-            "source_fragment" : "hdr.ipv6.hop_limit ="
           }
         },
         {
@@ -4114,7 +2750,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 73,
+            "line" : 62,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
           }
@@ -4152,7 +2788,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 75,
+            "line" : 64,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
           }
@@ -4165,46 +2801,13 @@
               "value" : ["mpls", "tc"]
             },
             {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "&",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : ">>",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["ipv6", "traffic_class"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x5"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "hexstr",
-                    "value" : "0x07"
-                  }
-                }
-              }
+              "type" : "hexstr",
+              "value" : "0x00"
             }
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 76,
+            "line" : 65,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
           }
@@ -4223,9 +2826,9 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 77,
+            "line" : 66,
             "column" : 8,
-            "source_fragment" : "hdr.mpls.bos = 1"
+            "source_fragment" : "hdr.mpls.bos = 1w1"
           }
         },
         {
@@ -4272,12 +2875,275 @@
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec = hdr.packet_out.egress_port"
           }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "packet_out"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/packetio.p4",
+            "line" : 27,
+            "column" : 12,
+            "source_fragment" : "hdr.packet_out.setInvalid()"
+          }
         }
       ]
     },
     {
       "name" : "act_0",
       "id" : 32,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x0800"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/../define.p4",
+            "line" : 35,
+            "column" : 31,
+            "source_fragment" : "0x0800; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x0800"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/../define.p4",
+            "line" : 35,
+            "column" : 31,
+            "source_fragment" : "0x0800; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_1",
+      "id" : 33,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x86dd"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/../define.p4",
+            "line" : 36,
+            "column" : 31,
+            "source_fragment" : "0x86dd; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x86dd"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/../define.p4",
+            "line" : 36,
+            "column" : 31,
+            "source_fragment" : "0x86dd; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_2",
+      "id" : 34,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_0"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_3",
+      "id" : 35,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_0"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_4",
+      "id" : 36,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "ttl"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv4", "ttl"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 133,
+            "column" : 20,
+            "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_5",
+      "id" : 37,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv6", "hop_limit"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "+",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["ipv6", "hop_limit"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0xff"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 136,
+            "column" : 20,
+            "source_fragment" : "hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_6",
+      "id" : 38,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4328,8 +3194,8 @@
       ]
     },
     {
-      "name" : "act_1",
-      "id" : 33,
+      "name" : "act_7",
+      "id" : 39,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4380,8 +3246,60 @@
       ]
     },
     {
-      "name" : "act_2",
-      "id" : 34,
+      "name" : "act_8",
+      "id" : 40,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x8847"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/../define.p4",
+            "line" : 33,
+            "column" : 31,
+            "source_fragment" : "0x8847; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_9",
+      "id" : 41,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "ether_type"]
+            },
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 156,
+            "column" : 16,
+            "source_fragment" : "hdr.ethernet.ether_type = fabric_metadata.original_ether_type"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_10",
+      "id" : 42,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4394,7 +3312,7 @@
           ],
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 157,
+            "line" : 158,
             "column" : 12,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
           }
@@ -4402,8 +3320,8 @@
       ]
     },
     {
-      "name" : "act_3",
-      "id" : 35,
+      "name" : "act_11",
+      "id" : 43,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4438,28 +3356,6 @@
             "line" : 40,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
-          }
-        }
-      ]
-    },
-    {
-      "name" : "act_4",
-      "id" : 36,
-      "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "remove_header",
-          "parameters" : [
-            {
-              "type" : "header",
-              "value" : "packet_out"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/packetio.p4",
-            "line" : 37,
-            "column" : 8,
-            "source_fragment" : "hdr.packet_out.setInvalid()"
           }
         }
       ]
@@ -4505,7 +3401,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 53,
+            "line" : 55,
             "column" : 10,
             "source_fragment" : "ingress_port_vlan"
           },
@@ -4529,19 +3425,20 @@
           "match_type" : "ternary",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [14, 13, 0, 2],
-          "actions" : ["filtering.push_internal_vlan", "filtering.set_vlan", "nop", "drop"],
+          "action_ids" : [13, 12, 0, 11],
+          "actions" : ["filtering.push_internal_vlan", "filtering.set_vlan", "nop", "filtering.drop"],
           "base_default_next" : "filtering.fwd_classifier",
           "next_tables" : {
             "filtering.push_internal_vlan" : "filtering.fwd_classifier",
             "filtering.set_vlan" : "filtering.fwd_classifier",
             "nop" : "filtering.fwd_classifier",
-            "drop" : "filtering.fwd_classifier"
+            "filtering.drop" : "filtering.fwd_classifier"
           },
           "default_entry" : {
-            "action_id" : 2,
+            "action_id" : 11,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4552,7 +3449,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "./include/control/filtering.p4",
-            "line" : 71,
+            "line" : 72,
             "column" : 10,
             "source_fragment" : "fwd_classifier"
           },
@@ -4569,23 +3466,24 @@
             },
             {
               "match_type" : "exact",
-              "target" : ["ethernet", "ether_type"],
+              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
               "mask" : null
             }
           ],
           "match_type" : "exact",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [15],
+          "action_ids" : [14],
           "actions" : ["filtering.set_forwarding_type"],
           "base_default_next" : "node_6",
           "next_tables" : {
             "filtering.set_forwarding_type" : "node_6"
           },
           "default_entry" : {
-            "action_id" : 15,
+            "action_id" : 14,
             "action_const" : true,
             "action_data" : ["0x0"],
             "action_entry_const" : true
@@ -4596,7 +3494,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 56,
+            "line" : 47,
             "column" : 10,
             "source_fragment" : "bridging"
           },
@@ -4615,9 +3513,128 @@
           "match_type" : "ternary",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [16, 4],
+          "action_ids" : [16, 2],
+          "actions" : ["forwarding.set_next_id", "NoAction"],
+          "base_default_next" : "forwarding.acl",
+          "next_tables" : {
+            "forwarding.set_next_id" : "forwarding.acl",
+            "NoAction" : "forwarding.acl"
+          },
+          "default_entry" : {
+            "action_id" : 2,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "forwarding.mpls",
+          "id" : 4,
+          "source_info" : {
+            "filename" : "./include/control/forwarding.p4",
+            "line" : 58,
+            "column" : 10,
+            "source_fragment" : "mpls"
+          },
+          "key" : [
+            {
+              "match_type" : "exact",
+              "target" : ["mpls", "label"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [22, 3],
+          "actions" : ["forwarding.pop_mpls_and_next", "NoAction"],
+          "base_default_next" : "node_10",
+          "next_tables" : {
+            "forwarding.pop_mpls_and_next" : "node_10",
+            "NoAction" : "node_10"
+          },
+          "default_entry" : {
+            "action_id" : 3,
+            "action_const" : false,
+            "action_data" : [],
+            "action_entry_const" : false
+          }
+        },
+        {
+          "name" : "tbl_act_0",
+          "id" : 5,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [32],
+          "actions" : ["act_0"],
+          "base_default_next" : "forwarding.acl",
+          "next_tables" : {
+            "act_0" : "forwarding.acl"
+          },
+          "default_entry" : {
+            "action_id" : 32,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_1",
+          "id" : 6,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [33],
+          "actions" : ["act_1"],
+          "base_default_next" : "forwarding.acl",
+          "next_tables" : {
+            "act_1" : "forwarding.acl"
+          },
+          "default_entry" : {
+            "action_id" : 33,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "forwarding.unicast_v4",
+          "id" : 7,
+          "source_info" : {
+            "filename" : "./include/control/forwarding.p4",
+            "line" : 68,
+            "column" : 10,
+            "source_fragment" : "unicast_v4"
+          },
+          "key" : [
+            {
+              "match_type" : "lpm",
+              "target" : ["ipv4", "dst_addr"],
+              "mask" : null
+            }
+          ],
+          "match_type" : "lpm",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [17, 4],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -4632,81 +3649,11 @@
           }
         },
         {
-          "name" : "forwarding.mpls",
-          "id" : 4,
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 68,
-            "column" : 10,
-            "source_fragment" : "mpls"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "target" : ["mpls", "label"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [22, 5],
-          "actions" : ["forwarding.pop_mpls_and_next", "NoAction"],
-          "base_default_next" : "forwarding.acl",
-          "next_tables" : {
-            "forwarding.pop_mpls_and_next" : "forwarding.acl",
-            "NoAction" : "forwarding.acl"
-          },
-          "default_entry" : {
-            "action_id" : 5,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "forwarding.unicast_v4",
-          "id" : 5,
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 79,
-            "column" : 10,
-            "source_fragment" : "unicast_v4"
-          },
-          "key" : [
-            {
-              "match_type" : "lpm",
-              "target" : ["ipv4", "dst_addr"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "lpm",
-          "type" : "simple",
-          "max_size" : 1024,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [17, 6],
-          "actions" : ["forwarding.set_next_id", "NoAction"],
-          "base_default_next" : "forwarding.acl",
-          "next_tables" : {
-            "forwarding.set_next_id" : "forwarding.acl",
-            "NoAction" : "forwarding.acl"
-          },
-          "default_entry" : {
-            "action_id" : 6,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
           "name" : "forwarding.multicast_v4",
-          "id" : 6,
+          "id" : 8,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 90,
+            "line" : 78,
             "column" : 10,
             "source_fragment" : "multicast_v4"
           },
@@ -4725,9 +3672,10 @@
           "match_type" : "lpm",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [18, 7],
+          "action_ids" : [18, 5],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -4735,7 +3683,7 @@
             "NoAction" : "forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 7,
+            "action_id" : 5,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -4743,10 +3691,10 @@
         },
         {
           "name" : "forwarding.unicast_v6",
-          "id" : 7,
+          "id" : 9,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 102,
+            "line" : 89,
             "column" : 10,
             "source_fragment" : "unicast_v6"
           },
@@ -4760,9 +3708,10 @@
           "match_type" : "lpm",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [19, 8],
+          "action_ids" : [19, 6],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -4770,7 +3719,7 @@
             "NoAction" : "forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 8,
+            "action_id" : 6,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -4778,10 +3727,10 @@
         },
         {
           "name" : "forwarding.multicast_v6",
-          "id" : 8,
+          "id" : 10,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 113,
+            "line" : 99,
             "column" : 10,
             "source_fragment" : "multicast_v6"
           },
@@ -4800,9 +3749,10 @@
           "match_type" : "lpm",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [20, 9],
+          "action_ids" : [20, 7],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -4810,7 +3760,7 @@
             "NoAction" : "forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 9,
+            "action_id" : 7,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -4818,10 +3768,10 @@
         },
         {
           "name" : "forwarding.acl",
-          "id" : 9,
+          "id" : 11,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 125,
+            "line" : 110,
             "column" : 10,
             "source_fragment" : "acl"
           },
@@ -4838,6 +3788,16 @@
             },
             {
               "match_type" : "ternary",
+              "target" : ["scalars", "fabric_metadata_t.l4_src_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
+              "target" : ["scalars", "fabric_metadata_t.l4_dst_port"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
             },
@@ -4848,22 +3808,12 @@
             },
             {
               "match_type" : "ternary",
-              "target" : ["ethernet", "ether_type"],
+              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "target" : ["vlan_tag", "vlan_id"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["vlan_tag", "pri"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["mpls", "tc"],
               "mask" : null
             },
             {
@@ -4888,42 +3838,12 @@
             },
             {
               "match_type" : "ternary",
-              "target" : ["ipv4", "protocol"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
               "target" : ["ipv6", "src_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "target" : ["ipv6", "dst_addr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["ipv6", "next_hdr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["tcp", "src_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["tcp", "dst_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["udp", "src_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["udp", "dst_port"],
               "mask" : null
             },
             {
@@ -4939,16 +3859,17 @@
           ],
           "match_type" : "ternary",
           "type" : "simple",
-          "max_size" : 1024,
+          "max_size" : 256,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [21, 23, 3, 1],
-          "actions" : ["forwarding.set_next_id", "forwarding.duplicate_to_controller", "drop", "nop"],
+          "action_ids" : [21, 23, 15, 1],
+          "actions" : ["forwarding.set_next_id", "forwarding.duplicate_to_controller", "forwarding.drop", "nop"],
           "base_default_next" : "next.simple",
           "next_tables" : {
             "forwarding.set_next_id" : "next.simple",
             "forwarding.duplicate_to_controller" : "next.simple",
-            "drop" : "next.simple",
+            "forwarding.drop" : "next.simple",
             "nop" : "next.simple"
           },
           "default_entry" : {
@@ -4960,10 +3881,10 @@
         },
         {
           "name" : "next.simple",
-          "id" : 10,
+          "id" : 12,
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 93,
+            "line" : 86,
             "column" : 10,
             "source_fragment" : "simple"
           },
@@ -4977,30 +3898,121 @@
           "match_type" : "exact",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [24, 25, 26, 10],
+          "action_ids" : [24, 25, 26, 8],
           "actions" : ["next.output", "next.set_vlan_output", "next.l3_routing", "NoAction"],
-          "base_default_next" : "next.hashed",
+          "base_default_next" : null,
           "next_tables" : {
-            "next.output" : "next.hashed",
-            "next.set_vlan_output" : "next.hashed",
-            "next.l3_routing" : "next.hashed",
-            "NoAction" : "next.hashed"
+            "__HIT__" : "tbl_act_2",
+            "__MISS__" : "tbl_act_3"
           },
           "default_entry" : {
-            "action_id" : 10,
+            "action_id" : 8,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
           }
         },
         {
+          "name" : "tbl_act_2",
+          "id" : 13,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [34],
+          "actions" : ["act_2"],
+          "base_default_next" : "node_25",
+          "next_tables" : {
+            "act_2" : "node_25"
+          },
+          "default_entry" : {
+            "action_id" : 34,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_3",
+          "id" : 14,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [35],
+          "actions" : ["act_3"],
+          "base_default_next" : "node_25",
+          "next_tables" : {
+            "act_3" : "node_25"
+          },
+          "default_entry" : {
+            "action_id" : 35,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_4",
+          "id" : 15,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [36],
+          "actions" : ["act_4"],
+          "base_default_next" : "next.hashed",
+          "next_tables" : {
+            "act_4" : "next.hashed"
+          },
+          "default_entry" : {
+            "action_id" : 36,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_5",
+          "id" : 16,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [37],
+          "actions" : ["act_5"],
+          "base_default_next" : "next.hashed",
+          "next_tables" : {
+            "act_5" : "next.hashed"
+          },
+          "default_entry" : {
+            "action_id" : 37,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
           "name" : "next.hashed",
-          "id" : 11,
+          "id" : 17,
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 106,
+            "line" : 98,
             "column" : 10,
             "source_fragment" : "hashed"
           },
@@ -5015,9 +4027,10 @@
           "type" : "indirect_ws",
           "action_profile" : "next.ecmp_selector",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [27, 29, 30, 11],
+          "action_ids" : [27, 29, 30, 9],
           "actions" : ["next.l3_routing", "next.mpls_routing_v4", "next.mpls_routing_v6", "NoAction"],
           "base_default_next" : "next.broadcast",
           "next_tables" : {
@@ -5029,10 +4042,10 @@
         },
         {
           "name" : "next.broadcast",
-          "id" : 12,
+          "id" : 18,
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 132,
+            "line" : 120,
             "column" : 10,
             "source_fragment" : "broadcast"
           },
@@ -5046,25 +4059,26 @@
           "match_type" : "exact",
           "type" : "simple",
           "max_size" : 1024,
+          "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [28, 12],
+          "action_ids" : [28, 10],
           "actions" : ["next.set_mcast_group", "NoAction"],
-          "base_default_next" : "node_22",
+          "base_default_next" : "node_33",
           "next_tables" : {
-            "next.set_mcast_group" : "node_22",
-            "NoAction" : "node_22"
+            "next.set_mcast_group" : "node_33",
+            "NoAction" : "node_33"
           },
           "default_entry" : {
-            "action_id" : 12,
+            "action_id" : 10,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
           }
         },
         {
-          "name" : "tbl_act_0",
-          "id" : 13,
+          "name" : "tbl_act_6",
+          "id" : 19,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5072,22 +4086,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [32],
-          "actions" : ["act_0"],
-          "base_default_next" : "node_24",
+          "action_ids" : [38],
+          "actions" : ["act_6"],
+          "base_default_next" : "node_35",
           "next_tables" : {
-            "act_0" : "node_24"
+            "act_6" : "node_35"
           },
           "default_entry" : {
-            "action_id" : 32,
+            "action_id" : 38,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_1",
-          "id" : 14,
+          "name" : "tbl_act_7",
+          "id" : 20,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5095,14 +4109,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [33],
-          "actions" : ["act_1"],
+          "action_ids" : [39],
+          "actions" : ["act_7"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_1" : null
+            "act_7" : null
           },
           "default_entry" : {
-            "action_id" : 33,
+            "action_id" : 39,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5119,27 +4133,15 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["ipv4", "src_addr"]
+                "value" : ["ethernet", "dst_addr"]
               },
               {
                 "type" : "field",
-                "value" : ["ipv4", "dst_addr"]
+                "value" : ["ethernet", "src_addr"]
               },
               {
                 "type" : "field",
-                "value" : ["ipv4", "protocol"]
-              },
-              {
-                "type" : "field",
-                "value" : ["ipv6", "src_addr"]
-              },
-              {
-                "type" : "field",
-                "value" : ["ipv6", "dst_addr"]
-              },
-              {
-                "type" : "field",
-                "value" : ["ipv6", "next_hdr"]
+                "value" : ["scalars", "fabric_metadata_t.ip_proto"]
               },
               {
                 "type" : "field",
@@ -5185,7 +4187,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 163,
+            "line" : 143,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
           },
@@ -5211,7 +4213,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 164,
+            "line" : 144,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
           },
@@ -5230,14 +4232,40 @@
             }
           },
           "true_next" : "forwarding.mpls",
-          "false_next" : "node_10"
+          "false_next" : "node_13"
         },
         {
           "name" : "node_10",
           "id" : 3,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 165,
+            "line" : 146,
+            "column" : 16,
+            "source_fragment" : "hdr.ipv4.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["ipv4", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "tbl_act_0",
+          "false_next" : "tbl_act_1"
+        },
+        {
+          "name" : "node_13",
+          "id" : 4,
+          "source_info" : {
+            "filename" : "./include/control/forwarding.p4",
+            "line" : 154,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },
@@ -5256,14 +4284,14 @@
             }
           },
           "true_next" : "forwarding.unicast_v4",
-          "false_next" : "node_12"
+          "false_next" : "node_15"
         },
         {
-          "name" : "node_12",
-          "id" : 4,
+          "name" : "node_15",
+          "id" : 5,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 166,
+            "line" : 155,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_MULTICAST"
           },
@@ -5282,14 +4310,14 @@
             }
           },
           "true_next" : "forwarding.multicast_v4",
-          "false_next" : "node_14"
+          "false_next" : "node_17"
         },
         {
-          "name" : "node_14",
-          "id" : 5,
+          "name" : "node_17",
+          "id" : 6,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 167,
+            "line" : 156,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV6_UNICAST"
           },
@@ -5308,14 +4336,14 @@
             }
           },
           "true_next" : "forwarding.unicast_v6",
-          "false_next" : "node_16"
+          "false_next" : "node_19"
         },
         {
-          "name" : "node_16",
-          "id" : 6,
+          "name" : "node_19",
+          "id" : 7,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 168,
+            "line" : 157,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV6_MULTICAST"
           },
@@ -5337,8 +4365,103 @@
           "false_next" : "forwarding.acl"
         },
         {
-          "name" : "node_22",
-          "id" : 7,
+          "name" : "node_25",
+          "id" : 8,
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "d2b",
+              "left" : null,
+              "right" : {
+                "type" : "field",
+                "value" : ["scalars", "next_tmp_0"]
+              }
+            }
+          },
+          "true_next" : "node_26",
+          "false_next" : "next.hashed"
+        },
+        {
+          "name" : "node_26",
+          "id" : 9,
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 131,
+            "column" : 17,
+            "source_fragment" : "hdr.mpls.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "!=",
+              "left" : {
+                "type" : "field",
+                "value" : ["mpls", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "node_27",
+          "false_next" : "next.hashed"
+        },
+        {
+          "name" : "node_27",
+          "id" : 10,
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 132,
+            "column" : 19,
+            "source_fragment" : "hdr.ipv4.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["ipv4", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "tbl_act_4",
+          "false_next" : "node_29"
+        },
+        {
+          "name" : "node_29",
+          "id" : 11,
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 135,
+            "column" : 25,
+            "source_fragment" : "hdr.ipv6.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["ipv6", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "tbl_act_5",
+          "false_next" : "next.hashed"
+        },
+        {
+          "name" : "node_33",
+          "id" : 12,
           "source_info" : {
             "filename" : "./include/control/port_counter.p4",
             "line" : 27,
@@ -5359,12 +4482,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_0",
-          "false_next" : "node_24"
+          "true_next" : "tbl_act_6",
+          "false_next" : "node_35"
         },
         {
-          "name" : "node_24",
-          "id" : 8,
+          "name" : "node_35",
+          "id" : 13,
           "source_info" : {
             "filename" : "./include/control/port_counter.p4",
             "line" : 30,
@@ -5386,7 +4509,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_1"
+          "true_next" : "tbl_act_7"
         }
       ]
     },
@@ -5399,11 +4522,11 @@
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
-      "init_table" : "node_28",
+      "init_table" : "node_39",
       "tables" : [
         {
-          "name" : "tbl_act_2",
-          "id" : 15,
+          "name" : "tbl_act_8",
+          "id" : 21,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5411,22 +4534,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [34],
-          "actions" : ["act_2"],
-          "base_default_next" : "tbl_act_3",
+          "action_ids" : [40],
+          "actions" : ["act_8"],
+          "base_default_next" : "tbl_act_10",
           "next_tables" : {
-            "act_2" : "tbl_act_3"
+            "act_8" : "tbl_act_10"
           },
           "default_entry" : {
-            "action_id" : 34,
+            "action_id" : 40,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_3",
-          "id" : 16,
+          "name" : "tbl_act_9",
+          "id" : 22,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5434,22 +4557,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [36],
-          "actions" : ["act_4"],
-          "base_default_next" : "node_31",
+          "action_ids" : [41],
+          "actions" : ["act_9"],
+          "base_default_next" : "tbl_act_10",
           "next_tables" : {
-            "act_4" : "node_31"
+            "act_9" : "tbl_act_10"
           },
           "default_entry" : {
-            "action_id" : 36,
+            "action_id" : 41,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_4",
-          "id" : 17,
+          "name" : "tbl_act_10",
+          "id" : 23,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5457,14 +4580,37 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [35],
-          "actions" : ["act_3"],
+          "action_ids" : [42],
+          "actions" : ["act_10"],
+          "base_default_next" : "node_44",
+          "next_tables" : {
+            "act_10" : "node_44"
+          },
+          "default_entry" : {
+            "action_id" : 42,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_11",
+          "id" : 24,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [43],
+          "actions" : ["act_11"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_3" : null
+            "act_11" : null
           },
           "default_entry" : {
-            "action_id" : 35,
+            "action_id" : 43,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5474,11 +4620,11 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_28",
-          "id" : 9,
+          "name" : "node_39",
+          "id" : 14,
           "source_info" : {
             "filename" : "./include/control/next.p4",
-            "line" : 156,
+            "line" : 152,
             "column" : 12,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress"
           },
@@ -5493,12 +4639,38 @@
               }
             }
           },
-          "true_next" : "tbl_act_2",
-          "false_next" : "tbl_act_3"
+          "true_next" : "node_40",
+          "false_next" : "node_44"
         },
         {
-          "name" : "node_31",
-          "id" : 10,
+          "name" : "node_40",
+          "id" : 15,
+          "source_info" : {
+            "filename" : "./include/control/next.p4",
+            "line" : 153,
+            "column" : 16,
+            "source_fragment" : "hdr.mpls.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["mpls", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "tbl_act_8",
+          "false_next" : "tbl_act_9"
+        },
+        {
+          "name" : "node_44",
+          "id" : 16,
           "source_info" : {
             "filename" : "./include/control/packetio.p4",
             "line" : 38,
@@ -5520,7 +4692,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_4"
+          "true_next" : "tbl_act_11"
         }
       ]
     }

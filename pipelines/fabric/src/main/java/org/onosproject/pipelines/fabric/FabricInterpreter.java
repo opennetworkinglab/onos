@@ -18,6 +18,7 @@ package org.onosproject.pipelines.fabric;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
@@ -95,41 +96,50 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
 
     private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP =
             ImmutableBiMap.<PiTableId, PiCounterId>builder()
-                    .put(FabricConstants.TBL_MULTICAST_V4_ID, FabricConstants.CNT_MULTICAST_V4_COUNTER_ID)
-                    .put(FabricConstants.TBL_MULTICAST_V6_ID, FabricConstants.CNT_MULTICAST_V6_COUNTER_ID)
-                    .put(FabricConstants.TBL_FWD_CLASSIFIER_ID, FabricConstants.CNT_FWD_CLASSIFIER_COUNTER_ID)
-                    .put(FabricConstants.TBL_ACL_ID, FabricConstants.CNT_ACL_COUNTER_ID)
-                    .put(FabricConstants.TBL_BROADCAST_ID, FabricConstants.CNT_BROADCAST_COUNTER_ID)
-                    .put(FabricConstants.TBL_HASHED_ID, FabricConstants.CNT_HASHED_COUNTER_ID)
-                    .put(FabricConstants.TBL_INGRESS_PORT_VLAN_ID, FabricConstants.CNT_INGRESS_PORT_VLAN_COUNTER_ID)
-                    .put(FabricConstants.TBL_UNICAST_V6_ID, FabricConstants.CNT_UNICAST_V6_COUNTER_ID)
-                    .put(FabricConstants.TBL_SIMPLE_ID, FabricConstants.CNT_SIMPLE_COUNTER_ID)
-                    .put(FabricConstants.TBL_BRIDGING_ID, FabricConstants.CNT_BRIDGING_COUNTER_ID)
-                    .put(FabricConstants.TBL_UNICAST_V4_ID, FabricConstants.CNT_UNICAST_V4_COUNTER_ID)
-                    .put(FabricConstants.TBL_MPLS_ID, FabricConstants.CNT_MPLS_COUNTER_ID)
                     .build();
-    private static final ImmutableBiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
-            ImmutableBiMap.<Criterion.Type, PiMatchFieldId>builder()
+    private static final ImmutableMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
+            ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()
                     .put(Criterion.Type.IN_PORT, FabricConstants.HF_STANDARD_METADATA_INGRESS_PORT_ID)
                     .put(Criterion.Type.ETH_DST, FabricConstants.HF_ETHERNET_DST_ADDR_ID)
                     .put(Criterion.Type.ETH_SRC, FabricConstants.HF_ETHERNET_SRC_ADDR_ID)
-                    .put(Criterion.Type.ETH_TYPE, FabricConstants.HF_ETHERNET_ETHER_TYPE_ID)
+                    .put(Criterion.Type.ETH_TYPE, FabricConstants.HF_FABRIC_METADATA_ORIGINAL_ETHER_TYPE_ID)
                     .put(Criterion.Type.MPLS_BOS, FabricConstants.HF_MPLS_BOS_ID)
                     .put(Criterion.Type.MPLS_LABEL, FabricConstants.HF_MPLS_LABEL_ID)
-                    .put(Criterion.Type.MPLS_TC, FabricConstants.HF_MPLS_TC_ID)
                     .put(Criterion.Type.VLAN_VID, FabricConstants.HF_VLAN_TAG_VLAN_ID_ID)
-                    .put(Criterion.Type.VLAN_PCP, FabricConstants.HF_VLAN_TAG_PRI_ID)
                     .put(Criterion.Type.IPV4_DST, FabricConstants.HF_IPV4_DST_ADDR_ID)
                     .put(Criterion.Type.IPV4_SRC, FabricConstants.HF_IPV4_SRC_ADDR_ID)
                     .put(Criterion.Type.IPV6_DST, FabricConstants.HF_IPV6_DST_ADDR_ID)
                     .put(Criterion.Type.IPV6_SRC, FabricConstants.HF_IPV6_SRC_ADDR_ID)
-                    .put(Criterion.Type.TCP_SRC, FabricConstants.HF_TCP_SRC_PORT_ID)
-                    .put(Criterion.Type.TCP_DST, FabricConstants.HF_TCP_DST_PORT_ID)
-                    .put(Criterion.Type.UDP_SRC, FabricConstants.HF_UDP_SRC_PORT_ID)
-                    .put(Criterion.Type.UDP_DST, FabricConstants.HF_UDP_DST_PORT_ID)
+                    .put(Criterion.Type.TCP_SRC, FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID)
+                    .put(Criterion.Type.TCP_DST, FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID)
+                    .put(Criterion.Type.UDP_SRC, FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID)
+                    .put(Criterion.Type.UDP_DST, FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID)
                     .put(Criterion.Type.IP_PROTO, FabricConstants.HF_FABRIC_METADATA_IP_PROTO_ID)
                     .put(Criterion.Type.ICMPV6_TYPE, FabricConstants.HF_ICMP_ICMP_TYPE_ID)
                     .put(Criterion.Type.ICMPV6_CODE, FabricConstants.HF_ICMP_ICMP_CODE_ID)
+                    .build();
+
+    private static final ImmutableMap<PiMatchFieldId, Criterion.Type> INVERSE_CRITERION_MAP =
+            ImmutableMap.<PiMatchFieldId, Criterion.Type>builder()
+                    .put(FabricConstants.HF_STANDARD_METADATA_INGRESS_PORT_ID, Criterion.Type.IN_PORT)
+                    .put(FabricConstants.HF_ETHERNET_DST_ADDR_ID, Criterion.Type.ETH_DST)
+                    .put(FabricConstants.HF_ETHERNET_SRC_ADDR_ID, Criterion.Type.ETH_SRC)
+                    .put(FabricConstants.HF_FABRIC_METADATA_ORIGINAL_ETHER_TYPE_ID, Criterion.Type.ETH_TYPE)
+                    .put(FabricConstants.HF_MPLS_BOS_ID, Criterion.Type.MPLS_BOS)
+                    .put(FabricConstants.HF_MPLS_LABEL_ID, Criterion.Type.MPLS_LABEL)
+                    .put(FabricConstants.HF_VLAN_TAG_VLAN_ID_ID, Criterion.Type.VLAN_VID)
+                    .put(FabricConstants.HF_IPV4_DST_ADDR_ID, Criterion.Type.IPV4_DST)
+                    .put(FabricConstants.HF_IPV4_SRC_ADDR_ID, Criterion.Type.IPV4_SRC)
+                    .put(FabricConstants.HF_IPV6_DST_ADDR_ID, Criterion.Type.IPV6_DST)
+                    .put(FabricConstants.HF_IPV6_SRC_ADDR_ID, Criterion.Type.IPV6_SRC)
+                    // FIXME: might be incorrect if we inverse the map....
+                    .put(FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID, Criterion.Type.UDP_SRC)
+                    .put(FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID, Criterion.Type.UDP_DST)
+//                    .put(FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID, Criterion.Type.TCP_SRC)
+//                    .put(FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID, Criterion.Type.TCP_DST)
+                    .put(FabricConstants.HF_FABRIC_METADATA_IP_PROTO_ID, Criterion.Type.IP_PROTO)
+                    .put(FabricConstants.HF_ICMP_ICMP_TYPE_ID, Criterion.Type.ICMPV6_TYPE)
+                    .put(FabricConstants.HF_ICMP_ICMP_CODE_ID, Criterion.Type.ICMPV6_CODE)
                     .build();
 
     @Override
@@ -139,7 +149,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
 
     @Override
     public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId fieldId) {
-        return Optional.ofNullable(CRITERION_MAP.inverse().get(fieldId));
+        return Optional.ofNullable(INVERSE_CRITERION_MAP.get(fieldId));
     }
 
     @Override

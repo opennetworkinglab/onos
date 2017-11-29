@@ -25,8 +25,9 @@ control Filtering (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    direct_counter(CounterType.packets_and_bytes) ingress_port_vlan_counter;
-    direct_counter(CounterType.packets_and_bytes) fwd_classifier_counter;
+    action drop() {
+        mark_to_drop();
+    }
 
     action set_vlan(vlan_id_t new_vlan_id) {
         hdr.vlan_tag.vlan_id = new_vlan_id;
@@ -38,7 +39,8 @@ control Filtering (
         hdr.vlan_tag.setValid();
         hdr.vlan_tag.cfi = 0;
         hdr.vlan_tag.pri = 0;
-        hdr.vlan_tag.ether_type = ETHERTYPE_VLAN;
+        hdr.vlan_tag.ether_type = hdr.ethernet.ether_type;
+        hdr.ethernet.ether_type = ETHERTYPE_VLAN;
         set_vlan(new_vlan_id);
 
         // pop internal vlan before output
@@ -64,7 +66,6 @@ control Filtering (
             drop;
         }
         const default_action = drop();
-        counters = ingress_port_vlan_counter;
     }
 
     // Originally TMAC table in OF-DPA pipeline
@@ -72,7 +73,7 @@ control Filtering (
         key = {
             standard_metadata.ingress_port: exact;
             hdr.ethernet.dst_addr: exact;
-            hdr.ethernet.ether_type: exact;
+            fabric_metadata.original_ether_type: exact;
         }
 
         actions = {
@@ -80,7 +81,6 @@ control Filtering (
         }
 
         const default_action = set_forwarding_type(FWD_BRIDGING);
-        counters = fwd_classifier_counter;
     }
 
     apply {

@@ -17,12 +17,6 @@
 #ifndef __ACTION__
 #define __ACTION__
 #include "header.p4"
-
 action nop() {
 }
-
-action drop() {
-    mark_to_drop();
-}
-
 #endif

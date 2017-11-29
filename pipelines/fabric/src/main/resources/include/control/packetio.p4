@@ -24,6 +24,7 @@ inout standard_metadata_t standard_metadata) {
     apply {
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
+            hdr.packet_out.setInvalid();
             exit;
         }
     }
@@ -34,7 +35,6 @@ inout parsed_headers_t hdr,
 inout fabric_metadata_t fabric_metadata,
 inout standard_metadata_t standard_metadata) {
     apply {
-        hdr.packet_out.setInvalid();
         if (standard_metadata.egress_port == CPU_PORT) {
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;

@@ -24,6 +24,7 @@ packet_in packet,
 out parsed_headers_t hdr,
 inout fabric_metadata_t fabric_metadata,
 inout standard_metadata_t standard_metadata) {
+
     state start {
         transition select(standard_metadata.ingress_port) {
             CPU_PORT: parse_packet_out;
@@ -38,6 +39,7 @@ inout standard_metadata_t standard_metadata) {
 
     state parse_ethernet {
         packet.extract(hdr.ethernet);
+        fabric_metadata.original_ether_type = hdr.ethernet.ether_type;
         transition select(hdr.ethernet.ether_type){
             ETHERTYPE_QINQ_NON_STD: parse_vlan_tag;
             ETHERTYPE_QINQ: parse_vlan_tag;
@@ -73,7 +75,6 @@ inout standard_metadata_t standard_metadata) {
 
     state parse_mpls {
         packet.extract(hdr.mpls);
-
         //There is only one MPLS label for this fabric.
         transition select(packet.lookahead<ipv4_t>().version) {
             //The packet should be either IPv4 or IPv6.

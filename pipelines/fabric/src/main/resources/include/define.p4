@@ -44,8 +44,9 @@ const bit<8> PROTO_TCP = 6;
 const bit<8> PROTO_UDP = 17;
 const bit<8> PROTO_ICMPV6 = 58;
 
+#ifndef CPU_PORT
 const port_num_t CPU_PORT = 255;
-const port_num_t DROP_PORT = 511;
+#endif
 
 const fwd_type_t FWD_BRIDGING = 0;
 const fwd_type_t FWD_MPLS = 1;

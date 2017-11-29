@@ -32,10 +32,9 @@ tables {
     id: 16819938
   }
   action_refs {
-    id: 16793508
+    id: 16826365
   }
-  const_default_action_id: 16793508
-  direct_resource_ids: 302015144
+  const_default_action_id: 16826365
   size: 1024
 }
 tables {
@@ -58,7 +57,7 @@ tables {
   }
   match_fields {
     id: 3
-    name: "hdr.ethernet.ether_type"
+    name: "fabric_metadata.original_ether_type"
     bitwidth: 16
     match_type: EXACT
   }
@@ -66,7 +65,6 @@ tables {
     id: 16838162
   }
   const_default_action_id: 16838162
-  direct_resource_ids: 302033694
   size: 1024
 }
 tables {
@@ -94,7 +92,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302047449
   size: 1024
 }
 tables {
@@ -116,7 +113,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302001577
   size: 1024
 }
 tables {
@@ -138,7 +134,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302038636
   size: 1024
 }
 tables {
@@ -166,7 +161,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302009236
   size: 1024
 }
 tables {
@@ -188,7 +182,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301998193
   size: 1024
 }
 tables {
@@ -216,7 +209,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302003792
   size: 1024
 }
 tables {
@@ -239,38 +231,38 @@ tables {
   }
   match_fields {
     id: 3
+    name: "fabric_metadata.l4_src_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 4
+    name: "fabric_metadata.l4_dst_port"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 5
     name: "hdr.ethernet.dst_addr"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 4
+    id: 6
     name: "hdr.ethernet.src_addr"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 5
-    name: "hdr.ethernet.ether_type"
+    id: 7
+    name: "fabric_metadata.original_ether_type"
     bitwidth: 16
     match_type: TERNARY
   }
   match_fields {
-    id: 6
+    id: 8
     name: "hdr.vlan_tag.vlan_id"
     bitwidth: 12
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 7
-    name: "hdr.vlan_tag.pri"
-    bitwidth: 3
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 8
-    name: "hdr.mpls.tc"
-    bitwidth: 3
     match_type: TERNARY
   }
   match_fields {
@@ -299,60 +291,24 @@ tables {
   }
   match_fields {
     id: 13
-    name: "hdr.ipv4.protocol"
-    bitwidth: 8
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 14
     name: "hdr.ipv6.src_addr"
     bitwidth: 128
     match_type: TERNARY
   }
   match_fields {
-    id: 15
+    id: 14
     name: "hdr.ipv6.dst_addr"
     bitwidth: 128
     match_type: TERNARY
   }
   match_fields {
-    id: 16
-    name: "hdr.ipv6.next_hdr"
-    bitwidth: 8
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 17
-    name: "hdr.tcp.src_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 18
-    name: "hdr.tcp.dst_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 19
-    name: "hdr.udp.src_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 20
-    name: "hdr.udp.dst_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 21
+    id: 15
     name: "hdr.icmp.icmp_type"
     bitwidth: 8
     match_type: TERNARY
   }
   match_fields {
-    id: 22
+    id: 16
     name: "hdr.icmp.icmp_code"
     bitwidth: 8
     match_type: TERNARY
@@ -364,14 +320,13 @@ tables {
     id: 16805452
   }
   action_refs {
-    id: 16793508
+    id: 16815978
   }
   action_refs {
     id: 16819938
   }
   const_default_action_id: 16819938
-  direct_resource_ids: 302000008
-  size: 1024
+  size: 256
 }
 tables {
   preamble {
@@ -398,7 +353,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301991179
   size: 1024
 }
 tables {
@@ -427,7 +381,6 @@ tables {
     annotations: "@defaultonly()"
   }
   implementation_id: 285225078
-  direct_resource_ids: 301993193
   size: 1024
 }
 tables {
@@ -449,7 +402,6 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301995093
   size: 1024
 }
 actions {
@@ -461,16 +413,16 @@ actions {
 }
 actions {
   preamble {
-    id: 16793508
-    name: "drop"
-    alias: "drop"
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
   }
 }
 actions {
   preamble {
-    id: 16800567
-    name: "NoAction"
-    alias: "NoAction"
+    id: 16826365
+    name: "filtering.drop"
+    alias: "filtering.drop"
   }
 }
 actions {
@@ -507,6 +459,13 @@ actions {
     id: 1
     name: "fwd_type"
     bitwidth: 3
+  }
+}
+actions {
+  preamble {
+    id: 16815978
+    name: "forwarding.drop"
+    alias: "forwarding.drop"
   }
 }
 actions {
@@ -694,138 +653,6 @@ counters {
   }
   size: 511
 }
-direct_counters {
-  preamble {
-    id: 302015144
-    name: "filtering.ingress_port_vlan_counter"
-    alias: "ingress_port_vlan_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33578399
-}
-direct_counters {
-  preamble {
-    id: 302033694
-    name: "filtering.fwd_classifier_counter"
-    alias: "fwd_classifier_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33619540
-}
-direct_counters {
-  preamble {
-    id: 302047449
-    name: "forwarding.bridging_counter"
-    alias: "bridging_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33569146
-}
-direct_counters {
-  preamble {
-    id: 302001577
-    name: "forwarding.mpls_counter"
-    alias: "mpls_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33565386
-}
-direct_counters {
-  preamble {
-    id: 302038636
-    name: "forwarding.unicast_v4_counter"
-    alias: "unicast_v4_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33589684
-}
-direct_counters {
-  preamble {
-    id: 302009236
-    name: "forwarding.multicast_v4_counter"
-    alias: "multicast_v4_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33615204
-}
-direct_counters {
-  preamble {
-    id: 301998193
-    name: "forwarding.unicast_v6_counter"
-    alias: "unicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33608345
-}
-direct_counters {
-  preamble {
-    id: 302003792
-    name: "forwarding.multicast_v6_counter"
-    alias: "multicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33592333
-}
-direct_counters {
-  preamble {
-    id: 302000008
-    name: "forwarding.acl_counter"
-    alias: "acl_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33587782
-}
-direct_counters {
-  preamble {
-    id: 301991179
-    name: "next.simple_counter"
-    alias: "simple_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33615740
-}
-direct_counters {
-  preamble {
-    id: 301993193
-    name: "next.hashed_counter"
-    alias: "hashed_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33569488
-}
-direct_counters {
-  preamble {
-    id: 301995093
-    name: "next.broadcast_counter"
-    alias: "broadcast_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33608545
-}
 controller_packet_metadata {
   preamble {
     id: 2868941301
@@ -836,6 +663,11 @@ controller_packet_metadata {
     id: 1
     name: "ingress_port"
     bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_pad"
+    bitwidth: 7
   }
 }
 controller_packet_metadata {
@@ -848,5 +680,10 @@ controller_packet_metadata {
     id: 1
     name: "egress_port"
     bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_pad"
+    bitwidth: 7
   }
 }
