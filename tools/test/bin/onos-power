@@ -1,0 +1,34 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Provides a unioform way to simulate power on/off control over an ONOS node.
+# If environment variable HARD_POWER_OFF is set and the ONOS_CELL value
+# indicates that the cell is a borrowed shared cell LXC machine, it will use
+# a REST call to warden, which then uses lxc-stop/lxc-start command to
+# simulate a power control operations. Otherwise, it will just use the soft
+# 'onos-die' command.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+cmd=${2:-on}
+
+if [ "$cmd" = "on" ]; then
+    if [ -n "$HARD_POWER_OFF" -a $ONOS_CELL = "borrow" ]; then
+        curl -sS -X PUT "http://$CELL_WARDEN:4321/?cmd=powerOn&nodeIp=$node&user=$(id -un)"
+    else
+        onos-service $node start
+    fi
+
+elif [ "$cmd" = "off" ]; then
+    if [ -n "$HARD_POWER_OFF" -a $ONOS_CELL = "borrow" ]; then
+        curl -sS -X PUT "http://$CELL_WARDEN:4321/?cmd=powerOff&nodeIp=$node&user=$(id -un)"
+    else
+        onos-die $node start
+    fi
+
+else
+    echo "usage: $(basename $0) node-ip {on|off}" >&2 && exit 1
+fi
+

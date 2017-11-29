@@ -101,8 +101,8 @@ ssh -tt $remote "
     echo 'log4j.appender.out.layout.ConversionPattern=%d{ISO8601} | %-5.5p | %-16.16t | %-32.32c{1} | %X{bundle.id} | %m%n' \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 
-    # Set up the ONOS service on systemd-based systems
-    sudo systemctl daemon-reload || true
+    # Set up and enable the ONOS service on systemd-based systems
+    sudo systemctl daemon-reload && sudo systemctl enable onos.service || true
 
 "
 
