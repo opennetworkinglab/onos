@@ -442,16 +442,21 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     private Interface getServerInterface(List<DhcpServerInfo> serverInfos) {
-        DhcpServerInfo serverInfo = serverInfos.get(0);
-        ConnectPoint dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
-        VlanId dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
-        if (dhcpServerConnectPoint == null || dhcpConnectVlan == null) {
-            return null;
-        }
-        return interfaceService.getInterfacesByPort(dhcpServerConnectPoint)
-                .stream()
-                .filter(iface -> interfaceContainsVlan(iface, dhcpConnectVlan))
+        return serverInfos.stream()
                 .findFirst()
+                .map(serverInfo -> {
+                    ConnectPoint dhcpServerConnectPoint =
+                            serverInfo.getDhcpServerConnectPoint().orElse(null);
+                    VlanId dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+                    if (dhcpServerConnectPoint == null || dhcpConnectVlan == null) {
+                        return null;
+                    }
+                    return interfaceService.getInterfacesByPort(dhcpServerConnectPoint)
+                            .stream()
+                            .filter(iface -> interfaceContainsVlan(iface, dhcpConnectVlan))
+                            .findFirst()
+                            .orElse(null);
+                })
                 .orElse(null);
     }
 
@@ -683,7 +688,16 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             return null;
         }
         boolean isDirectlyConnected = directlyConnected(dhcpPacket);
-        Interface serverInterface = isDirectlyConnected ? getDefaultServerInterface() : getIndirectServerInterface();
+        Interface serverInterface;
+        if (isDirectlyConnected) {
+            serverInterface = getDefaultServerInterface();
+        } else {
+            serverInterface = getIndirectServerInterface();
+            if (serverInterface == null) {
+                // Indirect server interface not found, use default server interface
+                serverInterface = getDefaultServerInterface();
+            }
+        }
         if (serverInterface == null) {
             log.warn("Can't get {} server interface, ignore", isDirectlyConnected ? "direct" : "indirect");
             return null;
@@ -835,7 +849,16 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             return null;
         }
         boolean isDirectlyConnected = directlyConnected(dhcpPacket);
-        Interface serverInterface = isDirectlyConnected ? getDefaultServerInterface() : getIndirectServerInterface();
+        Interface serverInterface;
+        if (isDirectlyConnected) {
+            serverInterface = getDefaultServerInterface();
+        } else {
+            serverInterface = getIndirectServerInterface();
+            if (serverInterface == null) {
+                // Indirect server interface not found, use default server interface
+                serverInterface = getDefaultServerInterface();
+            }
+        }
         if (serverInterface == null) {
             log.warn("Can't get {} server interface, ignore", isDirectlyConnected ? "direct" : "indirect");
             return null;
