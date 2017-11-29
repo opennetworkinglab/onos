@@ -74,7 +74,6 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
@@ -499,7 +498,6 @@ public class DhcpRelayManagerTest {
 
         assertTrue(objectivesFromDev1.containsAll(objectivesFromDev2));
         assertTrue(objectivesFromDev2.containsAll(objectivesFromDev1));
-        TrafficTreatment dropTreatment = DefaultTrafficTreatment.builder().wipeDeferred().build();
 
         for (int index = 0; index < objectivesFromDev1.size(); index++) {
             TrafficSelector selector =
@@ -508,7 +506,7 @@ public class DhcpRelayManagerTest {
                     .build();
             ForwardingObjective fwd = (ForwardingObjective) objectivesFromDev1.get(index);
             assertEquals(selector, fwd.selector());
-            assertEquals(dropTreatment, fwd.treatment());
+            assertEquals(DefaultTrafficTreatment.emptyTreatment(), fwd.treatment());
             assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
             assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
             assertEquals(Objective.Operation.ADD, fwd.op());
@@ -547,7 +545,6 @@ public class DhcpRelayManagerTest {
 
         assertTrue(objectivesFromDev1.containsAll(objectivesFromDev2));
         assertTrue(objectivesFromDev2.containsAll(objectivesFromDev1));
-        TrafficTreatment dropTreatment = DefaultTrafficTreatment.builder().wipeDeferred().build();
 
         for (int index = 0; index < objectivesFromDev1.size(); index++) {
             TrafficSelector selector =
@@ -556,7 +553,7 @@ public class DhcpRelayManagerTest {
                     .build();
             ForwardingObjective fwd = (ForwardingObjective) objectivesFromDev1.get(index);
             assertEquals(selector, fwd.selector());
-            assertEquals(dropTreatment, fwd.treatment());
+            assertEquals(DefaultTrafficTreatment.emptyTreatment(), fwd.treatment());
             assertEquals(IGNORE_CONTROL_PRIORITY, fwd.priority());
             assertEquals(ForwardingObjective.Flag.VERSATILE, fwd.flag());
             assertEquals(Objective.Operation.REMOVE, fwd.op());
