@@ -804,7 +804,16 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         UDP clientUdp = (UDP) clientIpv6.getPayload();
         DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
         boolean directConnFlag = directlyConnected(clientDhcp6);
-        Interface serverInterface = directConnFlag ? getServerInterface() : getIndirectServerInterface();
+        Interface serverInterface;
+        if (directConnFlag) {
+            serverInterface = getServerInterface();
+        } else {
+            serverInterface = getIndirectServerInterface();
+            if (serverInterface == null) {
+                // Indirect server interface not found, use default server interface
+                serverInterface = getServerInterface();
+            }
+        }
         if (serverInterface == null) {
             log.warn("Can't get {} server interface, ignore", directConnFlag ? "direct" : "indirect");
             return null;
