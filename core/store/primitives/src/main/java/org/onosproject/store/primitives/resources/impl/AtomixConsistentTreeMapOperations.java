@@ -34,33 +34,31 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * state machine operations.
  */
 public enum AtomixConsistentTreeMapOperations implements OperationId {
-    SUB_MAP("subMap", OperationType.QUERY),
-    FIRST_KEY("firstKey", OperationType.QUERY),
-    LAST_KEY("lastKey", OperationType.QUERY),
-    FIRST_ENTRY("firstEntry", OperationType.QUERY),
-    LAST_ENTRY("lastEntry", OperationType.QUERY),
-    POLL_FIRST_ENTRY("pollFirstEntry", OperationType.QUERY),
-    POLL_LAST_ENTRY("pollLastEntry", OperationType.QUERY),
-    LOWER_ENTRY("lowerEntry", OperationType.QUERY),
-    LOWER_KEY("lowerKey", OperationType.QUERY),
-    FLOOR_ENTRY("floorEntry", OperationType.QUERY),
-    FLOOR_KEY("floorKey", OperationType.QUERY),
-    CEILING_ENTRY("ceilingEntry", OperationType.QUERY),
-    CEILING_KEY("ceilingKey", OperationType.QUERY),
-    HIGHER_ENTRY("higherEntry", OperationType.QUERY),
-    HIGHER_KEY("higherKey", OperationType.QUERY);
+    SUB_MAP(OperationType.QUERY),
+    FIRST_KEY(OperationType.QUERY),
+    LAST_KEY(OperationType.QUERY),
+    FIRST_ENTRY(OperationType.QUERY),
+    LAST_ENTRY(OperationType.QUERY),
+    POLL_FIRST_ENTRY(OperationType.QUERY),
+    POLL_LAST_ENTRY(OperationType.QUERY),
+    LOWER_ENTRY(OperationType.QUERY),
+    LOWER_KEY(OperationType.QUERY),
+    FLOOR_ENTRY(OperationType.QUERY),
+    FLOOR_KEY(OperationType.QUERY),
+    CEILING_ENTRY(OperationType.QUERY),
+    CEILING_KEY(OperationType.QUERY),
+    HIGHER_ENTRY(OperationType.QUERY),
+    HIGHER_KEY(OperationType.QUERY);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixConsistentTreeMapOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixConsistentTreeMapOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override

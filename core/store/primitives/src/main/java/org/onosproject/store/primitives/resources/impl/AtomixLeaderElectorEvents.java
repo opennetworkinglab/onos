@@ -23,17 +23,11 @@ import org.onosproject.store.serializers.KryoNamespaces;
  * Atomix leader elector events.
  */
 public enum AtomixLeaderElectorEvents implements EventType {
-    CHANGE("change");
-
-    private final String id;
-
-    AtomixLeaderElectorEvents(String id) {
-        this.id = id;
-    }
+    CHANGE;
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()

@@ -29,28 +29,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * {@link AtomixLeaderElector} resource state machine operations.
  */
 public enum AtomixLeaderElectorOperations implements OperationId {
-    ADD_LISTENER("addListener", OperationType.COMMAND),
-    REMOVE_LISTENER("removeListener", OperationType.COMMAND),
-    RUN("run", OperationType.COMMAND),
-    WITHDRAW("withdraw", OperationType.COMMAND),
-    ANOINT("anoint", OperationType.COMMAND),
-    PROMOTE("promote", OperationType.COMMAND),
-    EVICT("evict", OperationType.COMMAND),
-    GET_LEADERSHIP("getLeadership", OperationType.QUERY),
-    GET_ALL_LEADERSHIPS("getAllLeaderships", OperationType.QUERY),
-    GET_ELECTED_TOPICS("getElectedTopics", OperationType.QUERY);
+    ADD_LISTENER(OperationType.COMMAND),
+    REMOVE_LISTENER(OperationType.COMMAND),
+    RUN(OperationType.COMMAND),
+    WITHDRAW(OperationType.COMMAND),
+    ANOINT(OperationType.COMMAND),
+    PROMOTE(OperationType.COMMAND),
+    EVICT(OperationType.COMMAND),
+    GET_LEADERSHIP(OperationType.QUERY),
+    GET_ALL_LEADERSHIPS(OperationType.QUERY),
+    GET_ELECTED_TOPICS(OperationType.QUERY);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixLeaderElectorOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixLeaderElectorOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override

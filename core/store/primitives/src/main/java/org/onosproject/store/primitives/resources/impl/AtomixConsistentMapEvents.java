@@ -24,17 +24,11 @@ import org.onosproject.store.service.MapEvent;
  * Atomix consistent map events.
  */
 public enum AtomixConsistentMapEvents implements EventType {
-    CHANGE("change");
-
-    private final String id;
-
-    AtomixConsistentMapEvents(String id) {
-        this.id = id;
-    }
+    CHANGE;
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()

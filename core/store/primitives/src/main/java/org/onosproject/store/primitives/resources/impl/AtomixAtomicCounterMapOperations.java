@@ -24,33 +24,31 @@ import org.onosproject.store.serializers.KryoNamespaces;
  * Atomic counter map commands.
  */
 public enum AtomixAtomicCounterMapOperations implements OperationId {
-    PUT("put", OperationType.COMMAND),
-    PUT_IF_ABSENT("putIfAbsent", OperationType.COMMAND),
-    GET("get", OperationType.QUERY),
-    REPLACE("replace", OperationType.COMMAND),
-    REMOVE("remove", OperationType.COMMAND),
-    REMOVE_VALUE("removeValue", OperationType.COMMAND),
-    GET_AND_INCREMENT("getAndIncrement", OperationType.COMMAND),
-    GET_AND_DECREMENT("getAndDecrement", OperationType.COMMAND),
-    INCREMENT_AND_GET("incrementAndGet", OperationType.COMMAND),
-    DECREMENT_AND_GET("decrementAndGet", OperationType.COMMAND),
-    ADD_AND_GET("addAndGet", OperationType.COMMAND),
-    GET_AND_ADD("getAndAdd", OperationType.COMMAND),
-    SIZE("size", OperationType.QUERY),
-    IS_EMPTY("isEmpty", OperationType.QUERY),
-    CLEAR("clear", OperationType.COMMAND);
+    PUT(OperationType.COMMAND),
+    PUT_IF_ABSENT(OperationType.COMMAND),
+    GET(OperationType.QUERY),
+    REPLACE(OperationType.COMMAND),
+    REMOVE(OperationType.COMMAND),
+    REMOVE_VALUE(OperationType.COMMAND),
+    GET_AND_INCREMENT(OperationType.COMMAND),
+    GET_AND_DECREMENT(OperationType.COMMAND),
+    INCREMENT_AND_GET(OperationType.COMMAND),
+    DECREMENT_AND_GET(OperationType.COMMAND),
+    ADD_AND_GET(OperationType.COMMAND),
+    GET_AND_ADD(OperationType.COMMAND),
+    SIZE(OperationType.QUERY),
+    IS_EMPTY(OperationType.QUERY),
+    CLEAR(OperationType.COMMAND);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixAtomicCounterMapOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixAtomicCounterMapOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override

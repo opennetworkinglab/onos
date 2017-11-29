@@ -24,17 +24,11 @@ import org.onosproject.store.service.MultimapEvent;
  * Atomix consistent set multimap events.
  */
 public enum AtomixConsistentSetMultimapEvents implements EventType {
-    CHANGE("change");
-
-    private final String id;
-
-    AtomixConsistentSetMultimapEvents(String id) {
-        this.id = id;
-    }
+    CHANGE;
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()

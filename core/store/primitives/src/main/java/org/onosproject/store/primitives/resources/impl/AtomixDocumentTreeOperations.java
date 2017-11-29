@@ -35,29 +35,27 @@ import org.onosproject.store.service.Versioned;
  * {@link AtomixDocumentTree} resource state machine operations.
  */
 public enum AtomixDocumentTreeOperations implements OperationId {
-    ADD_LISTENER("set", OperationType.COMMAND),
-    REMOVE_LISTENER("compareAndSet", OperationType.COMMAND),
-    GET("incrementAndGet", OperationType.QUERY),
-    GET_CHILDREN("getAndIncrement", OperationType.QUERY),
-    UPDATE("addAndGet", OperationType.COMMAND),
-    CLEAR("getAndAdd", OperationType.COMMAND),
-    BEGIN("begin", OperationType.COMMAND),
-    PREPARE("prepare", OperationType.COMMAND),
-    PREPARE_AND_COMMIT("prepareAndCommit", OperationType.COMMAND),
-    COMMIT("commit", OperationType.COMMAND),
-    ROLLBACK("rollback", OperationType.COMMAND);
+    ADD_LISTENER(OperationType.COMMAND),
+    REMOVE_LISTENER(OperationType.COMMAND),
+    GET(OperationType.QUERY),
+    GET_CHILDREN(OperationType.QUERY),
+    UPDATE(OperationType.COMMAND),
+    CLEAR(OperationType.COMMAND),
+    BEGIN(OperationType.COMMAND),
+    PREPARE(OperationType.COMMAND),
+    PREPARE_AND_COMMIT(OperationType.COMMAND),
+    COMMIT(OperationType.COMMAND),
+    ROLLBACK(OperationType.COMMAND);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixDocumentTreeOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixDocumentTreeOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override
