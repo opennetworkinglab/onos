@@ -50,7 +50,6 @@ control Forwarding (
     }
 
     action duplicate_to_controller() {
-        fabric_metadata.next_type = NEXT_TYPE_PUNT;
         standard_metadata.egress_spec = CPU_PORT;
     }
 

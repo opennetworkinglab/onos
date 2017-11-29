@@ -19,7 +19,6 @@ package org.onosproject.pipelines.fabric.pipeliner;
 import com.google.common.collect.ImmutableList;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -34,9 +33,7 @@ import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
@@ -45,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_ECMP_SELECTOR_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_NEXT_ECMP_SELECTOR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
 
 /**
@@ -103,10 +100,8 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(2, flowRulesInstalled.size());
+        assertEquals(1, flowRulesInstalled.size());
         assertTrue(groupsInstalled.isEmpty());
-
-        verifyNextIdMapping(flowRulesInstalled.get(0), NEXT_TYPE_SIMPLE);
 
         // Simple table
         PiCriterion nextIdCriterion = PiCriterion.builder()
@@ -115,7 +110,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
-        FlowRule actualFlowRule = flowRulesInstalled.get(1);
+        FlowRule actualFlowRule = flowRulesInstalled.get(0);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
@@ -127,36 +122,6 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .withTreatment(treatment)
                 .build();
         assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
-    }
-
-    private void verifyNextIdMapping(FlowRule flowRule, byte nextType) {
-        FlowRule expectedFlowRule;
-        PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
-                .build();
-        TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
-                .matchPi(nextIdCriterion)
-                .build();
-        PiActionParam setNextToSimpleParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_TYPE_ID,
-                                                               ImmutableByteSequence.copyFrom(nextType));
-        PiAction setNextToSimpleAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_NEXT_TYPE_ID)
-                .withParameter(setNextToSimpleParam)
-                .build();
-        TrafficTreatment setNextTypeTreatment = DefaultTrafficTreatment.builder()
-                .piTableAction(setNextToSimpleAction)
-                .build();
-        expectedFlowRule = DefaultFlowRule.builder()
-                .forDevice(DEVICE_ID)
-                .fromApp(APP_ID)
-                .makePermanent()
-                // FIXME: currently next objective doesn't support priority, set priority to zero
-                .withPriority(0)
-                .forTable(FabricConstants.TBL_NEXT_ID_MAPPING_ID)
-                .withSelector(nextIdSelector)
-                .withTreatment(setNextTypeTreatment)
-                .build();
-        assertTrue(expectedFlowRule.exactMatch(flowRule));
     }
 
     /**
@@ -190,10 +155,8 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         // Should generates 2 flows and 1 group
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(2, flowRulesInstalled.size());
+        assertEquals(1, flowRulesInstalled.size());
         assertEquals(1, groupsInstalled.size());
-
-        verifyNextIdMapping(flowRulesInstalled.get(0), NEXT_TYPE_HASHED);
 
         // Hashed table
         PiCriterion nextIdCriterion = PiCriterion.builder()
@@ -206,7 +169,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(actionGroupId)
                 .build();
-        FlowRule actualFlowRule = flowRulesInstalled.get(1);
+        FlowRule actualFlowRule = flowRulesInstalled.get(0);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
@@ -227,7 +190,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .map(DefaultGroupBucket::createSelectGroupBucket)
                 .collect(Collectors.toList());
         GroupBuckets groupBuckets = new GroupBuckets(buckets);
-        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_ECMP_SELECTOR_ID, NEXT_ID_1);
+        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_NEXT_ECMP_SELECTOR_ID, NEXT_ID_1);
         GroupDescription expectedGroup = new DefaultGroupDescription(
                 DEVICE_ID,
                 GroupDescription.Type.SELECT,

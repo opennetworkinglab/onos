@@ -117,7 +117,6 @@ header icmp_t {
 struct fabric_metadata_t {
     fwd_type_t fwd_type;
     next_id_t next_id;
-    next_type_t next_type;
     bool pop_vlan_at_egress;
     bit<8> ip_proto;
     bit<16> l4_src_port;

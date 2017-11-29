@@ -375,28 +375,6 @@ tables {
 }
 tables {
   preamble {
-    id: 33589605
-    name: "next.next_id_mapping"
-    alias: "next_id_mapping"
-  }
-  match_fields {
-    id: 1
-    name: "fabric_metadata.next_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16800774
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302015538
-  size: 1024
-}
-tables {
-  preamble {
     id: 33615740
     name: "next.simple"
     alias: "simple"
@@ -560,18 +538,6 @@ actions {
     id: 16805452
     name: "forwarding.duplicate_to_controller"
     alias: "duplicate_to_controller"
-  }
-}
-actions {
-  preamble {
-    id: 16800774
-    name: "next.set_next_type"
-    alias: "set_next_type"
-  }
-  params {
-    id: 1
-    name: "next_type"
-    bitwidth: 3
   }
 }
 actions {
@@ -826,17 +792,6 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33587782
-}
-direct_counters {
-  preamble {
-    id: 302015538
-    name: "next.next_id_mapping_counter"
-    alias: "next_id_mapping_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33589605
 }
 direct_counters {
   preamble {

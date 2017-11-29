@@ -91,7 +91,6 @@ public final class FabricConstants {
     public static final PiTableId TBL_HASHED_ID = PiTableId.of("next.hashed");
     public static final PiTableId TBL_INGRESS_PORT_VLAN_ID = PiTableId.of("filtering.ingress_port_vlan");
     public static final PiTableId TBL_FWD_CLASSIFIER_ID = PiTableId.of("filtering.fwd_classifier");
-    public static final PiTableId TBL_NEXT_ID_MAPPING_ID = PiTableId.of("next.next_id_mapping");
     public static final PiTableId TBL_UNICAST_V6_ID = PiTableId.of("forwarding.unicast_v6");
     public static final PiTableId TBL_SIMPLE_ID = PiTableId.of("next.simple");
     public static final PiTableId TBL_BRIDGING_ID = PiTableId.of("forwarding.bridging");
@@ -113,7 +112,6 @@ public final class FabricConstants {
     public static final PiCounterId CNT_FWD_CLASSIFIER_COUNTER_ID = PiCounterId.of("filtering.fwd_classifier_counter");
     public static final PiCounterId CNT_UNICAST_V6_COUNTER_ID = PiCounterId.of("forwarding.unicast_v6_counter");
     public static final PiCounterId CNT_BRIDGING_COUNTER_ID = PiCounterId.of("forwarding.bridging_counter");
-    public static final PiCounterId CNT_NEXT_ID_MAPPING_COUNTER_ID = PiCounterId.of("next.next_id_mapping_counter");
     public static final PiCounterId CNT_SIMPLE_COUNTER_ID = PiCounterId.of("next.simple_counter");
     public static final PiCounterId CNT_HASHED_COUNTER_ID = PiCounterId.of("next.hashed_counter");
     public static final PiCounterId CNT_BROADCAST_COUNTER_ID = PiCounterId.of("next.broadcast_counter");
@@ -130,7 +128,6 @@ public final class FabricConstants {
     public static final PiActionId ACT_MPLS_ROUTING_V6_ID = PiActionId.of("next.mpls_routing_v6");
     public static final PiActionId ACT_SET_FORWARDING_TYPE_ID = PiActionId.of("filtering.set_forwarding_type");
     public static final PiActionId ACT_POP_MPLS_AND_NEXT_ID = PiActionId.of("forwarding.pop_mpls_and_next");
-    public static final PiActionId ACT_SET_NEXT_TYPE_ID = PiActionId.of("next.set_next_type");
     public static final PiActionId ACT_L3_ROUTING_ID = PiActionId.of("next.l3_routing");
     public static final PiActionId ACT_OUTPUT_ID = PiActionId.of("next.output");
     public static final PiActionId ACT_NOP_ID = PiActionId.of("nop");
@@ -146,11 +143,10 @@ public final class FabricConstants {
     public static final PiActionParamId ACT_PRM_GID_ID = PiActionParamId.of("gid");
     public static final PiActionParamId ACT_PRM_NEW_VLAN_ID_ID = PiActionParamId.of("new_vlan_id");
     public static final PiActionParamId ACT_PRM_FWD_TYPE_ID = PiActionParamId.of("fwd_type");
-    public static final PiActionParamId ACT_PRM_NEXT_TYPE_ID = PiActionParamId.of("next_type");
     public static final PiActionParamId ACT_PRM_NEXT_ID_ID = PiActionParamId.of("next_id");
 
     // Action Profile IDs
-    public static final PiActionProfileId ACT_PRF_ECMP_SELECTOR_ID = PiActionProfileId.of("next.ecmp_selector");
+    public static final PiActionProfileId ACT_PRF_NEXT_ECMP_SELECTOR_ID = PiActionProfileId.of("next.ecmp_selector");
 
     // Packet Metadata IDs
     public static final PiControlMetadataId CTRL_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");

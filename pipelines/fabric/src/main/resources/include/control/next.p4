@@ -24,15 +24,10 @@ control Next (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
-    direct_counter(CounterType.packets_and_bytes) next_id_mapping_counter;
     direct_counter(CounterType.packets_and_bytes) simple_counter;
     direct_counter(CounterType.packets_and_bytes) hashed_counter;
     direct_counter(CounterType.packets_and_bytes) broadcast_counter;
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
-
-    action set_next_type(next_type_t next_type) {
-        fabric_metadata.next_type = next_type;
-    }
 
     action output(port_num_t port_num) {
         standard_metadata.egress_spec = port_num;
@@ -95,17 +90,6 @@ control Next (
         push_mpls(label, hdr.ipv6.traffic_class[7:5]);
     }
 
-    table next_id_mapping {
-        key = {
-            fabric_metadata.next_id: exact;
-        }
-
-        actions = {
-            set_next_type;
-        }
-        counters = next_id_mapping_counter;
-    }
-
     table simple {
         key = {
             fabric_metadata.next_id: exact;
@@ -156,11 +140,9 @@ control Next (
     }
 
     apply {
-        next_id_mapping.apply();
-        if (fabric_metadata.next_type == NEXT_TYPE_SIMPLE) simple.apply();
-        else if (fabric_metadata.next_type == NEXT_TYPE_HASHED) hashed.apply();
-        else if (fabric_metadata.next_type == NEXT_TYPE_BROADCAST) broadcast.apply();
-        // next_type == PUNT, leave it to packet-io egress
+        simple.apply();
+        hashed.apply();
+        broadcast.apply();
     }
 }
 

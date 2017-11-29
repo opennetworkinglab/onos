@@ -75,10 +75,9 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     .put(7, FabricConstants.TBL_BRIDGING_ID)
                     .put(8, FabricConstants.TBL_ACL_ID)
                     // Next
-                    .put(9, FabricConstants.TBL_NEXT_ID_MAPPING_ID)
-                    .put(10, FabricConstants.TBL_SIMPLE_ID)
-                    .put(11, FabricConstants.TBL_HASHED_ID)
-                    .put(12, FabricConstants.TBL_BROADCAST_ID)
+                    .put(9, FabricConstants.TBL_SIMPLE_ID)
+                    .put(10, FabricConstants.TBL_HASHED_ID)
+                    .put(11, FabricConstants.TBL_BROADCAST_ID)
                     .build();
 
     private static final Set<PiTableId> FILTERING_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_INGRESS_PORT_VLAN_ID,
@@ -90,8 +89,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                                                                                FabricConstants.TBL_MULTICAST_V6_ID,
                                                                                FabricConstants.TBL_BRIDGING_ID,
                                                                                FabricConstants.TBL_ACL_ID);
-    private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_NEXT_ID_MAPPING_ID,
-                                                                         FabricConstants.TBL_SIMPLE_ID,
+    private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_SIMPLE_ID,
                                                                          FabricConstants.TBL_HASHED_ID,
                                                                          FabricConstants.TBL_BROADCAST_ID);
 
@@ -104,7 +102,6 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     .put(FabricConstants.TBL_BROADCAST_ID, FabricConstants.CNT_BROADCAST_COUNTER_ID)
                     .put(FabricConstants.TBL_HASHED_ID, FabricConstants.CNT_HASHED_COUNTER_ID)
                     .put(FabricConstants.TBL_INGRESS_PORT_VLAN_ID, FabricConstants.CNT_INGRESS_PORT_VLAN_COUNTER_ID)
-                    .put(FabricConstants.TBL_NEXT_ID_MAPPING_ID, FabricConstants.CNT_NEXT_ID_MAPPING_COUNTER_ID)
                     .put(FabricConstants.TBL_UNICAST_V6_ID, FabricConstants.CNT_UNICAST_V6_COUNTER_ID)
                     .put(FabricConstants.TBL_SIMPLE_ID, FabricConstants.CNT_SIMPLE_COUNTER_ID)
                     .put(FabricConstants.TBL_BRIDGING_ID, FabricConstants.CNT_BRIDGING_COUNTER_ID)

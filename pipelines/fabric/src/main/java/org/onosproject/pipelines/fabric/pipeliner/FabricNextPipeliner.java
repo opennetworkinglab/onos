@@ -16,7 +16,6 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
-import com.google.common.collect.ImmutableMap;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -33,23 +32,16 @@ import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_ECMP_SELECTOR_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRM_NEXT_TYPE_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_SET_NEXT_TYPE_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_NEXT_ECMP_SELECTOR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_NEXT_ID_MAPPING_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_SIMPLE_ID;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -59,18 +51,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class FabricNextPipeliner {
     private static final Logger log = getLogger(FabricNextPipeliner.class);
 
-    // Next types
-    private static final byte NXT_TYPE_SIMPLE = 0;
-    private static final byte NXT_TYPE_HASHED = 1;
-    private static final byte NXT_TYPE_BROADCAST = 2;
-    private static final byte NXT_TYPE_PUNT = 3;
-    private static final Map<NextObjective.Type, Byte> NEXT_TYPE_MAP =
-            ImmutableMap.<NextObjective.Type, Byte>builder()
-                    .put(NextObjective.Type.SIMPLE, NXT_TYPE_SIMPLE)
-                    .put(NextObjective.Type.HASHED, NXT_TYPE_HASHED)
-                    .put(NextObjective.Type.BROADCAST, NXT_TYPE_BROADCAST)
-                    .build();
-
     protected DeviceId deviceId;
 
     public FabricNextPipeliner(DeviceId deviceId) {
@@ -79,7 +59,6 @@ public class FabricNextPipeliner {
 
     public PipelinerTranslationResult next(NextObjective nextObjective) {
         PipelinerTranslationResult.Builder resultBuilder = PipelinerTranslationResult.builder();
-        processNextIdMapping(nextObjective, resultBuilder);
 
         switch (nextObjective.type()) {
             case SIMPLE:
@@ -95,23 +74,6 @@ public class FabricNextPipeliner {
         }
 
         return resultBuilder.build();
-    }
-
-    private void processNextIdMapping(NextObjective next,
-                                      PipelinerTranslationResult.Builder resultBuilder) {
-        // program the next id mapping table
-        TrafficSelector nextIdSelector = buildNextIdSelector(next.id());
-        TrafficTreatment setNextTypeTreatment = buildSetNextTypeTreatment(next.type());
-
-        resultBuilder.addFlowRule(DefaultFlowRule.builder()
-                                          .withSelector(nextIdSelector)
-                                          .withTreatment(setNextTypeTreatment)
-                                          .forDevice(deviceId)
-                                          .forTable(TBL_NEXT_ID_MAPPING_ID)
-                                          .makePermanent()
-                                          .withPriority(next.priority())
-                                          .fromApp(next.appId())
-                                          .build());
     }
 
     private void processSimpleNext(NextObjective next,
@@ -165,7 +127,7 @@ public class FabricNextPipeliner {
 
         GroupBuckets buckets = new GroupBuckets(bucketList);
         PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID,
-                                             ACT_PRF_ECMP_SELECTOR_ID,
+                                             ACT_PRF_NEXT_ECMP_SELECTOR_ID,
                                              groupId);
 
         resultBuilder.addGroup(new DefaultGroupDescription(deviceId,
@@ -198,19 +160,6 @@ public class FabricNextPipeliner {
                 .build();
         return DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
-                .build();
-    }
-
-    private TrafficTreatment buildSetNextTypeTreatment(NextObjective.Type nextType) {
-        byte nextTypeVal = NEXT_TYPE_MAP.getOrDefault(nextType, NXT_TYPE_PUNT);
-        PiActionParam nextTypeParam = new PiActionParam(ACT_PRM_NEXT_TYPE_ID,
-                                                        copyFrom(nextTypeVal));
-        PiAction nextTypeAction = PiAction.builder()
-                .withId(ACT_SET_NEXT_TYPE_ID)
-                .withParameter(nextTypeParam)
-                .build();
-        return DefaultTrafficTreatment.builder()
-                .piTableAction(nextTypeAction)
                 .build();
     }
 }
