@@ -76,19 +76,6 @@ import io.atomix.protocols.raft.storage.log.entry.OpenSessionEntry;
 import io.atomix.protocols.raft.storage.log.entry.QueryEntry;
 import io.atomix.protocols.raft.storage.system.Configuration;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.store.primitives.resources.impl.AtomixAtomicCounterMapOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapEvents;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixCounterOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeEvents;
-import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorEvents;
-import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorOperations;
-import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueEvents;
-import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueOperations;
 import org.onosproject.store.serializers.KryoNamespaces;
 
 /**
@@ -137,7 +124,11 @@ public final class StorageNamespaces {
             .register(RaftResponse.Status.class)
             .register(RaftError.class)
             .register(RaftError.Type.class)
-            .register(ReadConsistency.class)
+            .register(RaftOperation.class)
+            .register(DefaultOperationId.class)
+            .register(OperationType.class)
+            .register(RaftEvent.class)
+            .register(DefaultEventType.class)
             .register(RaftSessionMetadata.class)
             .register(CloseSessionEntry.class)
             .register(CommandEntry.class)
@@ -147,11 +138,6 @@ public final class StorageNamespaces {
             .register(MetadataEntry.class)
             .register(OpenSessionEntry.class)
             .register(QueryEntry.class)
-            .register(RaftOperation.class)
-            .register(RaftEvent.class)
-            .register(DefaultEventType.class)
-            .register(DefaultOperationId.class)
-            .register(OperationType.class)
             .register(ReadConsistency.class)
             .register(ArrayList.class)
             .register(LinkedList.class)
@@ -163,19 +149,6 @@ public final class StorageNamespaces {
             .register(RaftMember.Type.class)
             .register(Instant.class)
             .register(Configuration.class)
-            .register(AtomixAtomicCounterMapOperations.class)
-            .register(AtomixConsistentMapEvents.class)
-            .register(AtomixConsistentMapOperations.class)
-            .register(AtomixConsistentSetMultimapOperations.class)
-            .register(AtomixConsistentSetMultimapEvents.class)
-            .register(AtomixConsistentTreeMapOperations.class)
-            .register(AtomixCounterOperations.class)
-            .register(AtomixDocumentTreeEvents.class)
-            .register(AtomixDocumentTreeOperations.class)
-            .register(AtomixLeaderElectorEvents.class)
-            .register(AtomixLeaderElectorOperations.class)
-            .register(AtomixWorkQueueEvents.class)
-            .register(AtomixWorkQueueOperations.class)
             .build("RaftProtocol");
 
     /**
@@ -193,6 +166,8 @@ public final class StorageNamespaces {
             .register(OpenSessionEntry.class)
             .register(QueryEntry.class)
             .register(RaftOperation.class)
+            .register(DefaultOperationId.class)
+            .register(OperationType.class)
             .register(ReadConsistency.class)
             .register(ArrayList.class)
             .register(HashSet.class)
@@ -201,14 +176,6 @@ public final class StorageNamespaces {
             .register(RaftMember.Type.class)
             .register(Instant.class)
             .register(Configuration.class)
-            .register(AtomixAtomicCounterMapOperations.class)
-            .register(AtomixConsistentMapOperations.class)
-            .register(AtomixConsistentSetMultimapOperations.class)
-            .register(AtomixConsistentTreeMapOperations.class)
-            .register(AtomixCounterOperations.class)
-            .register(AtomixDocumentTreeOperations.class)
-            .register(AtomixLeaderElectorOperations.class)
-            .register(AtomixWorkQueueOperations.class)
             .build("RaftStorage");
 
     private StorageNamespaces() {

@@ -23,17 +23,11 @@ import org.onosproject.store.serializers.KryoNamespaces;
  * Atomix work queue events.
  */
 public enum AtomixWorkQueueEvents implements EventType {
-    TASK_AVAILABLE("taskAvailable");
-
-    private final String id;
-
-    AtomixWorkQueueEvents(String id) {
-        this.id = id;
-    }
+    TASK_AVAILABLE;
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     public static final KryoNamespace NAMESPACE = KryoNamespace.newBuilder()

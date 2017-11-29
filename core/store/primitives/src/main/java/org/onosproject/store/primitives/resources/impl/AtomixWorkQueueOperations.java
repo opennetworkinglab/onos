@@ -29,25 +29,23 @@ import org.onosproject.store.service.WorkQueueStats;
  * {@link AtomixWorkQueue} resource state machine operations.
  */
 public enum AtomixWorkQueueOperations implements OperationId {
-    STATS("stats", OperationType.QUERY),
-    REGISTER("register", OperationType.COMMAND),
-    UNREGISTER("unregister", OperationType.COMMAND),
-    ADD("add", OperationType.COMMAND),
-    TAKE("take", OperationType.COMMAND),
-    COMPLETE("complete", OperationType.COMMAND),
-    CLEAR("clear", OperationType.COMMAND);
+    STATS(OperationType.QUERY),
+    REGISTER(OperationType.COMMAND),
+    UNREGISTER(OperationType.COMMAND),
+    ADD(OperationType.COMMAND),
+    TAKE(OperationType.COMMAND),
+    COMPLETE(OperationType.COMMAND),
+    CLEAR(OperationType.COMMAND);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixWorkQueueOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixWorkQueueOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override

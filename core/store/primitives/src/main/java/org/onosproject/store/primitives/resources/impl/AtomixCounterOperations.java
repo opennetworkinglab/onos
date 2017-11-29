@@ -24,25 +24,23 @@ import org.onosproject.store.serializers.KryoNamespaces;
  * Counter commands.
  */
 public enum AtomixCounterOperations implements OperationId {
-    SET("set", OperationType.COMMAND),
-    COMPARE_AND_SET("compareAndSet", OperationType.COMMAND),
-    INCREMENT_AND_GET("incrementAndGet", OperationType.COMMAND),
-    GET_AND_INCREMENT("getAndIncrement", OperationType.COMMAND),
-    ADD_AND_GET("addAndGet", OperationType.COMMAND),
-    GET_AND_ADD("getAndAdd", OperationType.COMMAND),
-    GET("get", OperationType.QUERY);
+    SET(OperationType.COMMAND),
+    COMPARE_AND_SET(OperationType.COMMAND),
+    INCREMENT_AND_GET(OperationType.COMMAND),
+    GET_AND_INCREMENT(OperationType.COMMAND),
+    ADD_AND_GET(OperationType.COMMAND),
+    GET_AND_ADD(OperationType.COMMAND),
+    GET(OperationType.QUERY);
 
-    private final String id;
     private final OperationType type;
 
-    AtomixCounterOperations(String id, OperationType type) {
-        this.id = id;
+    AtomixCounterOperations(OperationType type) {
         this.type = type;
     }
 
     @Override
     public String id() {
-        return id;
+        return name();
     }
 
     @Override
