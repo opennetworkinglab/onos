@@ -56,6 +56,11 @@ import org.onlab.packet.dhcp.Dhcp6IaPrefixOption;
 import org.onlab.packet.dhcp.Dhcp6Option;
 import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
 import org.onlab.packet.dhcp.Dhcp6Duid;
+import org.onosproject.dhcprelay.store.DhcpRelayStore;
+import org.onosproject.dhcprelay.store.DhcpRecord;
+import org.onosproject.dhcprelay.store.DhcpRelayStoreEvent;
+import org.onosproject.dhcprelay.store.DhcpRelayCounters;
+import org.onosproject.dhcprelay.store.DhcpRelayCountersStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -65,9 +70,6 @@ import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
-import org.onosproject.dhcprelay.store.DhcpRecord;
-import org.onosproject.dhcprelay.store.DhcpRelayStore;
-import org.onosproject.dhcprelay.store.DhcpRelayStoreEvent;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -255,6 +257,7 @@ public class DhcpRelayManagerTest {
     private MockPacketService packetService;
     private MockRouteStore mockRouteStore;
     private MockDhcpRelayStore mockDhcpRelayStore;
+    private MockDhcpRelayCountersStore mockDhcpRelayCountersStore;
     private HostProviderService mockHostProviderService;
     private FlowObjectiveService flowObjectiveService;
     private DeviceService deviceService;
@@ -324,9 +327,11 @@ public class DhcpRelayManagerTest {
 
         mockRouteStore = new MockRouteStore();
         mockDhcpRelayStore = new MockDhcpRelayStore();
-        manager.dhcpRelayStore = mockDhcpRelayStore;
-        manager.deviceService = deviceService;
+        mockDhcpRelayCountersStore = new MockDhcpRelayCountersStore();
 
+        manager.dhcpRelayStore = mockDhcpRelayStore;
+
+        manager.deviceService = deviceService;
 
         manager.interfaceService = new MockInterfaceService();
         flowObjectiveService = EasyMock.niceMock(FlowObjectiveService.class);
@@ -346,6 +351,7 @@ public class DhcpRelayManagerTest {
 
         v6Handler = new Dhcp6HandlerImpl();
         v6Handler.dhcpRelayStore = mockDhcpRelayStore;
+        v6Handler.dhcpRelayCountersStore = mockDhcpRelayCountersStore;
         v6Handler.hostService = manager.hostService;
         v6Handler.interfaceService = manager.interfaceService;
         v6Handler.packetService = manager.packetService;
@@ -1003,6 +1009,48 @@ public class DhcpRelayManagerTest {
             return this.delegate != null;
         }
     }
+
+    private class MockDhcpRelayCountersStore implements DhcpRelayCountersStore {
+        private Map<String, DhcpRelayCounters> counters = Maps.newHashMap();
+
+        public void incrementCounter(String coutnerClass, String counterName) {
+            DhcpRelayCounters countersRecord;
+
+            DhcpRelayCounters classCounters = counters.get(coutnerClass);
+            if (classCounters == null) {
+                classCounters = new DhcpRelayCounters();
+            }
+            classCounters.incrementCounter(counterName);
+            counters.put(coutnerClass, classCounters);
+        }
+
+        @Override
+        public Set<Map.Entry<String, DhcpRelayCounters>> getAllCounters() {
+            return counters.entrySet();
+        }
+
+        @Override
+        public Optional<DhcpRelayCounters> getCounters(String counterClass) {
+            DhcpRelayCounters classCounters = counters.get(counterClass);
+            if (classCounters == null) {
+                return Optional.empty();
+            }
+            return Optional.of(classCounters);
+        }
+
+        @Override
+        public void resetAllCounters() {
+            counters.clear();
+        }
+
+        @Override
+        public void resetCounters(String counterClass) {
+            DhcpRelayCounters classCounters = counters.get(counterClass);
+            classCounters.resetCounters();
+            counters.put(counterClass, classCounters);
+        }
+    }
+
 
     private class MockPacketService extends PacketServiceAdapter {
         Set<PacketProcessor> packetProcessors = Sets.newHashSet();

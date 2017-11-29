@@ -16,12 +16,15 @@
 
 package org.onosproject.dhcprelay.cli;
 
+
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.dhcprelay.store.DhcpRelayCounters;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.store.DhcpRecord;
@@ -32,12 +35,30 @@ import org.onosproject.net.host.HostService;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.Map;
+
 
 /**
  * Prints DHCP server and DHCP relay status.
  */
 @Command(scope = "onos", name = "dhcp-relay", description = "DHCP relay app cli.")
 public class DhcpRelayCommand extends AbstractShellCommand {
+    @Argument(index = 0, name = "counter",
+            description = "shows counter values",
+            required = false, multiValued = false)
+    String counter = null;
+
+    @Argument(index = 1, name = "reset",
+            description = "reset counters or not",
+            required = false, multiValued = false)
+    String reset = null;
+
+
+
+    private static final String CONUTER_HEADER = "DHCP Relay Counters :";
+    private static final String COUNTER_HOST = "Counters for id=%s/%s, locations=%s%s";
+
+
     private static final String HEADER = "DHCP relay records ([D]: Directly connected):";
     private static final String NO_RECORDS = "No DHCP relay record found";
     private static final String HOST = "id=%s/%s, locations=%s%s, last-seen=%s, IPv4=%s, IPv6=%s";
@@ -49,13 +70,14 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     private static final String NA = "N/A";
     private static final String STATUS_FMT = "[%s, %s]";
     private static final String STATUS_FMT_NH = "[%s via %s, %s]";
-    private static final String STATUS_FMT_V6 = "[%s, %s, %s]";
-    private static final String STATUS_FMT_V6_NH = "[%s, %s via %s, %s]";
+    private static final String STATUS_FMT_V6 = "[%s %d, %d ms %s %d %d ms, %s]";
+    private static final String STATUS_FMT_V6_NH = "[%s %d %d ms, %s %d %d ms via %s, %s]";
     private static final String DEFAULT_SERVERS = "Default DHCP servers:";
     private static final String INDIRECT_SERVERS = "Indirect DHCP servers:";
 
     private static final DhcpRelayService DHCP_RELAY_SERVICE = get(DhcpRelayService.class);
     private static final HostService HOST_SERVICE = get(HostService.class);
+
 
     @Override
     protected void execute() {
@@ -82,6 +104,52 @@ public class DhcpRelayCommand extends AbstractShellCommand {
             print(NO_RECORDS);
             return;
         }
+
+        // Handle display of counters
+        boolean toResetFlag;
+
+        if (counter != null) {
+            if (counter.equals("counter") || reset.equals("[counter]")) {
+                print(CONUTER_HEADER);
+            } else {
+                print("first parameter is [counter]");
+                return;
+            }
+            if (reset != null) {
+                if (reset.equals("reset") || reset.equals("[reset]")) {
+                    toResetFlag = true;
+                } else {
+                    print("Last parameter is [reset]");
+                    return;
+                }
+            } else {
+                toResetFlag = false;
+            }
+
+            records.forEach(record -> {
+                print(COUNTER_HOST, record.macAddress(),
+                        record.vlanId(),
+                        record.locations(),
+                        record.directlyConnected() ? DIRECTLY : EMPTY);
+                DhcpRelayCounters v6Counters = record.getV6Counters();
+                Map<String, Integer> countersMap = v6Counters.getCounters();
+                countersMap.forEach((name, value) -> {
+                    print("%-30s  ............................  %-4d packets", name, value);
+                });
+                if (toResetFlag) {
+                    v6Counters.resetCounters();
+                    record.updateLastSeen();
+                    DHCP_RELAY_SERVICE.updateDhcpRecord(HostId.hostId(record.macAddress(), record.vlanId()), record);
+                }
+            });
+
+
+            return;
+        }
+
+
+        // Handle display of records
+
         print(HEADER);
         records.forEach(record -> print(HOST,
                                         record.macAddress(),
@@ -144,12 +212,20 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         if (record.directlyConnected()) {
             return String.format(STATUS_FMT_V6,
                     record.ip6Address().map(Object::toString).orElse(NA),
+                    record.addrPrefTime(),
+                    record.getLastIp6Update(),
                     record.pdPrefix().map(Object::toString).orElse(NA),
+                    record.pdPrefTime(),
+                    record.getLastPdUpdate(),
                     record.ip6Status().map(Object::toString).orElse(NA));
         } else {
             return String.format(STATUS_FMT_V6_NH,
                     record.ip6Address().map(Object::toString).orElse(NA),
+                    record.addrPrefTime(),
+                    record.getLastIp6Update(),
                     record.pdPrefix().map(Object::toString).orElse(NA),
+                    record.pdPrefTime(),
+                    record.getLastPdUpdate(),
                     nextHopIp,
                     record.ip6Status().map(Object::toString).orElse(NA));
         }

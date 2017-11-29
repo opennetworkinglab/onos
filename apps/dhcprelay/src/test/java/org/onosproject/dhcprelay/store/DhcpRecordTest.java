@@ -86,6 +86,12 @@ public class DhcpRecordTest {
 
         TestUtils.setField(record, "lastSeen", 0);
         TestUtils.setField(record2, "lastSeen", 0);
+        TestUtils.setField(record, "addrPrefTime", 0);
+        TestUtils.setField(record2, "addrPrefTime", 0);
+        TestUtils.setField(record, "pdPrefTime", 0);
+        TestUtils.setField(record2, "pdPrefTime", 0);
+        TestUtils.setField(record, "v6Counter", null);
+        TestUtils.setField(record2, "v6Counter", null);
 
         assertThat(record, equalTo(record2));
         assertThat(record.hashCode(), equalTo(record2.hashCode()));

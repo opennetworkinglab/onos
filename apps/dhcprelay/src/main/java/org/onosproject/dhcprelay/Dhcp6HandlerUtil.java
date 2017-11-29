@@ -32,6 +32,7 @@ import org.onlab.packet.UDP;
 
 import org.onlab.util.HexString;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
+import org.onosproject.dhcprelay.store.DhcpRelayCounters;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
@@ -214,33 +215,7 @@ public class Dhcp6HandlerUtil {
             if (leafDhcp != null) {
                 return getMsgTypeStr(leafDhcp.getMsgType());
             } else {
-                return "INVALID"; //DhcpRelayCounters.INVALID_PACKET;
-            }
-        }
-    }
-
-    /**
-     * find the string of dhcp6 leaf packets's msg type.
-     *
-     * @param fromClient indicate from what side a packet is received
-     * @param directConnFlag boolean value indicating direct/indirect connection
-     * @param dhcp6Packet dhcp6 packet
-     * @return String string value of dhcp6 leaf packet msg type
-     */
-    public String findMsgType(boolean fromClient, boolean directConnFlag, DHCP6  dhcp6Packet) {
-        if (fromClient) {
-            return findLeafMsgType(directConnFlag, dhcp6Packet);
-        } else {
-            DHCP6 embeddedDhcp6 = dhcp6Packet.getOptions().stream()
-                    .filter(opt -> opt instanceof Dhcp6RelayOption)
-                    .map(BasePacket::getPayload)
-                    .map(pld -> (DHCP6) pld)
-                    .findFirst()
-                    .orElse(null);
-            if (embeddedDhcp6 != null) {
-                return findLeafMsgType(directConnFlag, embeddedDhcp6);
-            } else {
-                return "INVALID"; //DhcpRelayCounters.INVALID_PACKET;
+                return DhcpRelayCounters.INVALID_PACKET;
             }
         }
     }

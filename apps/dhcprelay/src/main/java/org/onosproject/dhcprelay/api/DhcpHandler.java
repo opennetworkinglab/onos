@@ -178,6 +178,19 @@ public interface DhcpHandler {
     void removeIgnoreVlanState(IgnoreDhcpConfig config);
 
     /**
+     * Hander for Dhcp expiration poll timer.
+     *
+     */
+    default void timeTick() { }
+
+    /**
+     * Update Dhcp expiration poll timer value.
+     *
+     * @param val the timer interval value
+     */
+    default void setDhcp6PollInterval(int val) { }
+
+    /**
      * Sets DHCP FPM Enable state.
      *
      * @param dhcpFpmFlag flag indicating dhcpFpmEnable state
