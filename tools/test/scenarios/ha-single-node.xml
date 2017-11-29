@@ -17,8 +17,7 @@
 <scenario name="ha-single-node"
           description="ONOS cluster single node failure and recovery">
     <group name="Single-Node-Failure" if="${OC2}">
-        <step name="Node-Death" exec="onos-die ${OC1}"/>
-
+        <step name="Node-Death" exec="onos-power ${OC1} off"/>
         <step name="Validate-Death" requires="Node-Death"
               exec="onos-check-node-status ${OC2} ${OC1} INACTIVE"/>
 
@@ -36,10 +35,8 @@
                   exec="onos-check-flows ${OC2}"/>
         </group>
 
-        <group name="Recover" requires="Validate-Normal-Operation">
-            <step name="Node-Start"
-                  exec="onos-service ${OC1} start"/>
-
+        <group name="Recover" requires="~Validate-Normal-Operation">
+            <step name="Node-Start" exec="onos-power ${OC1} on"/>
             <step name="Wait-for-Start" requires="~Node-Start"
                   exec="onos-wait-for-start ${OC1}"/>
         </group>

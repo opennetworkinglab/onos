@@ -129,6 +129,9 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.DriverProvidersListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DriversListCommand"/>
             <completers>
                 <ref component-id="driverNameCompleter"/>
