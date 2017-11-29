@@ -447,17 +447,20 @@ public class DeviceManager
                 } else {
                     // check if the device has master, if not, mark it offline
                     // only the nodes which has mastership role can mark any device offline.
-                    CompletableFuture<MastershipRole> roleFuture = mastershipService.requestRoleFor(deviceId);
-                    roleFuture.thenAccept(role -> {
-                        MastershipTerm term = termService.getMastershipTerm(deviceId);
-                        if (term != null && localNodeId.equals(term.master())) {
-                            log.info("Marking unreachable device {} offline", deviceId);
-                            post(store.markOffline(deviceId));
-                        } else {
-                            log.info("Failed marking {} offline. {}", deviceId, role);
-                        }
-                        mastershipService.relinquishMastership(deviceId);
-                    });
+                    NodeId master = mastershipService.getMasterFor(deviceId);
+                    if (master == null) {
+                        CompletableFuture<MastershipRole> roleFuture = mastershipService.requestRoleFor(deviceId);
+                        roleFuture.thenAccept(role -> {
+                            MastershipTerm term = termService.getMastershipTerm(deviceId);
+                            if (term != null && localNodeId.equals(term.master())) {
+                                log.info("Marking unreachable device {} offline", deviceId);
+                                post(store.markOffline(deviceId));
+                            } else {
+                                log.info("Failed marking {} offline. {}", deviceId, role);
+                            }
+                            mastershipService.relinquishMastership(deviceId);
+                        });
+                    }
                 }
                 continue;
             }
