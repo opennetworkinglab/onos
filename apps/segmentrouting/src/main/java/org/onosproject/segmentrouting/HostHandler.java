@@ -35,6 +35,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.host.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,9 @@ import com.google.common.collect.Sets;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -51,8 +55,9 @@ import static com.google.common.base.Preconditions.checkArgument;
  * Handles host-related events.
  */
 public class HostHandler {
-
     private static final Logger log = LoggerFactory.getLogger(HostHandler.class);
+    static final int HOST_MOVED_DELAY_MS = 1000;
+
     protected final SegmentRoutingManager srManager;
     private HostService hostService;
     private FlowObjectiveService flowObjectiveService;
@@ -71,7 +76,8 @@ public class HostHandler {
     protected void init(DeviceId devId) {
         hostService.getHosts().forEach(host ->
             host.locations().stream()
-                    .filter(location -> location.deviceId().equals(devId))
+                    .filter(location -> location.deviceId().equals(devId) ||
+                            location.deviceId().equals(srManager.getPairDeviceId(devId).orElse(null)))
                     .forEach(location -> processHostAddedAtLocation(host, location))
         );
     }
@@ -114,6 +120,10 @@ public class HostHandler {
                     processBridgingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, false);
                     ips.forEach(ip -> processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId,
                                     ip, false));
+
+                    if (srManager.activeProbing) {
+                        probe(host, location, pairDeviceId, pairRemotePort);
+                    }
                 });
             }
         });
@@ -162,8 +172,23 @@ public class HostHandler {
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
         Set<HostLocation> newLocations = event.subject().locations();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.info("Host {}/{} is moved from {} to {}", hostMac, hostVlanId, prevLocations, newLocations);
 
+        // FIXME: Delay event handling a little bit to wait for the previous redirection flows to be completed
+        //        The permanent solution would be introducing CompletableFuture and wait for it
+        if (prevLocations.size() == 1 && newLocations.size() == 2) {
+            log.debug("Delay event handling when host {}/{} moves from 1 to 2 locations", hostMac, hostVlanId);
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.schedule(() ->
+                    processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps),
+                    HOST_MOVED_DELAY_MS, TimeUnit.MILLISECONDS);
+        } else {
+            processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps);
+        }
+    }
+
+    private void processHostMoved(MacAddress hostMac, VlanId hostVlanId, Set<HostLocation> prevLocations,
+                                  Set<IpAddress> prevIps, Set<HostLocation> newLocations, Set<IpAddress> newIps) {
+        log.info("Host {}/{} is moved from {} to {}", hostMac, hostVlanId, prevLocations, newLocations);
         Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
                 .collect(Collectors.toSet());
 
@@ -254,11 +279,12 @@ public class HostHandler {
     }
 
     void processHostUpdatedEvent(HostEvent event) {
-        MacAddress hostMac = event.subject().mac();
-        VlanId hostVlanId = event.subject().vlan();
-        Set<HostLocation> locations = event.subject().locations();
+        Host host = event.subject();
+        MacAddress hostMac = host.mac();
+        VlanId hostVlanId = host.vlan();
+        Set<HostLocation> locations = host.locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        Set<IpAddress> newIps = event.subject().ipAddresses();
+        Set<IpAddress> newIps = host.ipAddresses();
         log.info("Host {}/{} is updated", hostMac, hostVlanId);
 
         locations.stream().filter(srManager::isMasterOf).forEach(location -> {
@@ -273,25 +299,94 @@ public class HostHandler {
         // Use the pair link temporarily before the second location of a dual-homed host shows up.
         // This do not affect single-homed hosts since the flow will be blocked in
         // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
-        locations.forEach(location -> {
+        locations.forEach(location ->
             srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
                 if (srManager.mastershipService.isLocalMaster(pairDeviceId) &&
                         locations.stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
+                    Set<IpAddress> ipsToAdd = Sets.difference(newIps, prevIps);
+                    Set<IpAddress> ipsToRemove = Sets.difference(prevIps, newIps);
+
                     srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
                         // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                         //       when the host is untagged
                         VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
 
-                        Sets.difference(prevIps, newIps).forEach(ip ->
+                        ipsToRemove.forEach(ip ->
                                 processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, ip, true)
                         );
-                        Sets.difference(newIps, prevIps).forEach(ip ->
+                        ipsToAdd.forEach(ip ->
                                 processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, ip, false)
                         );
+
+                        if (srManager.activeProbing) {
+                            probe(host, location, pairDeviceId, pairRemotePort);
+                        }
                     });
                 }
-            });
-        });
+            })
+        );
+    }
+
+    /**
+     * When a non-pair port comes up, probe each host on the pair device if
+     * (1) the host is tagged and the tagged vlan of current port contains host vlan; or
+     * (2) the host is untagged and the internal vlan is the same on the host port and current port.
+     *
+     * @param cp connect point
+     */
+    void processPortUp(ConnectPoint cp) {
+        if (cp.port().equals(srManager.getPairLocalPorts(cp.deviceId()).orElse(null))) {
+            return;
+        }
+        if (srManager.activeProbing) {
+            srManager.getPairDeviceId(cp.deviceId())
+                    .ifPresent(pairDeviceId -> srManager.hostService.getConnectedHosts(pairDeviceId).stream()
+                            .filter(host -> isHostInVlanOfPort(host, pairDeviceId, cp))
+                            .forEach(host -> srManager.probingService.probeHostLocation(host, cp, ProbeMode.DISCOVER))
+                    );
+        }
+    }
+
+    /**
+     * Checks if given host located on given device id matches VLAN config of current port.
+     *
+     * @param host host to check
+     * @param deviceId device id to check
+     * @param cp current connect point
+     * @return true if the host located at deviceId matches the VLAN config on cp
+     */
+    private boolean isHostInVlanOfPort(Host host, DeviceId deviceId, ConnectPoint cp) {
+        VlanId internalVlan = srManager.getInternalVlanId(cp);
+        Set<VlanId> taggedVlan = srManager.getTaggedVlanId(cp);
+
+        return taggedVlan.contains(host.vlan()) ||
+                (internalVlan != null && host.locations().stream()
+                        .filter(l -> l.deviceId().equals(deviceId))
+                        .map(srManager::getInternalVlanId)
+                        .anyMatch(internalVlan::equals));
+    }
+
+    /**
+     * Send a probe on all locations with the same VLAN on pair device, excluding pair port.
+     *
+     * @param host host to probe
+     * @param location newly discovered host location
+     * @param pairDeviceId pair device id
+     * @param pairRemotePort pair remote port
+     */
+    private void probe(Host host, ConnectPoint location, DeviceId pairDeviceId, PortNumber pairRemotePort) {
+        VlanId vlanToProbe = host.vlan().equals(VlanId.NONE) ?
+                srManager.getInternalVlanId(location) : host.vlan();
+        srManager.interfaceService.getInterfaces().stream()
+                .filter(i -> i.vlanTagged().contains(vlanToProbe) ||
+                        i.vlanUntagged().equals(vlanToProbe) ||
+                        i.vlanNative().equals(vlanToProbe))
+                .filter(i -> i.connectPoint().deviceId().equals(pairDeviceId))
+                .filter(i -> !i.connectPoint().port().equals(pairRemotePort))
+                .forEach(i -> {
+                    log.debug("Probing host {} on pair device {}", host.id(), i.connectPoint());
+                    srManager.probingService.probeHostLocation(host, i.connectPoint(), ProbeMode.DISCOVER);
+                });
     }
 
     /**

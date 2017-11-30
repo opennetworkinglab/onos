@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -46,6 +49,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -75,6 +79,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostLocationProbingService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
@@ -115,6 +120,7 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,6 +162,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    HostLocationProbingService probingService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -184,6 +193,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public InterfaceService interfaceService;
+
+    @Property(name = "activeProbing", boolValue = true,
+            label = "Enable active probing to discover dual-homed hosts.")
+    boolean activeProbing = true;
 
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
@@ -224,19 +237,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * Per device next objective ID store with (device id + destination set) as key.
      * Used to keep track on MPLS group information.
      */
-    EventuallyConsistentMap<DestinationSetNextObjectiveStoreKey, NextNeighbors>
+    private EventuallyConsistentMap<DestinationSetNextObjectiveStoreKey, NextNeighbors>
             dsNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + vlanid) as key.
      * Used to keep track on L2 flood group information.
      */
-    EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
+    private EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
             vlanNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + port + treatment + meta) as key.
      * Used to keep track on L2 interface group and L3 unicast group information.
      */
-    EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
+    private EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
 
     // Local store for all links seen and their present status, used for
@@ -321,7 +334,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public static final VlanId INTERNAL_VLAN = VlanId.vlanId((short) 4094);
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         appId = coreService.registerApplication(APP_NAME);
 
         log.debug("Creating EC map nsnextobjectivestore");
@@ -390,6 +403,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "staleLinkAge", "15000");
         compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
                                       "allowDuplicateIps", "false");
+        compCfgService.registerProperties(getClass());
+        modified(context);
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
@@ -445,6 +460,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
         cfgService.unregisterConfigFactory(pwaasConfigFactory);
+        compCfgService.unregisterProperties(getClass(), false);
 
         hostService.removeListener(hostListener);
         packetService.removeProcessor(processor);
@@ -466,6 +482,22 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         tunnelStore.destroy();
         policyStore.destroy();
         log.info("Stopped");
+    }
+
+    @Modified
+    private void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        if (properties == null) {
+            return;
+        }
+
+        String strActiveProving = Tools.get(properties, "activeProbing");
+        boolean expectActiveProbing = Boolean.parseBoolean(strActiveProving);
+
+        if (expectActiveProbing != activeProbing) {
+            activeProbing = expectActiveProbing;
+            log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
+        }
     }
 
     @Override
@@ -858,7 +890,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *         true if the seen-link is up;
      *         false if the seen-link is down
      */
-    Boolean isSeenLinkUp(Link link) {
+    private Boolean isSeenLinkUp(Link link) {
         return seenLinks.get(link);
     }
 
@@ -906,7 +938,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @return true if another unidirectional link exists in the reverse direction,
      *              has been seen-before and is up
      */
-    public boolean isBidirectional(Link link) {
+    boolean isBidirectional(Link link) {
         Link reverseLink = linkService.getLink(link.dst(), link.src());
         if (reverseLink == null) {
             return false;
@@ -925,7 +957,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param link the infrastructure link being queried
      * @return true if link should be avoided
      */
-    public boolean avoidLink(Link link) {
+    boolean avoidLink(Link link) {
         // XXX currently only avoids all pair-links. In the future can be
         // extended to avoid any generic link
         DeviceId src = link.src().deviceId();
@@ -948,12 +980,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return false;
         }
 
-        if (srcPort.equals(pairLocalPort) &&
+        return srcPort.equals(pairLocalPort) &&
                 link.dst().deviceId().equals(pairDev) &&
-                link.dst().port().equals(pairRemotePort)) {
-            return true;
-        }
-        return false;
+                link.dst().port().equals(pairRemotePort);
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
@@ -1309,9 +1338,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private void processDeviceRemoved(Device device) {
         dsNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
-                .forEach(entry -> {
-                    dsNextObjStore.remove(entry.getKey());
-                });
+                .forEach(entry -> dsNextObjStore.remove(entry.getKey()));
         vlanNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> vlanNextObjStore.remove(entry.getKey()));
@@ -1391,6 +1418,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (portUp) {
             log.info("Device:EdgePort {}:{} is enabled in vlan: {}", device.id(),
                      port.number(), vlanId);
+            hostHandler.processPortUp(new ConnectPoint(device.id(), port.number()));
         } else {
             log.info("Device:EdgePort {}:{} is disabled in vlan: {}", device.id(),
                      port.number(), vlanId);
@@ -1444,7 +1472,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         /**
          * Reads network config and initializes related data structure accordingly.
          */
-        public void configureNetwork() {
+        void configureNetwork() {
             createOrUpdateDeviceConfiguration();
 
             arpHandler = new ArpHandler(srManager);

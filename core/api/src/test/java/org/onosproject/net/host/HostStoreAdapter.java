@@ -65,6 +65,11 @@ public class HostStoreAdapter implements HostStore {
     }
 
     @Override
+    public void appendLocation(HostId hostId, HostLocation location) {
+
+    }
+
+    @Override
     public void removeLocation(HostId hostId, HostLocation location) {
 
     }
