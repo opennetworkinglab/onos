@@ -190,8 +190,8 @@
 
         var matchFields = table.matchFields.map(function(mp) {
             return {
-                name: mp.header.name + '.' + mp.field.name,
-                bitWidth: mp.field.bitWidth,
+                name: mp.field,
+                bitWidth: mp.bitWidth,
                 matchType: mp.matchType,
             }
         });
@@ -377,7 +377,7 @@
 
                     $scope.matMatchFields = function(matchFields) {
                         return matchFields.map(function(mf) {
-                            return mf.header.name + '.' + mf.field.name;
+                            return mf.field;
                         });
                     };
 

@@ -90,72 +90,6 @@
         </div>
         <!-- ng-show-start for checking pipeconf !== null -->
         <h2 ng-show-start="pipeconf !== null">Pipeline Model</h2>
-        <div id="pipeconf-headers">
-            <h3>Headers</h3>
-            <div ng-show="!collapseHeaders"
-                 class="collapse-btn" icon icon-id="plus" icon-size="30"
-                 ng-click="collapseHeaders = !collapseHeaders"></div>
-            <div ng-show="collapseHeaders"
-                 class="collapse-btn" icon icon-id="minus" icon-size="30"
-                 ng-click="collapseHeaders = !collapseHeaders"></div>
-            <table class="pipeconf-table">
-                <tr>
-                    <th style="width: 160px">Name</th>
-                    <th class="text-center" style="width: 100px">Is metadata</th>
-                    <th class="text-center" style="width: 100px">Index</th>
-                    <th>Header type</th>
-                </tr>
-                <tr ng-show="collapseHeaders">
-                    <td colspan="4" class="clickable text-center"
-                        ng-click="collapseHeaders = !collapseHeaders">....</td>
-                </tr>
-                <tr ng-show="!collapseHeaders && pipelineModel.headers.length === 0">
-                    <td colspan="4" class="no-data">No Data</td>
-                </tr>
-                <tr ng-show="!collapseHeaders"
-                    ng-repeat="header in pipelineModel.headers"
-                    ng-click="headerSelectCb($event, header)"
-                    ng-class="{selected: header.name === selectedId.name && selectedId.type === 'header'}"
-                    class="clickable">
-                    <td>{{header.name}}</td>
-                    <td class="text-center">{{header.isMetadata}}</td>
-                    <td class="text-center">{{header.index}}</td>
-                    <td>{{header.type.name}}</td>
-                </tr>
-            </table>
-        </div>
-        <div id="pipeconf-actions">
-            <h3>Actions</h3>
-            <div ng-show="!collapseActions"
-                 class="collapse-btn" icon icon-id="plus" icon-size="30"
-                 ng-click="collapseActions = !collapseActions"></div>
-            <div ng-show="collapseActions"
-                 class="collapse-btn" icon icon-id="minus" icon-size="30"
-                 ng-click="collapseActions = !collapseActions"></div>
-            <table class="pipeconf-table">
-                <tr>
-                    <th style="width: 160px">Name</th>
-                    <th>Action parameters</th>
-                </tr>
-                <tr ng-show="collapseActions">
-                    <td colspan="2" class="clickable text-center"
-                        ng-click="collapseActions = !collapseActions">....</td>
-                </tr>
-                <tr ng-show="!collapseActions && pipelineModel.actions.length === 0">
-                    <td colspan="2" class="no-data">No Data</td>
-                </tr>
-                <tr ng-show="!collapseActions"
-                    ng-repeat="action in pipelineModel.actions"
-                    ng-click="actionSelectCb($event, action)"
-                    ng-class="{selected: action.name === selectedId.name && selectedId.type === 'action'}"
-                    class="clickable">
-                    <td style="width: 160px">{{action.name}}</td>
-                    <td ng-show="action.params.length != 0">{{ mapToNames(action.params).join(', ') }}</td>
-                    <td ng-show="action.params.length == 0">No action params</td>
-                </tr>
-            </table>
-        </div>
-
         <div id="pipeconf-tables" ng-show-end>
             <h3>Tables</h3>
             <div ng-show="!collapseTables" class="collapse-btn"
@@ -190,14 +124,49 @@
                     <td class="text-center">{{table.hasCounters}}</td>
                     <td class="text-center">{{table.supportAging}}</td>
                     <td ng-show="table.matchFields.length != 0">
-                        {{matMatchFields(table.matchFields).join(', ')}}
+                        <p ng-repeat="mf in matMatchFields(table.matchFields)">{{mf}}</p>
                     </td>
                     <td ng-show="table.matchFields.length == 0">No match fields</td>
-                    <td ng-show="table.actions.length != 0">{{table.actions.join(", ")}}</td>
+                    <td ng-show="table.actions.length != 0">
+                        <p ng-repeat="act in table.actions">{{act}}</p>
+                    </td>
                     <td ng-show="table.actions.length == 0">No table actions</td>
                 </tr>
             </table>
         </div>
+
+        <div id="pipeconf-actions">
+            <h3>Actions</h3>
+            <div ng-show="!collapseActions"
+                 class="collapse-btn" icon icon-id="plus" icon-size="30"
+                 ng-click="collapseActions = !collapseActions"></div>
+            <div ng-show="collapseActions"
+                 class="collapse-btn" icon icon-id="minus" icon-size="30"
+                 ng-click="collapseActions = !collapseActions"></div>
+            <table class="pipeconf-table">
+                <tr>
+                    <th style="width: 160px">Name</th>
+                    <th>Action parameters</th>
+                </tr>
+                <tr ng-show="collapseActions">
+                    <td colspan="2" class="clickable text-center"
+                        ng-click="collapseActions = !collapseActions">....</td>
+                </tr>
+                <tr ng-show="!collapseActions && pipelineModel.actions.length === 0">
+                    <td colspan="2" class="no-data">No Data</td>
+                </tr>
+                <tr ng-show="!collapseActions"
+                    ng-repeat="action in pipelineModel.actions"
+                    ng-click="actionSelectCb($event, action)"
+                    ng-class="{selected: action.name === selectedId.name && selectedId.type === 'action'}"
+                    class="clickable">
+                    <td style="width: 160px">{{action.name}}</td>
+                    <td ng-show="action.params.length != 0">{{ mapToNames(action.params).join(', ') }}</td>
+                    <td ng-show="action.params.length == 0">No action params</td>
+                </tr>
+            </table>
+        </div>
+
         <!-- ng-show-end for checking pipeconf !== null -->
     </div>
     <pipeconf-view-detail-panel></pipeconf-view-detail-panel>
