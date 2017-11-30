@@ -389,6 +389,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "distributed", "true");
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
                                       "multihomingEnabled", "true");
+        compCfgService.preSetProperty("org.onosproject.provider.lldp.impl.LldpLinkProvider",
+                                      "staleLinkAge", "15000");
+        compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
+                                      "allowDuplicateIps", "false");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
