@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,7 +71,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     private OFVersion ofVersion;
     private OFFactory ofFactory;
 
-    protected List<OFPortDescStatsReply> ports = new ArrayList<>();
+    protected List<OFPortDescStatsReply> ports = Lists.newCopyOnWriteArrayList();
 
     protected boolean tableFull;
 
