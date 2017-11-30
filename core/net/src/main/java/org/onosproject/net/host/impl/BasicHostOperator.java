@@ -96,7 +96,7 @@ public final class BasicHostOperator extends BasicElementOperator {
      */
     public static HostDescription descriptionOf(Host host) {
         checkNotNull(host, "Must supply a non-null Host");
-        return new DefaultHostDescription(host.mac(), host.vlan(), host.location(),
+        return new DefaultHostDescription(host.mac(), host.vlan(), host.locations(),
                                           host.ipAddresses(), host.configured(),
                                           (SparseAnnotations) host.annotations());
     }
