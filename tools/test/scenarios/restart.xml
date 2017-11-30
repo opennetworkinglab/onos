@@ -17,7 +17,8 @@
     <group name="Restart">
         <parallel var="${OC#}">
             <step name="Stop-Service-${#}" exec="onos-service ${OC#} stop"/>
-            <step name="Start-Service-${#}" exec="onos-service ${OC#} start"/>
+            <step name="Start-Service-${#}" exec="onos-service ${OC#} start"
+                  requires="Stop-Service-${#}"/>
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Start-Service-${#}"/>
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
