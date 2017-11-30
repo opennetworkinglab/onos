@@ -36,7 +36,7 @@ public class IssuCommand extends AbstractShellCommand {
     static final String VERSION = "version";
 
     @Argument(index = 0, name = "command",
-            description = "Command name (init|upgrade|commit|rollback|status|version)",
+            description = "Command name (init|upgrade|commit|rollback|reset|status|version)",
             required = false, multiValued = false)
     String command = null;
 
