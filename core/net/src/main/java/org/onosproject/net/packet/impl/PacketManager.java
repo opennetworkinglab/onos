@@ -452,6 +452,10 @@ public class PacketManager
         public void event(DeviceEvent event) {
             eventHandlingExecutor.execute(() -> {
                 try {
+                    if (driverService == null) {
+                        // Event came in after the driver service shut down, nothing to be done
+                        return;
+                    }
                     Device device = event.subject();
                     Driver driver = driverService.getDriver(device.id());
                     if (driver == null) {
