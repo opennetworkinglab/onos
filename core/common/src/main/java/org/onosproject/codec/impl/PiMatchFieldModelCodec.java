@@ -27,10 +27,13 @@ import org.onosproject.net.pi.model.PiMatchFieldModel;
 public class PiMatchFieldModelCodec extends JsonCodec<PiMatchFieldModel> {
     private static final String MATCH_TYPE = "matchType";
     private static final String FIELD = "field";
+    private static final String BIT_WIDTH = "bitWidth";
+
     @Override
     public ObjectNode encode(PiMatchFieldModel matchFieldModel, CodecContext context) {
         ObjectNode result = context.mapper().createObjectNode();
         result.put(MATCH_TYPE, matchFieldModel.matchType().toString());
+        result.put(BIT_WIDTH, matchFieldModel.bitWidth());
         result.put(FIELD, matchFieldModel.id().toString());
         return result;
     }
