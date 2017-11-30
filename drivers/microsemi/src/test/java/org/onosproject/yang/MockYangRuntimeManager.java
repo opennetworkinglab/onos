@@ -130,6 +130,17 @@ public class MockYangRuntimeManager implements YangModelRegistry,
         }
 
         @Override
+        public void registerAnydataSchema(Class id, Class id1) {
+            throw new UnsupportedOperationException("registerAnydataSchema() needs to be implemented");
+        }
+
+        @Override
+        public void unregisterAnydataSchema(Class id, Class id1) {
+            throw new UnsupportedOperationException("unregisterAnydataSchema() needs to be implemented");
+
+        }
+
+        @Override
         public Set<YangSerializer> getSerializers() {
             return serializerRegistry.getSerializers();
         }
