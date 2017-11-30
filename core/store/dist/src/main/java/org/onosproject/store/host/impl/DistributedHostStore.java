@@ -43,6 +43,7 @@ import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -60,6 +61,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -146,7 +148,8 @@ public class DistributedHostStore
 
         KryoNamespace.Builder pendingHostSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(PendingHostLocation.class);
+                .register(PendingHostLocation.class)
+                .register(ProbeMode.class);
         pendingHostsConsistentMap = storageService.<MacAddress, PendingHostLocation>consistentMapBuilder()
                 .withName("onos-hosts-pending")
                 .withRelaxedReadConsistency()
@@ -311,7 +314,30 @@ public class DistributedHostStore
     }
 
     @Override
+    public void appendLocation(HostId hostId, HostLocation location) {
+        log.debug("Appending location {} to host {}", location, hostId);
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                checkState(Objects.equals(hostId.mac(), existingHost.mac()),
+                        "Existing and new MAC addresses differ.");
+                checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
+                        "Existing and new VLANs differ.");
+
+                Set<HostLocation> locations = new HashSet<>(existingHost.locations());
+                locations.add(location);
+
+                return new DefaultHost(existingHost.providerId(),
+                                hostId, existingHost.mac(), existingHost.vlan(),
+                                locations, existingHost.ipAddresses(),
+                                existingHost.configured(), existingHost.annotations());
+            }
+            return null;
+        });
+    }
+
+    @Override
     public void removeLocation(HostId hostId, HostLocation location) {
+        log.debug("Removing location {} from host {}", location, hostId);
         hosts.compute(hostId, (id, existingHost) -> {
             if (existingHost != null) {
                 checkState(Objects.equals(hostId.mac(), existingHost.mac()),
@@ -384,11 +410,11 @@ public class DistributedHostStore
     }
 
     @Override
-    public MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
+    public MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         // Use ONLab OUI (3 bytes) + atomic counter (3 bytes) as the source MAC of the probe
         long nextIndex = storageService.getAtomicCounter("onos-hosts-probe-index").getAndIncrement();
         MacAddress probeMac = MacAddress.valueOf(MacAddress.NONE.toLong() + nextIndex);
-        PendingHostLocation phl = new PendingHostLocation(hostId, hostLocation);
+        PendingHostLocation phl = new PendingHostLocation(hostId, connectPoint, probeMode);
 
         pendingHostsCache.put(probeMac, phl);
         pendingHosts.put(probeMac, phl);
@@ -398,6 +424,14 @@ public class DistributedHostStore
 
     @Override
     public void removePendingHostLocation(MacAddress probeMac) {
+        // Add the host location if probe replied in-time in DISCOVER mode
+        Optional.ofNullable(pendingHosts.get(probeMac)).ifPresent(phl -> {
+            if (phl.probeMode() == ProbeMode.DISCOVER) {
+                HostLocation newLocation = new HostLocation(phl.connectPoint(), System.currentTimeMillis());
+                appendLocation(phl.hostId(), newLocation);
+            }
+        });
+
         pendingHostsCache.invalidate(probeMac);
         pendingHosts.remove(probeMac);
     }
@@ -502,11 +536,13 @@ public class DistributedHostStore
                 case INSERT:
                     break;
                 case UPDATE:
-                    if (newValue.value().expired()) {
+                    // Remove the host location if probe timeout in VERIFY mode
+                    if (newValue.value().expired() && newValue.value().probeMode() == ProbeMode.VERIFY) {
                         Executor locationRemover = Executors.newSingleThreadScheduledExecutor();
                         locationRemover.execute(() -> {
                             pendingHosts.remove(event.key());
-                            removeLocation(newValue.value().hostId(), newValue.value().location());
+                            removeLocation(newValue.value().hostId(),
+                                    new HostLocation(newValue.value().connectPoint(), 0L));
                         });
                     }
                     break;
