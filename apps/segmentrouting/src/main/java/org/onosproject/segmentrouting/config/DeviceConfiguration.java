@@ -501,6 +501,20 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
+     * Returns all ports that has a subnet that contains any of the given IP addresses.
+     *
+     * @param ips a set of IP addresses
+     * @return a set of connect point that has a subnet that contains any of the given IP addresses
+     */
+    public Set<ConnectPoint> getPortByIps(Set<IpAddress> ips) {
+        return srManager.interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.ipAddressesList().stream().anyMatch(intfAddress ->
+                            ips.stream().anyMatch(ip -> intfAddress.subnetAddress().contains(ip))))
+                .map(Interface::connectPoint)
+                .collect(Collectors.toSet());
+    }
+
+    /**
      * Returns the router ip address of segment router that has the
      * specified ip address in its subnets.
      *

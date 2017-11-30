@@ -39,4 +39,9 @@ public class MockInterfaceService extends InterfaceServiceAdapter {
         return interfaces.stream().filter(intf -> cp.equals(intf.connectPoint()))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<Interface> getInterfaces() {
+        return interfaces;
+    }
 }

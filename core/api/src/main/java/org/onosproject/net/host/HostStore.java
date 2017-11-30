@@ -23,6 +23,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
 
@@ -63,6 +64,14 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @return remove event or null if host was not found
      */
     HostEvent removeIp(HostId hostId, IpAddress ipAddress);
+
+    /**
+     * Append the specified location to the host entry.
+     *
+     * @param hostId host identification
+     * @param location location to be added
+     */
+    void appendLocation(HostId hostId, HostLocation location);
 
     /**
      * Removes the specified location from the host entry.
@@ -139,10 +148,11 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * retrieves the unique MAC address for the probe.
      *
      * @param hostId ID of the host
-     * @param hostLocation the host location that is under verification
+     * @param connectPoint the connect point that is under verification
+     * @param probeMode probe mode
      * @return probeMac, the source MAC address ONOS uses to probe the host
      */
-    default MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
+    default MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         return MacAddress.NONE;
     }
 

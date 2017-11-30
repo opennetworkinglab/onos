@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.DHCP;
@@ -52,6 +53,7 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.host.HostLocationProbingService;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -105,7 +107,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * hosts.
  */
 @Component(immediate = true)
-public class HostLocationProvider extends AbstractProvider implements HostProvider {
+@Service
+public class HostLocationProvider extends AbstractProvider implements HostProvider, HostLocationProbingService {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -168,6 +171,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Property(name = "multihomingEnabled", boolValue = false,
             label = "Allow hosts to be multihomed")
     private boolean multihomingEnabled = false;
+
+    private int probeInitDelayMs = 1000;
 
     protected ExecutorService eventHandler;
 
@@ -341,7 +346,48 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             log.info("Configured. Multihoming is {}",
                     multihomingEnabled ? "enabled" : "disabled");
         }
+    }
 
+    @Override
+    public void probeHostLocation(Host host, ConnectPoint connectPoint, ProbeMode probeMode) {
+        host.ipAddresses().stream().findFirst().ifPresent(ip -> {
+            MacAddress probeMac = providerService.addPendingHostLocation(host.id(), connectPoint, probeMode);
+            log.debug("Constructing {} probe for host {} with {}", probeMode, host.id(), ip);
+            Ethernet probe;
+            if (ip.isIp4()) {
+                probe = ARP.buildArpRequest(probeMac.toBytes(), Ip4Address.ZERO.toOctets(),
+                        host.id().mac().toBytes(), ip.toOctets(),
+                        host.id().mac().toBytes(), host.id().vlanId().toShort());
+            } else {
+                probe = NeighborSolicitation.buildNdpSolicit(
+                        ip.getIp6Address(),
+                        Ip6Address.valueOf(IPv6.getLinkLocalAddress(probeMac.toBytes())),
+                        ip.getIp6Address(),
+                        probeMac,
+                        host.id().mac(),
+                        host.id().vlanId());
+            }
+
+            // NOTE: delay the probe a little bit to wait for the store synchronization is done
+            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.schedule(() ->
+                    sendLocationProbe(probe, connectPoint), probeInitDelayMs, TimeUnit.MILLISECONDS);
+        });
+    }
+
+    /**
+     * Send the probe packet on given port.
+     *
+     * @param probe the probe packet
+     * @param connectPoint the port we want to probe
+     */
+    private void sendLocationProbe(Ethernet probe, ConnectPoint connectPoint) {
+        log.info("Sending probe for host {} on location {} with probeMac {}",
+                probe.getDestinationMAC(), connectPoint, probe.getSourceMAC());
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
+        OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
+                treatment, ByteBuffer.wrap(probe.serialize()));
+        packetService.emit(outboundPacket);
     }
 
     @Override
@@ -414,7 +460,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                         // New location is on a device that we haven't seen before
                         // Could be a dual-home host. Append new location and send out the probe
                         newLocations.addAll(prevLocations);
-                        probeLocations(existingHost);
+                        prevLocations.forEach(prevLocation ->
+                                probeHostLocation(existingHost, prevLocation, ProbeMode.VERIFY));
                     } else {
                         // Move within the same switch
                         // Simply replace old location that is on the same device
@@ -432,54 +479,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             } catch (IllegalStateException e) {
                 log.debug("Host {} suppressed", hid);
             }
-        }
-
-        /**
-         * Start verification procedure of all previous locations by sending probes.
-         *
-         * @param host Host to be probed
-         */
-        private void probeLocations(Host host) {
-            host.locations().forEach(location -> {
-                MacAddress probeMac = providerService.addPendingHostLocation(host.id(), location);
-
-                host.ipAddresses().stream().findFirst().ifPresent(ip -> {
-                    log.debug("Probing host {} with {}", host.id(), ip);
-                    Ethernet probe;
-                    if (ip.isIp4()) {
-                        probe = ARP.buildArpRequest(probeMac.toBytes(), Ip4Address.ZERO.toOctets(),
-                                host.id().mac().toBytes(), ip.toOctets(),
-                                host.id().mac().toBytes(), host.id().vlanId().toShort());
-                    } else {
-                        probe = NeighborSolicitation.buildNdpSolicit(
-                                ip.getIp6Address(),
-                                Ip6Address.valueOf(IPv6.getLinkLocalAddress(probeMac.toBytes())),
-                                ip.getIp6Address(),
-                                probeMac,
-                                host.id().mac(),
-                                host.id().vlanId());
-                    }
-
-                    // NOTE: delay the probe a little bit to wait for the store synchronization is done
-                    ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-                    executorService.schedule(() -> sendProbe(probe, location), probeDelayMs, TimeUnit.MILLISECONDS);
-                });
-            });
-        }
-
-        /**
-         * Send the probe packet on given port.
-         *
-         * @param probe the probe packet
-         * @param connectPoint the port we want to probe
-         */
-        private void sendProbe(Ethernet probe, ConnectPoint connectPoint) {
-            log.info("Probing host {} on location {} with probeMac {}",
-                    probe.getDestinationMAC(), connectPoint, probe.getSourceMAC());
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
-            OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
-                    treatment, ByteBuffer.wrap(probe.serialize()));
-            packetService.emit(outboundPacket);
         }
 
         /**

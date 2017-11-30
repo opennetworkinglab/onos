@@ -29,6 +29,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.HostLocation;
@@ -455,8 +456,8 @@ public class HostManager
         }
 
         @Override
-        public MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
-            return store.addPendingHostLocation(hostId, hostLocation);
+        public MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
+            return store.addPendingHostLocation(hostId, connectPoint, probeMode);
         }
 
         @Override

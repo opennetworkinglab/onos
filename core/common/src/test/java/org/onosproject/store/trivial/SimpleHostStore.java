@@ -174,6 +174,11 @@ public class SimpleHostStore
     }
 
     @Override
+    public void appendLocation(HostId hostId, HostLocation location) {
+        hosts.get(hostId).locations().add(location);
+    }
+
+    @Override
     public void removeLocation(HostId hostId, HostLocation location) {
         hosts.get(hostId).locations().remove(location);
     }

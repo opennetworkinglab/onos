@@ -16,8 +16,9 @@
 
 package org.onosproject.store.host.impl;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 
 import java.util.Objects;
 
@@ -28,19 +29,22 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 class PendingHostLocation {
     private HostId hostId;
-    private HostLocation location;
+    private ConnectPoint connectPoint;
     private boolean expired;
+    private ProbeMode probeMode;
 
     /**
      * Constructs PendingHostLocation.
      *
      * @param hostId Host ID
-     * @param location location to be verified
+     * @param connectPoint location to be verified
+     * @param probeMode probe mode
      */
-    PendingHostLocation(HostId hostId, HostLocation location) {
+    PendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         this.hostId = hostId;
-        this.location = location;
+        this.connectPoint = connectPoint;
         this.expired = false;
+        this.probeMode = probeMode;
     }
 
     /**
@@ -53,12 +57,12 @@ class PendingHostLocation {
     }
 
     /**
-     * Gets HostLocation of this entry.
+     * Gets connect point of this entry.
      *
-     * @return host location
+     * @return connect point
      */
-    HostLocation location() {
-        return location;
+    ConnectPoint connectPoint() {
+        return connectPoint;
     }
 
     /**
@@ -79,6 +83,15 @@ class PendingHostLocation {
         this.expired = expired;
     }
 
+    /**
+     * Gets probe mode of this entry.
+     *
+     * @return probe mode
+     */
+    ProbeMode probeMode() {
+        return probeMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -89,20 +102,22 @@ class PendingHostLocation {
         }
         PendingHostLocation that = (PendingHostLocation) o;
         return (Objects.equals(this.hostId, that.hostId) &&
-                Objects.equals(this.location, that.location) &&
-                Objects.equals(this.expired, that.expired));
+                Objects.equals(this.connectPoint, that.connectPoint) &&
+                Objects.equals(this.expired, that.expired) &&
+                Objects.equals(this.probeMode, that.probeMode));
     }
     @Override
     public int hashCode() {
-        return Objects.hash(hostId, location, expired);
+        return Objects.hash(hostId, connectPoint, expired, probeMode);
     }
 
     @Override
     public String toString() {
         return toStringHelper(getClass())
                 .add("hostId", hostId)
-                .add("location", location)
+                .add("location", connectPoint)
                 .add("expired", expired)
+                .add("probeMode", probeMode)
                 .toString();
     }
 }

@@ -17,8 +17,10 @@ package org.onosproject.net.host;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.provider.ProviderService;
 
 /**
@@ -64,10 +66,11 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      * retrieves the unique MAC address for the probe.
      *
      * @param hostId ID of the host
-     * @param hostLocation the host location that is under verification
+     * @param connectPoint the connect point that is under verification
+     * @param probeMode probe mode
      * @return probeMac, the source MAC address ONOS uses to probe the host
      */
-    default MacAddress addPendingHostLocation(HostId hostId, HostLocation hostLocation) {
+    default MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         return MacAddress.NONE;
     }
 
