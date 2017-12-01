@@ -235,8 +235,13 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     }
 
     private String buildSrcMac() {
-        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
         String defMac = ProbedLinkProvider.defaultMac();
+        if (clusterMetadataService == null) {
+            log.debug("No cluster metadata service is available. Using default value {}", defMac);
+            return defMac;
+        }
+
+        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
         if (srcMac.equals(defMac)) {
             log.warn("Couldn't generate fingerprint. Using default value {}", defMac);
             return defMac;
