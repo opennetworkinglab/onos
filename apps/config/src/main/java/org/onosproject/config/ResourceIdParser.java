@@ -231,17 +231,6 @@ public final class ResourceIdParser {
         return bldr.toString();
     }
 
-    public static String[] getService(ResourceId path) {
-        String[] res = new String[2];
-        if (path == null) {
-            return res;
-        }
-        int last = path.nodeKeys().size() - 1;
-        res[0] = path.nodeKeys().get(last - 1).schemaId().name();
-        res[1] = path.nodeKeys().get(last).schemaId().name();
-        return res;
-    }
-
     private static void parseLeafList(LeafListKey key, StringBuilder bldr) {
         bldr.append(key.schemaId().name());
         bldr.append(NM_SEP);

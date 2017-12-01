@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.config.ResourceIdParser;
 import org.onosproject.config.RpcExecutor;
 import org.onosproject.config.RpcMessageId;
 import org.onosproject.d.config.DeviceResourceIds;
@@ -40,15 +39,16 @@ import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DataNode.Type;
 import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.RpcContext;
 import org.onosproject.yang.model.RpcRegistry;
 import org.onosproject.yang.model.RpcService;
+import org.onosproject.yang.model.SchemaContextProvider;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-
 import org.slf4j.Logger;
 
 import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
@@ -69,6 +69,11 @@ public class DynamicConfigManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected SchemaContextProvider contextProvider;
+
+    // FIXME is it OK this is not using the Store?
     private ConcurrentHashMap<String, RpcService> handlerRegistry = new ConcurrentHashMap<>();
 
     @Activate
@@ -153,14 +158,14 @@ public class DynamicConfigManager
 
     @Override
     public RpcService getRpcService(Class<? extends RpcService> intfc) {
-        return handlerRegistry.get(intfc.getSimpleName());
+        return handlerRegistry.get(intfc.getName());
     }
 
     @Override
     public void registerRpcService(RpcService handler) {
         for (Class<?> intfc : handler.getClass().getInterfaces()) {
             if (RpcService.class.isAssignableFrom(intfc)) {
-                handlerRegistry.put(intfc.getSimpleName(), handler);
+                handlerRegistry.put(intfc.getName(), handler);
             }
         }
     }
@@ -169,7 +174,7 @@ public class DynamicConfigManager
     public void unregisterRpcService(RpcService handler) {
         for (Class<?> intfc : handler.getClass().getInterfaces()) {
             if (RpcService.class.isAssignableFrom(intfc)) {
-                String key = intfc.getSimpleName();
+                String key = intfc.getName();
                 if (handlerRegistry.get(key) == null) {
                     throw new FailedException("No registered handler found, cannot unregister");
                 }
@@ -181,7 +186,7 @@ public class DynamicConfigManager
     private int getSvcId(RpcService handler, String srvc) {
         Class<?>[] intfcs = handler.getClass().getInterfaces();
         for (int i = 0; i < intfcs.length; i++) {
-            if (intfcs[i].getSimpleName().compareTo(srvc) == 0) {
+            if (intfcs[i].getName().compareTo(srvc) == 0) {
                 return i;
             }
         }
@@ -190,14 +195,15 @@ public class DynamicConfigManager
 
     @Override
     public CompletableFuture<RpcOutput> invokeRpc(ResourceId id, RpcInput input) {
-        String[] ctxt = ResourceIdParser.getService(id);
-        RpcService handler = handlerRegistry.get(ctxt[0]);
+        RpcContext context = contextProvider.getRpcContext(id);
+        String srvcIntf = context.serviceIntf().getName();
+        RpcService handler = handlerRegistry.get(srvcIntf);
         if (handler == null) {
             throw new FailedException("No registered handler found, cannot invoke");
         }
         return CompletableFuture.supplyAsync(
-                new RpcExecutor(handler, getSvcId(handler, ctxt[0]), ctxt[1], RpcMessageId.generate(), input),
-                Executors.newSingleThreadExecutor());
+                new RpcExecutor(handler, getSvcId(handler, srvcIntf),
+                                context.rpcName(), RpcMessageId.generate(), input));
     }
 
     /**
