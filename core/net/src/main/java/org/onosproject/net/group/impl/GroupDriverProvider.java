@@ -99,6 +99,15 @@ public class GroupDriverProvider extends AbstractProvider implements GroupProvid
 
     }
 
+    void terminate() {
+        deviceService.removeListener(deviceListener);
+        deviceService = null;
+        groupProviderService = null;
+        mastershipService = null;
+        poller.cancel(true);
+        executor.shutdown();
+    }
+
     @Override
     public void performGroupOperation(DeviceId deviceId, GroupOperations groupOps) {
         GroupProgrammable programmable = getGroupProgrammable(deviceId);

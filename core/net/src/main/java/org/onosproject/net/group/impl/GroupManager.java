@@ -120,6 +120,7 @@ public class GroupManager
 
     @Deactivate
     public void deactivate() {
+        defaultProvider.terminate();
         deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         store.unsetDelegate(delegate);
