@@ -191,29 +191,29 @@ public class DefaultRoutingHandler {
             updatedEcmpSpgMap = new HashMap<>();
             Set<EdgePair> edgePairs = new HashSet<>();
             Set<ArrayList<DeviceId>> routeChanges = new HashSet<>();
-            for (Device dstSw : srManager.deviceService.getDevices()) {
+            for (DeviceId dstSw : srManager.deviceConfiguration.getRouters()) {
                 EcmpShortestPathGraph ecmpSpgUpdated =
-                        new EcmpShortestPathGraph(dstSw.id(), srManager);
-                updatedEcmpSpgMap.put(dstSw.id(), ecmpSpgUpdated);
-                DeviceId pairDev = getPairDev(dstSw.id());
+                        new EcmpShortestPathGraph(dstSw, srManager);
+                updatedEcmpSpgMap.put(dstSw, ecmpSpgUpdated);
+                DeviceId pairDev = getPairDev(dstSw);
                 if (pairDev != null) {
                     // pairDev may not be available yet, but we still need to add
                     ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev, srManager);
                     updatedEcmpSpgMap.put(pairDev, ecmpSpgUpdated);
-                    edgePairs.add(new EdgePair(dstSw.id(), pairDev));
+                    edgePairs.add(new EdgePair(dstSw, pairDev));
                 }
-                DeviceId ret = shouldHandleRouting(dstSw.id());
+                DeviceId ret = shouldHandleRouting(dstSw);
                 if (ret == null) {
                     continue;
                 }
-                Set<DeviceId> devsToProcess = Sets.newHashSet(dstSw.id(), ret);
+                Set<DeviceId> devsToProcess = Sets.newHashSet(dstSw, ret);
                 // To do a full reroute, assume all routes have changed
                 for (DeviceId dev : devsToProcess) {
-                    for (Device targetSw : srManager.deviceService.getDevices()) {
-                        if (targetSw.id().equals(dev)) {
+                    for (DeviceId targetSw : srManager.deviceConfiguration.getRouters()) {
+                        if (targetSw.equals(dev)) {
                             continue;
                         }
-                        routeChanges.add(Lists.newArrayList(targetSw.id(), dev));
+                        routeChanges.add(Lists.newArrayList(targetSw, dev));
                     }
                 }
             }

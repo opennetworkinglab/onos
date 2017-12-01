@@ -27,18 +27,19 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.config.ConfigException;
-import org.onosproject.net.config.basics.InterfaceConfig;
-import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigException;
+import org.onosproject.net.config.basics.InterfaceConfig;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -126,7 +127,9 @@ public class DeviceConfiguration implements DeviceProperties {
         // Read gatewayIps and subnets from port subject. Ignore suppressed ports.
         Set<ConnectPoint> portSubjects = srManager.cfgService
                 .getSubjects(ConnectPoint.class, InterfaceConfig.class);
-        portSubjects.stream().filter(subject -> !isSuppressedPort(subject)).forEach(subject -> {
+        portSubjects.stream()
+                .filter(subject -> deviceConfigMap.containsKey(subject.deviceId()))
+                .filter(subject -> !isSuppressedPort(subject)).forEach(subject -> {
             InterfaceConfig config =
                     srManager.cfgService.getConfig(subject, InterfaceConfig.class);
             Set<Interface> networkInterfaces;
@@ -181,6 +184,9 @@ public class DeviceConfiguration implements DeviceProperties {
         });
     }
 
+    public Collection<DeviceId> getRouters() {
+        return deviceConfigMap.keySet();
+    }
 
     @Override
     public boolean isConfigured(DeviceId deviceId) {

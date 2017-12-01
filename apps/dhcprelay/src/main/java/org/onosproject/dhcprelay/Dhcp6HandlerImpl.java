@@ -271,12 +271,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         }
 
         byte msgType = dhcp6Payload.getMsgType();
-        log.warn("msgType is {}", msgType);
 
         ConnectPoint inPort = context.inPacket().receivedFrom();
-        if (inPort == null) {
-            log.warn("incommin ConnectPoint is null");
-        }
+
         Set<Interface> receivingInterfaces = interfaceService.getInterfacesByPort(inPort);
         //ignore the packets if dhcp client interface is not configured on onos.
         if (receivingInterfaces.isEmpty()) {
