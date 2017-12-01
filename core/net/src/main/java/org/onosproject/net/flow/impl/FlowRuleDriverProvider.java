@@ -104,6 +104,15 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
                                               pollFrequency, TimeUnit.SECONDS);
     }
 
+    void terminate() {
+        deviceService.removeListener(deviceListener);
+        deviceService = null;
+        providerService = null;
+        mastershipService = null;
+        poller.cancel(true);
+        executor.shutdown();
+    }
+
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
         rulesByDevice(flowRules).asMap().forEach(this::applyFlowRules);
