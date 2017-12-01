@@ -15,23 +15,11 @@
  */
 package org.onosproject.segmentrouting;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -121,10 +109,21 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -581,9 +580,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public Map<DeviceId, Set<IpPrefix>> getDeviceSubnetMap() {
         Map<DeviceId, Set<IpPrefix>> deviceSubnetMap = Maps.newHashMap();
-        deviceService.getAvailableDevices().forEach(device -> {
-            deviceSubnetMap.put(device.id(), deviceConfiguration.getSubnets(device.id()));
-        });
+        deviceConfiguration.getRouters().forEach(device ->
+            deviceSubnetMap.put(device, deviceConfiguration.getSubnets(device)));
         return deviceSubnetMap;
     }
 
