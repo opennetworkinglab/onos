@@ -103,6 +103,7 @@
         <module>odtn</module>
         <module>mcast</module>
         <module>layout</module>
+        <module>imr</module>
     </modules>
 
     <properties>

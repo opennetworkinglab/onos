@@ -1,0 +1,28 @@
+{
+  "response": [
+    {
+      "id": 71,
+      "name": "org.onosproject.ifwd",
+      "intents": [
+        {
+          "key": "00:00:00:00:00:08/None00:00:00:00:00:01/None",
+          "inElements": [
+            "00:00:00:00:00:08/None"
+          ],
+          "outElements": [
+            "00:00:00:00:00:01/None"
+          ]
+        },
+        {
+          "key": "00:00:00:00:00:01/None00:00:00:00:00:08/None",
+          "inElements": [
+            "00:00:00:00:00:01/None"
+          ],
+          "outElements": [
+            "00:00:00:00:00:08/None"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "statistics": [
+    {
+      "id": 71,
+      "name": "org.onosproject.ifwd",
+      "intents": [
+        {
+          "00:00:00:00:00:08/None00:00:00:00:00:01/None": [
+            {
+              "id": "41658299096955970",
+              "tableId": 0,
+              "appId": "org.onosproject.net.intent",
+              "groupId": 0,
+              "priority": 100,
+              "timeout": 0,
+              "isPermanent": true,
+              "deviceId": "of:000000000000000c",
+              "state": "ADDED",
+              "life": 12,
+              "packets": 12,
+              "bytes": 1176,
+              "liveType": "UNKNOWN",
+              "lastSeen": 1512041486127,
+              "treatment": {
+                "instructions": [
+                  {
+                    "type": "OUTPUT",
+                    "port": "2"
+                  }
+                ],
+                "deferred": []
+              },
+              "selector": {
+                "criteria": [
+                  {
+                    "type": "IN_PORT",
+                    "port": 4
+                  },
+                  {
+                    "type": "ETH_DST",
+                    "mac": "00:00:00:00:00:01"
+                  },
+                  {
+                    "type": "ETH_SRC",
+                    "mac": "00:00:00:00:00:08"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "41658299401587474",
+              "tableId": 0,
+              "appId": "org.onosproject.net.intent",
+              "groupId": 0,
+              "priority": 100,
+              "timeout": 0,
+              "isPermanent": true,
+              "deviceId": "of:0000000000000002",
+              "state": "ADDED",
+              "life": 12,
+              "packets": 12,
+              "bytes": 1176,
+              "liveType": "UNKNOWN",
+              "lastSeen": 1512041486122,
+              "treatment": {
+                "instructions": [
+                  {
+                    "type": "OUTPUT",
+                    "port": "2"
+                  }
+                ],
+                "deferred": []
+              },
+              "selector": {
+                "criteria": [
+                  {
+                    "type": "IN_PORT",
+                    "port": 3
+                  },
+                  {
+                    "type": "ETH_DST",
+                    "mac": "00:00:00:00:00:01"
+                  },
+                  {
+                    "type": "ETH_SRC",
+                    "mac": "00:00:00:00:00:08"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -242,6 +242,7 @@ ONOS_APPS = [
     '//apps/odtn:onos-apps-odtn-oar',
     '//apps/mcast:onos-apps-mcast-oar',
     '//apps/layout:onos-apps-layout-oar',
+    '//apps/imr:onos-apps-imr-oar',
 ]
 
 PROTOCOL_APPS = [
@@ -272,6 +273,8 @@ APP_JARS = [
     '//apps/routing-api:onos-apps-routing-api',
     '//apps/dhcp/api:onos-apps-dhcp-api',
     '//apps/dhcp/app:onos-apps-dhcp-app',
+    '//apps/imr/api:onos-apps-imr-api',
+    '//apps/imr/app:onos-apps-imr-app',
     '//apps/dhcprelay:onos-apps-dhcprelay',
     '//apps/fwd:onos-apps-fwd',
     '//apps/iptopology-api:onos-apps-iptopology-api',
