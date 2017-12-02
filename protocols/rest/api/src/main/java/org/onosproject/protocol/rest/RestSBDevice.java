@@ -26,6 +26,16 @@ import java.util.Optional;
  */
 public interface RestSBDevice {
     /**
+     * REST Authentication schemes.
+     */
+    public enum AuthenticationScheme {
+        NO_AUTHENTICATION,
+        BASIC,
+        OAUTH,
+        OAUTH2,
+    }
+
+    /**
      * Returns the ip of this device.
      *
      * @return ip
@@ -38,6 +48,20 @@ public interface RestSBDevice {
      * @return port
      */
     int port();
+
+    /**
+     * The authentication scheme of rest device.
+     *
+     * @return authentication
+     */
+    AuthenticationScheme authentication();
+
+    /**
+     * The access token of rest device if authentication is OAuth2.
+     *
+     * @return token
+     */
+    String token();
 
     /**
      * Returns the username of this device.
@@ -91,6 +115,7 @@ public interface RestSBDevice {
     /**
      * Returns the proxy state of this device
      * (if true, the device is proxying multiple ONOS devices).
+     *
      * @return proxy state
      */
     boolean isProxy();
@@ -122,4 +147,5 @@ public interface RestSBDevice {
      * @return the software version.
      */
     Optional<String> swVersion();
+
 }

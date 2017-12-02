@@ -10,6 +10,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST_REST',
     '//lib:minimal-json',
+    '//lib:jersey-security'
 ]
 
 osgi_jar_with_tests (

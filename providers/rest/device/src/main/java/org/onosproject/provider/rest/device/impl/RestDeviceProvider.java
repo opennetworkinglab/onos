@@ -28,8 +28,6 @@ import org.onlab.util.SharedScheduledExecutorService;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.behaviour.PortAdmin;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -38,7 +36,9 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.DevicesDiscovery;
+import org.onosproject.net.behaviour.PortAdmin;
 import org.onosproject.net.behaviour.PortDiscovery;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -73,6 +73,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -81,7 +82,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
@@ -354,22 +354,25 @@ public class RestDeviceProvider extends AbstractProvider
         Set<DeviceId> deviceSubjects =
                 cfgService.getSubjects(DeviceId.class, RestDeviceConfig.class);
         connectDevices(deviceSubjects.stream()
-                               .filter(deviceId -> deviceService.getDevice(deviceId) == null)
-                               .map(deviceId -> {
-                                   RestDeviceConfig config =
-                                           cfgService.getConfig(deviceId, RestDeviceConfig.class);
-                                   return new DefaultRestSBDevice(config.ip(),
-                                                                  config.port(),
-                                                                  config.username(),
-                                                                  config.password(),
-                                                                  config.protocol(),
-                                                                  config.url(),
-                                                                  false,
-                                                                  config.testUrl(),
-                                                                  config.manufacturer(),
-                                                                  config.hwVersion(),
-                                                                  config.swVersion());
-                               }).collect(Collectors.toSet()));
+                .filter(deviceId -> deviceService.getDevice(deviceId) == null)
+                .map(deviceId -> {
+                    RestDeviceConfig config =
+                            cfgService.getConfig(deviceId, RestDeviceConfig.class);
+                    return new DefaultRestSBDevice(config.ip(),
+                            config.port(),
+                            config.username(),
+                            config.password(),
+                            config.protocol(),
+                            config.url(),
+                            false,
+                            config.testUrl(),
+                            config.manufacturer(),
+                            config.hwVersion(),
+                            config.swVersion(),
+                            config.authenticationScheme(),
+                            config.token()
+                    );
+                }).collect(Collectors.toSet()));
     }
 
     //Old method to register devices provided via net-cfg under apps/rest/ tree

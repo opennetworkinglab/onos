@@ -548,6 +548,15 @@ remote_jar (
 )
 
 remote_jar (
+  name = 'jersey-security',
+  out = 'oauth2-client-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.security:oauth2-client:jar:2.25.1',
+  sha1 = '5081be1cdc45a48ebeada89157cab4711f7bad1b',
+  maven_coords = 'org.glassfish.jersey.security:oauth2-client:jar:NON-OSGI:2.25.1',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
   name = 'jersey-common',
   out = 'jersey-common-2.25.1.jar',
   url = 'mvn:org.glassfish.jersey.core:jersey-common:jar:2.25.1',

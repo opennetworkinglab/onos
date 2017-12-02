@@ -25,10 +25,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.client.oauth2.OAuth2ClientSupport;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.http.HttpSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
+import org.onosproject.protocol.rest.RestSBDevice.AuthenticationScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +56,8 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * The implementation of HttpSBController.
@@ -102,11 +106,7 @@ public class HttpSBControllerImpl implements HttpSBController {
     public void addDevice(RestSBDevice device) {
         if (!deviceMap.containsKey(device.deviceId())) {
             Client client = ignoreSslClient();
-            if (device.username() != null) {
-                String username = device.username();
-                String password = device.password() == null ? "" : device.password();
-                authenticate(client, username, password);
-            }
+            authenticate(client, device);
             clientMap.put(device.deviceId(), client);
             deviceMap.put(device.deviceId(), device);
         } else {
@@ -283,8 +283,23 @@ public class HttpSBControllerImpl implements HttpSBController {
         }
     }
 
-    private void authenticate(Client client, String username, String password) {
-        client.register(HttpAuthenticationFeature.basic(username, password));
+    private void authenticate(Client client, RestSBDevice device) {
+        AuthenticationScheme authScheme = device.authentication();
+        if (authScheme == AuthenticationScheme.NO_AUTHENTICATION) {
+            log.debug("{} scheme is specified, ignoring authentication", authScheme);
+            return;
+        } else if (authScheme == AuthenticationScheme.OAUTH2) {
+            String token = checkNotNull(device.token());
+            client.register(OAuth2ClientSupport.feature(token));
+        } else if (authScheme == AuthenticationScheme.BASIC) {
+            String username = device.username();
+            String password = device.password() == null ? "" : device.password();
+            client.register(HttpAuthenticationFeature.basic(username, password));
+        } else {
+            // TODO: Add support for other authentication schemes here.
+            throw new IllegalArgumentException(String.format("Unsupported authentication scheme: %s",
+                    authScheme.name()));
+        }
     }
 
     protected WebTarget getWebTarget(DeviceId device, String request) {
@@ -343,12 +358,15 @@ public class HttpSBControllerImpl implements HttpSBController {
         try {
             sslcontext = SSLContext.getInstance("TLS");
             sslcontext.init(null, new TrustManager[]{new X509TrustManager() {
+                @Override
                 public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
                 }
 
+                @Override
                 public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
                 }
 
+                @Override
                 public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];
                 }

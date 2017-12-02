@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//lib:CORE_DEPS',
     '//lib:jersey-client',
+    '//lib:jersey-security',
     '//lib:jersey-common',
     '//lib:httpclient-osgi',
     '//lib:httpcore-osgi',

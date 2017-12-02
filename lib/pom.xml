@@ -223,6 +223,13 @@
                 <artifactId>jersey-client</artifactId>
                 <version>${jersey.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jersey.security</groupId>
+                <artifactId>oauth2-client</artifactId>
+                <version>${jersey.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.glassfish.jersey.containers</groupId>
                 <artifactId>jersey-container-servlet</artifactId>

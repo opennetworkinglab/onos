@@ -155,6 +155,7 @@
     "javax.inject": "mvn:org.glassfish.hk2.external:javax.inject:2.5.0-b32",
     "javax.ws.rs-api": "mvn:javax.ws.rs:javax.ws.rs-api:2.1",
     "jersey-client": "mvn:org.glassfish.jersey.core:jersey-client:2.25.1",
+    "jersey-security": "mvn:org.glassfish.jersey.security:oauth2-client:jar:2.25.1",
     "jersey-common": "mvn:org.glassfish.jersey.core:jersey-common:2.25.1",
     "jersey-container-jetty-http": "mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:2.25.1",
     "jersey-container-servlet": "mvn:org.glassfish.jersey.containers:jersey-container-servlet:2.25.1",

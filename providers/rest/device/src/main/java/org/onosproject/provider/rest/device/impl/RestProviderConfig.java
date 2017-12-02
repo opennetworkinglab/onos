@@ -21,15 +21,17 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.protocol.rest.DefaultRestSBDevice;
 import org.onosproject.protocol.rest.RestSBDevice;
+import org.onosproject.protocol.rest.RestSBDevice.AuthenticationScheme;
 
 import java.util.Set;
 
 /**
  * Configuration for RestSB provider.
+ *
  * @deprecated 1.10.0 Kingfisher. Please Use RestDeviceConfig
  */
 @Deprecated
@@ -48,6 +50,8 @@ public class RestProviderConfig extends Config<ApplicationId> {
     private static final String MANUFACTURER = "manufacturer";
     private static final String HWVERSION = "hwVersion";
     private static final String SWVERSION = "swVersion";
+    private static final String AUTHENTICATION_SCHEME = "authenticationScheme";
+    private static final String TOKEN = "token";
 
     public Set<RestSBDevice> getDevicesAddresses() throws ConfigException {
         Set<RestSBDevice> devicesAddresses = Sets.newHashSet();
@@ -65,11 +69,14 @@ public class RestProviderConfig extends Config<ApplicationId> {
                 String manufacturer = node.path(MANUFACTURER).asText();
                 String hwVersion = node.path(HWVERSION).asText();
                 String swVersion = node.path(SWVERSION).asText();
+                AuthenticationScheme authenticationScheme = AuthenticationScheme.valueOf(node.path(
+                        AUTHENTICATION_SCHEME).asText().toUpperCase());
+                String token = node.path(TOKEN).asText();
 
                 devicesAddresses.add(new DefaultRestSBDevice(ipAddr, port, username,
-                                                             password, protocol,
-                                                             url, false, testUrl, manufacturer,
-                                                             hwVersion, swVersion));
+                        password, protocol,
+                        url, false, testUrl, manufacturer,
+                        hwVersion, swVersion, authenticationScheme, token));
             }
         } catch (IllegalArgumentException e) {
             throw new ConfigException(CONFIG_VALUE_ERROR, e);

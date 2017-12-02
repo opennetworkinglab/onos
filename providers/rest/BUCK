@@ -3,6 +3,7 @@ BUNDLES = [
     '//protocols/rest/api:onos-protocols-rest-api',
     '//protocols/rest/ctl:onos-protocols-rest-ctl',
     '//lib:jersey-client',
+    '//lib:jersey-security',
     '//lib:commons-io',
     '//lib:httpclient-osgi',
     '//lib:httpcore-osgi',
