@@ -38,7 +38,7 @@ import static org.onlab.packet.PacketUtils.checkInput;
 public class NeighborSolicitation extends BasePacket {
     public static final byte HEADER_LENGTH = 20; // bytes
     // Constants for NDP reply
-    protected static final byte NDP_HOP_LIMIT = (byte) 0x255;
+    protected static final byte NDP_HOP_LIMIT = (byte) 255;
     protected static final byte RESERVED_CODE = (byte) 0x0;
 
     protected byte[] targetAddress = new byte[Ip6Address.BYTE_LENGTH];
