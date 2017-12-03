@@ -171,6 +171,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     protected ExecutorService eventHandler;
 
+    private int probeDelayMs = 1000;
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -450,17 +452,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                 host.id().mac().toBytes(), host.id().vlanId().toShort());
                     } else {
                         probe = NeighborSolicitation.buildNdpSolicit(
-                                ip.getIp6Address().toOctets(),
-                                IPv6.getLinkLocalAddress(probeMac.toBytes()),
-                                IPv6.getSolicitNodeAddress(ip.getIp6Address().toOctets()),
-                                probeMac.toBytes(),
-                                IPv6.getMCastMacAddress(ip.getIp6Address().toOctets()),
+                                ip.getIp6Address(),
+                                Ip6Address.valueOf(IPv6.getLinkLocalAddress(probeMac.toBytes())),
+                                ip.getIp6Address(),
+                                probeMac,
+                                host.id().mac(),
                                 host.id().vlanId());
                     }
 
                     // NOTE: delay the probe a little bit to wait for the store synchronization is done
                     ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-                    executorService.schedule(() -> sendProbe(probe, location), 1000, TimeUnit.MILLISECONDS);
+                    executorService.schedule(() -> sendProbe(probe, location), probeDelayMs, TimeUnit.MILLISECONDS);
                 });
             });
         }
