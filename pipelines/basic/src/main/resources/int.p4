@@ -21,7 +21,7 @@
 #include "include/defines.p4"
 #include "include/headers.p4"
 #include "include/actions.p4"
-#include "include/int_defines.p4"
+#include "include/int_definitions.p4"
 #include "include/int_headers.p4"
 #include "include/packet_io.p4"
 #include "include/port_counters.p4"
@@ -53,9 +53,11 @@ control int_egress (
     apply {
         if (standard_metadata.ingress_port != CPU_PORT &&
             standard_metadata.egress_port != CPU_PORT &&
-            hdr.udp.isValid()) {
-            process_int_source.apply(hdr, local_metadata, standard_metadata);
-            if(hdr.udp.dst_port == INT_PORT) {
+            (hdr.udp.isValid() || hdr.tcp.isValid())) {
+            if (local_metadata.int_meta.sink == 0 && local_metadata.int_meta.source == 1) {
+                process_int_source.apply(hdr, local_metadata, standard_metadata);
+            }
+            if(hdr.int_header.isValid()) {
                 process_int_transit.apply(hdr, local_metadata, standard_metadata);
                 // update underlay header based on INT information inserted
                 process_int_outer_encap.apply(hdr, local_metadata, standard_metadata);

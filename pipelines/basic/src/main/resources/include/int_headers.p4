@@ -84,12 +84,11 @@ header intl4_tail_t {
     bit<8> dscp;
 }
 
-header int_metadata_t {
+struct int_metadata_t {
     switch_id_t switch_id;
     bit<16> insert_byte_cnt;
     bit<1>  source;
     bit<1>  sink;
-    bit<16> origin_port;
     bit<8>  mirror_id;
     bit<16> flow_id;
     bit<8>  metadata_len;

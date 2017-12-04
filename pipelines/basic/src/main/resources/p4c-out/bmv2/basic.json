@@ -47,7 +47,8 @@
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
-        ["diffserv", 8, false],
+        ["dscp", 6, false],
+        ["ecn", 2, false],
         ["len", 16, false],
         ["identification", 16, false],
         ["flags", 3, false],

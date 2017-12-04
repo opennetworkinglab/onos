@@ -76,9 +76,9 @@ tables {
 }
 tables {
   preamble {
-    id: 33573105
-    name: "process_set_source_sink.tb_set_source"
-    alias: "tb_set_source"
+    id: 33582667
+    name: "process_set_source_sink.tb_set_source_sink"
+    alias: "tb_set_source_sink"
   }
   match_fields {
     id: 1
@@ -108,50 +108,13 @@ tables {
     id: 16816387
   }
   action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302036180
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33590037
-    name: "process_set_source_sink.tb_set_sink"
-    alias: "tb_set_sink"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.ipv4.src_addr"
-    bitwidth: 32
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv4.dst_addr"
-    bitwidth: 32
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 3
-    name: "local_metadata.l4_src_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 4
-    name: "local_metadata.l4_dst_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  action_refs {
     id: 16784579
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302053848
+  direct_resource_ids: 301997871
   size: 1024
 }
 tables {
@@ -162,42 +125,30 @@ tables {
   }
   match_fields {
     id: 1
-    name: "local_metadata.int_meta.sink"
-    bitwidth: 1
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "local_metadata.int_meta.source"
-    bitwidth: 1
-    match_type: EXACT
-  }
-  match_fields {
-    id: 3
     name: "hdr.ipv4.src_addr"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 4
+    id: 2
     name: "hdr.ipv4.dst_addr"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 5
+    id: 3
     name: "local_metadata.l4_src_port"
     bitwidth: 16
     match_type: TERNARY
   }
   match_fields {
-    id: 6
+    id: 4
     name: "local_metadata.l4_dst_port"
     bitwidth: 16
     match_type: TERNARY
   }
   action_refs {
-    id: 16841774
+    id: 16820636
   }
   action_refs {
     id: 16800567
@@ -423,9 +374,9 @@ actions {
 }
 actions {
   preamble {
-    id: 16841774
-    name: "process_int_source.int_source"
-    alias: "int_source"
+    id: 16820636
+    name: "process_int_source.int_source_dscp"
+    alias: "int_source_dscp"
   }
   params {
     id: 1
@@ -707,16 +658,23 @@ actions {
 }
 actions {
   preamble {
-    id: 16826281
-    name: "process_int_sink.int_sink"
-    alias: "int_sink"
+    id: 16835077
+    name: "process_int_outer_encap.int_update_shim"
+    alias: "int_update_shim"
   }
 }
 actions {
   preamble {
-    id: 16792548
-    name: "process_int_sink.restore_port"
-    alias: "restore_port"
+    id: 16798801
+    name: "process_int_sink.restore_header"
+    alias: "restore_header"
+  }
+}
+actions {
+  preamble {
+    id: 16826281
+    name: "process_int_sink.int_sink"
+    alias: "int_sink"
   }
 }
 counters {
@@ -754,25 +712,14 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302036180
-    name: "process_set_source_sink.counter_set_source"
-    alias: "counter_set_source"
+    id: 301997871
+    name: "process_set_source_sink.counter_set_source_sink"
+    alias: "counter_set_source_sink"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33573105
-}
-direct_counters {
-  preamble {
-    id: 302053848
-    name: "process_set_source_sink.counter_set_sink"
-    alias: "counter_set_sink"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33590037
+  direct_table_id: 33582667
 }
 direct_counters {
   preamble {

@@ -52,26 +52,26 @@ control process_int_source (
         hdr.intl4_tail.setValid();
         hdr.intl4_tail.next_proto = hdr.ipv4.protocol;
         hdr.intl4_tail.dest_port = local_metadata.l4_dst_port;
-        hdr.intl4_tail.dscp = 0; // not used
-
-        hdr.udp.dst_port = INT_PORT;
+        hdr.intl4_tail.dscp = (bit<8>) hdr.ipv4.dscp;
 
         // add the header len (8 bytes) to total len
         hdr.ipv4.len = hdr.ipv4.len + 16;
         hdr.udp.length_ = hdr.udp.length_ + 16;
     }
+    action int_source_dscp(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
+        int_source(max_hop, ins_cnt, ins_mask0003, ins_mask0407);
+        hdr.ipv4.dscp = INT_DSCP;
+    }
 
     table tb_int_source {
         key = {
-            local_metadata.int_meta.sink: exact;
-            local_metadata.int_meta.source: exact;
             hdr.ipv4.src_addr: ternary;
             hdr.ipv4.dst_addr: ternary;
             local_metadata.l4_src_port: ternary;
             local_metadata.l4_dst_port: ternary;
         }
         actions = {
-            int_source; // sink = 0 & source = 1
+            int_source_dscp;
         }
         counters = counter_int_source;
         size = 1024;
@@ -87,18 +87,17 @@ control process_set_source_sink (
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
 
-    direct_counter(CounterType.packets_and_bytes) counter_set_source;
-    direct_counter(CounterType.packets_and_bytes) counter_set_sink;
+    direct_counter(CounterType.packets_and_bytes) counter_set_source_sink;
 
     action int_set_source () {
-        local_metadata.int_meta.source =  1;
+        local_metadata.int_meta.source = 1;
     }
 
     action int_set_sink () {
         local_metadata.int_meta.sink = 1;
     }
 
-    table tb_set_source {
+    table tb_set_source_sink {
         key = {
             hdr.ipv4.src_addr: ternary;
             hdr.ipv4.dst_addr: ternary;
@@ -107,30 +106,14 @@ control process_set_source_sink (
         }
         actions = {
             int_set_source;
-        }
-        counters = counter_set_source;
-        size = 1024;
-    }
-
-    table tb_set_sink {
-        key = {
-            hdr.ipv4.src_addr: ternary;
-            hdr.ipv4.dst_addr: ternary;
-            local_metadata.l4_src_port: ternary;
-            local_metadata.l4_dst_port: ternary;
-        }
-        actions = {
             int_set_sink;
         }
-        counters = counter_set_sink;
+        counters = counter_set_source_sink;
         size = 1024;
     }
 
     apply {
-        if (hdr.udp.isValid()) {
-            tb_set_source.apply();
-            tb_set_sink.apply();
-        }
+        tb_set_source_sink.apply();
     }
 }
 #endif

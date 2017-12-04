@@ -20,7 +20,8 @@
 
 #include "defines.p4"
 
-const next_hop_id_t INT_PORT = 54321;
+/* indicate INT at LSB of DSCP */
+const bit<6> INT_DSCP = 0x1;
 
 typedef bit<48> timestamp_t;
 typedef bit<32> switch_id_t;

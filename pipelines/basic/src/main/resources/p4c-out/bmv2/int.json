@@ -9,13 +9,16 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
-        ["tmp", 32, false],
-        ["tmp_0", 32, false],
+        ["tmp", 1, false],
+        ["tmp_0", 1, false],
         ["tmp_1", 32, false],
+        ["tmp_2", 32, false],
+        ["tmp_3", 32, false],
         ["local_metadata_t.l4_src_port", 16, false],
         ["local_metadata_t.l4_dst_port", 16, false],
         ["local_metadata_t.next_hop_id", 16, false],
-        ["local_metadata_t.selector", 16, false]
+        ["local_metadata_t.selector", 16, false],
+        ["_padding_3", 6, false]
       ]
     },
     {
@@ -49,7 +52,8 @@
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
-        ["diffserv", 8, false],
+        ["dscp", 6, false],
+        ["ecn", 2, false],
         ["len", 16, false],
         ["identification", 16, false],
         ["flags", 3, false],
@@ -201,7 +205,6 @@
         ["insert_byte_cnt", 16, false],
         ["source", 1, false],
         ["sink", 1, false],
-        ["origin_port", 16, false],
         ["mirror_id", 8, false],
         ["flow_id", 16, false],
         ["metadata_len", 8, false],
@@ -379,7 +382,7 @@
       "name" : "int_meta",
       "id" : 20,
       "header_type" : "int_metadata_t",
-      "metadata" : false,
+      "metadata" : true,
       "pi_omit" : true
     }
   ],
@@ -532,16 +535,102 @@
                 }
               ],
               "op" : "extract"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "local_metadata_t.l4_src_port"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["tcp", "src_port"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "local_metadata_t.l4_dst_port"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["tcp", "dst_port"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "?",
+                      "left" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x00"
+                      },
+                      "cond" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "==",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : "&",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["ipv4", "dscp"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x01"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0x01"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
+            {
+              "value" : "0x01",
+              "mask" : null,
+              "next_state" : "parse_intl4_shim"
+            },
             {
               "value" : "default",
               "mask" : null,
               "next_state" : null
             }
           ],
-          "transition_key" : []
+          "transition_key" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "tmp"]
+            }
+          ]
         },
         {
           "name" : "parse_udp",
@@ -581,11 +670,61 @@
                 }
               ],
               "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "tmp_0"]
+                },
+                {
+                  "type" : "expression",
+                  "value" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "?",
+                      "left" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x00"
+                      },
+                      "cond" : {
+                        "type" : "expression",
+                        "value" : {
+                          "op" : "==",
+                          "left" : {
+                            "type" : "expression",
+                            "value" : {
+                              "op" : "&",
+                              "left" : {
+                                "type" : "field",
+                                "value" : ["ipv4", "dscp"]
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0x01"
+                              }
+                            }
+                          },
+                          "right" : {
+                            "type" : "hexstr",
+                            "value" : "0x01"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
             {
-              "value" : "0xd431",
+              "value" : "0x01",
               "mask" : null,
               "next_state" : "parse_intl4_shim"
             },
@@ -598,7 +737,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["udp", "dst_port"]
+              "value" : ["scalars", "tmp_0"]
             }
           ]
         },
@@ -688,7 +827,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp"]
+                  "value" : ["scalars", "tmp_1"]
                 },
                 {
                   "type" : "expression",
@@ -760,7 +899,7 @@
                   "type" : "expression",
                   "value" : {
                     "type" : "field",
-                    "value" : ["scalars", "tmp"]
+                    "value" : ["scalars", "tmp_1"]
                   }
                 }
               ],
@@ -808,7 +947,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "./include/int_parser.p4",
-        "line" : 99,
+        "line" : 104,
         "column" : 8,
         "source_fragment" : "int_deparser"
       },
@@ -836,44 +975,38 @@
       "binding" : "table0_control.table0"
     },
     {
-      "name" : "process_set_source_sink.counter_set_source",
+      "name" : "process_set_source_sink.counter_set_source_sink",
       "id" : 2,
       "is_direct" : true,
-      "binding" : "process_set_source_sink.tb_set_source"
-    },
-    {
-      "name" : "process_set_source_sink.counter_set_sink",
-      "id" : 3,
-      "is_direct" : true,
-      "binding" : "process_set_source_sink.tb_set_sink"
+      "binding" : "process_set_source_sink.tb_set_source_sink"
     },
     {
       "name" : "process_int_source.counter_int_source",
-      "id" : 4,
+      "id" : 3,
       "is_direct" : true,
       "binding" : "process_int_source.tb_int_source"
     },
     {
       "name" : "process_int_transit.counter_int_insert",
-      "id" : 5,
+      "id" : 4,
       "is_direct" : true,
       "binding" : "process_int_transit.tb_int_insert"
     },
     {
       "name" : "process_int_transit.counter_int_inst_0003",
-      "id" : 6,
+      "id" : 5,
       "is_direct" : true,
       "binding" : "process_int_transit.tb_int_inst_0003"
     },
     {
       "name" : "process_int_transit.counter_int_inst_0407",
-      "id" : 7,
+      "id" : 6,
       "is_direct" : true,
       "binding" : "process_int_transit.tb_int_inst_0407"
     },
     {
       "name" : "port_counters_egress.egress_port_counter",
-      "id" : 8,
+      "id" : 7,
       "source_info" : {
         "filename" : "./include/port_counters.p4",
         "line" : 36,
@@ -938,7 +1071,7 @@
           ],
           "source_info" : {
             "filename" : "int.p4",
-            "line" : 21,
+            "line" : 20,
             "column" : 24,
             "source_fragment" : "255; ..."
           }
@@ -969,14 +1102,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
-      "id" : 4,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "table0_control.set_next_hop_id",
-      "id" : 5,
+      "id" : 4,
       "runtime_data" : [
         {
           "name" : "next_hop_id",
@@ -1007,7 +1134,7 @@
     },
     {
       "name" : "process_set_source_sink.int_set_source",
-      "id" : 6,
+      "id" : 5,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1024,7 +1151,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 94,
+            "line" : 93,
             "column" : 8,
             "source_fragment" : "local_metadata.int_meta.source = 1"
           }
@@ -1033,7 +1160,7 @@
     },
     {
       "name" : "process_set_source_sink.int_set_sink",
-      "id" : 7,
+      "id" : 6,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1050,7 +1177,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 98,
+            "line" : 97,
             "column" : 8,
             "source_fragment" : "local_metadata.int_meta.sink = 1"
           }
@@ -1059,7 +1186,7 @@
     },
     {
       "name" : "act",
-      "id" : 8,
+      "id" : 7,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1100,7 +1227,7 @@
     },
     {
       "name" : "act_0",
-      "id" : 9,
+      "id" : 8,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1108,7 +1235,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp_2"]
             },
             {
               "type" : "expression",
@@ -1138,7 +1265,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp_2"]
             }
           ],
           "source_info" : {
@@ -1149,6 +1276,12 @@
           }
         }
       ]
+    },
+    {
+      "name" : "NoAction",
+      "id" : 9,
+      "runtime_data" : [],
+      "primitives" : []
     },
     {
       "name" : "NoAction",
@@ -1169,14 +1302,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "process_int_source.int_source_dscp",
       "id" : 13,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
-      "name" : "process_int_source.int_source",
-      "id" : 14,
       "runtime_data" : [
         {
           "name" : "max_hop",
@@ -1243,8 +1370,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/int_defines.p4",
-            "line" : 28,
+            "filename" : "./include/int_definitions.p4",
+            "line" : 29,
             "column" : 35,
             "source_fragment" : "4; ..."
           }
@@ -1375,7 +1502,7 @@
             "filename" : "./include/int_source.p4",
             "line" : 43,
             "column" : 8,
-            "source_fragment" : "hdr.int_header.ins_cnt = ins_cnt"
+            "source_fragment" : "hdr.int_header.ins_cnt = ins_cnt; ..."
           }
         },
         {
@@ -1394,7 +1521,7 @@
             "filename" : "./include/int_source.p4",
             "line" : 44,
             "column" : 8,
-            "source_fragment" : "hdr.int_header.max_hop_cnt = max_hop"
+            "source_fragment" : "hdr.int_header.max_hop_cnt = max_hop; ..."
           }
         },
         {
@@ -1432,7 +1559,7 @@
             "filename" : "./include/int_source.p4",
             "line" : 46,
             "column" : 8,
-            "source_fragment" : "hdr.int_header.instruction_mask_0003 = ins_mask0003"
+            "source_fragment" : "hdr.int_header.instruction_mask_0003 = ins_mask0003; ..."
           }
         },
         {
@@ -1451,7 +1578,7 @@
             "filename" : "./include/int_source.p4",
             "line" : 47,
             "column" : 8,
-            "source_fragment" : "hdr.int_header.instruction_mask_0407 = ins_mask0407"
+            "source_fragment" : "hdr.int_header.instruction_mask_0407 = ins_mask0407; ..."
           }
         },
         {
@@ -1553,34 +1680,28 @@
               "value" : ["intl4_tail", "dscp"]
             },
             {
-              "type" : "hexstr",
-              "value" : "0x00"
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["ipv4", "dscp"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0xff"
+                  }
+                }
+              }
             }
           ],
           "source_info" : {
             "filename" : "./include/int_source.p4",
             "line" : 55,
             "column" : 8,
-            "source_fragment" : "hdr.intl4_tail.dscp = 0"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["udp", "dst_port"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0xd431"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/int_defines.p4",
-            "line" : 23,
-            "column" : 31,
-            "source_fragment" : "54321; ..."
+            "source_fragment" : "hdr.intl4_tail.dscp = (bit<8>) hdr.ipv4.dscp"
           }
         },
         {
@@ -1620,7 +1741,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 60,
+            "line" : 58,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.len = hdr.ipv4.len + 16"
           }
@@ -1662,16 +1783,35 @@
           ],
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 61,
+            "line" : 59,
             "column" : 8,
             "source_fragment" : "hdr.udp.length_ = hdr.udp.length_ + 16"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "dscp"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_definitions.p4",
+            "line" : 24,
+            "column" : 24,
+            "source_fragment" : "0x1; ..."
           }
         }
       ]
     },
     {
       "name" : "process_int_transit.int_update_total_hop_cnt",
-      "id" : 15,
+      "id" : 14,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1720,7 +1860,7 @@
     },
     {
       "name" : "process_int_transit.int_transit",
-      "id" : 16,
+      "id" : 15,
       "runtime_data" : [
         {
           "name" : "switch_id",
@@ -1803,13 +1943,13 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i0",
-      "id" : 17,
+      "id" : 16,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i1",
-      "id" : 18,
+      "id" : 17,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1882,7 +2022,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i2",
-      "id" : 19,
+      "id" : 18,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1923,7 +2063,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i3",
-      "id" : 20,
+      "id" : 19,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2030,7 +2170,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i4",
-      "id" : 21,
+      "id" : 20,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2116,7 +2256,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i5",
-      "id" : 22,
+      "id" : 21,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2268,7 +2408,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i6",
-      "id" : 23,
+      "id" : 22,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2388,7 +2528,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i7",
-      "id" : 24,
+      "id" : 23,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2574,7 +2714,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i8",
-      "id" : 25,
+      "id" : 24,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2615,7 +2755,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i9",
-      "id" : 26,
+      "id" : 25,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2722,7 +2862,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i10",
-      "id" : 27,
+      "id" : 26,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2797,7 +2937,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i11",
-      "id" : 28,
+      "id" : 27,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2938,7 +3078,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i12",
-      "id" : 29,
+      "id" : 28,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3058,7 +3198,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i13",
-      "id" : 30,
+      "id" : 29,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3244,7 +3384,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i14",
-      "id" : 31,
+      "id" : 30,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3398,7 +3538,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0003_i15",
-      "id" : 32,
+      "id" : 31,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3618,13 +3758,13 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i0",
-      "id" : 33,
+      "id" : 32,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i1",
-      "id" : 34,
+      "id" : 33,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3665,7 +3805,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i2",
-      "id" : 35,
+      "id" : 34,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3725,7 +3865,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i3",
-      "id" : 36,
+      "id" : 35,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3819,7 +3959,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i4",
-      "id" : 37,
+      "id" : 36,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3883,7 +4023,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i5",
-      "id" : 38,
+      "id" : 37,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3981,7 +4121,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i6",
-      "id" : 39,
+      "id" : 38,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4098,7 +4238,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i7",
-      "id" : 40,
+      "id" : 39,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4249,7 +4389,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i8",
-      "id" : 41,
+      "id" : 40,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4290,7 +4430,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i9",
-      "id" : 42,
+      "id" : 41,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4365,7 +4505,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i10",
-      "id" : 43,
+      "id" : 42,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4459,7 +4599,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i11",
-      "id" : 44,
+      "id" : 43,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4587,7 +4727,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i12",
-      "id" : 45,
+      "id" : 44,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4685,7 +4825,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i13",
-      "id" : 46,
+      "id" : 45,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4817,7 +4957,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i14",
-      "id" : 47,
+      "id" : 46,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4968,7 +5108,7 @@
     },
     {
       "name" : "process_int_transit.int_set_header_0407_i15",
-      "id" : 48,
+      "id" : 47,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -5153,7 +5293,7 @@
     },
     {
       "name" : "process_int_outer_encap.int_update_ipv4",
-      "id" : 49,
+      "id" : 48,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -5202,7 +5342,7 @@
     },
     {
       "name" : "process_int_outer_encap.int_update_udp",
-      "id" : 50,
+      "id" : 49,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -5246,7 +5386,14 @@
             "column" : 8,
             "source_fragment" : "hdr.udp.length_ = hdr.udp.length_ + local_metadata.int_meta.insert_byte_cnt"
           }
-        },
+        }
+      ]
+    },
+    {
+      "name" : "process_int_outer_encap.int_update_shim",
+      "id" : 50,
+      "runtime_data" : [],
+      "primitives" : [
         {
           "op" : "assign",
           "parameters" : [
@@ -5294,7 +5441,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_transit.p4",
-            "line" : 310,
+            "line" : 312,
             "column" : 8,
             "source_fragment" : "hdr.intl4_shim.len = hdr.intl4_shim.len + (bit<8>)hdr.int_header.ins_cnt"
           }
@@ -5302,8 +5449,66 @@
       ]
     },
     {
-      "name" : "process_int_sink.int_sink",
+      "name" : "process_int_sink.restore_header",
       "id" : 51,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["udp", "dst_port"]
+            },
+            {
+              "type" : "field",
+              "value" : ["intl4_tail", "dest_port"]
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 27,
+            "column" : 8,
+            "source_fragment" : "hdr.udp.dst_port = hdr.intl4_tail.dest_port"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ipv4", "dscp"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "&",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["intl4_tail", "dscp"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x3f"
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 28,
+            "column" : 8,
+            "source_fragment" : "hdr.ipv4.dscp = (bit<6>)hdr.intl4_tail.dscp"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "process_int_sink.int_sink",
+      "id" : 52,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -5403,7 +5608,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 28,
+            "line" : 33,
             "column" : 8,
             "source_fragment" : "hdr.ipv4.len = hdr.ipv4.len - (bit<16>)((hdr.intl4_shim.len - (bit<8>)hdr.int_header.ins_cnt) << 2)"
           }
@@ -5505,28 +5710,9 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 29,
+            "line" : 34,
             "column" : 8,
             "source_fragment" : "hdr.udp.length_ = hdr.udp.length_ - (bit<16>)((hdr.intl4_shim.len - (bit<8>)hdr.int_header.ins_cnt) << 2)"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["int_meta", "origin_port"]
-            },
-            {
-              "type" : "field",
-              "value" : ["intl4_tail", "dest_port"]
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/int_sink.p4",
-            "line" : 31,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.origin_port = hdr.intl4_tail.dest_port"
           }
         },
         {
@@ -5539,7 +5725,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 33,
+            "line" : 36,
             "column" : 8,
             "source_fragment" : "hdr.int_header.setInvalid()"
           }
@@ -5554,7 +5740,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 34,
+            "line" : 37,
             "column" : 8,
             "source_fragment" : "hdr.int_data.setInvalid()"
           }
@@ -5569,7 +5755,7 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 35,
+            "line" : 38,
             "column" : 8,
             "source_fragment" : "hdr.intl4_shim.setInvalid()"
           }
@@ -5584,35 +5770,129 @@
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 36,
+            "line" : 39,
             "column" : 8,
             "source_fragment" : "hdr.intl4_tail.setInvalid()"
           }
-        }
-      ]
-    },
-    {
-      "name" : "process_int_sink.restore_port",
-      "id" : 52,
-      "runtime_data" : [],
-      "primitives" : [
+        },
         {
-          "op" : "assign",
+          "op" : "remove_header",
           "parameters" : [
             {
-              "type" : "field",
-              "value" : ["udp", "dst_port"]
-            },
-            {
-              "type" : "field",
-              "value" : ["int_meta", "origin_port"]
+              "type" : "header",
+              "value" : "int_switch_id"
             }
           ],
           "source_info" : {
             "filename" : "./include/int_sink.p4",
             "line" : 40,
             "column" : 8,
-            "source_fragment" : "hdr.udp.dst_port = local_metadata.int_meta.origin_port"
+            "source_fragment" : "hdr.int_switch_id.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_port_ids"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 41,
+            "column" : 8,
+            "source_fragment" : "hdr.int_port_ids.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_hop_latency"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 42,
+            "column" : 8,
+            "source_fragment" : "hdr.int_hop_latency.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_q_occupancy"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 43,
+            "column" : 8,
+            "source_fragment" : "hdr.int_q_occupancy.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_ingress_tstamp"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 44,
+            "column" : 8,
+            "source_fragment" : "hdr.int_ingress_tstamp.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_egress_tstamp"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 45,
+            "column" : 8,
+            "source_fragment" : "hdr.int_egress_tstamp.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_q_congestion"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 46,
+            "column" : 8,
+            "source_fragment" : "hdr.int_q_congestion.setInvalid()"
+          }
+        },
+        {
+          "op" : "remove_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "int_egress_tx_util"
+            }
+          ],
+          "source_info" : {
+            "filename" : "./include/int_sink.p4",
+            "line" : 47,
+            "column" : 8,
+            "source_fragment" : "hdr.int_egress_tx_util.setInvalid()"
           }
         }
       ]
@@ -5668,7 +5948,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_3"]
             },
             {
               "type" : "expression",
@@ -5698,7 +5978,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_3"]
             }
           ],
           "source_info" : {
@@ -5717,7 +5997,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "int.p4",
-        "line" : 36,
+        "line" : 35,
         "column" : 8,
         "source_fragment" : "int_ingress"
       },
@@ -5733,14 +6013,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [9],
+          "action_ids" : [8],
           "actions" : ["act_0"],
           "base_default_next" : "node_3",
           "next_tables" : {
             "act_0" : "node_3"
           },
           "default_entry" : {
-            "action_id" : 9,
+            "action_id" : 8,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5756,14 +6036,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [8],
+          "action_ids" : [7],
           "actions" : ["act"],
           "base_default_next" : null,
           "next_tables" : {
             "act" : null
           },
           "default_entry" : {
-            "action_id" : 8,
+            "action_id" : 7,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5830,14 +6110,14 @@
           "max_size" : 1024,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [0, 1, 5, 2],
+          "action_ids" : [0, 1, 4, 2],
           "actions" : ["set_egress_port", "send_to_cpu", "table0_control.set_next_hop_id", "_drop"],
-          "base_default_next" : "node_6",
+          "base_default_next" : "process_set_source_sink.tb_set_source_sink",
           "next_tables" : {
-            "set_egress_port" : "node_6",
-            "send_to_cpu" : "node_6",
-            "table0_control.set_next_hop_id" : "node_6",
-            "_drop" : "node_6"
+            "set_egress_port" : "process_set_source_sink.tb_set_source_sink",
+            "send_to_cpu" : "process_set_source_sink.tb_set_source_sink",
+            "table0_control.set_next_hop_id" : "process_set_source_sink.tb_set_source_sink",
+            "_drop" : "process_set_source_sink.tb_set_source_sink"
           },
           "default_entry" : {
             "action_id" : 2,
@@ -5847,13 +6127,13 @@
           }
         },
         {
-          "name" : "process_set_source_sink.tb_set_source",
+          "name" : "process_set_source_sink.tb_set_source_sink",
           "id" : 3,
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 101,
+            "line" : 100,
             "column" : 10,
-            "source_fragment" : "tb_set_source"
+            "source_fragment" : "tb_set_source_sink"
           },
           "key" : [
             {
@@ -5882,65 +6162,16 @@
           "max_size" : 1024,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [6, 3],
-          "actions" : ["process_set_source_sink.int_set_source", "NoAction"],
-          "base_default_next" : "process_set_source_sink.tb_set_sink",
-          "next_tables" : {
-            "process_set_source_sink.int_set_source" : "process_set_source_sink.tb_set_sink",
-            "NoAction" : "process_set_source_sink.tb_set_sink"
-          },
-          "default_entry" : {
-            "action_id" : 3,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "process_set_source_sink.tb_set_sink",
-          "id" : 4,
-          "source_info" : {
-            "filename" : "./include/int_source.p4",
-            "line" : 115,
-            "column" : 10,
-            "source_fragment" : "tb_set_sink"
-          },
-          "key" : [
-            {
-              "match_type" : "ternary",
-              "target" : ["ipv4", "src_addr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["ipv4", "dst_addr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["scalars", "local_metadata_t.l4_src_port"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["scalars", "local_metadata_t.l4_dst_port"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "ternary",
-          "type" : "simple",
-          "max_size" : 1024,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [7, 4],
-          "actions" : ["process_set_source_sink.int_set_sink", "NoAction"],
+          "action_ids" : [5, 6, 3],
+          "actions" : ["process_set_source_sink.int_set_source", "process_set_source_sink.int_set_sink", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
+            "process_set_source_sink.int_set_source" : null,
             "process_set_source_sink.int_set_sink" : null,
             "NoAction" : null
           },
           "default_entry" : {
-            "action_id" : 4,
+            "action_id" : 3,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -5974,32 +6205,6 @@
           },
           "true_next" : "tbl_act_0",
           "false_next" : "table0_control.table0"
-        },
-        {
-          "name" : "node_6",
-          "id" : 1,
-          "source_info" : {
-            "filename" : "./include/int_source.p4",
-            "line" : 130,
-            "column" : 12,
-            "source_fragment" : "hdr.udp.isValid()"
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "==",
-              "left" : {
-                "type" : "field",
-                "value" : ["udp", "$valid$"]
-              },
-              "right" : {
-                "type" : "hexstr",
-                "value" : "0x01"
-              }
-            }
-          },
-          "false_next" : null,
-          "true_next" : "process_set_source_sink.tb_set_source"
         }
       ]
     },
@@ -6008,32 +6213,22 @@
       "id" : 1,
       "source_info" : {
         "filename" : "int.p4",
-        "line" : 49,
+        "line" : 48,
         "column" : 8,
         "source_fragment" : "int_egress"
       },
-      "init_table" : "node_11",
+      "init_table" : "node_9",
       "tables" : [
         {
           "name" : "process_int_source.tb_int_source",
-          "id" : 5,
+          "id" : 4,
           "source_info" : {
             "filename" : "./include/int_source.p4",
-            "line" : 64,
+            "line" : 66,
             "column" : 10,
             "source_fragment" : "tb_int_source"
           },
           "key" : [
-            {
-              "match_type" : "exact",
-              "target" : ["int_meta", "sink"],
-              "mask" : null
-            },
-            {
-              "match_type" : "exact",
-              "target" : ["int_meta", "source"],
-              "mask" : null
-            },
             {
               "match_type" : "ternary",
               "target" : ["ipv4", "src_addr"],
@@ -6060,15 +6255,15 @@
           "max_size" : 1024,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [14, 10],
-          "actions" : ["process_int_source.int_source", "NoAction"],
-          "base_default_next" : "node_13",
+          "action_ids" : [13, 9],
+          "actions" : ["process_int_source.int_source_dscp", "NoAction"],
+          "base_default_next" : "node_12",
           "next_tables" : {
-            "process_int_source.int_source" : "node_13",
-            "NoAction" : "node_13"
+            "process_int_source.int_source_dscp" : "node_12",
+            "NoAction" : "node_12"
           },
           "default_entry" : {
-            "action_id" : 10,
+            "action_id" : 9,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -6076,7 +6271,7 @@
         },
         {
           "name" : "process_int_transit.tb_int_insert",
-          "id" : 6,
+          "id" : 5,
           "source_info" : {
             "filename" : "./include/int_transit.p4",
             "line" : 227,
@@ -6095,7 +6290,7 @@
           "max_size" : 2,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [16, 11],
+          "action_ids" : [15, 10],
           "actions" : ["process_int_transit.int_transit", "NoAction"],
           "base_default_next" : "process_int_transit.tb_int_inst_0003",
           "next_tables" : {
@@ -6103,7 +6298,7 @@
             "NoAction" : "process_int_transit.tb_int_inst_0003"
           },
           "default_entry" : {
-            "action_id" : 11,
+            "action_id" : 10,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -6111,7 +6306,7 @@
         },
         {
           "name" : "process_int_transit.tb_int_inst_0003",
-          "id" : 7,
+          "id" : 6,
           "source_info" : {
             "filename" : "./include/int_transit.p4",
             "line" : 239,
@@ -6130,7 +6325,7 @@
           "max_size" : 16,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 12],
+          "action_ids" : [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 11],
           "actions" : ["process_int_transit.int_set_header_0003_i0", "process_int_transit.int_set_header_0003_i1", "process_int_transit.int_set_header_0003_i2", "process_int_transit.int_set_header_0003_i3", "process_int_transit.int_set_header_0003_i4", "process_int_transit.int_set_header_0003_i5", "process_int_transit.int_set_header_0003_i6", "process_int_transit.int_set_header_0003_i7", "process_int_transit.int_set_header_0003_i8", "process_int_transit.int_set_header_0003_i9", "process_int_transit.int_set_header_0003_i10", "process_int_transit.int_set_header_0003_i11", "process_int_transit.int_set_header_0003_i12", "process_int_transit.int_set_header_0003_i13", "process_int_transit.int_set_header_0003_i14", "process_int_transit.int_set_header_0003_i15", "NoAction"],
           "base_default_next" : "process_int_transit.tb_int_inst_0407",
           "next_tables" : {
@@ -6153,7 +6348,7 @@
             "NoAction" : "process_int_transit.tb_int_inst_0407"
           },
           "default_entry" : {
-            "action_id" : 12,
+            "action_id" : 11,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -6161,7 +6356,7 @@
         },
         {
           "name" : "process_int_transit.tb_int_inst_0407",
-          "id" : 8,
+          "id" : 7,
           "source_info" : {
             "filename" : "./include/int_transit.p4",
             "line" : 266,
@@ -6180,7 +6375,7 @@
           "max_size" : 16,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 13],
+          "action_ids" : [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 12],
           "actions" : ["process_int_transit.int_set_header_0407_i0", "process_int_transit.int_set_header_0407_i1", "process_int_transit.int_set_header_0407_i2", "process_int_transit.int_set_header_0407_i3", "process_int_transit.int_set_header_0407_i4", "process_int_transit.int_set_header_0407_i5", "process_int_transit.int_set_header_0407_i6", "process_int_transit.int_set_header_0407_i7", "process_int_transit.int_set_header_0407_i8", "process_int_transit.int_set_header_0407_i9", "process_int_transit.int_set_header_0407_i10", "process_int_transit.int_set_header_0407_i11", "process_int_transit.int_set_header_0407_i12", "process_int_transit.int_set_header_0407_i13", "process_int_transit.int_set_header_0407_i14", "process_int_transit.int_set_header_0407_i15", "NoAction"],
           "base_default_next" : "tbl_process_int_transit_int_update_total_hop_cnt",
           "next_tables" : {
@@ -6203,7 +6398,7 @@
             "NoAction" : "tbl_process_int_transit_int_update_total_hop_cnt"
           },
           "default_entry" : {
-            "action_id" : 13,
+            "action_id" : 12,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -6211,6 +6406,29 @@
         },
         {
           "name" : "tbl_process_int_transit_int_update_total_hop_cnt",
+          "id" : 8,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [14],
+          "actions" : ["process_int_transit.int_update_total_hop_cnt"],
+          "base_default_next" : "node_17",
+          "next_tables" : {
+            "process_int_transit.int_update_total_hop_cnt" : "node_17"
+          },
+          "default_entry" : {
+            "action_id" : 14,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_process_int_outer_encap_int_update_ipv4",
           "id" : 9,
           "key" : [],
           "match_type" : "exact",
@@ -6219,21 +6437,21 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [15],
-          "actions" : ["process_int_transit.int_update_total_hop_cnt"],
-          "base_default_next" : "node_18",
+          "action_ids" : [48],
+          "actions" : ["process_int_outer_encap.int_update_ipv4"],
+          "base_default_next" : "node_19",
           "next_tables" : {
-            "process_int_transit.int_update_total_hop_cnt" : "node_18"
+            "process_int_outer_encap.int_update_ipv4" : "node_19"
           },
           "default_entry" : {
-            "action_id" : 15,
+            "action_id" : 48,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_process_int_outer_encap_int_update_ipv4",
+          "name" : "tbl_process_int_outer_encap_int_update_udp",
           "id" : 10,
           "key" : [],
           "match_type" : "exact",
@@ -6243,10 +6461,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [49],
-          "actions" : ["process_int_outer_encap.int_update_ipv4"],
-          "base_default_next" : "node_20",
+          "actions" : ["process_int_outer_encap.int_update_udp"],
+          "base_default_next" : "node_21",
           "next_tables" : {
-            "process_int_outer_encap.int_update_ipv4" : "node_20"
+            "process_int_outer_encap.int_update_udp" : "node_21"
           },
           "default_entry" : {
             "action_id" : 49,
@@ -6256,7 +6474,7 @@
           }
         },
         {
-          "name" : "tbl_process_int_outer_encap_int_update_udp",
+          "name" : "tbl_process_int_outer_encap_int_update_shim",
           "id" : 11,
           "key" : [],
           "match_type" : "exact",
@@ -6266,10 +6484,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [50],
-          "actions" : ["process_int_outer_encap.int_update_udp"],
-          "base_default_next" : "node_22",
+          "actions" : ["process_int_outer_encap.int_update_shim"],
+          "base_default_next" : "node_23",
           "next_tables" : {
-            "process_int_outer_encap.int_update_udp" : "node_22"
+            "process_int_outer_encap.int_update_shim" : "node_23"
           },
           "default_entry" : {
             "action_id" : 50,
@@ -6279,7 +6497,7 @@
           }
         },
         {
-          "name" : "tbl_process_int_sink_int_sink",
+          "name" : "tbl_process_int_sink_restore_header",
           "id" : 12,
           "key" : [],
           "match_type" : "exact",
@@ -6289,10 +6507,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [51],
-          "actions" : ["process_int_sink.int_sink"],
-          "base_default_next" : "tbl_process_int_sink_restore_port",
+          "actions" : ["process_int_sink.restore_header"],
+          "base_default_next" : "tbl_process_int_sink_int_sink",
           "next_tables" : {
-            "process_int_sink.int_sink" : "tbl_process_int_sink_restore_port"
+            "process_int_sink.restore_header" : "tbl_process_int_sink_int_sink"
           },
           "default_entry" : {
             "action_id" : 51,
@@ -6302,7 +6520,7 @@
           }
         },
         {
-          "name" : "tbl_process_int_sink_restore_port",
+          "name" : "tbl_process_int_sink_int_sink",
           "id" : 13,
           "key" : [],
           "match_type" : "exact",
@@ -6312,10 +6530,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [52],
-          "actions" : ["process_int_sink.restore_port"],
+          "actions" : ["process_int_sink.int_sink"],
           "base_default_next" : "tbl_act_1",
           "next_tables" : {
-            "process_int_sink.restore_port" : "tbl_act_1"
+            "process_int_sink.int_sink" : "tbl_act_1"
           },
           "default_entry" : {
             "action_id" : 52,
@@ -6336,9 +6554,9 @@
           "direct_meters" : null,
           "action_ids" : [54],
           "actions" : ["act_2"],
-          "base_default_next" : "node_26",
+          "base_default_next" : "node_27",
           "next_tables" : {
-            "act_2" : "node_26"
+            "act_2" : "node_27"
           },
           "default_entry" : {
             "action_id" : 54,
@@ -6374,11 +6592,11 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_11",
-          "id" : 2,
+          "name" : "node_9",
+          "id" : 1,
           "source_info" : {
             "filename" : "int.p4",
-            "line" : 55,
+            "line" : 54,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port != CPU_PORT && ..."
           },
@@ -6423,10 +6641,76 @@
               "right" : {
                 "type" : "expression",
                 "value" : {
+                  "op" : "or",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "==",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["udp", "$valid$"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "==",
+                      "left" : {
+                        "type" : "field",
+                        "value" : ["tcp", "$valid$"]
+                      },
+                      "right" : {
+                        "type" : "hexstr",
+                        "value" : "0x01"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "node_10",
+          "false_next" : "tbl_act_1"
+        },
+        {
+          "name" : "node_10",
+          "id" : 2,
+          "source_info" : {
+            "filename" : "int.p4",
+            "line" : 57,
+            "column" : 16,
+            "source_fragment" : "local_metadata.int_meta.sink == 0 && local_metadata.int_meta.source == 1"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "and",
+              "left" : {
+                "type" : "expression",
+                "value" : {
                   "op" : "==",
                   "left" : {
                     "type" : "field",
-                    "value" : ["udp", "$valid$"]
+                    "value" : ["int_meta", "sink"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x00"
+                  }
+                }
+              },
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "==",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["int_meta", "source"]
                   },
                   "right" : {
                     "type" : "hexstr",
@@ -6437,16 +6721,16 @@
             }
           },
           "true_next" : "process_int_source.tb_int_source",
-          "false_next" : "tbl_act_1"
+          "false_next" : "node_12"
         },
         {
-          "name" : "node_13",
+          "name" : "node_12",
           "id" : 3,
           "source_info" : {
             "filename" : "int.p4",
-            "line" : 59,
+            "line" : 60,
             "column" : 15,
-            "source_fragment" : "hdr.udp.dst_port == INT_PORT"
+            "source_fragment" : "hdr.int_header.isValid()"
           },
           "expression" : {
             "type" : "expression",
@@ -6454,11 +6738,11 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["udp", "dst_port"]
+                "value" : ["int_header", "$valid$"]
               },
               "right" : {
                 "type" : "hexstr",
-                "value" : "0xd431"
+                "value" : "0x01"
               }
             }
           },
@@ -6466,11 +6750,11 @@
           "false_next" : "tbl_act_1"
         },
         {
-          "name" : "node_18",
+          "name" : "node_17",
           "id" : 4,
           "source_info" : {
             "filename" : "./include/int_transit.p4",
-            "line" : 314,
+            "line" : 316,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -6489,14 +6773,40 @@
             }
           },
           "true_next" : "tbl_process_int_outer_encap_int_update_ipv4",
-          "false_next" : "node_20"
+          "false_next" : "node_19"
         },
         {
-          "name" : "node_20",
+          "name" : "node_19",
           "id" : 5,
           "source_info" : {
             "filename" : "./include/int_transit.p4",
-            "line" : 318,
+            "line" : 319,
+            "column" : 12,
+            "source_fragment" : "hdr.udp.isValid()"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "==",
+              "left" : {
+                "type" : "field",
+                "value" : ["udp", "$valid$"]
+              },
+              "right" : {
+                "type" : "hexstr",
+                "value" : "0x01"
+              }
+            }
+          },
+          "true_next" : "tbl_process_int_outer_encap_int_update_udp",
+          "false_next" : "node_21"
+        },
+        {
+          "name" : "node_21",
+          "id" : 6,
+          "source_info" : {
+            "filename" : "./include/int_transit.p4",
+            "line" : 322,
             "column" : 12,
             "source_fragment" : "hdr.intl4_shim.isValid()"
           },
@@ -6514,15 +6824,15 @@
               }
             }
           },
-          "true_next" : "tbl_process_int_outer_encap_int_update_udp",
-          "false_next" : "node_22"
+          "true_next" : "tbl_process_int_outer_encap_int_update_shim",
+          "false_next" : "node_23"
         },
         {
-          "name" : "node_22",
-          "id" : 6,
+          "name" : "node_23",
+          "id" : 7,
           "source_info" : {
             "filename" : "./include/int_sink.p4",
-            "line" : 44,
+            "line" : 51,
             "column" : 12,
             "source_fragment" : "local_metadata.int_meta.sink == 1"
           },
@@ -6540,12 +6850,12 @@
               }
             }
           },
-          "true_next" : "tbl_process_int_sink_int_sink",
+          "true_next" : "tbl_process_int_sink_restore_header",
           "false_next" : "tbl_act_1"
         },
         {
-          "name" : "node_26",
-          "id" : 7,
+          "name" : "node_27",
+          "id" : 8,
           "source_info" : {
             "filename" : "./include/packet_io.p4",
             "line" : 37,

@@ -15,8 +15,8 @@
  */
 
 /* -*- P4_16 -*- */
-#ifndef __PARSER__
-#define __PARSER__
+#ifndef __INT_PARSER__
+#define __INT_PARSER__
 
 parser int_parser (
     packet_in packet,
@@ -54,15 +54,20 @@ parser int_parser (
 
     state parse_tcp {
         packet.extract(hdr.tcp);
-        transition accept;
+        local_metadata.l4_src_port = hdr.tcp.src_port;
+        local_metadata.l4_dst_port = hdr.tcp.dst_port;
+        transition select((hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
+            true: parse_intl4_shim;
+            default: accept;
+        }
     }
 
     state parse_udp {
         packet.extract(hdr.udp);
         local_metadata.l4_src_port = hdr.udp.src_port;
         local_metadata.l4_dst_port = hdr.udp.dst_port;
-        transition select(hdr.udp.dst_port) {
-            INT_PORT: parse_intl4_shim;
+        transition select((hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
+            true: parse_intl4_shim;
             default: accept;
         }
     }

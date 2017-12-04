@@ -307,6 +307,8 @@ control process_int_outer_encap (
     }
     action int_update_udp() {
         hdr.udp.length_ = hdr.udp.length_ + local_metadata.int_meta.insert_byte_cnt;
+    }
+    action int_update_shim() {
         hdr.intl4_shim.len = hdr.intl4_shim.len + (bit<8>)hdr.int_header.ins_cnt;
     }
 
@@ -314,9 +316,11 @@ control process_int_outer_encap (
         if (hdr.ipv4.isValid()) {
             int_update_ipv4();
         }
-
-        if (hdr.intl4_shim.isValid()) {
+        if (hdr.udp.isValid()) {
             int_update_udp();
+        }
+        if (hdr.intl4_shim.isValid()) {
+            int_update_shim();
         }
     }
 }

@@ -38,7 +38,8 @@ header ethernet_t {
 header ipv4_t {
     bit<4>  version;
     bit<4>  ihl;
-    bit<8>  diffserv;
+    bit<6>  dscp;
+    bit<2>  ecn;
     bit<16> len;
     bit<16> identification;
     bit<3>  flags;
