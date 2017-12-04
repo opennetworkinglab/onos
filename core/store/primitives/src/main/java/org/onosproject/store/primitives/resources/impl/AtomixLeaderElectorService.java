@@ -428,7 +428,11 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             this.elections = elections;
         }
 
+        private boolean useRegistrationSorting = false;
         private void sortRegistrations(String topic, List<Registration> registrations) {
+            if (!useRegistrationSorting) {
+                return;
+            }
             registrations.sort((a, b) -> ComparisonChain.start()
                     .compare(countLeaders(topic, a), countLeaders(topic, b))
                     .compare(a.sessionId, b.sessionId)

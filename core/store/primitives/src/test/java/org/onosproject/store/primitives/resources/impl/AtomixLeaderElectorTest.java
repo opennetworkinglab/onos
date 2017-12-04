@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
@@ -50,6 +51,7 @@ public class AtomixLeaderElectorTest extends AtomixTestBase<AtomixLeaderElector>
         return new AtomixLeaderElector(proxy);
     }
 
+    @Ignore("leader elector balancing is currently disabled")
     @Test
     public void testRun() throws Throwable {
         leaderElectorRunTests();
@@ -267,6 +269,7 @@ public class AtomixLeaderElectorTest extends AtomixTestBase<AtomixLeaderElector>
         }).join();
     }
 
+    @Ignore("leader elector balancing is currently disabled")
     @Test
     public void testLeaderBalance() throws Throwable {
         AtomixLeaderElector elector1 = newPrimitive("test-elector-leader-session-close");
