@@ -64,6 +64,7 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
     public static final String KEY_PORTPWRCAPMAXTX = "port-power-capability-max-tx";
     public static final String KEY_PORTS_PORT = String.format("%s.%s", KEY_DATA_PORTS, KEY_PORT);
     public static final String KEY_PORTS_PORT_PROPERTY = String.format("%s.%s", KEY_PORTS_PORT, KEY_PORTPROPERTY);
+    public static final String KEY_OCMS = "ocms";
     // log
     private static final Logger log = getLogger(OplinkOpticalPowerConfig.class);
 
@@ -110,15 +111,13 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
 
     private String getChannelPowerFilter(PortNumber port, OchSignal channel) {
         return new StringBuilder(xmlOpen(KEY_OPENOPTICALDEV_XMLNS))
-                .append(xmlOpen(KEY_PORTS))
+                .append(xmlOpen(KEY_OCMS))
                 .append(xml(KEY_PORTID, Long.toString(port.toLong())))
-                .append(xmlOpen(KEY_PORT))
                 .append(xmlOpen(KEY_OCMSTATS))
                 .append(xml(KEY_CHNUM, Integer.toString(channel.spacingMultiplier())))
                 .append(xmlEmpty(KEY_CHSTATS))
                 .append(xmlClose(KEY_OCMSTATS))
-                .append(xmlClose(KEY_PORT))
-                .append(xmlClose(KEY_PORTS))
+                .append(xmlClose(KEY_OCMS))
                 .append(xmlClose(KEY_OPENOPTICALDEV))
                 .toString();
     }

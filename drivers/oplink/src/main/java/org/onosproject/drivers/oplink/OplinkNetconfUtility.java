@@ -36,7 +36,8 @@ public final class OplinkNetconfUtility {
 
     // public used nodes
     public static final String CFG_MODE_MERGE = "merge";
-    public static final String CFG_MODE_REMOVE = "remove";
+    public static final String CFG_MODE_NONE = "none";
+    public static final String CFG_OPT_DELETE = "nc:operation=\"delete\"";
     public static final String KEY_XMLNS = "xmlns=\"http://com/att/device\"";
     public static final String KEY_DATA = "data";
     public static final String KEY_OPENOPTICALDEV = "open-optical-device";

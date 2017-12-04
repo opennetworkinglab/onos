@@ -131,7 +131,7 @@ public class OplinkOpticalFlowRuleProgrammable
         // Build xml
         String connID = Integer.toString(crossConnect.getChannel());
         String cfg = new StringBuilder(xmlOpen(KEY_OPENOPTICALDEV_XMLNS))
-                .append(xmlOpen(KEY_CONNS))
+                .append(xmlOpen(String.format("%s %s", KEY_CONNS, CFG_OPT_DELETE)))
                 .append(xml(KEY_CONNID, connID))
                 .append(xmlOpen(KEY_SRC))
                 .append(xml(KEY_PORTID, crossConnect.getInPort().name()))
@@ -140,6 +140,6 @@ public class OplinkOpticalFlowRuleProgrammable
                 .append(xmlClose(KEY_CONNS))
                 .append(xmlClose(KEY_OPENOPTICALDEV))
                 .toString();
-        return netconfEditConfig(handler(), CFG_MODE_REMOVE, cfg);
+        return netconfEditConfig(handler(), CFG_MODE_NONE, cfg);
     }
 }

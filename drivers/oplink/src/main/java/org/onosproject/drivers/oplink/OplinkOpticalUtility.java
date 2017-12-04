@@ -177,6 +177,7 @@ public final class OplinkOpticalUtility {
                 .withSelector(selector)
                 .withTreatment(treatment)
                 .withPriority(DEFAULT_PRIORITY)
+                .makePermanent()
                 .fromApp(behaviour.handler().get(CoreService.class).getAppId(DEFAULT_APP))
                 .build();
 
