@@ -21,6 +21,7 @@ import org.apache.commons.lang.ArrayUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.onlab.packet.LLDPOrganizationalTLV.OUI_LENGTH;
@@ -57,6 +58,8 @@ public class ONOSLLDP extends LLDP {
     private static final byte PORT_TLV_SUBTYPE = 2;
 
     private static final byte TTL_TLV_TYPE = 3;
+
+    private static final byte PORT_DESC_TLV_TYPE = 4;
 
     private final byte[] ttlValue = new byte[] {0, 0x78};
 
@@ -240,4 +243,33 @@ public class ONOSLLDP extends LLDP {
         probe.setChassisId(chassisId);
         return probe;
     }
+
+    /**
+     * Creates a link probe for link discovery/verification.
+     *
+     * @param deviceId The device ID as a String
+     * @param chassisId The chassis ID of the device
+     * @param portNum Port number of port to send probe out of
+     * @param portDesc Port description of port to send probe out of
+     * @return ONOSLLDP probe message
+     */
+    public static ONOSLLDP onosLLDP(String deviceId, ChassisId chassisId, int portNum, String portDesc) {
+
+        ONOSLLDP probe = onosLLDP(deviceId, chassisId, portNum);
+
+        if (portDesc != null && !portDesc.isEmpty()) {
+            byte[] bPortDesc = portDesc.getBytes(StandardCharsets.UTF_8);
+
+            if (bPortDesc.length > LLDPTLV.MAX_LENGTH) {
+                bPortDesc = Arrays.copyOf(bPortDesc, LLDPTLV.MAX_LENGTH);
+            }
+            LLDPTLV portDescTlv = new LLDPTLV()
+                    .setType(PORT_DESC_TLV_TYPE)
+                    .setLength((short) bPortDesc.length)
+                    .setValue(bPortDesc);
+            probe.addOptionalTLV(portDescTlv);
+        }
+        return probe;
+    }
+
 }

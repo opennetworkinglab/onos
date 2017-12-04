@@ -117,6 +117,16 @@ public class LLDP extends BasePacket {
         return this;
     }
 
+    /**
+     * Adds additional TLV to optionalTLVList.
+     * @param lldptlv the optional TLV to be added
+     * @return this
+     */
+    public LLDP addOptionalTLV(final LLDPTLV lldptlv) {
+        this.optionalTLVList.add(lldptlv);
+        return this;
+    }
+
     @Override
     public byte[] serialize() {
         int length = 2 + this.chassisId.getLength() + 2

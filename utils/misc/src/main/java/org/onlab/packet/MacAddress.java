@@ -36,9 +36,9 @@ public class MacAddress {
      */
     public static final MacAddress NONE = ONOS;
     /**
-     * ONOS LLDP MAC address with multicast bit set.
+     * ONOS LLDP MAC address with slow protocol destination address.
      */
-    public static final MacAddress ONOS_LLDP = valueOf("a5:23:05:00:00:01");
+    public static final MacAddress ONOS_LLDP = valueOf("01:80:C2:00:00:0E");
     /**
      * All-zero MAC address.
      */
