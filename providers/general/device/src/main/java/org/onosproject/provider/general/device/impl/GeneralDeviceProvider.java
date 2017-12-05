@@ -412,7 +412,7 @@ public class GeneralDeviceProvider extends AbstractProvider
                             new DefaultDeviceDescription(deviceId.uri(), Device.Type.SWITCH,
                                     driver.manufacturer(), driver.hwVersion(),
                                     driver.swVersion(), UNKNOWN,
-                                    cid, false, annotations);
+                                    cid, true, annotations);
                     //Empty list of ports
                     List<PortDescription> ports = new ArrayList<>();
 
