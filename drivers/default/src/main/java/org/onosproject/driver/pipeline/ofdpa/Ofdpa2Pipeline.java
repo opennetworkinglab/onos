@@ -635,6 +635,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
+            } else {
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
             }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);
@@ -658,6 +661,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             treatment = DefaultTrafficTreatment.builder();
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
+            } else {
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
             }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);
@@ -683,6 +689,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             treatment = DefaultTrafficTreatment.builder();
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
+            } else {
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
+                        "ignoring the IN_PORT criteria");
             }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);

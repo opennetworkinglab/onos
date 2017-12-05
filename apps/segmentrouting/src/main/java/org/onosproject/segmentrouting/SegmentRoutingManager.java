@@ -984,7 +984,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn(e.getMessage() + " Aborting processDeviceAdded.");
                 return;
             }
-            log.debug("updating groupHandlerMap with new config for device: {}",
+            log.debug("updating groupHandlerMap with new grpHdlr for device: {}",
                     deviceId);
             groupHandlerMap.put(deviceId, groupHandler);
         }
