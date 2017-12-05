@@ -559,14 +559,14 @@ public class DeviceManager
                 deviceDescription = deviceAnnotationOp.combine(deviceId, deviceDescription, Optional.of(annoConfig));
             }
 
+            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
+                                                           deviceDescription);
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
                                          .thenAccept(role -> {
                                              log.info("Local role is {} for {}", role, deviceId);
                                              applyRole(deviceId, role);
                                          }));
 
-            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
-                                                           deviceDescription);
             if (portConfig != null) {
                 //updating the ports if configration exists
                 List<PortDescription> complete = store.getPortDescriptions(provider().id(), deviceId)
