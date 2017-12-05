@@ -38,7 +38,6 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.DevicesDiscovery;
 import org.onosproject.net.behaviour.PortAdmin;
 import org.onosproject.net.behaviour.PortDiscovery;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -87,7 +86,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -133,15 +131,6 @@ public class RestDeviceProvider extends AbstractProvider
             SharedScheduledExecutors.getPoolThreadExecutor();
 
     private final List<ConfigFactory> factories = ImmutableList.of(
-            new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
-                                                                 RestProviderConfig.class,
-                                                                 "rest_devices",
-                                                                 true) {
-                @Override
-                public RestProviderConfig createConfig() {
-                    return new RestProviderConfig();
-                }
-            },
             new ConfigFactory<DeviceId, RestDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
                                                           RestDeviceConfig.class,
                                                           REST) {
@@ -166,7 +155,6 @@ public class RestDeviceProvider extends AbstractProvider
         );
         cfgService.addListener(configListener);
         executor.execute(RestDeviceProvider.this::createAndConnectDevices);
-        executor.execute(RestDeviceProvider.this::createDevices);
         scheduledTask = schedulePolling();
         log.info("Started");
     }
@@ -375,20 +363,6 @@ public class RestDeviceProvider extends AbstractProvider
                 }).collect(Collectors.toSet()));
     }
 
-    //Old method to register devices provided via net-cfg under apps/rest/ tree
-    private void createDevices() {
-        RestProviderConfig cfg = cfgService.getConfig(appId, RestProviderConfig.class);
-        try {
-            if (cfg != null && cfg.getDevicesAddresses() != null) {
-                connectDevices(cfg.getDevicesAddresses());
-
-            }
-        } catch (ConfigException e) {
-            log.error("Configuration error {}", e);
-        }
-        log.debug("REST Devices {}", controller.getDevices());
-    }
-
     private void connectDevices(Set<RestSBDevice> devices) {
         //Precomputing the devices to be removed
         Set<RestSBDevice> toBeRemoved = new HashSet<>(controller.getDevices().values());
@@ -479,19 +453,12 @@ public class RestDeviceProvider extends AbstractProvider
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(RestDeviceConfig.class)) {
-                executor.execute(RestDeviceProvider.this::createAndConnectDevices);
-            } else {
-                log.warn("Injecting device via this Json is deprecated, " +
-                                 "please put configuration under devices/");
-                executor.execute(RestDeviceProvider.this::createDevices);
-            }
+            executor.execute(RestDeviceProvider.this::createAndConnectDevices);
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.configClass().equals(RestDeviceConfig.class) ||
-                    event.configClass().equals(RestProviderConfig.class)) &&
+            return event.configClass().equals(RestDeviceConfig.class) &&
                     (event.type() == CONFIG_ADDED ||
                             event.type() == CONFIG_UPDATED);
         }
