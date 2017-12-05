@@ -107,7 +107,7 @@ public class RIPngEntry extends BasePacket {
         final RIPngEntry that = (RIPngEntry) obj;
 
         return super.equals(that) &&
-                Objects.equals(metric, metric) &&
+                Objects.equals(metric, that.metric) &&
                 Objects.equals(routeTag, that.routeTag) &&
                 Objects.equals(prefixLen, that.prefixLen) &&
                 Arrays.equals(prefix, that.prefix) &&
@@ -184,7 +184,8 @@ public class RIPngEntry extends BasePacket {
      */
     @Override
     public String toString() {
-        return "RIPngEntry [prefix=" + this.prefix + ", route tag=" + this.routeTag
+        return "RIPngEntry [prefix=" + Arrays.toString(this.prefix)
+                + ", route tag=" + this.routeTag
                 + ", prefix length=" + this.prefixLen
                 + ", metric = " + this.metric + "]";
     }
