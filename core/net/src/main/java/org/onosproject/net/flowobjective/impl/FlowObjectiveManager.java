@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -138,7 +139,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     // instance, via the DistributedFlowObjectiveStore.
     private final Map<Integer, Set<PendingFlowObjective>> pendingForwards =
             Maps.newConcurrentMap();
-    private final Map<Integer, Set<PendingFlowObjective>> pendingNexts =
+    private final Map<Integer, List<PendingFlowObjective>> pendingNexts =
             Maps.newConcurrentMap();
 
     // local store to track which nextObjectives were sent to which device
@@ -317,7 +318,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 pendingNexts.compute(next.id(), (id, pending) -> {
                     PendingFlowObjective pendfo = new PendingFlowObjective(deviceId, next);
                     if (pending == null) {
-                        return Sets.newHashSet(pendfo);
+                        return Lists.newArrayList(pendfo);
                     } else {
                         pending.add(pendfo);
                         return pending;
@@ -550,17 +551,18 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 }
 
                 // now check for pending next-objectives
+                List<PendingFlowObjective> pendNexts;
                 synchronized (pendingNexts) {
                     // needs to be synchronized for queueObjective lookup
-                    pending = pendingNexts.remove(event.subject());
+                    pendNexts = pendingNexts.remove(event.subject());
                 }
-                if (pending == null) {
+                if (pendNexts == null) {
                     log.debug("No next objectives pending for this "
                             + "obj event {}", event);
                 } else {
                     log.debug("Processing {} pending next objectives for nextId {}",
-                              pending.size(), event.subject());
-                    pending.forEach(p -> getDevicePipeliner(p.deviceId())
+                              pendNexts.size(), event.subject());
+                    pendNexts.forEach(p -> getDevicePipeliner(p.deviceId())
                                     .next((NextObjective) p.flowObjective()));
                 }
             }
@@ -666,7 +668,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
 
         for (Integer nextId : pendingNexts.keySet()) {
-            Set<PendingFlowObjective> pnext = pendingNexts.get(nextId);
+            List<PendingFlowObjective> pnext = pendingNexts.get(nextId);
             StringBuilder pend = new StringBuilder();
             pend.append("NextId: ")
                     .append(nextId);

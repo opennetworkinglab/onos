@@ -621,7 +621,7 @@ public class DefaultGroupHandler {
         if (nextId == -1) {
             if (portUp) {
                 log.debug("**Creating flooding group for first port enabled in"
-                        + " subnet {} on dev {} port {}", vlanId, deviceId, port);
+                        + " vlan {} on dev {} port {}", vlanId, deviceId, port);
                 createBcastGroupFromVlan(vlanId, Collections.singleton(port));
             } else {
                 log.warn("Could not find flooding group for subnet {} on dev:{} when"
@@ -1017,8 +1017,8 @@ public class DefaultGroupHandler {
             );
         NextObjective nextObj = nextObjBuilder.add(context);
         flowObjectiveService.next(deviceId, nextObj);
-        log.debug("createBcastGroupFromVlan: Submitted next objective {} in device {}",
-                  nextId, deviceId);
+        log.debug("createBcastGroupFromVlan: Submitted next objective {} "
+                + "for vlan: {} in device {}", nextId, vlanId, deviceId);
 
         vlanNextObjStore.put(key, nextId);
     }
