@@ -140,7 +140,7 @@ public interface NetconfSession {
      * Retrieves part of the specified configuration based on the filterSchema.
      *
      * @param netconfTargetConfig the targetConfiguration to change
-     * @param mode                selected mode to change the configuration
+     * @param mode                default-operation mode
      * @param newConfiguration    configuration to set
      * @return true if the configuration was edited correctly
      * @throws NetconfException when there is a problem in the communication process on

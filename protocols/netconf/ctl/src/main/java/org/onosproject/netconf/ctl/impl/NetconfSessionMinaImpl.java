@@ -759,7 +759,7 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         rpc.append(EDIT_CONFIG_CLOSE).append("\n");
         rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
-        log.debug(rpc.toString());
+        log.debug("{}", rpc);
         String reply = sendRequest(rpc.toString());
         return checkReply(reply);
     }
