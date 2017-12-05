@@ -721,7 +721,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
             } else {
-                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
                         "ignoring the IN_PORT criteria");
             }
         }
@@ -766,7 +766,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
             } else {
-                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
                         "ignoring the IN_PORT criteria");
             }
         }
@@ -811,7 +811,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             if (matchInPortTmacTable()) {
                 selector.matchInPort(pnum);
             } else {
-                log.info("Pipeline does not support IN_PORT matching in TMAC table, " +
+                log.debug("Pipeline does not support IN_PORT matching in TMAC table, " +
                         "ignoring the IN_PORT criteria");
             }
         }
