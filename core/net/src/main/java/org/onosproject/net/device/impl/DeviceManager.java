@@ -534,14 +534,15 @@ public class DeviceManager
             PortDescriptionsConfig portConfig = networkConfigService.getConfig(deviceId, PortDescriptionsConfig.class);
             // Generate updated description and establish my Role
             deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
+
+            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
+                                                           deviceDescription);
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
                                          .thenAccept(role -> {
                                              log.info("Local role is {} for {}", role, deviceId);
                                              applyRole(deviceId, role);
                                          }));
 
-            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
-                                                           deviceDescription);
             if (portConfig != null) {
                 //updating the ports if configration exists
                 List<PortDescription> complete = store.getPortDescriptions(provider().id(), deviceId)
