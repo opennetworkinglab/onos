@@ -2,6 +2,10 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:JACKSON',
     '//lib:concurrent-trees',
+    '//lib:javax.ws.rs-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
 ]
 
 BUNDLES = [
@@ -15,6 +19,7 @@ TEST_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/v1/simplefabric',
 )
 
 onos_app (

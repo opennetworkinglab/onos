@@ -38,8 +38,8 @@
     "org.onosproject.simplefabric" : {
       "simpleFabric" : {
         "l2Networks" : [
-          { "name" : "LEAF1", "interfaces" : ["h11", "h12", "h13", "h14", "d11", "d12" ], "l2Forward" : true },
-          { "name" : "LEAF2", "interfaces" : ["h21", "h22", "h23", "h24", "d21", "d22" ], "l2Forward" : true }
+          { "name" : "LEAF1", "interfaces" : ["h11", "h12", "h13", "h14", "d11", "d12" ], "l2Forward" : true, "l2Broadcast" : true },
+          { "name" : "LEAF2", "interfaces" : ["h21", "h22", "h23", "h24", "d21", "d22" ], "l2Forward" : true, "l2Broadcast" : true }
         ],
         "ipSubnets" : [
            { "ipPrefix" : "10.0.1.0/24", "gatewayIp" : "10.0.1.1", "gatewayMac" : "00:00:10:00:01:01", "l2NetworkName" : "LEAF1" },

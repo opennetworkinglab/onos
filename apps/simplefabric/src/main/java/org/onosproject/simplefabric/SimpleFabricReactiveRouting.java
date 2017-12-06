@@ -60,6 +60,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -68,7 +69,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.Port;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,7 +226,8 @@ public class SimpleFabricReactiveRouting {
                 // check if this devices has the ipSubnet, then add ip broadcast flue rule
                 L2Network l2Network = simpleFabric.findL2Network(subnet.l2NetworkName());
                 if (l2Network != null && l2Network.contains(device.id())) {
-                    newInterceptFlowRules.add(generateLocalSubnetIpBctFlowRule(device.id(), subnet.ipPrefix()));
+                    newInterceptFlowRules.add(generateLocalSubnetIpBctFlowRule(device.id(), subnet.ipPrefix(),
+                                                                               l2Network));
                 }
                 // JUST FOR FLOW RULE TEST ONLY
                 //newInterceptFlowRules.add(generateTestFlowRule(device.id(), subnet.ipPrefix()));
@@ -256,7 +257,7 @@ public class SimpleFabricReactiveRouting {
         }
     }
 
-    private FlowRule generateInterceptFlowRule(boolean isLocalSubnet, DeviceId deviceId, IpPrefix prefix) {
+    private FlowRule generateInterceptFlowRule(boolean isDstLocalSubnet, DeviceId deviceId, IpPrefix prefix) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
@@ -271,7 +272,7 @@ public class SimpleFabricReactiveRouting {
         }
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
-                .withPriority(reactivePriority(false, isLocalSubnet, prefix.prefixLength()))
+                .withPriority(reactivePriority(false, isDstLocalSubnet, prefix.prefixLength()))
                 .withSelector(selector.build())
                 .withTreatment(DefaultTrafficTreatment.builder().punt().build())
                 .fromApp(reactiveAppId)
@@ -280,7 +281,7 @@ public class SimpleFabricReactiveRouting {
         return rule;
     }
 
-    private FlowRule generateLocalSubnetIpBctFlowRule(DeviceId deviceId, IpPrefix prefix) {
+    private FlowRule generateLocalSubnetIpBctFlowRule(DeviceId deviceId, IpPrefix prefix, L2Network l2Network) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         IpPrefix bctPrefix;
         if (prefix.isIp4()) {
@@ -301,8 +302,10 @@ public class SimpleFabricReactiveRouting {
         }
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         Set<ConnectPoint> newEgressPoints = new HashSet<>();
-        for (Port port : deviceService.getPorts(deviceId)) {
-            treatment.setOutput(port.number());
+        for (Interface iface : l2Network.interfaces()) {
+            if (iface.connectPoint().deviceId().equals(deviceId)) {
+                treatment.setOutput(iface.connectPoint().port());
+            }
         }
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -548,8 +551,9 @@ public class SimpleFabricReactiveRouting {
     private boolean checkVirtualGatewayIpPacket(InboundPacket pkt, IpAddress srcIp, IpAddress dstIp) {
         Ethernet ethPkt = pkt.parsed();  // assume valid
 
-        MacAddress mac = simpleFabric.getVMacForIp(dstIp);
-        if (mac == null || !ethPkt.getDestinationMAC().equals(mac)) {
+        MacAddress mac = simpleFabric.findVMacForIp(dstIp);
+        if (mac == null || !simpleFabric.isVMac(ethPkt.getDestinationMAC())) {
+            /* Destination MAC should be any of virtual gateway macs */
             return false;
         } else if (dstIp.isIp4()) {
             IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
@@ -616,7 +620,6 @@ public class SimpleFabricReactiveRouting {
         IpAddress dstNextHop = dstIp;
         MacAddress treatmentSrcMac = ethPkt.getDestinationMAC();
         int borderRoutePrefixLength = 0;
-        boolean isLocalSubnet = true;
         boolean updateMac = simpleFabric.isVMac(ethPkt.getDestinationMAC());
 
         // check subnet local or route
@@ -624,25 +627,25 @@ public class SimpleFabricReactiveRouting {
         if (srcSubnet == null) {
             Route route = simpleFabric.findBorderRoute(srcIp);
             if (route == null) {
-                log.warn("route unknown: srcIp={}", srcIp);
+                log.warn("unknown srcIp; drop: srcCp={} srcIp={} dstIp={} ipProto={}",
+                         srcCp, srcIp, dstIp, ipProto);
                 return;
             }
             srcPrefix = route.prefix();
             srcNextHop = route.nextHop();
             borderRoutePrefixLength = route.prefix().prefixLength();
-            isLocalSubnet = false;
         }
         IpSubnet dstSubnet = simpleFabric.findIpSubnet(dstIp);
         if (dstSubnet == null) {
             Route route = simpleFabric.findBorderRoute(dstIp);
             if (route == null) {
-                log.warn("route unknown: dstIp={}", dstIp);
+                log.warn("unknown dstIp; drop: srcCp={} srcIp={} dstIp={} ipProto={}",
+                         srcCp, srcIp, dstIp, ipProto);
                 return;
             }
             dstPrefix = route.prefix();
             dstNextHop = route.nextHop();
             borderRoutePrefixLength = route.prefix().prefixLength();
-            isLocalSubnet = false;
         }
 
         if (dstSubnet != null) {
@@ -687,7 +690,7 @@ public class SimpleFabricReactiveRouting {
                  srcIp, dstIp, ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
                  ethPkt.getVlanID(), ipProto, updateMac);
         setUpConnectivity(srcCp, ipProto, srcPrefix, dstPrefix, dstNextHop, treatmentSrcMac, encap, updateMac,
-                          isLocalSubnet, borderRoutePrefixLength);
+                          dstSubnet != null, borderRoutePrefixLength);
         forwardPacketToDstIp(context, dstNextHop, treatmentSrcMac, updateMac);
     }
 
@@ -737,18 +740,7 @@ public class SimpleFabricReactiveRouting {
     private boolean setUpConnectivity(ConnectPoint srcCp, byte ipProto, IpPrefix srcPrefix, IpPrefix dstPrefix,
                                       IpAddress nextHopIp, MacAddress treatmentSrcMac,
                                       EncapsulationType encap, boolean updateMac,
-                                      boolean isLocalSubnet, int borderRoutePrefixLength) {
-        Key key;
-        String keyProtoTag = "";
-        if (simpleFabric.REACTIVE_MATCH_IP_PROTO) {
-            keyProtoTag = "-p" + ipProto;
-        }
-        if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE) {
-            key = Key.of(srcPrefix.toString() + "-to-" + dstPrefix.toString() + keyProtoTag, reactiveAppId);
-        } else {
-            key = Key.of(dstPrefix.toString() + keyProtoTag, reactiveAppId);
-        }
-
+                                      boolean isDstLocalSubnet, int borderRoutePrefixLength) {
         if (!(simpleFabric.findL2Network(srcCp, VlanId.NONE) != null ||
              (simpleFabric.REACTIVE_ALLOW_LINK_CP && !linkService.getIngressLinks(srcCp).isEmpty()))) {
             log.warn("NO REGI for srcCp not in L2Network; srcCp={} srcPrefix={} dstPrefix={} nextHopIp={}",
@@ -804,6 +796,19 @@ public class SimpleFabricReactiveRouting {
             }
         }
 
+        Key key;
+        String keyProtoTag = "";
+        if (simpleFabric.REACTIVE_MATCH_IP_PROTO) {
+            keyProtoTag = "-p" + ipProto;
+        }
+        if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE) {
+            // allocate intent per (srcPrefix, dstPrefix)
+            key = Key.of(srcPrefix.toString() + "-to-" + dstPrefix.toString() + keyProtoTag, reactiveAppId);
+        } else {
+            // allocate intent per (srcDeviceId, dstPrefix)
+            key = Key.of(srcCp.deviceId().toString() + "-to-" +  dstPrefix.toString() + keyProtoTag, reactiveAppId);
+        }
+
         // check and merge already existing ingress points
         Set<ConnectPoint> ingressPoints = new HashSet<>();
         MultiPointToSinglePointIntent existingIntent = (MultiPointToSinglePointIntent) intentService.getIntent(key);
@@ -825,7 +830,7 @@ public class SimpleFabricReactiveRouting {
         }
 
         // priority for forwarding case
-        int priority = reactivePriority(true, isLocalSubnet, borderRoutePrefixLength);
+        int priority = reactivePriority(true, isDstLocalSubnet, borderRoutePrefixLength);
 
         MultiPointToSinglePointIntent newIntent = MultiPointToSinglePointIntent.builder()
             .key(key)
@@ -863,14 +868,14 @@ public class SimpleFabricReactiveRouting {
     }
 
     // priority calculator
-    private int reactivePriority(boolean isForward, boolean isLocalSubnet, int borderRoutePrefixLength) {
-        if (isLocalSubnet) {  // localSubnet <-> localSubnet
+    private int reactivePriority(boolean isForward, boolean isDstLocalSubnet, int borderRoutePrefixLength) {
+        if (isDstLocalSubnet) {  // -> dst:localSubnet
             if (isForward) {
                 return simpleFabric.PRI_REACTIVE_LOCAL_FORWARD;
             } else {  // isInterncept
                 return simpleFabric.PRI_REACTIVE_LOCAL_INTERCEPT;
             }
-        } else {  // isBorder: localSubnet <-> boarderRouteGateway
+        } else {  // -> dst:boarderRouteNextHop
             int offset;
             if (isForward) {
                 offset = simpleFabric.PRI_REACTIVE_BORDER_FORWARD;

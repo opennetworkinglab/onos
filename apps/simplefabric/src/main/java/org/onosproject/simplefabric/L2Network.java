@@ -41,6 +41,7 @@ public final class L2Network {
     private Set<String> interfaceNames;   // also for network configuration
     private EncapsulationType encapsulation;  // also for network configuration
     private boolean l2Forward;            // do l2Forward (default:true) or not
+    private boolean l2Broadcast;          // do l2Broadcast (default:true) or not
 
     /* status variables */
     private Set<Interface> interfaces;    // available interfaces from interfaceNames
@@ -54,13 +55,16 @@ public final class L2Network {
      * @param ifaceNames the interface names
      * @param encapsulation the encapsulation type
      * @param l2Forward flag for l2Forward intents to be installed or not
+     * @param l2Broadcast flag for l2Broadcast intents to be installed or not
      */
-    L2Network(String name, Collection<String> ifaceNames, EncapsulationType encapsulation, boolean l2Forward) {
+    L2Network(String name, Collection<String> ifaceNames, EncapsulationType encapsulation,
+              boolean l2Forward, boolean l2Broadcast) {
         this.name = name;
         this.interfaceNames = Sets.newHashSet();
         this.interfaceNames.addAll(ifaceNames);
         this.encapsulation = encapsulation;
         this.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Forward : false;
+        this.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Broadcast : false;
         this.interfaces = Sets.newHashSet();
         this.hostIds = Sets.newHashSet();
         this.dirty = false;
@@ -77,6 +81,7 @@ public final class L2Network {
         this.interfaceNames = Sets.newHashSet();
         this.encapsulation = encapsulation;
         this.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
+        this.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
         this.interfaces = Sets.newHashSet();
         this.hostIds = Sets.newHashSet();
         this.dirty = false;
@@ -105,6 +110,7 @@ public final class L2Network {
         L2Network l2NetworkCopy = new L2Network(l2Network.name(), l2Network.encapsulation());
         l2NetworkCopy.interfaceNames.addAll(l2Network.interfaceNames());
         l2NetworkCopy.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Forward() : false;
+        l2NetworkCopy.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Broadcast() : false;
         l2NetworkCopy.interfaces.addAll(l2Network.interfaces());
         l2NetworkCopy.hostIds.addAll(l2Network.hostIds());
         l2NetworkCopy.setDirty(l2Network.dirty());
@@ -147,6 +153,15 @@ public final class L2Network {
      */
     public boolean l2Forward() {
         return l2Forward;
+    }
+
+    /**
+     * Gets L2Network l2Broadcast flag.
+     *
+     * @return the l2Broadcast flag of L2Network
+     */
+    public boolean l2Broadcast() {
+        return l2Broadcast;
     }
 
     /**
@@ -257,6 +272,7 @@ public final class L2Network {
                 .add("interfaceNames", interfaceNames)
                 .add("encapsulation", encapsulation)
                 .add("l2Forward", l2Forward)
+                .add("l2Broadcast", l2Broadcast)
                 .add("interfaces", interfaces)
                 .add("hostIds", hostIds)
                 .add("dirty", dirty)
@@ -276,12 +292,13 @@ public final class L2Network {
                && Objects.equals(other.interfaceNames, this.interfaceNames)
                && Objects.equals(other.encapsulation, this.encapsulation)
                && Objects.equals(other.l2Forward, this.l2Forward)
+               && Objects.equals(other.l2Broadcast, this.l2Broadcast)
                && Objects.equals(other.interfaces, this.interfaces)
                && Objects.equals(other.hostIds, this.hostIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, interfaces, encapsulation, l2Forward);
+        return Objects.hash(name, interfaces, encapsulation, l2Forward, l2Broadcast);
     }
 }

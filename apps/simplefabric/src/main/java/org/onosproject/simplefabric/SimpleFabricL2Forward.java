@@ -256,15 +256,15 @@ public class SimpleFabricL2Forward {
 
     private Set<Intent> generateL2NetworkIntents(L2Network l2Network) {
         return new ImmutableSet.Builder<Intent>()
-            .addAll(buildBrcIntents(l2Network))
-            .addAll(buildUniIntents(l2Network, hostsFromL2Network(l2Network)))
-            .build();
+                .addAll(buildBrcIntents(l2Network))
+                .addAll(buildUniIntents(l2Network, hostsFromL2Network(l2Network)))
+                .build();
     }
 
     // Build Boadcast Intents for a L2 Network.
     private Set<SinglePointToMultiPointIntent> buildBrcIntents(L2Network l2Network) {
         Set<Interface> interfaces = l2Network.interfaces();
-        if (!l2Network.l2Forward() || interfaces.size() < 2) {
+        if (interfaces.size() < 2 || !l2Network.l2Forward() || !l2Network.l2Broadcast()) {
             return ImmutableSet.of();
         }
         Set<SinglePointToMultiPointIntent> brcIntents = Sets.newHashSet();

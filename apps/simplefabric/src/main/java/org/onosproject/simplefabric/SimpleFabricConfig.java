@@ -40,6 +40,7 @@ public class SimpleFabricConfig extends Config<ApplicationId> {
     private static final String INTERFACES = "interfaces";
     private static final String ENCAPSULATION = "encapsulation";
     private static final String L2FORWARD = "l2Forward";
+    private static final String L2BROADCAST = "l2Broadcast";
     private static final String IPSUBNETS = "ipSubnets";
     private static final String BORDERROUTES = "borderRoutes";
     private static final String IPPREFIX = "ipPrefix";
@@ -78,12 +79,14 @@ public class SimpleFabricConfig extends Config<ApplicationId> {
             if (jsonNode.hasNonNull(L2FORWARD)) {
                 l2Forward = jsonNode.get(L2FORWARD).asBoolean();
             }
+            boolean l2Broadcast = true;
+            if (jsonNode.hasNonNull(L2BROADCAST)) {
+                l2Broadcast = jsonNode.get(L2BROADCAST).asBoolean();
+            }
             try {
                 l2Networks.add(new L2Network(
-                        jsonNode.get(NAME).asText(),
-                        ifaces,
-                        EncapsulationType.enumFromString(encapsulation),
-                        l2Forward));
+                        jsonNode.get(NAME).asText(), ifaces, EncapsulationType.enumFromString(encapsulation),
+                        l2Forward, l2Broadcast));
             } catch (Exception e) {
                 log.warn("simple fabric network config l2Network parse failed; skip: error={} jsonNode={}", jsonNode);
             }

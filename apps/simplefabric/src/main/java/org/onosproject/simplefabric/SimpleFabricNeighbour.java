@@ -130,7 +130,7 @@ public class SimpleFabricNeighbour {
      * @param context the message context
      */
     protected void handleRequest(NeighbourMessageContext context) {
-        MacAddress mac = simpleFabric.getVMacForIp(context.target());
+        MacAddress mac = simpleFabric.findVMacForIp(context.target());
         if (mac != null) {
             log.trace("simple fabric neightbour request on virtualGatewayAddress {}; response to {} {} mac={}",
                       context.target(), context.inPort(), context.vlan(), mac);
@@ -181,7 +181,7 @@ public class SimpleFabricNeighbour {
         L2Network l2Network = simpleFabric.findL2Network(context.inPort(), context.vlan());
         if (l2Network != null) {
             // TODO: need to check and update simpleFabric.L2Network
-            MacAddress mac = simpleFabric.getVMacForIp(context.target());
+            MacAddress mac = simpleFabric.findVMacForIp(context.target());
             if (mac != null) {
                 log.trace("simple fabric neightbour response message to virtual gateway; drop: {} {} target={}",
                           context.inPort(), context.vlan(), context.target());
@@ -192,7 +192,7 @@ public class SimpleFabricNeighbour {
                 log.trace("simple fabric neightbour response message forward: {} {} target={} -> {}",
                           context.inPort(), context.vlan(), context.target(), hosts);
                 hosts.stream()
-                        .map(host -> simpleFabric.getHostInterface(host))
+                        .map(host -> simpleFabric.findHostInterface(host))
                         .filter(Objects::nonNull)
                         .forEach(context::forward);
             }
