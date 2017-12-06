@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onlab.util.SharedExecutors;
 import org.onlab.util.SharedScheduledExecutorService;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
@@ -85,6 +86,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REMOVED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -346,21 +348,25 @@ public class RestDeviceProvider extends AbstractProvider
                 .map(deviceId -> {
                     RestDeviceConfig config =
                             cfgService.getConfig(deviceId, RestDeviceConfig.class);
-                    return new DefaultRestSBDevice(config.ip(),
-                            config.port(),
-                            config.username(),
-                            config.password(),
-                            config.protocol(),
-                            config.url(),
-                            false,
-                            config.testUrl(),
-                            config.manufacturer(),
-                            config.hwVersion(),
-                            config.swVersion(),
-                            config.authenticationScheme(),
-                            config.token()
-                    );
+                    return toInactiveRestSBDevice(config);
                 }).collect(Collectors.toSet()));
+    }
+
+    private RestSBDevice toInactiveRestSBDevice(RestDeviceConfig config) {
+        return new DefaultRestSBDevice(config.ip(),
+                config.port(),
+                config.username(),
+                config.password(),
+                config.protocol(),
+                config.url(),
+                false,
+                config.testUrl(),
+                config.manufacturer(),
+                config.hwVersion(),
+                config.swVersion(),
+                config.authenticationScheme(),
+                config.token()
+        );
     }
 
     private void connectDevices(Set<RestSBDevice> devices) {
@@ -377,6 +383,16 @@ public class RestDeviceProvider extends AbstractProvider
                 .forEach(this::deviceAdded);
         //Removing devices not wanted anymore
         toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
+    }
+
+    private void connectDevice(RestSBDevice device) {
+        // TODO borrowed from above,
+        // not sure why setting it to inactive
+        device.setActive(false);
+        controller.addDevice(device);
+        if (testDeviceConnection(device)) {
+            deviceAdded(device);
+        }
     }
 
     private ScheduledFuture schedulePolling() {
@@ -453,14 +469,24 @@ public class RestDeviceProvider extends AbstractProvider
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.execute(RestDeviceProvider.this::createAndConnectDevices);
+            ExecutorService bg = SharedExecutors.getSingleThreadExecutor();
+            if (event.type() == CONFIG_REMOVED) {
+                DeviceId did = (DeviceId) event.subject();
+                bg.execute(() -> deviceRemoved(did));
+            } else {
+                // CONFIG_ADDED or CONFIG_UPDATED
+                RestDeviceConfig cfg = (RestDeviceConfig) event.config().get();
+                RestSBDevice restSBDevice = toInactiveRestSBDevice(cfg);
+                bg.execute(() -> connectDevice(restSBDevice));
+            }
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
             return event.configClass().equals(RestDeviceConfig.class) &&
                     (event.type() == CONFIG_ADDED ||
-                            event.type() == CONFIG_UPDATED);
+                     event.type() == CONFIG_UPDATED ||
+                     event.type() == CONFIG_REMOVED);
         }
     }
 

@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
@@ -191,6 +193,7 @@ public class DefaultRestSBDevice implements RestSBDevice {
 
     }
 
+    // FIXME revisit equality condition. Why urls are not included?
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -199,15 +202,16 @@ public class DefaultRestSBDevice implements RestSBDevice {
         if (!(obj instanceof RestSBDevice)) {
             return false;
         }
-        RestSBDevice device = (RestSBDevice) obj;
-        return this.username.equals(device.username()) && this.ip.equals(device.ip()) &&
-                this.port == device.port();
+        RestSBDevice that = (RestSBDevice) obj;
+        return Objects.equals(this.ip, that.ip()) &&
+               this.port == that.port() &&
+               nullToEmpty(this.username).equals(nullToEmpty(that.username()));
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, port);
+        return Objects.hash(ip, port, nullToEmpty(username));
     }
 
 }
