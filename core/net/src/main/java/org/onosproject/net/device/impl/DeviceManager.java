@@ -952,6 +952,9 @@ public class DeviceManager
         @Override
         public void notify(DeviceEvent event) {
             post(event);
+            if (event.type().equals(DeviceEvent.Type.DEVICE_REMOVED)) {
+                deviceLocalStatus.remove(event.subject().id());
+            }
         }
     }
 
