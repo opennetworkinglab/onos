@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 import com.google.common.collect.Lists;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -75,8 +76,9 @@ import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN
  * Populator of segment routing flow rules.
  */
 public class RoutingRulePopulator {
-    private static final Logger log = LoggerFactory
-            .getLogger(RoutingRulePopulator.class);
+    private static final Logger log = LoggerFactory.getLogger(RoutingRulePopulator.class);
+
+    private static final int ARP_NDP_PRIORITY = 30000;
 
     private AtomicLong rulePopulationCounter;
     private SegmentRoutingManager srManager;
@@ -848,10 +850,13 @@ public class RoutingRulePopulator {
      */
     void populateIpPunts(DeviceId deviceId) {
         Ip4Address routerIpv4, pairRouterIpv4 = null;
-        Ip6Address routerIpv6, pairRouterIpv6 = null;
+        Ip6Address routerIpv6, routerLinkLocalIpv6, pairRouterIpv6 = null;
         try {
             routerIpv4 = config.getRouterIpv4(deviceId);
             routerIpv6 = config.getRouterIpv6(deviceId);
+            routerLinkLocalIpv6 = Ip6Address.valueOf(
+                    IPv6.getLinkLocalAddress(config.getDeviceMac(deviceId).toBytes()));
+
             if (config.isPairedEdge(deviceId)) {
                 pairRouterIpv4 = config.getRouterIpv4(config.getPairDeviceId(deviceId));
                 pairRouterIpv6 = config.getRouterIpv6(config.getPairDeviceId(deviceId));
@@ -868,6 +873,7 @@ public class RoutingRulePopulator {
         }
         Set<IpAddress> allIps = new HashSet<>(config.getPortIPs(deviceId));
         allIps.add(routerIpv4);
+        allIps.add(routerLinkLocalIpv6);
         if (routerIpv6 != null) {
             allIps.add(routerIpv6);
         }
@@ -964,7 +970,7 @@ public class RoutingRulePopulator {
 
         ForwardingObjective fwdObj;
         // We punt all ARP packets towards the controller.
-        fwdObj = arpFwdObjective(null, true, PacketPriority.CONTROL.priorityValue())
+        fwdObj = arpFwdObjective(null, true, ARP_NDP_PRIORITY)
                 .add(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
@@ -975,7 +981,7 @@ public class RoutingRulePopulator {
         srManager.flowObjectiveService.forward(deviceId, fwdObj);
 
         // We punt all NDP packets towards the controller.
-        fwdObj = ndpFwdObjective(null, true, PacketPriority.CONTROL.priorityValue())
+        fwdObj = ndpFwdObjective(null, true, ARP_NDP_PRIORITY)
                 .add(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
