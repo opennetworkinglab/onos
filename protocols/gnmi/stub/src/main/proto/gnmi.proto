@@ -25,7 +25,7 @@ import "google/protobuf/descriptor.proto";
 // tree supported by a device ("target").
 //
 // This document references the gNMI Specification which can be found at
-// http://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi.md
+// http://github.com/openconfig/reference/blob/master/rpc/gnmi
 package gnmi;
 
 // Define a protobuf FileOption that defines the gNMI service version.
@@ -36,7 +36,7 @@ extend google.protobuf.FileOptions {
 
 // gNMI_service is the current version of the gNMI service, returned through
 // the Capabilities RPC.
-option (gnmi_service) = "0.4.0";
+option (gnmi_service) = "0.5.0";
 
 service gNMI {
     // Capabilities allows the client to retrieve the set of capabilities that
@@ -90,6 +90,7 @@ message Update {
     Path path = 1;                      // The path (key) for the update.
     Value value = 2 [deprecated=true];  // The value (value) for the update.
     TypedValue val = 3;                 // The explicitly typed update value.
+    uint32 duplicates = 4;              // Number of coalesced duplicates.
 }
 
 // TypedValue is used to encode a value being sent between the client and
@@ -126,6 +127,8 @@ message Path {
     repeated string element = 1 [deprecated=true];
     string origin = 2;                              // Label to disambiguate path.
     repeated PathElem elem = 3;                     // Elements of the path.
+    string target = 4;                              // The name of the target
+    // (Sec. 2.2.2.1)
 }
 
 // PathElem encodes an element of a gNMI path, along ith any attributes (keys)
@@ -173,7 +176,7 @@ message Error {
 // is expressed as a set of digits with the precision specifying the
 // number of digits following the decimal point in the digit set.
 message Decimal64 {
-    uint64 digits = 1;        // Set of digits.
+    int64 digits = 1;         // Set of digits.
     uint32 precision = 2;     // Number of digits following the decimal point.
 }
 
@@ -250,6 +253,12 @@ message SubscriptionList {
     // The encoding that the target should use within the Notifications generated
     // corresponding to the SubscriptionList.
     Encoding encoding = 8;
+    // An optional field to specify that only updates to current state should be
+    // sent to a client. If set, the initial state is not sent to the client but
+    // rather only the sync message followed by any subsequent updates to the
+    // current state. For ONCE and POLL modes, this causes the server to send only
+    // the sync message (Sec. 3.5.2.3).
+    bool updates_only = 9;
 }
 
 // Subscription is a single request within a SubscriptionList. The path

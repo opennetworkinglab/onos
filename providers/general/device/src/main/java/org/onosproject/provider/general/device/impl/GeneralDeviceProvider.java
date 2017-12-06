@@ -441,15 +441,17 @@ public class GeneralDeviceProvider extends AbstractProvider
                     //Empty list of ports
                     List<PortDescription> ports = new ArrayList<>();
 
-                    if (driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
-                        DeviceDescriptionDiscovery deviceDiscovery = driver
-                                .createBehaviour(driverData, DeviceDescriptionDiscovery.class);
-
+                    DeviceDescriptionDiscovery deviceDiscovery = getBehaviour(driver,
+                            DeviceDescriptionDiscovery.class, driverData);
+                    if (deviceDiscovery != null) {
                         DeviceDescription newdescription = deviceDiscovery.discoverDeviceDetails();
                         if (newdescription != null) {
                             description = newdescription;
                         }
                         ports = deviceDiscovery.discoverPortDetails();
+                    } else {
+                        log.info("No Device Description Discovery for device {}, no update for " +
+                                "description or ports.", deviceId);
                     }
 
                     if (!handlePipeconf(deviceId, driver, driverData, true)) {

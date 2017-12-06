@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="bmv2" manufacturer="p4.org" hwVersion="master" swVersion="master" extends="p4runtime, gnmi">
-        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
-                   impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
+    <driver name="gnmi" manufacturer="gnmi" hwVersion="master" swVersion="master">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.gnmi.GnmiDeviceDescriptionDiscovery"/>
     </driver>
 </drivers>
 

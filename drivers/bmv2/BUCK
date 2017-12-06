@@ -28,6 +28,7 @@ onos_app (
     included_bundles = BUNDLES,
     required_apps = [
         'org.onosproject.drivers.p4runtime',
+        'org.onosproject.drivers.gnmi',
         'org.onosproject.pipelines.basic',
     ],
 )

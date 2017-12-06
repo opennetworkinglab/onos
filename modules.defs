@@ -108,6 +108,7 @@ ONOS_DRIVERS = [
     '//drivers/barefoot:onos-drivers-barefoot-oar',
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
+    '//drivers/gnmi:onos-drivers-gnmi-oar',
     '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',
 ]
 

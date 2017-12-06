@@ -83,7 +83,7 @@ class ONOSBmv2Switch(Switch):
     def __init__(self, name, json=None, debugger=False, loglevel="warn",
                  elogger=False, grpcPort=None, cpuPort=255,
                  thriftPort=None, netcfg=True, dryrun=False, pipeconfId="",
-                 pktdump=False, valgrind=False, **kwargs):
+                 pktdump=False, valgrind=False, injectPorts=False, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = pickUnusedPort() if not grpcPort else grpcPort
         self.thriftPort = pickUnusedPort() if not thriftPort else thriftPort
@@ -107,6 +107,7 @@ class ONOSBmv2Switch(Switch):
         self.valgrind = parseBoolean(valgrind)
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
         self.pipeconfId = pipeconfId
+        self.injectPorts = parseBoolean(injectPorts)
         self.longitude = kwargs['longitude'] if 'longitude' in kwargs else None
         self.latitude = kwargs['latitude'] if 'latitude' in kwargs else None
         self.onosDeviceId = "device:bmv2:%d" % self.deviceId
@@ -130,20 +131,6 @@ class ONOSBmv2Switch(Switch):
         return r.group(1) if r else None
 
     def getDeviceConfig(self, srcIP):
-        portData = {}
-        portId = 1
-        for intfName in self.intfNames():
-            if intfName == 'lo':
-                continue
-            portData[str(portId)] = {
-                "number": portId,
-                "name": intfName,
-                "enabled": True,
-                "removed": False,
-                "type": "copper",
-                "speed": 10000
-            }
-            portId += 1
 
         basicCfg = {
             "driver": "bmv2"
@@ -160,14 +147,35 @@ class ONOSBmv2Switch(Switch):
                     "port": self.grpcPort,
                     "deviceId": self.deviceId,
                     "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
+                },
+                "gnmi": {
+                    "ip": srcIP,
+                    "port": self.grpcPort
                 }
             },
             "piPipeconf": {
                 "piPipeconfId": self.pipeconfId
             },
-            "basic": basicCfg,
-            "ports": portData
+            "basic": basicCfg
         }
+
+        if(self.injectPorts):
+            portData = {}
+            portId = 1
+            for intfName in self.intfNames():
+                if intfName == 'lo':
+                    continue
+                portData[str(portId)] = {
+                    "number": portId,
+                    "name": intfName,
+                    "enabled": True,
+                    "removed": False,
+                    "type": "copper",
+                    "speed": 10000
+                }
+                portId += 1
+
+            cfgData['ports'] = portData
 
         return cfgData
 
