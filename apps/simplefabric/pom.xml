@@ -22,8 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
-        <version>1.12.0-SNAPSHOT</version>
-        <relativePath>../../onos</relativePath>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-simplefabric</artifactId>
@@ -39,7 +38,7 @@
 
         <web.context>/onos/v1/simplefabric</web.context>
         <api.version>1.0.0</api.version>
-        <api.title>Simple Fabric Application REST API</api.title>
+        <api.title>Simple Fabric Application</api.title>
         <api.description>APIs for interacting with the Simple Fabric application.</api.description>
         <api.package>org.onosproject.simplefabric</api.package>
     </properties>
@@ -121,22 +120,6 @@
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <_wab>src/main/webapp/</_wab>
-                        <Include-Resource>
-                            WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
-                            {maven-resources}
-                        </Include-Resource>
-                        <Bundle-SymbolicName>
-                            ${project.groupId}.${project.artifactId}
-                        </Bundle-SymbolicName>
-                        <Import-Package>
-                            *,org.glassfish.jersey.servlet
-                        </Import-Package>
-                        <Web-ContextPath>${web.context}</Web-ContextPath>
-                    </instructions>
-                </configuration>
             </plugin>
 
             <plugin>
