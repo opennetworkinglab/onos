@@ -15,6 +15,12 @@
  */
 package org.onosproject.drivers.ciena;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.Frequency;
 import org.onosproject.driver.optical.flowrule.CrossConnectCache;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
@@ -23,10 +29,10 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -42,30 +48,20 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Objects;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.io.IOException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectReader;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -195,15 +191,52 @@ public class CienaRestDevice {
         return String.format(uriFormat, port.name());
     }
 
+    private boolean isPortState(PortNumber number, String state) {
+        log.debug("checking port {} state is {} or not on device {}", number, state, deviceId);
+        String uri = genUri(PORT_STATE_URI, number);
+        JsonNode jsonNode;
+        try {
+            jsonNode = get(uri);
+        } catch (IOException e) {
+            log.error("unable to get port state on device {}", deviceId);
+            return false;
+        }
+        return jsonNode.get(STATE).get(ADMIN_STATE).asText().equals(state);
+
+    }
+
+    private boolean confirmPortState(long timePeriodInMillis, int iterations, PortNumber number, String state) {
+        for (int i = 0; i < iterations; i++) {
+            log.debug("looping for port state with time period {}ms on device {}. try number {}/{}",
+                    timePeriodInMillis, deviceId, i + 1, iterations);
+            if (isPortState(number, state)) {
+                return true;
+            }
+            try {
+                Thread.sleep(timePeriodInMillis);
+            } catch (InterruptedException e) {
+                log.error("unable to sleep thread for device {}\n", deviceId, e);
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return false;
+    }
+
     private boolean changePortState(PortNumber number, String state) {
         log.debug("changing the port {} on device {} state to {}", number, deviceId, state);
         String uri = genUri(PORT_STATE_URI, number);
         String request = genPortStateRequest(state);
+
         boolean response = putNoReply(uri, request);
         if (!response) {
             log.error("unable to change port {} on device {} state to {}", number, deviceId, state);
         }
-        return response;
+
+        // 5 tries with 2 sec delay
+        long timePeriod = 2000;
+        int iterations = 5;
+        return confirmPortState(timePeriod, iterations, number, state);
     }
 
     public boolean disablePort(PortNumber number) {
