@@ -4,7 +4,7 @@ option java_package = "org.onosproject.grpc.net.device";
 import "net/device/DeviceDescriptionProto.proto";
 import "net/device/PortDescriptionProto.proto";
 import "net/device/PortStatisticsProto.proto";
-import "net/device/DeviceEnumsProto.proto";
+import "net/MastershipRoleProto.proto";
 
 package Device;
 
@@ -34,8 +34,8 @@ message PortStatusChanged {
 message ReceivedRoleReply {
   // DeviceID as String DeviceId#toString
   string device_id = 1;
-  net.device.MastershipRoleProto requested = 2;
-  net.device.MastershipRoleProto response = 3;
+  net.MastershipRoleProto requested = 2;
+  net.MastershipRoleProto response = 3;
 }
 
 message UpdatePortStatistics {
@@ -74,7 +74,7 @@ message TriggerProbe {
 message RoleChanged {
   // DeviceID as String DeviceId#toString
   string device_id = 1;
-  net.device.MastershipRoleProto new_role = 2;
+  net.MastershipRoleProto new_role = 2;
 }
 
 message IsReachableRequest {
