@@ -204,7 +204,7 @@
     "org.apache.karaf.shell.console": "mvn:org.apache.karaf.shell:org.apache.karaf.shell.console:3.0.8",
     "org.apache.httpcomponents.httpasyncclient-osgi": "mvn:org.apache.httpcomponents:httpasyncclient-osgi:4.1.2",
     "org.apache.httpcomponents.httpcore-nio": "mvn:org.apache.httpcomponents:httpcore-nio:4.4.4",
-    "org.apache.karaf.jaas": "mvn:org.apache.karaf.jaas:org.apache.karaf.jaas.modules:3.0.5",
+    "org.apache.karaf.jaas": "mvn:org.apache.karaf.jaas:org.apache.karaf.jaas.modules:3.0.8",
     "org.apache.karaf.system.core": "mvn:org.apache.karaf.system:org.apache.karaf.system.core:3.0.8",
     "org.apache.servicemix.bundles.snmp4j": "mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.snmp4j:2.3.4_1",
     "org.osgi.compendium": "mvn:org.osgi:org.osgi.compendium:5.0.0",
