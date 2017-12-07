@@ -17,7 +17,6 @@ package org.onosproject.incubator.rpc.grpc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
-import static org.onosproject.incubator.protobuf.models.ProtobufUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.Collection;
@@ -33,7 +32,6 @@ import org.onosproject.grpc.net.device.DeviceService.RoleChanged;
 import org.onosproject.grpc.net.device.DeviceService.TriggerProbe;
 import org.onosproject.grpc.net.device.models.PortDescriptionProtoOuterClass.PortDescriptionProto;
 import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.PortStatisticsProto;
-import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceDescription;
@@ -42,6 +40,10 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.incubator.protobuf.models.net.device.DeviceProtoTranslator;
+import org.onosproject.incubator.protobuf.models.net.device.PortProtoTranslator;
+import org.onosproject.incubator.protobuf.models.net.MastershipRoleProtoTranslator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,7 +95,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         builder.setDeviceConnected(builder.getDeviceConnectedBuilder()
                                       .setDeviceId(deviceId.toString())
-                                      .setDeviceDescription(translate(deviceDescription))
+                                      .setDeviceDescription(DeviceProtoTranslator.translate(deviceDescription))
                                       .build());
 
         devProvService.onNext(builder.build());
@@ -119,7 +121,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         List<PortDescriptionProto> portDescs =
                 portDescriptions.stream()
-                    .map(ProtobufUtils::translate)
+                    .map(PortProtoTranslator::translate)
                     .collect(toList());
 
         builder.setUpdatePorts(builder.getUpdatePortsBuilder()
@@ -143,7 +145,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         builder.setPortStatusChanged(builder.getPortStatusChangedBuilder()
                                       .setDeviceId(deviceId.toString())
-                                      .setPortDescription(translate(portDescription))
+                                      .setPortDescription(PortProtoTranslator.translate(portDescription))
                                       .build());
 
         devProvService.onNext(builder.build());
@@ -157,8 +159,8 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         builder.setReceivedRoleReply(builder.getReceivedRoleReplyBuilder()
                                       .setDeviceId(deviceId.toString())
-                                      .setRequested(translate(requested))
-                                      .setResponse(translate(response))
+                                      .setRequested(MastershipRoleProtoTranslator.translate(requested))
+                                      .setResponse(MastershipRoleProtoTranslator.translate(response))
                                       .build());
 
         devProvService.onNext(builder.build());
@@ -172,7 +174,7 @@ final class DeviceProviderServiceClientProxy
         DeviceProviderServiceMsg.Builder builder = DeviceProviderServiceMsg.newBuilder();
         List<PortStatisticsProto> portStats =
                 portStatistics.stream()
-                    .map(ProtobufUtils::translate)
+                    .map(PortProtoTranslator::translate)
                     .collect(toList());
         builder.setUpdatePortStatistics(builder.getUpdatePortStatisticsBuilder()
                                       .setDeviceId(deviceId.toString())
@@ -271,7 +273,7 @@ final class DeviceProviderServiceClientProxy
             case ROLE_CHANGED:
                 RoleChanged roleChanged = msg.getRoleChanged();
                 provider.roleChanged(deviceId(roleChanged.getDeviceId()),
-                                     translate(roleChanged.getNewRole()));
+                        (MastershipRole) MastershipRoleProtoTranslator.translate(roleChanged.getNewRole()).get());
                 break;
             case IS_REACHABLE_REQUEST:
                 IsReachableRequest isReachableRequest = msg.getIsReachableRequest();

@@ -29,7 +29,7 @@ import org.onosproject.grpc.net.link.models.LinkDescriptionProtoOuterClass.LinkD
 import org.onosproject.grpc.net.link.models.LinkEnumsProto.LinkTypeProto;
 import org.onosproject.grpc.net.models.ConnectPointProtoOuterClass.ConnectPointProto;
 import org.onosproject.grpc.net.models.ConnectPointProtoOuterClass.ConnectPointProto.ElementIdCase;
-import org.onosproject.incubator.protobuf.models.ProtobufUtils;
+import org.onosproject.incubator.protobuf.models.net.LinkProtoTranslator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
@@ -191,7 +191,7 @@ final class LinkProviderServiceServerProxy
         ConnectPoint src = translate(linkDescription.getSrc());
         ConnectPoint dst = translate(linkDescription.getDst());
         Type type = translate(linkDescription.getType());
-        SparseAnnotations annotations = ProtobufUtils.asAnnotations(linkDescription.getAnnotations());
+        SparseAnnotations annotations = LinkProtoTranslator.asAnnotations(linkDescription.getAnnotations());
         return new DefaultLinkDescription(src, dst, type, annotations);
     }
 

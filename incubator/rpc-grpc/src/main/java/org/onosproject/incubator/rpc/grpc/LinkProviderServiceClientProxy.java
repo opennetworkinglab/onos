@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.onosproject.incubator.protobuf.models.ProtobufUtils.asMap;
+import static org.onosproject.incubator.protobuf.models.net.LinkProtoTranslator.asMap;
 
 /**
  * Proxy object to handle LinkProviderService calls.

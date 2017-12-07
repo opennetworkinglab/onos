@@ -18,7 +18,9 @@ package org.onosproject.incubator.rpc.grpc;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.stream.Collectors.toList;
-import static org.onosproject.incubator.protobuf.models.ProtobufUtils.translate;
+import org.onosproject.incubator.protobuf.models.net.device.DeviceProtoTranslator;
+import org.onosproject.incubator.protobuf.models.net.device.PortProtoTranslator;
+import org.onosproject.incubator.protobuf.models.net.MastershipRoleProtoTranslator;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.io.IOException;
@@ -50,7 +52,6 @@ import org.onosproject.grpc.net.device.DeviceService.ReceivedRoleReply;
 import org.onosproject.grpc.net.device.DeviceService.RegisterProvider;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePortStatistics;
 import org.onosproject.grpc.net.device.DeviceService.UpdatePorts;
-import org.onosproject.incubator.protobuf.models.ProtobufUtils;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
@@ -272,7 +273,7 @@ public class GrpcRemoteServiceServer {
             case DEVICE_CONNECTED:
                 DeviceConnected deviceConnected = msg.getDeviceConnected();
                 deviceProviderService.deviceConnected(deviceId(deviceConnected.getDeviceId()),
-                                                      translate(deviceConnected.getDeviceDescription()));
+                        DeviceProtoTranslator.translate(deviceConnected.getDeviceDescription()));
                 break;
             case DEVICE_DISCONNECTED:
                 DeviceDisconnected deviceDisconnected = msg.getDeviceDisconnected();
@@ -283,26 +284,26 @@ public class GrpcRemoteServiceServer {
                 deviceProviderService.updatePorts(deviceId(updatePorts.getDeviceId()),
                                                   updatePorts.getPortDescriptionsList()
                                                       .stream()
-                                                          .map(ProtobufUtils::translate)
+                                                          .map(PortProtoTranslator::translate)
                                                           .collect(toList()));
                 break;
             case PORT_STATUS_CHANGED:
                 PortStatusChanged portStatusChanged = msg.getPortStatusChanged();
                 deviceProviderService.portStatusChanged(deviceId(portStatusChanged.getDeviceId()),
-                                                        translate(portStatusChanged.getPortDescription()));
+                        PortProtoTranslator.translate(portStatusChanged.getPortDescription()));
                 break;
             case RECEIVED_ROLE_REPLY:
                 ReceivedRoleReply receivedRoleReply = msg.getReceivedRoleReply();
                 deviceProviderService.receivedRoleReply(deviceId(receivedRoleReply.getDeviceId()),
-                                                        translate(receivedRoleReply.getRequested()),
-                                                        translate(receivedRoleReply.getResponse()));
+                        (MastershipRole) MastershipRoleProtoTranslator.translate(receivedRoleReply.getRequested()).get(),
+                        (MastershipRole) MastershipRoleProtoTranslator.translate(receivedRoleReply.getResponse()).get());
                 break;
             case UPDATE_PORT_STATISTICS:
                 UpdatePortStatistics updatePortStatistics = msg.getUpdatePortStatistics();
                 deviceProviderService.updatePortStatistics(deviceId(updatePortStatistics.getDeviceId()),
                                                            updatePortStatistics.getPortStatisticsList()
                                                              .stream()
-                                                                .map(ProtobufUtils::translate)
+                                                                .map(PortProtoTranslator::translate)
                                                                 .collect(toList()));
                 break;
 
@@ -429,7 +430,7 @@ public class GrpcRemoteServiceServer {
             DeviceProviderMsg.Builder msgBuilder = DeviceProviderMsg.newBuilder();
             msgBuilder.setRoleChanged(msgBuilder.getRoleChangedBuilder()
                                           .setDeviceId(deviceId.toString())
-                                          .setNewRole(translate(newRole))
+                                          .setNewRole(MastershipRoleProtoTranslator.translate(newRole))
                                           .build());
             toDeviceProvider.onNext(msgBuilder.build());
         }

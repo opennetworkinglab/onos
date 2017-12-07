@@ -25,6 +25,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.provider.ProviderId;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -33,10 +34,10 @@ import java.util.Map;
 public final class LinkProtoTranslator {
 
     /**
-     * Translates gRPC LinkCore message to {@link org.onosproject.net.Link}.
+     * Translates gRPC LinkCore message to {@link Link}.
      *
      * @param link gRPC message
-     * @return {@link org.onosproject.net.Link} null if link is a default instance
+     * @return {@link Link} null if link is a default instance
      */
     public static Link translate(LinkProtoOuterClass.LinkProto link) {
         if (link.equals(LinkProtoOuterClass.LinkProto.getDefaultInstance())) {
@@ -60,9 +61,9 @@ public final class LinkProtoTranslator {
     }
 
     /**
-     * Translates {@link org.onosproject.net.Link} to gRPC LinkCore message.
+     * Translates {@link Link} to gRPC LinkCore message.
      *
-     * @param link {@link org.onosproject.net.Link}
+     * @param link {@link Link}
      * @return gRPC LinkCore message
      */
     public static LinkProtoOuterClass.LinkProto translate(Link link) {
@@ -80,6 +81,7 @@ public final class LinkProtoTranslator {
     }
 
     // may be this can be moved to Annotation itself or AnnotationsUtils
+
     /**
      * Converts Map of Strings to {@link SparseAnnotations}.
      *
@@ -98,8 +100,26 @@ public final class LinkProtoTranslator {
         return builder.build();
     }
 
+    /**
+     * Converts Annotations to Map of Strings.
+     *
+     * @param annotations {@link Annotations}
+     * @return Map of annotation key and values
+     */
+    public static Map<String, String> asMap(Annotations annotations) {
+        if (annotations instanceof DefaultAnnotations) {
+            return ((DefaultAnnotations) annotations).asMap();
+        }
+        Map<String, String> map = new HashMap<>();
+        annotations.keys()
+                .forEach(k -> map.put(k, annotations.value(k)));
+
+        return map;
+    }
+
     // Utility class not intended for instantiation.
-    private LinkProtoTranslator() {}
+    private LinkProtoTranslator() {
+    }
 
 }
 
