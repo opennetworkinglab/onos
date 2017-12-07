@@ -52,7 +52,13 @@ public final class PipeconfLoader {
 
     public static final PiPipeconf BASIC_PIPECONF = buildBasicPipeconf();
 
-    private static final Collection<PiPipeconf> ALL_PIPECONFS = ImmutableList.of(BASIC_PIPECONF);
+    private static final PiPipeconfId INT_PIPECONF_ID = new PiPipeconfId("org.onosproject.pipelines.int");
+    private static final String INT_JSON_PATH = "/p4c-out/bmv2/int.json";
+    private static final String INT_P4INFO = "/p4c-out/bmv2/int.p4info";
+
+    public static final PiPipeconf INT_PIPECONF = buildIntPipeconf();
+
+    private static final Collection<PiPipeconf> ALL_PIPECONFS = ImmutableList.of(BASIC_PIPECONF, INT_PIPECONF);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
@@ -82,6 +88,23 @@ public final class PipeconfLoader {
                 .addExtension(BMV2_JSON, jsonUrl)
                 // Put here other target-specific extensions,
                 // e.g. Tofino's bin and context.json.
+                .build();
+    }
+
+    private static PiPipeconf buildIntPipeconf() {
+        final URL jsonUrl = PipeconfLoader.class.getResource(INT_JSON_PATH);
+        final URL p4InfoUrl = PipeconfLoader.class.getResource(INT_P4INFO);
+
+        // INT behavior is controlled using pipeline-specific flow rule,
+        // not using flow objectives, so we just borrow pipeliner to basic pipeconf.
+        return DefaultPiPipeconf.builder()
+                .withId(INT_PIPECONF_ID)
+                .withPipelineModel(parseP4Info(p4InfoUrl))
+                .addBehaviour(PiPipelineInterpreter.class, IntInterpreterImpl.class)
+                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
+                .addExtension(P4_INFO_TEXT, p4InfoUrl)
+                .addExtension(BMV2_JSON, jsonUrl)
                 .build();
     }
 
