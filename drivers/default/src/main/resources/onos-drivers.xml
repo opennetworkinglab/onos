@@ -95,6 +95,14 @@
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
     </driver>
 
+    <driver name="xpliant" extends="ofdpa3"
+            manufacturer="Cavium, Inc\." hwVersion=".*" swVersion=".*">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.XpliantPipeline"/>
+    </driver>
+
     <!--  Driver for OFDPA 3.0 EA* for Qumran based switches.
        ~  Note: driver needs to be configured using onos-netcfg.
       -->

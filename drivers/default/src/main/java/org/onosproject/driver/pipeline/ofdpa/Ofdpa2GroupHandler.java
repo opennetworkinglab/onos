@@ -156,7 +156,7 @@ public class Ofdpa2GroupHandler {
         return false;
     }
 
-    protected void init(DeviceId deviceId, PipelinerContext context) {
+    public void init(DeviceId deviceId, PipelinerContext context) {
         ServiceDirectory serviceDirectory = context.directory();
         this.deviceId = deviceId;
         this.flowObjectiveStore = context.store();
