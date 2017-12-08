@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
@@ -65,6 +66,7 @@ import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flowobjective.FilteringObjective;
@@ -194,6 +196,33 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // OF-DPA does not require initializing the pipeline as it puts default
         // rules automatically in the hardware. However emulation of OFDPA in
         // software switches does require table-miss-entries.
+    }
+
+    /**
+     * Determines whether this pipeline requires MPLS POP instruction.
+     *
+     * @return true to use MPLS POP instruction
+     */
+    public boolean requireMplsPop() {
+        return true;
+    }
+
+    /**
+     * Determines whether this pipeline requires MPLS BOS match.
+     *
+     * @return true to use MPLS BOS match
+     */
+    public boolean requireMplsBosMatch() {
+        return true;
+    }
+
+    /**
+     * Determines whether this pipeline requires MPLS TTL decrement and copy.
+     *
+     * @return true to use MPLS TTL decrement and copy
+     */
+    public boolean requireMplsTtlModification() {
+        return true;
     }
 
     /**
@@ -1175,7 +1204,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                         selector.getCriterion(Criterion.Type.MPLS_LABEL)).label());
             MplsBosCriterion bos = (MplsBosCriterion) selector
                                         .getCriterion(MPLS_BOS);
-            if (bos != null) {
+            if (bos != null && requireMplsBosMatch()) {
                 filteredSelector.matchMplsBos(bos.mplsBos());
             }
             forTableId = MPLS_TABLE_1;
@@ -1189,18 +1218,30 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                         popMpls = true;
                         // OF-DPA does not pop in MPLS table in some cases. For the L3 VPN, it requires
                         // setting the MPLS_TYPE so pop can happen down the pipeline
-                        if (mplsNextTable == MPLS_TYPE_TABLE && isNotMplsBos(selector)) {
-                            tb.immediate().popMpls();
+                        if (requireMplsPop()) {
+                            if (mplsNextTable == MPLS_TYPE_TABLE && isNotMplsBos(selector)) {
+                                tb.immediate().popMpls();
+                            }
+                        } else {
+                            // Skip mpls pop action for mpls_unicast label
+                            if (instr instanceof ModMplsHeaderInstruction &&
+                                    !((ModMplsHeaderInstruction) instr).ethernetType()
+                                            .equals(EtherType.MPLS_UNICAST.ethType())) {
+                                tb.immediate().add(instr);
+                            }
                         }
                     }
-                    if (instr instanceof L3ModificationInstruction &&
-                            ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        // FIXME Should modify the app to send the correct DEC_MPLS_TTL instruction
-                        tb.immediate().decMplsTtl();
-                    }
-                    if (instr instanceof L3ModificationInstruction &&
-                            ((L3ModificationInstruction) instr).subtype() == L3SubType.TTL_IN) {
-                        tb.immediate().add(instr);
+
+                    if (requireMplsTtlModification()) {
+                        if (instr instanceof L3ModificationInstruction &&
+                                ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
+                            // FIXME Should modify the app to send the correct DEC_MPLS_TTL instruction
+                            tb.immediate().decMplsTtl();
+                        }
+                        if (instr instanceof L3ModificationInstruction &&
+                                ((L3ModificationInstruction) instr).subtype() == L3SubType.TTL_IN) {
+                            tb.immediate().add(instr);
+                        }
                     }
                 }
             }
@@ -1592,7 +1633,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return ethTypeCriterion != null && ethTypeCriterion.ethType().toShort() == Ethernet.TYPE_IPV6;
     }
 
-    static VlanId readVlanFromSelector(TrafficSelector selector) {
+    public static VlanId readVlanFromSelector(TrafficSelector selector) {
         if (selector == null) {
             return null;
         }
@@ -1625,12 +1666,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *  Utility class that retries sending flows a fixed number of times, even if
      *  some of the attempts are successful. Used only for forwarding objectives.
      */
-    protected final class RetryFlows implements Runnable {
+    public final class RetryFlows implements Runnable {
         int attempts = MAX_RETRY_ATTEMPTS;
         private Collection<FlowRule> retryFlows;
         private ForwardingObjective fwd;
 
-        RetryFlows(ForwardingObjective fwd, Collection<FlowRule> retryFlows) {
+        public RetryFlows(ForwardingObjective fwd, Collection<FlowRule> retryFlows) {
             this.fwd = fwd;
             this.retryFlows = retryFlows;
         }
