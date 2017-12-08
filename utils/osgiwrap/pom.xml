@@ -27,24 +27,11 @@
     <artifactId>osgiwrap</artifactId>
     <version>0.9-SNAPSHOT</version>
 
-    <repositories>
-        <repository>
-            <id>snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
-        <!-- TODO update this to org.apache.felix when changes are merged upstream -->
         <dependency>
-            <groupId>org.onosproject</groupId>
+            <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.bnd</artifactId>
-            <version>1.4.1-SNAPSHOT</version>
+            <version>1.8.0</version>
         </dependency>
 
         <dependency>
