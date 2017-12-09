@@ -82,6 +82,7 @@ public class AtomixWorkQueueServiceTest {
                 ReadConsistency.LINEARIZABLE,
                 100,
                 5000,
+                System.currentTimeMillis(),
                 context,
                 server,
                 new SingleThreadContextFactory(new AtomixThreadFactory()));
