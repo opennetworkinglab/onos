@@ -43,7 +43,6 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroup;
@@ -245,8 +244,6 @@ public class PiTranslatorServiceTest {
 
         assertThat("Group ID must be equal",
                    piGroup1.id().id(), is(equalTo(GROUP_ID.id())));
-        assertThat("Group type must be SELECT",
-                   piGroup1.type(), is(equalTo(PiActionGroupType.SELECT)));
         assertThat("Action profile ID must be equal",
                    piGroup1.actionProfileId(), is(equalTo(ACT_PRF_WCMP_SELECTOR_ID)));
 

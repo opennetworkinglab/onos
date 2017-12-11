@@ -1,4 +1,4 @@
-PROTOBUF_VER = '3.0.2'
+PROTOBUF_VER = '3.2.0'
 GRPC_VER = '1.3.0'
 
 BUNDLES = [
@@ -13,7 +13,7 @@ BUNDLES = [
     '//lib:grpc-netty-1.3.0',
     '//lib:grpc-auth-1.3.0',
     '//lib:google-instrumentation-0.3.0',
-    '//lib:protobuf-java-3.0.2',
+    '//lib:protobuf-java-3.2.0',
     # Lazily adding all netty-related packages.
     # Some of them might not be necessary.
     '//lib:netty',

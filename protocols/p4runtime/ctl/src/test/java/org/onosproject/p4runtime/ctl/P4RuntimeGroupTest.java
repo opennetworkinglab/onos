@@ -64,7 +64,6 @@ import static org.easymock.EasyMock.niceMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.pi.model.PiActionGroupType.SELECT;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
 import static p4.P4RuntimeOuterClass.Action;
@@ -95,7 +94,6 @@ public class P4RuntimeGroupTest {
             .withId(GROUP_ID)
             .addMembers(GROUP_MEMBERS)
             .withActionProfileId(ACT_PROF_ID)
-            .withType(SELECT)
             .build();
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:p4runtime:1");
     private static final int P4_DEVICE_ID = 1;
@@ -223,7 +221,6 @@ public class P4RuntimeGroupTest {
     public void testReadGroups() throws Exception {
         ActionProfileGroup.Builder group = ActionProfileGroup.newBuilder()
                 .setGroupId(GROUP_ID.id())
-                .setType(ActionProfileGroup.Type.SELECT)
                 .setActionProfileId(P4_INFO_ACT_PROF_ID);
 
         List<ActionProfileMember> members = Lists.newArrayList();
@@ -277,7 +274,6 @@ public class P4RuntimeGroupTest {
         PiActionGroup piActionGroup = groups.iterator().next();
         assertEquals(ACT_PROF_ID, piActionGroup.actionProfileId());
         assertEquals(GROUP_ID, piActionGroup.id());
-        assertEquals(SELECT, piActionGroup.type());
         assertEquals(3, piActionGroup.members().size());
         assertTrue(GROUP_MEMBERS.containsAll(piActionGroup.members()));
         assertTrue(piActionGroup.members().containsAll(GROUP_MEMBERS));

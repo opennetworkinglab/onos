@@ -1,4 +1,4 @@
-PROTOBUF_VER = '3.0.2'
+PROTOBUF_VER = '3.2.0'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',

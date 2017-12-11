@@ -57,8 +57,7 @@ public final class PiActionGroupMember {
     }
 
     /**
-     * Returns the weight associated to this member. Meaningful if the action group of this member is of type {@link
-     * org.onosproject.net.pi.model.PiActionGroupType#SELECT}.
+     * Returns the weight associated to this member.
      *
      * @return weight
      */
@@ -139,8 +138,7 @@ public final class PiActionGroupMember {
         }
 
         /**
-         * Sets the weight of this member. Meaningful only if the action group is of type {@link
-         * org.onosproject.net.pi.model.PiActionGroupType#SELECT}.
+         * Sets the weight of this member.
          * <p>
          * Default value is 0.
          *

@@ -17,7 +17,6 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Maps;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
@@ -65,14 +64,6 @@ public final class ActionProfileGroupEncoder {
                         .setGroupId(piActionGroup.id().id())
                         .setActionProfileId(actionProfileId);
 
-        switch (piActionGroup.type()) {
-            case SELECT:
-                actionProfileGroupBuilder.setType(ActionProfileGroup.Type.SELECT);
-                break;
-            default:
-                throw new EncodeException(format("PI action group type %s not supported", piActionGroup.type()));
-        }
-
         piActionGroup.members().forEach(m -> {
             // TODO: currently we don't set "watch" field of member
             Member member = Member.newBuilder()
@@ -114,17 +105,6 @@ public final class ActionProfileGroupEncoder {
         piActionGroupBuilder
                 .withActionProfileId(piActionProfileId)
                 .withId(PiActionGroupId.of(actionProfileGroup.getGroupId()));
-
-        switch (actionProfileGroup.getType()) {
-            case UNSPECIFIED:
-                // FIXME: PI returns unspecified for select groups. Remove this case when PI bug will be fixed.
-            case SELECT:
-                piActionGroupBuilder.withType(PiActionGroupType.SELECT);
-                break;
-            default:
-                throw new EncodeException(format("Action profile type %s is not supported",
-                                                 actionProfileGroup.getType()));
-        }
 
         Map<Integer, Integer> memberWeights = Maps.newHashMap();
         actionProfileGroup.getMembersList().forEach(member -> {

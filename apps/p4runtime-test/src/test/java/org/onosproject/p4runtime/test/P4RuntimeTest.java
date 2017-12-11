@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.grpc.ctl.GrpcControllerImpl;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
@@ -64,7 +63,6 @@ import static org.onlab.util.ImmutableByteSequence.ofZeros;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.ActionProfileGroup.Type.SELECT;
 import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
 
 /**
@@ -170,7 +168,6 @@ public class P4RuntimeTest {
         P4RuntimeOuterClass.ActionProfileGroup groupMsg = P4RuntimeOuterClass.ActionProfileGroup.newBuilder()
                 .setActionProfileId(actionProfileId)
                 .setGroupId(1)
-                .setType(SELECT)
                 .addMembers(P4RuntimeOuterClass.ActionProfileGroup.Member.newBuilder()
                                     .setMemberId(1)
                                     .setWeight(1)
@@ -269,7 +266,6 @@ public class P4RuntimeTest {
             members.add(member);
         }
         PiActionGroup actionGroup = PiActionGroup.builder()
-                .withType(PiActionGroupType.SELECT)
                 .withActionProfileId(actionProfileId)
                 .withId(groupId)
                 .addMembers(members)

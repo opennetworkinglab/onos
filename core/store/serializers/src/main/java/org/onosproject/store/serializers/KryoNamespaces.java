@@ -203,7 +203,6 @@ import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
@@ -619,7 +618,6 @@ public final class KryoNamespaces {
             .register(DomainConstraint.class)
             .register(
                     // PI model
-                    PiActionGroupType.class,
                     PiActionId.class,
                     PiActionParamId.class,
                     PiActionProfileId.class,

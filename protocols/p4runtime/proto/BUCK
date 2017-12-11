@@ -2,10 +2,10 @@ include_defs(
     '//bucklets/grpc.bucklet'
 )
 
-PROTOBUF_VER = '3.0.2'
+PROTOBUF_VER = '3.2.0'
 GRPC_VER = '1.3.0'
 
-PI_COMMIT = 'a8814a8ac40838a9df83fe47a17a025b69026fcf'
+PI_COMMIT = '13d611a9c655938676ebcde2bd5653b461f46ca7'
 PI_BASEURL = 'https://github.com/p4lang/PI.git'
 
 # Wondering which .proto files to build? Check p4runtime's Makefile:

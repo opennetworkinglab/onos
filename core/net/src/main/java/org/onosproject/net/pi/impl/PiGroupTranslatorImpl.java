@@ -19,7 +19,6 @@ package org.onosproject.net.pi.impl;
 import org.onosproject.net.Device;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -62,14 +61,6 @@ final class PiGroupTranslatorImpl {
 
         final PiActionGroup.Builder piActionGroupBuilder = PiActionGroup.builder()
                 .withId(PiActionGroupId.of(group.id().id()));
-
-        switch (group.type()) {
-            case SELECT:
-                piActionGroupBuilder.withType(PiActionGroupType.SELECT);
-                break;
-            default:
-                throw new PiTranslationException(format("Group type %s not supported", group.type()));
-        }
 
         if (!(group.appCookie() instanceof PiGroupKey)) {
             throw new PiTranslationException("Group app cookie is not PI (class should be PiGroupKey)");

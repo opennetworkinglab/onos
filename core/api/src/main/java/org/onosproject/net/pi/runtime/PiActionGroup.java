@@ -21,7 +21,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.onosproject.net.pi.model.PiActionGroupType;
 import org.onosproject.net.pi.model.PiActionProfileId;
 
 import java.util.Collection;
@@ -37,15 +36,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class PiActionGroup implements PiEntity {
 
     private final PiActionGroupId id;
-    private final PiActionGroupType type;
     private final ImmutableSet<PiActionGroupMember> members;
     private final PiActionProfileId piActionProfileId;
 
-    private PiActionGroup(PiActionGroupId id, PiActionGroupType type,
-                          ImmutableSet<PiActionGroupMember> members,
+    private PiActionGroup(PiActionGroupId id, ImmutableSet<PiActionGroupMember> members,
                           PiActionProfileId piActionProfileId) {
         this.id = id;
-        this.type = type;
         this.members = members;
         this.piActionProfileId = piActionProfileId;
     }
@@ -57,15 +53,6 @@ public final class PiActionGroup implements PiEntity {
      */
     public PiActionGroupId id() {
         return id;
-    }
-
-    /**
-     * Returns the type of this action group.
-     *
-     * @return action group type
-     */
-    public PiActionGroupType type() {
-        return type;
     }
 
     /**
@@ -96,21 +83,19 @@ public final class PiActionGroup implements PiEntity {
         }
         PiActionGroup that = (PiActionGroup) o;
         return Objects.equal(id, that.id) &&
-                Objects.equal(type, that.type) &&
                 Objects.equal(members, that.members) &&
                 Objects.equal(piActionProfileId, that.piActionProfileId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, type, members);
+        return Objects.hashCode(id, members);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("groupId", id)
-                .add("type", type)
                 .add("members", members)
                 .add("piActionProfileId", piActionProfileId)
                 .toString();
@@ -136,7 +121,6 @@ public final class PiActionGroup implements PiEntity {
     public static final class Builder {
 
         private PiActionGroupId id;
-        private PiActionGroupType type;
         private Map<PiActionGroupMemberId, PiActionGroupMember> members = Maps.newHashMap();
         private PiActionProfileId piActionProfileId;
 
@@ -152,17 +136,6 @@ public final class PiActionGroup implements PiEntity {
          */
         public Builder withId(PiActionGroupId id) {
             this.id = id;
-            return this;
-        }
-
-        /**
-         * Sets the type of this action group.
-         *
-         * @param type action group type
-         * @return this
-         */
-        public Builder withType(PiActionGroupType type) {
-            this.type = type;
             return this;
         }
 
@@ -206,11 +179,9 @@ public final class PiActionGroup implements PiEntity {
          */
         public PiActionGroup build() {
             checkNotNull(id);
-            checkNotNull(type);
             checkArgument(!members.isEmpty(), "Members cannot be empty");
             checkNotNull(piActionProfileId);
-            return new PiActionGroup(id, type,
-                                     ImmutableSet.copyOf(members.values()),
+            return new PiActionGroup(id, ImmutableSet.copyOf(members.values()),
                                      piActionProfileId);
         }
     }

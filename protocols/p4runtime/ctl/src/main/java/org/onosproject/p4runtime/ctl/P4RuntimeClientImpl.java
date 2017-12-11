@@ -328,16 +328,16 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         ForwardingPipelineConfig pipelineConfig = ForwardingPipelineConfig
                 .newBuilder()
-                .setDeviceId(p4DeviceId)
                 .setP4Info(p4Info)
                 .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
                 .build();
 
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
+                .setDeviceId(p4DeviceId)
                 .setElectionId(p4RuntimeElectionId)
                 .setAction(VERIFY_AND_COMMIT)
-                .addConfigs(pipelineConfig)
+                .setConfig(pipelineConfig)
                 .build();
 
         try {
