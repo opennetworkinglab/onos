@@ -566,7 +566,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private class InternalRoleListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
-            if (MastershipEvent.Type.MASTER_CHANGED.equals(event.type())) {
+            if (event.type() == MastershipEvent.Type.MASTER_CHANGED) {
                 // only need new master events
                 eventExecutor.execute(() -> {
                     DeviceId deviceId = event.subject();
@@ -575,9 +575,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                         log.debug("Device {} doesn't exist, or isn't there yet", deviceId);
                         return;
                     }
-                    if (clusterService.getLocalNode().id().equals(event.roleInfo().master())) {
-                        updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
-                    }
+                    updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
                 });
             }
         }
