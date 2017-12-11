@@ -213,6 +213,12 @@ public final class DefaultMaintenanceAssociation implements MaintenanceAssociati
         }
 
         @Override
+        public MaBuilder removeFromRemoteMepIdList(MepId remoteMep) {
+            this.remoteMepIdList.remove(remoteMep);
+            return this;
+        }
+
+        @Override
         public MaBuilder ccmInterval(CcmInterval ccmInterval) {
             this.ccmInterval = ccmInterval;
             return this;

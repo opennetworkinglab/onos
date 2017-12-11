@@ -133,7 +133,8 @@
               }
             }
           },
-          "example": [{"rmep": 10}, {"rmep": 20}]
+          "example": [{"rmep": 10}, {"rmep": 20}],
+          "description": "An optional set of Mep IDs that might be on equipment not managed by ONOS"
         }
       }
     }

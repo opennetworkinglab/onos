@@ -16,12 +16,12 @@
 package org.onosproject.incubator.net.l2monitoring.cfm.service;
 
 import org.onosproject.event.AbstractEvent;
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepKeyId;
 
 /**
  * Event related to the maintenance of CFM MEPs.
  */
-public class CfmMepEvent extends AbstractEvent<CfmMepEvent.Type, Mep> {
+public class CfmMepEvent extends AbstractEvent<CfmMepEvent.Type, MepKeyId> {
 
     /**
      * Type of Mep events.
@@ -52,10 +52,9 @@ public class CfmMepEvent extends AbstractEvent<CfmMepEvent.Type, Mep> {
      * Creates an event of a given type and for the specified Mep and the current time.
      *
      * @param type Mep event type
-     * @param mep event Mep subject
+     * @param mepKeyId event Mep subject
      */
-    protected CfmMepEvent(Type type, Mep mep) {
-        super(type, mep);
-        // TODO Auto-generated constructor stub
+    public CfmMepEvent(Type type, MepKeyId mepKeyId) {
+        super(type, mepKeyId);
     }
 }

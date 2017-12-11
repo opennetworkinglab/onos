@@ -16,12 +16,17 @@
 package org.onosproject.drivers.microsemi;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.microsemi.yang.utils.MaNameUtil.getApiMaIdFromYangMaName;
+import static org.onosproject.drivers.microsemi.yang.utils.MdNameUtil.getApiMdIdFromYangMdName;
+import static org.onosproject.drivers.microsemi.yang.utils.MdNameUtil.getYangMdNameFromApiMdId;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
@@ -47,14 +52,12 @@ import org.onosproject.incubator.net.l2monitoring.cfm.RemoteMepEntry.RemoteMepEn
 import org.onosproject.incubator.net.l2monitoring.cfm.RemoteMepEntry.RemoteMepState;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepKeyId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepProgrammable;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -62,7 +65,6 @@ import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.DomainName;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfm;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfmOpParam;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.DefaultMefCfm;
@@ -83,11 +85,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenanc
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.ContinuityCheck;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.DefaultContinuityCheck;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.InterfaceEnum;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultMacAddressAndUint;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultNameCharacterString;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultNameDomainName;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultNameNone;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.namedomainname.NameDomainNameUnion;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.remotemepstatetype.RemoteMepStateTypeEnum;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMacAddress;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMepId;
@@ -97,8 +94,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.transmitloopbackinput.TargetAddress;
 import org.onosproject.yang.gen.v1.mseasoamfm.rev20160229.mseasoamfm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.AugmentedMseaCfmMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseasoamfm.rev20160229.mseasoamfm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.DefaultAugmentedMseaCfmMaintenanceAssociationEndPoint;
-import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.Identifier45;
-import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.MacAddressAndUintStr;
 import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.MdLevelType;
 import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.MepIdType;
 import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.PriorityType;
@@ -128,57 +123,40 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
     public boolean createMep(MdId mdName, MaIdShort maName, Mep mep)
             throws CfmConfigException {
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap()
-                        .get(handler().data().deviceId()).getSession();
+        NetconfSession session = checkNotNull(controller.getDevicesMap()
+                                .get(handler().data().deviceId()).getSession());
         MseaCfmNetconfService mseaCfmService =
                 checkNotNull(handler().get(MseaCfmNetconfService.class));
+        CfmMepService cfmMepService =
+                checkNotNull(handler().get(CfmMepService.class));
 
         MaintenanceAssociationEndPoint yangMep = buildYangMepFromApiMep(mep);
 
         CfmMdService cfmMdService = checkNotNull(handler().get(CfmMdService.class));
-        MaintenanceDomain md = cfmMdService.getMaintenanceDomain(mdName).get();
-        MaintenanceAssociation ma = cfmMdService.getMaintenanceAssociation(mdName, maName).get();
+        MseaCfmOpParam mseaCfmOpParam = getMaYangObject(cfmMdService, mdName, maName);
 
-        if (!ma.remoteMepIdList().contains(mep.mepId())) {
-            throw new CfmConfigException("Mep Id " + mep.mepId() +
-                    " is not present in the remote Mep list for MA " + ma.maId() +
-                    ". This is required for EA1000.");
-        } else if (md.mdNumericId() <= 0 || md.mdNumericId() > NUMERIC_ID_MAX) {
-            throw new CfmConfigException("Numeric id of MD " + mdName + " must"
-                    + " be between 1 and 64 inclusive for EA1000");
-        } else if (ma.maNumericId() <= 0 || ma.maNumericId() > NUMERIC_ID_MAX) {
-            throw new CfmConfigException("Numeric id of MA " + maName + " must"
-                    + " be between 1 and 64 inclusive for EA1000");
-        }
+        mseaCfmOpParam.mefCfm().maintenanceDomain().get(0)
+                .maintenanceAssociation().get(0).addToMaintenanceAssociationEndPoint(yangMep);
+        //Add this mepId to the list of remoteMeps on the device
+        mseaCfmOpParam.mefCfm().maintenanceDomain().get(0)
+                .maintenanceAssociation().get(0).addToRemoteMeps(MepIdType.of(mep.mepId().value()));
 
-        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
-        .MaintenanceAssociation yangMa = buildYangMaFromApiMa(ma);
-        yangMa.addToMaintenanceAssociationEndPoint(yangMep);
-
-        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm
-        .mefcfm.MaintenanceDomain yangMd = buildYangMdFromApiMd(md);
-        yangMd.addToMaintenanceAssociation(yangMa);
-
-        MefCfm mefCfm = new DefaultMefCfm();
-        mefCfm.addToMaintenanceDomain(yangMd);
-
-        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
-        mseaCfmOpParam.mefCfm(mefCfm);
+        //Add all of the existing meps on this MD/MA to the remote meps list
+        cfmMepService.getAllMeps(mdName, maName).forEach(m -> {
+            mseaCfmOpParam.mefCfm().maintenanceDomain().get(0)
+                    .maintenanceAssociation().get(0).addToRemoteMeps(MepIdType.of(m.mepId().value()));
+        });
         try {
             mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
             log.info("Created MEP {} on device {}", mdName + "/" + maName +
                     "/" + mep.mepId(), handler().data().deviceId());
+
             return true;
         } catch (NetconfException e) {
             log.error("Unable to create MEP {}/{}/{} on device {}",
                     mdName, maName, mep.mepId(), handler().data().deviceId());
             throw new CfmConfigException("Unable to create MEP :" + e.getMessage());
         }
-    }
-
-    @Override
-    public Collection<MepEntry> getAllMeps(MdId mdName, MaIdShort maName) throws CfmConfigException {
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -189,31 +167,20 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             throw new CfmConfigException("Device is not ready - connecting or "
                     + "disconnected for MEP " + mdName + "/" + maName + "/" + mepId);
         }
-        NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
+        NetconfSession session = checkNotNull(controller.getDevicesMap()
+                                .get(handler().data().deviceId()).getSession());
         MseaCfmNetconfService mseaCfmService = checkNotNull(handler().get(MseaCfmNetconfService.class));
 
         try {
             MseaCfm mseacfm =
                     mseaCfmService.getMepFull(mdName, maName, mepId, session);
-            if (mseacfm != null && mseacfm.mefCfm() != null &&
-                    mseacfm.mefCfm().maintenanceDomain() != null) {
-                for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
-                        mseacfm.mefcfm.MaintenanceDomain replyMd :
-                                        mseacfm.mefCfm().maintenanceDomain()) {
-                    for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
-                            mseacfm.mefcfm.maintenancedomain.
-                            MaintenanceAssociation replyMa :
-                                            replyMd.maintenanceAssociation()) {
-                        for (MaintenanceAssociationEndPoint replyMep :
-                                    replyMa.maintenanceAssociationEndPoint()) {
-                            return buildApiMepEntryFromYangMep(
-                                    replyMep, handler().data().deviceId(), mdName, maName);
-                        }
-                    }
-                }
+            Collection<MepEntry> mepEntries = getMepEntriesFromYangResponse(mseacfm);
+            if (mepEntries == null || mepEntries.size() != 1) {
+                log.warn("Mep " + mepId + " not found on device " + handler().data().deviceId());
+                return null;
+            } else {
+                return mepEntries.stream().findFirst().get();
             }
-            log.warn("Mep " + mepId + " not found on device " + handler().data().deviceId());
-            return null;
         } catch (NetconfException e) {
             log.error("Unable to get MEP {}/{}/{} on device {}",
                     mdName, maName, mepId, handler().data().deviceId());
@@ -221,12 +188,37 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         }
     }
 
+    private Collection<MepEntry> getMepEntriesFromYangResponse(MseaCfm mseacfm)
+            throws CfmConfigException {
+
+        Collection<MepEntry> mepEntries = new ArrayList<>();
+        if (mseacfm == null || mseacfm.mefCfm() == null || mseacfm.mefCfm().maintenanceDomain() == null) {
+            return mepEntries;
+        }
+
+        for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
+                mseacfm.mefcfm.MaintenanceDomain replyMd:mseacfm.mefCfm().maintenanceDomain()) {
+            for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
+                    mseacfm.mefcfm.maintenancedomain.
+                    MaintenanceAssociation replyMa:replyMd.maintenanceAssociation()) {
+                for (MaintenanceAssociationEndPoint replyMep:replyMa.maintenanceAssociationEndPoint()) {
+                    mepEntries.add(buildApiMepEntryFromYangMep(
+                        replyMep, handler().data().deviceId(), replyMd, replyMa));
+                }
+            }
+        }
+        return mepEntries;
+    }
+
     @Override
-    public boolean deleteMep(MdId mdName, MaIdShort maName, MepId mepId) throws CfmConfigException {
+    public boolean deleteMep(MdId mdName, MaIdShort maName, MepId mepId,
+                    Optional<MaintenanceDomain> oldMd) throws CfmConfigException {
 
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
+        NetconfSession session = checkNotNull(controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession());
         MseaCfmNetconfService mseaCfmService = checkNotNull(handler().get(MseaCfmNetconfService.class));
+        CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
 
         MaintenanceAssociationEndPoint mep =
                 new DefaultMaintenanceAssociationEndPoint();
@@ -234,12 +226,34 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
 
         org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
             .MaintenanceAssociation yangMa = new DefaultMaintenanceAssociation();
-        yangMa.maNameAndTypeCombo(MaNameUtil.getYangMaNameFromApiMaId(maName));
+        Short maNumericId = null;
+        try {
+            maNumericId =
+                    mdService.getMaintenanceAssociation(mdName, maName).get().maNumericId();
+            yangMa.id(maNumericId);
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            //The MA and/or MD have probably been deleted
+            // try to get numeric id values from oldMd
+            log.debug("Could not get MD/MA details from MD service during deletion of MEP {}." +
+                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId));
+            yangMa.id(getMaNumericId(oldMd.get(), maName));
+        }
+
         yangMa.addToMaintenanceAssociationEndPoint(mep);
 
         org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain yangMd =
             new DefaultMaintenanceDomain();
-        yangMd.mdNameAndTypeCombo(getYangMdNameFromApiMdId(mdName));
+        Short mdNumericId = null;
+        try {
+            mdNumericId = mdService.getMaintenanceDomain(mdName).get().mdNumericId();
+            yangMd.id(mdNumericId);
+        } catch (NoSuchElementException | IllegalArgumentException e) {
+            //The MD has probably been deleted
+            // try to get numeric id values from oldMd
+            log.debug("Could not get MD details from MD service during deletion of MEP {}." +
+                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId));
+            yangMd.id(oldMd.get().mdNumericId());
+        }
         yangMd.addToMaintenanceAssociation(yangMa);
 
         MefCfm mefCfm = new DefaultMefCfm();
@@ -254,12 +268,279 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                     "/" + mepId, handler().data().deviceId());
             return true;
         } catch (NetconfException e) {
-            log.error("Unable to delete MEP {}/{}/{} on device {}",
-                    mdName, maName, mepId, handler().data().deviceId());
+            log.error("Unable to delete MEP {} ({}) on device {}",
+                    mdName + "/" + maName + "/" + mepId,
+                    mdNumericId + "/" + maNumericId, handler().data().deviceId(), e);
             throw new CfmConfigException("Unable to delete MEP :" + e.getMessage());
         }
 
     }
+
+    @Override
+    public boolean createMdOnDevice(MdId mdId) throws CfmConfigException {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        NetconfSession session = checkNotNull(controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession());
+
+        CfmMdService cfmMdService = checkNotNull(handler().get(CfmMdService.class));
+        MaintenanceDomain md = cfmMdService.getMaintenanceDomain(mdId).get();
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm
+                .mefcfm.MaintenanceDomain yangMd = buildYangMdFromApiMd(md);
+
+        if (md.mdNumericId() <= 0 || md.mdNumericId() > NUMERIC_ID_MAX) {
+            throw new CfmConfigException("Numeric id of MD " + mdId + " must"
+                    + " be between 1 and 64 inclusive for EA1000");
+        }
+
+        for (MaintenanceAssociation ma:md.maintenanceAssociationList()) {
+            if (ma.maNumericId() <= 0 || ma.maNumericId() > NUMERIC_ID_MAX) {
+                throw new CfmConfigException("Numeric id of MA " + mdId + " must"
+                        + " be between 1 and 64 inclusive for EA1000");
+            }
+            org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
+                    .MaintenanceAssociation yangMa = buildYangMaFromApiMa(ma);
+            yangMd.addToMaintenanceAssociation(yangMa);
+        }
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(yangMd);
+
+        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
+        mseaCfmOpParam.mefCfm(mefCfm);
+
+        MseaCfmNetconfService mseaCfmService =
+                checkNotNull(handler().get(MseaCfmNetconfService.class));
+
+        try {
+            boolean created = mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            log.info("Created MD {} on device {}", mdId.mdName(),
+                    handler().data().deviceId());
+            return created;
+        } catch (NetconfException e) {
+            log.error("Unable to create MD {} on device {}",
+                    mdId.mdName(), handler().data().deviceId());
+            throw new CfmConfigException("Unable to create MD :" + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean createMaOnDevice(MdId mdId, MaIdShort maId) throws CfmConfigException {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        NetconfSession session = checkNotNull(controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession());
+
+        CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
+        MseaCfmOpParam mseaCfmOpParam = getMaYangObject(mdService, mdId, maId);
+        MseaCfmNetconfService mseaCfmService =
+                checkNotNull(handler().get(MseaCfmNetconfService.class));
+
+        try {
+            boolean created = mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            log.info("Created MA {} on device {}", mdId.mdName() + "/" + maId.maName(),
+                    handler().data().deviceId());
+            return created;
+        } catch (NetconfException e) {
+            log.error("Unable to create MA {} on device {}",
+                    mdId.mdName() + "/" + maId.maName(), handler().data().deviceId());
+            throw new CfmConfigException("Unable to create MA :" + e.getMessage());
+        }
+    }
+
+    private static MseaCfmOpParam getMaYangObject(CfmMdService cfmMdService,
+                        MdId mdName, MaIdShort maName) throws CfmConfigException {
+        MaintenanceDomain md = cfmMdService.getMaintenanceDomain(mdName).get();
+        MaintenanceAssociation ma = cfmMdService.getMaintenanceAssociation(mdName, maName).get();
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
+                .MaintenanceAssociation yangMa = buildYangMaFromApiMa(ma);
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm
+                .mefcfm.MaintenanceDomain yangMd = buildYangMdFromApiMd(md);
+        yangMd.addToMaintenanceAssociation(yangMa);
+
+        if (md.mdNumericId() <= 0 || md.mdNumericId() > NUMERIC_ID_MAX) {
+            throw new CfmConfigException("Numeric id of MD " + mdName + " must"
+                    + " be between 1 and 64 inclusive for EA1000");
+        } else if (ma.maNumericId() <= 0 || ma.maNumericId() > NUMERIC_ID_MAX) {
+            throw new CfmConfigException("Numeric id of MA " + maName + " must"
+                    + " be between 1 and 64 inclusive for EA1000");
+        }
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(yangMd);
+
+        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
+        mseaCfmOpParam.mefCfm(mefCfm);
+
+        return mseaCfmOpParam;
+    }
+
+    @Override
+    public boolean deleteMdOnDevice(MdId mdId, Optional<MaintenanceDomain> oldMd)
+            throws CfmConfigException {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        NetconfSession session = controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession();
+
+        //First check if this MD is known to ONOS if it is does it have MAs and
+        // do they have any Meps known to ONOS. If there are Meps throw an exception -
+        // the Meps should have been deleted first
+        //If there are none known to ONOS we do not check for Meps on the actual device
+        // - there might might be some orphaned ones down there - we want to delete these
+        //FIXME: When CfmMepService is extended to be persistent come back and enable check
+        CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
+        MseaCfmNetconfService mseaCfmService =
+                checkNotNull(handler().get(MseaCfmNetconfService.class));
+
+        MdNameAndTypeCombo mdName = getYangMdNameFromApiMdId(mdId);
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain yangMd =
+                new DefaultMaintenanceDomain();
+        Short mdNumericId = null;
+        try {
+            mdNumericId = mdService.getMaintenanceDomain(mdId).get().mdNumericId();
+            yangMd.id(mdNumericId);
+        } catch (NoSuchElementException e) {
+            yangMd.id(oldMd.get().mdNumericId());
+        }
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(yangMd);
+
+        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
+        mseaCfmOpParam.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMd(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            log.info("Deleted MD {} on device {}", mdName,
+                    handler().data().deviceId());
+            return deleted;
+        } catch (NetconfException e) {
+            log.error("Unable to delete MD {} ({}) on device {}",
+                    mdName, mdNumericId, handler().data().deviceId());
+            throw new CfmConfigException("Unable to delete MD :" + e.getMessage());
+        }
+
+    }
+
+    @Override
+    public boolean deleteMaOnDevice(MdId mdId, MaIdShort maId, Optional<MaintenanceDomain> oldMd)
+            throws CfmConfigException {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        NetconfSession session = controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession();
+
+        CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
+
+        MseaCfmNetconfService mseaCfmService =
+                checkNotNull(handler().get(MseaCfmNetconfService.class));
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
+                .MaintenanceAssociation yangMa = new DefaultMaintenanceAssociation();
+        Short maNumericId = null;
+        try {
+            maNumericId =
+                    mdService.getMaintenanceAssociation(mdId, maId).get().maNumericId();
+            yangMa.id(maNumericId);
+        } catch (NoSuchElementException e) {
+            yangMa.id(getMaNumericId(oldMd.get(), maId));
+        }
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain yangMd =
+                new DefaultMaintenanceDomain();
+        Short mdNumericId = null;
+        try {
+            mdNumericId = mdService.getMaintenanceDomain(mdId).get().mdNumericId();
+            yangMd.id(mdNumericId);
+        } catch (NoSuchElementException e) {
+            yangMd.id(oldMd.get().mdNumericId());
+        }
+        yangMd.addToMaintenanceAssociation(yangMa);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(yangMd);
+
+        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
+        mseaCfmOpParam.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMa(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            log.info("Deleted MA {} ({})on device {}", mdId.mdName() + "/" + maId.maName(),
+                    mdNumericId + "/" + maNumericId, handler().data().deviceId());
+            return deleted;
+        } catch (NetconfException e) {
+            log.error("Unable to delete MA {} ({}) on device {}",
+                    mdId.mdName() + "/" + maId.maName(),
+                    mdNumericId + "/" + maNumericId, handler().data().deviceId());
+            throw new CfmConfigException("Unable to delete MA :" + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean createMaRemoteMepOnDevice(MdId mdId, MaIdShort maId, MepId remoteMep) throws CfmConfigException {
+        return crDelMaRemoteMep(mdId, maId, remoteMep, true);
+    }
+
+    @Override
+    public boolean deleteMaRemoteMepOnDevice(MdId mdId, MaIdShort maId, MepId remoteMep) throws CfmConfigException {
+        return crDelMaRemoteMep(mdId, maId, remoteMep, false);
+    }
+
+    private boolean crDelMaRemoteMep(MdId mdId, MaIdShort maId, MepId remoteMep,
+                                     boolean isCreate) throws CfmConfigException {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        NetconfSession session = controller.getDevicesMap()
+                .get(handler().data().deviceId()).getSession();
+
+        CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
+
+        Short mdNumericId = mdService.getMaintenanceDomain(mdId).get().mdNumericId();
+        Short maNumericId =
+                mdService.getMaintenanceAssociation(mdId, maId).get().maNumericId();
+
+        MseaCfmNetconfService mseaCfmService =
+                checkNotNull(handler().get(MseaCfmNetconfService.class));
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
+                .MaintenanceAssociation yangMa = new DefaultMaintenanceAssociation();
+        yangMa.id(maNumericId);
+        yangMa.addToRemoteMeps(MepIdType.of(remoteMep.value()));
+
+        org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain yangMd =
+                new DefaultMaintenanceDomain();
+        yangMd.id(mdNumericId);
+        yangMd.addToMaintenanceAssociation(yangMa);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(yangMd);
+
+        MseaCfmOpParam mseaCfmOpParam = new MseaCfmOpParam();
+        mseaCfmOpParam.mefCfm(mefCfm);
+
+        try {
+            boolean result = false;
+            if (isCreate) {
+                result = mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            } else {
+                result = mseaCfmService.deleteMseaMaRMep(mseaCfmOpParam, session, DatastoreId.RUNNING);
+            }
+            log.info("{} Remote MEP {} in MA {} on device {}", isCreate ? "Created" : "Deleted",
+                    remoteMep, mdId.mdName() + "/" + maId.maName(), handler().data().deviceId());
+            return result;
+        } catch (NetconfException e) {
+            log.error("Unable to {} RemoteMep {} in MA {} on device {}",
+                    isCreate ? "create" : "delete", remoteMep, mdId.mdName() + "/" + maId.maName(),
+                    handler().data().deviceId());
+            throw new CfmConfigException("Unable to " + (isCreate ? "create" : "delete")
+                    + " Remote Mep:" + e.getMessage());
+        }
+    }
+
 
     @Override
     public void transmitLoopback(MdId mdName, MaIdShort maName, MepId mepId,
@@ -361,7 +642,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm
+    private static org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm
             .MaintenanceDomain buildYangMdFromApiMd(MaintenanceDomain md)
             throws CfmConfigException {
         MdNameAndTypeCombo mdName = getYangMdNameFromApiMdId(md.mdId());
@@ -375,44 +656,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         return mdYang;
     }
 
-    protected static MdNameAndTypeCombo getYangMdNameFromApiMdId(MdId mdId)
-            throws CfmConfigException {
-        MdNameAndTypeCombo mdName;
-        if (mdId instanceof MdIdDomainName) {
-            boolean isIpAddr = false;
-            try {
-                if (IpAddress.valueOf(mdId.mdName()) != null) {
-                    isIpAddr = true;
-                }
-            } catch (IllegalArgumentException e) {
-                //continue
-            }
-            if (isIpAddr) {
-                mdName = new DefaultNameDomainName();
-                ((DefaultNameDomainName) mdName).nameDomainName(NameDomainNameUnion.of(
-                                org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.
-                                IpAddress.fromString(mdId.mdName())));
-            } else {
-                mdName = new DefaultNameDomainName();
-                ((DefaultNameDomainName) mdName).nameDomainName(NameDomainNameUnion
-                                    .of(DomainName.fromString(mdId.mdName())));
-            }
-        } else if (mdId instanceof MdIdMacUint) {
-            mdName = new DefaultMacAddressAndUint();
-            ((DefaultMacAddressAndUint) mdName).nameMacAddressAndUint(MacAddressAndUintStr.fromString(mdId.mdName()));
-        } else if (mdId instanceof MdIdNone) {
-            mdName = new DefaultNameNone();
-        } else if (mdId instanceof MdIdCharStr) {
-            mdName = new DefaultNameCharacterString();
-            ((DefaultNameCharacterString) mdName).name(Identifier45.fromString(mdId.mdName()));
-        } else {
-            throw new CfmConfigException("Unexpected error creating MD " +
-                    mdId.getClass().getSimpleName());
-        }
-        return mdName;
-    }
-
-    private org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm
+    private static org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm
             .maintenancedomain.MaintenanceAssociation buildYangMaFromApiMa(
                         MaintenanceAssociation apiMa) throws CfmConfigException {
 
@@ -422,12 +666,6 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                 .MaintenanceAssociation yamgMa = new DefaultMaintenanceAssociation();
         yamgMa.maNameAndTypeCombo(maName);
 
-        if (apiMa.remoteMepIdList() == null || apiMa.remoteMepIdList().size() < REMOTEMEPLIST_MIN_COUNT
-                || apiMa.remoteMepIdList().size() > REMOTEMEPLIST_MAX_COUNT) {
-            throw new CfmConfigException("EA1000 requires between " +
-                    REMOTEMEPLIST_MIN_COUNT + " and " + REMOTEMEPLIST_MAX_COUNT +
-                    " remote meps in an MA");
-        }
         for (MepId rmep:apiMa.remoteMepIdList()) {
             yamgMa.addToRemoteMeps(MepIdType.of(rmep.id()));
         }
@@ -486,7 +724,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         return yamgMa;
     }
 
-    private MaintenanceAssociationEndPoint buildYangMepFromApiMep(Mep mep)
+    private static MaintenanceAssociationEndPoint buildYangMepFromApiMep(Mep mep)
             throws CfmConfigException {
         MaintenanceAssociationEndPoint mepBuilder =
                                     new DefaultMaintenanceAssociationEndPoint();
@@ -515,14 +753,19 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
 
     private MepEntry buildApiMepEntryFromYangMep(
             MaintenanceAssociationEndPoint yangMep, DeviceId deviceId,
-            MdId mdName, MaIdShort maName) throws CfmConfigException {
+            org.onosproject.yang.gen.v1.mseacfm.rev20160229.
+                    mseacfm.mefcfm.MaintenanceDomain replyMd,
+            org.onosproject.yang.gen.v1.mseacfm.rev20160229.
+                    mseacfm.mefcfm.maintenancedomain.MaintenanceAssociation replyMa)
+            throws CfmConfigException {
         MepId mepId = MepId.valueOf((short) yangMep.mepIdentifier().uint16());
         MepEntry.MepEntryBuilder builder = DefaultMepEntry.builder(mepId,
                 deviceId,
                 (yangMep.yangAutoPrefixInterface() == InterfaceEnum.ETH0) ?
                         PortNumber.portNumber(0) : PortNumber.portNumber(1),
                 MepDirection.DOWN_MEP, //Always down for EA1000
-                mdName, maName);
+                getApiMdIdFromYangMdName(replyMd.mdNameAndTypeCombo()),
+                getApiMaIdFromYangMaName(replyMa.maNameAndTypeCombo()));
 
         if (yangMep.loopback() != null) {
             MepLbEntryBuilder lbEntryBuilder = DefaultMepLbEntry.builder();
@@ -613,5 +856,11 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                     "IS_" + yangRemoteMep.interfaceStatusTlv().enumeration().name()));
         }
         return rmepBuilder.build();
+    }
+
+    private static short getMaNumericId(MaintenanceDomain md, MaIdShort maId) {
+        return md.maintenanceAssociationList().stream()
+                .filter(ma -> maId.equals(ma.maId()))
+                .findFirst().get().maNumericId();
     }
 }

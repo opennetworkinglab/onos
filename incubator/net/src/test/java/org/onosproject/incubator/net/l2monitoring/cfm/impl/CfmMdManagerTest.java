@@ -36,10 +36,13 @@ import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.service.TestStorageService;
@@ -50,6 +53,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static junit.framework.TestCase.assertFalse;
+import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -61,6 +65,11 @@ import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 public class CfmMdManagerTest {
     private static final NodeId NID_LOCAL = new NodeId("local");
     private static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
+    private static final MaIdShort MA_ID_1_1 = MaIdCharStr.asMaId("test-ma-1-1");
+    private static final MaIdShort MA_ID_1_2 = MaIdCharStr.asMaId("test-ma-1-2");
+    private static final MdId MD_ID_1 = MdIdCharStr.asMdId("test-md-1");
+
+    private final CfmMepService mepService = createMock(CfmMepService.class);
 
     private DistributedMdStore mdStore;
     private CfmMdService service;
@@ -71,7 +80,7 @@ public class CfmMdManagerTest {
         mdStore = new DistributedMdStore();
 
         MaintenanceAssociation maTest11 = DefaultMaintenanceAssociation
-                .builder(MaIdCharStr.asMaId("test-ma-1-1"), 9)
+                .builder(MA_ID_1_1, MD_ID_1.getNameLength())
                 .ccmInterval(MaintenanceAssociation.CcmInterval.INTERVAL_10MIN)
                 .maNumericId((short) 1)
                 .addToRemoteMepIdList(MepId.valueOf((short) 101))
@@ -83,7 +92,7 @@ public class CfmMdManagerTest {
                 .build();
 
         MaintenanceAssociation maTest12 = DefaultMaintenanceAssociation
-                .builder(MaIdCharStr.asMaId("test-ma-1-2"), 9)
+                .builder(MA_ID_1_2, MD_ID_1.getNameLength())
                 .ccmInterval(MaintenanceAssociation.CcmInterval.INTERVAL_10MIN)
                 .maNumericId((short) 2)
                 .addToRemoteMepIdList(MepId.valueOf((short) 201))
@@ -95,7 +104,7 @@ public class CfmMdManagerTest {
                 .build();
 
         MaintenanceDomain mdTest1 = DefaultMaintenanceDomain
-                .builder(MdIdCharStr.asMdId("test-md-1"))
+                .builder(MD_ID_1)
                 .mdLevel(MaintenanceDomain.MdLevel.LEVEL1)
                 .mdNumericId((short) 1)
                 .addToMaList(maTest11)
@@ -105,6 +114,7 @@ public class CfmMdManagerTest {
         TestUtils.setField(mdStore, "storageService", new TestStorageService());
         TestUtils.setField(mdStore, "clusterService", new CfmMdManagerTest.TestClusterService());
         TestUtils.setField(mdStore, "mastershipService", new CfmMdManagerTest.TestMastershipService());
+
         mdStore.activate();
         mdStore.createUpdateMaintenanceDomain(mdTest1);
 
@@ -113,6 +123,7 @@ public class CfmMdManagerTest {
         service = manager;
         TestUtils.setField(manager, "storageService", new TestStorageService());
         TestUtils.setField(manager, "coreService", new TestCoreService());
+        TestUtils.setField(manager, "mepService", mepService);
         injectEventDispatcher(manager, new TestEventDispatcher());
 
         manager.appId = new CfmMdManagerTest.TestApplicationId(0, "CfmMdManagerTest");
@@ -338,7 +349,6 @@ public class CfmMdManagerTest {
         assertEquals(3, service.getAllMaintenanceAssociation(
                 MdIdCharStr.asMdId("test-md-1")).size());
     }
-
 
     public class TestApplicationId extends DefaultApplicationId {
         public TestApplicationId(int id, String name) {

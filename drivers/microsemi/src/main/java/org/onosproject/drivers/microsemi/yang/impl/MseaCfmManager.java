@@ -25,6 +25,7 @@ import org.onosproject.drivers.microsemi.yang.MseaCfmNetconfService;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
@@ -42,6 +43,7 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.AugmentedMseaCfmMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.DefaultAugmentedMseaCfmMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.augmentedmseacfmmaintenanceassociationendpoint.delaymeasurements.DelayMeasurement;
+import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.MepIdType;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObject;
@@ -54,6 +56,7 @@ import org.onosproject.yang.runtime.DefaultAnnotation;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
 
 import java.io.ByteArrayInputStream;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -77,6 +80,19 @@ public class MseaCfmManager extends AbstractYangServiceImpl
     @Deprecated
     protected static final Pattern REGEX_EMPTY_LAST_DEFECT_SENT =
             Pattern.compile("(<msea-soam-fm:last-defect-sent)[ ]?(/>)", Pattern.DOTALL);
+    public static final String MEF_CFM = "mef-cfm";
+    public static final String MAINTENANCE_DOMAIN = "maintenance-domain";
+    public static final String ID = "id";
+    public static final String MAINTENANCE_ASSOCIATION = "maintenance-association";
+    public static final String TRANSMIT_LOOPBACK = "transmit-loopback";
+    public static final String ABORT_LOOPBACK = "abort-loopback";
+    public static final String MAINTENANCE_ASSOCIATION_END_POINT = "maintenance-association-end-point";
+    public static final String MEP_ID = "mep-id";
+    public static final String DELAY_MEASUREMENTS = "delay-measurements";
+    public static final String DELAY_MEASUREMENT = "delay-measurement";
+    public static final String DM_ID = "dm-id";
+    public static final String MEP_IDENTIFIER = "mep-identifier";
+    public static final String REMOTE_MEPS = "remote-meps";
 
     @Activate
     public void activate() {
@@ -153,6 +169,38 @@ public class MseaCfmManager extends AbstractYangServiceImpl
     }
 
     @Override
+    public MseaCfm getMepIds(Optional<MdId> mdIdOptional, Optional<MaIdShort> maIdOptional,
+             NetconfSession session, DatastoreId targetDs) throws NetconfException {
+
+        ModelObjectData.Builder moQueryBldr = DefaultModelObjectData.builder();
+
+        ArrayList annotations = new ArrayList<AnnotatedNodeInfo>();
+        String xmlQueryStr = encodeMoToXmlStr(moQueryBldr.build(), annotations);
+
+        log.debug("Sending <get> for full MEP" +
+                " query on NETCONF session " + session.getSessionId() +
+                ":\n" + xmlQueryStr);
+
+        String xmlResult = session.get(xmlQueryStr, null);
+        xmlResult = removeRpcReplyData(xmlResult);
+        xmlResult = removeEmptyActiveDefects(xmlResult);
+        DefaultCompositeStream resultDcs = new DefaultCompositeStream(
+                null, new ByteArrayInputStream(xmlResult.getBytes()));
+        CompositeData compositeData = xSer.decode(resultDcs, yCtx);
+
+        ModelObjectData mod = ((ModelConverter) yangModelRegistry).createModel(compositeData.resourceData());
+
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        for (ModelObject mo:mod.modelObjects()) {
+            if (mo instanceof DefaultMefCfm) {
+                mseaCfm.mefCfm((DefaultMefCfm) mo);
+            }
+        }
+
+        return mseaCfm;
+    }
+
+    @Override
     public MseaCfm getSoamDm(MdId mdName, MaIdShort maName, MepId mepId,
                              SoamId dmId, DmEntryParts parts, NetconfSession session)
                     throws NetconfException {
@@ -190,7 +238,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
     @Override
     public boolean deleteMseaCfmDm(MseaCfmOpParam mseaCfm, NetconfSession session,
-                            DatastoreId targetDs) throws NetconfException {
+                            DatastoreId targetDs) throws NetconfException, CfmConfigException {
 
         ModelObjectData mseCfmDmList = DefaultModelObjectData.builder()
                 .addModelObject((ModelObject) mseaCfm).build();
@@ -198,7 +246,13 @@ public class MseaCfmManager extends AbstractYangServiceImpl
         ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
         if (mseaCfm != null && mseaCfm.mefCfm() != null) {
             for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
+                if (md.id() == 0) {
+                    throw new CfmConfigException("An MD numeric ID must be given");
+                }
                 for (MaintenanceAssociation ma:md.maintenanceAssociation()) {
+                    if (ma.id() == 0) {
+                        throw new CfmConfigException("An MA numeric ID must be given");
+                    }
                     for (MaintenanceAssociationEndPoint mep:ma.maintenanceAssociationEndPoint()) {
                         AugmentedMseaCfmMaintenanceAssociationEndPoint mepAugment =
                             mep.augmentation(DefaultAugmentedMseaCfmMaintenanceAssociationEndPoint.class);
@@ -206,16 +260,16 @@ public class MseaCfmManager extends AbstractYangServiceImpl
                             for (DelayMeasurement dms:mepAugment.delayMeasurements().delayMeasurement()) {
                                 ResourceId.Builder ridBuilder = ResourceId.builder()
                                         .addBranchPointSchema("/", null)
-                                        .addBranchPointSchema("mef-cfm", MSEA_CFM_NS)
-                                        .addBranchPointSchema("maintenance-domain", MSEA_CFM_NS)
-                                        .addKeyLeaf("id", MSEA_CFM_NS, md.id())
-                                        .addBranchPointSchema("maintenance-association", MSEA_CFM_NS)
-                                        .addKeyLeaf("id", MSEA_CFM_NS, ma.id())
-                                        .addBranchPointSchema("maintenance-association-end-point", MSEA_CFM_NS)
-                                        .addKeyLeaf("mep-id", MSEA_CFM_NS, mep.mepIdentifier())
-                                        .addBranchPointSchema("delay-measurements", MSEA_CFM_PM_NS)
-                                        .addBranchPointSchema("delay-measurement", MSEA_CFM_PM_NS)
-                                        .addKeyLeaf("dm-id", MSEA_CFM_PM_NS, mep.mepIdentifier());
+                                        .addBranchPointSchema(MEF_CFM, MSEA_CFM_NS)
+                                        .addBranchPointSchema(MAINTENANCE_DOMAIN, MSEA_CFM_NS)
+                                        .addKeyLeaf(ID, MSEA_CFM_NS, md.id())
+                                        .addBranchPointSchema(MAINTENANCE_ASSOCIATION, MSEA_CFM_NS)
+                                        .addKeyLeaf(ID, MSEA_CFM_NS, ma.id())
+                                        .addBranchPointSchema(MAINTENANCE_ASSOCIATION_END_POINT, MSEA_CFM_NS)
+                                        .addKeyLeaf(MEP_ID, MSEA_CFM_NS, mep.mepIdentifier())
+                                        .addBranchPointSchema(DELAY_MEASUREMENTS, MSEA_CFM_PM_NS)
+                                        .addBranchPointSchema(DELAY_MEASUREMENT, MSEA_CFM_PM_NS)
+                                        .addKeyLeaf(DM_ID, MSEA_CFM_PM_NS, mep.mepIdentifier());
                                 AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
                                         .resourceId(ridBuilder.build())
                                         .addAnnotation(new DefaultAnnotation(NC_OPERATION, OP_DELETE))
@@ -233,7 +287,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
 
     @Override
     public boolean deleteMseaMep(MseaCfmOpParam mseaCfm, NetconfSession session,
-                                   DatastoreId targetDs) throws NetconfException {
+                                   DatastoreId targetDs) throws NetconfException, CfmConfigException {
 
         ModelObjectData mseCfmMepList = DefaultModelObjectData.builder()
                 .addModelObject((ModelObject) mseaCfm.mefCfm()).build();
@@ -241,15 +295,100 @@ public class MseaCfmManager extends AbstractYangServiceImpl
         ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
         if (mseaCfm.mefCfm() != null) {
             for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
+                if (md.id() == 0) {
+                    throw new CfmConfigException("An MD numeric ID must be given");
+                }
                 for (MaintenanceAssociation ma:md.maintenanceAssociation()) {
+                    if (ma.id() == 0) {
+                        throw new CfmConfigException("An MA numeric ID must be given");
+                    }
                     for (MaintenanceAssociationEndPoint mep:ma.maintenanceAssociationEndPoint()) {
                         ResourceId.Builder ridBuilder = ResourceId.builder()
                                 .addBranchPointSchema("/", null)
-                                .addBranchPointSchema("mef-cfm", MSEA_CFM_NS)
-                                .addBranchPointSchema("maintenance-domain", MSEA_CFM_NS)
-                                .addBranchPointSchema("maintenance-association", MSEA_CFM_NS)
-                                .addBranchPointSchema("maintenance-association-end-point", MSEA_CFM_NS)
-                                .addKeyLeaf("mep-identifier", MSEA_CFM_NS, mep.mepIdentifier().uint16());
+                                .addBranchPointSchema(MEF_CFM, MSEA_CFM_NS)
+                                .addBranchPointSchema(MAINTENANCE_DOMAIN, MSEA_CFM_NS)
+                                .addKeyLeaf(ID, MSEA_CFM_NS, md.id())
+                                .addBranchPointSchema(MAINTENANCE_ASSOCIATION, MSEA_CFM_NS)
+                                .addKeyLeaf(ID, MSEA_CFM_NS, ma.id())
+                                .addBranchPointSchema(MAINTENANCE_ASSOCIATION_END_POINT, MSEA_CFM_NS)
+                                .addKeyLeaf(MEP_IDENTIFIER, MSEA_CFM_NS, mep.mepIdentifier().uint16());
+                        AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
+                                .resourceId(ridBuilder.build())
+                                .addAnnotation(new DefaultAnnotation(NC_OPERATION, OP_DELETE))
+                                .build();
+                        anis.add(ani);
+                    }
+                }
+            }
+        }
+
+        return setNetconfObject(mseCfmMepList, session, targetDs, anis);
+    }
+
+    @Override
+    public boolean deleteMseaMa(MseaCfmOpParam mseaCfm, NetconfSession session,
+                                 DatastoreId targetDs) throws NetconfException, CfmConfigException {
+
+        ModelObjectData mseCfmMepList = DefaultModelObjectData.builder()
+                .addModelObject((ModelObject) mseaCfm.mefCfm()).build();
+
+        ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
+        if (mseaCfm != null && mseaCfm.mefCfm() != null) {
+            for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
+                if (md.id() == 0) {
+                    throw new CfmConfigException("An MD numeric ID must be given");
+                }
+                for (MaintenanceAssociation ma:md.maintenanceAssociation()) {
+                    if (ma.id() == 0) {
+                        throw new CfmConfigException("An MA numeric ID must be given");
+                    }
+                    ResourceId.Builder ridBuilder = ResourceId.builder()
+                            .addBranchPointSchema("/", null)
+                            .addBranchPointSchema(MEF_CFM, MSEA_CFM_NS)
+                            .addBranchPointSchema(MAINTENANCE_DOMAIN, MSEA_CFM_NS)
+                            .addKeyLeaf(ID, MSEA_CFM_NS, md.id())
+                            .addBranchPointSchema(MAINTENANCE_ASSOCIATION, MSEA_CFM_NS)
+                            .addKeyLeaf(ID, MSEA_CFM_NS, ma.id());
+
+                    AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
+                    .resourceId(ridBuilder.build())
+                    .addAnnotation(new DefaultAnnotation(NC_OPERATION, OP_DELETE))
+                    .build();
+                    anis.add(ani);
+                }
+            }
+        }
+
+        return setNetconfObject(mseCfmMepList, session, targetDs, anis);
+    }
+
+    @Override
+    public boolean deleteMseaMaRMep(MseaCfmOpParam mseaCfm, NetconfSession session,
+                                 DatastoreId targetDs) throws NetconfException, CfmConfigException {
+
+        ModelObjectData mseCfmMepList = DefaultModelObjectData.builder()
+                .addModelObject((ModelObject) mseaCfm.mefCfm()).build();
+
+        ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
+        if (mseaCfm != null && mseaCfm.mefCfm() != null) {
+            for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
+                if (md.id() == 0) {
+                    throw new CfmConfigException("An MD numeric ID must be given");
+                }
+                for (MaintenanceAssociation ma:md.maintenanceAssociation()) {
+                    if (ma.id() == 0) {
+                        throw new CfmConfigException("An MA numeric ID must be given");
+                    }
+                    for (MepIdType rmep:ma.remoteMeps()) {
+                        ResourceId.Builder ridBuilder = ResourceId.builder()
+                                .addBranchPointSchema("/", null)
+                                .addBranchPointSchema(MEF_CFM, MSEA_CFM_NS)
+                                .addBranchPointSchema(MAINTENANCE_DOMAIN, MSEA_CFM_NS)
+                                .addKeyLeaf(ID, MSEA_CFM_NS, md.id())
+                                .addBranchPointSchema(MAINTENANCE_ASSOCIATION, MSEA_CFM_NS)
+                                .addKeyLeaf(ID, MSEA_CFM_NS, ma.id())
+                                .addLeafListBranchPoint(REMOTE_MEPS, MSEA_CFM_NS,
+                                        Integer.valueOf(rmep.uint16()));
                         AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
                                 .resourceId(ridBuilder.build())
                                 .addAnnotation(new DefaultAnnotation(NC_OPERATION, OP_DELETE))
@@ -264,6 +403,35 @@ public class MseaCfmManager extends AbstractYangServiceImpl
     }
 
 
+    @Override
+    public boolean deleteMseaMd(MseaCfmOpParam mseaCfm, NetconfSession session,
+                                DatastoreId targetDs) throws NetconfException, CfmConfigException {
+
+        ModelObjectData mseCfmMepList = DefaultModelObjectData.builder()
+                .addModelObject((ModelObject) mseaCfm.mefCfm()).build();
+
+        ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
+        if (mseaCfm != null && mseaCfm.mefCfm() != null) {
+            for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
+                if (md.id() == 0) {
+                    throw new CfmConfigException("An MD numeric ID must be given");
+                }
+                ResourceId.Builder ridBuilder = ResourceId.builder()
+                        .addBranchPointSchema("/", null)
+                        .addBranchPointSchema(MEF_CFM, MSEA_CFM_NS)
+                        .addBranchPointSchema(MAINTENANCE_DOMAIN, MSEA_CFM_NS)
+                        .addKeyLeaf(ID, MSEA_CFM_NS, md.id());
+                AnnotatedNodeInfo ani = DefaultAnnotatedNodeInfo.builder()
+                        .resourceId(ridBuilder.build())
+                        .addAnnotation(new DefaultAnnotation(NC_OPERATION, OP_DELETE))
+                        .build();
+                anis.add(ani);
+            }
+        }
+
+        return setNetconfObject(mseCfmMepList, session, targetDs, anis);
+    }
+
     /**
      * Call RPCs on the device through NETCONF.
      */
@@ -275,7 +443,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
                 .addModelObject((ModelObject) inputVar).build();
 
         customRpcNetconf(transLoopbackMo,
-                "transmit-loopback", session);
+                TRANSMIT_LOOPBACK, session);
     }
 
     @Override
@@ -284,7 +452,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
         ModelObjectData abortLoopbackMo = DefaultModelObjectData.builder()
                 .addModelObject((ModelObject) inputVar).build();
 
-        customRpcNetconf(abortLoopbackMo, "abort-loopback", session);
+        customRpcNetconf(abortLoopbackMo, ABORT_LOOPBACK, session);
     }
 
     @Override

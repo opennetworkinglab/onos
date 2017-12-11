@@ -15,7 +15,8 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
     '//drivers/netconf:onos-drivers-netconf-tests',
     '//utils/osgi:onlab-osgi-tests',
-    '//incubator/net:onos-incubator-net'
+    '//incubator/net:onos-incubator-net',
+    '//incubator/net:onos-incubator-net-tests'
 ]
 
 APPS = [

@@ -18,6 +18,7 @@ package org.onosproject.cfm.rest;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -145,7 +146,7 @@ public class MepWebResource extends AbstractWebResource {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
             boolean deleted = get(CfmMepService.class)
-                    .deleteMep(mdId, maId, MepId.valueOf(mepIdShort));
+                    .deleteMep(mdId, maId, MepId.valueOf(mepIdShort), Optional.empty());
             if (!deleted) {
                 return Response.notModified(mdName + "/" + maName + "/" +
                         mepIdShort + " did not exist").build();
@@ -187,8 +188,8 @@ public class MepWebResource extends AbstractWebResource {
 
             Mep mep = ((MepCodec) mepCodec).decode((ObjectNode) cfg, this, mdName, maName);
 
-            Boolean issuccess = get(CfmMepService.class).createMep(mdId, maId, mep);
-            if (!issuccess) {
+            Boolean didNotExist = get(CfmMepService.class).createMep(mdId, maId, mep);
+            if (!didNotExist) {
                 return Response.notModified(mdName + "/" + ma.maId() + "/" + mep.mepId() +
                         " already exists").build();
             }

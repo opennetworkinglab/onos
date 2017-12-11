@@ -36,20 +36,31 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.yang.gen.v1.ietfyangtypes.rev20130715.ietfyangtypes.MacAddress;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfm;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfmOpParam;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.DefaultMefCfm;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.MefCfm;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.abortloopback.AbortLoopbackInput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.abortloopback.DefaultAbortLoopbackInput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.DefaultMaintenanceDomain;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.MaintenanceDomain;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.DefaultMaintenanceAssociation;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.MaintenanceAssociation;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.DefaultMaintenanceAssociationEndPoint;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.MaintenanceAssociationEndPoint;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.DefaultNamePrimaryVid;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.NamePrimaryVid;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.nameprimaryvid.NamePrimaryVidUnion;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultNameCharacterString;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.DefaultNameDomainName;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.NameCharacterString;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.NameDomainName;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.namedomainname.NameDomainNameUnion;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.AddressType;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMacAddress;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMepId;
@@ -194,10 +205,173 @@ public class MseaCfmManagerTest {
 //        mseaCfmService.setMseaCfm(mseaCfmOpParam, session, NcDsType.running);
     }
 
+    /**
+     * Using mep Id 10.
+     */
     @Test
+    public void testDeleteMseaMep() {
+        MaintenanceAssociationEndPoint mep10 = new DefaultMaintenanceAssociationEndPoint();
+        mep10.mepIdentifier(MepIdType.of(10));
+
+        MaintenanceAssociation ma1100 = new DefaultMaintenanceAssociation();
+        NamePrimaryVid pvid1100Name = new DefaultNamePrimaryVid();
+        pvid1100Name.namePrimaryVid(NamePrimaryVidUnion.fromString("1100"));
+        ma1100.maNameAndTypeCombo(pvid1100Name);
+        ma1100.id((short) 1100);
+        ma1100.addToMaintenanceAssociationEndPoint(mep10);
+
+        MaintenanceDomain md = new DefaultMaintenanceDomain();
+        NameCharacterString mdName = new DefaultNameCharacterString();
+        mdName.name(new Identifier45("md-1"));
+        md.mdNameAndTypeCombo(mdName);
+        md.id((short) 1);
+        md.addToMaintenanceAssociation(ma1100);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(md);
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        mseaCfm.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMep(mseaCfm, session, DatastoreId.RUNNING);
+            assertTrue(deleted);
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail();
+        } catch (CfmConfigException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    /**
+     * Using mep Id 10.
+     */
+    @Test
+    public void testDeleteMseaMa() {
+        MaintenanceAssociation ma1300 = new DefaultMaintenanceAssociation();
+        NamePrimaryVid pvid1300Name = new DefaultNamePrimaryVid();
+        pvid1300Name.namePrimaryVid(NamePrimaryVidUnion.fromString("1300"));
+        ma1300.id((short) 1300);
+        ma1300.maNameAndTypeCombo(pvid1300Name);
+
+        MaintenanceDomain md = new DefaultMaintenanceDomain();
+        NameCharacterString mdName = new DefaultNameCharacterString();
+        mdName.name(new Identifier45("md-13"));
+        md.mdNameAndTypeCombo(mdName);
+        md.id((short) 13);
+        md.addToMaintenanceAssociation(ma1300);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(md);
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        mseaCfm.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMa(mseaCfm, session, DatastoreId.RUNNING);
+            assertTrue(deleted);
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail();
+        } catch (CfmConfigException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+
+    @Test
+    public void testDeleteMseaRemoteMep() {
+        MaintenanceAssociation ma1100 = new DefaultMaintenanceAssociation();
+        NamePrimaryVid pvid1100Name = new DefaultNamePrimaryVid();
+        pvid1100Name.namePrimaryVid(NamePrimaryVidUnion.fromString("1100"));
+        ma1100.maNameAndTypeCombo(pvid1100Name);
+        ma1100.id((short) 1100);
+        ma1100.addToRemoteMeps(MepIdType.of(100));
+        ma1100.addToRemoteMeps(MepIdType.of(101));
+
+        MaintenanceDomain md = new DefaultMaintenanceDomain();
+        NameCharacterString mdName = new DefaultNameCharacterString();
+        mdName.name(new Identifier45("md-1"));
+        md.mdNameAndTypeCombo(mdName);
+        md.id((short) 1);
+        md.addToMaintenanceAssociation(ma1100);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(md);
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        mseaCfm.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMaRMep(mseaCfm, session, DatastoreId.RUNNING);
+            assertTrue(deleted);
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail();
+        } catch (CfmConfigException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    /**
+     * Using mep Id 10.
+     */
+    @Test
+    public void testDeleteMseaMdById() {
+
+        MaintenanceDomain md = new DefaultMaintenanceDomain();
+        NameDomainName mdName = new DefaultNameDomainName();
+        mdName.nameDomainName(NameDomainNameUnion.fromString("www.opennetworking.org"));
+        md.mdNameAndTypeCombo(mdName);
+        md.id((short) 10);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(md);
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        mseaCfm.mefCfm(mefCfm);
+
+        try {
+            boolean deleted = mseaCfmService.deleteMseaMd(mseaCfm, session, DatastoreId.RUNNING);
+            assertTrue(deleted);
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail();
+        } catch (CfmConfigException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    /**
+     * Using mep Id 10.
+     */
+    @Test
+    public void testDeleteMseaMdByName() {
+
+        MaintenanceDomain md = new DefaultMaintenanceDomain();
+        NameDomainName mdName = new DefaultNameDomainName();
+        mdName.nameDomainName(NameDomainNameUnion.fromString("www.opennetworking.org"));
+        md.mdNameAndTypeCombo(mdName);
+
+        MefCfm mefCfm = new DefaultMefCfm();
+        mefCfm.addToMaintenanceDomain(md);
+        MseaCfmOpParam mseaCfm = new MseaCfmOpParam();
+        mseaCfm.mefCfm(mefCfm);
+
+        try {
+            mseaCfmService.deleteMseaMd(mseaCfm, session, DatastoreId.RUNNING);
+            fail("Should not have succeeded as no numeric id was given");
+        } catch (NetconfException | CfmConfigException e) {
+            assertEquals("An MD numeric ID must be given", e.getMessage());
+        }
+    }
+
+
     /**
      * Using Remote remote MEP ID and all arguments.
      */
+    @Test
     public void testTransmitLoopback1() {
         TransmitLoopbackInput lbTr1 = new DefaultTransmitLoopbackInput();
         lbTr1.maintenanceDomain(Short.valueOf((short) 1));
@@ -221,10 +395,10 @@ public class MseaCfmManagerTest {
         }
     }
 
-    @Test
     /**
      * Using Remote Mac address in place of remote MEP ID and fewer arguments.
      */
+    @Test
     public void testTransmitLoopback2() {
         TransmitLoopbackInput lbTr2 = new DefaultTransmitLoopbackInput();
 

@@ -478,15 +478,95 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
                     + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + "(<mef-cfm).*"
                     + "(<maintenance-domain>)\\R?"
-                    + "(<id/>)?\\R?"
-                    + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
+                    + "(<id>[0-9]{1,5}</id>)?\\R?"
+                    + "((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))?\\R?"
                     + "(<maintenance-association>)\\R?"
-                    + "(<id/>)?\\R?"
-                    + "(<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>)\\R?"
+                    + "(<id>[0-9]{1,5}</id>)?\\R?"
+                    + "((<name>[a-zA-Z0-9\\-:\\.]{1,48}</name>)|"
+                    + "(<name-primary-vid>[0-9]{1,4}</name-primary-vid>))?\\R?"
                     + "(<maintenance-association-end-point nc:operation=\"delete\">)\\R?"
                     + "(<mep-identifier>)[0-9]{1,4}(</mep-identifier>)\\R?"
                     + "(</maintenance-association-end-point>)\\R?"
                     + "(</maintenance-association>)\\R?"
+                    + "(</maintenance-domain>)\\R?"
+                    + "(</mef-cfm>)\\R?"
+                    + "(</config>)\\R?"
+                    + "(</edit-config>)\\R?(</rpc>)\\R?(]]>){2}", Pattern.DOTALL);
+
+    //For testGetConfigMseaCfmEssentials
+    private Pattern sampleXmlRegexCreateMseaCfmMa =
+            Pattern.compile("(<\\?xml).*(<rpc).*(<edit-config>)\\R?"
+                    + "(<target>\\R?<running/>\\R?</target>)\\R?"
+                    + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "(<mef-cfm).*"
+                    + "(<maintenance-domain>)\\R?"
+                    + "(<id>)([0-9]){1,4}(</id>)\\R?"
+                    + "((<md-level>)([0-9]){1}(</md-level>))?\\R?"
+                    + "((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))?\\R?"
+                    + "((<maintenance-association>)\\R?"
+                    + "(<id>)([0-9]){1,4}(</id>)\\R?"
+                    + "((<ccm-interval>)(3.3ms)(</ccm-interval>))?\\R?"
+                    + "((<remote-meps>)([0-9]){1,4}(</remote-meps>))*\\R?"
+                    + "(((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))|"
+                    + "((<name-primary-vid>)([0-9]){1,4}(</name-primary-vid>)))?\\R?"
+                    + "((<component-list>)\\R?"
+                    + "(<vid>)([0-9]){1,4}(</vid>)\\R?"
+                    + "(</component-list>))?\\R?"
+                    + "(</maintenance-association>))*\\R?"
+                    + "(</maintenance-domain>)\\R?"
+                    + "(</mef-cfm>)\\R?"
+                    + "(</config>)\\R?"
+                    + "(</edit-config>)\\R?(</rpc>)\\R?(]]>){2}", Pattern.DOTALL);
+
+    //For testGetConfigMseaCfmEssentials
+    private Pattern sampleXmlRegexDeleteMseaCfmMa =
+            Pattern.compile("(<\\?xml).*(<rpc).*(<edit-config>)\\R?"
+                    + "(<target>\\R?<running/>\\R?</target>)\\R?"
+                    + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "(<mef-cfm).*"
+                    + "(<maintenance-domain>)\\R?"
+                    + "((<id/>)|((<id>)([0-9]){1,4}(</id>)))?\\R?"
+                    + "((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))?\\R?"
+                    + "(<maintenance-association nc:operation=\"delete\">)\\R?"
+                    + "((<id/>)|((<id>)([0-9]){1,4}(</id>)))?\\R?"
+                    + "(((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))|"
+                    + "((<name-primary-vid>)([0-9]){1,4}(</name-primary-vid>)))?\\R?"
+                    + "(</maintenance-association>)\\R?"
+                    + "(</maintenance-domain>)\\R?"
+                    + "(</mef-cfm>)\\R?"
+                    + "(</config>)\\R?"
+                    + "(</edit-config>)\\R?(</rpc>)\\R?(]]>){2}", Pattern.DOTALL);
+
+    //For testDeleteMseaMepRemoteMep
+    private Pattern sampleXmlRegexDeleteMseaCfmRmep =
+            Pattern.compile("(<\\?xml).*(<rpc).*(<edit-config>)\\R?"
+                    + "(<target>\\R?<running/>\\R?</target>)\\R?"
+                    + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "(<mef-cfm).*"
+                    + "(<maintenance-domain>)\\R?"
+                    + "((<id>)[0-9]{1,4}(</id>))?\\R?"
+                    + "((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))?\\R?"
+                    + "(<maintenance-association>)\\R?"
+                    + "((<id>)[0-9]{1,4}(</id>))?\\R?"
+                    + "((<remote-meps nc:operation=\"delete\">)([0-9]){1,4}(</remote-meps>))*\\R?"
+                    + "(((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))|"
+                    + "((<name-primary-vid>)([0-9]){1,4}(</name-primary-vid>)))?\\R?"
+                    + "(</maintenance-association>)\\R?"
+                    + "(</maintenance-domain>)\\R?"
+                    + "(</mef-cfm>)\\R?"
+                    + "(</config>)\\R?"
+                    + "(</edit-config>)\\R?(</rpc>)\\R?(]]>){2}", Pattern.DOTALL);
+
+    //For testDeleteMseaMd
+    private Pattern sampleXmlRegexDeleteMseaCfmMd =
+            Pattern.compile("(<\\?xml).*(<rpc).*(<edit-config>)\\R?"
+                    + "(<target>\\R?<running/>\\R?</target>)\\R?"
+                    + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "(<mef-cfm).*"
+                    + "(<maintenance-domain nc:operation=\"delete\">)\\R?"
+                    + "((<id/>)|(<id>([0-9]){1,4}(</id>)))?\\R?"
+                    + "(((<name>)([a-zA-Z0-9\\-:\\.]){1,48}(</name>))|\\R?"
+                    + "((<name-domain-name>)([a-zA-Z0-9\\-\\.]){1,48}(</name-domain-name>)))?\\R?"
                     + "(</maintenance-domain>)\\R?"
                     + "(</mef-cfm>)\\R?"
                     + "(</config>)\\R?"
@@ -1308,6 +1388,18 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
             return SAMPLE_MSEACFM_MD_MA_MEP_FULL_REPLY2;
 
         } else if (sampleXmlRegexDeleteMseaCfmMep.matcher(request).matches()) {
+            return SAMPLE_REPLY_OK;
+
+        } else if (sampleXmlRegexCreateMseaCfmMa.matcher(request).matches()) {
+            return SAMPLE_REPLY_OK;
+
+        } else if (sampleXmlRegexDeleteMseaCfmMa.matcher(request).matches()) {
+            return SAMPLE_REPLY_OK;
+
+        } else if (sampleXmlRegexDeleteMseaCfmRmep.matcher(request).matches()) {
+            return SAMPLE_REPLY_OK;
+
+        } else if (sampleXmlRegexDeleteMseaCfmMd.matcher(request).matches()) {
             return SAMPLE_REPLY_OK;
 
         } else if (sampleXmlRegexGetMseaDelay.matcher(request).matches()) {

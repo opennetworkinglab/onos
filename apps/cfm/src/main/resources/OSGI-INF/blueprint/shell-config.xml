@@ -57,6 +57,18 @@
                 <ref component-id="maNameCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.cfm.cli.CfmMepListCommand"/>
+            <completers>
+                <ref component-id="mepIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cfm.cli.CfmMepListDeviceCommand"/>
+            <completers>
+                <ref component-id="mepDeviceIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="placeholderCompleter" class="org.onosproject.cli.PlaceholderCompleter"/>
@@ -68,6 +80,8 @@
     <bean id="maCcmIntervalCompleter" class="org.onosproject.cfm.cli.completer.CfmMaCcmIntervalCompleter"/>
     <bean id="compTagTypeCompleter" class="org.onosproject.cfm.cli.completer.CfmCompTagTypeCompleter"/>
     <bean id="compMhfCompleter" class="org.onosproject.cfm.cli.completer.CfmCompMhfCompleter"/>
+    <bean id="mepIdCompleter" class="org.onosproject.cfm.cli.completer.CfmMepIdCompleter"/>
+    <bean id="mepDeviceIdCompleter" class="org.onosproject.cfm.cli.completer.CfmDeviceIdCompleter"/>
 
 </blueprint>
 

@@ -18,6 +18,7 @@ package org.onosproject.drivers.microsemi.yang;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
@@ -28,6 +29,8 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.abortloopback.Abo
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitlinktrace.TransmitLinktraceInput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitlinktrace.TransmitLinktraceOutput;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.TransmitLoopbackInput;
+
+import java.util.Optional;
 
 /**
  * Extension of mseaCfmService to include NETCONF sessions.
@@ -65,6 +68,19 @@ public interface MseaCfmNetconfService {
     MseaCfm getMepFull(MdId mdId, MaIdShort maId, MepId mepId,
             NetconfSession session) throws NetconfException;
 
+
+    /**
+     * Returns set of all MepIds from one Md or Ma or all.
+     *
+     * @param mdIdOptional An MdId to filter by, or empty to select all
+     * @param maIdOptional An MaId to filter by, or empty to select all
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return mseaCfm
+     * @throws NetconfException if the session has any error
+     */
+    MseaCfm getMepIds(Optional<MdId> mdIdOptional, Optional<MaIdShort> maIdOptional,
+                      NetconfSession session, DatastoreId targetDs) throws NetconfException;
     /**
      * Returns attributes of DM.
      *
@@ -102,10 +118,52 @@ public interface MseaCfmNetconfService {
      * @param targetDs one of running, candidate or startup
      * @return Boolean to indicate success or failure
      * @throws NetconfException if the session has any error
+     * @throws CfmConfigException if the Cfm config has any error
      */
     boolean deleteMseaMep(MseaCfmOpParam mseaCfm, NetconfSession session,
-                            DatastoreId targetDs) throws NetconfException;
+                            DatastoreId targetDs) throws NetconfException, CfmConfigException;
 
+    /**
+     * Deletes named Ma of mseaCfm.
+     * Expects to see a list of Mas
+     *
+     * @param mseaCfm value of mseaCfm
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return Boolean to indicate success or failure
+     * @throws NetconfException if the session has any error
+     * @throws CfmConfigException if the Cfm config has any error
+     */
+    boolean deleteMseaMa(MseaCfmOpParam mseaCfm, NetconfSession session,
+                            DatastoreId targetDs) throws NetconfException, CfmConfigException;
+
+    /**
+     * Deletes a remote Mep from an MA.
+     * Expects one or more RMeps
+     *
+     * @param mseaCfm value of mseaCfm
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return Boolean to indicate success or failure
+     * @throws NetconfException if the session has any error
+     * @throws CfmConfigException if the Cfm config has any error
+     */
+    boolean deleteMseaMaRMep(MseaCfmOpParam mseaCfm, NetconfSession session,
+                         DatastoreId targetDs) throws NetconfException, CfmConfigException;
+
+    /**
+     * Deletes named Md of mseaCfm.
+     * Expects to see a list of Mds
+     *
+     * @param mseaCfm value of mseaCfm
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return Boolean to indicate success or failure
+     * @throws NetconfException if the session has any error
+     * @throws CfmConfigException if the Cfm config has any error
+     */
+    boolean deleteMseaMd(MseaCfmOpParam mseaCfm, NetconfSession session,
+                            DatastoreId targetDs) throws NetconfException, CfmConfigException;
 
     /**
      * Deletes named delay measurements of mseaCfm.
@@ -116,9 +174,10 @@ public interface MseaCfmNetconfService {
      * @param targetDs one of running, candidate or startup
      * @return Boolean to indicate success or failure
      * @throws NetconfException if the session has any error
+     * @throws CfmConfigException if the Cfm config has any error
      */
     boolean deleteMseaCfmDm(MseaCfmOpParam mseaCfm, NetconfSession session,
-                       DatastoreId targetDs) throws NetconfException;
+                       DatastoreId targetDs) throws NetconfException, CfmConfigException;
 
     /**
      * Service interface of transmitLoopback.

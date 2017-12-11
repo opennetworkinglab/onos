@@ -82,6 +82,7 @@ public class MdWebResource extends AbstractWebResource {
         log.debug("GET called for MD {}", mdName);
         try {
             MaintenanceDomain md = get(CfmMdService.class)
+                    //FIXME Handle other types of name constructs e.g. DomainName
                     .getMaintenanceDomain(MdIdCharStr.asMdId(mdName))
                     .orElseThrow(() -> new IllegalArgumentException(
                             "MD " + mdName + " not Found"));

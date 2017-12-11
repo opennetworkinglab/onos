@@ -65,10 +65,8 @@ public class CfmMdManager extends AbstractListenerManager<MdEvent, MdListener>
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_ID);
-
         eventDispatcher.addSink(MdEvent.class, listenerRegistry);
         store.setDelegate(delegate);
-
         log.info("CFM Service Started");
     }
 
@@ -163,9 +161,8 @@ public class CfmMdManager extends AbstractListenerManager<MdEvent, MdListener>
     private class InternalStoreDelegate implements MdStoreDelegate {
         @Override
         public void notify(MdEvent event) {
-            log.debug("New MD event: {}", event.subject());
+            log.debug("New MD event: {}", event);
             eventDispatcher.post(event);
         }
     }
-
 }

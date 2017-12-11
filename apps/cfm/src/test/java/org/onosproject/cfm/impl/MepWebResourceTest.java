@@ -185,7 +185,7 @@ public class MepWebResourceTest extends CfmResourceTest {
     @Test
     public void testDeleteMepValid() throws CfmConfigException {
 
-        expect(mepService.deleteMep(MDNAME1, MANAME1, MepId.valueOf((short) 1)))
+        expect(mepService.deleteMep(MDNAME1, MANAME1, MepId.valueOf((short) 1), Optional.empty()))
                 .andReturn(true).anyTimes();
         replay(mepService);
 
@@ -199,7 +199,7 @@ public class MepWebResourceTest extends CfmResourceTest {
     @Test
     public void testDeleteMepNotFound() throws CfmConfigException {
 
-        expect(mepService.deleteMep(MDNAME1, MANAME1, MepId.valueOf((short) 2)))
+        expect(mepService.deleteMep(MDNAME1, MANAME1, MepId.valueOf((short) 2), Optional.empty()))
                 .andReturn(false).anyTimes();
         replay(mepService);
 

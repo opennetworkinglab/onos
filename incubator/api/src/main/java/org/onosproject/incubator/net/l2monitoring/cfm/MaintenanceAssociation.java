@@ -113,6 +113,8 @@ public interface MaintenanceAssociation extends NetworkResource {
 
         MaBuilder addToRemoteMepIdList(MepId remoteMep);
 
+        MaBuilder removeFromRemoteMepIdList(MepId remoteMep);
+
         MaBuilder addToComponentList(Component component);
 
         MaBuilder maNumericId(short maNumericId);

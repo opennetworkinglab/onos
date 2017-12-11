@@ -20,11 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.drivers.microsemi.yang.utils.MdNameUtil.getYangMdNameFromApiMdId;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.drivers.microsemi.yang.utils.MaNameUtil;
+import org.onosproject.drivers.microsemi.yang.utils.MdNameUtil;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMepLbCreate;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepEntry;
@@ -38,20 +40,23 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepProgrammable;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.MdNameAndTypeCombo;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.MaNameAndTypeCombo;
 
 import java.util.BitSet;
+import java.util.Optional;
 
 /**
  * Test of the CFM implementation on EA1000 through the incubator/net/l2monitoring interface.
  */
 public class EA1000CfmMepProgrammableTest {
-    EA1000CfmMepProgrammable cfmProgrammable;
     public static final MdId MD_ID_1 = MdIdCharStr.asMdId("md-1");
     public static final MaIdShort MA_ID_11 = MaIdCharStr.asMaId("ma-1-1");
     public static final MepId MEP_111 = MepId.valueOf((short) 1);
     public static final MepId MEP_112 = MepId.valueOf((short) 2);
+
+    private CfmMepProgrammable cfmProgrammable;
 
     @Before
     public void setUp() throws Exception {
@@ -64,12 +69,6 @@ public class EA1000CfmMepProgrammableTest {
     @Ignore
     @Test
     public void testCreateMep() {
-        fail("Not yet implemented");
-    }
-
-    @Ignore
-    @Test
-    public void testGetAllMeps() {
         fail("Not yet implemented");
     }
 
@@ -143,7 +142,107 @@ public class EA1000CfmMepProgrammableTest {
      */
     @Test
     public void testDeleteMep() throws CfmConfigException {
-        assertTrue(cfmProgrammable.deleteMep(MD_ID_1, MA_ID_11, MEP_111));
+        assertTrue(cfmProgrammable.deleteMep(MD_ID_1, MA_ID_11, MEP_111, Optional.empty()));
+    }
+
+    /**
+     * Create the MD md-1 on the device.
+     * This will retrieve the MD from the MockCfmMdService and will create it
+     * and its MA on the device
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testCreateMaintenanceDomainOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.createMdOnDevice(MdIdCharStr.asMdId("md-1"));
+        assertTrue(success);
+    }
+
+    /**
+     * Create the MD md-2 on the device.
+     * This will retrieve the MD from the MockCfmMdService and will create it on
+     * the device. This MD has no MA
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testCreateMaintenanceDomainOnDevice2() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.createMdOnDevice(MdIdCharStr.asMdId("md-2"));
+        assertTrue(success);
+    }
+
+    /**
+     * Delete the MD md-1 on the device.
+     * This will retrieve the MD from the MockCfmMdService and will delete it on
+     * the device.
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testDeleteMaintenanceDomainOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.deleteMdOnDevice(MdIdCharStr.asMdId("md-1"), Optional.empty());
+        assertTrue(success);
+    }
+
+
+    /**
+     * Create the MA ma-1-1 on the device.
+     * This will retrieve the MA from the MockCfmMdService and will create it
+     * on the device under md-1
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testCreateMaintenanceAssociationOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.createMaOnDevice(
+                        MdIdCharStr.asMdId("md-1"), MaIdCharStr.asMaId("ma-1-1"));
+        assertTrue(success);
+    }
+
+    /**
+     * Delete the MD md-1 on the device.
+     * This will retrieve the MD from the MockCfmMdService and will delete it on
+     * the device.
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testDeleteMaintenanceAssociationOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.deleteMaOnDevice(
+                        MdIdCharStr.asMdId("md-1"),
+                        MaIdCharStr.asMaId("ma-1-1"),
+                        Optional.empty());
+        assertTrue(success);
+    }
+
+    /**
+     * Create the Remote Mep 10001 in ma-1-1 on the device.
+     * This will retrieve the MA from the MockCfmMdService and will create the
+     * new remote mep under it on the device
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testCreateRemoteMepOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.createMaRemoteMepOnDevice(
+                        MdIdCharStr.asMdId("md-1"), MaIdCharStr.asMaId("ma-1-1"),
+                        MepId.valueOf((short) 1001));
+        assertTrue(success);
+    }
+
+    /**
+     * Delete the Remote Mep 1002 in ma-1-1 on the device.
+     * This will retrieve the MA from the MockCfmMdService and will delete the
+     * existing remote mep under it on the device
+     * Depends on sampleXmlRegexCreateMseaCfmMa
+     */
+    @Test
+    public void testDeleteRemoteMepOnDevice() throws CfmConfigException {
+        boolean success =
+                cfmProgrammable.deleteMaRemoteMepOnDevice(
+                        MdIdCharStr.asMdId("md-1"), MaIdCharStr.asMaId("ma-1-1"),
+                        MepId.valueOf((short) 1001));
+        assertTrue(success);
     }
 
     /**
@@ -167,25 +266,21 @@ public class EA1000CfmMepProgrammableTest {
         cfmProgrammable.abortLoopback(MD_ID_1, MA_ID_11, MEP_111);
     }
 
-//    @Test
-//    public void testTransmitLinktrace() {
-//        fail("Not yet implemented");
-//    }
+    @Ignore
+    @Test
+    public void testTransmitLinktrace() {
+        fail("Not yet implemented");
+    }
 
     @Test
     public void testGetYangMdNameFromApiMdId() throws CfmConfigException {
-        MdNameAndTypeCombo name = EA1000CfmMepProgrammable
-                .getYangMdNameFromApiMdId(MdIdCharStr.asMdId("md-1"));
+        MdNameAndTypeCombo name = getYangMdNameFromApiMdId(MdIdCharStr.asMdId("md-1"));
 
         assertEquals(org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm
                 .maintenancedomain.mdnameandtypecombo
                 .DefaultNameCharacterString.class, name.getClass());
 
-//There's a problem with checkstyle for typecast on really long paths
-//        assertEquals("md-1", ((org.onosproject.yang.gen.v1.http.www.microsemi.com
-//                .microsemi.edge.assure.msea.cfm.rev20160229.mseacfm.mefcfm
-//                .maintenancedomain.mdnameandtypecombo
-//                .DefaultNameCharacterString) name).name().string());
+        assertEquals("md-1", MdNameUtil.cast(name).name().string());
     }
 
     @Test
@@ -196,11 +291,6 @@ public class EA1000CfmMepProgrammableTest {
                 .maintenancedomain.maintenanceassociation.manameandtypecombo
                 .DefaultNameCharacterString.class, name.getClass());
 
-//There's a problem with checkstyle for typecast on really long paths
-//        assertEquals("ma-1-1", ((org.onosproject.yang.gen.v1.http.www.microsemi.com
-//                .microsemi.edge.assure.msea.cfm.rev20160229.mseacfm.mefcfm
-//                .maintenancedomain.maintenanceassociation.manameandtypecombo
-//                .DefaultNameCharacterString) name).name().string());
+        assertEquals("ma-1-1", MaNameUtil.cast(name).name().string());
     }
-
 }

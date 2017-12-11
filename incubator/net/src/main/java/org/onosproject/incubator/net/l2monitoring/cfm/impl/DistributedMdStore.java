@@ -19,6 +19,7 @@ import com.google.common.net.InternetDomainName;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -42,6 +43,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdEvent;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStore;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStoreDelegate;
@@ -58,6 +60,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Maintenance Domain Store implementation backed by consistent map.
@@ -75,7 +79,7 @@ public class DistributedMdStore extends AbstractStore<MdEvent, MdStoreDelegate>
     private ConsistentMap<MdId, MaintenanceDomain> maintenanceDomainConsistentMap;
     private Map<MdId, MaintenanceDomain> maintenanceDomainMap;
 
-    private final InternalMdListener listener = new InternalMdListener();
+    private MapEventListener<MdId, MaintenanceDomain> mapListener = null;
 
     @Activate
     public void activate() {
@@ -112,8 +116,17 @@ public class DistributedMdStore extends AbstractStore<MdEvent, MdStoreDelegate>
                                             .cfm.Component.TagType.class)
                         .build("md")))
                 .build();
+        mapListener = new InternalMdListener();
+        maintenanceDomainConsistentMap.addListener(mapListener);
 
         maintenanceDomainMap = maintenanceDomainConsistentMap.asJavaMap();
+        log.info("MDStore started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        maintenanceDomainConsistentMap.removeListener(mapListener);
+        log.info("Stopped");
     }
 
     @Override
@@ -141,19 +154,65 @@ public class DistributedMdStore extends AbstractStore<MdEvent, MdStoreDelegate>
         @Override
         public void event(MapEvent<MdId, MaintenanceDomain> mapEvent) {
             final MdEvent.Type type;
+            MaIdShort maId = null;
             switch (mapEvent.type()) {
                 case INSERT:
                     type = MdEvent.Type.MD_ADDED;
                     break;
                 case UPDATE:
-                    type = MdEvent.Type.MD_UPDATED;
+                    // Examine the diff to see if it was a removal or addition of an MA caused it
+                    if (mapEvent.oldValue().value().maintenanceAssociationList().size() >
+                            mapEvent.newValue().value().maintenanceAssociationList().size()) {
+                        Set<MaIdShort> newMaIds = mapEvent.newValue().value().maintenanceAssociationList()
+                                .stream()
+                                .map(MaintenanceAssociation::maId)
+                                .collect(Collectors.toSet());
+                        Optional<MaintenanceAssociation> removedMa =
+                                mapEvent.oldValue().value().maintenanceAssociationList()
+                                        .stream()
+                                        .filter(maOld -> !newMaIds.contains(maOld.maId())).findFirst();
+                        if (removedMa.isPresent()) {
+                            maId = removedMa.get().maId();
+                        }
+                        type = MdEvent.Type.MA_REMOVED;
+                    } else if (mapEvent.oldValue().value().maintenanceAssociationList().size() <
+                        mapEvent.newValue().value().maintenanceAssociationList().size()) {
+                        Set<MaIdShort> oldMaIds = mapEvent.oldValue().value().maintenanceAssociationList()
+                                .stream()
+                                .map(MaintenanceAssociation::maId)
+                                .collect(Collectors.toSet());
+                        Optional<MaintenanceAssociation> addedMa =
+                                mapEvent.newValue().value().maintenanceAssociationList()
+                                        .stream()
+                                        .filter(maNew -> !oldMaIds.contains(maNew.maId())).findFirst();
+                        if (addedMa.isPresent()) {
+                            maId = addedMa.get().maId();
+                        }
+                        type = MdEvent.Type.MA_ADDED;
+                    } else {
+                        type = MdEvent.Type.MD_UPDATED;
+                    }
                     break;
                 case REMOVE:
                 default:
                     type = MdEvent.Type.MD_REMOVED;
                     break;
             }
-            notifyDelegate(new MdEvent(type, mapEvent.key()));
+            if (mapEvent.oldValue() != null && mapEvent.oldValue().value() != null) {
+                MaintenanceDomain oldMd = mapEvent.oldValue().value();
+                try {
+                    if (maId != null) {
+                        notifyDelegate(new MdEvent(type, mapEvent.key(), oldMd, maId));
+                    } else {
+                        notifyDelegate(new MdEvent(type, mapEvent.key(), oldMd));
+                    }
+                } catch (CfmConfigException e) {
+                    log.warn("Unable to copy MD {}", oldMd);
+                    notifyDelegate(new MdEvent(type, mapEvent.key()));
+                }
+            } else {
+                notifyDelegate(new MdEvent(type, mapEvent.key()));
+            }
         }
     }
 }

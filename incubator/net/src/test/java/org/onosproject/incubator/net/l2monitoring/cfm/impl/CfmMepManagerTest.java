@@ -37,10 +37,12 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepKeyId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepProgrammable;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.MepStore;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamDmProgrammable;
 import org.onosproject.incubator.net.l2monitoring.soam.impl.TestSoamDmProgrammable;
 import org.onosproject.net.AbstractProjectableModel;
@@ -57,21 +59,30 @@ import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.AsyncDocumentTree;
+import org.onosproject.store.service.DocumentTreeBuilder;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.TestAsyncDocumentTree;
+import org.onosproject.store.service.TestStorageService;
+import org.onosproject.store.service.TestTopic;
+import org.onosproject.store.service.Topic;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static junit.framework.TestCase.fail;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
@@ -91,18 +102,32 @@ public class CfmMepManagerTest {
 
     private CfmMepService mepService;
     private CfmMepManager mepManager;
+    private MepStore mepStore;
+    private StorageService storageService;
 
     protected static final MdId MDNAME1 = MdIdCharStr.asMdId("md-1");
+    protected static final MdId MDNAME2 = MdIdCharStr.asMdId("md-2");
     protected static final MaIdShort MANAME1 = MaIdCharStr.asMaId("ma-1-1");
+    protected static final MaIdShort MANAME2 = MaIdCharStr.asMaId("ma-2-2");
 
     private MaintenanceAssociation ma1;
+    private MaintenanceAssociation ma2;
     protected static final MepId MEPID1 = MepId.valueOf((short) 10);
+    protected static final MepId MEPID11 = MepId.valueOf((short) 11);
+    protected static final MepId MEPID12 = MepId.valueOf((short) 12);
     protected static final MepId MEPID2 = MepId.valueOf((short) 20);
+    protected static final MepId MEPID21 = MepId.valueOf((short) 21);
+    protected static final MepId MEPID22 = MepId.valueOf((short) 22);
+
     protected static final DeviceId DEVICE_ID1 = DeviceId.deviceId("netconf:1.2.3.4:830");
     protected static final DeviceId DEVICE_ID2 = DeviceId.deviceId("netconf:2.2.3.4:830");
 
     private Mep mep1;
+    private Mep mep11;
+    private Mep mep12;
     private Mep mep2;
+    private Mep mep21;
+    private Mep mep22;
 
     private Device device1;
     private Device device2;
@@ -112,12 +137,19 @@ public class CfmMepManagerTest {
     @Before
     public void setup() throws CfmConfigException {
         mepManager = new CfmMepManager();
+        mepStore = new DistributedMepStore();
+        storageService = new MockStorageService();
 
         ma1 = DefaultMaintenanceAssociation.builder(MANAME1, MDNAME1.getNameLength()).build();
+        ma2 = DefaultMaintenanceAssociation.builder(MANAME2, MDNAME2.getNameLength()).build();
+
+        TestUtils.setField(mepStore, "storageService", storageService);
+        ((DistributedMepStore) mepStore).activate();
 
         TestUtils.setField(mepManager, "coreService", new TestCoreService());
         TestUtils.setField(mepManager, "deviceService", deviceService);
         TestUtils.setField(mepManager, "cfmMdService", mdService);
+        TestUtils.setField(mepManager, "mepStore", mepStore);
         injectEventDispatcher(mepManager, new TestEventDispatcher());
 
         mepService = mepManager;
@@ -125,12 +157,27 @@ public class CfmMepManagerTest {
 
         mep1 = DefaultMep.builder(MEPID1, DEVICE_ID1, PortNumber.P0,
                 Mep.MepDirection.UP_MEP, MDNAME1, MANAME1).build();
+        mepStore.createUpdateMep(new MepKeyId(MDNAME1, MANAME1, MEPID1), mep1);
+
+        mep11 = DefaultMep.builder(MEPID11, DEVICE_ID1, PortNumber.P0,
+                Mep.MepDirection.UP_MEP, MDNAME1, MANAME1).build();
+        mepStore.createUpdateMep(new MepKeyId(MDNAME1, MANAME1, MEPID11), mep11);
+
+        mep12 = DefaultMep.builder(MEPID12, DEVICE_ID1, PortNumber.P0,
+                Mep.MepDirection.UP_MEP, MDNAME2, MANAME2).build();
+        mepStore.createUpdateMep(new MepKeyId(MDNAME2, MANAME2, MEPID12), mep12);
+
         mep2 = DefaultMep.builder(MEPID2, DEVICE_ID2, PortNumber.portNumber(2),
                 Mep.MepDirection.UP_MEP, MDNAME1, MANAME1).build();
-        List<Mep> mepList = new ArrayList<>();
-        mepList.add(mep1);
-        mepList.add(mep2);
-        TestUtils.setField(mepManager, "mepCollection", mepList);
+        mepStore.createUpdateMep(new MepKeyId(MDNAME1, MANAME1, MEPID2), mep2);
+
+        mep21 = DefaultMep.builder(MEPID21, DEVICE_ID2, PortNumber.portNumber(2),
+                Mep.MepDirection.UP_MEP, MDNAME1, MANAME1).build();
+        mepStore.createUpdateMep(new MepKeyId(MDNAME1, MANAME1, MEPID21), mep21);
+
+        mep22 = DefaultMep.builder(MEPID22, DEVICE_ID2, PortNumber.portNumber(2),
+                Mep.MepDirection.UP_MEP, MDNAME2, MANAME2).build();
+        mepStore.createUpdateMep(new MepKeyId(MDNAME2, MANAME2, MEPID22), mep22);
 
         device1 = new DefaultDevice(
                 ProviderId.NONE, DEVICE_ID1, Device.Type.SWITCH,
@@ -180,7 +227,7 @@ public class CfmMepManagerTest {
 
         Collection<MepEntry> mepEntries = mepManager.getAllMeps(MDNAME1, MANAME1);
 
-        assertEquals(2, mepEntries.size());
+        assertEquals(4, mepEntries.size());
     }
 
     @Test
@@ -232,12 +279,13 @@ public class CfmMepManagerTest {
         replay(mdService);
 
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
+        expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
         expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
-        assertTrue(mepManager.deleteMep(MDNAME1, MANAME1, MEPID1));
+        assertTrue(mepManager.deleteMep(MDNAME1, MANAME1, MEPID1, Optional.empty()));
     }
 
     @Test
@@ -248,6 +296,7 @@ public class CfmMepManagerTest {
         replay(mdService);
 
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
+        expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
         expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
@@ -257,6 +306,7 @@ public class CfmMepManagerTest {
         Mep mep3 = DefaultMep.builder(mepId3, DEVICE_ID1, PortNumber.portNumber(1),
                 Mep.MepDirection.UP_MEP, MDNAME1, MANAME1).build();
 
+        //Expecting false - since it was not found
         assertTrue(mepManager.createMep(MDNAME1, MANAME1, mep3));
     }
 
@@ -364,6 +414,56 @@ public class CfmMepManagerTest {
         }
     }
 
+    @Test
+    public void testDeviceRemoved() throws CfmConfigException {
+        expect(mdService.getMaintenanceAssociation(MDNAME1, MANAME1))
+                .andReturn(Optional.ofNullable(ma1))
+                .anyTimes();
+        expect(mdService.getMaintenanceAssociation(MDNAME2, MANAME2))
+                .andReturn(Optional.ofNullable(ma2))
+                .anyTimes();
+        replay(mdService);
+
+        expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
+        expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
+        replay(deviceService);
+
+        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        replay(driverService);
+
+//        This is arranged like
+//        device1                             device2
+//        /       \                           /       \
+//    md-1        md-2                     md-1      md-2
+//      |           |                         |        |
+//    ma-1-1      ma-2-2                   ma-1-1    ma-2-2
+//    /    \         |                      /   \        \
+//  mep1  mep11   mep12                  mep2 mep21     mep22
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID1));
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID11));
+        assertNotNull(mepService.getMep(MDNAME2, MANAME2, MEPID12));
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID2));
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID21));
+        assertNotNull(mepService.getMep(MDNAME2, MANAME2, MEPID22));
+
+        //By deleting Device2 we expect Mep2,21,22 to have been deleted but Mep1,11,12 to remain
+        ((CfmMepManager) mepService).processDeviceRemoved(device2);
+
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID1));
+        assertNotNull(mepService.getMep(MDNAME1, MANAME1, MEPID11));
+        assertNotNull(mepService.getMep(MDNAME2, MANAME2, MEPID12));
+        //The device 2 related ones are gone
+        assertNull(mepService.getMep(MDNAME1, MANAME1, MEPID2));
+        assertNull(mepService.getMep(MDNAME1, MANAME1, MEPID21));
+        assertNull(mepService.getMep(MDNAME2, MANAME2, MEPID22));
+
+        //Now delete device1
+        ((CfmMepManager) mepService).processDeviceRemoved(device1);
+        assertNull(mepService.getMep(MDNAME1, MANAME1, MEPID1));
+        assertNull(mepService.getMep(MDNAME1, MANAME1, MEPID11));
+        assertNull(mepService.getMep(MDNAME2, MANAME2, MEPID12));
+    }
+
     private class TestCoreService extends CoreServiceAdapter {
 
         @Override
@@ -376,6 +476,29 @@ public class CfmMepManagerTest {
                     return counter.getAndIncrement();
                 }
             };
+        }
+    }
+
+    private static class MockStorageService extends TestStorageService {
+        @Override
+        public <V> DocumentTreeBuilder<V> documentTreeBuilder() {
+            return new DocumentTreeBuilder<V>() {
+                @Override
+                public AsyncDocumentTree<V> buildDocumentTree() {
+                    return build();
+                }
+
+                @Override
+                @SuppressWarnings("unchecked")
+                public AsyncDocumentTree<V> build() {
+                    return new TestAsyncDocumentTree<>(name());
+                }
+            };
+        }
+
+        @Override
+        public <T> Topic<T> getTopic(String name, Serializer serializer) {
+            return new TestTopic<>(name);
         }
     }
 }

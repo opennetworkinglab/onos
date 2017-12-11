@@ -30,11 +30,14 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenanc
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.DefaultNameRfc2685VpnId;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.DefaultNameUint16;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.DefaultNameY1731Icc;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.NameCharacterString;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.manameandtypecombo.nameprimaryvid.NamePrimaryVidUnion;
 import org.onosproject.yang.gen.v1.mseatypes.rev20160229.mseatypes.Identifier45;
 
 /**
- * This is a workaround for Checkstyle issue.
+ * Utility for translating between Maintenance Association names in the CFM API model and the device YANG.
+ *
+ * This has to be in a separate file as a workaround for Checkstyle issue.
  * https://github.com/checkstyle/checkstyle/issues/3850
  * There are two types of DefaultNameCharacterString - one for MA and another for MD
  * Putting both together in a file means that the full path has to be given which
@@ -46,6 +49,12 @@ public final class MaNameUtil {
         //Hidden
     }
 
+    /**
+     * Convert CFM API MA identifier to the YANG model MA identifier.
+     * @param maId Maintenance Association ID in CFM API
+     * @return Maintenance Association ID in YANG API
+     * @throws CfmConfigException If there's a problem with the name
+     */
     public static MaNameAndTypeCombo getYangMaNameFromApiMaId(MaIdShort maId)
             throws CfmConfigException {
         MaNameAndTypeCombo maName;
@@ -69,5 +78,53 @@ public final class MaNameUtil {
                     maId.getClass().getSimpleName());
         }
         return maName;
+    }
+
+    /**
+     * Convert YANG API MA identifier to the CFM API MA identifier.
+     * @param nameAndTypeCombo Maintenance Association ID in YANG API
+     * @return Maintenance Association ID in CFM API
+     */
+    public static MaIdShort getApiMaIdFromYangMaName(MaNameAndTypeCombo nameAndTypeCombo) {
+        MaIdShort maId;
+        if (nameAndTypeCombo instanceof DefaultNameCharacterString) {
+            maId = MaIdCharStr.asMaId(
+                    ((DefaultNameCharacterString) nameAndTypeCombo).name().string());
+        } else if (nameAndTypeCombo instanceof DefaultNamePrimaryVid) {
+            if (((DefaultNamePrimaryVid) nameAndTypeCombo).namePrimaryVid().enumeration() != null) {
+                maId = MaIdPrimaryVid.asMaId(
+                        ((DefaultNamePrimaryVid) nameAndTypeCombo).namePrimaryVid().enumeration().name());
+            } else if (((DefaultNamePrimaryVid) nameAndTypeCombo).namePrimaryVid().vlanIdType() != null) {
+                maId = MaIdPrimaryVid.asMaId(
+                        ((DefaultNamePrimaryVid) nameAndTypeCombo).namePrimaryVid().vlanIdType().uint16());
+            } else {
+                throw new IllegalArgumentException("Unexpected primaryVid for " +
+                        "MaNameAndTypeCombo: " + nameAndTypeCombo.toString());
+            }
+        } else if (nameAndTypeCombo instanceof DefaultNameUint16) {
+            maId = MaId2Octet.asMaId(((DefaultNameUint16) nameAndTypeCombo).nameUint16());
+
+        } else if (nameAndTypeCombo instanceof DefaultNameRfc2685VpnId) {
+            maId = MaIdRfc2685VpnId.asMaIdHex(
+                    HexString.toHexString(
+                            ((DefaultNameRfc2685VpnId) nameAndTypeCombo).nameRfc2685VpnId()));
+        } else if (nameAndTypeCombo instanceof DefaultNameY1731Icc) {
+            maId = MaIdIccY1731.asMaId(((DefaultNameY1731Icc) nameAndTypeCombo).nameY1731Icc().string());
+
+        } else {
+            throw new IllegalArgumentException("Unexpected type for " +
+                    "MaNameAndTypeCombo: " + nameAndTypeCombo.toString());
+        }
+
+        return maId;
+    }
+
+    /**
+     * Cast the YANG generic type of MaNameAndTypeCombo specifically to char string.
+     * @param maName a YANG generic MaNameAndTypeCombo
+     * @return a YANG specific MaNameAndTypeCombo for Char string
+     */
+    public static NameCharacterString cast(MaNameAndTypeCombo maName) {
+        return (NameCharacterString) maName;
     }
 }

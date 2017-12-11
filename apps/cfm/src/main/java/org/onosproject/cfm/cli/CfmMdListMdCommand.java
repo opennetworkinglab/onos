@@ -20,6 +20,12 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
@@ -45,29 +51,7 @@ public class CfmMdListMdCommand extends AbstractShellCommand {
         CfmMdService service = get(CfmMdService.class);
 
         if (name != null) {
-            String[] nameParts = name.split("[()]");
-            if (nameParts.length != 2) {
-                throw new IllegalArgumentException("Invalid name format. " +
-                        "Must be in the format of <identifier(name-type)>");
-            }
-
-            MdId mdId = null;
-            MdId.MdNameType nameTypeEnum = MdId.MdNameType.valueOf(nameParts[1]);
-            switch (nameTypeEnum) {
-                case DOMAINNAME:
-                    mdId = MdIdDomainName.asMdId(nameParts[0]);
-                    break;
-                case MACANDUINT:
-                    mdId = MdIdMacUint.asMdId(nameParts[0]);
-                    break;
-                case NONE:
-                    mdId = MdIdNone.asMdId();
-                    break;
-                case CHARACTERSTRING:
-                default:
-                    mdId = MdIdCharStr.asMdId(nameParts[0]);
-            }
-
+            MdId mdId = parseMdName(name);
             print("Maintenance Domain:");
             Optional<MaintenanceDomain> md = service.getMaintenanceDomain(mdId);
             print(printMd(md));
@@ -131,4 +115,59 @@ public class CfmMdListMdCommand extends AbstractShellCommand {
 
         return sb.toString();
     }
+
+    public static MdId parseMdName(String mdStr) {
+        String[] nameParts = mdStr.split("[()]");
+        if (nameParts.length != 2) {
+            throw new IllegalArgumentException("Invalid name format. " +
+                    "Must be in the format of <identifier(name-type)>");
+        }
+
+        MdId mdId = null;
+        MdId.MdNameType nameTypeEnum = MdId.MdNameType.valueOf(nameParts[1]);
+        switch (nameTypeEnum) {
+            case DOMAINNAME:
+                mdId = MdIdDomainName.asMdId(nameParts[0]);
+                break;
+            case MACANDUINT:
+                mdId = MdIdMacUint.asMdId(nameParts[0]);
+                break;
+            case NONE:
+                mdId = MdIdNone.asMdId();
+                break;
+            case CHARACTERSTRING:
+            default:
+                mdId = MdIdCharStr.asMdId(nameParts[0]);
+        }
+        return mdId;
+    }
+
+    public static MaIdShort parseMaName(String maStr) {
+        String[] nameParts = maStr.split("[()]");
+        if (nameParts.length != 2) {
+            throw new IllegalArgumentException("Invalid name format. " +
+                    "Must be in the format of <identifier(name-type)>");
+        }
+
+        MaIdShort maId = null;
+        MaIdShort.MaIdType nameTypeEnum = MaIdShort.MaIdType.valueOf(nameParts[1]);
+        switch (nameTypeEnum) {
+            case ICCY1731:
+                maId = MaIdIccY1731.asMaId(nameParts[0]);
+                break;
+            case PRIMARYVID:
+                maId = MaIdPrimaryVid.asMaId(nameParts[0]);
+                break;
+            case RFC2685VPNID:
+                maId = MaIdRfc2685VpnId.asMaIdHex(nameParts[0]);
+                break;
+            case TWOOCTET:
+                maId = MaId2Octet.asMaId(nameParts[0]);
+            case CHARACTERSTRING:
+            default:
+                maId = MaIdCharStr.asMaId(nameParts[0]);
+        }
+        return maId;
+    }
+
 }

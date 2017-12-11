@@ -124,10 +124,13 @@ public class MaintenanceAssociationCodec extends JsonCodec<MaintenanceAssociatio
                 builder = builder.addToComponentList(component);
             }
 
-            List<MepId> remoteMeps = (new RMepCodec()).decode(
-                    (ArrayNode) nullIsIllegal(maNode.get(RMEP_LIST), "rmep-list is required"), context);
-            for (MepId remoteMep:remoteMeps) {
-                builder = builder.addToRemoteMepIdList(remoteMep);
+            JsonNode rmepListJson = maNode.get(RMEP_LIST);
+            if (rmepListJson != null) {
+                List<MepId> remoteMeps = (new RMepCodec()).decode(
+                        (ArrayNode) rmepListJson, context);
+                for (MepId remoteMep:remoteMeps) {
+                    builder = builder.addToRemoteMepIdList(remoteMep);
+                }
             }
 
             return builder.build();

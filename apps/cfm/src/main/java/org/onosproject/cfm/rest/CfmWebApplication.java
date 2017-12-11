@@ -32,6 +32,7 @@ public class CfmWebApplication extends AbstractWebApplication {
                 MdWebResource.class,
                 MaWebResource.class,
                 MepWebResource.class,
+                DeviceMepWebResource.class,
                 DmWebResource.class,
                 LmWebResource.class);
     }

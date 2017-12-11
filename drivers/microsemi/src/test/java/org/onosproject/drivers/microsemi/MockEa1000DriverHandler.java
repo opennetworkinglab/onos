@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.onosproject.core.CoreService;
 import org.onosproject.drivers.microsemi.yang.MockCfmMdService;
+import org.onosproject.drivers.microsemi.yang.MockCfmMepService;
 import org.onosproject.drivers.microsemi.yang.MockMseaCfmManager;
 import org.onosproject.drivers.microsemi.yang.MockMseaSaFilteringManager;
 import org.onosproject.drivers.microsemi.yang.MockMseaUniEvcServiceManager;
@@ -31,6 +32,7 @@ import org.onosproject.drivers.netconf.MockCoreService;
 import org.onosproject.drivers.netconf.MockNetconfController;
 import org.onosproject.drivers.netconf.MockNetconfDevice;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriver;
@@ -59,6 +61,7 @@ public class MockEa1000DriverHandler implements DriverHandler {
     private MockMseaUniEvcServiceManager mseaUniEvcService;
     private MockMseaCfmManager mseaCfmService;
     private MockCfmMdService mockMdService;
+    private MockCfmMepService mockMepService;
     private CoreService coreService;
 
     public MockEa1000DriverHandler() throws NetconfException {
@@ -91,6 +94,9 @@ public class MockEa1000DriverHandler implements DriverHandler {
 
         mockMdService = new MockCfmMdService();
         mockMdService.activate();
+
+        mockMepService = new MockCfmMepService();
+        mockMepService.activate();
 
         coreService = new MockCoreService();
         coreService.registerApplication(MICROSEMI_DRIVERS);
@@ -131,6 +137,10 @@ public class MockEa1000DriverHandler implements DriverHandler {
 
         } else if (serviceClass.equals(CfmMdService.class)) {
             return (T) mockMdService;
+
+        } else if (serviceClass.equals(CfmMepService.class)) {
+            return (T) mockMepService;
+
         }
 
         return null;

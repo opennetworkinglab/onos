@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.l2monitoring.cfm.service;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
@@ -26,7 +27,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 /**
  * For the management of Maintenance Domains and Maintenance Associations.
  */
-public interface CfmMdService {
+public interface CfmMdService extends ListenerService<MdEvent, MdListener> {
 
     /**
      * Get a list of all of the Maintenance Domains on the system.
