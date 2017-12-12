@@ -1,17 +1,17 @@
 PROTOBUF_VER = '3.2.0'
-GRPC_VER = '1.3.0'
+GRPC_VER = '1.3.1'
 
 BUNDLES = [
     '//protocols/grpc/proto:onos-protocols-grpc-proto',
     '//protocols/grpc/api:onos-protocols-grpc-api',
     '//protocols/grpc/ctl:onos-protocols-grpc-ctl',
     # gRPC dependencies
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
-    '//lib:grpc-protobuf-1.3.0',
-    '//lib:grpc-protobuf-lite-1.3.0',
-    '//lib:grpc-stub-1.3.0',
-    '//lib:grpc-netty-1.3.0',
-    '//lib:grpc-auth-1.3.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-protobuf-' + GRPC_VER,
+    '//lib:grpc-protobuf-lite-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
+    '//lib:grpc-auth-' + GRPC_VER,
     '//lib:google-instrumentation-0.3.0',
     '//lib:protobuf-java-3.2.0',
     # Lazily adding all netty-related packages.

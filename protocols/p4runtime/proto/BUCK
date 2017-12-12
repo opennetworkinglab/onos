@@ -3,7 +3,7 @@ include_defs(
 )
 
 PROTOBUF_VER = '3.2.0'
-GRPC_VER = '1.3.0'
+GRPC_VER = '1.3.1'
 
 PI_COMMIT = '13d611a9c655938676ebcde2bd5653b461f46ca7'
 PI_BASEURL = 'https://github.com/p4lang/PI.git'

@@ -1,3 +1,4 @@
+GRPC_VER = '1.3.1'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
@@ -6,14 +7,14 @@ COMPILE_DEPS = [
     '//incubator/protobuf/models:onos-incubator-protobuf-models',
     '//lib:protobuf-java-3.2.0',
     '//lib:GRPC_1.3',
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
-    '//lib:grpc-protobuf-lite-1.3.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-protobuf-lite-' + GRPC_VER,
     '//incubator/protobuf/api:onos-grpc-api'
 ]
 
 GRPC_DEPS = [
     '//lib:GRPC_1.3',
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
     '//lib:protobuf-java-3.2.0',
     '//lib:guava',
@@ -26,13 +27,13 @@ BUNDLES = [
     ':onos-incubator-protobuf-services-nb-proto',
     '//lib:protobuf-java-3.2.0',
     '//lib:guava',
-    '//lib:grpc-core-1.3.0',
-    '//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
-    '//lib:grpc-protobuf-1.3.0',
-    '//lib:grpc-stub-1.3.0',
-    '//lib:grpc-netty-1.3.0',
-    '//lib:grpc-auth-1.3.0',
-    '//lib:grpc-context-1.3.0',
+    '//lib:grpc-core-' + GRPC_VER,
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//lib:grpc-protobuf-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
+    '//lib:grpc-auth-' + GRPC_VER,
+    '//lib:grpc-context-' + GRPC_VER,
     '//lib:google-truth-0.28',
     '//core/api:onos-api',
     '//lib:netty-transport',
@@ -65,7 +66,7 @@ onos_app (
     app_name = "org.onosproject.grpc.nb.service",
     category = 'TODO',
     url = 'http://onosproject.org',
-    included_bundles = ['//incubator/grpc-dependencies:grpc-core-repkg-1.3.0',
+    included_bundles = ['//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
             '//lib:google-instrumentation-0.3.0'],
     description = 'gRPC northbound services used to provide fine-grained access to ONOS native northbound interface from off-platform applications',
 )
