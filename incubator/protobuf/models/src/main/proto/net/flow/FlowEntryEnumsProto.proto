@@ -1,0 +1,62 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+option java_package = "org.onosproject.grpc.net.flow.models";
+
+package net.flow;
+
+// Corresponds to org.onosproject.net.flow.FlowEntry.
+enum FlowEntryStateProto {
+
+    // Indicates that this rule has been submitted for addition.
+    // Not necessarily in the flow table.
+    PENDING_ADD = 0;
+
+    // Rule has been added which means it is in the flow table.
+    ADDED = 1;
+
+    // Flow has been marked for removal, might still be in flow table.
+    PENDING_REMOVE = 2;
+
+    // Flow has been removed from flow table and can be purged.
+    REMOVED = 3;
+
+    // Indicates that the installation of this flow has failed.
+    FAILED = 4;
+}
+
+enum FlowLiveTypeProto {
+
+    // Indicates that this rule has been submitted for addition immediately.
+    // Not necessarily collecting flow stats.
+    IMMEDIATE = 0;
+
+    // Indicates that this rule has been submitted for a short time.
+    // Collecting flow stats every SHORT interval, defined by the implementation.
+    SHORT = 1;
+
+    // Indicates that this rule has been submitted for a mid time.
+    // Collecting flow stats every MID interval, defined by the implementation.
+    MID = 2;
+
+    // Indicates that this rule has been submitted for a long time.
+    // Collecting flow stats every LONG interval, defined by the implementation.
+    LONG = 3;
+
+    // Indicates that this rule has been submitted for UNKNOWN or ERROR.
+    // Not necessarily collecting flow stats.
+    UNKNOWN = 4;
+}
