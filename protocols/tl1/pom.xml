@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-protocols</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.0-b7</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
