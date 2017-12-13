@@ -16,6 +16,7 @@
 package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -97,6 +98,14 @@ public interface ForwardingObjective extends Objective {
     TrafficSelector meta();
 
     /**
+     * Returns a new builder set to create a copy of this objective.
+     *
+     * @return new builder
+     */
+    @Override
+    Builder copy();
+
+    /**
      * A forwarding objective builder.
      */
     interface Builder extends Objective.Builder {
@@ -140,6 +149,32 @@ public interface ForwardingObjective extends Objective {
          * @return an objective builder
          */
         Builder withMeta(TrafficSelector selector);
+
+        /**
+         * Assigns an application id.
+         *
+         * @param appId an application id
+         * @return a filtering builder
+         */
+        @Override
+        Builder fromApp(ApplicationId appId);
+
+        /**
+         * Sets the priority for this objective.
+         *
+         * @param priority an integer
+         * @return an objective builder
+         */
+        @Override
+        Builder withPriority(int priority);
+
+        /**
+         * Makes the filtering objective permanent.
+         *
+         * @return an objective builder
+         */
+        @Override
+        Builder makePermanent();
 
         /**
          * Builds the forwarding objective that will be added.

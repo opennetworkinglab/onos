@@ -95,6 +95,14 @@ public interface NextObjective extends Objective {
     TrafficSelector meta();
 
     /**
+     * Returns a new builder set to create a copy of this objective.
+     *
+     * @return new builder
+     */
+    @Override
+    Builder copy();
+
+    /**
      * A next step builder.
      */
     interface Builder extends Objective.Builder {
