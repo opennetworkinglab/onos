@@ -18,6 +18,7 @@ package org.onosproject.incubator.protobuf.services.nb;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.incubator.protobuf.models.net.meter.MeterRequestProtoTranslator;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.incubator.protobuf.models.net.meter.MeterProtoTranslator;
 
@@ -73,7 +74,7 @@ public class GrpcNbMeterService extends MeterServiceImplBase {
     public void submit(submitRequest request,
                        StreamObserver<submitReply> responseObserver) {
         submitReply.Builder replyBuilder = submitReply.newBuilder();
-        Meter meter = meterService.submit(MeterProtoTranslator.translate(request.getMeter()));
+        Meter meter = meterService.submit(MeterRequestProtoTranslator.translate(request.getMeter()));
         responseObserver.onNext(replyBuilder.setSubmitMeter(MeterProtoTranslator.translate(meter)).build());
         responseObserver.onCompleted();
     }
@@ -82,7 +83,7 @@ public class GrpcNbMeterService extends MeterServiceImplBase {
     public void withdraw(withdrawRequest request,
                          StreamObserver<withdrawReply> responseObserver) {
         withdrawReply.Builder replyBuilder = withdrawReply.newBuilder();
-        meterService.withdraw(MeterProtoTranslator.translate(request.getMeter()),
+        meterService.withdraw(MeterRequestProtoTranslator.translate(request.getMeter()),
                 MeterId.meterId(request.getMeterId()));
         responseObserver.onNext(replyBuilder.build());
         responseObserver.onCompleted();
