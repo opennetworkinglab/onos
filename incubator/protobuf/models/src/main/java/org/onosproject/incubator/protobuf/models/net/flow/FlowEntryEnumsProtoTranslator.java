@@ -25,7 +25,7 @@ import java.util.Optional;
 
 
 /**
- * gRPC FlowEntryEnumsProto message to equivalant ONOS FlowRule enums conversion related utilities.
+ * gRPC FlowEntryEnumsProto message to equivalent ONOS FlowEntry enums conversion related utilities.
  */
 public final class FlowEntryEnumsProtoTranslator {
 

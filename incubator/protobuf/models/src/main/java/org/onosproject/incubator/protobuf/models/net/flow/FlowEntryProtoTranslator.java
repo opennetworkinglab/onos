@@ -18,7 +18,6 @@ package org.onosproject.incubator.protobuf.models.net.flow;
 import org.onosproject.grpc.net.flow.models.FlowEntryProtoOuterClass.FlowEntryProto;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +29,9 @@ public final class FlowEntryProtoTranslator {
     private static final Logger log = LoggerFactory.getLogger(FlowEntryProtoTranslator.class);
 
     /**
-     * Translates {@link FlowRule} to gRPC FlowRuleProto.
+     * Translates {@link FlowEntry} to gRPC FlowEntryProto.
      *
-     * @param flowEntry {@link FlowRule}
+     * @param flowEntry {@link FlowEntry}
      * @return gRPC message
      */
     public static FlowEntryProto translate(FlowEntry flowEntry) {
@@ -54,10 +53,10 @@ public final class FlowEntryProtoTranslator {
     }
 
     /**
-     * Translates gRPC FlowRule to {@link FlowRule}.
+     * Translates gRPC FlowEntry to {@link FlowEntry}.
      *
      * @param flowEntry gRPC message
-     * @return {@link FlowRule}
+     * @return {@link FlowEntry}
      */
     public static FlowEntry translate(FlowEntryProto flowEntry) {
         if (flowEntry.equals(FlowEntryProto.getDefaultInstance())) {
