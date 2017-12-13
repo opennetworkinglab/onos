@@ -75,6 +75,7 @@ public class HttpSBControllerImpl implements HttpSBController {
     private static final String HTTPS = "https";
     private static final String AUTHORIZATION_PROPERTY = "authorization";
     private static final String BASIC_AUTH_PREFIX = "Basic ";
+    private static final String OAUTH2_BEARER_AUTH_PREFIX = "Bearer ";
 
     private final Map<DeviceId, RestSBDevice> deviceMap = new ConcurrentHashMap<>();
     private final Map<DeviceId, Client> clientMap = new ConcurrentHashMap<>();
@@ -227,11 +228,15 @@ public class HttpSBControllerImpl implements HttpSBController {
         try {
             log.debug("Url request {} ", getUrlString(device, request));
             HttpPatch httprequest = new HttpPatch(getUrlString(device, request));
-            if (deviceMap.get(device).username() != null) {
+            if (deviceMap.get(device).authentication() == AuthenticationScheme.BASIC) {
                 String pwd = deviceMap.get(device).password() == null ? "" : COLON + deviceMap.get(device).password();
                 String userPassword = deviceMap.get(device).username() + pwd;
                 String base64string = Base64.getEncoder().encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
                 httprequest.addHeader(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + base64string);
+            } else if (deviceMap.get(device).authentication() == AuthenticationScheme.OAUTH2) {
+                String token = deviceMap.get(device).token();
+                // TODO: support token types other then bearer of OAuth2 authentication
+                httprequest.addHeader(AUTHORIZATION_PROPERTY, OAUTH2_BEARER_AUTH_PREFIX + token);
             }
             if (payload != null) {
                 StringEntity input = new StringEntity(IOUtils.toString(payload, StandardCharsets.UTF_8));
