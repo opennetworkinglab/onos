@@ -19,9 +19,7 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="org.onosproject.incubator.protobuf">
     <description>${project.description}</description>
-
     <artifact>mvn:${project.groupId}/onos-app-kafka-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-kafka-core/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-kafka-web/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-kafka-app/${project.version}</artifact>
     <artifact>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.kafka-clients/0.8.2.2_1</artifact>
 </app>

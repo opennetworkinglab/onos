@@ -26,7 +26,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Layer 2 Monitoring CFM Application',
-    category = 'default',
+    category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Layer 2 Monitoring Connectivity Fault Management App',
 )

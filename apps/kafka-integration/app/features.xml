@@ -19,8 +19,7 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-kafka-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-kafka-core/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-kafka-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-kafka-app/${project.version}</bundle>
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.kafka-clients/0.8.2.2_1</bundle>
     </feature>
 </features>

@@ -265,6 +265,7 @@
     "bcpkix-jdk15on": "mvn:org.bouncycastle:bcpkix-jdk15on:1.58",
     "bcprov-jdk15on": "mvn:org.bouncycastle:bcprov-jdk15on:1.58",
     "hamcrest-optional": "mvn:com.spotify:hamcrest-optional:1.1.0",
-    "swagger-annotations": "mvn:io.swagger:swagger-annotations:1.5.16"
+    "swagger-annotations": "mvn:io.swagger:swagger-annotations:1.5.16",
+    "kafka-clients": "mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:0.8.2.2_1"
   }
 }

@@ -295,8 +295,10 @@ public class GrpcRemoteServiceServer {
             case RECEIVED_ROLE_REPLY:
                 ReceivedRoleReply receivedRoleReply = msg.getReceivedRoleReply();
                 deviceProviderService.receivedRoleReply(deviceId(receivedRoleReply.getDeviceId()),
-                        (MastershipRole) MastershipRoleProtoTranslator.translate(receivedRoleReply.getRequested()).get(),
-                        (MastershipRole) MastershipRoleProtoTranslator.translate(receivedRoleReply.getResponse()).get());
+                        (MastershipRole) MastershipRoleProtoTranslator
+                                .translate(receivedRoleReply.getRequested()).get(),
+                        (MastershipRole) MastershipRoleProtoTranslator
+                                .translate(receivedRoleReply.getResponse()).get());
                 break;
             case UPDATE_PORT_STATISTICS:
                 UpdatePortStatistics updatePortStatistics = msg.getUpdatePortStatistics();

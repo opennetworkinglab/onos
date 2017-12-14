@@ -17,6 +17,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-kafka</artifactId>
@@ -24,7 +25,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-kafka</artifactId>
+    <artifactId>onos-app-kafka-app</artifactId>
+    <packaging>bundle</packaging>
+
+    <url>http://onosproject.org</url>
+
+    <description>Kafka Integration Application</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -32,21 +38,20 @@
         <onos.app.name>org.onosproject.kafkaintegration</onos.app.name>
         <onos.app.title>Kafka Integration Application</onos.app.title>
         <onos.app.origin>Calix, Inc.</onos.app.origin>
-        <web.context>/onos/kafka</web.context>
-        <api.version>1.0.0</api.version>
-        <api.package>org.onosproject.kafkaintegration.rest</api.package>
         <onos.app.category>Utility</onos.app.category>
         <onos.app.url>https://wiki.onosproject.org/display/ONOS/Kafka+Integration</onos.app.url>
-        <onos.app.requires>org.onosproject.incubator.protobuf</onos.app.requires>
+        <onos.app.requires>org.onosproject.grpc.nb.service</onos.app.requires>
+        <web.context>/onos/kafka</web.context>
+        <api.version>1.0.0</api.version>
+        <api.title>Kafka Integration Application REST API</api.title>
+        <api.package>org.onosproject.kafkaintegration.rest</api.package>
     </properties>
 
-    <packaging>pom</packaging>
-    <description>
-        Kafka Integration Application.
-        This will export ONOS Events to Northbound Kafka Server.
-    </description>
-
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -55,23 +60,97 @@
         </dependency>
 
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-kafka-core</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-kafka-web</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!--Also need to update the app.xml and the features.xml -->
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.kafka-clients</artifactId>
             <version>0.8.2.2_1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-protobuf-models</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <_wab>src/main/webapp/</_wab>
+                        <Include-Resource>
+                            WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
+                            {maven-resources}
+                        </Include-Resource>
+                        <Bundle-SymbolicName>
+                            ${project.groupId}.${project.artifactId}
+                        </Bundle-SymbolicName>
+                        <Import-Package>
+                            *,org.glassfish.jersey.servlet
+                        </Import-Package>
+                        <Web-ContextPath>${web.context}</Web-ContextPath>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

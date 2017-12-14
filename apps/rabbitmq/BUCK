@@ -7,7 +7,9 @@ COMPILE_DEPS = [
 ]
 
 BUNDLES = [
-   '//apps/rabbitmq:onos-apps-rabbitmq',
+    '//lib:gson',
+    '//lib:amqp-client',
+    '//apps/rabbitmq:onos-apps-rabbitmq',
 ]
 
 osgi_jar (
@@ -15,8 +17,8 @@ osgi_jar (
 )
 
 onos_app (
-    title = 'Rabbit MQ APP',
-    category = 'Traffic Steering',
+    title = 'Rabbit MQ Integration',
+    category = 'Integration',
     url = 'http://onosproject.org',
     description = 'Rabbit MQ application.',
     required_apps = [ 'org.onosproject.proxyarp' ],

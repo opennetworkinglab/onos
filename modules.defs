@@ -230,6 +230,8 @@ ONOS_APPS = [
     '//apps/powermanagement:onos-apps-powermanagement-oar',
     '//apps/t3:onos-apps-t3-oar',
     '//apps/simplefabric:onos-apps-simplefabric-oar',
+    '//apps/kafka-integration:onos-apps-kafka-integration-oar',
+    '//apps/rabbitmq:onos-apps-rabbitmq-oar',
 ]
 
 PROTOCOL_APPS = [
@@ -268,6 +270,8 @@ APP_JARS = [
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
 #   '//apps/p4runtime-test:onos-apps-p4runtime-test',
+    '//apps/kafka-integration/api:onos-apps-kafka-integration-api',
+    '//apps/kafka-integration/app:onos-apps-kafka-integration-app',
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES \

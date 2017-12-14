@@ -26,7 +26,7 @@ public interface KafkaEventStorageService {
     /**
      * Inserts the Onos Event into Distributed Work Queue.
      *
-     * @param e the ONOS Event
+     * @param event the ONOS Event
      */
     void publishEvent(OnosEvent event);
 

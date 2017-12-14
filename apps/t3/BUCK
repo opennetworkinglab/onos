@@ -14,7 +14,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Trellis Troubleshooting Toolkit',
-    category = 'Utilities',
+    category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',
