@@ -15,11 +15,12 @@
  */
 package org.onlab.graph;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 /**
  * DFS graph search algorithm implemented via iteration rather than recursion.
@@ -47,7 +48,7 @@ public class DepthFirstSearch<V extends Vertex, E extends Edge<V>>
         // Track finished vertexes and keep a stack of vertexes that have been
         // started; start this stack with the source on it.
         Set<V> finished = new HashSet<>();
-        Stack<V> stack = new Stack<>();
+        Deque<V> stack = new LinkedList<>();
         stack.push(src);
 
         while (!stack.isEmpty()) {
