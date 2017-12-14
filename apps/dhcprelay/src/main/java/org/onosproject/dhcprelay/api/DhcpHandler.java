@@ -171,6 +171,13 @@ public interface DhcpHandler {
     void updateIgnoreVlanConfig(IgnoreDhcpConfig config);
 
     /**
+     * Remove internal state for IgnoreDhcp.
+     *
+     * @param config the config
+     */
+    void removeIgnoreVlanState(IgnoreDhcpConfig config);
+
+    /**
      * Sets DHCP FPM Enable state.
      *
      * @param dhcpFpmFlag flag indicating dhcpFpmEnable state

@@ -257,6 +257,17 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     @Override
+    public void removeIgnoreVlanState(IgnoreDhcpConfig config) {
+        if (config == null) {
+            ignoredVlans.clear();
+            return;
+        }
+        config.ignoredVlans().forEach((deviceId, vlanId) -> {
+            ignoredVlans.remove(deviceId, vlanId);
+        });
+    }
+
+    @Override
     public void processDhcpPacket(PacketContext context, BasePacket payload) {
         checkNotNull(payload, "DHCP6 payload can't be null");
         checkState(payload instanceof DHCP6, "Payload is not a DHCP6");

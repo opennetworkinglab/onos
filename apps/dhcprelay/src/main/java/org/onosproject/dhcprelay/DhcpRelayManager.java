@@ -570,6 +570,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         private void deviceAvailabilityChanged(Device device) {
             if (deviceService.isAvailable(device.id())) {
                 updateIgnoreVlanConfigs();
+            } else {
+                removeIgnoreVlanState();
             }
         }
 
@@ -577,6 +579,12 @@ public class DhcpRelayManager implements DhcpRelayService {
             IgnoreDhcpConfig config = cfgService.getConfig(appId, IgnoreDhcpConfig.class);
             v4Handler.updateIgnoreVlanConfig(config);
             v6Handler.updateIgnoreVlanConfig(config);
+        }
+
+        private void removeIgnoreVlanState() {
+            IgnoreDhcpConfig config = cfgService.getConfig(appId, IgnoreDhcpConfig.class);
+            v4Handler.removeIgnoreVlanState(config);
+            v6Handler.removeIgnoreVlanState(config);
         }
     }
 
