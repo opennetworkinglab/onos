@@ -59,7 +59,7 @@ public final class ApplicationEnumsProtoTranslator {
      * @param roleProto gRPC message
      * @return {@link ApplicationRole}
      */
-    public static Optional<Object> translate(ApplicationRoleProto roleProto) {
+    public static Optional<ApplicationRole> translate(ApplicationRoleProto roleProto) {
 
         switch (roleProto) {
             case USER:
@@ -101,7 +101,7 @@ public final class ApplicationEnumsProtoTranslator {
      * @param stateProto gRPC message
      * @return {@link ApplicationState}
      */
-    public static Optional<Object> translate(ApplicationStateProto stateProto) {
+    public static Optional<ApplicationState> translate(ApplicationStateProto stateProto) {
 
         switch (stateProto) {
             case ACTIVE:

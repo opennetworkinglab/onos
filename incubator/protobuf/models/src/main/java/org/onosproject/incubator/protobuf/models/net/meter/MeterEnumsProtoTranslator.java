@@ -36,7 +36,7 @@ public final class MeterEnumsProtoTranslator {
      * @param unit meterUnit in gRPC enum
      * @return equivalent in ONOS enum
      */
-    public static Optional<Object> translate(MeterEnumsProto.MeterUnitProto unit) {
+    public static Optional<Meter.Unit> translate(MeterEnumsProto.MeterUnitProto unit) {
         switch (unit) {
             case PKTS_PER_SEC:
                 return Optional.of(Meter.Unit.PKTS_PER_SEC);

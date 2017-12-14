@@ -63,7 +63,7 @@ public final class FlowEntryEnumsProtoTranslator {
      * @param flowEntryState gRPC message
      * @return {@link FlowEntryState}
      */
-    public static Optional<Object> translate(FlowEntryEnumsProto.FlowEntryStateProto flowEntryState) {
+    public static Optional<FlowEntryState> translate(FlowEntryEnumsProto.FlowEntryStateProto flowEntryState) {
 
         switch (flowEntryState) {
             case PENDING_ADD:
@@ -115,7 +115,7 @@ public final class FlowEntryEnumsProtoTranslator {
      * @param flowLiveType gRPC message
      * @return {@link FlowLiveType}
      */
-    public static Optional<Object> translate(FlowEntryEnumsProto.FlowLiveTypeProto flowLiveType) {
+    public static Optional<FlowLiveType> translate(FlowEntryEnumsProto.FlowLiveTypeProto flowLiveType) {
 
         switch (flowLiveType) {
             case IMMEDIATE:

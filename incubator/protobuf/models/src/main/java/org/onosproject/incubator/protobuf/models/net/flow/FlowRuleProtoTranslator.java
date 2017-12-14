@@ -71,7 +71,7 @@ public final class FlowRuleProtoTranslator {
 
         // TODO: to register AppId need to find a way to get CoreService
 
-        FlowRule.FlowRemoveReason reason = (FlowRule.FlowRemoveReason)
+        FlowRule.FlowRemoveReason reason =
                 FlowRuleEnumsProtoTranslator.translate(flowRule.getReason()).get();
 
         FlowRule.Builder resultBuilder = new DefaultFlowRule.Builder();

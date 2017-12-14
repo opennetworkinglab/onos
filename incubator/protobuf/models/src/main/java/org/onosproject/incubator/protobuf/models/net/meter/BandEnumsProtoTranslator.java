@@ -35,7 +35,7 @@ public final class BandEnumsProtoTranslator {
      * @param bandType BandType in gRPC enum
      * @return equivalent in ONOS enum
      */
-    public static Optional<Object> translate(BandEnumsProto.BandTypeProto bandType) {
+    public static Optional<Band.Type> translate(BandEnumsProto.BandTypeProto bandType) {
         switch (bandType) {
             case DROP:
                 return Optional.of(Band.Type.DROP);

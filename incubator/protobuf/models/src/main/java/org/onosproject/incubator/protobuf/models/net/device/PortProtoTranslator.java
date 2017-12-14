@@ -30,6 +30,8 @@ import org.onosproject.net.device.PortStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 /**
  * gRPC message conversion related utilities for port service.
  */
@@ -46,7 +48,7 @@ public final class PortProtoTranslator {
     public static PortDescription translate(PortDescriptionProto portDescription) {
         PortNumber number = PortNumber.fromString(portDescription.getPortNumber());
         boolean isEnabled = portDescription.getIsEnabled();
-        Port.Type type = translate(portDescription.getType());
+        Port.Type type = translate(portDescription.getType()).get();
         long portSpeed = portDescription.getPortSpeed();
         SparseAnnotations annotations = AnnotationsTranslator.asAnnotations(portDescription.getAnnotationsMap());
         // TODO How to deal with more specific Port...
@@ -77,27 +79,26 @@ public final class PortProtoTranslator {
      * @param type      gRPC message
      * @return  {@link Port.Type}
      */
-    public static Port.Type translate(PortEnumsProto.PortTypeProto type) {
+    public static Optional<Port.Type> translate(PortEnumsProto.PortTypeProto type) {
         switch (type) {
             case COPPER:
-                return Port.Type.COPPER;
+                return Optional.of(Port.Type.COPPER);
             case FIBER:
-                return Port.Type.FIBER;
+                return Optional.of(Port.Type.FIBER);
             case OCH:
-                return Port.Type.OCH;
+                return Optional.of(Port.Type.OCH);
             case ODUCLT:
-                return Port.Type.ODUCLT;
+                return Optional.of(Port.Type.ODUCLT);
             case OMS:
-                return Port.Type.OMS;
+                return Optional.of(Port.Type.OMS);
             case PACKET:
-                return Port.Type.PACKET;
+                return Optional.of(Port.Type.PACKET);
             case VIRTUAL_PORT:
-                return Port.Type.VIRTUAL;
+                return Optional.of(Port.Type.VIRTUAL);
 
-            case UNRECOGNIZED:
             default:
                 log.warn("Unexpected PortType: {}", type);
-                return Port.Type.COPPER;
+                return Optional.empty();
         }
     }
 
@@ -126,7 +127,7 @@ public final class PortProtoTranslator {
 
             default:
                 log.warn("Unexpected Port.Type: {}", type);
-                return PortEnumsProto.PortTypeProto.COPPER;
+                return PortEnumsProto.PortTypeProto.UNRECOGNIZED;
         }
     }
 

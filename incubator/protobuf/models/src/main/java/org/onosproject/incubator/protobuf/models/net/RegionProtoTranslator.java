@@ -76,9 +76,8 @@ public final class RegionProtoTranslator {
                                        .stream()
                                        .map(s -> RegionProtoOuterClass.RegionProto.NodeIdSet
                                                .newBuilder()
-                                               .addAllNodeId(s.stream().map(id -> {
-                                                   return id.toString();
-                                               }).collect(Collectors.toList()))
+                                               .addAllNodeId(s.stream().map(id ->
+                                                       id.toString()).collect(Collectors.toList()))
                                                .build())
                                        .collect(Collectors.toList()))
                 .build();

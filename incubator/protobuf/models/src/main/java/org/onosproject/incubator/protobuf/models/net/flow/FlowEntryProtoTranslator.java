@@ -63,9 +63,9 @@ public final class FlowEntryProtoTranslator {
             return null;
         }
 
-        FlowEntry.FlowEntryState state = (FlowEntry.FlowEntryState)
+        FlowEntry.FlowEntryState state =
                 FlowEntryEnumsProtoTranslator.translate(flowEntry.getState()).get();
-        FlowEntry.FlowLiveType liveType = (FlowEntry.FlowLiveType)
+        FlowEntry.FlowLiveType liveType =
                 FlowEntryEnumsProtoTranslator.translate(flowEntry.getLiveType()).get();
 
         // TODO: need to instantiate FlowRule later

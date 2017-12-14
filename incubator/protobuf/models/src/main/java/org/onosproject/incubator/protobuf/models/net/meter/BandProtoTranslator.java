@@ -40,7 +40,7 @@ public final class BandProtoTranslator {
      * @return {@link Band}
      */
     public static Band translate(BandProto gBand) {
-        Band.Type type = (Band.Type) BandEnumsProtoTranslator.translate(gBand.getType()).get();
+        Band.Type type = BandEnumsProtoTranslator.translate(gBand.getType()).get();
         long rate = gBand.getRate();
         long burstSize = gBand.getBurst();
         short prec = (short) gBand.getDropPrecedence();

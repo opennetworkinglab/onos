@@ -17,7 +17,6 @@ package org.onosproject.incubator.protobuf.models.core;
 
 import com.google.common.collect.Sets;
 import org.onosproject.core.Application;
-import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.grpc.core.models.ApplicationProtoOuterClass.ApplicationProto;
 import org.onosproject.incubator.protobuf.models.security.PermissionProtoTranslator;
@@ -57,7 +56,7 @@ public final class ApplicationProtoTranslator {
                 .withUrl(app.getUrl())
                 .withReadme(app.getReadme())
                 .withIcon(app.toByteArray())
-                .withRole((ApplicationRole) ApplicationEnumsProtoTranslator.translate(app.getRole()).get())
+                .withRole(ApplicationEnumsProtoTranslator.translate(app.getRole()).get())
                 .withPermissions(permissions)
                 .withFeatures(app.getFeaturesList())
                 .withFeaturesRepo(Optional.empty()) // TODO: need to add features repo

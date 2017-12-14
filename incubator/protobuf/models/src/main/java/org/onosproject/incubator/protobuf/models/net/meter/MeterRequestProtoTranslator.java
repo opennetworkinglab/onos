@@ -67,7 +67,7 @@ public final class MeterRequestProtoTranslator {
 
         DeviceId deviceid = DeviceId.deviceId(meterRequest.getDeviceId());
         ApplicationId appId = ApplicationIdProtoTranslator.translate(meterRequest.getApplicationId());
-        Meter.Unit unit = (Meter.Unit) MeterEnumsProtoTranslator.translate(meterRequest.getUnit()).get();
+        Meter.Unit unit = MeterEnumsProtoTranslator.translate(meterRequest.getUnit()).get();
         boolean burst = meterRequest.getIsBurst();
         Collection<Band> bands = BandProtoTranslator.translate(meterRequest.getBandsList());
         MeterRequest.Type type = (MeterRequest.Type) translate(meterRequest.getType()).get();

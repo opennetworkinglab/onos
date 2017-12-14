@@ -64,7 +64,7 @@ public final class FlowRuleEnumsProtoTranslator {
      * @param flowRemoveReason gRPC message
      * @return {@link FlowRemoveReason}
      */
-    public static Optional<Object> translate(FlowRuleEnumsProto.FlowRemoveReasonProto flowRemoveReason) {
+    public static Optional<FlowRemoveReason> translate(FlowRuleEnumsProto.FlowRemoveReasonProto flowRemoveReason) {
 
         switch (flowRemoveReason) {
             case DELETE:
