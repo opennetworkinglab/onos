@@ -528,6 +528,11 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
+    public OFFeaturesReply features() {
+        return this.features;
+    }
+
+    @Override
     public String manufacturerDescription() {
         return this.desc.getMfrDesc();
     }

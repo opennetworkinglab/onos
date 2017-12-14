@@ -66,6 +66,7 @@ import org.onosproject.provider.of.flow.util.FlowEntryBuilder;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
+import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFFlowLightweightStatsReply;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
@@ -253,9 +254,11 @@ public class OpenFlowRuleProvider extends AbstractProvider
             stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
             fsc.start();
         }
-        TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
-        stopCollectorIfNeeded(tableStatsCollectors.put(new Dpid(sw.getId()), tsc));
-        tsc.start();
+        if (sw.features().getCapabilities().contains(OFCapabilities.TABLE_STATS)) {
+            TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
+            stopCollectorIfNeeded(tableStatsCollectors.put(new Dpid(sw.getId()), tsc));
+            tsc.start();
+        }
     }
 
     private void stopCollectorIfNeeded(SwitchDataCollector collector) {
