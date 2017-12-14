@@ -243,6 +243,17 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         });
     }
 
+    @Override
+    public void removeIgnoreVlanState(IgnoreDhcpConfig config) {
+        if (config == null) {
+            ignoredVlans.clear();
+            return;
+        }
+        config.ignoredVlans().forEach((deviceId, vlanId) -> {
+            ignoredVlans.remove(deviceId, vlanId);
+        });
+    }
+
     public void setDhcpServerConfigs(Collection<DhcpServerConfig> configs, List<DhcpServerInfo> serverInfoList) {
         if (configs.size() == 0) {
             // no config to update

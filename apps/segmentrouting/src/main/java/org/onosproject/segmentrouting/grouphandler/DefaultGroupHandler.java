@@ -449,6 +449,14 @@ public class DefaultGroupHandler {
             int edgeLabel = dskey.destinationSet().getEdgeLabel(destSw);
             Integer nextId = nhops.nextId();
 
+            if (currNeighbors == null || nextHops == null) {
+                log.warn("fixing hash groups but found currNeighbors:{} or nextHops:{}"
+                        + " in targetSw:{} for dstSw:{}", currNeighbors, nextHops,
+                        targetSw, destSw);
+                success &= false;
+                continue;
+            }
+
             Set<DeviceId> diff;
             if (revoke) {
                 diff = Sets.difference(currNeighbors, nextHops);

@@ -169,4 +169,11 @@ public interface DhcpHandler {
      * @param config the config
      */
     void updateIgnoreVlanConfig(IgnoreDhcpConfig config);
+
+    /**
+     * Remove internal state for IgnoreDhcp.
+     *
+     * @param config the config
+     */
+    void removeIgnoreVlanState(IgnoreDhcpConfig config);
 }
