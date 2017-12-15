@@ -186,17 +186,13 @@ public class DefaultL2Tunnel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.tunnelId, this.pwLabel);
+        return Objects.hash(this.tunnelId, this.pwMode, this.sdTag, this.pwLabel, this.interCoLabel);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
-        }
-
-        if (getClass() != o.getClass()) {
-            return false;
         }
 
         if (o instanceof DefaultL2Tunnel) {
