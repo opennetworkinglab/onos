@@ -34,14 +34,14 @@ import java.util.ListIterator;
  */
 public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLocalRib> {
     private static final Logger log = LoggerFactory.getLogger(BgpSelectionAlgo.class);
-    LocalPref obj1LocPref = null;
-    AsPath obj1Aspath = null;
-    Origin obj1Origin = null;
-    Med obj1Med = null;
-    LocalPref obj2LocPref = null;
-    AsPath obj2Aspath = null;
-    Origin obj2Origin = null;
-    Med obj2Med = null;
+    private LocalPref obj1LocPref = null;
+    private AsPath obj1Aspath = null;
+    private Origin obj1Origin = null;
+    private Med obj1Med = null;
+    private LocalPref obj2LocPref = null;
+    private AsPath obj2Aspath = null;
+    private Origin obj2Origin = null;
+    private Med obj2Med = null;
 
     @Override
     public int compare(PathAttrNlriDetailsLocalRib pathNlriDetails1, PathAttrNlriDetailsLocalRib pathNlriDetails2) {
@@ -62,7 +62,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
         storeAttr(listIteratorObj1, listIteratorObj2);
 
         // prefer attribute with higher local preference
-        if (obj1LocPref != null || obj2LocPref != null && (obj1LocPref != null && !obj1LocPref.equals(obj2LocPref))) {
+        if (obj1LocPref != null && obj2LocPref != null && !obj1LocPref.equals(obj2LocPref)) {
             return compareLocalPref(obj1LocPref, obj2LocPref);
         }
 
@@ -81,14 +81,12 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
         }
 
         // prefer attribute with lowest MED
-        if (obj1Med != null || obj2Med != null && (obj1Med != null && !obj1Med.equals(obj2Med))) {
+        if (obj1Med != null && obj2Med != null && !obj1Med.equals(obj2Med)) {
             return compareMed(obj1Med, obj2Med);
         }
 
-        if (!pathNlriDetails1.equals(pathNlriDetails2)) {
-            return comparePeerDetails(pathNlriDetails1, pathNlriDetails2);
-        }
-        return 0;
+        return comparePeerDetails(pathNlriDetails1, pathNlriDetails2);
+
     }
 
     /**
@@ -98,8 +96,8 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param obj2LocPref local preference object2
      * @return object with higher preference
      */
-    int compareLocalPref(LocalPref obj1LocPref, LocalPref obj2LocPref) {
-            return ((Integer) (obj1LocPref.localPref())).compareTo((Integer) (obj2LocPref.localPref()));
+    private int compareLocalPref(LocalPref obj1LocPref, LocalPref obj2LocPref) {
+            return Integer.compare(obj1LocPref.localPref(), obj2LocPref.localPref());
     }
 
     /**
@@ -109,7 +107,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param obj2Size object2 AS count
      * @return object with shortest AsPath
      */
-    int compareAsPath(Integer obj1Size, Integer obj2Size) {
+    private int compareAsPath(Integer obj1Size, Integer obj2Size) {
             return obj1Size.compareTo(obj2Size);
     }
 
@@ -120,7 +118,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param obj2Origin Origin object1
      * @return object with lowest origin value
      */
-    int compareOrigin(Origin obj1Origin, Origin obj2Origin) {
+    private int compareOrigin(Origin obj1Origin, Origin obj2Origin) {
         if (obj1Origin.origin() == OriginType.IGP) {
             return 1;
         }
@@ -141,8 +139,8 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param obj2Med Med object2
      * @return returns object with lowestMed value
      */
-    int compareMed(Med obj1Med, Med obj2Med) {
-        return ((Integer) (obj2Med.med())).compareTo((Integer) (obj1Med.med()));
+    private int compareMed(Med obj1Med, Med obj2Med) {
+        return Integer.compare(obj2Med.med(), obj1Med.med());
     }
 
     /**
@@ -152,7 +150,8 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param pathNlriDetails2 PathAttrNlriDetailsLocalRib object2
      * @return object which as EBGP over IBGP, lowest BGP identifier value and lowest peer address
      */
-    int comparePeerDetails(PathAttrNlriDetailsLocalRib pathNlriDetails1, PathAttrNlriDetailsLocalRib pathNlriDetails2) {
+    private int comparePeerDetails(PathAttrNlriDetailsLocalRib pathNlriDetails1,
+                                   PathAttrNlriDetailsLocalRib pathNlriDetails2) {
         // consider EBGP over IBGP
         if (pathNlriDetails1.isLocalRibIbgpSession() != pathNlriDetails2.isLocalRibIbgpSession()) {
             if (pathNlriDetails1.isLocalRibIbgpSession()) {
@@ -164,8 +163,8 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
         }
         // prefer lowest BGP identifier value.
         if (pathNlriDetails1.localRibIdentifier() != pathNlriDetails2.localRibIdentifier()) {
-            return ((Integer) pathNlriDetails2.localRibIdentifier())
-                    .compareTo(pathNlriDetails1.localRibIdentifier());
+            return Integer.compare(pathNlriDetails2.localRibIdentifier(),
+                                   pathNlriDetails1.localRibIdentifier());
         }
         //prefer lowest peer address
         if (pathNlriDetails1.localRibIpAddress() != pathNlriDetails2.localRibIpAddress()) {
@@ -180,7 +179,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param aspath object of AsPath
      * @return count of ASes
      */
-    Integer countASSize(AsPath aspath) {
+    private Integer countASSize(AsPath aspath) {
         boolean isASSet = false;
         int count = 0;
         if (!aspath.asPathSet().isEmpty()) {
@@ -198,7 +197,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      * @param listIteratorObj1 list iterator of object1
      * @param listIteratorObj2 list iterator of object2
      */
-    void storeAttr(ListIterator<BgpValueType> listIteratorObj1, ListIterator<BgpValueType> listIteratorObj2) {
+    private void storeAttr(ListIterator<BgpValueType> listIteratorObj1, ListIterator<BgpValueType> listIteratorObj2) {
          while (listIteratorObj1.hasNext()) {
              BgpValueType pathAttributeObj1 = listIteratorObj1.next();
              switch (pathAttributeObj1.getType()) {
