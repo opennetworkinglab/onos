@@ -16,6 +16,8 @@
 package org.onosproject.castor;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 /**
  * POJO class for the Peer and the Route Servers.
@@ -115,17 +117,27 @@ public class Peer {
         if (ob == null) {
             return false;
         }
-        Peer other = (Peer) ob;
-        if (this.ipAddress.equals(other.ipAddress)) {
-            return true;
+        if (getClass() != ob.getClass()) {
+            return false;
         }
-        return false;
+        Peer other = (Peer) ob;
+        return Objects.equal(this.ipAddress, other.ipAddress);
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 53 * hash + (this.ipAddress != null ? this.ipAddress.hashCode() : 0);
-        return hash;
+        return Objects.hashCode(this.ipAddress);
+    }
+
+    @Override
+    public String toString() {
+
+        return MoreObjects.toStringHelper(this)
+                .add("ipAddress", ipAddress)
+                .add("name", name)
+                .add("dpid", dpid)
+                .add("port", port)
+                .toString();
+
     }
 }
