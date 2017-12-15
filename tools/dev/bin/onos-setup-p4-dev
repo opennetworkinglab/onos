@@ -17,7 +17,7 @@ set -e
 BUILD_DIR=~/p4tools
 BMV2_COMMIT="d930fa2818d8ed71f3bf36eaf3f3687d9b68184f"
 PI_COMMIT="13d611a9c655938676ebcde2bd5653b461f46ca7"
-P4C_COMMIT="040b931fbfcb7912e3a14cd05df950fbdd49b038"
+P4C_COMMIT="03da20f95cce7b785c6c25745c7eeec2a14a7bf4"
 PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 
@@ -71,6 +71,7 @@ function do_requirements {
         python-ipaddr \
         python-pip \
         python-scapy \
+        python-setuptools \
         tcpdump \
         wget \
         unzip
