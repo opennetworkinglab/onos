@@ -90,10 +90,6 @@ public class DefaultL2TunnelDescription {
             return true;
         }
 
-        if (getClass() != o.getClass()) {
-            return false;
-        }
-
         if (o instanceof DefaultL2TunnelDescription) {
             DefaultL2TunnelDescription that = (DefaultL2TunnelDescription) o;
             // Equality is based on tunnel id and pw label
