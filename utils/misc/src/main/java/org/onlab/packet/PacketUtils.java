@@ -39,7 +39,7 @@ public final class PacketUtils {
     public static void checkBufferLength(int byteLength, int offset, int length)
             throws DeserializationException {
         boolean ok = (offset >= 0 && offset < byteLength);
-        ok = ok & (length >= 0 && offset + length <= byteLength);
+        ok = ok && (length >= 0 && offset + length <= byteLength);
 
         if (!ok) {
             throw new DeserializationException("Unable to read " + length + " bytes from a "
