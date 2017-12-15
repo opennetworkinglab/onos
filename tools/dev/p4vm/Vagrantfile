@@ -1,0 +1,14 @@
+Vagrant.configure(2) do |config|
+  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "ONOS-P4 Dev " + Time.now.strftime("(%Y-%m-%d)")
+    vb.gui = true
+    vb.cpus = 2
+    vb.memory = 4096
+  end
+  config.vm.hostname = "onos-p4-dev"
+  # By default vagrant creates a NAT interface.
+  # Create a second one host-only.
+  config.vm.network "private_network", :type => 'dhcp', :adapter => 2
+  config.vm.provision "shell", path: "root-bootstrap.sh"
+end
