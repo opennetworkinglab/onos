@@ -6,16 +6,23 @@ COMPILE_DEPS = [
     '//core/api:onos-api',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
+    '//drivers/default:onos-drivers-default',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/misc:onlab-misc',
 ]
 
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 
 onos_app (
     title = 'Trellis Troubleshooting Toolkit',
-    category = 'Utility',
-    url = 'http://onosproject.org',
+    category = 'Utilities',
+    url = 'https://wiki.opencord.org/pages/viewpage.action?pageId=4456974',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',
 )
