@@ -328,27 +328,33 @@ public class ConsistentDeviceMastershipStore
         private void handleEvent(LeadershipEvent event) {
             Leadership leadership = event.subject();
             DeviceId deviceId = extractDeviceIdFromTopic(leadership.topic());
-            RoleInfo roleInfo = event.type() != LeadershipEvent.Type.SERVICE_DISRUPTED ?
-                    getNodes(deviceId) : new RoleInfo();
+            NodeId master = event.subject().leaderNodeId();
+            List<NodeId> backups = event.subject().candidates()
+                    .stream()
+                    .filter(n -> !n.equals(master))
+                    .collect(Collectors.toList());
+            RoleInfo roleInfo = event.type() != LeadershipEvent.Type.SERVICE_DISRUPTED
+                    ? new RoleInfo(master, backups)
+                    : new RoleInfo();
             switch (event.type()) {
-            case LEADER_AND_CANDIDATES_CHANGED:
-                notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
-                notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, roleInfo));
-                break;
-            case LEADER_CHANGED:
-                notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, roleInfo));
-                break;
-            case CANDIDATES_CHANGED:
-                notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
-                break;
-            case SERVICE_DISRUPTED:
-                notifyDelegate(new MastershipEvent(SUSPENDED, deviceId, roleInfo));
-                break;
-            case SERVICE_RESTORED:
-                // Do nothing, wait for updates from peers
-                break;
-            default:
-                return;
+                case LEADER_AND_CANDIDATES_CHANGED:
+                    notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
+                    notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, roleInfo));
+                    break;
+                case LEADER_CHANGED:
+                    notifyDelegate(new MastershipEvent(MASTER_CHANGED, deviceId, roleInfo));
+                    break;
+                case CANDIDATES_CHANGED:
+                    notifyDelegate(new MastershipEvent(BACKUPS_CHANGED, deviceId, roleInfo));
+                    break;
+                case SERVICE_DISRUPTED:
+                    notifyDelegate(new MastershipEvent(SUSPENDED, deviceId, roleInfo));
+                    break;
+                case SERVICE_RESTORED:
+                    // Do nothing, wait for updates from peers
+                    break;
+                default:
+                    return;
             }
         }
     }
