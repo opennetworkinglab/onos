@@ -18,12 +18,7 @@ package org.onosproject.driver.handshaker;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Default driver to fallback on if no other driver is available.
@@ -52,16 +47,5 @@ public class DefaultSwitchHandshaker extends AbstractOpenFlowSwitch {
     @Override
     public boolean isDriverHandshakeComplete() {
         return true;
-    }
-
-    @Override
-    public List<OFPortDesc> getPorts() {
-        if (this.factory().getVersion() == OFVersion.OF_10) {
-            return Collections.unmodifiableList(features.getPorts());
-        } else {
-            return Collections.unmodifiableList(
-                    ports.stream().flatMap(p -> p.getEntries().stream())
-                            .collect(Collectors.toList()));
-        }
     }
 }

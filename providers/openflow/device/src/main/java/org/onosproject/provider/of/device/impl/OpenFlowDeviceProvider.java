@@ -556,12 +556,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @return list of portdescriptions
          */
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
-            final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
+            List<OFPortDesc> ofPorts = sw.getPorts();
+            final List<PortDescription> portDescs = new ArrayList<>(ofPorts.size());
             if (!((Device.Type.ROADM.equals(sw.deviceType())) ||
                     (Device.Type.OTN.equals(sw.deviceType())) ||
                     (Device.Type.OPTICAL_AMPLIFIER.equals(sw.deviceType())))) {
                 // build regular (=non-optical) Device ports
-                sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
+                ofPorts.forEach(port -> portDescs.add(buildPortDescription(port)));
             }
 
             // TODO handle Optical Device, but plain OF devices(1.4 and later)
