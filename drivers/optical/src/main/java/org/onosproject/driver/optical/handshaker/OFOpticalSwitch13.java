@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
 import org.onosproject.net.Device;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
@@ -159,9 +157,7 @@ public class OFOpticalSwitch13 extends AbstractOpenFlowSwitch implements OpenFlo
      */
     @Override
     public List<OFPortDesc> getPorts() {
-        return ImmutableList.copyOf(
-                ports.stream().flatMap(p -> p.getEntries().stream())
-                .collect(Collectors.toList()));
+        return super.getPorts();
     }
 
     @Override

@@ -33,7 +33,6 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
-import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
@@ -43,6 +42,7 @@ import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmExpOchSigId;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
+import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U8;
 
 import java.io.IOException;
@@ -266,16 +266,9 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
      * @param port given port number
      * @return true if the port is a tap (OCh), false otherwise (OMS port)
      */
-    private boolean isOChPort(long port) {
-        for (OFPortDescStatsReply reply : this.ports) {
-            for (OFPortDesc p : reply.getEntries()) {
-                if (p.getPortNo().getPortNumber() == port) {
-                    return true;
-                }
-            }
-        }
+    private boolean isOChPort(OFPort port) {
 
-        return false;
+        return portDescs().containsKey(port);
     }
 
     /**
@@ -324,7 +317,7 @@ public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements
             short signalType;
 
             // FIXME: use constants once loxi has full optical extensions
-            if (isOChPort(p.getPortNo().getPortNumber())) {
+            if (isOChPort(p.getPortNo())) {
                 signalType = 5;      // OCH port
             } else {
                 signalType = 2;      // OMS port
