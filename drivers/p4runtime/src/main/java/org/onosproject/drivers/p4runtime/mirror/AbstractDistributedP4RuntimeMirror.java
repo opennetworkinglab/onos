@@ -75,6 +75,7 @@ public abstract class AbstractDistributedP4RuntimeMirror
 
     @Deactivate
     public void deactivate() {
+        mirrorMap.destroy();
         mirrorMap = null;
         log.info("Stopped");
     }
