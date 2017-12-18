@@ -30,33 +30,10 @@ import static org.onlab.packet.LLDPOrganizationalTLV.SUBTYPE_LENGTH;
  *  ONOS LLDP containing organizational TLV for ONOS device discovery.
  */
 public class ONOSLLDP extends LLDP {
-    /**
-     * ONOS OUI.
-     *
-     * @deprecated in Kingfisher. Use MacAddress.ONOS.oui() instead.
-     */
-    @Deprecated
-    public static final byte[] ONLAB_OUI = {(byte) 0xa4, 0x23, 0x05};
 
     public static final String DEFAULT_DEVICE = "INVALID";
     public static final String DEFAULT_NAME = "ONOS Discovery";
 
-    /**
-     * ONOS LLDP multicast MAC address.
-     *
-     * @deprecated in Kingfisher. Use MacAddress.ONOS_LLDP instead.
-     */
-    @Deprecated
-    public static final byte[] LLDP_ONLAB = {(byte) 0xa5, 0x23, 0x05, 0x00, 0x00, 0x01};
-
-    /**
-     * ONOS BDDP broadcast MAC address.
-     *
-     * @deprecated in Kingfisher. Use MacAddress.BROADCASAT instead.
-     */
-    @Deprecated
-    public static final byte[] BDDP_MULTICAST = {(byte) 0xff, (byte) 0xff,
-            (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
 
     protected static final byte NAME_SUBTYPE = 1;
     protected static final byte DEVICE_SUBTYPE = 2;
