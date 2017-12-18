@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.net.InetAddress;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -184,7 +185,7 @@ public final class OspfUtil {
      * @return random number
      */
     public static int createRandomNumber() {
-        Random rnd = new Random();
+        Random rnd = new SecureRandom();
         int randomNumber = 10000000 + rnd.nextInt(90000000);
         return randomNumber;
     }

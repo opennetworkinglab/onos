@@ -29,6 +29,7 @@ import org.onosproject.net.link.LinkService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -53,7 +54,7 @@ class TopologyMutationDriver implements Runnable {
     private static final int WAIT_DELAY = 2_000;
     private static final int MAX_DOWN_LINKS = 5;
 
-    private final Random random = new Random();
+    private final Random random = new SecureRandom();
 
     private volatile boolean stopped = true;
 

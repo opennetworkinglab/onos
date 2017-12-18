@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.flow.impl;
 
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -153,7 +154,7 @@ public class DistributedFlowRuleStore
     private Set<Long> pendingBatches = Sets.newConcurrentHashSet();
     private ScheduledExecutorService scheduledExecutor;
     private ExecutorService messageHandlingExecutor;
-    private final Random random = new Random();
+    private final Random random = new SecureRandom();
 
     private AsyncDocumentTree<Map<StoredFlowEntry, StoredFlowEntry>> asyncFlows;
     private DocumentTree<Map<StoredFlowEntry, StoredFlowEntry>> flows;

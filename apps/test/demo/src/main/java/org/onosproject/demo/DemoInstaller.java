@@ -15,6 +15,7 @@
  */
 package org.onosproject.demo;
 
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -278,7 +279,7 @@ public class DemoInstaller implements DemoApi {
         private final boolean isLocal;
         private final Set<Host> hosts;
 
-        private final Random random = new Random(System.currentTimeMillis());
+        private final Random random = new SecureRandom();
 
         private Set<HostPair> uninstalledOrWithdrawn;
         private Set<HostPair> installed;

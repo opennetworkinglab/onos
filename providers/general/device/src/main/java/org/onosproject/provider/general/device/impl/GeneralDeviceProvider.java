@@ -79,13 +79,13 @@ import org.onosproject.provider.general.device.api.GeneralProviderDeviceConfig;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -732,7 +732,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     private ScheduledFuture<?> schedulePolling(DeviceId deviceId, boolean randomize) {
         int delay = 0;
         if (randomize) {
-            delay = new Random().nextInt(10);
+            delay = new SecureRandom().nextInt(10);
         }
         return portStatsExecutor.scheduleAtFixedRate(
                 exceptionSafe(() -> updatePortStatistics(deviceId)),

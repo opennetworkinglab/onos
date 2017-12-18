@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -72,7 +73,7 @@ public abstract class Tools {
 
     private static final Logger log = getLogger(Tools.class);
 
-    private static Random random = new Random();
+    private static Random random = new SecureRandom();
 
     /**
      * Returns a thread factory that produces threads named according to the

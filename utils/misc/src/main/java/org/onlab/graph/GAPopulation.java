@@ -15,6 +15,7 @@
  */
 package org.onlab.graph;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Random;
  * to run a genetic algorithm on the population and return the fittest solutions.
  */
 class GAPopulation<Organism extends GAOrganism> extends ArrayList<Organism> {
-    Random r = new Random();
+    Random r = new SecureRandom();
 
     /**
      * Steps the population through one generation. The 75% least fit
