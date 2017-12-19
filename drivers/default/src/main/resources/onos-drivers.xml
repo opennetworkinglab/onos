@@ -156,6 +156,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
+    <driver name="voltha" extends="default"
+            manufacturer="cord project" hwVersion=".*" swVersion="logical device for .*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
+    </driver>
     <driver name="fj-olt" extends="default"
             manufacturer="Fujitsu" hwVersion="svkOLT" swVersion="v1.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
