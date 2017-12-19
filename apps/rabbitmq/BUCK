@@ -6,14 +6,21 @@ COMPILE_DEPS = [
     '//lib:amqp-client',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
 BUNDLES = [
     '//lib:gson',
     '//lib:amqp-client',
     '//apps/rabbitmq:onos-apps-rabbitmq',
 ]
 
-osgi_jar (
+osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
 )
 
 onos_app (
