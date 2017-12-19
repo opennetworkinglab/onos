@@ -195,13 +195,20 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         try {
             MseaCfm mseacfm =
                     mseaCfmService.getMepFull(mdName, maName, mepId, session);
-            for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
-                    mseacfm.mefcfm.MaintenanceDomain replyMd:mseacfm.mefCfm().maintenanceDomain()) {
+            if (mseacfm != null && mseacfm.mefCfm() != null &&
+                    mseacfm.mefCfm().maintenanceDomain() != null) {
                 for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
-                        mseacfm.mefcfm.maintenancedomain.
-                        MaintenanceAssociation replyMa:replyMd.maintenanceAssociation()) {
-                    for (MaintenanceAssociationEndPoint replyMep:replyMa.maintenanceAssociationEndPoint()) {
-                        return buildApiMepEntryFromYangMep(replyMep, handler().data().deviceId(), mdName, maName);
+                        mseacfm.mefcfm.MaintenanceDomain replyMd :
+                                        mseacfm.mefCfm().maintenanceDomain()) {
+                    for (org.onosproject.yang.gen.v1.mseacfm.rev20160229.
+                            mseacfm.mefcfm.maintenancedomain.
+                            MaintenanceAssociation replyMa :
+                                            replyMd.maintenanceAssociation()) {
+                        for (MaintenanceAssociationEndPoint replyMep :
+                                    replyMa.maintenanceAssociationEndPoint()) {
+                            return buildApiMepEntryFromYangMep(
+                                    replyMep, handler().data().deviceId(), mdName, maName);
+                        }
                     }
                 }
             }
@@ -210,7 +217,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         } catch (NetconfException e) {
             log.error("Unable to get MEP {}/{}/{} on device {}",
                     mdName, maName, mepId, handler().data().deviceId());
-            throw new CfmConfigException("Unable to create MEP :" + e.getMessage());
+            throw new CfmConfigException("Unable to get MEP :" + e.getMessage());
         }
     }
 
