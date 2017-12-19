@@ -39,6 +39,7 @@ import org.eclipse.aether.version.Version;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -142,6 +143,9 @@ public class AetherResolver {
             Attributes attrs = jar.getManifest().getMainAttributes();
             return attrs.getValue("Bundle-SymbolicName") != null &&
                     attrs.getValue("Bundle-Version") != null;
+        } catch (IOException e) {
+            // wasn't jar
+            return false;
         }
     }
 

@@ -18,6 +18,9 @@ PREFIX="onos-$ONOS_VERSION"
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 tar xf $KARAF_TAR
 
+# rename path name to match what was distributed with vicci
+mv "$(ls -d apache*)" "apache-karaf-$KARAF_VERSION" || true
+
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 KARAF_DIR=$(ls -d apache*)
 rm -rf $KARAF_DIR/demos
@@ -38,7 +41,7 @@ perl -pi.old -e "s|^(featuresRepositories=).*|\1mvn:org.apache.karaf.features/st
     $KARAF_DIR/etc/org.apache.karaf.features.cfg
 
 # Patch the Apache Karaf distribution file to load default ONOS boot features
-perl -pi.old -e "s|^(featuresBoot=).*|\1$BOOT_FEATURES|" \
+perl -pi.old -e "s|^(featuresBoot ?= ?).*|\1$BOOT_FEATURES|" \
     $KARAF_DIR/etc/org.apache.karaf.features.cfg
 
 
