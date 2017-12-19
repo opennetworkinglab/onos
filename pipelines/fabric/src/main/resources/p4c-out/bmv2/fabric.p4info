@@ -243,20 +243,20 @@ tables {
   }
   match_fields {
     id: 5
+    name: "fabric_metadata.original_ether_type"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 6
     name: "hdr.ethernet.dst_addr"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 6
+    id: 7
     name: "hdr.ethernet.src_addr"
     bitwidth: 48
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 7
-    name: "fabric_metadata.original_ether_type"
-    bitwidth: 16
     match_type: TERNARY
   }
   match_fields {
@@ -267,48 +267,24 @@ tables {
   }
   match_fields {
     id: 9
-    name: "hdr.mpls.bos"
-    bitwidth: 1
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 10
-    name: "hdr.mpls.label"
-    bitwidth: 20
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 11
     name: "hdr.ipv4.src_addr"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 12
+    id: 10
     name: "hdr.ipv4.dst_addr"
     bitwidth: 32
     match_type: TERNARY
   }
   match_fields {
-    id: 13
-    name: "hdr.ipv6.src_addr"
-    bitwidth: 128
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 14
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 15
+    id: 11
     name: "hdr.icmp.icmp_type"
     bitwidth: 8
     match_type: TERNARY
   }
   match_fields {
-    id: 16
+    id: 12
     name: "hdr.icmp.icmp_code"
     bitwidth: 8
     match_type: TERNARY

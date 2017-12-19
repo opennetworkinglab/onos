@@ -68,6 +68,18 @@ public class FabricForwardingPipeliner {
 
     private void processVersatileFwd(ForwardingObjective fwd,
                                      PipelinerTranslationResult.Builder resultBuilder) {
+        // TODO: Move IPv6 match to different ACL table
+
+        boolean unsupported = fwd.selector().criteria().stream()
+                .anyMatch(criterion -> criterion.type() == Criterion.Type.IPV6_DST);
+        unsupported |= fwd.selector().criteria().stream()
+                .anyMatch(criterion -> criterion.type() == Criterion.Type.IPV6_SRC);
+
+        if (unsupported) {
+            resultBuilder.setError(ObjectiveError.UNSUPPORTED);
+            return;
+        }
+
         // program ACL table only
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(fwd.selector())
@@ -254,7 +266,7 @@ public class FabricForwardingPipeliner {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(fwd.nextId().byteValue()));
         PiAction nextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_POP_MPLS_AND_NEXT_ID)
+                .withId(FabricConstants.ACT_FORWARDING_POP_MPLS_AND_NEXT_ID)
                 .withParameter(nextIdParam)
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -278,7 +290,7 @@ public class FabricForwardingPipeliner {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
         PiAction nextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_NEXT_ID_ID)
+                .withId(FabricConstants.ACT_FORWARDING_SET_NEXT_ID_ID)
                 .withParameter(nextIdParam)
                 .build();
 

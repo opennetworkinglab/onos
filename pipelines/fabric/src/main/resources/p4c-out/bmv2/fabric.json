@@ -9,9 +9,9 @@
       "name" : "scalars_0",
       "id" : 0,
       "fields" : [
-        ["tmp_0", 161, false],
+        ["tmp", 4, false],
+        ["tmp_0", 32, false],
         ["tmp_1", 32, false],
-        ["tmp_2", 32, false],
         ["next_tmp_0", 1, false],
         ["fabric_metadata_t.fwd_type", 3, false],
         ["fabric_metadata_t.next_id", 32, false],
@@ -20,12 +20,41 @@
         ["fabric_metadata_t.l4_src_port", 16, false],
         ["fabric_metadata_t.l4_dst_port", 16, false],
         ["fabric_metadata_t.original_ether_type", 16, false],
-        ["_padding_0", 2, false]
+        ["_padding_0", 7, false]
+      ]
+    },
+    {
+      "name" : "ethernet_t",
+      "id" : 1,
+      "fields" : [
+        ["dst_addr", 48, false],
+        ["src_addr", 48, false],
+        ["ether_type", 16, false]
+      ]
+    },
+    {
+      "name" : "vlan_tag_t",
+      "id" : 2,
+      "fields" : [
+        ["pri", 3, false],
+        ["cfi", 1, false],
+        ["vlan_id", 12, false],
+        ["ether_type", 16, false]
+      ]
+    },
+    {
+      "name" : "mpls_t",
+      "id" : 3,
+      "fields" : [
+        ["label", 20, false],
+        ["tc", 3, false],
+        ["bos", 1, false],
+        ["ttl", 8, false]
       ]
     },
     {
       "name" : "ipv4_t",
-      "id" : 1,
+      "id" : 4,
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
@@ -39,35 +68,6 @@
         ["hdr_checksum", 16, false],
         ["src_addr", 32, false],
         ["dst_addr", 32, false]
-      ]
-    },
-    {
-      "name" : "ethernet_t",
-      "id" : 2,
-      "fields" : [
-        ["dst_addr", 48, false],
-        ["src_addr", 48, false],
-        ["ether_type", 16, false]
-      ]
-    },
-    {
-      "name" : "vlan_tag_t",
-      "id" : 3,
-      "fields" : [
-        ["pri", 3, false],
-        ["cfi", 1, false],
-        ["vlan_id", 12, false],
-        ["ether_type", 16, false]
-      ]
-    },
-    {
-      "name" : "mpls_t",
-      "id" : 4,
-      "fields" : [
-        ["label", 20, false],
-        ["tc", 3, false],
-        ["bos", 1, false],
-        ["ttl", 8, false]
       ]
     },
     {
@@ -178,106 +178,99 @@
   ],
   "headers" : [
     {
-      "name" : "tmp",
-      "id" : 0,
-      "header_type" : "ipv4_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
       "name" : "scalars",
-      "id" : 1,
+      "id" : 0,
       "header_type" : "scalars_0",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "standard_metadata",
-      "id" : 2,
+      "id" : 1,
       "header_type" : "standard_metadata",
       "metadata" : true,
       "pi_omit" : true
     },
     {
       "name" : "ethernet",
-      "id" : 3,
+      "id" : 2,
       "header_type" : "ethernet_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "vlan_tag",
-      "id" : 4,
+      "id" : 3,
       "header_type" : "vlan_tag_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "inner_vlan_tag",
-      "id" : 5,
+      "id" : 4,
       "header_type" : "vlan_tag_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "mpls",
-      "id" : 6,
+      "id" : 5,
       "header_type" : "mpls_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "ipv4",
-      "id" : 7,
+      "id" : 6,
       "header_type" : "ipv4_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "ipv6",
-      "id" : 8,
+      "id" : 7,
       "header_type" : "ipv6_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "arp",
-      "id" : 9,
+      "id" : 8,
       "header_type" : "arp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "tcp",
-      "id" : 10,
+      "id" : 9,
       "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "udp",
-      "id" : 11,
+      "id" : 10,
       "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "icmp",
-      "id" : 12,
+      "id" : 11,
       "header_type" : "icmp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_out",
-      "id" : 13,
+      "id" : 12,
       "header_type" : "packet_out_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_in",
-      "id" : 14,
+      "id" : 13,
       "header_type" : "packet_in_header_t",
       "metadata" : false,
       "pi_omit" : true
@@ -533,603 +526,11 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_0"]
+                  "value" : ["scalars", "tmp"]
                 },
                 {
                   "type" : "lookahead",
-                  "value" : [0, 161]
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "parameters" : [
-                    {
-                      "type" : "header",
-                      "value" : "tmp"
-                    }
-                  ],
-                  "op" : "add_header"
-                }
-              ],
-              "op" : "primitive"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "version"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x9d"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x0f"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "ihl"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x99"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x0f"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "diffserv"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x91"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "total_len"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x81"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xffff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "identification"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x71"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xffff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "flags"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x6e"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x07"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "frag_offset"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x61"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x1fff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "ttl"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x59"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "protocol"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x51"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "hdr_checksum"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x41"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xffff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "src_addr"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x21"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xffffffff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "dst_addr"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : ">>",
-                              "left" : {
-                                "type" : "field",
-                                "value" : ["scalars", "tmp_0"]
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x1"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0x01ffffffffffffffffffffffffffffffffffffffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xffffffff"
-                      }
-                    }
-                  }
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["tmp", "$valid$"]
-                },
-                {
-                  "type" : "expression",
-                  "value" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "&",
-                      "left" : {
-                        "type" : "field",
-                        "value" : ["scalars", "tmp_0"]
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0x01"
-                      }
-                    }
-                  }
+                  "value" : [0, 4]
                 }
               ],
               "op" : "set"
@@ -1155,7 +556,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["tmp", "version"]
+              "value" : ["scalars", "tmp"]
             }
           ]
         },
@@ -1424,7 +825,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "./include/parser.p4",
-        "line" : 135,
+        "line" : 137,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -3151,7 +2552,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_0"]
             },
             {
               "type" : "expression",
@@ -3181,7 +2582,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_0"]
             }
           ],
           "source_info" : {
@@ -3203,7 +2604,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_2"]
+              "value" : ["scalars", "tmp_1"]
             },
             {
               "type" : "expression",
@@ -3233,7 +2634,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_2"]
+              "value" : ["scalars", "tmp_1"]
             }
           ],
           "source_info" : {
@@ -3798,6 +3199,11 @@
             },
             {
               "match_type" : "ternary",
+              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
             },
@@ -3808,22 +3214,7 @@
             },
             {
               "match_type" : "ternary",
-              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
               "target" : ["vlan_tag", "vlan_id"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["mpls", "bos"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["mpls", "label"],
               "mask" : null
             },
             {
@@ -3834,16 +3225,6 @@
             {
               "match_type" : "ternary",
               "target" : ["ipv4", "dst_addr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["ipv6", "src_addr"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
-              "target" : ["ipv6", "dst_addr"],
               "mask" : null
             },
             {
@@ -4187,7 +3568,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 143,
+            "line" : 139,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
           },
@@ -4213,7 +3594,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 144,
+            "line" : 140,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
           },
@@ -4239,7 +3620,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 146,
+            "line" : 142,
             "column" : 16,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -4265,7 +3646,7 @@
           "id" : 4,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 154,
+            "line" : 150,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },
@@ -4291,7 +3672,7 @@
           "id" : 5,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 155,
+            "line" : 151,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_MULTICAST"
           },
@@ -4317,7 +3698,7 @@
           "id" : 6,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 156,
+            "line" : 152,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV6_UNICAST"
           },
@@ -4343,7 +3724,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "./include/control/forwarding.p4",
-            "line" : 157,
+            "line" : 153,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV6_MULTICAST"
           },

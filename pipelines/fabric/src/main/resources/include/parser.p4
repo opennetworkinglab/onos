@@ -75,8 +75,10 @@ inout standard_metadata_t standard_metadata) {
 
     state parse_mpls {
         packet.extract(hdr.mpls);
-        //There is only one MPLS label for this fabric.
-        transition select(packet.lookahead<ipv4_t>().version) {
+        // There is only one MPLS label for this fabric.
+        // Assume header after MPLS header is IP/IPv6
+        // Lookup first 4 bits for version
+        transition select(packet.lookahead<bit<4>>()) {
             //The packet should be either IPv4 or IPv6.
             IP_VERSION_4: parse_ipv4;
             IP_VERSION_6: parse_ipv6;

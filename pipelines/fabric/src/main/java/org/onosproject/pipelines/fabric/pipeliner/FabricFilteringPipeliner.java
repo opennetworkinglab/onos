@@ -233,7 +233,7 @@ public class FabricFilteringPipeliner {
         PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_FWD_TYPE_ID,
                                                 ImmutableByteSequence.copyFrom(fwdType));
         PiAction action = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_FORWARDING_TYPE_ID)
+                .withId(FabricConstants.ACT_FILTERING_SET_FORWARDING_TYPE_ID)
                 .withParameter(param)
                 .build();
         return DefaultTrafficTreatment.builder()

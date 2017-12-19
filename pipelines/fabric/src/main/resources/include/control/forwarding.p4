@@ -113,17 +113,13 @@ control Forwarding (
             fabric_metadata.ip_proto: ternary; // 8
             fabric_metadata.l4_src_port: ternary; // 16
             fabric_metadata.l4_dst_port: ternary; // 16
+            fabric_metadata.original_ether_type: ternary; //16
 
             hdr.ethernet.dst_addr: ternary; // 48
             hdr.ethernet.src_addr: ternary; // 48
-            fabric_metadata.original_ether_type: ternary; //16
             hdr.vlan_tag.vlan_id: ternary; // 12
-            hdr.mpls.bos: ternary; // 1
-            hdr.mpls.label: ternary; // 20
             hdr.ipv4.src_addr: ternary; // 32
             hdr.ipv4.dst_addr: ternary; // 32
-            hdr.ipv6.src_addr: ternary; // 128
-            hdr.ipv6.dst_addr: ternary; // 128
             hdr.icmp.icmp_type: ternary; // 8
             hdr.icmp.icmp_code: ternary; // 8
         }

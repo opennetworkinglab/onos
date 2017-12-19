@@ -64,7 +64,7 @@ public class FabricInterpreterTest {
         PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
                                                 ImmutableByteSequence.copyFrom(VLAN_100.toShort()));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_PUSH_INTERNAL_VLAN_ID)
+                .withId(FabricConstants.ACT_FILTERING_PUSH_INTERNAL_VLAN_ID)
                 .withParameter(param)
                 .build();
 
@@ -84,7 +84,7 @@ public class FabricInterpreterTest {
         PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
                                                 ImmutableByteSequence.copyFrom(VLAN_100.toShort()));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_VLAN_ID)
+                .withId(FabricConstants.ACT_FILTERING_SET_VLAN_ID)
                 .withParameter(param)
                 .build();
 
@@ -119,7 +119,7 @@ public class FabricInterpreterTest {
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.TBL_ACL_ID);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_DUPLICATE_TO_CONTROLLER_ID)
+                .withId(FabricConstants.ACT_FORWARDING_DUPLICATE_TO_CONTROLLER_ID)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
@@ -141,7 +141,7 @@ public class FabricInterpreterTest {
         PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
                                                 ImmutableByteSequence.copyFrom(portNumVal));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_OUTPUT_ID)
+                .withId(FabricConstants.ACT_NEXT_OUTPUT_ID)
                 .withParameter(param)
                 .build();
 
@@ -168,7 +168,7 @@ public class FabricInterpreterTest {
         PiActionParam portParam = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
                                                 ImmutableByteSequence.copyFrom(portNumVal));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_L3_ROUTING_ID)
+                .withId(FabricConstants.ACT_NEXT_L3_ROUTING_ID)
                 .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam))
                 .build();
 
@@ -194,7 +194,7 @@ public class FabricInterpreterTest {
                                                     ImmutableByteSequence.copyFrom(vlanVal));
 
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_VLAN_OUTPUT_ID)
+                .withId(FabricConstants.ACT_NEXT_SET_VLAN_OUTPUT_ID)
                 .withParameters(ImmutableList.of(vlanParam, portParam))
                 .build();
 
@@ -224,7 +224,7 @@ public class FabricInterpreterTest {
                 ImmutableByteSequence.fit(ImmutableByteSequence.copyFrom(MPLS_10.toInt()), 20);
         PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsVal);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.ACT_MPLS_ROUTING_V4_ID)
+                .withId(FabricConstants.ACT_NEXT_MPLS_ROUTING_V4_ID)
                 .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam, mplsParam))
                 .build();
         assertEquals(expectedAction, mappedAction);

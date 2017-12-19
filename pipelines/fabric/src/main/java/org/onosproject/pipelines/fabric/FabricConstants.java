@@ -47,14 +47,18 @@ public final class FabricConstants {
     // Header field IDs
     public static final PiMatchFieldId HF_FABRIC_METADATA_L4_SRC_PORT_ID =
             buildPiMatchField(FABRIC_METADATA, "l4_src_port", false);
-    public static final PiMatchFieldId HF_MPLS_BOS_ID = buildPiMatchField(MPLS, "bos", true);
-    public static final PiMatchFieldId HF_IPV4_SRC_ADDR_ID = buildPiMatchField(IPV4, "src_addr", true);
-    public static final PiMatchFieldId HF_VLAN_TAG_VLAN_ID_ID = buildPiMatchField(VLAN_TAG, "vlan_id", true);
-    public static final PiMatchFieldId HF_MPLS_LABEL_ID = buildPiMatchField(MPLS, "label", true);
-    public static final PiMatchFieldId HF_IPV6_DST_ADDR_ID = buildPiMatchField(IPV6, "dst_addr", true);
-    public static final PiMatchFieldId HF_ETHERNET_SRC_ADDR_ID = buildPiMatchField(ETHERNET, "src_addr", true);
-    public static final PiMatchFieldId HF_ICMP_ICMP_TYPE_ID = buildPiMatchField(ICMP, "icmp_type", true);
-    public static final PiMatchFieldId HF_IPV6_SRC_ADDR_ID = buildPiMatchField(IPV6, "src_addr", true);
+    public static final PiMatchFieldId HF_IPV4_SRC_ADDR_ID =
+            buildPiMatchField(IPV4, "src_addr", true);
+    public static final PiMatchFieldId HF_VLAN_TAG_VLAN_ID_ID =
+            buildPiMatchField(VLAN_TAG, "vlan_id", true);
+    public static final PiMatchFieldId HF_MPLS_LABEL_ID =
+            buildPiMatchField(MPLS, "label", true);
+    public static final PiMatchFieldId HF_IPV6_DST_ADDR_ID =
+            buildPiMatchField(IPV6, "dst_addr", true);
+    public static final PiMatchFieldId HF_ETHERNET_SRC_ADDR_ID =
+            buildPiMatchField(ETHERNET, "src_addr", true);
+    public static final PiMatchFieldId HF_ICMP_ICMP_TYPE_ID =
+            buildPiMatchField(ICMP, "icmp_type", true);
     public static final PiMatchFieldId HF_FABRIC_METADATA_NEXT_ID_ID =
             buildPiMatchField(FABRIC_METADATA, "next_id", false);
     public static final PiMatchFieldId HF_FABRIC_METADATA_L4_DST_PORT_ID =
@@ -63,12 +67,16 @@ public final class FabricConstants {
             buildPiMatchField(STANDARD_METADATA, "ingress_port", false);
     public static final PiMatchFieldId HF_FABRIC_METADATA_ORIGINAL_ETHER_TYPE_ID =
             buildPiMatchField(FABRIC_METADATA, "original_ether_type", false);
-    public static final PiMatchFieldId HF_IPV4_DST_ADDR_ID = buildPiMatchField(IPV4, "dst_addr", true);
-    public static final PiMatchFieldId HF_VLAN_TAG_IS_VALID_ID = buildPiMatchField(VLAN_TAG, "is_valid", true);
+    public static final PiMatchFieldId HF_IPV4_DST_ADDR_ID =
+            buildPiMatchField(IPV4, "dst_addr", true);
+    public static final PiMatchFieldId HF_VLAN_TAG_IS_VALID_ID =
+            buildPiMatchField(VLAN_TAG, "is_valid", true);
     public static final PiMatchFieldId HF_FABRIC_METADATA_IP_PROTO_ID =
             buildPiMatchField(FABRIC_METADATA, "ip_proto", false);
-    public static final PiMatchFieldId HF_ETHERNET_DST_ADDR_ID = buildPiMatchField(ETHERNET, "dst_addr", true);
-    public static final PiMatchFieldId HF_ICMP_ICMP_CODE_ID = buildPiMatchField(ICMP, "icmp_code", true);
+    public static final PiMatchFieldId HF_ETHERNET_DST_ADDR_ID =
+            buildPiMatchField(ETHERNET, "dst_addr", true);
+    public static final PiMatchFieldId HF_ICMP_ICMP_CODE_ID =
+            buildPiMatchField(ICMP, "icmp_code", true);
 
     private static PiMatchFieldId buildPiMatchField(String header, String field, boolean withHdrPrefix) {
         if (withHdrPrefix) {
@@ -79,17 +87,25 @@ public final class FabricConstants {
     }
 
     // Table IDs
-    public static final PiTableId TBL_MULTICAST_V4_ID = PiTableId.of("forwarding.multicast_v4");
-    public static final PiTableId TBL_MULTICAST_V6_ID = PiTableId.of("forwarding.multicast_v6");
+    public static final PiTableId TBL_MULTICAST_V4_ID =
+            PiTableId.of("forwarding.multicast_v4");
+    public static final PiTableId TBL_MULTICAST_V6_ID =
+            PiTableId.of("forwarding.multicast_v6");
     public static final PiTableId TBL_ACL_ID = PiTableId.of("forwarding.acl");
-    public static final PiTableId TBL_BROADCAST_ID = PiTableId.of("next.broadcast");
+    public static final PiTableId TBL_BROADCAST_ID =
+            PiTableId.of("next.broadcast");
     public static final PiTableId TBL_HASHED_ID = PiTableId.of("next.hashed");
-    public static final PiTableId TBL_INGRESS_PORT_VLAN_ID = PiTableId.of("filtering.ingress_port_vlan");
-    public static final PiTableId TBL_FWD_CLASSIFIER_ID = PiTableId.of("filtering.fwd_classifier");
-    public static final PiTableId TBL_UNICAST_V6_ID = PiTableId.of("forwarding.unicast_v6");
+    public static final PiTableId TBL_INGRESS_PORT_VLAN_ID =
+            PiTableId.of("filtering.ingress_port_vlan");
+    public static final PiTableId TBL_FWD_CLASSIFIER_ID =
+            PiTableId.of("filtering.fwd_classifier");
+    public static final PiTableId TBL_UNICAST_V6_ID =
+            PiTableId.of("forwarding.unicast_v6");
     public static final PiTableId TBL_SIMPLE_ID = PiTableId.of("next.simple");
-    public static final PiTableId TBL_BRIDGING_ID = PiTableId.of("forwarding.bridging");
-    public static final PiTableId TBL_UNICAST_V4_ID = PiTableId.of("forwarding.unicast_v4");
+    public static final PiTableId TBL_BRIDGING_ID =
+            PiTableId.of("forwarding.bridging");
+    public static final PiTableId TBL_UNICAST_V4_ID =
+            PiTableId.of("forwarding.unicast_v4");
     public static final PiTableId TBL_MPLS_ID = PiTableId.of("forwarding.mpls");
 
     // Indirect Counter IDs
@@ -101,39 +117,64 @@ public final class FabricConstants {
     // Direct Counter IDs
 
     // Action IDs
-    public static final PiActionId ACT_SET_MCAST_GROUP_ID = PiActionId.of("next.set_mcast_group");
-    public static final PiActionId ACT_DUPLICATE_TO_CONTROLLER_ID = PiActionId.of("forwarding.duplicate_to_controller");
-    public static final PiActionId ACT_MPLS_ROUTING_V4_ID = PiActionId.of("next.mpls_routing_v4");
-    public static final PiActionId ACT_PUSH_INTERNAL_VLAN_ID = PiActionId.of("filtering.push_internal_vlan");
-    public static final PiActionId ACT_SET_VLAN_OUTPUT_ID = PiActionId.of("next.set_vlan_output");
+    public static final PiActionId ACT_NEXT_SET_MCAST_GROUP_ID =
+            PiActionId.of("next.set_mcast_group");
+    public static final PiActionId ACT_FORWARDING_DUPLICATE_TO_CONTROLLER_ID =
+            PiActionId.of("forwarding.duplicate_to_controller");
+    public static final PiActionId ACT_NEXT_MPLS_ROUTING_V4_ID =
+            PiActionId.of("next.mpls_routing_v4");
+    public static final PiActionId ACT_FILTERING_PUSH_INTERNAL_VLAN_ID =
+            PiActionId.of("filtering.push_internal_vlan");
+    public static final PiActionId ACT_NEXT_SET_VLAN_OUTPUT_ID =
+            PiActionId.of("next.set_vlan_output");
     public static final PiActionId ACT_NOACTION_ID = PiActionId.of("NoAction");
-    public static final PiActionId ACT_FILTERING_DROP_ID = PiActionId.of("filtering.drop");
-    public static final PiActionId ACT_MPLS_ROUTING_V6_ID = PiActionId.of("next.mpls_routing_v6");
-    public static final PiActionId ACT_SET_FORWARDING_TYPE_ID = PiActionId.of("filtering.set_forwarding_type");
-    public static final PiActionId ACT_FORWARDING_DROP_ID = PiActionId.of("forwarding.drop");
-    public static final PiActionId ACT_L3_ROUTING_ID = PiActionId.of("next.l3_routing");
-    public static final PiActionId ACT_OUTPUT_ID = PiActionId.of("next.output");
+    public static final PiActionId ACT_FILTERING_DROP_ID =
+            PiActionId.of("filtering.drop");
+    public static final PiActionId ACT_NEXT_MPLS_ROUTING_V6_ID =
+            PiActionId.of("next.mpls_routing_v6");
+    public static final PiActionId ACT_FILTERING_SET_FORWARDING_TYPE_ID =
+            PiActionId.of("filtering.set_forwarding_type");
+    public static final PiActionId ACT_FORWARDING_DROP_ID =
+            PiActionId.of("forwarding.drop");
+    public static final PiActionId ACT_NEXT_L3_ROUTING_ID =
+            PiActionId.of("next.l3_routing");
+    public static final PiActionId ACT_NEXT_OUTPUT_ID =
+            PiActionId.of("next.output");
     public static final PiActionId ACT_NOP_ID = PiActionId.of("nop");
-    public static final PiActionId ACT_SET_NEXT_ID_ID = PiActionId.of("forwarding.set_next_id");
-    public static final PiActionId ACT_SET_VLAN_ID = PiActionId.of("filtering.set_vlan");
-    public static final PiActionId ACT_POP_MPLS_AND_NEXT_ID = PiActionId.of("forwarding.pop_mpls_and_next");
+    public static final PiActionId ACT_FORWARDING_SET_NEXT_ID_ID =
+            PiActionId.of("forwarding.set_next_id");
+    public static final PiActionId ACT_FILTERING_SET_VLAN_ID =
+            PiActionId.of("filtering.set_vlan");
+    public static final PiActionId ACT_FORWARDING_POP_MPLS_AND_NEXT_ID =
+            PiActionId.of("forwarding.pop_mpls_and_next");
 
     // Action Param IDs
-    public static final PiActionParamId ACT_PRM_DMAC_ID = PiActionParamId.of("dmac");
-    public static final PiActionParamId ACT_PRM_PORT_NUM_ID = PiActionParamId.of("port_num");
-    public static final PiActionParamId ACT_PRM_LABEL_ID = PiActionParamId.of("label");
-    public static final PiActionParamId ACT_PRM_SMAC_ID = PiActionParamId.of("smac");
-    public static final PiActionParamId ACT_PRM_GID_ID = PiActionParamId.of("gid");
-    public static final PiActionParamId ACT_PRM_NEW_VLAN_ID_ID = PiActionParamId.of("new_vlan_id");
-    public static final PiActionParamId ACT_PRM_FWD_TYPE_ID = PiActionParamId.of("fwd_type");
-    public static final PiActionParamId ACT_PRM_NEXT_ID_ID = PiActionParamId.of("next_id");
+    public static final PiActionParamId ACT_PRM_DMAC_ID =
+            PiActionParamId.of("dmac");
+    public static final PiActionParamId ACT_PRM_PORT_NUM_ID =
+            PiActionParamId.of("port_num");
+    public static final PiActionParamId ACT_PRM_LABEL_ID =
+            PiActionParamId.of("label");
+    public static final PiActionParamId ACT_PRM_SMAC_ID =
+            PiActionParamId.of("smac");
+    public static final PiActionParamId ACT_PRM_GID_ID =
+            PiActionParamId.of("gid");
+    public static final PiActionParamId ACT_PRM_NEW_VLAN_ID_ID =
+            PiActionParamId.of("new_vlan_id");
+    public static final PiActionParamId ACT_PRM_FWD_TYPE_ID =
+            PiActionParamId.of("fwd_type");
+    public static final PiActionParamId ACT_PRM_NEXT_ID_ID =
+            PiActionParamId.of("next_id");
 
     // Action Profile IDs
-    public static final PiActionProfileId ACT_PRF_NEXT_ECMP_SELECTOR_ID = PiActionProfileId.of("next.ecmp_selector");
+    public static final PiActionProfileId ACT_PRF_NEXT_ECMP_SELECTOR_ID =
+            PiActionProfileId.of("next.ecmp_selector");
 
     // Packet Metadata IDs
-    public static final PiControlMetadataId CTRL_META_INGRESS_PORT_ID = PiControlMetadataId.of("ingress_port");
-    public static final PiControlMetadataId CTRL_META_EGRESS_PORT_ID = PiControlMetadataId.of("egress_port");
+    public static final PiControlMetadataId CTRL_META_INGRESS_PORT_ID =
+            PiControlMetadataId.of("ingress_port");
+    public static final PiControlMetadataId CTRL_META_EGRESS_PORT_ID =
+            PiControlMetadataId.of("egress_port");
 
     public static final int PORT_BITWIDTH = 9;
 }

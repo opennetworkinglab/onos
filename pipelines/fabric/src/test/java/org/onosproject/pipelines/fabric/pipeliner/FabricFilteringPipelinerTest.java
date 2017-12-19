@@ -335,7 +335,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         PiActionParam classParam = new PiActionParam(FabricConstants.ACT_PRM_FWD_TYPE_ID,
                                                      ImmutableByteSequence.copyFrom(fwdClass));
         PiAction fwdClassifierAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_FORWARDING_TYPE_ID)
+                .withId(FabricConstants.ACT_FILTERING_SET_FORWARDING_TYPE_ID)
                 .withParameter(classParam)
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()

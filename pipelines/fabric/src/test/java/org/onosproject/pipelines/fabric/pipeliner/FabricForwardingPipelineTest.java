@@ -223,7 +223,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(NEXT_ID_1.byteValue()));
         PiAction setNextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_POP_MPLS_AND_NEXT_ID)
+                .withId(FabricConstants.ACT_FORWARDING_POP_MPLS_AND_NEXT_ID)
                 .withParameter(nextIdParam)
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -237,7 +237,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
         PiAction setNextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_SET_NEXT_ID_ID)
+                .withId(FabricConstants.ACT_FORWARDING_SET_NEXT_ID_ID)
                 .withParameter(nextIdParam)
                 .build();
         TrafficTreatment setNextIdTreatment = DefaultTrafficTreatment.builder()
