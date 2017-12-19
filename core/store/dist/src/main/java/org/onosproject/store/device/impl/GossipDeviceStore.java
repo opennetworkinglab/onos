@@ -303,7 +303,7 @@ public class GossipDeviceStore
                                                          DeviceDescription deviceDescription) {
         NodeId localNode = clusterService.getLocalNode().id();
         NodeId deviceNode = mastershipService.getMasterFor(deviceId);
-        final boolean isMaster = localNode.equals(deviceNode);
+        boolean isMaster = localNode.equals(deviceNode);
 
         // Process device update only if we're the master,
         // otherwise signal the actual master.
@@ -311,9 +311,15 @@ public class GossipDeviceStore
 
         // If this node is the master for the device, acquire a new timestamp. Otherwise,
         // use a 0,0 or tombstone timestamp to create the device if it doesn't already exist.
-        final Timestamp newTimestamp = isMaster
-                ? deviceClockService.getTimestamp(deviceId)
-                : removalRequest.getOrDefault(deviceId, DEFAULT_TIMESTAMP);
+        Timestamp newTimestamp;
+        try {
+            newTimestamp = isMaster
+                    ? deviceClockService.getTimestamp(deviceId)
+                    : removalRequest.getOrDefault(deviceId, DEFAULT_TIMESTAMP);
+        } catch (IllegalStateException e) {
+            newTimestamp = removalRequest.getOrDefault(deviceDescription, DEFAULT_TIMESTAMP);
+            isMaster = false;
+        }
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);
         final Timestamped<DeviceDescription> mergedDesc;
         final Map<ProviderId, DeviceDescriptions> device = getOrCreateDeviceDescriptionsMap(deviceId);
@@ -331,8 +337,6 @@ public class GossipDeviceStore
             log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
                     providerId, deviceId);
             notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
-        } else {
-            return null;
         }
 
         return deviceEvent;
