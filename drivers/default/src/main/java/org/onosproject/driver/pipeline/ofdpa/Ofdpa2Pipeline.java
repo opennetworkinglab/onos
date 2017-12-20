@@ -407,12 +407,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         VlanId assignedVlan = null;
         if (vidCriterion != null) {
-            // Use the VLAN in metadata whenever a metadata is provided
-            if (filt.meta() != null) {
-                assignedVlan = readVlanFromTreatment(filt.meta());
             // Use the VLAN in criterion if metadata is not present and the traffic is tagged
-            } else if (!vidCriterion.vlanId().equals(VlanId.NONE)) {
+            if (!vidCriterion.vlanId().equals(VlanId.NONE)) {
                 assignedVlan = vidCriterion.vlanId();
+            } else if (filt.meta() != null) {
+                assignedVlan = readVlanFromTreatment(filt.meta());
             }
 
             if (assignedVlan == null) {
@@ -434,7 +433,18 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                                          applicationId)) {
                 log.trace("{} MAC filtering rules in TMAC table: {} for dev: {}",
                           (install) ? "adding" : "removing", tmacRule, deviceId);
-                ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
+
+                if (install) {
+                    ops = ops.add(tmacRule);
+                } else {
+                    // NOTE: Only remove TMAC flow when there is no more enabled port within the
+                    // same VLAN on this device if TMAC doesn't support matching on in_port.
+                    if (matchInPortTmacTable() || (filt.meta() != null && filt.meta().clearedDeferred())) {
+                        ops = ops.remove(tmacRule);
+                    } else {
+                        log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
+                    }
+                }
             }
         }
 
@@ -703,11 +713,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     /**
      * Builds TMAC rules for IPv4 packets.
      *
-     * @param ethCriterion
-     * @param vidCriterion
-     * @param ofdpaMatchVlanVid
-     * @param applicationId
-     * @param pnum
+     * @param ethCriterion dst mac matching
+     * @param vidCriterion vlan id assigned to the port
+     * @param ofdpaMatchVlanVid OFDPA vlan id matching
+     * @param applicationId application id
+     * @param pnum port number
      * @return TMAC rule for IPV4 packets
      */
     private FlowRule buildTmacRuleForIpv4(EthCriterion ethCriterion,
@@ -748,11 +758,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     /**
      * Builds TMAC rule for MPLS packets.
      *
-     * @param ethCriterion
-     * @param vidCriterion
-     * @param ofdpaMatchVlanVid
-     * @param applicationId
-     * @param pnum
+     * @param ethCriterion dst mac matching
+     * @param vidCriterion vlan id assigned to the port
+     * @param ofdpaMatchVlanVid OFDPA vlan id matching
+     * @param applicationId application id
+     * @param pnum port number
      * @return TMAC rule for MPLS packets
      */
     private FlowRule buildTmacRuleForMpls(EthCriterion ethCriterion,
@@ -793,11 +803,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     /**
      * Builds TMAC rules for IPv6 packets.
      *
-     * @param ethCriterion
-     * @param vidCriterion
-     * @param ofdpaMatchVlanVid
-     * @param applicationId
-     * @param pnum
+     * @param ethCriterion dst mac matching
+     * @param vidCriterion vlan id assigned to the port
+     * @param ofdpaMatchVlanVid OFDPA vlan id matching
+     * @param applicationId application id
+     * @param pnum port number
      * @return TMAC rule for IPV6 packets
      */
      private FlowRule buildTmacRuleForIpv6(EthCriterion ethCriterion,
