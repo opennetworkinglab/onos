@@ -827,14 +827,32 @@ public class RoutingRulePopulator {
             .addCondition(Criteria.matchEthDst(deviceMac))
             .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
 
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
         if (pushVlan) {
             fob.addCondition(Criteria.matchVlanId(VlanId.NONE));
-            TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                    .pushVlan().setVlanId(vlanId).build();
-            fob.withMeta(tt);
+            tBuilder.pushVlan().setVlanId(vlanId);
         } else {
             fob.addCondition(Criteria.matchVlanId(vlanId));
         }
+
+        // NOTE: Some switch hardware share the same filtering flow among different ports.
+        //       We use this metadata to let the driver know that there is no more enabled port
+        //       within the same VLAN on this device.
+        boolean noMoreEnabledPort = srManager.interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                .filter(intf -> intf.vlanTagged().contains(vlanId) ||
+                        intf.vlanUntagged().equals(vlanId) ||
+                        intf.vlanNative().equals(vlanId))
+                .noneMatch(intf -> {
+                    Port port = srManager.deviceService.getPort(intf.connectPoint());
+                    return port != null && port.isEnabled();
+                });
+        if (noMoreEnabledPort) {
+            tBuilder.wipeDeferred();
+        }
+
+        fob.withMeta(tBuilder.build());
 
         fob.permit().fromApp(srManager.appId);
         return fob;
