@@ -1240,12 +1240,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processLinkAdded(Link link) {
         log.info("** LINK ADDED {}", link.toString());
-        if (link.type() != Link.Type.DIRECT) {
-            // NOTE: A DIRECT link might be transiently marked as INDIRECT
-            //       if BDDP is received before LLDP. We can safely ignore that
-            //       until the LLDP is received and the link is marked as DIRECT.
-            log.info("Ignore link {}->{}. Link type is {} instead of DIRECT.",
-                    link.src(), link.dst(), link.type());
+        if (!isLinkValid(link)) {
             return;
         }
         if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
@@ -1320,6 +1315,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processLinkRemoved(Link link) {
         log.info("** LINK REMOVED {}", link.toString());
+        if (!isLinkValid(link)) {
+            return;
+        }
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link, null, null);
 
         // update local groupHandler stores
@@ -1343,6 +1341,58 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         mcastHandler.processLinkDown(link);
         l2TunnelHandler.processLinkDown(link);
+    }
+
+    private boolean isLinkValid(Link link) {
+        if (link.type() != Link.Type.DIRECT) {
+            // NOTE: A DIRECT link might be transiently marked as INDIRECT
+            // if BDDP is received before LLDP. We can safely ignore that
+            // until the LLDP is received and the link is marked as DIRECT.
+            log.info("Ignore link {}->{}. Link type is {} instead of DIRECT.",
+                     link.src(), link.dst(), link.type());
+            return false;
+        }
+        DeviceId srcId = link.src().deviceId();
+        DeviceId dstId = link.dst().deviceId();
+        if (srcId.equals(dstId)) {
+            log.warn("Links between ports on the same switch are not "
+                    + "allowed .. ignoring link {}", link);
+            return false;
+        }
+        try {
+            if (!deviceConfiguration.isEdgeDevice(srcId)
+                    && !deviceConfiguration.isEdgeDevice(dstId)) {
+                // ignore links between spines
+                // XXX revisit when handling multi-stage fabrics
+                log.warn("Links between spines not allowed...ignoring "
+                        + "link {}", link);
+                return false;
+            }
+            if (deviceConfiguration.isEdgeDevice(srcId)
+                    && deviceConfiguration.isEdgeDevice(dstId)) {
+                // ignore links between leaves if they are not pair-links
+                // XXX revisit if removing pair-link config or allowing more than
+                // one pair-link
+                if (deviceConfiguration.getPairDeviceId(srcId).equals(dstId)
+                        && deviceConfiguration.getPairLocalPort(srcId)
+                                .equals(link.src().port())
+                        && deviceConfiguration.getPairLocalPort(dstId)
+                                .equals(link.dst().port())) {
+                    // found pair link - allow it
+                    return true;
+                } else {
+                    log.warn("Links between leaves other than pair-links are "
+                            + "not allowed...ignoring link {}", link);
+                    return false;
+                }
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            // We still want to count the links in seenLinks even though there
+            // is no config. So we let it return true
+            log.warn("Could not check validity of link {} as subtending devices "
+                    + "are not yet configured", link);
+        }
+        return true;
     }
 
     private void processDeviceAdded(Device device) {
