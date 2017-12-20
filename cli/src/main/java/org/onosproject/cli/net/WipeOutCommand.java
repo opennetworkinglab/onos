@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.util.Tools;
+import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
@@ -48,7 +49,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
  */
 @Command(scope = "onos", name = "wipe-out",
         description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
-public class WipeOutCommand extends ClustersListCommand {
+public class WipeOutCommand extends AbstractShellCommand {
 
     private static final String PLEASE = "please";
     @Argument(name = "please", description = "Confirmation phrase")
