@@ -46,8 +46,11 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     protected static final String PROTOCOL = "protocol";
     protected static final String IP = "ip";
     protected static final String TCP_PORT = "tcpPort";
+    protected static final String TCP_MASK = "tcpMask";
     protected static final String UDP_PORT = "udpPort";
+    protected static final String UDP_MASK = "udpMask";
     protected static final String SCTP_PORT = "sctpPort";
+    protected static final String SCTP_MASK = "sctpMask";
     protected static final String ICMP_TYPE = "icmpType";
     protected static final String ICMP_CODE = "icmpCode";
     protected static final String FLOW_LABEL = "flowLabel";

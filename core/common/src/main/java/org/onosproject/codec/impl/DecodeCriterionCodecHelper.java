@@ -80,11 +80,17 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.IPV4_SRC.name(), new IpV4SrcDecoder());
         decoderMap.put(Criterion.Type.IPV4_DST.name(), new IpV4DstDecoder());
         decoderMap.put(Criterion.Type.TCP_SRC.name(), new TcpSrcDecoder());
+        decoderMap.put(Criterion.Type.TCP_SRC_MASKED.name(), new TcpSrcMaskDecoder());
         decoderMap.put(Criterion.Type.TCP_DST.name(), new TcpDstDecoder());
+        decoderMap.put(Criterion.Type.TCP_DST_MASKED.name(), new TcpDstMaskDecoder());
         decoderMap.put(Criterion.Type.UDP_SRC.name(), new UdpSrcDecoder());
+        decoderMap.put(Criterion.Type.UDP_SRC_MASKED.name(), new UdpSrcMaskDecoder());
         decoderMap.put(Criterion.Type.UDP_DST.name(), new UdpDstDecoder());
+        decoderMap.put(Criterion.Type.UDP_DST_MASKED.name(), new UdpDstMaskDecoder());
         decoderMap.put(Criterion.Type.SCTP_SRC.name(), new SctpSrcDecoder());
+        decoderMap.put(Criterion.Type.SCTP_SRC_MASKED.name(), new SctpSrcMaskDecoder());
         decoderMap.put(Criterion.Type.SCTP_DST.name(), new SctpDstDecoder());
+        decoderMap.put(Criterion.Type.SCTP_DST_MASKED.name(), new SctpDstMaskDecoder());
         decoderMap.put(Criterion.Type.ICMPV4_TYPE.name(), new IcmpV4TypeDecoder());
         decoderMap.put(Criterion.Type.ICMPV4_CODE.name(), new IcmpV4CodeDecoder());
         decoderMap.put(Criterion.Type.IPV6_SRC.name(), new IpV6SrcDecoder());
@@ -285,12 +291,38 @@ public final class DecodeCriterionCodecHelper {
         }
     }
 
+    private class TcpSrcMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
+                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort tcpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_MASK),
+                    CriterionCodec.TCP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchTcpSrcMasked(tcpPort, tcpMask);
+        }
+    }
+
     private class TcpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
                     CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchTcpDst(tcpPort);
+        }
+    }
+
+    private class TcpDstMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
+                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort tcpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_MASK),
+                    CriterionCodec.TCP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchTcpDstMasked(tcpPort, tcpMask);
         }
     }
 
@@ -303,12 +335,38 @@ public final class DecodeCriterionCodecHelper {
         }
     }
 
+    private class UdpSrcMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
+                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort udpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_MASK),
+                    CriterionCodec.UDP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchUdpSrcMasked(udpPort, udpMask);
+        }
+    }
+
     private class UdpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
                     CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchUdpDst(udpPort);
+        }
+    }
+
+    private class UdpDstMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
+                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort udpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_MASK),
+                    CriterionCodec.UDP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchUdpDstMasked(udpPort, udpMask);
         }
     }
 
@@ -321,12 +379,38 @@ public final class DecodeCriterionCodecHelper {
         }
     }
 
+    private class SctpSrcMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort sctpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
+                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort sctpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_MASK),
+                    CriterionCodec.SCTP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchSctpSrcMasked(sctpPort, sctpMask);
+        }
+    }
+
     private class SctpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             TpPort sctpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
                     CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchSctpDst(sctpPort);
+        }
+    }
+
+    private class SctpDstMaskDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            TpPort sctpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
+                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt());
+
+            TpPort sctpMask = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_MASK),
+                    CriterionCodec.SCTP_MASK + MISSING_MEMBER_MESSAGE).asInt());
+
+            return Criteria.matchSctpDstMasked(sctpPort, sctpMask);
         }
     }
 
