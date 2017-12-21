@@ -15,7 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -559,11 +559,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                          String cP1InnerVlan, String cP1OuterVlan, String cP2,
                                          String cP2InnerVlan, String cP2OuterVlan,
                                          String mode, String sdTag) {
-
+        // Try to inject an empty Pwaas config if it is not found for the first time
         PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
         if (config == null) {
-            log.warn("Configuration for Pwaas class could not be found!");
-            return L2TunnelHandler.Result.CONFIG_NOT_FOUND;
+            log.debug("Pwaas config not found. Try to create an empty one.");
+            cfgService.applyConfig(appId(), PwaasConfig.class, new ObjectMapper().createObjectNode());
+            config = cfgService.getConfig(appId(), PwaasConfig.class);
         }
 
         ObjectNode object = config.addPseudowire(tunnelId, pwLabel,
