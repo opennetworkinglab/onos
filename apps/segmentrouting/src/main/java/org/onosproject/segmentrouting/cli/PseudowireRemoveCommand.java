@@ -54,7 +54,7 @@ public class PseudowireRemoveCommand extends AbstractShellCommand {
                 error("Could not fetch pseudowire class configuration!");
                 break;
             default:
-                return;
+                break;
             }
     }
 }

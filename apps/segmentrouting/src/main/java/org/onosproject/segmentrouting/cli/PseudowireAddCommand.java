@@ -98,7 +98,7 @@ public class PseudowireAddCommand extends AbstractShellCommand {
                 print("Configuration for pwaas was not found! Initialize the configuration first through netcfg.");
                 break;
             default:
-                print("Pseudowire was added to the configuration succesfully, please do check logs for any errors!");
+                break;
         }
 
     }
