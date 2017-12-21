@@ -486,8 +486,6 @@ public class NettyMessagingManager implements MessagingService {
         bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
         bootstrap.group(clientGroup);
-        // TODO: Make this faster:
-        // http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#37.0
         bootstrap.channel(clientChannelClass);
         bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
         bootstrap.remoteAddress(endpoint.host().toInetAddress(), endpoint.port());
@@ -504,7 +502,8 @@ public class NettyMessagingManager implements MessagingService {
         b.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK,
                 new WriteBufferWaterMark(8 * 1024, 32 * 1024));
         b.option(ChannelOption.SO_RCVBUF, 1048576);
-        b.option(ChannelOption.TCP_NODELAY, true);
+        b.childOption(ChannelOption.SO_KEEPALIVE, true);
+        b.childOption(ChannelOption.TCP_NODELAY, true);
         b.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.group(serverGroup, clientGroup);
         b.channel(serverChannelClass);
