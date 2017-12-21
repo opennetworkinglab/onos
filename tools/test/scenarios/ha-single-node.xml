@@ -19,7 +19,7 @@
     <group name="Single-Node-Failure" if="${OC2}">
         <step name="Node-Death" exec="onos-power ${OC1} off"/>
         <step name="Validate-Death" requires="Node-Death"
-              exec="onos-check-node-status ${OC2} ${OC1} INACTIVE"/>
+              exec="onos-check-node-status ${OC1} INACTIVE"/>
 
         <group name="Validate-Normal-Operation" requires="Validate-Death">
             <step name="Check-Summary"

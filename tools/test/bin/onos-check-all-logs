@@ -1,0 +1,10 @@
+#!/bin/bash
+
+function onos_nodes() {
+    echo $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+}
+
+nodes=$(onos_nodes)
+for node in ${nodes}; do
+    onos-check-logs $@ $node || exit 1
+done
