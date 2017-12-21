@@ -6,15 +6,23 @@
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
-for attempt in {1..10}; do
-    onos ${1:-$OCI} "onos:nodes" > $aux
-    cat $aux
+function onos_nodes() {
+    echo $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+}
 
-    # Normalize the node status
-    state=$(grep ${2:-$OC2} $aux | cut -d, -f3 | cut -d= -f2)
+nodes=$(onos_nodes)
 
-    [ "$state" = "${3:-READY}" ] && exit 0
-    sleep 1
+for attempt in {1..5}; do
+    for node in $nodes; do
+        onos $node "onos:nodes" > $aux
+        cat $aux
+
+        # Normalize the node status
+        state=$(grep ${1} $aux | cut -d, -f3 | cut -d= -f2)
+
+        [ "$state" = "${2:-READY}" ] && exit 0
+        sleep 1
+    done
 done
 
 exit 1

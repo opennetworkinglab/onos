@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright 2017-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<scenario name="ha-multi-node"
+          description="ONOS cluster multiple node failure and recovery">
+    <group name="Multi-Node-Failure" if="${OC2}">
+        <sequential var="${OC#}"
+                    starts="Node-Death-${#}"
+                    ends="Check-All-Logs-${#-1}">
+            <step name="Node-Death-${#}"
+                  exec="onos-power ${OC#} off"/>
+
+            <step name="Validate-Death-${#}"
+                  requires="Node-Death-${#}"
+                  exec="onos-check-node-status ${OC#} INACTIVE"/>
+
+            <step name="Breathe-${#}"
+                  requires="Validate-Death-${#}"
+                  exec="sleep 5"/>
+
+            <step name="Node-Start-${#}"
+                  requires="Breathe-${#}"
+                  exec="onos-power ${OC#} on"/>
+
+            <step name="Wait-for-Start-${#}"
+                  requires="~Node-Start-${#}"
+                  exec="onos-wait-for-start ${OC#}"/>
+
+            <step name="Check-Nodes-${#}"
+                  requires="Wait-for-Start-${#}"
+                  exec="onos-check-nodes ${OC#}"/>
+
+            <step name="Check-Masters-${#}"
+                  requires="~Check-Nodes-${#}"
+                  exec="check-masters.py ${OC#}"/>
+
+            <step name="Check-Components-${#}"
+                  requires="~Check-Nodes-${#}"
+                  exec="onos-check-components ${OC#}"/>
+
+            <step name="Check-Apps-${#}"
+                  requires="~Check-Nodes-${#}"
+                  exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"/>
+
+            <step name="Check-Flows-${#}"
+                  requires="~Check-Nodes-${#}"
+                  exec="onos-check-flows ${OC#}"/>
+
+            <step name="Check-All-Logs-${#}"
+                  requires="~Check-Nodes-${#},~Check-Masters-${#},~Check-Components-${#},~Check-Apps-${#},~Check-Flows-${#}"
+                  exec="onos-check-all-logs --ignore-store-exceptions"/>
+        </sequential>
+    </group>
+
+    <group name="Multi-Node-NA" unless="${OC2}">
+        <step name="No-Op" exec="echo Scenario not supported for this cell size"/>
+    </group>
+</scenario>
