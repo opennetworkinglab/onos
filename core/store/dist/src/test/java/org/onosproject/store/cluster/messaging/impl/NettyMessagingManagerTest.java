@@ -43,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -160,11 +161,35 @@ public class NettyMessagingManagerTest {
     }
 
     @Test
-    public void testSendTimeout() {
+    public void testDefaultTimeout() {
         String subject = nextSubject();
         BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> handler = (ep, payload) -> new CompletableFuture<>();
         netty2.registerHandler(subject, handler);
 
+        try {
+            netty1.sendAndReceive(ep2, subject, "hello world".getBytes()).join();
+            fail();
+        } catch (CompletionException e) {
+            assertTrue(e.getCause() instanceof TimeoutException);
+        }
+    }
+
+    @Test
+    public void testDynamicTimeout() {
+        String subject = nextSubject();
+        AtomicInteger counter = new AtomicInteger();
+        BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> handler = (ep, payload) -> {
+            if (counter.incrementAndGet() <= 50) {
+                return CompletableFuture.completedFuture(new byte[0]);
+            } else {
+                return new CompletableFuture<>();
+            }
+        };
+        netty2.registerHandler(subject, handler);
+
+        for (int i = 0; i < 50; i++) {
+            netty1.sendAndReceive(ep2, subject, "hello world".getBytes()).join();
+        }
         try {
             netty1.sendAndReceive(ep2, subject, "hello world".getBytes()).join();
             fail();
