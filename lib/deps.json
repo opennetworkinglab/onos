@@ -220,7 +220,9 @@
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.19",
-    "apache-karaf": "mvn:org.onosproject:apache-karaf-offline:tar.gz:3.0.8",
+    // buck's MavenUrlDecoder cannot handle tar.gz type
+    //"apache-karaf": "mvn:org.onosproject:apache-karaf-offline:tar.gz:3.0.8",
+    "apache-karaf": "https://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/3.0.8/apache-karaf-offline-3.0.8.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "bndexe": "mvn:biz.aQute.bnd:biz.aQute.bnd:3.1.0",
     "libthrift": "mvn:org.apache.thrift:libthrift:0.9.3",
