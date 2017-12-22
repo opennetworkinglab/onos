@@ -163,6 +163,28 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
     }
 
     /**
+     * Computes all the paths between two ConnectPoints.
+     *
+     * @param intent intent on which behalf path is being computed
+     * @param one    start of the path
+     * @param two    end of the path
+     * @return Paths between the two, or null if no path can be found
+     */
+    protected List<Path> getPaths(ConnectivityIntent intent,
+                           ElementId one, ElementId two) {
+        Set<Path> paths = pathService.getPaths(one, two, weigher(intent.constraints()));
+        final List<Constraint> constraints = intent.constraints();
+        ImmutableList<Path> filtered = FluentIterable.from(paths)
+                .filter(path -> checkPath(path, constraints))
+                .toList();
+        if (filtered.isEmpty()) {
+            return null;
+        }
+
+        return filtered;
+    }
+
+    /**
      * Computes a disjoint path between two ConnectPoints.
      *
      * @param intent intent on which behalf path is being computed
