@@ -16,9 +16,11 @@
 
 package org.onosproject.drivers.p4runtime;
 
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import io.grpc.StatusRuntimeException;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeTableMirror;
@@ -43,12 +45,12 @@ import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -90,11 +92,18 @@ public class P4RuntimeFlowRuleProgrammable
     // FIXME: set to true as soon as the feature is implemented in P4Runtime.
     private boolean readAllDirectCounters = false;
 
-    // Needed to synchronize operations over the same table entry.
-    // FIXME: locks should be removed when unused (hint use cache with timeout)
-    private static final ConcurrentMap<PiTableEntryHandle, Lock>
-            ENTRY_LOCKS = Maps.newConcurrentMap();
+    private static final int TABLE_ENTRY_LOCK_EXPIRE_TIME_IN_MIN = 10;
 
+    // Needed to synchronize operations over the same table entry.
+    private static final LoadingCache<PiTableEntryHandle, Lock>
+            ENTRY_LOCKS = CacheBuilder.newBuilder()
+            .expireAfterAccess(TABLE_ENTRY_LOCK_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
+            .build(new CacheLoader<PiTableEntryHandle, Lock>() {
+                @Override
+                public Lock load(PiTableEntryHandle handle) {
+                    return new ReentrantLock();
+                }
+            });
     private PiPipelineModel pipelineModel;
     private PiPipelineInterpreter interpreter;
     private P4RuntimeTableMirror tableMirror;
@@ -275,15 +284,14 @@ public class P4RuntimeFlowRuleProgrammable
                     .of(deviceId, piEntryToApply);
 
             // Serialize operations over the same match key/table/device ID.
-            final Lock lock = ENTRY_LOCKS.computeIfAbsent(handle, k -> new ReentrantLock());
-            lock.lock();
+            ENTRY_LOCKS.getUnchecked(handle).lock();
             try {
                 if (applyEntry(handle, piEntryToApply,
                                ruleToApply, driverOperation)) {
                     result.add(ruleToApply);
                 }
             } finally {
-                lock.unlock();
+                ENTRY_LOCKS.getUnchecked(handle).unlock();
             }
         }
 

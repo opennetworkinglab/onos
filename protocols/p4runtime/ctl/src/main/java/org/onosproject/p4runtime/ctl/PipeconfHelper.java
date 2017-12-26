@@ -16,6 +16,8 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
@@ -28,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -37,10 +41,12 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 final class PipeconfHelper {
 
+    private static final int P4INFO_BROWSER_EXPIRE_TIME_IN_MIN = 10;
     private static final Logger log = getLogger(PipeconfHelper.class);
 
-    // TODO: consider implementing this via a cache that expires unused browsers.
-    private static final Map<PiPipeconfId, P4InfoBrowser> BROWSERS = Maps.newConcurrentMap();
+    private static final Cache<PiPipeconfId, P4InfoBrowser> BROWSERS = CacheBuilder.newBuilder()
+            .expireAfterAccess(P4INFO_BROWSER_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
+            .build();
     private static final Map<PiPipeconfId, P4Info> P4INFOS = Maps.newConcurrentMap();
 
     private PipeconfHelper() {
@@ -83,13 +89,18 @@ final class PipeconfHelper {
      * @return P4Info browser or null
      */
     static P4InfoBrowser getP4InfoBrowser(PiPipeconf pipeconf) {
-        return BROWSERS.computeIfAbsent(pipeconf.id(), (pipeconfId) -> {
-            P4Info p4info = PipeconfHelper.getP4Info(pipeconf);
-            if (p4info == null) {
-                return null;
-            } else {
-                return new P4InfoBrowser(p4info);
-            }
-        });
+        try {
+            return BROWSERS.get(pipeconf.id(), () -> {
+                P4Info p4info = PipeconfHelper.getP4Info(pipeconf);
+                if (p4info == null) {
+                    return null;
+                } else {
+                    return new P4InfoBrowser(p4info);
+                }
+            });
+        } catch (ExecutionException e) {
+            log.error("Exception while accessing the P4InfoBrowser cache", e);
+            return null;
+        }
     }
 }

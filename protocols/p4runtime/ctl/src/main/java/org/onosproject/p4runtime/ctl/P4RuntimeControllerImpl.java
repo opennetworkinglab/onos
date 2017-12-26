@@ -16,6 +16,9 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -41,6 +44,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -58,12 +62,20 @@ public class P4RuntimeControllerImpl
         implements P4RuntimeController {
 
     private static final String P4R_ELECTION = "p4runtime-election";
+    private static final int DEVICE_LOCK_EXPIRE_TIME_IN_MIN = 10;
     private final Logger log = getLogger(getClass());
     private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
     private final Map<DeviceId, P4RuntimeClient> clients = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
-    // TODO: should use a cache to delete unused locks.
-    private final Map<DeviceId, ReadWriteLock> deviceLocks = Maps.newConcurrentMap();
+    private final LoadingCache<DeviceId, ReadWriteLock> deviceLocks = CacheBuilder.newBuilder()
+            .expireAfterAccess(DEVICE_LOCK_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
+            .build(new CacheLoader<DeviceId, ReadWriteLock>() {
+                @Override
+                public ReadWriteLock load(DeviceId deviceId) {
+                    return new ReentrantReadWriteLock();
+                }
+            });
+
     private AtomicCounter electionIdGenerator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -94,9 +106,7 @@ public class P4RuntimeControllerImpl
         checkNotNull(deviceId);
         checkNotNull(channelBuilder);
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
-        deviceLocks.get(deviceId).writeLock().lock();
-
+        deviceLocks.getUnchecked(deviceId).writeLock().lock();
         log.info("Creating client for {} (with internal device id {})...", deviceId, p4DeviceId);
 
         try {
@@ -106,7 +116,7 @@ public class P4RuntimeControllerImpl
                 return doCreateClient(deviceId, p4DeviceId, channelBuilder);
             }
         } finally {
-            deviceLocks.get(deviceId).writeLock().unlock();
+            deviceLocks.getUnchecked(deviceId).writeLock().unlock();
         }
     }
 
@@ -136,21 +146,19 @@ public class P4RuntimeControllerImpl
     @Override
     public P4RuntimeClient getClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
-        deviceLocks.get(deviceId).readLock().lock();
+        deviceLocks.getUnchecked(deviceId).readLock().lock();
 
         try {
             return clients.get(deviceId);
         } finally {
-            deviceLocks.get(deviceId).readLock().unlock();
+            deviceLocks.getUnchecked(deviceId).readLock().unlock();
         }
     }
 
     @Override
     public void removeClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
-        deviceLocks.get(deviceId).writeLock().lock();
+        deviceLocks.getUnchecked(deviceId).writeLock().lock();
 
         try {
             if (clients.containsKey(deviceId)) {
@@ -160,28 +168,26 @@ public class P4RuntimeControllerImpl
                 channelIds.remove(deviceId);
             }
         } finally {
-            deviceLocks.get(deviceId).writeLock().unlock();
+           deviceLocks.getUnchecked(deviceId).writeLock().lock();
         }
     }
 
     @Override
     public boolean hasClient(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
-        deviceLocks.get(deviceId).readLock().lock();
+        deviceLocks.getUnchecked(deviceId).readLock().lock();
 
         try {
             return clients.containsKey(deviceId);
         } finally {
-            deviceLocks.get(deviceId).readLock().unlock();
+            deviceLocks.getUnchecked(deviceId).readLock().unlock();
         }
     }
 
     @Override
     public boolean isReacheable(DeviceId deviceId) {
 
-        deviceLocks.putIfAbsent(deviceId, new ReentrantReadWriteLock());
-        deviceLocks.get(deviceId).readLock().lock();
+        deviceLocks.getUnchecked(deviceId).readLock().lock();
 
         try {
             if (!clients.containsKey(deviceId)) {
@@ -191,7 +197,7 @@ public class P4RuntimeControllerImpl
 
             return grpcController.isChannelOpen(channelIds.get(deviceId));
         } finally {
-            deviceLocks.get(deviceId).readLock().unlock();
+            deviceLocks.getUnchecked(deviceId).readLock().unlock();
         }
     }
 
