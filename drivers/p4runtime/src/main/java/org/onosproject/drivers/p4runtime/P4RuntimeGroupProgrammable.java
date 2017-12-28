@@ -76,7 +76,7 @@ public class P4RuntimeGroupProgrammable
     // the ONOS store.
     private boolean ignoreDeviceWhenGet = true;
 
-    private GroupStore groupStore;
+    protected GroupStore groupStore;
     private P4RuntimeGroupMirror groupMirror;
     private PiGroupTranslator translator;
 

@@ -31,6 +31,7 @@ CORE = UTILS + API + [
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
     '//protocols/bgp/api:onos-protocols-bgp-api',
     '//protocols/bgp/ctl:onos-protocols-bgp-ctl',
+    '//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
     '//protocols/openflow/api:onos-protocols-openflow-api',

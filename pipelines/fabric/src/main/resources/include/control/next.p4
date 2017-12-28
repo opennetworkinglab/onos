@@ -141,13 +141,11 @@ control Next (
         counters = hashed_counter;
     }
 
-#ifdef WITH_MULTICAST
     /*
      * Work in progress
      */
-    action set_mcast_group(group_id_t gid, mac_addr_t smac) {
+    action set_mcast_group(group_id_t gid) {
         standard_metadata.mcast_grp = gid;
-        rewrite_smac(smac);
     }
 
     direct_counter(CounterType.packets_and_bytes) multicast_counter;
@@ -161,7 +159,6 @@ control Next (
         }
         counters = multicast_counter;
     }
-#endif // WITH_MULTICAST
 
     apply {
         vlan_meta.apply();
@@ -178,9 +175,7 @@ control Next (
             }
         }
         hashed.apply();
-#ifdef WITH_MULTICAST
         multicast.apply();
-#endif // WITH_MULTICAST
     }
 }
 

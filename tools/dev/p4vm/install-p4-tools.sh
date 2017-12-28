@@ -15,6 +15,8 @@
 set -e
 
 BUILD_DIR=~/p4tools
+# in case BMV2_COMMIT value is updated, the same variable in
+# protocols/bmv2/thrift-api/BUCK file should also be updated
 BMV2_COMMIT="ed130d01be985d814c17de949839d484e76400b1"
 PI_COMMIT="59c940916b4f5b182f33b4788d8c410972eaecce"
 P4C_COMMIT="618d15155dcc2d784cc14a8e83131b407cf893e2"

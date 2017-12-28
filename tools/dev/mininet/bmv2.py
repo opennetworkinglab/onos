@@ -145,6 +145,10 @@ class ONOSBmv2Switch(Switch):
                     "port": self.grpcPort,
                     "deviceId": BMV2_DEFAULT_DEVICE_ID,
                     "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
+                },
+                "bmv2-thrift": {
+                    "ip": srcIP,
+                    "port": self.thriftPort
                 }
             },
             "piPipeconf": {

@@ -1,0 +1,102 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:libthrift',
+]
+
+# BMV2_COMMIT should be set to the same value as specified in install-p4-tools.sh
+BMV2_COMMIT = 'ed130d01be985d814c17de949839d484e76400b1'
+BMV2_BASEURL = 'https://cdn.rawgit.com/p4lang/behavioral-model/' + BMV2_COMMIT
+BMV2_NAMESPACE = 'org.onosproject.bmv2.thriftapi'
+
+THRIFT_EXE_BASEURL = 'https://cdn.rawgit.com/ccascone/mvn-thrift-compiler/1.1_0.9.3/exe/'
+THRIFT_EXE_SHA1S = {
+    'thrift-linux-x86_64.exe':'9b7b5d6eabc9552b8227e8f63981bc15c0985dd5',
+    'thrift-osx-x86_64.exe':'b9215c5141f56fd277b7cf41d9745af847afe498'
+}
+
+def prebuilt_thrift_compiler():
+    import platform
+    os_name = platform.system().lower()
+    if os_name == 'darwin':
+        os_name = 'osx'
+    arch = '%s-%s' % (os_name, platform.machine())
+    fname = 'thrift-%s.exe' % arch
+    if fname not in THRIFT_EXE_SHA1S:
+        raise Exception('Cannot download thrift compiler, architecture %s not supported' % arch)
+    remote_file(
+        name = 'thrift-binary',
+        out = 'thrift.binary',
+        url = THRIFT_EXE_BASEURL + fname,
+        sha1 = THRIFT_EXE_SHA1S[fname],
+    )
+    genrule (
+        name = 'thrift-exe',
+        srcs = [ ':thrift-binary' ],
+        bash = 'cp $(location :thrift-binary) $OUT && chmod +x $OUT',
+        executable = True,
+        out = 'thrift.exe'
+    )
+
+prebuilt_thrift_compiler()
+
+# TODO: or export local thrift executable
+# export_file(
+#       name = 'thrift-exe',
+#       src = '/usr/bin/thrift',
+#     )
+
+def remote_thrift_def(
+    name,
+    url,
+    sha1):
+    # Download *.thrift definition file.
+    remote_file(
+        name = name + '-rem',
+        out = name + '.thrift',
+        url = url,
+        sha1 = sha1,
+    )
+    # Add java namespace.
+    genrule (
+        name = name+'-ns',
+        srcs = [':' + name + '-rem'],
+        bash = 'cp $(location :' + name + '-rem) $OUT && '
+                + 'echo "namespace java ' + BMV2_NAMESPACE + '" | '
+                + 'cat - $OUT > temp && mv temp $OUT',
+        out = name + '.thrift',
+    )
+    # Generate Java sources.
+    genrule (
+        name = name+'-gen',
+        srcs = [':' + name + '-ns'],
+        # FIXME: is there a better way to get just the output dir of this rule?
+        # ...not the full file path in $OUT
+        cmd = '$(exe :thrift-exe) -o $SRCDIR/../' + name + '-gen '
+                + '--gen java $SRCDIR/' + name + '.thrift',
+        out = 'gen-java',
+    )
+    # Zip them.
+    zip_file(
+        name = name,
+        out = name + '.src.zip',
+        srcs = [':' + name + '-gen']
+    )
+
+
+remote_thrift_def(
+    name = 'simple_pre_lag',
+    url = BMV2_BASEURL + '/thrift_src/simple_pre_lag.thrift',
+    sha1 = 'f468ebebc7bb8577f11ca950939f34add5f5634c',
+)
+
+osgi_jar(
+    # If a source ending with *.src.zip is passed, Buck automatically looks for *.java files inside.
+    srcs = [':simple_pre_lag'],
+    deps = COMPILE_DEPS,
+    do_javadocs = False,
+    do_checkstyle = False
+)
+
+project_config(
+    src_target = ':onos-protocols-bmv2-thrift-api'
+)

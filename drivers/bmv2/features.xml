@@ -14,11 +14,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
+          name="${project.artifactId}-${project.version}">
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
+        <bundle>
+            mvn:${project.groupId}/${project.artifactId}/${project.version}
+        </bundle>
 
     </feature>
 </features>

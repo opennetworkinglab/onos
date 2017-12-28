@@ -3,20 +3,29 @@ GRPC_VER = '1.3.1'
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:minimal-json',
+    '//lib:KRYO',
+    '//lib:JACKSON',
+    '//lib:libthrift',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//protocols/p4runtime/model:onos-protocols-p4runtime-model',
+    '//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api',
     '//drivers/p4runtime:onos-drivers-p4runtime',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
     '//pipelines/basic:onos-pipelines-basic',
+    '//core/store/serializers:onos-core-serializers',
 ]
 
 BUNDLES = [
     ':onos-drivers-bmv2',
+    '//lib:libthrift',
+    '//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api',
 ]
 
 osgi_jar(
     deps = COMPILE_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
 )
 
 onos_app (
