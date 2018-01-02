@@ -2,8 +2,8 @@
 <div id="ov-flow">
     <div class="tabular-header">
         <h2>
-            Flows for Device {{devId || "(No device selected)"}}
-            ({{tableData.length}} total)
+           {{lion('title_flows')}}{{devId || "(No device selected)"}}
+            ({{tableData.length}} {{lion('total')}})
         </h2>
 
         <div class="ctrl-btns">
@@ -81,15 +81,15 @@
             <table>
                 <tr>
                     <!--<td colId="id" col-width="180px" sortable>Flow ID </td>-->
-                    <td colId="state" col-width="100px" sortable>State </td>
+                    <td colId="state" col-width="100px" sortable>{{lion('state')}}</td>
                     <!--<td class="right" colId="bytes" col-width="90px" sortable> Bytes </td>-->
-                    <td class="right" colId="packets" col-width="90px" sortable> Packets </td>
-                    <td class="right" colId="duration" col-width="90px" sortable> Duration </td>
-                    <td colId="priority" col-width="80px" sortable> Priority </td>
-                    <td colId="tableName" col-width="120px" sortable> Table Name </td>
-                    <td colId="selector" sortable> Selector </td>
-                    <td colId="treatment" sortable> Treatment </td>
-                    <td colId="appName" sortable> App Name </td>
+                    <td class="right" colId="packets" col-width="90px" sortable>{{lion('packets')}}</td>
+                    <td class="right" colId="duration" col-width="90px" sortable>{{lion('duration')}}</td>
+                    <td colId="priority" col-width="80px" sortable>{{lion('priority')}}</td>
+                    <td colId="tableName" col-width="120px" sortable>{{lion('tableName')}}</td>
+                    <td colId="selector" sortable>{{lion('selector')}}  </td>
+                    <td colId="treatment" sortable>{{lion('treatment')}}  </td>
+                    <td colId="appName" sortable>{{lion('appName')}}  </td>
                 </tr>
             </table>
         </div>

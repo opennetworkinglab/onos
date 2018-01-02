@@ -120,6 +120,7 @@ public class UiExtensionManager
             "core.view.App",
             "core.view.Cluster",
             "core.view.Topo",
+            "core.view.Flow",
 
             // TODO: More to come...
     };

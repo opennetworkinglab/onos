@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is;
+    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is, ls;
 
     // internal state
     var detailsPanel,
@@ -60,25 +60,27 @@
             'idleTimeout',
             'hardTimeout',
             'permanent',
-        ],
-        friendlyProps = [
-            'Flow ID',
-            'State',
-
-            'Bytes',
-            'Packets',
-            'Duration',
-
-            'Flow Priority',
-            'Table Name',
-            'App Name',
-            'App ID',
-
-            'Group ID',
-            'Idle Timeout',
-            'Hard Timeout',
-            'Permanent',
         ];
+
+// deferred localization strings
+    var warnDeactivate,
+        warnOwnRisk,
+        friendlyProps,
+        lion;
+
+    function doLion() {
+        lion = ls.bundle('core.view.Flow');
+
+        warnDeactivate = lion('dlg_warn_deactivate');
+        warnOwnRisk = lion('dlg_warn_own_risk');
+
+        friendlyProps = [
+            lion('flowId'), lion('state'), lion('bytes'), lion('packets'),
+            lion('duration'), lion('priority'),lion('tableName'),lion('appName'),lion('appId'),
+            lion('groupId'),lion('idleTimeout'),lion('hardTimeout'),lion('permanent')
+        ];
+    }
+
 
     function closePanel() {
         if (detailsPanel.isVisible()) {
@@ -130,16 +132,6 @@
         addCell('value', value);
     }
 
-    // deferred fetching of user-visible strings, so that lion context is set
-    function getLionProps() {
-        // TODO: Localization... (see cluster.js for the pattern)
-        // var l = $scope.lion;
-        // return [
-        //     l('flow_id'),
-        //     ...
-        // ];
-        return friendlyProps;
-    }
 
     function getLionClearDeferred() {
         // TODO: Localization...
@@ -221,10 +213,10 @@
             ['$log', '$scope', '$location',
                 'FnService', 'TableBuilderService', 'NavService',
                 'MastService', 'PanelService', 'KeyService', 'IconService',
-                'WebSocketService',
+                'WebSocketService','LionService',
 
                 function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _ns_,
-                          _mast_, _ps_, _ks_, _is_, _wss_) {
+                          _mast_, _ps_, _ks_, _is_, _wss_, _ls_) {
                     var params,
                         handlers = {};
 
@@ -238,13 +230,19 @@
                     wss = _wss_;
                     mast = _mast_;
                     ps = _ps_;
-                    $scope.deviceTip = 'Show device table';
-                    $scope.portTip = 'Show port view for this device';
-                    $scope.groupTip = 'Show group view for this device';
-                    $scope.meterTip = 'Show meter view for selected device';
-                    $scope.pipeconfTip = 'Show pipeconf view for selected device';
-                    $scope.briefTip = 'Switch to brief view';
-                    $scope.detailTip = 'Switch to detailed view';
+                    ls = _ls_;
+
+                    doLion();
+
+                    $scope.lion = lion;
+
+                    $scope.deviceTip = lion('tt_ctl_show_device');
+                    $scope.portTip = lion('tt_ctl_show_port');
+                    $scope.groupTip = lion('tt_ctl_show_group');
+                    $scope.meterTip = lion('tt_ctl_show_meter');
+                    $scope.pipeconfTip = lion('tt_ctl_show_pipeconf');
+                    $scope.briefTip = lion('tt_ctl_switcth_brief');
+                    $scope.detailTip = lion('tt_ctl_switcth_detailed');
 
                     $scope.brief = true;
                     params = $location.search();
