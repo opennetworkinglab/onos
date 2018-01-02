@@ -180,6 +180,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         try {
             meters.put(key, data);
         } catch (StorageException e) {
+            futures.remove(key);
             future.completeExceptionally(e);
         }
 
@@ -203,6 +204,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             }
             updateMeterIdAvailability(meter.deviceId(), meter.id(), true);
         } catch (StorageException e) {
+            futures.remove(key);
             future.completeExceptionally(e);
         }
 
@@ -246,6 +248,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                 future.complete(MeterStoreResult.fail(MeterFailReason.INVALID_METER));
             }
         } catch (StorageException e) {
+            futures.remove(key);
             future.completeExceptionally(e);
         }
         return future;
