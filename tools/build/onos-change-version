@@ -34,7 +34,7 @@ sed -i".VERBACK" -E "s/ -Dversion=.*\"/ -Dversion=$NEW_VERSION\"/" $ONOS_ROOT/to
 sed -i".VERBACK" -E "s/ONOS_POM_VERSION=.*\"/ONOS_POM_VERSION=\"$NEW_VERSION\"/" $ONOS_ROOT/tools/build/envDefaults
 
 # Augment fallback version in VersionManager
-sed -i "" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")/" \
+sed -i".VERBACK" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")/" \
    $ONOS_ROOT/core/net/src/main/java/org/onosproject/core/impl/VersionManager.java
 
 # Augment the version in archetypes tree.
