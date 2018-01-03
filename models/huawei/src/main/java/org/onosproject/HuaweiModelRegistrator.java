@@ -41,6 +41,8 @@ import java.util.Map;
 @Component(immediate = true)
 public class HuaweiModelRegistrator extends AbstractYangModelRegistrator {
 
+    private static final String MODEL_VERSION = "2014-12-25";
+
     /**
      * Creates L3VPN model registrator.
      */
@@ -50,19 +52,19 @@ public class HuaweiModelRegistrator extends AbstractYangModelRegistrator {
 
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
-        appInfo.put(new DefaultYangModuleId("ne-bgpcomm", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-bgpcomm", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeBgpcomm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-bgpcomm-type", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-bgpcomm-type", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeBgpcommType.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpn-api", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpn-api", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeL3VpnApi.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeL3Vpncomm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm-type", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-l3vpncomm-type", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeL3VpncommType.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-tnlm", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-tnlm", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeTnlm.class, null));
-        appInfo.put(new DefaultYangModuleId("ne-tnlm-type", "2014-12-25"),
+        appInfo.put(new DefaultYangModuleId("ne-tnlm-type", MODEL_VERSION),
                     new DefaultAppModuleInfo(NeTnlmType.class, null));
         return ImmutableMap.copyOf(appInfo);
     }
