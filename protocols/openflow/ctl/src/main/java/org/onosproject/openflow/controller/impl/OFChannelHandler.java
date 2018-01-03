@@ -1267,6 +1267,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
 
         if (dispatcher != null) {
             dispatcher.shutdownNow();
+            dispatcher = null;
         }
 
          if (thisdpid != 0) {
