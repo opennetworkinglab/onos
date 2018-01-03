@@ -65,6 +65,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBucketCounter;
+import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
@@ -412,7 +413,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             if (sw == null) {
                 return;
             }
-            if (isGroupSupported(sw)) {
+            if (isGroupSupported(sw) && sw.features().getCapabilities().contains(OFCapabilities.GROUP_STATS)) {
                 GroupStatsCollector gsc = new GroupStatsCollector(sw, groupPollInterval);
                 stopCollectorIfNeeded(collectors.put(dpid, gsc));
                 gsc.start();
