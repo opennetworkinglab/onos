@@ -537,7 +537,7 @@ public class McastHandler {
                 .forEach(entry -> {
                     ConnectPoint source = getSource(entry.getKey().mcastIp());
                     removeGroupFromDevice(entry.getKey().deviceId(), entry.getKey().mcastIp(),
-                            assignedVlan(deviceId.equals(source.deviceId()) ? source : null));
+                            assignedVlan(source != null && deviceId.equals(source.deviceId()) ? source : null));
                     mcastNextObjStore.remove(entry.getKey());
                 });
         log.debug("{} is removed from mcastNextObjStore", deviceId);

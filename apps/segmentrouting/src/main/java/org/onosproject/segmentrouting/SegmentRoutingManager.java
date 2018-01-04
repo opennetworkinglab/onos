@@ -426,14 +426,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
         cfgService.registerConfigFactory(pwaasConfigFactory);
+
+        cfgListener.configureNetwork();
+
         hostService.addListener(hostListener);
         packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
         multicastRouteService.addListener(mcastListener);
         routeService.addListener(routeListener);
-
-        cfgListener.configureNetwork();
 
         log.info("Started");
     }
