@@ -547,7 +547,17 @@ public class DhcpRelayManager implements DhcpRelayService {
                     log.warn("Unsupported event type {}", event.type());
                     break;
             }
+        }
 
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            if (event.configClass().equals(DefaultDhcpRelayConfig.class) ||
+                    event.configClass().equals(IndirectDhcpRelayConfig.class) ||
+                    event.configClass().equals(IgnoreDhcpConfig.class)) {
+                return true;
+            }
+            log.debug("Ignore irrelevant event class {}", event.configClass().getName());
+            return false;
         }
     }
 
