@@ -1696,6 +1696,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            if (event.configClass().equals(SegmentRoutingDeviceConfig.class) ||
+                    event.configClass().equals(SegmentRoutingAppConfig.class) ||
+                    event.configClass().equals(InterfaceConfig.class) ||
+                    event.configClass().equals(XConnectConfig.class) ||
+                    event.configClass().equals(PwaasConfig.class)) {
+                return true;
+            }
+            log.debug("Ignore irrelevant event class {}", event.configClass().getName());
+            return false;
+        }
+
         private final class ConfigChange implements Runnable {
             @Override
             public void run() {
