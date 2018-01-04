@@ -18,8 +18,7 @@ ONOS_ROOT = os.environ["ONOS_ROOT"]
 CPU_PORT = 255
 PKT_BYTES_TO_DUMP = 80
 VALGRIND_PREFIX = 'valgrind --leak-check=yes'
-VALGRIND_SLEEP = 10  # seconds
-
+SWITCH_START_TIMEOUT = 5 #seconds
 
 def parseBoolean(value):
     if value in ['1', 1, 'true', 'True']:
@@ -233,11 +232,6 @@ class ONOSBmv2Switch(Switch):
             if out:
                 print out
             if self.netcfg:
-                if self.valgrind:
-                    # With valgrind, it takes some time before the gRPC server is available.
-                    # Wait before pushing the netcfg.
-                    info("\n*** Waiting %d seconds before pushing the config to ONOS...\n" % VALGRIND_SLEEP)
-                    time.sleep(VALGRIND_SLEEP)
                 time.sleep(self.netcfgDelay)
 
         try:  # onos.py
@@ -246,6 +240,27 @@ class ONOSBmv2Switch(Switch):
             clist = controllers
         assert len(clist) > 0
         cip = clist[0].IP()
+
+        # Wait for switch to open gRPC port, before sending ONOS the netcfg.json.
+        # Include time-out just in case something hangs.
+        if not self.dryrun:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            endtime = time.time() + SWITCH_START_TIMEOUT
+            while True:
+                result = sock.connect_ex(('127.0.0.1', self.grpcPort))
+                if result == 0:
+                    # The port is open. Let's go! (Close socket first)
+                    sock.close()
+                    break
+                # Port is not open yet. If there is time, we wait a bit.
+                if endtime > time.time():
+                    time.sleep(0.2)
+                else:
+                    # Time's up.
+                    raise Exception("Switch did not start before {} second timeout. Exiting.\n"
+                          .format(SWITCH_START_TIMEOUT))
+                    exit()
+
         self.doOnosNetcfg(cip)
 
     def stop(self, deleteIntfs=True):
