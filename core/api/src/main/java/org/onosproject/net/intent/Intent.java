@@ -67,29 +67,6 @@ public abstract class Intent {
      * @param key       optional key
      * @param resources required network resources (optional)
      * @param priority  flow rule priority
-     * @deprecated 1.9.1
-     */
-    @Deprecated
-    protected Intent(ApplicationId appId,
-                     Key key,
-                     Collection<NetworkResource> resources,
-                     int priority) {
-        checkState(idGenerator != null, "Id generator is not bound.");
-        checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY);
-        this.id = IntentId.valueOf(idGenerator.getNewId());
-        this.appId = checkNotNull(appId, "Application ID cannot be null");
-        this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
-        this.priority = priority;
-        this.resources = checkNotNull(resources);
-        this.resourceGroup = null;
-    }
-
-    /**
-     * Creates a new intent.
-     * @param appId     application identifier
-     * @param key       optional key
-     * @param resources required network resources (optional)
-     * @param priority  flow rule priority
      * @param resourceGroup the resource group for intent
      */
     protected Intent(ApplicationId appId,

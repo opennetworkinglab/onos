@@ -97,11 +97,11 @@ public class FlowObjectiveIntentTest extends IntentTest {
 
     @Override
     protected Intent createOne() {
-        return new FlowObjectiveIntent(APP_ID, DEVICE, OBJECTIVES, RESOURCES);
+        return new FlowObjectiveIntent(APP_ID, null, DEVICE, OBJECTIVES, RESOURCES, null);
     }
 
     @Override
     protected Intent createAnother() {
-        return new FlowObjectiveIntent(APP_ID, DEVICE, OBJECTIVES, RESOURCES);
+        return new FlowObjectiveIntent(APP_ID, null, DEVICE, OBJECTIVES, RESOURCES, null);
     }
 }

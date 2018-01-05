@@ -44,6 +44,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.impl.LabelAllocator;
@@ -135,7 +136,9 @@ public class LinkCollectionIntentCompiler
         // if any rules have been created
         if (!rules.isEmpty()) {
             intentList.add(new FlowRuleIntent(appId, intent.key(), rules,
-                                              intent.resources()));
+                                              intent.resources(),
+                                              PathIntent.ProtectionType.PRIMARY,
+                                 null));
         }
         return intentList.build();
     }
@@ -301,7 +304,7 @@ public class LinkCollectionIntentCompiler
      *         if we have to perform it
      */
     private Instruction optimizeTtlInstructions(int index, Instruction instruction, List<Instruction> instructions) {
-        /**
+        /*
          * Here we handle the optimization of decrement mpls ttl. The optimization
          * is to come back to the start of the list looking for the same
          * action. If we find the same action, we can optimize.

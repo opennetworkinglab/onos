@@ -49,29 +49,6 @@ public class ProtectionEndpointIntent extends Intent {
      * @param priority priority to use for flows from this intent
      * @param deviceId target device id
      * @param description protected transport endpoint description of the intent
-     * @deprecated 1.9.1
-     */
-    @Deprecated
-    protected ProtectionEndpointIntent(ApplicationId appId, Key key,
-                                       Collection<NetworkResource> resources,
-                                       int priority,
-                                       DeviceId deviceId,
-                                       ProtectedTransportEndpointDescription description) {
-        super(appId, key, resources, priority, null);
-
-        this.deviceId = checkNotNull(deviceId);
-        this.description = checkNotNull(description);
-    }
-
-    /**
-     * Creates a ProtectionEndpointIntent by specific resource and description.
-     *
-     * @param appId application identification
-     * @param key intent key
-     * @param resources network resource to be set
-     * @param priority priority to use for flows from this intent
-     * @param deviceId target device id
-     * @param description protected transport endpoint description of the intent
      * @param resourceGroup resource group for this intent
      */
     protected ProtectionEndpointIntent(ApplicationId appId, Key key,

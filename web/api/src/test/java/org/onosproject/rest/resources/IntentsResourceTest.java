@@ -63,6 +63,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.provider.ProviderId;
 
 
@@ -862,8 +863,11 @@ public class IntentsResourceTest extends ResourceTest {
         flowRules.add(flowRule2);
         FlowRuleIntent flowRuleIntent = new FlowRuleIntent(
                 APP_ID,
+                null,
                 flowRules,
-                new HashSet<NetworkResource>());
+                new HashSet<NetworkResource>(),
+                PathIntent.ProtectionType.PRIMARY,
+        null);
         Intent intent = new MockIntent(3L);
         installableIntents.add(flowRuleIntent);
         intents.add(intent);
@@ -936,8 +940,11 @@ public class IntentsResourceTest extends ResourceTest {
 
         FlowRuleIntent flowRuleIntent = new FlowRuleIntent(
                 APP_ID,
+                null,
                 new ArrayList<>(),
-                resources);
+                resources,
+                PathIntent.ProtectionType.PRIMARY,
+                null);
 
         Intent intent = new MockIntent(MockIntent.nextId());
         Long intentId = intent.id().id();

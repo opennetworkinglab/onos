@@ -33,7 +33,7 @@ public class TestIntent extends Intent {
      */
     public TestIntent(int value) { // FIXME
         super(new TestApplicationId("foo"), null, Collections.emptyList(),
-                Intent.DEFAULT_INTENT_PRIORITY);
+                Intent.DEFAULT_INTENT_PRIORITY, null);
         this.value = value;
     }
 

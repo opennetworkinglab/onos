@@ -66,7 +66,7 @@ public abstract class DomainIntent extends Intent {
                         Set<FilteredConnectPoint> filteredEgressPoints,
                         TrafficTreatment treatment,
                         List<Constraint> constraints) {
-        super(appId, key, resources, priority);
+        super(appId, key, resources, priority, null);
 
         checkNotNull(filteredIngressPoints, "Ingress points cannot be null");
         checkArgument(!filteredIngressPoints.isEmpty(), "Ingress point cannot be empty");

@@ -41,32 +41,6 @@ public class PathIntent extends ConnectivityIntent {
 
     /**
      * Creates a new point-to-point intent with the supplied ingress/egress
-     * ports and using the specified explicit path. Path is primary by default.
-     *
-     * @param appId     application identifier
-     * @param key       intent key
-     * @param selector  traffic selector
-     * @param treatment treatment
-     * @param path      traversed links
-     * @param constraints  optional list of constraints
-     * @param priority  priority to use for the generated flows
-     * @throws NullPointerException {@code path} is null
-     * @deprecated 1.9.1
-     */
-    @Deprecated
-    protected PathIntent(ApplicationId appId,
-                         Key key,
-                         TrafficSelector selector,
-                         TrafficTreatment treatment,
-                         Path path,
-                         List<Constraint> constraints,
-                         int priority) {
-        this(appId, key, selector, treatment, path, constraints, priority,
-             ProtectionType.PRIMARY, null);
-    }
-
-    /**
-     * Creates a new point-to-point intent with the supplied ingress/egress
      * ports and using the specified explicit path, which can be classified
      * as PRIMARY or BACKUP.
      *

@@ -53,6 +53,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.ObjectiveTrackerService;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.TopologyChangeDelegate;
 import org.onosproject.store.trivial.SimpleIntentStore;
 
@@ -170,7 +171,8 @@ public class IntentManagerTest {
     private static class MockInstallableIntent extends FlowRuleIntent {
 
         public MockInstallableIntent() {
-            super(APPID, Collections.singletonList(new MockFlowRule(100)), Collections.emptyList());
+            super(APPID, null, Collections.singletonList(new MockFlowRule(100)), Collections.emptyList(),
+                    PathIntent.ProtectionType.PRIMARY, null);
         }
     }
 
@@ -516,7 +518,7 @@ public class IntentManagerTest {
         class IntentNoCompiler extends Intent {
             IntentNoCompiler() {
                 super(APPID, null, Collections.emptyList(),
-                        Intent.DEFAULT_INTENT_PRIORITY);
+                        Intent.DEFAULT_INTENT_PRIORITY, null);
             }
         }
 

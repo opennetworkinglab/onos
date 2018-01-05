@@ -62,6 +62,7 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.WorkPartitionServiceAdapter;
@@ -394,7 +395,8 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
     private static class MockInstallableIntent extends FlowRuleIntent {
 
         public MockInstallableIntent() {
-            super(APP_ID, Collections.singletonList(new IntentTestsMocks.MockFlowRule(100)), Collections.emptyList());
+            super(APP_ID, null, Collections.singletonList(new IntentTestsMocks.MockFlowRule(100)),
+                    Collections.emptyList(), PathIntent.ProtectionType.PRIMARY, null);
         }
     }
 
