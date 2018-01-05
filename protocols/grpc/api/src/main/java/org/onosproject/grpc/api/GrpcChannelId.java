@@ -24,26 +24,18 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * gRPCChannel identifier suitable as an external key.
- * <p>
- * This class is immutable.</p>
+ * gRPC managed channel identifier, unique in the scope of a gRPC controller
+ * instance.
  */
 @Beta
 public final class GrpcChannelId extends Identifier<String> {
 
     private final DeviceId deviceId;
-
     private final String channelName;
 
-    /**
-     * Instantiates a new GrpcChannel id.
-     *
-     * @param deviceId    the device id
-     * @param channelName the name of the channel
-     */
     private GrpcChannelId(DeviceId deviceId, String channelName) {
         super(deviceId.toString() + ":" + channelName);
-        checkNotNull(deviceId, "device id must not be null");
+        checkNotNull(deviceId, "device ID must not be null");
         checkNotNull(channelName, "channel name must not be null");
         checkArgument(!channelName.isEmpty(), "channel name must not be empty");
         this.deviceId = deviceId;
@@ -51,31 +43,32 @@ public final class GrpcChannelId extends Identifier<String> {
     }
 
     /**
-     * Returns the deviceId of the device that uses this channel.
+     * Returns the device part of this channel ID.
      *
-     * @return the device Id
+     * @return device ID
      */
     public DeviceId deviceId() {
         return deviceId;
     }
 
     /**
-     * Returns the channel name.
+     * Returns the channel name part of this channel ID.
      *
-     * @return the channel name
+     * @return channel name
      */
     public String channelName() {
         return channelName;
     }
 
     /**
-     * Creates a grpc channel identifier from the specified device id and name provided.
+     * Instantiates a new channel ID for the given device ID and arbitrary
+     * channel name (e.g. the name of the gRPC service).
      *
-     * @param id          device id
+     * @param deviceId    device ID
      * @param channelName name of the channel
-     * @return channel name
+     * @return channel ID
      */
-    public static GrpcChannelId of(DeviceId id, String channelName) {
-        return new GrpcChannelId(id, channelName);
+    public static GrpcChannelId of(DeviceId deviceId, String channelName) {
+        return new GrpcChannelId(deviceId, channelName);
     }
 }

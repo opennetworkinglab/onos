@@ -27,84 +27,72 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Abstraction of a gRPC controller. Serves as a one stop shop for obtaining
- * gRPC ManagedChannels to interact with devices and (un)register observers on event streams from the device.
+ * Abstraction of a gRPC controller that stores and manages gRPC channels.
  */
 @Beta
 public interface GrpcController {
 
-    /**
-     * Adds a StreamObserver on a channel specific for a device.
-     *
-     * @param observerId          the id of the observer
-     * @param grpcObserverHandler the manager for the stream.
-     */
-    void addObserver(GrpcStreamObserverId observerId, GrpcObserverHandler grpcObserverHandler);
+    int CONNECTION_TIMEOUT_SECONDS = 20;
 
     /**
-     * Removes the StreamObserver on a channel specific for a device.
+     * Creates a gRPC managed channel from the given builder and opens a
+     * connection to it. If the connection is successful returns the managed
+     * channel object and stores the channel internally, associated with the
+     * given channel ID.
+     * <p>
+     * This method blocks until the channel is open or a timeout expires. By
+     * default the timeout is {@link #CONNECTION_TIMEOUT_SECONDS} seconds. If
+     * the timeout expires, a IOException is thrown.
      *
-     * @param observerId the id of the observer
+     * @param channelId      ID of the channel
+     * @param channelBuilder builder of the managed channel
+     * @return the managed channel created
+     * @throws IOException if the channel cannot be opened
      */
-    void removeObserver(GrpcStreamObserverId observerId);
+    ManagedChannel connectChannel(GrpcChannelId channelId,
+                                  ManagedChannelBuilder<?> channelBuilder)
+            throws IOException;
 
     /**
-     * If present returns the stream observer manager previously added for the given device.
+     * Closes the gRPC managed channel (i.e., disconnects from the gRPC server)
+     * and removed the channel from this controller.
      *
-     * @param observerId the id of the observer.
-     * @return the ObserverManager
-     */
-    Optional<GrpcObserverHandler> getObserverManager(GrpcStreamObserverId observerId);
-
-    /**
-     * Tries to connect to a specific gRPC server, if the connection is successful
-     * returns the ManagedChannel. This method blocks until the channel is setup or a timeout expires.
-     * By default the timeout is 20 seconds. If the timeout expires and thus the channel can't be set up
-     * a IOException is thrown.
-     *
-     * @param channelId      the id of the channel
-     * @param channelBuilder the builder for the managed channel.
-     * @return the ManagedChannel created.
-     * @throws IOException if channel can't be setup.
-     */
-    ManagedChannel connectChannel(GrpcChannelId channelId, ManagedChannelBuilder<?> channelBuilder) throws IOException;
-
-    /**
-     * Disconnects a gRPC device by removing it's ManagedChannel from this controller.
-     *
-     * @param channelId id of the service to remove
+     * @param channelId ID of the channel to remove
      */
     void disconnectChannel(GrpcChannelId channelId);
 
     /**
-     * Gets all ManagedChannels for the gRPC devices.
+     * Returns all channels known by this controller, each one mapped to the ID
+     * passed at creation time.
      *
-     * @return Map of all the ManagedChannels with their identifier saved in this controller
+     * @return map of all the channels with their ID as stored in this
+     * controller
      */
     Map<GrpcChannelId, ManagedChannel> getChannels();
 
     /**
-     * Returns true if the channel associated with the given identifier is open, i.e. the server is able to successfully
-     * responds to RPCs.
+     * Returns true if the channel associated with the given identifier is open,
+     * i.e. the server is able to successfully replies to RPCs, false
+     * otherwise.
      *
-     * @param channelId channel identifier
+     * @param channelId channel ID
      * @return true if channel is open, false otherwise.
      */
     boolean isChannelOpen(GrpcChannelId channelId);
 
     /**
-     * Returns all ManagedChannels associated to the given device identifier.
+     * Returns all channel associated to the given device ID.
      *
-     * @param deviceId the device for which we are interested.
-     * @return collection of all the ManagedChannels saved in this controller
+     * @param deviceId device ID
+     * @return collection of channels
      */
     Collection<ManagedChannel> getChannels(DeviceId deviceId);
 
     /**
-     * If present, returns the managed channel associated with the given identifier.
+     * If present, returns the channel associated with the given ID.
      *
-     * @param channelId the id of the channel
-     * @return the ManagedChannel of the device.
+     * @param channelId channel ID
+     * @return optional channel
      */
     Optional<ManagedChannel> getChannel(GrpcChannelId channelId);
 
