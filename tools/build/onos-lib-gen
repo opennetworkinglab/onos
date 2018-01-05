@@ -1,6 +1,11 @@
 #!/bin/bash
 
 set -e
+
+# force the correct version of buck to be downloaded
+onos-buck --version
+
+
 cd $(onos-buck root 2>/dev/null)
 JAR=$(onos-buck build //tools/build/libgen:libgen --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
 
