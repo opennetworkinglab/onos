@@ -428,21 +428,24 @@ public final class OpenstackSwitchingHandler {
 
         @Override
         public void event(OpenstackNetworkEvent event) {
+            try {
+                if ((event.type() == OPENSTACK_NETWORK_CREATED ||
+                        event.type() == OPENSTACK_NETWORK_UPDATED) && !event.subject().isAdminStateUp()) {
+                    setNetworkAdminRules(event.subject(), true);
+                } else if ((event.type() == OPENSTACK_NETWORK_UPDATED && event.subject().isAdminStateUp()) ||
+                        (event.type() == OPENSTACK_NETWORK_REMOVED && !event.subject().isAdminStateUp())) {
+                    setNetworkAdminRules(event.subject(), false);
+                }
 
-            if ((event.type() == OPENSTACK_NETWORK_CREATED ||
-                    event.type() == OPENSTACK_NETWORK_UPDATED) && !event.subject().isAdminStateUp()) {
-                setNetworkAdminRules(event.subject(), true);
-            } else if ((event.type() == OPENSTACK_NETWORK_UPDATED && event.subject().isAdminStateUp()) ||
-                    (event.type() == OPENSTACK_NETWORK_REMOVED && !event.subject().isAdminStateUp())) {
-                setNetworkAdminRules(event.subject(), false);
-            }
-
-            if ((event.type() == OPENSTACK_PORT_CREATED ||
-                    event.type() == OPENSTACK_PORT_UPDATED) && !event.port().isAdminStateUp()) {
-                setPortAdminRules(event.port(), true);
-            } else if ((event.type() == OPENSTACK_PORT_UPDATED && event.port().isAdminStateUp()) ||
-                    (event.type() == OPENSTACK_PORT_REMOVED && !event.port().isAdminStateUp())) {
-                setPortAdminRules(event.port(), false);
+                if ((event.type() == OPENSTACK_PORT_CREATED ||
+                        event.type() == OPENSTACK_PORT_UPDATED) && !event.port().isAdminStateUp()) {
+                    setPortAdminRules(event.port(), true);
+                } else if ((event.type() == OPENSTACK_PORT_UPDATED && event.port().isAdminStateUp()) ||
+                        (event.type() == OPENSTACK_PORT_REMOVED && !event.port().isAdminStateUp())) {
+                    setPortAdminRules(event.port(), false);
+                }
+            } catch (Exception e) {
+                log.error("Exception occurred while processing OpenstackNetworkEvent because of {}", e.toString());
             }
         }
     }
