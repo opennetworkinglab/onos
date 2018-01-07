@@ -260,7 +260,7 @@ public class L2TunnelHandler {
     /**
      * Adds a single pseudowire from leaf to a leaf.
      * This method can be called from cli commands
-     * without configration updates, thus it does not check for mastership
+     * without configuration updates, thus it does not check for mastership
      * of the ingress pseudowire device.
      *
      * @param pw The pseudowire
@@ -301,7 +301,7 @@ public class L2TunnelHandler {
             revNextHop = reverseLink(path.get(1));
         } else {
             if (path.size() != 1) {
-                log.info("Deploying process : Path between leaf spine should equal to 2, for pseudowire {}",
+                log.info("Deploying process : Path between leaf spine should equal to 1, for pseudowire {}",
                          l2TunnelId);
                 return INTERNAL_ERROR;
             }
@@ -660,7 +660,7 @@ public class L2TunnelHandler {
             revNextHop = reverseLink(path.get(1));
         } else {
             if (path.size() != 1) {
-                log.info("Update process : Error, path between leaf spine should equal to 2, for pseudowire {}",
+                log.info("Update process : Error, path between leaf spine should equal to 1, for pseudowire {}",
                          newPw.l2Tunnel().tunnelId());
                 return;
             }
