@@ -164,6 +164,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      */
     public static final String AK_GRID_HZ = "grid";
 
+    /**
+     * Annotation key for transmit tune feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_TUNE_FEATURE = "txTuneFeature";
 
     /**
      * Annotation key for minimum frequency in Hz.
@@ -184,6 +189,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_TX_GRID_HZ = "txGrid";
 
     /**
+     * Annotation key for receive tune feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_RX_TUNE_FEATURE = "rxTuneFeature";
+
+    /**
      * Annotation key for minimum frequency in Hz.
      * Value is expected to be an integer.
      */
@@ -200,6 +211,24 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Value is expected to be an integer.
      */
     public static final String AK_RX_GRID_HZ = "rxGrid";
+
+   /**
+     * Annotation key for transmit power feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_PWR_FEATURE = "txPwrFeature";
+
+    /**
+     * Annotation key for minimum transmit power in dBm*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TX_PWR_MIN = "txPowerMin";
+
+    /**
+     * Annotation key for maximum transmit power in dBm*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TX_PWR_MAX = "txPowerMax";
 
     //TODO consider renaming KBPS and MBPS (as they are used to convert by division)
     private static final long KBPS = 1_000;
@@ -861,44 +890,57 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // FIXME is there a OF version neutral way to access
                 // OFOpticalPortFeaturesSerializerVer14
 
+                long supported = optical.get().getSupported();
+                long rxMin = optical.get().getRxMinFreqLmda();
+                long rxMax = optical.get().getRxMaxFreqLmda();
+                long rxGrid = optical.get().getRxGridFreqLmda();
+                long txMin = optical.get().getTxMinFreqLmda();
+                long txMax = optical.get().getTxMaxFreqLmda();
+                long txGrid = optical.get().getTxGridFreqLmda();
+
+                int txTune = OFOpticalPortFeaturesSerializerVer14.TX_TUNE_VAL;
+                int rxTune = OFOpticalPortFeaturesSerializerVer14.RX_TUNE_VAL;
+                annotations.set(AK_TX_TUNE_FEATURE,
+                        ((supported & txTune) != 0) ? "enabled" : "disabled");
+                annotations.set(AK_RX_TUNE_FEATURE,
+                        ((supported & rxTune) != 0) ? "enabled" : "disabled");
+
                 // wire value for OFOpticalPortFeatures.USE_FREQ
                 long useFreq = OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL;
-                if ((optical.get().getSupported() & useFreq) != 0) {
+                if ((supported & useFreq) != 0) {
                     // unit is in Frequency Mhz
-                    long rxMinFreq = optical.get().getRxMinFreqLmda();
-                    long rxMaxFreq = optical.get().getRxMaxFreqLmda();
-                    long txMinFreq = optical.get().getTxMinFreqLmda();
-                    long txMaxFreq = optical.get().getTxMaxFreqLmda();
+                    annotations.set(AK_RX_MIN_FREQ_HZ, mhzToAnnotation(rxMin));
+                    annotations.set(AK_RX_MAX_FREQ_HZ, mhzToAnnotation(rxMax));
+                    annotations.set(AK_RX_GRID_HZ, mhzToAnnotation(rxGrid));
 
-                    annotations.set(AK_RX_MIN_FREQ_HZ, mhzToAnnotation(rxMinFreq));
-                    annotations.set(AK_RX_MAX_FREQ_HZ, mhzToAnnotation(rxMaxFreq));
-
-                    annotations.set(AK_TX_MIN_FREQ_HZ, mhzToAnnotation(txMinFreq));
-                    annotations.set(AK_TX_MAX_FREQ_HZ, mhzToAnnotation(txMaxFreq));
+                    annotations.set(AK_TX_MIN_FREQ_HZ, mhzToAnnotation(txMin));
+                    annotations.set(AK_TX_MAX_FREQ_HZ, mhzToAnnotation(txMax));
+                    annotations.set(AK_TX_GRID_HZ, mhzToAnnotation(txGrid));
 
                     // FIXME pretty confident this is not going to happen
                     // unless Device models Tx/Rx ports as separate port
-                    if (rxMinFreq == txMinFreq) {
+                    if (rxMin == txMin) {
                         annotations.set(AK_MIN_FREQ_HZ,
-                                        mhzToAnnotation(rxMinFreq));
+                                        mhzToAnnotation(rxMin));
                     }
-                    if (rxMaxFreq == txMaxFreq) {
+                    if (rxMax == txMax) {
                         annotations.set(AK_MAX_FREQ_HZ,
-                                        mhzToAnnotation(rxMaxFreq));
+                                        mhzToAnnotation(rxMax));
+                    }
+                    if (rxGrid == txGrid) {
+                        annotations.set(AK_GRID_HZ,
+                                        mhzToAnnotation(rxGrid));
                     }
 
                 } else {
                     // unit is in Lambda nm * 100
-                    long rxMin = optical.get().getRxMinFreqLmda();
-                    long rxMax = optical.get().getRxMaxFreqLmda();
-                    long txMin = optical.get().getTxMinFreqLmda();
-                    long txMax = optical.get().getTxMaxFreqLmda();
-
                     annotations.set(AK_RX_MIN_FREQ_HZ, lambdaToAnnotationHz(rxMin));
                     annotations.set(AK_RX_MAX_FREQ_HZ, lambdaToAnnotationHz(rxMax));
+                    annotations.set(AK_RX_GRID_HZ, lambdaToAnnotationHz(rxGrid));
 
                     annotations.set(AK_TX_MIN_FREQ_HZ, lambdaToAnnotationHz(txMin));
                     annotations.set(AK_TX_MAX_FREQ_HZ, lambdaToAnnotationHz(txMax));
+                    annotations.set(AK_TX_GRID_HZ, lambdaToAnnotationHz(txGrid));
 
                     // FIXME pretty confident this is not going to happen
                     // unless Device models Tx/Rx ports as separate port
@@ -910,11 +952,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                         annotations.set(AK_MAX_FREQ_HZ,
                                         lambdaToAnnotationHz(rxMax));
                     }
+                    if (rxGrid == txGrid) {
+                        annotations.set(AK_GRID_HZ,
+                                        lambdaToAnnotationHz(rxGrid));
+                    }
 
                 }
-                // TODO parse other part of OFPortDescPropOptical
-                // Tx/Rx tunable, ...
-                // Power is configurable or now
+
+                int txPwr = OFOpticalPortFeaturesSerializerVer14.TX_PWR_VAL;
+                long txPwrMin = optical.get().getTxPwrMin();
+                long txPwrMax = optical.get().getTxPwrMax();
+                annotations.set(AK_TX_PWR_FEATURE, ((supported & txPwr) != 0) ? "enabled" : "disabled");
+                annotations.set(AK_TX_PWR_MIN, Long.toString(txPwrMin));
+                annotations.set(AK_TX_PWR_MAX, Long.toString(txPwrMax));
 
                 // TODO How to determine appropriate port type?
 
