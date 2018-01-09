@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-mapping</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.0-b8</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-mapping-api</artifactId>
