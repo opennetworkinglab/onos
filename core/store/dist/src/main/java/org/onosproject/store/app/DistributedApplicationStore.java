@@ -184,7 +184,29 @@ public class DistributedApplicationStore extends ApplicationArchive
         apps.addListener(appsListener, activationExecutor);
         apps.addStatusChangeListener(statusChangeListener);
         coreAppId = getId(CoreService.CORE_APP_NAME);
+
+        activateExistingApplications();
         log.info("Started");
+    }
+
+    /**
+     * Activates applications locally on startup.
+     */
+    private void activateExistingApplications() {
+        getApplicationNames().forEach(appName -> {
+            // Only update the application state if the application has already been installed.
+            ApplicationId appId = getId(appName);
+            if (appId != null) {
+                Application application = getApplication(appId);
+                if (application != null) {
+                    InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.get(application.id()));
+                    if (appHolder != null && appHolder.state == ACTIVATED && !isActive(appName)) {
+                        setActive(appName);
+                        updateTime(appName);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -193,7 +215,6 @@ public class DistributedApplicationStore extends ApplicationArchive
      */
     private void bootstrapExistingApplications() {
         apps.asJavaMap().forEach((appId, holder) -> setupApplicationAndNotify(appId, holder.app(), holder.state()));
-
     }
 
     /**
