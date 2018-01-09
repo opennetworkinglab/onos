@@ -24,31 +24,32 @@
         <dependency name="Host-Intent-Connectivity" requires="Net-Reactive-Fwd"/>
 
         <import file="${ONOS_SCENARIOS}/net-point-intent.xml"/>
-        <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Net-Reactive-Fwd,Host-Intent-Connectivity"/>
+        <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Host-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-single-to-multi-intent.xml"/>
-        <dependency name="S2M-Intent-Connectivity"
-                    requires="Net-Setup,~Net-Reactive-Fwd,Host-Intent-Connectivity,P2P-Intent-Connectivity"/>
+        <dependency name="S2M-Intent-Connectivity" requires="Net-Setup,~P2P-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-multi-to-single-intent.xml"/>
-        <dependency name="M2S-Intent-Connectivity"
-                    requires="S2M-Intent-Connectivity"/>
+        <dependency name="M2S-Intent-Connectivity" requires="Net-Setup,~S2M-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-rest.xml"/>
-        <dependency name="Net-REST" requires="Net-Setup,P2P-Intent-Connectivity,M2S-Intent-Connectivity"/>
+        <dependency name="Net-REST" requires="Net-Setup,~M2S-Intent-Connectivity"/>
 
         <import file="${ONOS_SCENARIOS}/net-create-flows.xml"/>
-        <dependency name="Net-Create-Flows" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST"/>
+        <dependency name="Net-Create-Flows" requires="Net-Setup,~Net-REST"/>
 
         <import file="${ONOS_SCENARIOS}/net-flow-objectives.xml"/>
-        <dependency name="Net-Flow-Objectives" requires="Net-Setup,P2P-Intent-Connectivity,Net-REST,Net-Create-Flows"/>
+        <dependency name="Net-Flow-Objectives" requires="Net-Setup,~Net-Create-Flows"/>
 
         <import file="${ONOS_SCENARIOS}/net-topo.xml"/>
-        <dependency name="Net-Topo" requires="Net-Setup,Net-Create-Flows,Net-Flow-Objectives"/>
+        <dependency name="Net-Topo" requires="Net-Setup,~Net-Flow-Objectives"/>
 
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
-        <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity,
+        <dependency name="Net-Teardown" requires="~Net-Reactive-Fwd,
+                                                  ~Host-Intent-Connectivity,
                                                   ~P2P-Intent-Connectivity,
+                                                  ~S2M-Intent-Connectivity,
+                                                  ~M2S-Intent-Connectivity,
                                                   ~Net-REST,
                                                   ~Net-Create-Flows,
                                                   ~Net-Topo"/>
