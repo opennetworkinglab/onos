@@ -197,7 +197,7 @@ public class DistributedApplicationStore extends ApplicationArchive
      * Upgrades application versions for existing applications that are stored on disk after an upgrade.
      */
     private void upgradeExistingApplications() {
-        if (upgradeService.isUpgrading() && upgradeService.isLocalUpgraded()) {
+        if (upgradeService.isUpgrading() && (upgradeService.isLocalActive() || upgradeService.isLocalUpgraded())) {
             getApplicationNames().forEach(appName -> {
                 // Only update the application version if the application has already been installed.
                 ApplicationId appId = getId(appName);
