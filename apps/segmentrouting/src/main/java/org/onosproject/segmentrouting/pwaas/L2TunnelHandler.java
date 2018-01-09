@@ -27,8 +27,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
+import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -1329,15 +1329,17 @@ public class L2TunnelHandler {
      * @return the path
      */
     private List<Link> getPath(ConnectPoint srcCp, ConnectPoint dstCp) {
+        /* TODO We retrieve a set of paths in case of a link failure, what happens
+         * if the TopologyService gets the link notification AFTER us and has not updated the paths?
+         *
+         * TODO This has the potential to act on old topology.
+         * Maybe we should make SRManager be a listener on topology events instead raw link events.
+         */
+        Set<Path> paths = srManager.topologyService.getPaths(
+                srManager.topologyService.currentTopology(),
+                srcCp.deviceId(), dstCp.deviceId());
 
-        /* We retrieve a set of disjoint paths.
-        * We perform that in case of a link failure, what happens
-        * if the PathService gets the link notification AFTER us and
-        * has not updated the paths?
-        */
-        Set<DisjointPath> paths = srManager
-                .pathService
-                .getDisjointPaths(srcCp.elementId(), dstCp.elementId());
+        log.debug("Paths obtained from topology service {}", paths);
 
         // We randomly pick a path.
         if (paths.isEmpty()) {
@@ -1346,7 +1348,10 @@ public class L2TunnelHandler {
         int size = paths.size();
         int index = RandomUtils.nextInt(0, size);
 
-        return Iterables.get(paths, index).links();
+        List<Link> result = Iterables.get(paths, index).links();
+        log.debug("Randomly picked a path {}", result);
+
+        return result;
     }
 
     /**
