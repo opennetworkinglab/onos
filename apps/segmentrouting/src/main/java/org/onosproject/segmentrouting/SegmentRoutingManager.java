@@ -84,7 +84,6 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.RouteEvent;
@@ -153,9 +152,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private NeighbourResolutionService neighbourResolutionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public PathService pathService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -186,7 +182,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     MulticastRouteService multicastRouteService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    TopologyService topologyService;
+    public TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     RouteService routeService;
