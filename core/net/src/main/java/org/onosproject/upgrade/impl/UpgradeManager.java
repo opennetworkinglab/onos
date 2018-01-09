@@ -385,6 +385,7 @@ public class UpgradeManager
                         .filter(id -> clusterService.getVersion(id).equals(upgrade.target()))
                         .collect(Collectors.toSet());
                 if (upgradedNodes.contains(event.subject().id())) {
+                    log.warn("Upgrade failure detected: rolling back upgrade");
                     rollback();
                 }
             }

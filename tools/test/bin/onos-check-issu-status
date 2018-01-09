@@ -1,0 +1,27 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks whether the specified ONOS cluster node has the desired state.
+# -----------------------------------------------------------------------------
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+function onos_nodes() {
+    echo $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+}
+
+nodes=$(onos_nodes)
+
+for attempt in {1..5}; do
+    for node in $nodes; do
+        onos $node issu status > $aux
+        cat $aux
+
+        status=$(cat $aux)
+
+        [ "$status" = "${1}" ] && exit 0
+        sleep 1
+    done
+done
+
+exit 1

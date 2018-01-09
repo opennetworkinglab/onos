@@ -1,0 +1,165 @@
+<!--
+  ~ Copyright 2017-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="ha-upgrade" description="ONOS cluster upgrade fault tolerance">
+    <import file="${ONOS_SCENARIOS}/dist-setup.xml"/>
+    <dependency name="Distributed-Primitives-Setup"/>
+
+    <group name="HA-Upgrade" requires="Distributed-Primitives-Setup">
+        <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+
+        <step name="Initialize-ECM"
+              exec="onos ${OC1} ec-map-test foo put a b"/>
+
+        <step name="Initialize-CM"
+              exec="onos ${OC1} map-test foo put a b"
+              requires="Initialize-ECM"/>
+
+        <step name="Initialize-Upgrade"
+              exec="onos ${OC1} issu init"
+              requires="Initialize-CM"/>
+
+        <group name="Phase-1">
+            <sequential var="${OCMI#}"
+                        starts="Phase-One-Stop-Service-${#}"
+                        ends="Phase-One-Wait-for-Start-${#-1}">
+                <step name="Phase-One-Stop-Service-${#}"
+                      exec="onos-service ${OCMI#} stop"
+                      requires="Initialize-Upgrade"/>
+
+                <step name="Phase-One-Wait-for-Stop-${#}"
+                      exec="onos-wait-for-stop ${OCMI#}"
+                      requires="~Phase-One-Stop-Service-${#}"/>
+
+                <step name="Phase-One-Uninstall-${#}"
+                      exec="onos-uninstall ${OCMI#}"
+                      requires="~Phase-One-Wait-for-Stop-${#}"/>
+
+                <step name="Phase-One-Push-Bits-${#}"
+                      exec="onos-push-bits ${OCMI#}"
+                      unless="${OCT}"
+                      requires="~Phase-One-Stop-Service-${#}"/>
+
+                <step name="Phase-One-Install-Upgrade-${#}"
+                      exec="onos-install -v ${OCMI#}"
+                      requires="Phase-One-Push-Bits-${#},Push-Bits,Phase-One-Uninstall-${#}"/>
+
+                <step name="Phase-One-Secure-SSH-${#}"
+                      exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OCMI#}"
+                      requires="~Phase-One-Install-Upgrade-${#}"/>
+
+                <step name="Phase-One-Wait-for-Start-${#}"
+                      exec="onos-wait-for-start ${OCMI#}"
+                      requires="Phase-One-Secure-SSH-${#}"/>
+
+                <step name="Phase-One-Distributed-Primitives-Check-Apps-${#}"
+                      exec="onos-check-apps ${OCMI#} distributedprimitives includes"
+                      requires="Phase-One-Wait-for-Start-${#}"/>
+
+                <step name="Phase-One-Check-ECM-${#}"
+                      exec="onos-execute-expect ${OCMI#} ec-map-test foo get a --retry 5 --expect b"
+                      requires="Phase-One-Distributed-Primitives-Check-Apps-${#}"/>
+
+                <step name="Phase-One-Check-CM-${#}"
+                      exec="onos-execute-expect ${OCMI#} map-test foo get a --retry 5 --expect b"
+                      requires="Phase-One-Check-ECM-${#}"/>
+            </sequential>
+        </group>
+
+        <step name="Run-Upgrade"
+              exec="onos ${OC1} issu upgrade"
+              requires="Phase-1"/>
+
+        <step name="Kill-Upgraded-Node"
+              exec="onos-power ${OCMI1} off"
+              requires="Run-Upgrade"/>
+
+        <step name="Wait-For-Downgrade"
+              exec="onos-check-issu-status ROLLED_BACK"
+              requires="Kill-Upgraded-Node"/>
+
+        <group name="Phase-2">
+            <sequential var="${OCMI#}"
+                        starts="Phase-Two-Stop-Service-${#}"
+                        ends="Phase-Two-Wait-for-Start-${#-1}">
+                <step name="Phase-Two-Stop-Service-${#}"
+                      exec="onos-service ${OCMI#} stop"
+                      requires="Wait-For-Downgrade"/>
+
+                <step name="Phase-Two-Wait-for-Stop-${#}"
+                      exec="onos-wait-for-stop ${OCMI#}"
+                      requires="~Phase-Two-Stop-Service-${#}"/>
+
+                <step name="Phase-Two-Uninstall-${#}"
+                      exec="onos-uninstall ${OCMI#}"
+                      requires="~Phase-Two-Wait-for-Stop-${#}"/>
+
+                <step name="Phase-Two-Push-Bits-${#}"
+                      exec="onos-push-bits ${OCMI#}"
+                      unless="${OCT}"
+                      requires="~Phase-Two-Stop-Service-${#}"/>
+
+                <step name="Phase-Two-Install-Downgrade-${#}"
+                      exec="onos-install ${OCMI#}"
+                      requires="Phase-Two-Push-Bits-${#},Push-Bits,Phase-Two-Uninstall-${#}"/>
+
+                <step name="Phase-Two-Secure-SSH-${#}"
+                      exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OCMI#}"
+                      requires="~Phase-Two-Install-Downgrade-${#}"/>
+
+                <step name="Phase-Two-Wait-for-Start-${#}"
+                      exec="onos-wait-for-start ${OCMI#}"
+                      requires="Phase-Two-Secure-SSH-${#}"/>
+
+                <step name="Phase-Two-Distributed-Primitives-Check-Apps-${#}"
+                      exec="onos-check-apps ${OCMI#} distributedprimitives includes"
+                      requires="Phase-Two-Wait-for-Start-${#}"/>
+
+                <step name="Phase-Two-Check-ECM-${#}"
+                      exec="onos-execute-expect ${OCMI#} ec-map-test foo get a --retry 5 --expect b"
+                      requires="Phase-Two-Distributed-Primitives-Check-Apps-${#}"/>
+
+                <step name="Phase-Two-Check-CM-${#}"
+                      exec="onos-execute-expect ${OCMI#} map-test foo get a --retry 5 --expect b"
+                      requires="Phase-Two-Check-ECM-${#}"/>
+            </sequential>
+        </group>
+
+        <step name="Reset-Downgrade"
+              exec="onos ${OC1} issu reset"
+              requires="Phase-2"/>
+
+        <group name="Verify-Upgrade" requires="Reset-Downgrade">
+            <parallel var="${OC#}">
+                <step name="Check-Nodes-${#}"
+                      exec="onos-check-nodes ${OC#}"
+                      delay="3"/>
+
+                <step name="Check-Components-${#}"
+                      exec="onos-check-components ${OC#}"
+                      delay="5"
+                      requires="~Check-Nodes-${#}"/>
+
+                <step name="Check-Logs-${#}"
+                      exec="onos-check-logs ${OC#}"
+                      requires="~Check-Components-${#}"/>
+
+                <step name="Check-Apps-${#}"
+                      exec="onos-check-apps ${OC#} ${ONOS_APPS},distributedprimitives includes"
+                      requires="~Check-Components-${#}"/>
+            </parallel>
+        </group>
+    </group>
+</scenario>
