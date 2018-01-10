@@ -52,7 +52,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Query flow statistics.
+ * Query statistics.
  */
 @Path("statistics")
 public class StatisticsWebResource  extends AbstractWebResource {
