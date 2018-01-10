@@ -290,6 +290,17 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class KryoNamespaces {
 
     public static final int BASIC_MAX_SIZE = 50;
+
+    /**
+     * WARNING: Do not change ordering of registrations!
+     *
+     * Serial IDs are automatically assigned to types registered via the {@link KryoNamespace} API.
+     * ISSU depends on consistent type IDs for registered serializers across versions.
+     * New types must be appended to the registration chain unless an explicit type ID is assigned by
+     * calling {@link KryoNamespace.Builder#nextId(int)}.
+     * If existing types need to be removed, use {@link KryoNamespace.Builder#nextId(int)} to preserve a consistent
+     * ordering of type IDs.
+     */
     public static final KryoNamespace BASIC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(byte[].class)
@@ -344,6 +355,17 @@ public final class KryoNamespaces {
      * KryoNamespace which can serialize ON.lab misc classes.
      */
     public static final int MISC_MAX_SIZE = 30;
+
+    /**
+     * WARNING: Do not change ordering of registrations!
+     *
+     * Serial IDs are automatically assigned to types registered via the {@link KryoNamespace} API.
+     * ISSU depends on consistent type IDs for registered serializers across versions.
+     * New types must be appended to the registration chain unless an explicit type ID is assigned by
+     * calling {@link KryoNamespace.Builder#nextId(int)}.
+     * If existing types need to be removed, use {@link KryoNamespace.Builder#nextId(int)} to preserve a consistent
+     * ordering of type IDs.
+     */
     public static final KryoNamespace MISC = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.FLOATING_ID)
             .register(new IpPrefixSerializer(), IpPrefix.class)
@@ -365,6 +387,17 @@ public final class KryoNamespaces {
      * KryoNamespace which can serialize API bundle classes.
      */
     public static final int API_MAX_SIZE = 499;
+
+    /**
+     * WARNING: Do not change ordering of registrations!
+     *
+     * Serial IDs are automatically assigned to types registered via the {@link KryoNamespace} API.
+     * ISSU depends on consistent type IDs for registered serializers across versions.
+     * New types must be appended to the registration chain unless an explicit type ID is assigned by
+     * calling {@link KryoNamespace.Builder#nextId(int)}.
+     * If existing types need to be removed, use {@link KryoNamespace.Builder#nextId(int)} to preserve a consistent
+     * ordering of type IDs.
+     */
     public static final KryoNamespace API = KryoNamespace.newBuilder()
             .nextId(KryoNamespace.INITIAL_ID)
             .register(BASIC)
