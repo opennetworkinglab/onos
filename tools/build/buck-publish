@@ -27,5 +27,6 @@ DIR=$(mktemp -d /tmp/buck-publish.XXXXX) || { echo "Failed to create temp file";
 
 buck-publish-setup $BUCK_BRANCH $ONOS_BRANCH $YANG_BRANCH $DIR
 pushd $DIR && buck-publish-package $4 && popd
+cp $DIR/onos/tools/build/onos-buck $ONOS_ROOT/tools/build/onos-buck
 
 

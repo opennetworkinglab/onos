@@ -1,9 +1,18 @@
 #!/bin/bash
 
-DEFAULT_TAG=${TAG:-$(date +v%Y.%m.%d.01)}
+for NEXT_VERSION in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
+    DEFAULT_TAG=${TAG:-$(date +v%Y.%m.%d.$NEXT_VERSION)}
+    BUCK_ZIP="buck-$DEFAULT_TAG.zip"
+    DOWNLOAD_BASE="http://repo1.maven.org/maven2/org/onosproject/onos-buck/$DEFAULT_TAG"
+
+    if ! curl --output /dev/null --silent --head --fail "$DOWNLOAD_BASE/$BUCK_ZIP"; then
+        break;
+    fi
+done
+
 NO_BUCKD=1
 
-DOWNLOAD_BASE="http://onlab.vicci.org/onos/third-party"
+UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-buck/$DEFAULT_TAG"
 BUCK_ZIP="buck-$DEFAULT_TAG.zip"
 ZIP_STAGE="buck-bin"
 
@@ -46,8 +55,8 @@ popd #$ZIP_STAGE
 
 if [ "$1" != "--dry-run" ]; then
     # publish zip
-    #FIXME check for s3 credentials
-    uploadToS3.py --dest third-party/ $BUCK_ZIP
+    curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $BUCK_ZIP $UPLOAD_BASE/$BUCK_ZIP
+    echo "New buck release is in " $BUCK_ZIP
 fi
 
 # update version in onos-buck
