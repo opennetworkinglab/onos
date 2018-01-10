@@ -1012,6 +1012,8 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                         "happen");
                 throw new SwitchStateException(msg);
             }
+            log.info("Received port status message from {}/{}: {}",
+                     h.sw.getDpid(), m.getDesc().getPortNo(), m);
 
             h.sw.handleMessage(m);
         }

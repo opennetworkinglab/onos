@@ -703,6 +703,11 @@ public class DefaultRoutingHandler {
                 DeviceId targetSw = route.get(0);
                 DeviceId dstSw = route.get(1); // same as impactedDstDevice
                 Set<DeviceId> nextHops = getNextHops(targetSw, dstSw);
+                if (nextHops.isEmpty()) {
+                    log.warn("Could not find next hop from target:{} --> dst {} "
+                            + "skipping this route", targetSw, dstSw);
+                    continue;
+                }
                 Map<DeviceId, Set<DeviceId>> nhops = new HashMap<>();
                 nhops.put(dstSw, nextHops);
                 if (!populateEcmpRoutingRulePartial(targetSw, dstSw, null, nhops,
