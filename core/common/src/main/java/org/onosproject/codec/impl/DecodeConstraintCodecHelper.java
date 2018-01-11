@@ -27,6 +27,7 @@ import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
+import org.onosproject.net.intent.constraint.FiveTuplePathSelectionConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.NonDisruptiveConstraint;
@@ -193,6 +194,16 @@ public final class DecodeConstraintCodecHelper {
         return nonDisruptive();
     }
 
+
+    /**
+     * Decodes a five tuple path selection constraint.
+     *
+     * @return five tuple path selection constraint object.
+     */
+    private Constraint decodeFiveTuplePathSelectionConstraint() {
+        return new FiveTuplePathSelectionConstraint();
+    }
+
     /**
      * Decodes the given constraint.
      *
@@ -221,6 +232,8 @@ public final class DecodeConstraintCodecHelper {
             return decodeDomainConstraint();
         } else if (type.equals(NonDisruptiveConstraint.class.getSimpleName())) {
             return decodeNonDisruptiveConstraint();
+        } else if (type.equals(FiveTuplePathSelectionConstraint.class.getSimpleName())) {
+            return decodeFiveTuplePathSelectionConstraint();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");
