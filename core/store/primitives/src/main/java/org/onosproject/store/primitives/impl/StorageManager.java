@@ -126,14 +126,23 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
+
+        // Note: NPE in the usage of ClusterService/MembershipService prevents rebooting the Karaf container.
+        // We need to reference these services outside the following peer suppliers.
+        final MembershipService membershipService = this.membershipService;
+        final ClusterService clusterService = this.clusterService;
+
         final NodeId localNodeId = clusterService.getLocalNode().id();
 
+        // Use the MembershipService to provide peers for the map that are isolated within the current version.
         Supplier<List<NodeId>> peersSupplier = () -> membershipService.getMembers().stream()
                 .map(Member::nodeId)
                 .filter(nodeId -> !nodeId.equals(localNodeId))
                 .filter(id -> clusterService.getState(id).isActive())
                 .collect(Collectors.toList());
 
+        // If this is the first node in its version, bootstrap from the previous version. Otherwise, bootstrap the
+        // map from members isolated within the current version.
         Supplier<List<NodeId>> bootstrapPeersSupplier = () -> {
             if (membershipService.getMembers().size() == 1) {
                 return clusterService.getNodes()
@@ -151,7 +160,6 @@ public class StorageManager implements StorageService, StorageAdminService {
                         .collect(Collectors.toList());
             }
         };
-
 
         return new EventuallyConsistentMapBuilderImpl<>(
                 localNodeId,
