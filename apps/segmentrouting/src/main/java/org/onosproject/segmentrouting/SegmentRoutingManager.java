@@ -436,6 +436,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         multicastRouteService.addListener(mcastListener);
         routeService.addListener(routeListener);
 
+        l2TunnelHandler.init();
+
         log.info("Started");
     }
 

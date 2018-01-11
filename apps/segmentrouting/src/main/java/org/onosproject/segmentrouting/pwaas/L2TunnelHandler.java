@@ -143,6 +143,30 @@ public class L2TunnelHandler {
     }
 
     /**
+     * Deploys any pre-existing pseudowires in the configuration.
+     * Used by manager only in initialization.
+     */
+    public void init() {
+
+        PwaasConfig config = srManager.cfgService.getConfig(srManager.appId(), PwaasConfig.class);
+        if (config == null) {
+            return;
+        }
+
+        log.info("Deploying existing pseudowires");
+
+        // gather pseudowires
+        Set<DefaultL2TunnelDescription> pwToAdd = config
+                .getPwIds()
+                .stream()
+                .map(config::getPwDescription)
+                .collect(Collectors.toSet());
+
+        // deploy pseudowires
+        deploy(pwToAdd);
+    }
+
+    /**
      * Returns all L2 Policies.
      *
      * @return List of policies
