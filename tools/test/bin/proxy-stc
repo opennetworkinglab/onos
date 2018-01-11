@@ -6,6 +6,8 @@
 
 . $ONOS_ROOT/tools/build/envDefaults
 
+[ -f $ONOS_TEST_TAR ] || onos-package-test
+
 onos-push-test-bits $OCN
 onos-push-bits $OCN
 
