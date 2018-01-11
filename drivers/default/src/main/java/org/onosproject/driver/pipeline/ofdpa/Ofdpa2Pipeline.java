@@ -1008,14 +1008,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 } else {
                     sbuilder.matchVlanId(vlanId);
                 }
-            } else if (criterion instanceof Icmpv6TypeCriterion ||
-                    criterion instanceof Icmpv6CodeCriterion) {
-                /*
-                 * We silenty discard these criterions, our current
-                 * OFDPA platform does not support these matches on
-                 * the ACL table.
-                 */
-                log.warn("ICMPv6 Type and ICMPv6 Code are not supported");
+            } else if (criterion instanceof Icmpv6TypeCriterion) {
+                byte icmpv6Type = (byte) ((Icmpv6TypeCriterion) criterion).icmpv6Type();
+                sbuilder.matchIcmpv6Type(icmpv6Type);
+            } else if (criterion instanceof Icmpv6CodeCriterion) {
+                byte icmpv6Code = (byte) ((Icmpv6CodeCriterion) criterion).icmpv6Code();
+                sbuilder.matchIcmpv6Type(icmpv6Code);
             } else if (criterion instanceof TcpPortCriterion || criterion instanceof UdpPortCriterion) {
                 // FIXME: QMX switches do not support L4 dst port matching in ACL table.
                 // Currently L4 dst port matching is only used by DHCP relay feature

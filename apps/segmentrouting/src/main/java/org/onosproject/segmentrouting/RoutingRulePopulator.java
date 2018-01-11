@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv6;
@@ -68,7 +69,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.packet.Ethernet.TYPE_IPV6;
+import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onlab.packet.ICMP6.ROUTER_ADVERTISEMENT;
+import static org.onlab.packet.ICMP6.ROUTER_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
@@ -999,15 +1003,16 @@ public class RoutingRulePopulator {
         srManager.flowObjectiveService.forward(deviceId, fwdObj);
 
         // We punt all NDP packets towards the controller.
-        fwdObj = ndpFwdObjective(null, true, ARP_NDP_PRIORITY)
-                .add(new ObjectiveContext() {
-                    @Override
-                    public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install forwarding objective to punt NDP to {}: {}",
-                                 deviceId, error);
-                    }
-                });
-        srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        ndpFwdObjective(null, true, ARP_NDP_PRIORITY).forEach(builder -> {
+             ForwardingObjective obj = builder.add(new ObjectiveContext() {
+                @Override
+                public void onError(Objective objective, ObjectiveError error) {
+                    log.warn("Failed to install forwarding objective to punt NDP to {}: {}",
+                            deviceId, error);
+                }
+            });
+            srManager.flowObjectiveService.forward(deviceId, obj);
+        });
 
         srManager.getPairLocalPorts(deviceId).ifPresent(port -> {
             ForwardingObjective pairFwdObj;
@@ -1023,15 +1028,16 @@ public class RoutingRulePopulator {
             srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
 
             // Do not punt NDP packets from pair port
-            pairFwdObj = ndpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1)
-                    .add(new ObjectiveContext() {
-                        @Override
-                        public void onError(Objective objective, ObjectiveError error) {
-                            log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
-                                    deviceId, error);
-                        }
-                    });
-            srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+            ndpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1).forEach(builder -> {
+                ForwardingObjective obj = builder.add(new ObjectiveContext() {
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
+                                deviceId, error);
+                    }
+                });
+                srManager.flowObjectiveService.forward(deviceId, obj);
+            });
 
             // Do not forward DAD packets from pair port
             pairFwdObj = dad6FwdObjective(port, PacketPriority.CONTROL.priorityValue() + 2)
@@ -1071,20 +1077,28 @@ public class RoutingRulePopulator {
         return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
     }
 
-    private ForwardingObjective.Builder ndpFwdObjective(PortNumber port, boolean punt, int priority) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        sBuilder.matchEthType(TYPE_IPV6)
-                .matchIPProtocol(PROTOCOL_ICMP6)
-                .matchIcmpv6Type(NEIGHBOR_SOLICITATION);
-        if (port != null) {
-            sBuilder.matchInPort(port);
-        }
+    private Set<ForwardingObjective.Builder> ndpFwdObjective(PortNumber port, boolean punt, int priority) {
+        Set<ForwardingObjective.Builder> result = Sets.newHashSet();
 
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        if (punt) {
-            tBuilder.punt();
-        }
-        return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
+        Lists.newArrayList(NEIGHBOR_SOLICITATION, NEIGHBOR_ADVERTISEMENT, ROUTER_SOLICITATION, ROUTER_ADVERTISEMENT)
+                .forEach(type -> {
+                    TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+                    sBuilder.matchEthType(TYPE_IPV6)
+                            .matchIPProtocol(PROTOCOL_ICMP6)
+                            .matchIcmpv6Type(type);
+                    if (port != null) {
+                        sBuilder.matchInPort(port);
+                    }
+
+                    TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+                    if (punt) {
+                        tBuilder.punt();
+                    }
+
+                    result.add(fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority));
+                });
+
+        return result;
     }
 
     private ForwardingObjective.Builder dad6FwdObjective(PortNumber port, int priority) {
