@@ -5,7 +5,7 @@
 
 set -e
 
-BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2017.09.01.01.zip"
+BUCK_URL="http://repo1.maven.org/maven2/org/onosproject/onos-buck/v2017.09.01.01/buck-v2017.09.01.01.zip"
 BUCK_SHA="9addcfd68518ee51b8f08135a7828b38dffb8fe5"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
