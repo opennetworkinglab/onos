@@ -96,6 +96,7 @@ import org.projectfloodlight.openflow.protocol.OFPortOpticalTransportSignalType;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFPortStatsPropOptical;
 import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
@@ -103,6 +104,7 @@ import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.ver14.OFOpticalPortFeaturesSerializerVer14;
+import org.projectfloodlight.openflow.protocol.ver14.OFPortStatsOpticalFlagsSerializerVer14;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
@@ -165,12 +167,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_GRID_HZ = "grid";
 
     /**
-     * Annotation key for transmit tune feature.
-     * Value is expected to be "enabled" or "disabled"
-     */
-    public static final String AK_TX_TUNE_FEATURE = "txTuneFeature";
-
-    /**
      * Annotation key for minimum frequency in Hz.
      * Value is expected to be an integer.
      */
@@ -187,12 +183,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Value is expected to be an integer.
      */
     public static final String AK_TX_GRID_HZ = "txGrid";
-
-    /**
-     * Annotation key for receive tune feature.
-     * Value is expected to be "enabled" or "disabled"
-     */
-    public static final String AK_RX_TUNE_FEATURE = "rxTuneFeature";
 
     /**
      * Annotation key for minimum frequency in Hz.
@@ -212,12 +202,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      */
     public static final String AK_RX_GRID_HZ = "rxGrid";
 
-   /**
-     * Annotation key for transmit power feature.
-     * Value is expected to be "enabled" or "disabled"
-     */
-    public static final String AK_TX_PWR_FEATURE = "txPwrFeature";
-
     /**
      * Annotation key for minimum transmit power in dBm*10.
      * Value is expected to be an integer.
@@ -229,6 +213,110 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Value is expected to be an integer.
      */
     public static final String AK_TX_PWR_MAX = "txPowerMax";
+
+
+
+    // Port Stats annotations
+
+    /**
+     * Annotation key for transmit frequency in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_FREQ_HZ = "txFrequency";
+
+    /**
+     * Annotation key for transmit offset in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_OFFSET_HZ = "txOffset";
+
+    /**
+     * Annotation key for transmit grid spacing in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_GRID_SPAN_HZ = "txGridSpan";
+
+    /**
+     * Annotation key for receive frequency in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_FREQ_HZ = "rxFrequency";
+
+    /**
+     * Annotation key for receive offset in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_OFFSET_HZ = "rxOffset";
+
+    /**
+     * Annotation key for receive grid spacing in Hz.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_GRID_SPAN_HZ = "rxGridSpan";
+
+   /**
+     * Annotation key for transmit power in dBm*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TX_PWR = "txPower";
+
+    /**
+     * Annotation key for receive power feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_RX_PWR_FEATURE = "rxPwrFeature";
+
+   /**
+     * Annotation key for receive power in dBm*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_RX_PWR = "rxPower";
+
+   /**
+     * Annotation key for transmit bias feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_BIAS_FEATURE = "txBiasFeature";
+
+   /**
+     * Annotation key for transmit bias current in mA*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_BIAS_CURRENT = "biasCurrent";
+
+   /**
+     * Annotation key for transmit temperature feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_TEMP_FEATURE = "txTempFeature";
+
+   /**
+     * Annotation key for transmit laser temperature in C*10.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TEMPERATURE = "temperature";
+
+
+    // Common feature annotations
+
+    /**
+     * Annotation key for transmit tune feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_TUNE_FEATURE = "txTuneFeature";
+
+    /**
+     * Annotation key for receive tune feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_RX_TUNE_FEATURE = "rxTuneFeature";
+
+    /**
+     * Annotation key for transmit power feature.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_TX_PWR_FEATURE = "txPwrFeature";
+
 
     //TODO consider renaming KBPS and MBPS (as they are used to convert by division)
     private static final long KBPS = 1_000;
@@ -420,6 +508,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerService.updatePortStatistics(deviceId, stats);
     }
 
+
+    private static String mhzToAnnotation(long freqMhz) {
+        return Long.toString(Frequency.ofMHz(freqMhz).asHz());
+    }
+
     private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId,
                                                            List<OFPortStatsEntry> entries) {
         HashSet<PortStatistics> stats = Sets.newHashSet();
@@ -428,6 +521,52 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             try {
                 if (entry == null || entry.getPortNo() == null || entry.getPortNo().getPortNumber() < 0) {
                     continue;
+                }
+                DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
+                Optional<OFPortStatsPropOptical> optical = entry.getProperties().stream()
+                    .filter(OFPortStatsPropOptical.class::isInstance)
+                    .map(OFPortStatsPropOptical.class::cast)
+                    .findAny();
+                if (optical.isPresent()) {
+                    long flags = optical.get().getFlags();
+
+                    int txTune = OFPortStatsOpticalFlagsSerializerVer14.TX_TUNE_VAL;
+                    long txFreq = optical.get().getTxFreqLmda();
+                    long txOffset = optical.get().getTxOffset();
+                    long txGridSpan = optical.get().getTxGridSpan();
+                    annotations.set(AK_TX_TUNE_FEATURE, ((flags & txTune) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_TX_FREQ_HZ, mhzToAnnotation(txFreq));
+                    annotations.set(AK_TX_OFFSET_HZ, mhzToAnnotation(txOffset));
+                    annotations.set(AK_TX_GRID_SPAN_HZ, mhzToAnnotation(txGridSpan));
+
+                    int rxTune = OFPortStatsOpticalFlagsSerializerVer14.RX_TUNE_VAL;
+                    long rxFreq = optical.get().getRxFreqLmda();
+                    long rxOffset = optical.get().getRxOffset();
+                    long rxGridSpan = optical.get().getRxGridSpan();
+                    annotations.set(AK_RX_TUNE_FEATURE, ((flags & rxTune) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_RX_FREQ_HZ, mhzToAnnotation(rxFreq));
+                    annotations.set(AK_RX_OFFSET_HZ, mhzToAnnotation(rxOffset));
+                    annotations.set(AK_RX_GRID_SPAN_HZ, mhzToAnnotation(rxGridSpan));
+
+                    int txPwrVal = OFPortStatsOpticalFlagsSerializerVer14.TX_PWR_VAL;
+                    int txPwr = optical.get().getTxPwr();
+                    annotations.set(AK_TX_PWR_FEATURE, ((flags & txPwrVal) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_TX_PWR, Integer.toString(txPwr));
+
+                    int rxPwrVal = OFPortStatsOpticalFlagsSerializerVer14.RX_PWR_VAL;
+                    int rxPwr = optical.get().getRxPwr();
+                    annotations.set(AK_RX_PWR_FEATURE, ((flags & rxPwrVal) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_RX_PWR, Integer.toString(rxPwr));
+
+                    int txBias = OFPortStatsOpticalFlagsSerializerVer14.TX_BIAS_VAL;
+                    int biasCurrent = optical.get().getBiasCurrent();
+                    annotations.set(AK_TX_BIAS_FEATURE, ((flags & txBias) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_BIAS_CURRENT, Integer.toString(biasCurrent));
+
+                    int txTemp = OFPortStatsOpticalFlagsSerializerVer14.TX_TEMP_VAL;
+                    int temperature = optical.get().getTemperature();
+                    annotations.set(AK_TX_TEMP_FEATURE, ((flags & txTemp) != 0) ? "enabled" : "disabled");
+                    annotations.set(AK_TEMPERATURE, Integer.toString(temperature));
                 }
                 DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
                 DefaultPortStatistics stat = builder.setDeviceId(deviceId)
@@ -442,6 +581,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                         .setPacketsTxErrors(entry.getTxErrors().getValue())
                         .setDurationSec(entry.getVersion() == OFVersion.OF_10 ? 0 : entry.getDurationSec())
                         .setDurationNano(entry.getVersion() == OFVersion.OF_10 ? 0 : entry.getDurationNsec())
+                        .setAnnotations(annotations.build())
                         .build();
 
                 stats.add(stat);
@@ -842,8 +982,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
 
         private String mhzToAnnotation(long freqMhz) {
-            // annotations is in Hz
-            return Long.toString(freqMhz * 1_000_000);
+            return OpenFlowDeviceProvider.mhzToAnnotation(freqMhz);
         }
 
         private String lambdaToAnnotationHz(long lambda) {

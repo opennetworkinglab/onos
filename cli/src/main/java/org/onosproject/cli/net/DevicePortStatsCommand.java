@@ -67,7 +67,7 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
     PortNumber portNumber = null;
 
     private static final String FORMAT =
-            "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s, pktRxDrp=%s, pktTxDrp=%s, Dur=%s";
+            "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s, pktRxDrp=%s, pktTxDrp=%s, Dur=%s%s";
 
     @Override
     protected void execute() {
@@ -121,7 +121,8 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
                 continue;
             }
             print(FORMAT, stat.portNumber(), stat.packetsReceived(), stat.packetsSent(), stat.bytesReceived(),
-                    stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec());
+                    stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec(),
+                    annotations(stat.annotations()));
         }
     }
 
