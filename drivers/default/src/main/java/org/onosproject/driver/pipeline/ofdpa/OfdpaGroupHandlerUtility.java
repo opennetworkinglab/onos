@@ -534,22 +534,30 @@ public final class OfdpaGroupHandlerUtility {
 
         @Override
         public void run() {
-            if (groupHandler.pendingGroups().size() != 0) {
-                log.debug("pending groups being checked: {}", groupHandler.pendingGroups().asMap().keySet());
-            }
-            if (groupHandler.pendingAddNextObjectives().size() != 0) {
-                log.debug("pending add-next-obj being checked: {}",
-                          groupHandler.pendingAddNextObjectives().asMap().keySet());
-            }
-            Set<GroupKey> keys = groupHandler.pendingGroups().asMap().keySet().stream()
-                    .filter(key -> groupHandler.groupService.getGroup(groupHandler.deviceId, key) != null)
-                    .collect(Collectors.toSet());
-            Set<GroupKey> otherkeys = groupHandler.pendingAddNextObjectives().asMap().keySet().stream()
-                    .filter(otherkey -> groupHandler.groupService.getGroup(groupHandler.deviceId, otherkey) != null)
-                    .collect(Collectors.toSet());
-            keys.addAll(otherkeys);
+            // GroupChecker execution needs to be protected
+            // from unhandled exceptions
+            try {
+                if (groupHandler.pendingGroups().size() != 0) {
+                    log.debug("pending groups being checked: {}", groupHandler.pendingGroups().asMap().keySet());
+                }
+                if (groupHandler.pendingAddNextObjectives().size() != 0) {
+                    log.debug("pending add-next-obj being checked: {}",
+                              groupHandler.pendingAddNextObjectives().asMap().keySet());
+                }
+                Set<GroupKey> keys = groupHandler.pendingGroups().asMap().keySet().stream()
+                        .filter(key -> groupHandler.groupService.getGroup(groupHandler.deviceId, key) != null)
+                        .collect(Collectors.toSet());
+                Set<GroupKey> otherkeys = groupHandler.pendingAddNextObjectives().asMap().keySet().stream()
+                        .filter(otherkey -> groupHandler.groupService.getGroup(groupHandler.deviceId, otherkey) != null)
+                        .collect(Collectors.toSet());
+                keys.addAll(otherkeys);
 
-            keys.forEach(key -> groupHandler.processPendingAddGroupsOrNextObjs(key, false));
+                keys.forEach(key -> groupHandler.processPendingAddGroupsOrNextObjs(key, false));
+            } catch (Exception exception) {
+                // Just log. It is safe for now.
+                log.warn("Uncaught exception is detected: {}", exception.getMessage());
+                log.debug("Uncaught exception is detected (full stack trace): ", exception);
+            }
         }
     }
 }
