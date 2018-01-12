@@ -523,10 +523,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     continue;
                 }
                 DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
-                Optional<OFPortStatsPropOptical> optical = entry.getProperties().stream()
+                boolean propSupported = entry.getVersion().getWireVersion() >= OFVersion.OF_14.getWireVersion();
+                Optional<OFPortStatsPropOptical> optical = propSupported ?
+                    entry.getProperties().stream()
                     .filter(OFPortStatsPropOptical.class::isInstance)
                     .map(OFPortStatsPropOptical.class::cast)
-                    .findAny();
+                    .findAny() : Optional.empty();
                 if (optical.isPresent()) {
                     long flags = optical.get().getFlags();
 
