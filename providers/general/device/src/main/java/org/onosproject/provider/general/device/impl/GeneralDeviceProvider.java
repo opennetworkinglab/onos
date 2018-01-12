@@ -291,7 +291,13 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Override
     public boolean isReachable(DeviceId deviceId) {
         log.debug("Testing reachability for device {}", deviceId);
-        CompletableFuture<Boolean> reachable = getHandshaker(deviceId).isReachable();
+
+        DeviceHandshaker handshaker = getHandshaker(deviceId);
+        if (handshaker == null) {
+            return false;
+        }
+
+        CompletableFuture<Boolean> reachable = handshaker.isReachable();
         try {
             return reachable.get(REACHABILITY_TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -338,16 +344,35 @@ public class GeneralDeviceProvider extends AbstractProvider
     }
 
     private Driver getDriver(DeviceId deviceId) {
-        Driver driver;
+        Driver driver = null;
         try {
             driver = driverService.getDriver(deviceId);
         } catch (ItemNotFoundException e) {
             log.debug("Falling back to configuration to fetch driver " +
                     "for device {}", deviceId);
-            driver = driverService.getDriver(
-                    cfgService.getConfig(deviceId, BasicDeviceConfig.class).driver());
+            BasicDeviceConfig cfg = cfgService.getConfig(deviceId, BasicDeviceConfig.class);
+            if (cfg != null) {
+                driver = driverService.getDriver(cfg.driver());
+            }
         }
         return driver;
+    }
+
+    //Distinguishing from getDriver to not impose everywhere the overhead to get the whole device.
+    // This is what the driverService does with the getDriver(deviceId) method.
+    // A redundant method here is needed because the driverService returns null when the device is not in the store
+    // as happens during disconnection.
+    // The whole device object is needed only in disconnection.
+    private Driver getDriverFromAnnotations(Device device) {
+        String driverName = device.annotations().value(DRIVER);
+        if (driverName != null) {
+            try {
+                return driverService.getDriver(driverName);
+            } catch (ItemNotFoundException e) {
+                log.warn("Specified driver {} not found, falling back.", driverName);
+            }
+        }
+        return null;
     }
 
     //needed since the device manager will not return the driver through implementation()
@@ -356,7 +381,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     // store.createOrUpdateDevice
     private <T extends Behaviour> T getBehaviour(Driver driver, Class<T> type,
                                                  DriverData data) {
-        if (driver.hasBehaviour(type)) {
+        if (driver != null && driver.hasBehaviour(type)) {
             DefaultDriverHandler handler = new DefaultDriverHandler(data);
             return driver.createBehaviour(handler, type);
         } else {
@@ -550,27 +575,41 @@ public class GeneralDeviceProvider extends AbstractProvider
         providerService.updatePorts(deviceId, ports);
     }
 
-    private void disconnectDevice(DeviceId deviceId) {
+    private void disconnectDevice(Device device) {
+        DeviceId deviceId = device.id();
         log.info("Disconnecting for device {}", deviceId);
-        DeviceHandshaker handshaker = getHandshaker(deviceId);
-        if (handshaker != null) {
-            CompletableFuture<Boolean> disconnect = handshaker.disconnect();
-            disconnect.thenAcceptAsync(result -> {
-                if (result) {
-                    log.info("Disconnected device {}", deviceId);
-                    providerService.deviceDisconnected(deviceId);
-                } else {
-                    log.warn("Device {} was unable to disconnect", deviceId);
-                }
-            });
+
+        //The driver service will return a null driver for the given deviceId
+        //since it's already removed form the device store, we leverage the device object from the DEVICE_REMOVED
+        //event to get the driver.
+        Driver driver = getDriverFromAnnotations(device);
+        if (driver != null) {
+            DeviceHandshaker handshaker = getBehaviour(driver, DeviceHandshaker.class,
+                    new DefaultDriverData(driver, deviceId));
+            if (handshaker != null) {
+                CompletableFuture<Boolean> disconnect = handshaker.disconnect();
+                disconnect.thenAcceptAsync(result -> {
+                    if (result) {
+                        log.info("Disconnected device {}", deviceId);
+                        providerService.deviceDisconnected(deviceId);
+                    } else {
+                        log.warn("Device {} was unable to disconnect", deviceId);
+                    }
+                });
+            } else {
+                //gracefully ignoring.
+                log.warn("No DeviceHandshaker for device {}, no guarantees of complete " +
+                        "shutdown of communication", deviceId);
+            }
         } else {
             //gracefully ignoring.
-            log.info("No DeviceHandshaker for device {}", deviceId);
+            log.warn("Can't find driver for device {}, no guarantees of complete shutdown of communication", deviceId);
         }
         ScheduledFuture<?> pollingStatisticsTask = scheduledTasks.get(deviceId);
         if (pollingStatisticsTask != null) {
             pollingStatisticsTask.cancel(true);
         }
+
     }
 
     //Needed to catch the exception in the executors since are not rethrown otherwise.
@@ -758,8 +797,9 @@ public class GeneralDeviceProvider extends AbstractProvider
 
             } else if (type.equals(Type.DEVICE_REMOVED)) {
 
+                //Passing the whole device object to get driver information
                 connectionExecutor.submit(exceptionSafe(() ->
-                        disconnectDevice(deviceId)));
+                        disconnectDevice(event.subject())));
             }
         }
 
