@@ -53,7 +53,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepSrpObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepSrpObjectVer1.class);
 
     public static final byte SRP_OBJ_TYPE = 1;
     public static final byte SRP_OBJ_CLASS = 33;

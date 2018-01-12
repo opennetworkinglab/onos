@@ -39,7 +39,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(BoundedThreadPool.class);
 
-    protected static int maxQueueSize = 80_000; //TODO tune this value
+    static int maxQueueSize = 80_000; //TODO tune this value
     //private static final RejectedExecutionHandler DEFAULT_HANDLER = new CallerFeedbackPolicy();
     private static final long STATS_INTERVAL = 5_000; //ms
 

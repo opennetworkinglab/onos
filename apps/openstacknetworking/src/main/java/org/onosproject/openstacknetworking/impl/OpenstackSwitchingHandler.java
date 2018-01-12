@@ -85,31 +85,31 @@ public final class OpenstackSwitchingHandler {
     private static final String ERR_SET_FLOWS = "Failed to set flows for %s: ";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
+    CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackFlowRuleService osFlowRuleService;
+    OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
+    InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService osNetworkService;
+    OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNodeService osNodeService;
+    OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
+    DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackSecurityGroupService securityGroupService;
+    OpenstackSecurityGroupService securityGroupService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -119,7 +119,7 @@ public final class OpenstackSwitchingHandler {
     private ApplicationId appId;
 
     @Activate
-    protected void activate() {
+    void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         instancePortService.addListener(instancePortListener);
         osNetworkService.addListener(osNetworkListener);
@@ -128,7 +128,7 @@ public final class OpenstackSwitchingHandler {
     }
 
     @Deactivate
-    protected void deactivate() {
+    void deactivate() {
         instancePortService.removeListener(instancePortListener);
         osNetworkService.removeListener(osNetworkListener);
         eventExecutor.shutdown();

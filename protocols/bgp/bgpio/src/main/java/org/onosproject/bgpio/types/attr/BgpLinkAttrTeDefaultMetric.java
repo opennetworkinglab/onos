@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpLinkAttrTeDefaultMetric implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrTeDefaultMetric.class);
 
     public static final int ATTRLINK_TEDEFAULTMETRIC = 1092;

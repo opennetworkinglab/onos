@@ -36,7 +36,7 @@ public class BgpPeerFrameDecoderTest extends FrameDecoder {
     static final int MINIMUM_HEADER_MARKER_LENGTH = 16;
     static final int HEADER_AND_MSG_LEN = 18;
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPeerFrameDecoderTest.class);
     final CountDownLatch receivedOpenMessageLatch = new CountDownLatch(1);
     final CountDownLatch receivedKeepaliveMessageLatch = new CountDownLatch(1);

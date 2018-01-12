@@ -44,7 +44,7 @@ public class SymbolicPathNameTlv implements PcepValueType {
          |                                                               |
          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(SymbolicPathNameTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(SymbolicPathNameTlv.class);
 
     public static final short TYPE = 17;
     private short hLength;

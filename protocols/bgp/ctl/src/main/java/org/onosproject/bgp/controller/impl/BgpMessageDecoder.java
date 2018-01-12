@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BgpMessageDecoder extends FrameDecoder {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpMessageDecoder.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpMessageDecoder.class);
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {

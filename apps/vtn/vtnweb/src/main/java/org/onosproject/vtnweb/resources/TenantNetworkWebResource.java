@@ -72,7 +72,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
     public static final String DELETE_NETWORK = "delete network";
     public static final String JSON_NOT_NULL = "JsonNode can not be null";
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(TenantNetworkWebResource.class);
     private final ConcurrentMap<TenantNetworkId, TenantNetwork> networksMap = Maps
             .newConcurrentMap();

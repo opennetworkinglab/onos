@@ -31,7 +31,7 @@ import com.google.common.base.MoreObjects;
  */
 public class PcepLabelDownload {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelDownload.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelDownload.class);
 
     //PCEP SPR Object
     private PcepSrpObject srpObject;

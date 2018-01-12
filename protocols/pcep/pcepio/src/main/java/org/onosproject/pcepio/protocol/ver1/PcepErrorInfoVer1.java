@@ -38,7 +38,7 @@ import com.google.common.base.MoreObjects;
  */
 public class PcepErrorInfoVer1 implements PcepErrorInfo {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepErrorInfoVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepErrorInfoVer1.class);
     //Error list is optional
     private List<PcepError> errList;
 

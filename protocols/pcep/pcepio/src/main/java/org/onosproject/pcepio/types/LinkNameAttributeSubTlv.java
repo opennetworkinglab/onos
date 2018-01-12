@@ -40,7 +40,7 @@ public class LinkNameAttributeSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LinkNameAttributeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkNameAttributeSubTlv.class);
 
     public static final short TYPE = 32;
     private short hLength;

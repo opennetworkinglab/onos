@@ -80,7 +80,7 @@ import org.onosproject.bgpio.util.Constants;
 @Ignore("Tests are failing due to NPE and due to failure to bind port")
 public class BgpControllerImplTest {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpControllerImplTest.class);
 
     private static final String IP_LOOPBACK_ID1 = "127.0.0.1";

@@ -42,7 +42,7 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepMetricObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepMetricObjectVer1.class);
 
     public static final byte METRIC_OBJ_TYPE = 1;
     public static final byte METRIC_OBJ_CLASS = 6;

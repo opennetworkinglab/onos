@@ -39,7 +39,7 @@ public class AdministrativeGroupSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(AdministrativeGroupSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(AdministrativeGroupSubTlv.class);
 
     public static final short TYPE = 22;
     public static final short LENGTH = 4;

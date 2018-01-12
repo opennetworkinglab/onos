@@ -41,7 +41,7 @@ public class PcepLabelDbVerTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelDbVerTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelDbVerTlv.class);
 
     public static final short TYPE = 34;
     public static final short LENGTH = 8;

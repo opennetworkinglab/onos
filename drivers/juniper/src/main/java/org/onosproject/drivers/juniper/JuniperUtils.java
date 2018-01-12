@@ -531,7 +531,7 @@ public final class JuniperUtils {
     /**
      * Device representation of the adjacency at the IP Layer.
      */
-    protected static final class LinkAbstraction {
+    static final class LinkAbstraction {
         protected String localPortName;
         protected ChassisId remoteChassisId;
         protected long remotePortIndex;
@@ -543,7 +543,7 @@ public final class JuniperUtils {
         }
     }
 
-    protected enum OperationType {
+    enum OperationType {
         ADD,
         REMOVE,
     }

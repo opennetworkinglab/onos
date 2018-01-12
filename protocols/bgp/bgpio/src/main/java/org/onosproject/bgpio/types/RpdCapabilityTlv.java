@@ -29,7 +29,7 @@ import com.google.common.base.MoreObjects;
  */
 public class RpdCapabilityTlv implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(RpdCapabilityTlv.class);
 
     public static final byte TYPE = (byte) 129;

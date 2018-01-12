@@ -28,51 +28,51 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public final class CriterionCodec extends JsonCodec<Criterion> {
 
-    protected static final Logger log =
+    private static final Logger log =
             LoggerFactory.getLogger(CriterionCodec.class);
 
-    protected static final String TYPE = "type";
-    protected static final String ETH_TYPE = "ethType";
-    protected static final String MAC = "mac";
-    protected static final String PORT = "port";
-    protected static final String METADATA = "metadata";
+    static final String TYPE = "type";
+    static final String ETH_TYPE = "ethType";
+    static final String MAC = "mac";
+    static final String PORT = "port";
+    static final String METADATA = "metadata";
 
-    protected static final String VLAN_ID = "vlanId";
-    protected static final String INNER_VLAN_ID = "innerVlanId";
-    protected static final String INNER_PRIORITY = "innerPriority";
-    protected static final String PRIORITY = "priority";
-    protected static final String IP_DSCP = "ipDscp";
-    protected static final String IP_ECN = "ipEcn";
-    protected static final String PROTOCOL = "protocol";
-    protected static final String IP = "ip";
-    protected static final String TCP_PORT = "tcpPort";
-    protected static final String TCP_MASK = "tcpMask";
-    protected static final String UDP_PORT = "udpPort";
-    protected static final String UDP_MASK = "udpMask";
-    protected static final String SCTP_PORT = "sctpPort";
-    protected static final String SCTP_MASK = "sctpMask";
-    protected static final String ICMP_TYPE = "icmpType";
-    protected static final String ICMP_CODE = "icmpCode";
-    protected static final String FLOW_LABEL = "flowLabel";
-    protected static final String ICMPV6_TYPE = "icmpv6Type";
-    protected static final String ICMPV6_CODE = "icmpv6Code";
-    protected static final String TARGET_ADDRESS = "targetAddress";
-    protected static final String LABEL = "label";
-    protected static final String BOS = "bos";
-    protected static final String EXT_HDR_FLAGS = "exthdrFlags";
-    protected static final String LAMBDA = "lambda";
-    protected static final String GRID_TYPE = "gridType";
-    protected static final String CHANNEL_SPACING = "channelSpacing";
-    protected static final String SPACING_MULIPLIER = "spacingMultiplier";
-    protected static final String SLOT_GRANULARITY = "slotGranularity";
-    protected static final String OCH_SIGNAL_ID = "ochSignalId";
-    protected static final String TUNNEL_ID = "tunnelId";
-    protected static final String OCH_SIGNAL_TYPE = "ochSignalType";
-    protected static final String ODU_SIGNAL_ID = "oduSignalId";
-    protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
-    protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLen";
-    protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
-    protected static final String ODU_SIGNAL_TYPE = "oduSignalType";
+    static final String VLAN_ID = "vlanId";
+    static final String INNER_VLAN_ID = "innerVlanId";
+    static final String INNER_PRIORITY = "innerPriority";
+    static final String PRIORITY = "priority";
+    static final String IP_DSCP = "ipDscp";
+    static final String IP_ECN = "ipEcn";
+    static final String PROTOCOL = "protocol";
+    static final String IP = "ip";
+    static final String TCP_PORT = "tcpPort";
+    static final String TCP_MASK = "tcpMask";
+    static final String UDP_PORT = "udpPort";
+    static final String UDP_MASK = "udpMask";
+    static final String SCTP_PORT = "sctpPort";
+    static final String SCTP_MASK = "sctpMask";
+    static final String ICMP_TYPE = "icmpType";
+    static final String ICMP_CODE = "icmpCode";
+    static final String FLOW_LABEL = "flowLabel";
+    static final String ICMPV6_TYPE = "icmpv6Type";
+    static final String ICMPV6_CODE = "icmpv6Code";
+    static final String TARGET_ADDRESS = "targetAddress";
+    static final String LABEL = "label";
+    static final String BOS = "bos";
+    static final String EXT_HDR_FLAGS = "exthdrFlags";
+    static final String LAMBDA = "lambda";
+    static final String GRID_TYPE = "gridType";
+    static final String CHANNEL_SPACING = "channelSpacing";
+    static final String SPACING_MULIPLIER = "spacingMultiplier";
+    static final String SLOT_GRANULARITY = "slotGranularity";
+    static final String OCH_SIGNAL_ID = "ochSignalId";
+    static final String TUNNEL_ID = "tunnelId";
+    static final String OCH_SIGNAL_TYPE = "ochSignalType";
+    static final String ODU_SIGNAL_ID = "oduSignalId";
+    static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
+    static final String TRIBUTARY_SLOT_LEN = "tributarySlotLen";
+    static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
+    static final String ODU_SIGNAL_TYPE = "oduSignalType";
 
     @Override
     public ObjectNode encode(Criterion criterion, CodecContext context) {

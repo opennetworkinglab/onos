@@ -46,7 +46,7 @@ public class NexthopUnnumberedIPv4IDTlv implements PcepValueType {
                       NEXTHOP-UNNUMBERED-IPV4-ID TLV
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(NexthopUnnumberedIPv4IDTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(NexthopUnnumberedIPv4IDTlv.class);
 
     public static final short TYPE = 1; //to be defined
     //Length is header + value

@@ -46,7 +46,7 @@ public class PcepErrorVer1 implements PcepError {
            <ls-id-list>::=<LS>[<ls-id-list>]
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepErrorVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepErrorVer1.class);
 
     private boolean isErroInfoSet;
     //PcepErrorObject list

@@ -78,25 +78,25 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     private static final String ANNOTATION_SEGMENT_ID = "segId";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
+    CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostProviderRegistry hostProviderRegistry;
+    HostProviderRegistry hostProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
+    HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService osNetworkService;
+    OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNodeService osNodeService;
+    OpenstackNodeService osNodeService;
 
     private final ExecutorService deviceEventExecutor =
             Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
@@ -115,7 +115,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     }
 
     @Activate
-    protected void activate() {
+    void activate() {
         coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
         osNodeService.addListener(internalNodeListener);
@@ -125,7 +125,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     }
 
     @Deactivate
-    protected void deactivate() {
+    void deactivate() {
         hostProviderRegistry.unregister(this);
         osNodeService.removeListener(internalNodeListener);
         deviceService.removeListener(internalDeviceListener);

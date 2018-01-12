@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  * distributed OVSDBClient.
  */
 public class Controller {
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(Controller.class);
 
     private int ovsdbPort = OvsdbConstant.OVSDBPORT;

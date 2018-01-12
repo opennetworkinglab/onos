@@ -41,7 +41,7 @@ public class GmplsCapabilityTlv implements PcepValueType {
     |                             Flags                             |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(GmplsCapabilityTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(GmplsCapabilityTlv.class);
 
     public static final short TYPE = 14;
     public static final short LENGTH = 4;

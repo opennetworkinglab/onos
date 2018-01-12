@@ -56,7 +56,7 @@ public class PcepIroObjectVer1 implements PcepIroObject {
         | IPv4 address (continued)      | Prefix Length |      Resvd    |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepIroObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepIroObjectVer1.class);
 
     public static final byte IRO_OBJ_TYPE = 1;
     public static final byte IRO_OBJ_CLASS = 10;

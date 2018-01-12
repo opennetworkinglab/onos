@@ -60,7 +60,7 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
 
                      The OPEN Object format
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepOpenObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepOpenObjectVer1.class);
 
     public static final PcepType MSG_TYPE = PcepType.OPEN;
     public static final byte OPEN_OBJECT_VERSION = 1;

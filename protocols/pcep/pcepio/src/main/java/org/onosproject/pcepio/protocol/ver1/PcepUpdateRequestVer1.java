@@ -43,7 +43,7 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
      * <attribute-list> is defined in [RFC5440] and extended by PCEP extensions.
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepUpdateRequestVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepUpdateRequestVer1.class);
 
     //PCEP SRP Object
     private PcepSrpObject srpObject;

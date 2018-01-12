@@ -39,7 +39,7 @@ public class BgpLsIdentifierSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpLsIdentifierSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpLsIdentifierSubTlv.class);
 
     public static final short TYPE = 2;
     public static final short LENGTH = 4;

@@ -94,7 +94,7 @@ public class PcepRroObjectVer1 implements PcepRroObject {
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepRroObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepRroObjectVer1.class);
 
     public static final byte RRO_OBJ_TYPE = 1;
     public static final byte RRO_OBJ_CLASS = 8;

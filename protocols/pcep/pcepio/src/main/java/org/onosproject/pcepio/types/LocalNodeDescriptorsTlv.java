@@ -47,7 +47,7 @@ public class LocalNodeDescriptorsTlv implements PcepValueType {
      Note: Length is including header here. Refer Routing Universe TLV.
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LocalNodeDescriptorsTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LocalNodeDescriptorsTlv.class);
 
     public static final short TYPE = (short) 65282;
     short hLength;

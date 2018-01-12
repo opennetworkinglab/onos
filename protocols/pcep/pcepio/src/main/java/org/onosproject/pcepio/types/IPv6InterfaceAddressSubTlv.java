@@ -29,7 +29,7 @@ import java.util.Arrays;
  */
 public class IPv6InterfaceAddressSubTlv implements PcepValueType {
 
-    protected static final Logger log = LoggerFactory.getLogger(IPv6InterfaceAddressSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv6InterfaceAddressSubTlv.class);
 
     public static final short TYPE = 9;
     public static final short LENGTH = 20;

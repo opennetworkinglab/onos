@@ -30,7 +30,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Encode portion of the mapping action codec.
  */
 public final class EncodeMappingActionCodecHelper {
-    protected static final Logger log = getLogger(EncodeMappingActionCodecHelper.class);
+    private static final Logger log = getLogger(EncodeMappingActionCodecHelper.class);
     private final MappingAction action;
     private final CodecContext context;
 

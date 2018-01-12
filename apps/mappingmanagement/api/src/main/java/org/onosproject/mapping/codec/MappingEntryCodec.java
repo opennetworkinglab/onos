@@ -29,11 +29,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class MappingEntryCodec extends JsonCodec<MappingEntry> {
 
-    protected static final String KEY = "key";
-    protected static final String VALUE = "value";
-    protected static final String ID = "id";
-    protected static final String DEVICE_ID = "deviceId";
-    protected static final String STATE = "state";
+    static final String KEY = "key";
+    static final String VALUE = "value";
+    static final String ID = "id";
+    static final String DEVICE_ID = "deviceId";
+    static final String STATE = "state";
 
     @Override
     public ObjectNode encode(MappingEntry mappingEntry, CodecContext context) {

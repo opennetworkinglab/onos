@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * and PCEP to PCC.
  */
 public class PcepTunnelApiMapper {
-    protected static final Logger log = LoggerFactory.getLogger(PcepTunnelApiMapper.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepTunnelApiMapper.class);
 
     static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
     // Map to store all the tunnel requests.

@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
-    protected static final Logger log = LoggerFactory.getLogger(BgpPeerChannelHandlerTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpPeerChannelHandlerTest.class);
     public static final int OPEN_MSG_MINIMUM_LENGTH = 29;
     public static final byte[] MARKER = new byte[] {(byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,

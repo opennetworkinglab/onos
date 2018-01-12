@@ -179,7 +179,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final String LINK_GLYPH = "m_ports";
 
 
-    protected static final Logger log =
+    static final Logger log =
             LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
 
     private static final ProviderId PID =

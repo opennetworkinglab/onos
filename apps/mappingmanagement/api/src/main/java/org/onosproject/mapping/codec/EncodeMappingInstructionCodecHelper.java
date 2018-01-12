@@ -28,7 +28,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * JSON encoding of MappingInstructions.
  */
 public final class EncodeMappingInstructionCodecHelper {
-    protected static final Logger log = getLogger(EncodeMappingInstructionCodecHelper.class);
+    private static final Logger log = getLogger(EncodeMappingInstructionCodecHelper.class);
     private final MappingInstruction instruction;
     private final CodecContext context;
 

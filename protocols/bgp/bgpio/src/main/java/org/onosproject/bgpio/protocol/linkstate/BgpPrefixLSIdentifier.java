@@ -40,7 +40,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpPrefixLSIdentifier implements Comparable<Object> {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpPrefixLSIdentifier.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpPrefixLSIdentifier.class);
     public static final int TYPE_AND_LEN = 4;
     private NodeDescriptors localNodeDescriptors;
     private List<BgpValueType> prefixDescriptor;

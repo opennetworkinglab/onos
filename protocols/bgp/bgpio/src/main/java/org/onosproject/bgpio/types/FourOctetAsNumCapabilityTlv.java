@@ -31,7 +31,7 @@ public class FourOctetAsNumCapabilityTlv implements BgpValueType {
     /**
      * support to indicate its support for four-octet AS numbers -CAPABILITY TLV format.
      */
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(FourOctetAsNumCapabilityTlv.class);
 
     public static final byte TYPE = 65;

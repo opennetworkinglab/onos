@@ -29,8 +29,8 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class LispNonceAddressCodec extends JsonCodec<LispNonceAddress> {
 
-    protected static final String NONCE = "nonce";
-    protected static final String ADDRESS = "address";
+    static final String NONCE = "nonce";
+    static final String ADDRESS = "address";
 
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispGcAddress";

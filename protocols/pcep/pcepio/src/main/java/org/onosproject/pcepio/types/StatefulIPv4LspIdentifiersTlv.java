@@ -50,7 +50,7 @@ public class StatefulIPv4LspIdentifiersTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(StatefulIPv4LspIdentifiersTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(StatefulIPv4LspIdentifiersTlv.class);
 
     public static final short TYPE = 18;
     public static final short LENGTH = 16;

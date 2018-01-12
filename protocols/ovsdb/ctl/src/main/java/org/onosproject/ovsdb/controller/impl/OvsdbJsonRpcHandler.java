@@ -31,7 +31,7 @@ import com.google.common.base.Strings;
  * ovsdb messages to the appropriate locations.
  */
 public final class OvsdbJsonRpcHandler extends ChannelInboundHandlerAdapter {
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(OvsdbJsonRpcHandler.class);
     private OvsdbNodeId ovsdbNodeId;
     private OvsdbProviderService ovsdbProviderService;

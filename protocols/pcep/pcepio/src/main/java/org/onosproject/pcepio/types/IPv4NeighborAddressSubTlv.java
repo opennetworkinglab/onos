@@ -39,7 +39,7 @@ public class IPv4NeighborAddressSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IPv4NeighborAddressSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv4NeighborAddressSubTlv.class);
 
     public static final short TYPE = 8;
     public static final short LENGTH = 4;

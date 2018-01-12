@@ -28,7 +28,7 @@ import java.util.Arrays;
  * Provides IPv6 TE Router Id of Remote Node.  Reference :[RFC6119]/4.1.
  */
 public class IPv6RouterIdofRemoteNodeSubTlv implements PcepValueType {
-    protected static final Logger log = LoggerFactory.getLogger(IPv6RouterIdofRemoteNodeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv6RouterIdofRemoteNodeSubTlv.class);
 
     public static final short TYPE = 20;
     public static final short LENGTH = 20;

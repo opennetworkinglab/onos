@@ -47,7 +47,7 @@ public class LinkAttributesTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LinkAttributesTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkAttributesTlv.class);
 
     public static final short TYPE = (short) 65286;
     short hLength;

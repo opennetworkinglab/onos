@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 @Deprecated
 public final class HexDump {
-    protected static final Logger log = LoggerFactory.getLogger(HexDump.class);
+    private static final Logger log = LoggerFactory.getLogger(HexDump.class);
 
     private HexDump() {
     }

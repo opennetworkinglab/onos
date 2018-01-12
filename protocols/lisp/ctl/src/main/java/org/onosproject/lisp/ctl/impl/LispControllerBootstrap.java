@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class LispControllerBootstrap {
 
-    protected static final Logger log = LoggerFactory.getLogger(LispControllerBootstrap.class);
+    private static final Logger log = LoggerFactory.getLogger(LispControllerBootstrap.class);
 
     private static final int LISP_DATA_PORT = 4341;
     private static final int LISP_CONTROL_PORT = 4342;

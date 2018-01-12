@@ -38,7 +38,7 @@ public class MplsProtocolMaskSubTlv implements PcepValueType {
      |L|R|  Reserved |
      +-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(MplsProtocolMaskSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(MplsProtocolMaskSubTlv.class);
 
     public static final short TYPE = 28;
     public static final short LENGTH = 1;

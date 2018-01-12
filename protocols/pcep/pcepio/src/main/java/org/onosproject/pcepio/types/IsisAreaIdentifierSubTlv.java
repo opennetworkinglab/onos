@@ -40,7 +40,7 @@ public class IsisAreaIdentifierSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IsisAreaIdentifierSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IsisAreaIdentifierSubTlv.class);
 
     public static final short TYPE = 16;
     private short hLength;

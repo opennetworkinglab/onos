@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public final class BgpLinkAttrOpaqLnkAttrib implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrOpaqLnkAttrib.class);
 
     public static final int ATTRNODE_OPAQUELNKATTRIB = 1097;

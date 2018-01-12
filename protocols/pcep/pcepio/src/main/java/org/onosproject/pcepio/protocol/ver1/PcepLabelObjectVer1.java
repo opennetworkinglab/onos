@@ -53,7 +53,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                      The LABEL Object format
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
 
     public static final byte LABEL_OBJ_TYPE = 1;
     public static final byte LABEL_OBJ_CLASS = (byte) 225;

@@ -75,7 +75,7 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
 
-    protected static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
+    private static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
     // By default, allocate 50 GHz lambdas (4 slots of 12.5 GHz) for each intent.
     private static final int SLOT_COUNT = 4;
 

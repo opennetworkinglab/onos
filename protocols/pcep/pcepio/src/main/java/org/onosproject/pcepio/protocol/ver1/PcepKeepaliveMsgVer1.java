@@ -42,7 +42,7 @@ class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepKeepaliveMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepKeepaliveMsgVer1.class);
     // Pcep version: 1
     public static final byte PACKET_VERSION = 1;
     public static final int PACKET_MINIMUM_LENGTH = 4;

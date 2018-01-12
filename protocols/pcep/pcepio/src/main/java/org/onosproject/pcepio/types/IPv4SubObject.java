@@ -43,7 +43,7 @@ public class IPv4SubObject implements PcepValueType {
     | IPv4 address (continued)      | Prefix Length |      Resvd    |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(IPv4SubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv4SubObject.class);
 
     public static final byte TYPE = 0x01;
     public static final byte LENGTH = 8;

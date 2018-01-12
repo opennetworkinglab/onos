@@ -29,8 +29,8 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class LispAsAddressCodec extends JsonCodec<LispAsAddress> {
 
-    protected static final String AS_NUMBER = "asNumber";
-    protected static final String ADDRESS = "address";
+    static final String AS_NUMBER = "asNumber";
+    static final String ADDRESS = "address";
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispAsAddress";
 

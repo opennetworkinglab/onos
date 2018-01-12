@@ -41,7 +41,7 @@ public class AutonomousSystemNumberSubObject implements PcepValueType {
     |L|    Type     |     Length    |      AS number (2-octet)      |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(AutonomousSystemNumberSubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(AutonomousSystemNumberSubObject.class);
 
     public static final byte TYPE = (byte) 0x32;
     public static final byte LENGTH = 4;

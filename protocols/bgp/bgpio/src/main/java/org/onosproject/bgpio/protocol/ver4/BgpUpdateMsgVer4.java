@@ -73,7 +73,7 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     REFERENCE : RFC 4271
     */
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpUpdateMsgVer4.class);
 
     public static final byte PACKET_VERSION = 4;

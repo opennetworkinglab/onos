@@ -39,7 +39,7 @@ public class MaximumLinkBandwidthSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-++-+-+-+-
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(MaximumLinkBandwidthSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(MaximumLinkBandwidthSubTlv.class);
 
     public static final short TYPE = 23;
     public static final short LENGTH = 4;

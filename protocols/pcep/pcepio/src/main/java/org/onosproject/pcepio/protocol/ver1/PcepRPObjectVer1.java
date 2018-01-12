@@ -48,7 +48,7 @@ public class PcepRPObjectVer1 implements PcepRPObject {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepRPObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepRPObjectVer1.class);
 
     public static final byte RP_OBJ_TYPE = 1;
     public static final byte RP_OBJ_CLASS = 2;

@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
  */
 public class PcepLabelMap {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelMap.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelMap.class);
     //PCEP SRP Object
     private PcepSrpObject srpObject;
     //PCEP Label Object

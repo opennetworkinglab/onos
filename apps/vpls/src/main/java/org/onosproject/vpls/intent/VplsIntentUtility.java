@@ -131,7 +131,7 @@ public final class VplsIntentUtility {
      * @param resourceGroup resource group for this Intent
      * @return the generated single-point to multi-point intent
      */
-    protected static SinglePointToMultiPointIntent buildBrcIntent(Key key,
+    static SinglePointToMultiPointIntent buildBrcIntent(Key key,
                                                                   ApplicationId appId,
                                                                   FilteredConnectPoint src,
                                                                   Set<FilteredConnectPoint> dsts,
@@ -212,7 +212,7 @@ public final class VplsIntentUtility {
      * @param resourceGroup resource group for this Intent
      * @return the generated multi-point to single-point intent
      */
-    protected static MultiPointToSinglePointIntent buildUniIntent(Key key,
+    static MultiPointToSinglePointIntent buildUniIntent(Key key,
                                                                   ApplicationId appId,
                                                                   Set<FilteredConnectPoint> srcs,
                                                                   FilteredConnectPoint dst,
@@ -256,7 +256,7 @@ public final class VplsIntentUtility {
      * @param appId application ID for the key
      * @return the key to identify the intent
      */
-    protected static Key buildKey(String prefix,
+    static Key buildKey(String prefix,
                                   ConnectPoint cPoint,
                                   String vplsName,
                                   MacAddress hostMac,
@@ -310,7 +310,7 @@ public final class VplsIntentUtility {
      * @param iface the network interface
      * @return the filtered connected point of a given network interface
      */
-    protected static FilteredConnectPoint buildFilteredConnectedPoint(Interface iface) {
+    static FilteredConnectPoint buildFilteredConnectedPoint(Interface iface) {
         Objects.requireNonNull(iface);
         TrafficSelector.Builder trafficSelector = DefaultTrafficSelector.builder();
 
@@ -327,7 +327,7 @@ public final class VplsIntentUtility {
      * @param host the host
      * @return the filtered connected point of the given host
      */
-    protected static FilteredConnectPoint buildFilteredConnectedPoint(Host host) {
+    static FilteredConnectPoint buildFilteredConnectedPoint(Host host) {
         requireNonNull(host);
         TrafficSelector.Builder trafficSelector = DefaultTrafficSelector.builder();
 

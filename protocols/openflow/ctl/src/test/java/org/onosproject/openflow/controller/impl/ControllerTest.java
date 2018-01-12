@@ -60,7 +60,7 @@ public class ControllerTest {
     public static TemporaryFolder testFolder = new TemporaryFolder();
 
     Controller controller;
-    protected static final Logger log = LoggerFactory.getLogger(ControllerTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ControllerTest.class);
 
     private class TestDriver extends DriverAdapter {
         @SuppressWarnings("unchecked")

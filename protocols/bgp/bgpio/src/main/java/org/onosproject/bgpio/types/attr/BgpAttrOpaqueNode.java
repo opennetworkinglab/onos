@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpAttrOpaqueNode implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpAttrOpaqueNode.class);
 
     public static final int ATTRNODE_OPAQUEDATA = 1025;

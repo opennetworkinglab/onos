@@ -40,7 +40,7 @@ public class IPv4InterfaceAddressSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IPv4InterfaceAddressSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv4InterfaceAddressSubTlv.class);
 
     public static final short TYPE = 7;
     public static final short LENGTH = 4;

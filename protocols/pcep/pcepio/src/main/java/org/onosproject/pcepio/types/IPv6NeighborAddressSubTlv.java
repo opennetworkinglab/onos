@@ -28,7 +28,7 @@ import java.util.Arrays;
  * Provides IPv6 Neighbor Address. Reference :[RFC6119]/4.3.
  */
 public class IPv6NeighborAddressSubTlv implements PcepValueType {
-    protected static final Logger log = LoggerFactory.getLogger(IPv6NeighborAddressSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv6NeighborAddressSubTlv.class);
 
     public static final short TYPE = 10;
     public static final short LENGTH = 20;

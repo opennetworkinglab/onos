@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpFsOperatorValue {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpFsOperatorValue.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpFsOperatorValue.class);
 
     private final byte option;
     private final byte[] value;

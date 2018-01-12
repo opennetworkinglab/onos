@@ -40,7 +40,7 @@ public class BgpHeader {
           +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpHeader.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpHeader.class);
 
     public static final int MARKER_LENGTH = 16;
     public static final short DEFAULT_HEADER_LENGTH = 19;

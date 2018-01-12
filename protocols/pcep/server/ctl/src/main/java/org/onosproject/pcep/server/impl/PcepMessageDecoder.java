@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PcepMessageDecoder extends FrameDecoder {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepMessageDecoder.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepMessageDecoder.class);
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, Channel channel,

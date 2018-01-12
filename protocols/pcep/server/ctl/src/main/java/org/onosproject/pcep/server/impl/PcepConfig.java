@@ -25,7 +25,7 @@ import java.util.TreeMap;
 
 public class PcepConfig implements PcepCfg {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepConfig.class);
 
     private State state = State.INIT;
     private PccId pccId;

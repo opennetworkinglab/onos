@@ -42,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * JSON encoding of Instructions.
  */
 public final class EncodeInstructionCodecHelper {
-    protected static final Logger log = getLogger(EncodeInstructionCodecHelper.class);
+    private static final Logger log = getLogger(EncodeInstructionCodecHelper.class);
     private final Instruction instruction;
     private final CodecContext context;
 

@@ -80,7 +80,7 @@ public class IPv6SubObject implements PcepValueType {
                maintain this tunnel (usually in the face of an outage
                of the link it was previously routed over).
      */
-    protected static final Logger log = LoggerFactory.getLogger(IPv6SubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv6SubObject.class);
 
     public static final short TYPE = 0x02;
     public static final short LENGTH = 20;

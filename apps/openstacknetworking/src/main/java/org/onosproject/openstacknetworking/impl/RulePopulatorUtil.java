@@ -42,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public final class RulePopulatorUtil {
 
-    protected static final Logger log = getLogger(RulePopulatorUtil.class);
+    private static final Logger log = getLogger(RulePopulatorUtil.class);
 
     private static final String TUNNEL_DST = "tunnelDst";
     private static final String CT_FLAGS = "flags";

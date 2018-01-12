@@ -39,7 +39,7 @@ public class UnreservedBandwidthSubTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(UnreservedBandwidthSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(UnreservedBandwidthSubTlv.class);
 
     public static final short TYPE = 25;
     public static final short LENGTH = 4;

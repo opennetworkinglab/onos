@@ -29,10 +29,10 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class LispSrcDstAddressCodec extends JsonCodec<LispSrcDstAddress> {
 
-    protected static final String SRC_MASK_LENGTH = "srcMaskLength";
-    protected static final String DST_MASK_LENGTH = "dstMaskLength";
-    protected static final String SRC_PREFIX = "srcPrefix";
-    protected static final String DST_PREFIX = "dstPrefix";
+    static final String SRC_MASK_LENGTH = "srcMaskLength";
+    static final String DST_MASK_LENGTH = "dstMaskLength";
+    static final String SRC_PREFIX = "srcPrefix";
+    static final String DST_PREFIX = "dstPrefix";
 
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispSrcDstAddress";

@@ -57,7 +57,7 @@ public class BgpPathAttributes {
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
            REFERENCE : RFC 4271
     */
-    protected static final Logger log = LoggerFactory.getLogger(BgpPathAttributes.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpPathAttributes.class);
 
     public static final int LINK_STATE_ATTRIBUTE_TYPE = 29;
     public static final int MPREACHNLRI_TYPE = 14;

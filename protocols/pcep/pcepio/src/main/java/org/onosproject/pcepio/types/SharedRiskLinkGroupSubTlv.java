@@ -46,7 +46,7 @@ public class SharedRiskLinkGroupSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(SharedRiskLinkGroupSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(SharedRiskLinkGroupSubTlv.class);
 
     public static final short TYPE = 30;
 

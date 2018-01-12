@@ -65,28 +65,28 @@ public final class OfdpaGroupHandlerUtility {
      * L2 Flood Groups have <4bits-4><12bits-vlanId><16bits-index>
      * L3 VPN Groups have <4bits-9><4bits-2><24bits-index>
      */
-    protected static final int L2_INTERFACE_TYPE = 0x00000000;
-    protected static final int L3_INTERFACE_TYPE = 0x50000000;
-    protected static final int L3_UNICAST_TYPE = 0x20000000;
-    protected static final int L3_MULTICAST_TYPE = 0x60000000;
-    protected static final int MPLS_INTERFACE_TYPE = 0x90000000;
-    protected static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
-    protected static final int L3_ECMP_TYPE = 0x70000000;
-    protected static final int L2_FLOOD_TYPE = 0x40000000;
+    static final int L2_INTERFACE_TYPE = 0x00000000;
+    static final int L3_INTERFACE_TYPE = 0x50000000;
+    static final int L3_UNICAST_TYPE = 0x20000000;
+    static final int L3_MULTICAST_TYPE = 0x60000000;
+    static final int MPLS_INTERFACE_TYPE = 0x90000000;
+    static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
+    static final int L3_ECMP_TYPE = 0x70000000;
+    static final int L2_FLOOD_TYPE = 0x40000000;
 
-    protected static final int TYPE_MASK = 0x0fffffff;
-    protected static final int SUBTYPE_MASK = 0x00ffffff;
-    protected static final int TYPE_VLAN_MASK = 0x0000ffff;
+    static final int TYPE_MASK = 0x0fffffff;
+    static final int SUBTYPE_MASK = 0x00ffffff;
+    static final int TYPE_VLAN_MASK = 0x0000ffff;
 
-    protected static final int THREE_BIT_MASK = 0x0fff;
-    protected static final int FOUR_BIT_MASK = 0xffff;
-    protected static final int PORT_LEN = 16;
+    static final int THREE_BIT_MASK = 0x0fff;
+    static final int FOUR_BIT_MASK = 0xffff;
+    static final int PORT_LEN = 16;
 
-    protected static final int PORT_LOWER_BITS_MASK = 0x3f;
-    protected static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
+    static final int PORT_LOWER_BITS_MASK = 0x3f;
+    static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
 
-    protected static final String HEX_PREFIX = "0x";
-    protected static final Logger log = getLogger(OfdpaGroupHandlerUtility.class);
+    static final String HEX_PREFIX = "0x";
+    private static final Logger log = getLogger(OfdpaGroupHandlerUtility.class);
 
     private OfdpaGroupHandlerUtility() {
         // Utility classes should not have a public or default constructor.
@@ -98,7 +98,7 @@ public final class OfdpaGroupHandlerUtility {
      * @param tt the treatment
      * @return the PortNumber for the outport or null
      */
-    protected static PortNumber readOutPortFromTreatment(TrafficTreatment tt) {
+    static PortNumber readOutPortFromTreatment(TrafficTreatment tt) {
         for (Instruction ins : tt.allInstructions()) {
             if (ins.type() == Instruction.Type.OUTPUT) {
                 return ((Instructions.OutputInstruction) ins).port();
@@ -113,7 +113,7 @@ public final class OfdpaGroupHandlerUtility {
      * @param tt the traffic treatment
      * @return an integer representing the MPLS label-id, or -1 if not found
      */
-    protected static int readLabelFromTreatment(TrafficTreatment tt) {
+    static int readLabelFromTreatment(TrafficTreatment tt) {
         for (Instruction ins : tt.allInstructions()) {
             if (ins.type() == Instruction.Type.L2MODIFICATION) {
                 L2ModificationInstruction insl2 = (L2ModificationInstruction) ins;
@@ -295,7 +295,7 @@ public final class OfdpaGroupHandlerUtility {
      * @param bucketType group bucket type
      * @return list of group bucket generate from group information
      */
-    protected static List<GroupBucket> generateNextGroupBuckets(List<GroupInfo> groupInfos,
+    static List<GroupBucket> generateNextGroupBuckets(List<GroupInfo> groupInfos,
                                                        GroupDescription.Type bucketType) {
         List<GroupBucket> newBuckets = Lists.newArrayList();
 
@@ -525,7 +525,7 @@ public final class OfdpaGroupHandlerUtility {
     }
 
     public static class GroupChecker implements Runnable {
-        protected final Logger log = getLogger(getClass());
+        final Logger log = getLogger(getClass());
         private Ofdpa2GroupHandler groupHandler;
 
         public GroupChecker(Ofdpa2GroupHandler groupHandler) {

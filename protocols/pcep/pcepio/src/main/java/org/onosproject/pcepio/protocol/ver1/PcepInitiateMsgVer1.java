@@ -42,7 +42,7 @@ import com.google.common.base.MoreObjects;
  */
 class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepInitiateMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepInitiateMsgVer1.class);
 
     // Ref : PCE initiated tunnel setup draft-ietf-pce-pce-initiated-lsp-03, section 5.1
     /*      <PCInitiate Message>             ::= <Common Header>

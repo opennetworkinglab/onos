@@ -34,7 +34,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpPrefixAttrRouteTag implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrRouteTag.class);
 
     public static final short ATTR_PREFIX_ROUTETAG = 1153;

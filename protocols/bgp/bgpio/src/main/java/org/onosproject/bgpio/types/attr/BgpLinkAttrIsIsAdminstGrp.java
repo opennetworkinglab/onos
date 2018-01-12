@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public final class BgpLinkAttrIsIsAdminstGrp implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrIsIsAdminstGrp.class);
 
     public static final int ATTRLINK_PROTECTIONTYPE = 1088;

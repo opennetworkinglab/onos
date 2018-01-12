@@ -72,19 +72,19 @@ public final class OpenstackSwitchingArpHandler {
     private static final String GATEWAY_MAC = "gatewayMac";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
+    CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PacketService packetService;
+    PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService configService;
+    ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
+    InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService osNetworkService;
+    OpenstackNetworkService osNetworkService;
 
     @Property(name = GATEWAY_MAC, value = DEFAULT_GATEWAY_MAC_STR,
             label = "Fake MAC address for virtual network subnet gateway")
@@ -98,7 +98,7 @@ public final class OpenstackSwitchingArpHandler {
     private ApplicationId appId;
 
     @Activate
-    protected void activate() {
+    void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         configService.registerProperties(getClass());
         osNetworkService.addListener(osNetworkListener);
@@ -110,7 +110,7 @@ public final class OpenstackSwitchingArpHandler {
     }
 
     @Deactivate
-    protected void deactivate() {
+    void deactivate() {
         packetService.removeProcessor(packetProcessor);
         osNetworkService.removeListener(osNetworkListener);
         configService.unregisterProperties(getClass(), false);
@@ -119,7 +119,7 @@ public final class OpenstackSwitchingArpHandler {
     }
 
     @Modified
-    protected void modified(ComponentContext context) {
+    void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         String updatedMac;
 

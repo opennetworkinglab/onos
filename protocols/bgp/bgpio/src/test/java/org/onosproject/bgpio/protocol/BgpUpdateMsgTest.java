@@ -65,7 +65,7 @@ import static org.hamcrest.core.Is.is;
  * Test cases for BGP update Message.
  */
 public class BgpUpdateMsgTest {
-    protected static final Logger log = LoggerFactory.getLogger(BgpUpdateMsgTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpUpdateMsgTest.class);
     public static final byte[] MARKER = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};

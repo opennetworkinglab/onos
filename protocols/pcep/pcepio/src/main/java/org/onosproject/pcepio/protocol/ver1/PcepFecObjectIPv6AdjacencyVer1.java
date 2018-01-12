@@ -48,7 +48,7 @@ public class PcepFecObjectIPv6AdjacencyVer1 implements PcepFecObjectIPv6Adjacenc
 
                       FEC Object-Type is 4 IPv6 Adjacency
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv6AdjacencyVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv6AdjacencyVer1.class);
 
     public static final byte FEC_OBJ_TYPE = 4;
     public static final byte FEC_OBJ_CLASS = (byte) 226;

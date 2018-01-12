@@ -28,7 +28,7 @@ import java.util.Arrays;
  * Provides IPv6 TE Router Id of Local Node. Reference :[RFC6119]/4.1.
  */
 public class IPv6RouterIdofLocalNodeSubTlv implements PcepValueType {
-    protected static final Logger log = LoggerFactory.getLogger(IPv6RouterIdofLocalNodeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv6RouterIdofLocalNodeSubTlv.class);
 
     public static final short TYPE = 18;
     public static final short LENGTH = 20;

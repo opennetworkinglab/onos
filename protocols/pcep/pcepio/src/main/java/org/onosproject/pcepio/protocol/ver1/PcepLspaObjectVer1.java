@@ -53,7 +53,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepLspaObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLspaObjectVer1.class);
 
     public static final byte LSPA_OBJ_TYPE = 1;
     public static final byte LSPA_OBJ_CLASS = 9;

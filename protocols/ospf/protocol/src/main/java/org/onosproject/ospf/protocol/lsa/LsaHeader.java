@@ -52,7 +52,7 @@ public class LsaHeader implements OspfLsa {
        LSA header format
        REFERENCE : RFC 2328
      */
-    protected static final Logger log = LoggerFactory.getLogger(LsaHeader.class);
+    public static final Logger log = LoggerFactory.getLogger(LsaHeader.class);
     private int age;
     private int options;
     private int lsType;

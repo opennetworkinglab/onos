@@ -27,7 +27,7 @@ import java.util.List;
  */
 public final class SubTlvToBytes {
 
-    protected static final Logger log = LoggerFactory.getLogger(SubTlvToBytes.class);
+    private static final Logger log = LoggerFactory.getLogger(SubTlvToBytes.class);
 
     /**
      * Creates an instance.

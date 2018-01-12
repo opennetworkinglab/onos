@@ -33,7 +33,7 @@ public class IntentSelection {
 
     private static final int ALL = -1;
 
-    protected static final Logger log =
+    private static final Logger log =
             LoggerFactory.getLogger(IntentSelection.class);
 
     private final NodeSelection nodes;

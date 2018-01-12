@@ -27,15 +27,15 @@ import org.slf4j.LoggerFactory;
  */
 public final class MappingAddressCodec extends JsonCodec<MappingAddress> {
 
-    protected static final Logger log =
+    private static final Logger log =
                             LoggerFactory.getLogger(MappingAddressCodec.class);
 
-    protected static final String TYPE = "type";
-    protected static final String IPV4 = "ipv4";
-    protected static final String IPV6 = "ipv6";
-    protected static final String MAC = "mac";
-    protected static final String DN = "dn";
-    protected static final String AS = "as";
+    static final String TYPE = "type";
+    static final String IPV4 = "ipv4";
+    static final String IPV6 = "ipv6";
+    static final String MAC = "mac";
+    static final String DN = "dn";
+    static final String AS = "as";
 
     @Override
     public ObjectNode encode(MappingAddress address, CodecContext context) {

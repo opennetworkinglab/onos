@@ -817,8 +817,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
      */
     protected final class OFMessageHandler implements Runnable {
 
-        protected final OFMessage msg;
-        protected final Dpid dpid;
+        final OFMessage msg;
+        final Dpid dpid;
 
         public OFMessageHandler(Dpid dpid, OFMessage msg) {
             this.msg = msg;

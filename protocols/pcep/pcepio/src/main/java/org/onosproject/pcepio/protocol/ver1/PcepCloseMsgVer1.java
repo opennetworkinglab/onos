@@ -57,7 +57,7 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepCloseMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepCloseMsgVer1.class);
 
     // Pcep version: 1
     public static final byte PACKET_VERSION = 1;

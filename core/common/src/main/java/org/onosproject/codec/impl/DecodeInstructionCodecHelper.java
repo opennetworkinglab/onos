@@ -63,7 +63,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Decoding portion of the instruction codec.
  */
 public final class DecodeInstructionCodecHelper {
-    protected static final Logger log = getLogger(DecodeInstructionCodecHelper.class);
+    private static final Logger log = getLogger(DecodeInstructionCodecHelper.class);
     private final ObjectNode json;
     private final CodecContext context;
     private static final Pattern ETHTYPE_PATTERN = Pattern.compile("0x([0-9a-fA-F]{4})");

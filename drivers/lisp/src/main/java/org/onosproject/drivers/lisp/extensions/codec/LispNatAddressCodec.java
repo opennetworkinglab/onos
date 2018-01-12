@@ -34,12 +34,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class LispNatAddressCodec extends JsonCodec<LispNatAddress> {
 
-    protected static final String MS_UDP_PORT_NUMBER = "msUdpPortNumber";
-    protected static final String ETR_UDP_PORT_NUMBER = "etrUdpPortNumber";
-    protected static final String GLOBAL_ETR_RLOC_ADDRESS = "globalEtrRlocAddress";
-    protected static final String MS_RLOC_ADDRESS = "msRlocAddress";
-    protected static final String PRIVATE_ETR_RLOC_ADDRESS = "privateEtrRlocAddress";
-    protected static final String RTR_RLOC_ADDRESSES = "rtrRlocAddresses";
+    static final String MS_UDP_PORT_NUMBER = "msUdpPortNumber";
+    static final String ETR_UDP_PORT_NUMBER = "etrUdpPortNumber";
+    static final String GLOBAL_ETR_RLOC_ADDRESS = "globalEtrRlocAddress";
+    static final String MS_RLOC_ADDRESS = "msRlocAddress";
+    static final String PRIVATE_ETR_RLOC_ADDRESS = "privateEtrRlocAddress";
+    static final String RTR_RLOC_ADDRESSES = "rtrRlocAddresses";
 
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispListAddress";

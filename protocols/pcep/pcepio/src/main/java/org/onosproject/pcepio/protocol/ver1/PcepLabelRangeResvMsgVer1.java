@@ -49,7 +49,7 @@ class PcepLabelRangeResvMsgVer1 implements PcepLabelRangeResvMsg {
           Where
                <labelrange-list>::=<LABEL-RANGE>[<labelrange-list>]
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelRangeResvMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelRangeResvMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
     // LabelRangeResvMsgMinLength = COMMON-HEADER(4)+SrpObjMinLentgh(12)+LABEL-RANGE-MIN-LENGTH(12)

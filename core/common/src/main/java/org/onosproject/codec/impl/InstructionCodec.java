@@ -29,45 +29,45 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class InstructionCodec extends JsonCodec<Instruction> {
 
-    protected static final Logger log = LoggerFactory.getLogger(InstructionCodec.class);
+    private static final Logger log = LoggerFactory.getLogger(InstructionCodec.class);
 
-    protected static final String TYPE = "type";
-    protected static final String SUBTYPE = "subtype";
-    protected static final String PORT = "port";
-    protected static final String MAC = "mac";
-    protected static final String VLAN_ID = "vlanId";
-    protected static final String VLAN_PCP = "vlanPcp";
-    protected static final String MPLS_LABEL = "label";
-    protected static final String MPLS_BOS = "bos";
-    protected static final String IP = "ip";
-    protected static final String FLOW_LABEL = "flowLabel";
-    protected static final String LAMBDA = "lambda";
-    protected static final String GRID_TYPE = "gridType";
-    protected static final String CHANNEL_SPACING = "channelSpacing";
-    protected static final String SPACING_MULTIPLIER = "spacingMultiplier";
-    protected static final String SLOT_GRANULARITY = "slotGranularity";
-    protected static final String ETHERNET_TYPE = "ethernetType";
-    protected static final String TUNNEL_ID = "tunnelId";
-    protected static final String TCP_PORT = "tcpPort";
-    protected static final String UDP_PORT = "udpPort";
-    protected static final String TABLE_ID = "tableId";
-    protected static final String GROUP_ID = "groupId";
-    protected static final String METER_ID = "meterId";
-    protected static final String QUEUE_ID = "queueId";
-    protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
-    protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
-    protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
-    protected static final String EXTENSION = "extension";
-    protected static final String DEVICE_ID = "deviceId";
-    protected static final String STAT_TRIGGER_FLAG = "statTriggerFlag";
-    protected static final String STAT_THRESHOLDS = "statThreshold";
-    protected static final String STAT_BYTE_COUNT = "byteCount";
-    protected static final String STAT_PACKET_COUNT = "packetCount";
-    protected static final String STAT_DURATION = "duration";
+    static final String TYPE = "type";
+    static final String SUBTYPE = "subtype";
+    static final String PORT = "port";
+    static final String MAC = "mac";
+    static final String VLAN_ID = "vlanId";
+    static final String VLAN_PCP = "vlanPcp";
+    static final String MPLS_LABEL = "label";
+    static final String MPLS_BOS = "bos";
+    static final String IP = "ip";
+    static final String FLOW_LABEL = "flowLabel";
+    static final String LAMBDA = "lambda";
+    static final String GRID_TYPE = "gridType";
+    static final String CHANNEL_SPACING = "channelSpacing";
+    static final String SPACING_MULTIPLIER = "spacingMultiplier";
+    static final String SLOT_GRANULARITY = "slotGranularity";
+    static final String ETHERNET_TYPE = "ethernetType";
+    static final String TUNNEL_ID = "tunnelId";
+    static final String TCP_PORT = "tcpPort";
+    static final String UDP_PORT = "udpPort";
+    static final String TABLE_ID = "tableId";
+    static final String GROUP_ID = "groupId";
+    static final String METER_ID = "meterId";
+    static final String QUEUE_ID = "queueId";
+    static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
+    static final String TRIBUTARY_SLOT_LEN = "tributarySlotLength";
+    static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
+    static final String EXTENSION = "extension";
+    static final String DEVICE_ID = "deviceId";
+    static final String STAT_TRIGGER_FLAG = "statTriggerFlag";
+    static final String STAT_THRESHOLDS = "statThreshold";
+    static final String STAT_BYTE_COUNT = "byteCount";
+    static final String STAT_PACKET_COUNT = "packetCount";
+    static final String STAT_DURATION = "duration";
 
-    protected static final String MISSING_MEMBER_MESSAGE =
+    static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";
-    protected static final String ERROR_MESSAGE =
+    static final String ERROR_MESSAGE =
             " not specified in Instruction";
 
 

@@ -36,7 +36,7 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
         Multiprotocol Extensions CAPABILITY TLV format
         REFERENCE : RFC 4760
      */
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(MultiProtocolExtnCapabilityTlv.class);
 
     public static final byte TYPE = 1;

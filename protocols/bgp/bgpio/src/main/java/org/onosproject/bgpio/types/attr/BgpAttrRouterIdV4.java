@@ -33,7 +33,7 @@ import com.google.common.base.MoreObjects;
  */
 public final class BgpAttrRouterIdV4 implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpAttrRouterIdV4.class);
 
     private final short sType;

@@ -41,7 +41,7 @@ public class LabelSubObject implements PcepValueType {
     |       Contents of Label Object                                |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(LabelSubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(LabelSubObject.class);
 
     public static final short TYPE = 0x03;
     public static final short LENGTH = 8;

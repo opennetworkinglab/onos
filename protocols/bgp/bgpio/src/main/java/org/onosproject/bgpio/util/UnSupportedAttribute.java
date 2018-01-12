@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Provides methods to handle UnSupportedAttribute.
  */
 public final class UnSupportedAttribute {
-    protected static final Logger log = LoggerFactory.getLogger(UnSupportedAttribute.class);
+    private static final Logger log = LoggerFactory.getLogger(UnSupportedAttribute.class);
 
     private UnSupportedAttribute() {
     }

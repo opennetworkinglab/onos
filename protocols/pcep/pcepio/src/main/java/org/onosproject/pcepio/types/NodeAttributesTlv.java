@@ -49,7 +49,7 @@ public class NodeAttributesTlv implements PcepValueType {
 
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(NodeAttributesTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(NodeAttributesTlv.class);
 
     public static final short TYPE = (short) 65285;
     short hLength;

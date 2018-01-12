@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
  */
 public final class MappingActionCodec extends JsonCodec<MappingAction> {
 
-    protected static final Logger log =
+    private static final Logger log =
                             LoggerFactory.getLogger(MappingActionCodec.class);
 
-    protected static final String TYPE = "type";
-    protected static final String ERROR_MESSAGE =
+    static final String TYPE = "type";
+    static final String ERROR_MESSAGE =
                                     " not specified in MappingAction";
 
     @Override

@@ -34,7 +34,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpPrefixAttrOspfFwdAddr implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrOspfFwdAddr.class);
 
     public static final int ATTR_PREFIX_OSPFFWDADDR = 1156;

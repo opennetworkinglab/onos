@@ -56,7 +56,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
                      The LSP Object format
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
 
     public static final byte LSP_OBJ_TYPE = 1;
     public static final byte LSP_OBJ_CLASS = 32;

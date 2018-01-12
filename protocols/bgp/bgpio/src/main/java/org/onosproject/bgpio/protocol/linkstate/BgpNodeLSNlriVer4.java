@@ -48,7 +48,7 @@ public class BgpNodeLSNlriVer4 implements BgpNodeLSNlri {
                           Figure : The Node NLRI format
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpNodeLSNlriVer4.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpNodeLSNlriVer4.class);
 
     public static final int NODE_NLRITYPE = 1;
     public static final int IDENTIFIER_LENGTH = 16;

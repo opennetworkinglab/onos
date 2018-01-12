@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public final class BgpPrefixAttrOpaqueData implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrOpaqueData.class);
 
     public static final int ATTR_PREFIX_OPAQUEDATA = 1157;

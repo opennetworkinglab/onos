@@ -45,7 +45,7 @@ public class PcepObjectHeader {
                       PCEP Common Object Header
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepObjectHeader.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepObjectHeader.class);
 
     public static final boolean REQ_OBJ_MUST_PROCESS = true;
     public static final boolean REQ_OBJ_OPTIONAL_PROCESS = false;

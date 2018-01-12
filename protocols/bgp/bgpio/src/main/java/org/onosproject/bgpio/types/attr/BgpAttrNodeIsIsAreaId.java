@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpAttrNodeIsIsAreaId implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpAttrNodeIsIsAreaId.class);
 
     public static final int ATTRNODE_ISISAREAID = 1027;

@@ -43,7 +43,7 @@ public class PathSetupTypeTlv implements PcepValueType {
                      Figure 1: PATH-SETUP-TYPE TLV
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PathSetupTypeTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(PathSetupTypeTlv.class);
 
     public static final short TYPE = 28;
     public static final short LENGTH = 4;

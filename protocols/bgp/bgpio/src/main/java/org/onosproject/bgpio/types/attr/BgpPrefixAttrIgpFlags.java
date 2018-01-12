@@ -31,7 +31,7 @@ import java.util.Objects;
  */
 public final class BgpPrefixAttrIgpFlags implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrIgpFlags.class);
 
     public static final int ATTR_PREFIX_FLAGBIT = 1152;

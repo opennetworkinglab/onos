@@ -138,7 +138,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepEroObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepEroObjectVer1.class);
 
     public static final byte ERO_OBJ_TYPE = 1;
     public static final byte ERO_OBJ_CLASS = 7;

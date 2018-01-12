@@ -59,7 +59,7 @@ public class BgpEvpnRouteType2Nlri implements BgpEvpnNlriData {
      */
 
     public static final short TYPE = Constants.BGP_EVPN_MAC_IP_ADVERTISEMENT;
-    protected static final Logger log = LoggerFactory.getLogger(BgpEvpnRouteType2Nlri.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpEvpnRouteType2Nlri.class);
     // unit of length is bit
     public static final short IPV4_ADDRESS_LENGTH = 32;
     public static final short MAC_ADDRESS_LENGTH = 48;

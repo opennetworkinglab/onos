@@ -36,7 +36,7 @@ public class PcepInterLayerObjectVer1 implements PcepInterLayerObject {
         |    Reserved                                               |N|I|
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepInterLayerObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepInterLayerObjectVer1.class);
 
     public static final byte INTER_LAYER_OBJ_TYPE = 1;
     public static final byte INTER_LAYER_OBJ_CLASS = 18;

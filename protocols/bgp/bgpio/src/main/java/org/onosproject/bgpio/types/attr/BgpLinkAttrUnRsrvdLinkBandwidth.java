@@ -34,7 +34,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpLinkAttrUnRsrvdLinkBandwidth implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrUnRsrvdLinkBandwidth.class);
 
     public static final int MAX_BANDWIDTH_LEN = 4;

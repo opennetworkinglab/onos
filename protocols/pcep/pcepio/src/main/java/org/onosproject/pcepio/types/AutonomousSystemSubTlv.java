@@ -39,7 +39,7 @@ public class AutonomousSystemSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(AutonomousSystemSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(AutonomousSystemSubTlv.class);
 
     public static final short TYPE = 1;
     public static final short LENGTH = 4;

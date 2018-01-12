@@ -34,7 +34,7 @@ import com.google.common.base.MoreObjects;
  */
 public class PcepLabelRangeVer1 implements PcepLabelRange {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelRangeVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelRangeVer1.class);
 
     /*
         <label-range> ::= <SRP>

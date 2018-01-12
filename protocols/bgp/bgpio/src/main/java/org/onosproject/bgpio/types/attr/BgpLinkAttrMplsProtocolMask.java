@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpLinkAttrMplsProtocolMask implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrMplsProtocolMask.class);
 
     public static final int ATTRLINK_MPLSPROTOMASK = 1094;

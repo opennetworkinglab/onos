@@ -39,7 +39,7 @@ public class LinkProtectionTypeSubTlv implements PcepValueType {
      |Protection Cap | Reserved      |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(LinkProtectionTypeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkProtectionTypeSubTlv.class);
 
     public static final short TYPE = 27;
     public static final short LENGTH = 2;

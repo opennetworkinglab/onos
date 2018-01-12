@@ -44,7 +44,7 @@ public class PathKeySubObject implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PathKeySubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(PathKeySubObject.class);
 
     public static final byte TYPE = 0x40;
     public static final byte LENGTH = 8;

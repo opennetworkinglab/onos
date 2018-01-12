@@ -47,7 +47,7 @@ import java.util.Set;
 @Service
 public class OspfControllerImpl implements OspfController {
 
-    protected static final Logger log = LoggerFactory.getLogger(OspfControllerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(OspfControllerImpl.class);
     private final Controller ctrl = new Controller();
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;

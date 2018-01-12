@@ -47,7 +47,7 @@ public class RemoteNodeDescriptorsTlv implements PcepValueType {
          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(RemoteNodeDescriptorsTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(RemoteNodeDescriptorsTlv.class);
 
     public static final short TYPE = (short) 65283;
     short hLength;

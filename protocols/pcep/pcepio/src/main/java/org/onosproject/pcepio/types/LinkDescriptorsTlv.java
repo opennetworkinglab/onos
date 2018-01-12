@@ -48,7 +48,7 @@ public class LinkDescriptorsTlv implements PcepValueType {
 
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LinkDescriptorsTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkDescriptorsTlv.class);
 
     public static final short TYPE = (short) 65284;
     public short hLength;

@@ -53,7 +53,7 @@ public class BgpPrefixIPv4LSNlriVer4 implements BgpPrefixLSNlri {
                 Figure : The IPv4/IPv6 Topology Prefix NLRI format
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpPrefixIPv4LSNlriVer4.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpPrefixIPv4LSNlriVer4.class);
 
     public static final int PREFIX_IPV4_NLRITYPE = 3;
     public static final int IDENTIFIER_LENGTH = 16;

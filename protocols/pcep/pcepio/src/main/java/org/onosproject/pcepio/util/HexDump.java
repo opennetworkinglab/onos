@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Provides Hex Dump for debugging.
  */
 public final class HexDump {
-    protected static final Logger log = LoggerFactory.getLogger(HexDump.class);
+    private static final Logger log = LoggerFactory.getLogger(HexDump.class);
 
     private HexDump() {
     }

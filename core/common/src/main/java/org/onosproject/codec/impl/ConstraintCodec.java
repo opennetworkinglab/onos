@@ -30,16 +30,16 @@ public final class ConstraintCodec extends JsonCodec<Constraint> {
 
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Constraint";
-    protected static final String TYPE = "type";
-    protected static final String TYPES = "types";
-    protected static final String INCLUSIVE = "inclusive";
-    protected static final String KEY = "key";
-    protected static final String THRESHOLD = "threshold";
-    protected static final String BANDWIDTH = "bandwidth";
-    protected static final String LAMBDA = "lambda";
-    protected static final String LATENCY_MILLIS = "latencyMillis";
-    protected static final String OBSTACLES = "obstacles";
-    protected static final String WAYPOINTS = "waypoints";
+    static final String TYPE = "type";
+    static final String TYPES = "types";
+    static final String INCLUSIVE = "inclusive";
+    static final String KEY = "key";
+    static final String THRESHOLD = "threshold";
+    static final String BANDWIDTH = "bandwidth";
+    static final String LAMBDA = "lambda";
+    static final String LATENCY_MILLIS = "latencyMillis";
+    static final String OBSTACLES = "obstacles";
+    static final String WAYPOINTS = "waypoints";
 
     @Override
     public ObjectNode encode(Constraint constraint, CodecContext context) {

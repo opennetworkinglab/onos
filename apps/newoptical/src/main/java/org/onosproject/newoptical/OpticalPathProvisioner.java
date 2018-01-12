@@ -120,7 +120,7 @@ public class OpticalPathProvisioner
         extends AbstractListenerManager<OpticalPathEvent, OpticalPathListener>
         implements OpticalPathService {
 
-    protected static final Logger log = LoggerFactory.getLogger(OpticalPathProvisioner.class);
+    private static final Logger log = LoggerFactory.getLogger(OpticalPathProvisioner.class);
 
     /**
      * Bandwidth representing no bandwidth requirement specified.

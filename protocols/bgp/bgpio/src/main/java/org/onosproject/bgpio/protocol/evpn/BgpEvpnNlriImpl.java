@@ -42,7 +42,7 @@ public class BgpEvpnNlriImpl implements BgpEvpnNlri {
                 Figure : The format of the EVPN NLRI
      */
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpEvpnNlriImpl.class);
 
     // total length of route type and length

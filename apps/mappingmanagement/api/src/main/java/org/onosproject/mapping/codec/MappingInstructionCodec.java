@@ -29,18 +29,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class MappingInstructionCodec extends JsonCodec<MappingInstruction> {
 
-    protected static final Logger log = LoggerFactory.getLogger(MappingInstructionCodec.class);
+    private static final Logger log = LoggerFactory.getLogger(MappingInstructionCodec.class);
 
-    protected static final String TYPE = "type";
-    protected static final String SUBTYPE = "subtype";
-    protected static final String UNICAST_WEIGHT = "unicastWeight";
-    protected static final String UNICAST_PRIORITY = "unicastPriority";
-    protected static final String MULTICAST_WEIGHT = "multicastWeight";
-    protected static final String MULTICAST_PRIORITY = "multicastPriority";
+    static final String TYPE = "type";
+    static final String SUBTYPE = "subtype";
+    static final String UNICAST_WEIGHT = "unicastWeight";
+    static final String UNICAST_PRIORITY = "unicastPriority";
+    static final String MULTICAST_WEIGHT = "multicastWeight";
+    static final String MULTICAST_PRIORITY = "multicastPriority";
 
-    protected static final String MISSING_MEMBER_MESSAGE =
+    static final String MISSING_MEMBER_MESSAGE =
                                         " member is required in Instruction";
-    protected static final String ERROR_MESSAGE =
+    static final String ERROR_MESSAGE =
                                         " not specified in Instruction";
 
     @Override

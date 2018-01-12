@@ -40,7 +40,7 @@ public class PcepRsvpObjectHeader {
               ERROR_SPEC object Header
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepRsvpObjectHeader.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepRsvpObjectHeader.class);
 
     public static final boolean REQ_OBJ_MUST_PROCESS = true;
     public static final boolean REQ_OBJ_OPTIONAL_PROCESS = false;

@@ -43,7 +43,7 @@ public class StatefulPceCapabilityTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(StatefulPceCapabilityTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(StatefulPceCapabilityTlv.class);
 
     public static final short TYPE = 16;
     public static final short LENGTH = 4;

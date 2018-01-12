@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public final class BgpAttrNodeFlagBitTlv implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpAttrNodeFlagBitTlv.class);
 
     public static final int ATTRNODE_FLAGBIT = 1024;

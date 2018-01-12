@@ -45,7 +45,7 @@ import java.util.Set;
 @Service
 public class DefaultIsisController implements IsisController {
 
-    protected static final Logger log = LoggerFactory.getLogger(DefaultIsisController.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultIsisController.class);
     private final Controller controller = new Controller();
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;

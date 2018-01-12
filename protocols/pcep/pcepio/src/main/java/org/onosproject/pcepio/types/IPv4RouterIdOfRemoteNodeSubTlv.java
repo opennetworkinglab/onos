@@ -39,7 +39,7 @@ public class IPv4RouterIdOfRemoteNodeSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-++-+-+-+-
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IPv4RouterIdOfRemoteNodeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IPv4RouterIdOfRemoteNodeSubTlv.class);
 
     public static final short TYPE = 19;
     public static final short LENGTH = 4;

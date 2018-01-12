@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * netty pipeline.
  */
 public class PcepMessageEncoder extends OneToOneEncoder {
-    protected static final Logger log = LoggerFactory.getLogger(PcepMessageEncoder.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepMessageEncoder.class);
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {

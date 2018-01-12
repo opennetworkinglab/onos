@@ -40,7 +40,7 @@ public class PceccCapabilityTlv implements PcepValueType {
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PceccCapabilityTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(PceccCapabilityTlv.class);
 
     public static final short TYPE = (short) 65287;
     public static final short LENGTH = 4;

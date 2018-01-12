@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class PcepMessageVer1 {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepFactories.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepFactories.class);
 
     // version: 1.0
     public static final byte WIRE_VERSION = 1;

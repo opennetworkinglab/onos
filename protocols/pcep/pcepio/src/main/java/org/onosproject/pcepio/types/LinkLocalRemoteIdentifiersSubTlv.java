@@ -41,7 +41,7 @@ public class LinkLocalRemoteIdentifiersSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(LinkLocalRemoteIdentifiersSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LinkLocalRemoteIdentifiersSubTlv.class);
 
     public static final short TYPE = 6;
     public static final short LENGTH = 8;

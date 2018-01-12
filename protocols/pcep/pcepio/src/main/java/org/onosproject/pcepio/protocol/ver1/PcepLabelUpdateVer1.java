@@ -55,7 +55,7 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
              <label-list >           ::= <LABEL>
                                          [<label-list>]
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelUpdateVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelUpdateVer1.class);
 
     //Either PceLabelDownload or PceLabelMap is mandatory.
     //label Download

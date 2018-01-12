@@ -41,7 +41,7 @@ public class OpaqueLinkAttributeSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(OpaqueLinkAttributeSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(OpaqueLinkAttributeSubTlv.class);
 
     public static final short TYPE = 31;
     private final short hLength;

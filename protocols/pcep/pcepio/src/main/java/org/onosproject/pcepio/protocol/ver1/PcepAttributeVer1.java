@@ -46,7 +46,7 @@ public class PcepAttributeVer1 implements PcepAttribute {
      *
      *      <metric-list>                     ::=<METRIC>[<metric-list>]
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepAttributeVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepAttributeVer1.class);
 
     public static final int OBJECT_HEADER_LENGTH = 4;
 

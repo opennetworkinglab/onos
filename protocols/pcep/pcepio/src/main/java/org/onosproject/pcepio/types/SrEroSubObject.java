@@ -82,7 +82,7 @@ public class SrEroSubObject implements PcepValueType {
            NAI for Unnumbered adjacency with IPv4 Node IDs
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(SrEroSubObject.class);
+    private static final Logger log = LoggerFactory.getLogger(SrEroSubObject.class);
 
     public static final short TYPE = 0x24; //TODO : type to be defined
     public static final short LENGTH = 12;

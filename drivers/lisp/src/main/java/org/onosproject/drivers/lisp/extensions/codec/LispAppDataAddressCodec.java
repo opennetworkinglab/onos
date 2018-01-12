@@ -28,13 +28,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class LispAppDataAddressCodec extends JsonCodec<LispAppDataAddress> {
 
-    protected static final String PROTOCOL = "protocol";
-    protected static final String IP_TOS = "ipTos";
-    protected static final String LOCAL_PORT_LOW = "localPortLow";
-    protected static final String LOCAL_PORT_HIGH = "localPortHigh";
-    protected static final String REMOTE_PORT_LOW = "remotePortLow";
-    protected static final String REMOTE_PORT_HIGH = "remotePortHigh";
-    protected static final String ADDRESS = "address";
+    static final String PROTOCOL = "protocol";
+    static final String IP_TOS = "ipTos";
+    static final String LOCAL_PORT_LOW = "localPortLow";
+    static final String LOCAL_PORT_HIGH = "localPortHigh";
+    static final String REMOTE_PORT_LOW = "remotePortLow";
+    static final String REMOTE_PORT_HIGH = "remotePortHigh";
+    static final String ADDRESS = "address";
 
     @Override
     public ObjectNode encode(LispAppDataAddress address, CodecContext context) {

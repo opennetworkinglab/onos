@@ -43,7 +43,7 @@ public class SrPceCapabilityTlv implements PcepValueType {
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                fig: SR-PCE-CAPABILITY TLV format
      */
-    protected static final Logger log = LoggerFactory.getLogger(SrPceCapabilityTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(SrPceCapabilityTlv.class);
 
     public static final short TYPE = 26;
     public static final short LENGTH = 4;

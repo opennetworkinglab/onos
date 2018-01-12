@@ -42,15 +42,15 @@ import static org.onlab.util.Tools.nullIsNotFound;
  */
 public final class IntentCodec extends JsonCodec<Intent> {
 
-    protected static final String TYPE = "type";
-    protected static final String ID = "id";
-    protected static final String KEY = "key";
-    protected static final String APP_ID = "appId";
-    protected static final String STATE = "state";
-    protected static final String PRIORITY = "priority";
-    protected static final String RESOURCES = "resources";
-    protected static final String RESOURCE_GROUP = "resourceGroup";
-    protected static final String MISSING_MEMBER_MESSAGE =
+    static final String TYPE = "type";
+    static final String ID = "id";
+    static final String KEY = "key";
+    static final String APP_ID = "appId";
+    static final String STATE = "state";
+    static final String PRIORITY = "priority";
+    static final String RESOURCES = "resources";
+    static final String RESOURCE_GROUP = "resourceGroup";
+    static final String MISSING_MEMBER_MESSAGE =
             " member is required in Intent";
     private static final String E_APP_ID_NOT_FOUND =
             "Application ID is not found";

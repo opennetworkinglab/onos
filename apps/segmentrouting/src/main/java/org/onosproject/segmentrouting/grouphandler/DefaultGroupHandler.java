@@ -75,7 +75,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * whether the current device is an edge device or a transit device.
  */
 public class DefaultGroupHandler {
-    protected static final Logger log = getLogger(DefaultGroupHandler.class);
+    private static final Logger log = getLogger(DefaultGroupHandler.class);
 
     private static final long VERIFY_INTERVAL = 30; // secs
 

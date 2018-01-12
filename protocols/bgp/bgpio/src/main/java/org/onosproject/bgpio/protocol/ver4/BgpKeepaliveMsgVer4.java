@@ -55,7 +55,7 @@ public class BgpKeepaliveMsgVer4 implements BgpKeepaliveMsg {
     REFERENCE : RFC 4271
     */
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpKeepaliveMsgVer4.class);
 
     private BgpHeader bgpMsgHeader;

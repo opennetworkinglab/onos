@@ -63,7 +63,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
        REFERENCE : RFC 4271
     */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpOpenMsgVer4.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpOpenMsgVer4.class);
 
     public static final byte PACKET_VERSION = 4;
     public static final int OPEN_MSG_MINIMUM_LENGTH = 10;

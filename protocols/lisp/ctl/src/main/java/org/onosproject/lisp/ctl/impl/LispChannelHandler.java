@@ -50,7 +50,7 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final LispRouterFactory routerFactory = LispRouterFactory.getInstance();
 
-    protected ExecutorService executorMessages =
+    ExecutorService executorMessages =
             Executors.newFixedThreadPool(32, groupedThreads("onos/lisp", "message-stats-%d", log));
 
     @Override

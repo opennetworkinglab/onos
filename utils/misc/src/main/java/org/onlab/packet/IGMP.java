@@ -32,7 +32,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implements IGMP control packet format.
  */
 public abstract class IGMP extends BasePacket {
-    protected static final Logger log = getLogger(IGMP.class);
+    private static final Logger log = getLogger(IGMP.class);
 
     public static final byte TYPE_IGMPV3_MEMBERSHIP_QUERY = 0x11;
     public static final byte TYPE_IGMPV1_MEMBERSHIP_REPORT = 0x12;

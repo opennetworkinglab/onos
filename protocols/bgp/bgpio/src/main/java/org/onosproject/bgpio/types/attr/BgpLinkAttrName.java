@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpLinkAttrName implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrName.class);
 
     public static final int ATTRLINK_NAME = 1098;

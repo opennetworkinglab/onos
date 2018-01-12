@@ -40,7 +40,7 @@ public class LsCapabilityTlv implements PcepValueType {
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LsCapabilityTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(LsCapabilityTlv.class);
 
     public static final short TYPE = (short) 65280;
     public static final short LENGTH = 4;

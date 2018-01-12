@@ -39,7 +39,7 @@ public class NodeNameSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(NodeNameSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(NodeNameSubTlv.class);
 
     public static final short TYPE = 15;
     public final short hLength;

@@ -45,7 +45,7 @@ public class PcepStateReportVer1 implements PcepStateReport {
                <path>     ::= <ERO><attribute-list>[<RRO>]
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepStateReport.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepStateReport.class);
 
     public static final int OBJECT_HEADER_LENGTH = 4;
 

@@ -38,7 +38,7 @@ public class ErrorObjListWithOpen {
     private PcepOpenObject openObject;
     // flag to check if open object is set or not
     private boolean isOpenObjectSet;
-    protected static final Logger log = LoggerFactory.getLogger(ErrorObjListWithOpen.class);
+    private static final Logger log = LoggerFactory.getLogger(ErrorObjListWithOpen.class);
 
     /**
      * Constructor to initialize Error and OPEN object.

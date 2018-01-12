@@ -111,11 +111,11 @@ import static org.onosproject.security.AppPermission.Type.*;
 
 public final class DefaultPolicyBuilder {
 
-    protected static ConcurrentHashMap<AppPermission.Type,
+    static ConcurrentHashMap<AppPermission.Type,
             Set<String>> serviceDirectory = getServiceDirectory();
 
-    protected static List<Permission> defaultPermissions = getDefaultPerms();
-    protected static List<Permission> adminServicePermissions = getAdminDefaultPerms();
+    static List<Permission> defaultPermissions = getDefaultPerms();
+    static List<Permission> adminServicePermissions = getAdminDefaultPerms();
 
     private DefaultPolicyBuilder(){
     }

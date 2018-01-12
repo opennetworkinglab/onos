@@ -43,7 +43,7 @@ public class DestinationSet {
     private final int edgeLabel2;
 
 
-    protected static final Logger log = getLogger(DestinationSet.class);
+    private static final Logger log = getLogger(DestinationSet.class);
 
     /**
      * Constructor for a single destination with no Edge label.

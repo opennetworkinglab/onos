@@ -41,7 +41,7 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
                          The BANDWIDTH Object format
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepBandwidthObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepBandwidthObjectVer1.class);
     /*
      *  Requested bandwidth: BANDWIDTH Object-Type is 1.
         Bandwidth of an existing TE LSP for which a re-optimization is

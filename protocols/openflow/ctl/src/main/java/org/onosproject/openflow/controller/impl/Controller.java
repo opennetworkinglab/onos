@@ -71,7 +71,7 @@ import static org.onosproject.openflow.controller.Dpid.uri;
  */
 public class Controller {
 
-    protected static final Logger log = LoggerFactory.getLogger(Controller.class);
+    private static final Logger log = LoggerFactory.getLogger(Controller.class);
 
    /**
     * @deprecated in 1.10.0

@@ -45,7 +45,7 @@ public class StatefulLspErrorCodeTlv implements PcepValueType {
 
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(StatefulLspErrorCodeTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(StatefulLspErrorCodeTlv.class);
 
     public static final short TYPE = 20;
     public static final short LENGTH = 4;

@@ -45,7 +45,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
                                              <LSP>
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcInitiatedLspRequestVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcInitiatedLspRequestVer1.class);
 
     //PCEP SRP Object
     private PcepSrpObject srpObject;

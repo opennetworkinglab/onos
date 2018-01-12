@@ -35,7 +35,7 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
      *  <path>         ::= <ERO><attribute-list>
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepMsgPathVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepMsgPathVer1.class);
     //PcepEroObject
     private PcepEroObject eroObj;
     private boolean isEroObjectSet;

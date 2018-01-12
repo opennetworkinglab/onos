@@ -52,7 +52,7 @@ public class PcepOpenMsgVer1 implements PcepOpenMsg {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepOpenMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepOpenMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
     public static final int PACKET_MINIMUM_LENGTH = 12;

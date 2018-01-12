@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
  */
 public class BgpPrefixAttrMetric implements BgpValueType {
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrMetric.class);
 
     public static final int ATTR_PREFIX_METRIC = 1155;

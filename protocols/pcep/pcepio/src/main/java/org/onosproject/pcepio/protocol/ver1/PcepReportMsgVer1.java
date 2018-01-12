@@ -62,7 +62,7 @@ class PcepReportMsgVer1 implements PcepReportMsg {
      *                             [<IRO>]
      *    <metric-list>       ::=<METRIC>[<metric-list>]
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepReportMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepReportMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
     //PACKET_MINIMUM_LENGTH = CommonHeaderLen(4)+LspObjMinLen(8)

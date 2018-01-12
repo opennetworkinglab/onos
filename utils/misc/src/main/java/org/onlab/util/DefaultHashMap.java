@@ -24,7 +24,7 @@ import java.util.HashMap;
 public final class DefaultHashMap<K, V> extends HashMap<K, V> {
 
     /** Default value to return when no key binding exists. */
-    protected final V defaultValue;
+    private final V defaultValue;
 
     /**
      * Constructs an empty map with the given default value.

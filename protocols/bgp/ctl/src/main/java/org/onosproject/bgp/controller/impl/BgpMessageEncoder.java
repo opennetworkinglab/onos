@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * netty pipeline.
  */
 public class BgpMessageEncoder extends OneToOneEncoder {
-    protected static final Logger log = LoggerFactory.getLogger(BgpMessageEncoder.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpMessageEncoder.class);
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {

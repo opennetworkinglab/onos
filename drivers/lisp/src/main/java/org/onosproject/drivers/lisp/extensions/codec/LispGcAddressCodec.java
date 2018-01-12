@@ -29,16 +29,16 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class LispGcAddressCodec extends JsonCodec<LispGcAddress> {
 
-    protected static final String NORTH = "north";
-    protected static final String LATITUDE_DEGREE = "latitudeDegree";
-    protected static final String LATITUDE_MINUTE = "latitudeMinute";
-    protected static final String LATITUDE_SECOND = "latitudeSecond";
-    protected static final String EAST = "east";
-    protected static final String LONGITUDE_DEGREE = "longitudeDegree";
-    protected static final String LONGITUDE_MINUTE = "longitudeMinute";
-    protected static final String LONGITUDE_SECOND = "longitudeSecond";
-    protected static final String ALTITUDE = "altitude";
-    protected static final String ADDRESS = "address";
+    static final String NORTH = "north";
+    static final String LATITUDE_DEGREE = "latitudeDegree";
+    static final String LATITUDE_MINUTE = "latitudeMinute";
+    static final String LATITUDE_SECOND = "latitudeSecond";
+    static final String EAST = "east";
+    static final String LONGITUDE_DEGREE = "longitudeDegree";
+    static final String LONGITUDE_MINUTE = "longitudeMinute";
+    static final String LONGITUDE_SECOND = "longitudeSecond";
+    static final String ALTITUDE = "altitude";
+    static final String ADDRESS = "address";
 
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispGcAddress";

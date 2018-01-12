@@ -40,7 +40,7 @@ public class IgpRouterIdSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IgpRouterIdSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IgpRouterIdSubTlv.class);
 
     public static final short TYPE = 4;
     private final short hLength;

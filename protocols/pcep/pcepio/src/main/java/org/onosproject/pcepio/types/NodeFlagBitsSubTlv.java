@@ -38,7 +38,7 @@ public class NodeFlagBitsSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(NodeFlagBitsSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(NodeFlagBitsSubTlv.class);
 
     public static final short TYPE = 13;
     public static final short LENGTH = 1;

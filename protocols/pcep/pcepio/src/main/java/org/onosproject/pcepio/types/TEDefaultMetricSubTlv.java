@@ -40,7 +40,7 @@ public class TEDefaultMetricSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(TEDefaultMetricSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(TEDefaultMetricSubTlv.class);
 
     public static final short TYPE = 26;
     public static final short LENGTH = 4;

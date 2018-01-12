@@ -76,7 +76,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
     public static final String VPORT_ID_EXIST = "VirtualPort id is exist";
     public static final String VPORT_ID_NOT_EXIST = "VirtualPort id is not exist";
     public static final String JSON_NOT_NULL = "JsonNode can not be null";
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(VirtualPortService.class);
 
     @GET

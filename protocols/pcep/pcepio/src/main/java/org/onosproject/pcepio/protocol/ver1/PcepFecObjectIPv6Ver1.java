@@ -44,7 +44,7 @@ public class PcepFecObjectIPv6Ver1 implements PcepFecObjectIPv6 {
 
                        FEC Object-Type is 2 IPv6 Node ID
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv6Ver1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv6Ver1.class);
 
     public static final byte FEC_OBJ_TYPE = 2;
     public static final byte FEC_OBJ_CLASS = (byte) 226;

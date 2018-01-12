@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class EthernetCodec extends JsonCodec<Ethernet> {
 
-    protected static final Logger log = LoggerFactory.getLogger(CriterionCodec.class);
+    private static final Logger log = LoggerFactory.getLogger(CriterionCodec.class);
 
     @Override
     public ObjectNode encode(Ethernet ethernet, CodecContext context) {

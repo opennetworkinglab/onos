@@ -63,7 +63,7 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
                                                         [<label-list>]
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelUpdateMsgVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelUpdateMsgVer1.class);
 
     public static final byte PACKET_VERSION = 1;
 

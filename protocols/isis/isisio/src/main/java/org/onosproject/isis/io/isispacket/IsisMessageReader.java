@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class IsisMessageReader {
 
-    protected static final Logger log = LoggerFactory.getLogger(IsisMessageReader.class);
+    private static final Logger log = LoggerFactory.getLogger(IsisMessageReader.class);
 
     /**
      * Reads from ISIS packet from buffer.

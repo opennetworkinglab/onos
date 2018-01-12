@@ -29,10 +29,10 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public final class LispTeRecordCodec extends JsonCodec<LispTeAddress.TeRecord> {
 
-    protected static final String LOOKUP = "lookup";
-    protected static final String RLOC_PROBE = "rlocProbe";
-    protected static final String STRICT = "strict";
-    protected static final String ADDRESS = "address";
+    static final String LOOKUP = "lookup";
+    static final String RLOC_PROBE = "rlocProbe";
+    static final String STRICT = "strict";
+    static final String ADDRESS = "address";
 
     private static final String MISSING_MEMBER_MESSAGE =
                                 " member is required in LispTeRecord";

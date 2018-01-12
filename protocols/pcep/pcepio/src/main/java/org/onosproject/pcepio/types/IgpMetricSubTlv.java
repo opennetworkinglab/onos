@@ -39,7 +39,7 @@ public class IgpMetricSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IgpMetricSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(IgpMetricSubTlv.class);
 
     public static final short TYPE = 29;
     private short hLength;

@@ -47,7 +47,7 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepEndPointsObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepEndPointsObjectVer1.class);
 
     static final byte END_POINTS_OBJ_TYPE = 1;
     static final byte END_POINTS_OBJ_CLASS = 4;

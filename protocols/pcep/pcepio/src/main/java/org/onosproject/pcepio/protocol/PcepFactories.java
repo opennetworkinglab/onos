@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class PcepFactories {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepFactories.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepFactories.class);
 
     private static final GenericReader GENERIC_READER = new GenericReader();
 

@@ -39,7 +39,7 @@ import java.util.TreeMap;
  */
 public class BgpConfig implements BgpCfg {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpConfig.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpConfig.class);
 
     private static final short DEFAULT_HOLD_TIMER = 120;
     private static final short DEFAULT_CONN_RETRY_TIME = 120;

@@ -51,7 +51,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
 
                                LABEL-RANGE Object
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepLabelRangeObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLabelRangeObjectVer1.class);
 
     public static final byte LABEL_RANGE_OBJ_TYPE = 1;
     public static final byte LABEL_RANGE_OBJ_CLASS = 60; //to be defined

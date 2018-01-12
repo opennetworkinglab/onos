@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class BgpMessageVer4 {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpFactories.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpFactories.class);
 
     static final byte OPEN_MSG_TYPE = 0x1;
     static final byte KEEPALIVE_MSG_TYPE = 0x4;

@@ -40,7 +40,7 @@ public class PcepRsvpSpecObjHeader {
               ERROR_SPEC object Header
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepRsvpSpecObjHeader.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepRsvpSpecObjHeader.class);
 
     private short objLen;
     private byte objClassNum;

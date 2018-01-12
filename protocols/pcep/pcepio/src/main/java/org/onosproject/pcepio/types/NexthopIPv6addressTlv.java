@@ -46,7 +46,7 @@ public class NexthopIPv6addressTlv implements PcepValueType {
                      NEXTHOP-IPV6-ADDRESS TLV:
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(NexthopIPv6addressTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(NexthopIPv6addressTlv.class);
 
     public static final short TYPE = 100; //to be defined
     //Length is header + value

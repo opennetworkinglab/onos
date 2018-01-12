@@ -34,8 +34,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class MappingValueCodec extends JsonCodec<MappingValue> {
 
-    protected static final String ACTION = "action";
-    protected static final String TREATMENTS = "treatments";
+    static final String ACTION = "action";
+    static final String TREATMENTS = "treatments";
 
     @Override
     public ObjectNode encode(MappingValue value, CodecContext context) {

@@ -47,7 +47,7 @@ public class StatefulLspDbVerTlv implements PcepValueType {
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
      */
-    protected static final Logger log = LoggerFactory.getLogger(StatefulLspDbVerTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(StatefulLspDbVerTlv.class);
 
     public static final short TYPE = 23;
     public static final short LENGTH = 8;

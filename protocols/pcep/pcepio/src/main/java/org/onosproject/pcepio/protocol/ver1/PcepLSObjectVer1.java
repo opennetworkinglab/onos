@@ -69,7 +69,7 @@ public class PcepLSObjectVer1 implements PcepLSObject {
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepLSObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepLSObjectVer1.class);
 
     public static final byte LS_OBJ_TYPE_NODE_VALUE = 1;
     public static final byte LS_OBJ_TYPE_LINK_VALUE = 2;

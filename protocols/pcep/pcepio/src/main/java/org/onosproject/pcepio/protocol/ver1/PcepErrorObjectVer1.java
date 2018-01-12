@@ -46,7 +46,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepErrorObjectVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepErrorObjectVer1.class);
 
     public static final byte ERROR_OBJ_TYPE = 1;
     public static final byte ERROR_OBJ_CLASS = 13;

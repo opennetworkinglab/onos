@@ -48,7 +48,7 @@ public class PcepFecObjectIPv4UnnumberedAdjacencyVer1 implements PcepFecObjectIP
 
              FEC Object-Type is 5, Unnumbered Adjacency with IPv4 NodeIDs
      */
-    protected static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv4UnnumberedAdjacencyVer1.class);
+    private static final Logger log = LoggerFactory.getLogger(PcepFecObjectIPv4UnnumberedAdjacencyVer1.class);
 
     public static final byte FEC_OBJ_TYPE = 5;
     public static final byte FEC_OBJ_CLASS = (byte) 226;

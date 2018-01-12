@@ -146,7 +146,7 @@ public final class UiSharedTopologyModel
 
 
     @Activate
-    protected void activate() {
+    void activate() {
         cache = new ModelCache(new DefaultServiceBundle(), eventDispatcher);
         eventHandler = newSingleThreadExecutor(groupedThreads("onos/ui/topo", "event-handler", log));
 
@@ -167,7 +167,7 @@ public final class UiSharedTopologyModel
     }
 
     @Deactivate
-    protected void deactivate() {
+    void deactivate() {
         eventDispatcher.removeSink(UiModelEvent.class);
 
         clusterService.removeListener(clusterListener);

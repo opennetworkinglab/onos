@@ -39,7 +39,7 @@ public class OpaqueNodePropertiesSubTlv implements PcepValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(OpaqueNodePropertiesSubTlv.class);
+    private static final Logger log = LoggerFactory.getLogger(OpaqueNodePropertiesSubTlv.class);
 
     public static final short TYPE = 14;
     private final short hLength;
