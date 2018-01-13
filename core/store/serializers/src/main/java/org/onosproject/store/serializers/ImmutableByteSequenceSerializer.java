@@ -46,7 +46,11 @@ public class ImmutableByteSequenceSerializer extends Serializer<ImmutableByteSeq
     public ImmutableByteSequence read(Kryo kryo, Input input, Class<ImmutableByteSequence> type) {
         int length = input.readInt();
         byte[] data = new byte[length];
-        input.read(data);
+        int bytesRead = input.read(data);
+        if (bytesRead != length) {
+            throw new IllegalStateException("Byte sequence serializer read expected " + length +
+                    " but got " + bytesRead);
+        }
         return ImmutableByteSequence.copyFrom(data);
     }
 }
