@@ -485,17 +485,15 @@ public class GossipDeviceStore
             // accept off-line if given timestamp is newer than
             // the latest Timestamp from Primary provider
             DeviceDescriptions primDescs = getPrimaryDescriptions(providerDescs);
-            if (primDescs == null) {
-                return null;
-            }
-
-            Timestamp lastTimestamp = primDescs.getLatestTimestamp();
-            if (lastTimestamp == null) {
-                lastTimestamp = deviceClockService.getTimestamp(deviceId);
-            }
-            if (timestamp.compareTo(lastTimestamp) <= 0) {
-                // outdated event ignore
-                return null;
+            if (primDescs != null) {
+                Timestamp lastTimestamp = primDescs.getLatestTimestamp();
+                if (lastTimestamp == null) {
+                    lastTimestamp = deviceClockService.getTimestamp(deviceId);
+                }
+                if (timestamp.compareTo(lastTimestamp) <= 0) {
+                    // outdated event ignore
+                    return null;
+                }
             }
 
             offline.put(deviceId, timestamp);
@@ -1453,8 +1451,7 @@ public class GossipDeviceStore
 
                 // checking if remote timestamp is more recent.
                 Timestamp rOffline = offlineAds.get(deviceId);
-                if (rOffline != null &&
-                        rOffline.compareTo(localLatest) > 0) {
+                if (localLatest == null || (rOffline != null && rOffline.compareTo(localLatest) > 0)) {
                     // remote offline timestamp suggests that the
                     // device is off-line
                     markOfflineInternal(deviceId, rOffline);
