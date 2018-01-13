@@ -7,11 +7,16 @@ cp /etc/skel/.bash_logout ~/
 
 # ONOS
 git clone https://github.com/opennetworkinglab/onos.git
-echo "export ONOS_ROOT=~/onos" >> ~/.bashrc
-echo "source ~/onos/tools/dev/bash_profile" >> ~/.bashrc
+tee -a ~/.profile <<EOF
+
+# ONOS
+export ONOS_ROOT=~/onos
+source ~/onos/tools/dev/bash_profile
+EOF
+source ~/.profile
 
 # Build and install P4 tools
-bash ~/onos/tools/dev/bin/onos-setup-p4-dev
+bash /vagrant/install-p4-tools.sh
 
 # Mininet
 git clone git://github.com/mininet/mininet ~/mininet

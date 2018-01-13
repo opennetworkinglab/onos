@@ -15,6 +15,10 @@ sshpass -p 'rocks' \
     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
     -p ${SSH_PORT} sdn@127.0.0.1 "bash /vagrant/pre-ova-cleanup.sh"
 
+# Wait for VM to power off
+sleep 10
+
+# Make sure VM is not running
 vagrant halt
 
 sleep 5
