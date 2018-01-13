@@ -277,6 +277,11 @@
     "bcprov-jdk15on": "mvn:org.bouncycastle:bcprov-jdk15on:1.58",
     "hamcrest-optional": "mvn:com.spotify:hamcrest-optional:1.1.0",
     "swagger-annotations": "mvn:io.swagger:swagger-annotations:1.5.16",
-    "kafka-clients": "mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:0.8.2.2_1"
+    "kafka-clients": "mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.kafka-clients:0.8.2.2_1",
+    "tinder-xmpp": "mvn:org.igniterealtime:tinder:1.3.0",
+    "aalto-xml": "mvn:com.fasterxml:aalto-xml:1.0.0",
+    "stax2-api": "mvn:org.codehaus.woodstox:stax2-api:4.0.0",
+    "concurrent-hashmap": "mvn:com.googlecode.concurrentlinkedhashmap:concurrentlinkedhashmap-lru:1.0",
+    "gnu-idn": "mvn:org.gnu.inet:libidn:1.15"
   }
 }

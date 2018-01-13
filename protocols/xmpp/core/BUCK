@@ -1,0 +1,23 @@
+BUNDLES = [
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
+    '//lib:tinder-xmpp',
+    '//lib:org.apache.servicemix.bundles.dom4j',
+    '//lib:netty-common',
+    '//lib:netty-transport',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:stax2-api',
+    '//lib:aalto-xml',
+    '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
+]
+
+onos_app(
+    app_name = 'org.onosproject.protocols.xmpp',
+    title = 'XMPP Core Protocol Subsystem',
+    category = 'Protocol',
+    url = 'https://wiki.onosproject.org/display/ONOS/XMPP+as+SBI',
+    description = 'ONOS XMPP core protocol subsystem',
+    included_bundles = BUNDLES,
+)

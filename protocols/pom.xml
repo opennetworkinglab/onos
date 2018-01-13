@@ -45,6 +45,7 @@
         <module>tl1</module>
         <module>grpc</module>
         <module>p4runtime</module>
+        <module>xmpp</module>
     </modules>
 
     <dependencies>

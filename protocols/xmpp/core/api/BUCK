@@ -1,0 +1,12 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/api:onos-api',
+    '//lib:tinder-xmpp',
+    '//lib:netty-transport',
+    '//lib:netty-common',
+    '//lib:org.apache.servicemix.bundles.dom4j',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)

@@ -56,6 +56,8 @@ CORE = UTILS + API + [
     '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
     '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
     '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl',
 
     '//drivers/utilities:onos-drivers-utilities',
 
@@ -139,6 +141,7 @@ ONOS_PROVIDERS = [
     '//providers/general:onos-providers-general-oar',
     '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
+    '//providers/xmpp/device:onos-providers-xmpp-device-oar',
 ]
 
 ONOS_APPS = [
@@ -242,6 +245,7 @@ PROTOCOL_APPS = [
     '//protocols/grpc:onos-protocols-grpc-oar',
     '//protocols/p4runtime:onos-protocols-p4runtime-oar',
     '//protocols/gnmi:onos-protocols-gnmi-oar',
+    '//protocols/xmpp/core:onos-protocols-xmpp-core-oar',
 ]
 
 MODELS = [

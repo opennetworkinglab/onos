@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/xmpp/core/api:onos-protocols-xmpp-core-api',
+    '//lib:netty-common',
+    '//lib:netty-transport',
+    '//lib:netty-transport-native-epoll',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:org.apache.servicemix.bundles.dom4j',
+    '//lib:tinder-xmpp',
+    '//lib:stax2-api',
+    '//lib:aalto-xml',
+    '//lib:concurrent-hashmap',
+    '//lib:gnu-idn',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
