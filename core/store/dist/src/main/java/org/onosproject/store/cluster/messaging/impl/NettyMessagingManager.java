@@ -109,6 +109,7 @@ public class NettyMessagingManager implements MessagingService {
     private static final int MIN_SAMPLES = 25;
     private static final double PHI_FACTOR = 1.0 / Math.log(10.0);
     private static final int PHI_FAILURE_THRESHOLD = 5;
+    private static final long MIN_TIMEOUT_MILLIS = 100;
     private static final long MAX_TIMEOUT_MILLIS = 15000;
     private static final int CHANNEL_POOL_SIZE = 8;
 
@@ -760,7 +761,8 @@ public class NettyMessagingManager implements MessagingService {
                 try {
                     RequestMonitor requestMonitor = requestMonitors.get(callback.type, RequestMonitor::new);
                     long elapsedTime = currentTime - callback.time;
-                    if (elapsedTime > MAX_TIMEOUT_MILLIS || requestMonitor.isTimedOut(elapsedTime)) {
+                    if (elapsedTime > MAX_TIMEOUT_MILLIS ||
+                        (elapsedTime > MIN_TIMEOUT_MILLIS && requestMonitor.isTimedOut(elapsedTime))) {
                         iterator.remove();
                         requestMonitor.addReplyTime(elapsedTime);
                         callback.completeExceptionally(
