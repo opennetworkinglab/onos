@@ -1506,8 +1506,8 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
         for (String uuid : rows.keySet()) {
-            Row row = getRow(DATABASENAME, BRIDGE, uuid);
-            OvsdbBridge ovsdbBridge = getOvsdbBridge(row);
+            Row bridgeRow = getRow(DATABASENAME, BRIDGE, uuid);
+            OvsdbBridge ovsdbBridge = getOvsdbBridge(bridgeRow, Uuid.uuid(uuid));
             if (ovsdbBridge != null) {
                 ovsdbBridges.add(ovsdbBridge);
             }
@@ -1652,7 +1652,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         return new OvsdbPort(new OvsdbPortNumber(ofPort), new OvsdbPortName(portName));
     }
 
-    private OvsdbBridge getOvsdbBridge(Row row) {
+    private OvsdbBridge getOvsdbBridge(Row row, Uuid bridgeUuid) {
         DatabaseSchema dbSchema = getDatabaseSchema(DATABASENAME);
         Bridge bridge = (Bridge) TableGenerator.getTable(dbSchema, row, OvsdbTable.BRIDGE);
         if (bridge == null) {
@@ -1670,7 +1670,26 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         if ((datapathId == null) || (bridgeName == null)) {
             return null;
         }
-        return OvsdbBridge.builder().name(bridgeName).datapathId(datapathId).build();
+
+        List<Controller> controllers = getControllers(bridgeUuid);
+
+        if (controllers != null) {
+            List<ControllerInfo> controllerInfos = controllers.stream().map(
+                    controller -> new ControllerInfo(
+                    (String) controller.getTargetColumn()
+                            .data())).collect(Collectors.toList());
+
+            return OvsdbBridge.builder()
+                    .name(bridgeName)
+                    .datapathId(datapathId)
+                    .controllers(controllerInfos)
+                    .build();
+        } else {
+            return OvsdbBridge.builder()
+                    .name(bridgeName)
+                    .datapathId(datapathId)
+                    .build();
+        }
     }
 
     private OvsdbQos getOvsdbQos(Row row) {
