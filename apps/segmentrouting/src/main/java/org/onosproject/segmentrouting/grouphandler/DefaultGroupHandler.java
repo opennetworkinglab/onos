@@ -247,6 +247,9 @@ public class DefaultGroupHandler {
         Set<DestinationSetNextObjectiveStoreKey> dsKeySet = dsNextObjStore.entrySet()
                 .stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                // Filter out PW transit groups or include them if MPLS ECMP is supported
+                .filter(entry -> !entry.getKey().destinationSet().mplsSet() ||
+                        (entry.getKey().destinationSet().mplsSet() && srManager.getMplsEcmp()))
                 .filter(entry -> entry.getValue().containsNextHop(link.dst().deviceId()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
@@ -325,7 +328,7 @@ public class DefaultGroupHandler {
      * a hashed group. User must ensure that all the ports & labels are meant
      * same neighbor (ie. dstMac).
      *
-     * @param portLables a collection of port & label combinations to add
+     * @param portLabels a collection of port & label combinations to add
      *                   to the hash group identified by the nextId
      * @param dstMac destination mac address of next-hop
      * @param nextId id for next-objective to which buckets will be added
@@ -376,7 +379,7 @@ public class DefaultGroupHandler {
      * a hash group. User must ensure that all the ports & labels are meant
      * same neighbor (ie. dstMac).
      *
-     * @param portLables a collection of port & label combinations to remove
+     * @param portLabels a collection of port & label combinations to remove
      *                   from the hash group identified by the nextId
      * @param dstMac destination mac address of next-hop
      * @param nextId id for next-objective from which buckets will be removed
@@ -1186,6 +1189,9 @@ public class DefaultGroupHandler {
             if (e.getValue().nextId() != objectiveId) {
                 continue;
             }
+            // Right now it is just used in TunnelHandler
+            // remember in future that PW transit groups could
+            // be Indirect groups
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
                     .builder().withId(objectiveId)
                     .withType(NextObjective.Type.HASHED).fromApp(appId);
@@ -1344,6 +1350,9 @@ public class DefaultGroupHandler {
                 Set<DestinationSetNextObjectiveStoreKey> dsKeySet = dsNextObjStore.entrySet()
                         .stream()
                         .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                        // Filter out PW transit groups or include them if MPLS ECMP is supported
+                        .filter(entry -> !entry.getKey().destinationSet().mplsSet() ||
+                                (entry.getKey().destinationSet().mplsSet() && srManager.getMplsEcmp()))
                         .map(entry -> entry.getKey())
                         .collect(Collectors.toSet());
                 for (DestinationSetNextObjectiveStoreKey dsKey : dsKeySet) {
