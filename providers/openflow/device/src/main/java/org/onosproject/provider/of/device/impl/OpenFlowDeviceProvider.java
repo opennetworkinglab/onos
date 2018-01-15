@@ -994,7 +994,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             // f = c / λ
             // (m/s) * (nm/m) / (nm * 100) * 100
             // annotations is in Hz
-            return Long.toString(c * 1_000_000_000 / lambda * 100);
+            return Long.toString(lambda == 0 ? lambda : (c * 1_000_000_000 / lambda * 100));
         }
 
         private PortDescription buildPortDescription14(OFPortDesc port) {
