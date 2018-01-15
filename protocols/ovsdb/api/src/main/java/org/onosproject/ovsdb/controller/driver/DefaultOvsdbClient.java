@@ -29,6 +29,7 @@ import io.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.ControlProtocolVersion;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
@@ -483,6 +484,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         if (ovsdbBridge.datapathType().isPresent()) {
             String datapathType = ovsdbBridge.datapathType().get();
             bridge.setDatapathType(datapathType);
+        }
+
+        if (ovsdbBridge.controlProtocols().isPresent()) {
+            bridge.setProtocols(ovsdbBridge.controlProtocols().get().stream()
+                    .map(ControlProtocolVersion::toString)
+                    .collect(Collectors.toCollection(HashSet::new)));
         }
 
         String bridgeUuid = getBridgeUuid(ovsdbBridge.name());

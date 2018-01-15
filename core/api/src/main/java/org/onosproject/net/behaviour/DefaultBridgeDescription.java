@@ -39,6 +39,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
     private final Optional<FailMode> failMode;
     private final Optional<String> datapathId;
     private final Optional<String> datapathType;
+    private final Optional<List<ControlProtocolVersion>> controlProtocols;
     private final Optional<Boolean> disableInBand;
 
     /* Adds more configurations */
@@ -49,7 +50,8 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                      Optional<FailMode> failMode,
                                      Optional<String> datapathId,
                                      Optional<String> datapathType,
-                                     Optional<Boolean> disableInBand) {
+                                     Optional<Boolean> disableInBand,
+                                     Optional<List<ControlProtocolVersion>> controlProtocols) {
         this.name = checkNotNull(name);
         this.controllers = controllers;
         this.enableLocalController = enableLocalController;
@@ -57,6 +59,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         this.datapathId = datapathId;
         this.datapathType = datapathType;
         this.disableInBand = disableInBand;
+        this.controlProtocols = controlProtocols;
     }
 
     @Override
@@ -95,6 +98,11 @@ public final class DefaultBridgeDescription implements BridgeDescription {
     }
 
     @Override
+    public Optional<List<ControlProtocolVersion>> controlProtocols() {
+        return controlProtocols;
+    }
+
+    @Override
     public Optional<DeviceId> deviceId() {
         if (datapathId.isPresent()) {
             return Optional.of(DeviceId.deviceId("of:" + datapathId.get()));
@@ -125,6 +133,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         private Optional<FailMode> failMode = Optional.empty();
         private Optional<String> datapathId = Optional.empty();
         private Optional<String> datapathType = Optional.empty();
+        private Optional<List<ControlProtocolVersion>> controlProtocols = Optional.empty();
         private Optional<Boolean> disableInBand = Optional.empty();
 
         private Builder() {
@@ -137,7 +146,8 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                                 failMode,
                                                 datapathId,
                                                 datapathType,
-                                                disableInBand);
+                                                disableInBand,
+                                                controlProtocols);
         }
 
         @Override
@@ -176,6 +186,12 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         @Override
         public Builder datapathType(String datapathType) {
             this.datapathType = Optional.ofNullable(datapathType);
+            return this;
+        }
+
+        @Override
+        public Builder controlProtocols(List<ControlProtocolVersion> controlProtocols) {
+            this.controlProtocols = Optional.ofNullable(controlProtocols);
             return this;
         }
 

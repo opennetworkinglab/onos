@@ -45,6 +45,7 @@ public final class OvsdbConstant {
     // other configs
     public static final String DATAPATH_ID = "datapath-id";
     public static final String DISABLE_INBAND = "disable-in-band";
+    public static final String PROTOCOLS = "protocols";
 
     /** Port table. */
     public static final String PORT = "Port";

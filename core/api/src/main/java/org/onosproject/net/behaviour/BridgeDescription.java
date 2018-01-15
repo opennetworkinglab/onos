@@ -104,6 +104,14 @@ public interface BridgeDescription extends Description {
     Optional<Boolean> disableInBand();
 
     /**
+     * Returns list of Control Protocol Versions supported on device.
+     * @return List of Control Protocol Versions enabled on bridge
+     */
+    Optional<List<ControlProtocolVersion>> controlProtocols();
+
+    /**
+
+    /**
      * Builder of bridge description entities.
      */
     interface Builder {
@@ -154,6 +162,13 @@ public interface BridgeDescription extends Description {
          * @return bridge description builder
          */
         Builder datapathType(String datapathType);
+
+        /**
+         * Returns bridge description builder with given control protocol versions.
+         * @param controlProtocols List of control protocol
+         * @return bridge description builder
+         */
+        Builder controlProtocols(List<ControlProtocolVersion> controlProtocols);
 
         /**
          * Returns bridge description builder with in-band control disabled.
