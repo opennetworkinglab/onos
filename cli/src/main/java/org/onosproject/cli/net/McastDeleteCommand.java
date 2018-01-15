@@ -30,6 +30,14 @@ import org.onosproject.net.mcast.MulticastRouteService;
         description = "Delete a multicast route flow")
 public class McastDeleteCommand extends AbstractShellCommand {
 
+    // Delete format for group line
+    private static final String D_FORMAT_MAPPING = "Deleted the mcast route: " +
+            "origin=%s, group=%s, source=%s";
+
+    // Update format for group line
+    private static final String U_FORMAT_MAPPING = "Updated the mcast route: " +
+            "origin=%s, group=%s, source=%s";
+
     @Argument(index = 0, name = "sAddr",
             description = "IP Address of the multicast source. '*' can be used for any source (*, G) entry",
             required = true, multiValued = false)
@@ -61,12 +69,14 @@ public class McastDeleteCommand extends AbstractShellCommand {
 
         if (egressList == null) {
             mcastRouteManager.remove(mRoute);
+            print(D_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
         } else {
             // check list for validity before we begin to delete.
             for (String egress : egressList) {
                 ConnectPoint eCp = ConnectPoint.deviceConnectPoint(egress);
                 mcastRouteManager.removeSink(mRoute, eCp);
             }
+            print(U_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
         }
     }
 }

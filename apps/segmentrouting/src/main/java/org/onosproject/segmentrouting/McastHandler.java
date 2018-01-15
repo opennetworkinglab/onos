@@ -1351,4 +1351,103 @@ public class McastHandler {
 
         }
     }
+
+    public Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp) {
+        // If mcast ip is present
+        if (mcastIp != null) {
+            return mcastNextObjStore.entrySet().stream()
+                    .filter(mcastEntry -> mcastIp.equals(mcastEntry.getKey().mcastIp()))
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                                              entry -> entry.getValue().value().id()));
+        }
+        // Otherwise take all the groups
+        return mcastNextObjStore.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                                          entry -> entry.getValue().value().id()));
+    }
+
+    public Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp) {
+        // If mcast ip is present
+        if (mcastIp != null) {
+            return mcastRoleStore.entrySet().stream()
+                    .filter(mcastEntry -> mcastIp.equals(mcastEntry.getKey().mcastIp()))
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                                              entry -> entry.getValue().value()));
+        }
+        // Otherwise take all the groups
+        return mcastRoleStore.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                                          entry -> entry.getValue().value()));
+    }
+
+    public Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp) {
+        Map<ConnectPoint, List<ConnectPoint>> mcastPaths = Maps.newHashMap();
+        // Get the source
+        ConnectPoint source = getSource(mcastIp);
+        // Source cannot be null, we don't know the starting point
+        if (source != null) {
+            // Init steps
+            Set<DeviceId> visited = Sets.newHashSet();
+            List<ConnectPoint> currentPath = Lists.newArrayList(
+                    source
+            );
+            // Build recursively the mcast paths
+            buildMcastPaths(source.deviceId(), visited, mcastPaths, currentPath, mcastIp);
+        }
+        return mcastPaths;
+    }
+
+    private void buildMcastPaths(DeviceId toVisit, Set<DeviceId> visited,
+                                 Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
+                                 List<ConnectPoint> currentPath, IpAddress mcastIp) {
+        // If we have visited the node to visit
+        // there is a loop
+        if (visited.contains(toVisit)) {
+            return;
+        }
+        // Visit next-hop
+        visited.add(toVisit);
+        McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, toVisit);
+        // Looking for next-hops
+        if (mcastNextObjStore.containsKey(mcastStoreKey)) {
+            // Build egress connectpoints
+            NextObjective nextObjective = mcastNextObjStore.get(mcastStoreKey).value();
+            // Get Ports
+            Set<PortNumber> outputPorts = getPorts(nextObjective.next());
+            // Build relative cps
+            ImmutableSet.Builder<ConnectPoint> cpBuilder = ImmutableSet.builder();
+            outputPorts.forEach(portNumber -> cpBuilder.add(new ConnectPoint(toVisit, portNumber)));
+            Set<ConnectPoint> egressPoints = cpBuilder.build();
+            // Define other variables for the next steps
+            Set<Link> egressLinks;
+            List<ConnectPoint> newCurrentPath;
+            Set<DeviceId> newVisited;
+            DeviceId newToVisit;
+            for (ConnectPoint egressPoint : egressPoints) {
+                egressLinks = srManager.linkService.getEgressLinks(egressPoint);
+                // If it does not have egress links, stop
+                if (egressLinks.isEmpty()) {
+                    // Add the connect points to the path
+                    newCurrentPath = Lists.newArrayList(currentPath);
+                    newCurrentPath.add(0, egressPoint);
+                    // Save in the map
+                    mcastPaths.put(egressPoint, newCurrentPath);
+                } else {
+                    newVisited = Sets.newHashSet(visited);
+                    // Iterate over the egress links for the next hops
+                    for (Link egressLink : egressLinks) {
+                        // Update to visit
+                        newToVisit = egressLink.dst().deviceId();
+                        // Add the connect points to the path
+                        newCurrentPath = Lists.newArrayList(currentPath);
+                        newCurrentPath.add(0, egressPoint);
+                        newCurrentPath.add(0, egressLink.dst());
+                        // Go to the next hop
+                        buildMcastPaths(newToVisit, newVisited, mcastPaths, newCurrentPath, mcastIp);
+                    }
+                }
+            }
+        }
+    }
+
 }

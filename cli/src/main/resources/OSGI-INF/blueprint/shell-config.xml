@@ -116,12 +116,31 @@
 
         <command>
             <action class="org.onosproject.cli.net.McastShowCommand"/>
+            <completers>
+                <ref component-id="mcastGroupCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.McastRoutesListCommand"/>
+            <completers>
+                <ref component-id="mcastGroupCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.McastJoinCommand"/>
+            <completers>
+                <ref component-id="placeholderCompleter"/>
+                <ref component-id="mcastGroupCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.McastDeleteCommand"/>
+            <completers>
+                <ref component-id="placeholderCompleter"/>
+                <ref component-id="mcastGroupCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
         </command>
 
         <command>
@@ -967,5 +986,7 @@
     <bean id="virtualHostCompleter" class="org.onosproject.cli.net.vnet.VirtualHostCompleter"/>
 
     <bean id="domainIdCompleter" class="org.onosproject.cli.net.DomainIdCompleter" />
+
+    <bean id="mcastGroupCompleter" class="org.onosproject.cli.net.McastGroupCompleter"/>
 
 </blueprint>
