@@ -1440,6 +1440,7 @@ public class Ofdpa2GroupHandler {
             // get a fresh copy of what the store holds
             NextGroup next = flowObjectiveStore.getNextGroup(nextObjective.id());
             List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
+            allActiveKeys = Lists.newArrayList(allActiveKeys);
             // Note that since we got a new object, and ArrayDeque does not implement
             // Object.equals(), we have to check the deque elems one by one
             allActiveKeys
@@ -1814,6 +1815,7 @@ public class Ofdpa2GroupHandler {
             }
             if (nextGrp.nextObjective().op() == Operation.ADD_TO_EXISTING) {
                 List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
+                allActiveKeys = Lists.newArrayList(allActiveKeys);
                 // If active keys shows only the top-level group without a chain of groups,
                 // then it represents an empty group. Update by replacing empty chain.
                 if (allActiveKeys.size() == 1 && allActiveKeys.get(0).size() == 1) {
