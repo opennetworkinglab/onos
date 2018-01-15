@@ -105,6 +105,7 @@ import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
@@ -660,6 +661,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState() {
         return linkHandler.getDownedPorts();
+    }
+
+    @Override
+    public Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp) {
+        return mcastHandler.getMcastNextIds(mcastIp);
+    }
+
+    @Override
+    public Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp) {
+        return mcastHandler.getMcastRoles(mcastIp);
+    }
+
+    @Override
+    public Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp) {
+        return mcastHandler.getMcastPaths(mcastIp);
     }
 
     /**

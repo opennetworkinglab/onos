@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastRoute;
@@ -27,20 +25,27 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 /**
  * Displays the source, multicast group flows entries.
  */
-@Command(scope = "onos", name = "mcast-show", description = "Displays the source, multicast group flows")
-public class McastShowCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "mcast-routes",
+        description = "Lists routes in the mcast route store")
+public class McastRoutesListCommand extends AbstractShellCommand {
 
-    // Format for group line
-    private static final String FORMAT_MAPPING = "origin=%s, group=%s, source=%s, sinks=%s";
+    // Format for total
+    private static final String FORMAT_TOTAL = "   Total: %d";
 
-    @Argument(index = 0, name = "mcastIp", description = "mcast Ip",
-            required = false, multiValued = false)
-    String mcastIp;
+    // Format for ipv4
+    private static final String FORMAT_ROUTE = "%-1s   %-18s %-15s %s   %s";
+    // Format for ipv6
+    private static final String FORMAT_ROUTE6 = "%-1s   %-40s %-36s %s   %s";
+
+    // Table header
+    private static final String FORMAT_TABLE = "Table: %s";
+    private static final String GROUP = "Group";
+    private static final String SOURCE = "Source";
+    private static final String ORIGIN = "Origin";
+    private static final String SINKS = "Sinks";
 
     @Override
     protected void execute() {
@@ -48,48 +53,45 @@ public class McastShowCommand extends AbstractShellCommand {
         MulticastRouteService mcastService = get(MulticastRouteService.class);
         // Get the routes
         Set<McastRoute> routes = mcastService.getRoutes();
-        // Verify mcast group
-        if (!isNullOrEmpty(mcastIp)) {
-            // Let's find the group
-            IpAddress mcastGroup = IpAddress.valueOf(mcastIp);
-            McastRoute mcastRoute = routes.stream()
-                    .filter(route -> route.group().equals(mcastGroup))
-                    .findAny().orElse(null);
-            // If it exists
-            if (mcastRoute != null) {
-                // Get the sinks and print info
-                Set<ConnectPoint> sinks = mcastService.fetchSinks(mcastRoute);
-                print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(),
-                      mcastRoute.source(), sinks);
-            }
-            return;
-        }
         // Filter ipv4
         Set<McastRoute> ipv4Routes = routes.stream()
                 .filter(mcastRoute -> mcastRoute.group().isIp4())
                 .collect(Collectors.toSet());
-        // Print ipv4 first
+        // Filter ipv6
+        Set<McastRoute> ipv6Routes = routes.stream()
+                .filter(mcastRoute -> mcastRoute.group().isIp6())
+                .collect(Collectors.toSet());
+        // Print header
+        print(FORMAT_TABLE, "ipv4");
+        print(FORMAT_ROUTE, "", GROUP, SOURCE, ORIGIN, SINKS);
+        // Print ipv4 mcast routing entries
         ipv4Routes.stream()
                 .sorted(Comparator.comparing(McastRoute::group))
                 .forEach(route -> {
                     // Get sinks
                     Set<ConnectPoint> sinks = mcastService.fetchSinks(route);
-                    print(FORMAT_MAPPING, route.type(), route.group(),
-                          route.source(), sinks);
+                    print(FORMAT_ROUTE, "", route.group(), route.source(),
+                          route.type(), sinks.size());
                 });
-        // Filter ipv6
-        Set<McastRoute> ipv6Routes = routes.stream()
-                .filter(mcastRoute -> mcastRoute.group().isIp6())
-                .collect(Collectors.toSet());
-        // Then print ipv6
+        print(FORMAT_TOTAL, ipv4Routes.size());
+        print("");
+
+        // Print header
+        print(FORMAT_TABLE, "ipv6");
+        print(FORMAT_ROUTE6, "", GROUP, SOURCE, ORIGIN, SINKS);
+        // Print ipv6 mcast routing entries
         ipv6Routes.stream()
                 .sorted(Comparator.comparing(McastRoute::group))
                 .forEach(route -> {
                     // Get sinks
                     Set<ConnectPoint> sinks = mcastService.fetchSinks(route);
-                    print(FORMAT_MAPPING, route.type(), route.group(),
-                          route.source(), sinks);
+                    print(FORMAT_ROUTE6, "", route.group(), route.source(),
+                          route.type(), sinks.size());
                 });
+        print(FORMAT_TOTAL, ipv6Routes.size());
+        print("");
     }
+
+
 
 }

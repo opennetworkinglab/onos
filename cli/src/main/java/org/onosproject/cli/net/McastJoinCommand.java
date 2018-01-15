@@ -30,6 +30,10 @@ import org.onosproject.net.mcast.MulticastRouteService;
          description = "Installs a source, multicast group flow")
 public class McastJoinCommand extends AbstractShellCommand {
 
+    // Format for group line
+    private static final String FORMAT_MAPPING = "Added the mcast route: " +
+            "origin=%s, group=%s, source=%s";
+
     @Argument(index = 0, name = "sAddr",
               description = "IP Address of the multicast source. '*' can be used for any source (*, G) entry",
               required = true, multiValued = false)
@@ -54,7 +58,6 @@ public class McastJoinCommand extends AbstractShellCommand {
     protected void execute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
 
-        //McastRoute mRoute = McastForwarding.createStaticRoute(sAddr, gAddr);
         McastRoute mRoute = new McastRoute(IpAddress.valueOf(sAddr),
                 IpAddress.valueOf(gAddr), McastRoute.Type.STATIC);
         mcastRouteManager.add(mRoute);
@@ -66,12 +69,15 @@ public class McastJoinCommand extends AbstractShellCommand {
 
         if (ports != null) {
             for (String egCP : ports) {
-                log.debug("Egress port provided: " + egCP);
                 ConnectPoint egress = ConnectPoint.deviceConnectPoint(egCP);
                 mcastRouteManager.addSink(mRoute, egress);
 
             }
         }
-        print("Added the mcast route: %s", mRoute);
+        printMcastRoute(mRoute);
+    }
+
+    private void printMcastRoute(McastRoute mcastRoute) {
+        print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(), mcastRoute.source());
     }
 }

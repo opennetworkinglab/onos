@@ -15,7 +15,9 @@
  */
 package org.onosproject.segmentrouting;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -26,6 +28,7 @@ import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 
 import com.google.common.collect.ImmutableMap;
+import org.onosproject.segmentrouting.storekey.McastStoreKey;
 
 import java.util.List;
 import java.util.Map;
@@ -207,4 +210,31 @@ public interface SegmentRoutingService {
      *         ports. Does not include ports manually disabled by the operator.
      */
     ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState();
+
+   /**
+     * Returns the associated next ids to the mcast groups or to the single
+     * group if mcastIp is present.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping mcastIp-device to next id
+     */
+    Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp);
+
+    /**
+     * Returns the associated roles to the mcast groups or to the single
+     * group if mcastIp is present.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping mcastIp-device to mcast role
+     */
+    Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp);
+
+    /**
+     * Returns the associated paths to the mcast group.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping egress point to mcast path
+     */
+    Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp);
+
 }

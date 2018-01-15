@@ -69,10 +69,26 @@
         <command>
             <action class="org.onosproject.segmentrouting.cli.LinkStateCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.McastNextListCommand"/>
+            <completers>
+                <ref component-id="mcastGroupCompleter"/>
+                <ref component-id="nullCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.McastTreeListCommand"/>
+            <completers>
+                <ref component-id="mcastGroupCompleter"/>
+                <ref component-id="nullCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
+    <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="pseudowireIdCompleter" class="org.onosproject.segmentrouting.cli.PseudowireIdCompleter"/>
+    <bean id="mcastGroupCompleter" class="org.onosproject.cli.net.McastGroupCompleter"/>
 
 </blueprint>
 
