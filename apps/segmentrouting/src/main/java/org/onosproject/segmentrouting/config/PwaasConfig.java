@@ -122,13 +122,13 @@ public class PwaasConfig extends Config<ApplicationId> {
                     .map(this::getPwDescription)
                     .collect(Collectors.toSet());
 
+            // check semantics now and return
+            return configurationValidity(pseudowires);
+
         } catch (IllegalArgumentException e) {
             log.warn("{}", e.getMessage());
             return false;
         }
-
-        // check semantics now and return
-        return configurationValidity(pseudowires);
     }
 
     /**
@@ -656,10 +656,9 @@ public class PwaasConfig extends Config<ApplicationId> {
         newPw.put(MODE, mode);
 
         object.set(tunnelId, newPw);
-        try {
-            isValid();
-        } catch (IllegalArgumentException e) {
-            log.info("Pseudowire could not be created : {}", e);
+
+        if (!isValid()) {
+            log.info("Pseudowire could not be created : {}");
             object.remove(tunnelId);
             return null;
         }

@@ -303,9 +303,9 @@ public class PwaasConfigTest {
         assertFalse(invalidConfigLabel.isValid());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testValid4() {
-        invalidConfigConflictingVlan.isValid();
+        assertFalse(invalidConfigConflictingVlan.isValid());
     }
 
     /**
