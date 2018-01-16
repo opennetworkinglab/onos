@@ -175,7 +175,11 @@ public final class BuckDaemon {
             try {
                 try {
                     socket.setSoTimeout(1_000); //reads should time out after 1 second
-                    BuckTaskContext context = new BuckTaskContext(socket.getInputStream());
+                    BuckTaskContext context = BuckTaskContext.createBuckTaskContext(socket.getInputStream());
+                    if (context == null) {
+                        socket.close();
+                        return;
+                    }
 
                     String taskName = context.taskName();
                     BuckTask task = tasks.get(taskName);

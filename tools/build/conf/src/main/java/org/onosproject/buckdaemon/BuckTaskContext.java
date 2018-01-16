@@ -36,10 +36,16 @@ public class BuckTaskContext {
     private final ImmutableList<String> input;
     private final List<String> output;
 
-    BuckTaskContext(InputStream inputStream) throws IOException {
+    public static BuckTaskContext createBuckTaskContext(InputStream inputStream) throws IOException {
         ImmutableList<String> lines = slurpInput(inputStream);
-        checkArgument(lines.size() >= 1 && !lines.get(0).isEmpty(),
-                "Request must contain at least task type");
+        if (lines.size() == 0) {
+            return null;
+        } else {
+            return new BuckTaskContext(lines);
+        }
+    }
+
+    BuckTaskContext(ImmutableList<String> lines) {
         this.taskName = lines.get(0);
         this.input = lines.subList(1, lines.size());
         this.output = Lists.newArrayList();
@@ -55,7 +61,7 @@ public class BuckTaskContext {
     private static ImmutableList<String> slurpInput(InputStream stream) throws IOException {
         ImmutableList.Builder<String> lines = ImmutableList.builder();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
-        while(true) {
+        while (true) {
             String line = bufferedReader.readLine();
             if (line == null || line.trim().length() == 0) {
                 // Empty line or EOF
