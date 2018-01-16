@@ -40,6 +40,8 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
@@ -195,6 +197,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public InterfaceService interfaceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public LeadershipService leadershipService;
 
     @Property(name = "activeProbing", boolValue = true,
             label = "Enable active probing to discover dual-homed hosts.")
@@ -1173,7 +1181,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler
             .populateRoutingRulesForLinkStatusChange(null, null, device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
-        mcastHandler.removeDevice(device.id());
+        mcastHandler.processDeviceDown(device.id());
         xConnectHandler.removeDevice(device.id());
     }
 
