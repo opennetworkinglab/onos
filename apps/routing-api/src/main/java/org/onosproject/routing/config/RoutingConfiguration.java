@@ -77,6 +77,7 @@ public final class RoutingConfiguration {
             .build();
 
     private static Integer registrations = 0;
+    private static final Object REGISTRATIONS_LOCK = new Object();
 
     private RoutingConfiguration() {
         // make checkstyle happy
@@ -88,7 +89,7 @@ public final class RoutingConfiguration {
      * @param registry network config registry service
      */
     public static void register(NetworkConfigRegistry registry) {
-        synchronized (registrations) {
+        synchronized (REGISTRATIONS_LOCK) {
             if (registrations == 0) {
                 factories.forEach(registry::registerConfigFactory);
             }
@@ -107,7 +108,7 @@ public final class RoutingConfiguration {
      * @param registry network config registry service
      */
     public static void unregister(NetworkConfigRegistry registry) {
-        synchronized (registrations) {
+        synchronized (REGISTRATIONS_LOCK) {
             registrations--;
             if (registrations == 0) {
                 factories.forEach(registry::unregisterConfigFactory);
