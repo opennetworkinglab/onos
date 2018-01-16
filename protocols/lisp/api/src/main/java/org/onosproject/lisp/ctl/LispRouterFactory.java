@@ -58,12 +58,13 @@ public final class LispRouterFactory {
      * Cleans up LISP router agent.
      */
     public void cleanAgent() {
-        synchronized (agent) {
-            if (this.agent != null) {
-                this.agent = null;
-            } else {
-                log.warn("LISP Router Agent is not configured.");
-            }
+        if (this.agent == null) {
+            log.warn("LISP Router Agent is not configured.");
+            return;
+        }
+        LispRouterAgent existingAgent = agent;
+        synchronized (existingAgent) {
+            this.agent = null;
         }
     }
 
