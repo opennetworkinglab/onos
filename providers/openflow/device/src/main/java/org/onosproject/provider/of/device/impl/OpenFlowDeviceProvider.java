@@ -157,16 +157,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_MIN_FREQ_HZ = "minFrequency";
 
     /**
+     * Annotation key for minimum lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_MIN_LMDA_NM = "minLambda";
+
+    /**
      * Annotation key for maximum frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_MAX_FREQ_HZ = "maxFrequency";
 
     /**
-     * Annotation key for grid in Hz.
+     * Annotation key for maximum lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_MAX_LMDA_NM = "maxLambda";
+
+    /**
+     * Annotation key for grid frequency in Hz.
      * Value is expected to be an integer.
      */
     public static final String AK_GRID_HZ = "grid";
+
+    /**
+     * Annotation key for grid lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_GRID_LMDA_NM = "gridLambda";
 
     /**
      * Annotation key for minimum frequency in Hz.
@@ -175,16 +193,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_TX_MIN_FREQ_HZ = "txMinFrequency";
 
     /**
+     * Annotation key for minimum lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TX_MIN_LMDA_NM = "txMinLambda";
+
+    /**
      * Annotation key for maximum frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_TX_MAX_FREQ_HZ = "txMaxFrequency";
 
     /**
-     * Annotation key for grid in Hz.
+     * Annotation key for maximum lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_MAX_LMDA_NM = "txMaxLambda";
+
+    /**
+     * Annotation key for grid frequency in Hz.
      * Value is expected to be an integer.
      */
     public static final String AK_TX_GRID_HZ = "txGrid";
+
+    /**
+     * Annotation key for grid lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_TX_GRID_LMDA_NM = "txGridLambda";
 
     /**
      * Annotation key for minimum frequency in Hz.
@@ -193,16 +229,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_RX_MIN_FREQ_HZ = "rxMinFrequency";
 
     /**
+     * Annotation key for minimum lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_RX_MIN_LMDA_NM = "rxMinLambda";
+
+    /**
      * Annotation key for maximum frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_RX_MAX_FREQ_HZ = "rxMaxFrequency";
 
     /**
-     * Annotation key for grid in Hz.
+     * Annotation key for maximum lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_MAX_LMDA_NM = "rxMaxLambda";
+
+    /**
+     * Annotation key for grid frequency in Hz.
      * Value is expected to be an integer.
      */
     public static final String AK_RX_GRID_HZ = "rxGrid";
+
+    /**
+     * Annotation key for grid lambda in nm.
+     * Value is expected to be an integer.
+     */
+    public static final String AK_RX_GRID_LMDA_NM = "rxGridLambda";
 
     /**
      * Annotation key for indicating frequency must be used instead of
@@ -234,16 +288,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_TX_FREQ_HZ = "txFrequency";
 
     /**
-     * Annotation key for transmit offset in Hz.
+     * Annotation key for transmit lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_LMDA_NM = "txLambda";
+
+    /**
+     * Annotation key for transmit offset frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_TX_OFFSET_HZ = "txOffset";
 
     /**
-     * Annotation key for transmit grid spacing in Hz.
+     * Annotation key for transmit offset in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_OFFSET_LMDA_NM = "txOffsetLambda";
+
+    /**
+     * Annotation key for transmit grid spacing frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_TX_GRID_SPAN_HZ = "txGridSpan";
+
+    /**
+     * Annotation key for transmit grid spacing lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_TX_GRID_SPAN_LMDA_NM = "txGridSpanLambda";
 
     /**
      * Annotation key for receive frequency in Hz.
@@ -252,16 +324,34 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public static final String AK_RX_FREQ_HZ = "rxFrequency";
 
     /**
-     * Annotation key for receive offset in Hz.
+     * Annotation key for receive lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_LMDA_NM = "rxLambda";
+
+    /**
+     * Annotation key for receive offset frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_RX_OFFSET_HZ = "rxOffset";
 
     /**
-     * Annotation key for receive grid spacing in Hz.
+     * Annotation key for receive offset lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_OFFSET_LMDA_NM = "rxOffsetLambda";
+
+    /**
+     * Annotation key for receive grid spacing frequency in Hz.
      * Value is expected be an integer.
      */
     public static final String AK_RX_GRID_SPAN_HZ = "rxGridSpan";
+
+    /**
+     * Annotation key for receive grid spacing lambda in nm.
+     * Value is expected be an integer.
+     */
+    public static final String AK_RX_GRID_SPAN_LMDA_NM = "rxGridSpanLambda";
 
    /**
      * Annotation key for transmit power in dBm*10.
@@ -334,6 +424,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static final Frequency FREQ191_7 = Frequency.ofGHz(191_700);
     private static final Frequency FREQ4_4 = Frequency.ofGHz(4_400);
 
+    private static final long C = 299792458; // speed of light in m/s
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
@@ -355,6 +447,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
     label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
+
+    private static final String PROP_FREQ = "propertyFrequency";
+    private static final boolean DEFAULT_PROP_FREQ = true;
+    @Property(name = PROP_FREQ, boolValue = DEFAULT_PROP_FREQ,
+    label = "It indicates frequency must be used instead of wavelength for port tuning.")
+    private static boolean propFreq = DEFAULT_PROP_FREQ;
 
     private final Timer timer = new Timer("onos-openflow-portstats-collector");
 
@@ -520,19 +618,35 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static String lambdaToAnnotationHz(long lambda) {
         // ref. OF1.5: wavelength (lambda) as nm * 100
 
-        long c = 299792458; // speed of light in m/s
         // f = c / λ
         // (m/s) * (nm/m) / (nm * 100) * 100
         // annotations is in Hz
-        return Long.toString(lambda == 0 ? lambda : (c * 1_000_000_000 / lambda * 100));
+        return Long.toString(lambda == 0 ? lambda : (C * 1_000_000_000 / lambda * 100));
     }
+
+    private static String mhzToAnnotationNm(long freqMhz) {
+        // λ = c / f
+        // (m/s) * (nm/m) / (1000000 * 1/s)
+        // annotations is in nm
+        return Long.toString(freqMhz == 0 ? freqMhz : (C * 1_000_000_000 / Frequency.ofMHz(freqMhz).asHz()));
+    }
+
 
     private static String mhzToAnnotation(long freqMhz) {
         return Long.toString(Frequency.ofMHz(freqMhz).asHz());
     }
 
     private static String freqLmdaToAnnotation(long freqLmda, boolean useFreq) {
-        return useFreq ? mhzToAnnotation(freqLmda) : lambdaToAnnotationHz(freqLmda);
+        if (useFreq) {
+            if (propFreq) {
+                mhzToAnnotation(freqLmda);
+            } else {
+                mhzToAnnotationNm(freqLmda);
+            }
+        } else if (propFreq) {
+            lambdaToAnnotationHz(freqLmda);
+        }
+        return Double.toString(freqLmda / 100.0);
     }
 
     private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId,
@@ -578,18 +692,24 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     long txOffset = optical.get().getTxOffset();
                     long txGridSpan = optical.get().getTxGridSpan();
                     annotations.set(AK_TX_TUNE_FEATURE, ((flags & txTune) != 0) ? "enabled" : "disabled");
-                    annotations.set(AK_TX_FREQ_HZ, freqLmdaToAnnotation(txFreq, useFreq));
-                    annotations.set(AK_TX_OFFSET_HZ, freqLmdaToAnnotation(txOffset, useFreq));
-                    annotations.set(AK_TX_GRID_SPAN_HZ, freqLmdaToAnnotation(txGridSpan, useFreq));
+                    annotations.set(propFreq ? AK_TX_FREQ_HZ : AK_TX_LMDA_NM,
+                                    freqLmdaToAnnotation(txFreq, useFreq));
+                    annotations.set(propFreq ? AK_TX_OFFSET_HZ : AK_TX_OFFSET_LMDA_NM,
+                                    freqLmdaToAnnotation(txOffset, useFreq));
+                    annotations.set(propFreq ? AK_TX_GRID_SPAN_HZ : AK_TX_GRID_SPAN_LMDA_NM,
+                                    freqLmdaToAnnotation(txGridSpan, useFreq));
 
                     int rxTune = OFPortStatsOpticalFlagsSerializerVer14.RX_TUNE_VAL;
                     long rxFreq = optical.get().getRxFreqLmda();
                     long rxOffset = optical.get().getRxOffset();
                     long rxGridSpan = optical.get().getRxGridSpan();
                     annotations.set(AK_RX_TUNE_FEATURE, ((flags & rxTune) != 0) ? "enabled" : "disabled");
-                    annotations.set(AK_RX_FREQ_HZ, freqLmdaToAnnotation(rxFreq, useFreq));
-                    annotations.set(AK_RX_OFFSET_HZ, freqLmdaToAnnotation(rxOffset, useFreq));
-                    annotations.set(AK_RX_GRID_SPAN_HZ, freqLmdaToAnnotation(rxGridSpan, useFreq));
+                    annotations.set(propFreq ? AK_RX_FREQ_HZ : AK_RX_LMDA_NM,
+                                    freqLmdaToAnnotation(rxFreq, useFreq));
+                    annotations.set(propFreq ? AK_RX_OFFSET_HZ : AK_RX_OFFSET_LMDA_NM,
+                                    freqLmdaToAnnotation(rxOffset, useFreq));
+                    annotations.set(propFreq ? AK_RX_GRID_SPAN_HZ : AK_RX_GRID_SPAN_LMDA_NM,
+                                    freqLmdaToAnnotation(rxGridSpan, useFreq));
 
                     int txPwrVal = OFPortStatsOpticalFlagsSerializerVer14.TX_PWR_VAL;
                     int txPwr = optical.get().getTxPwr();
@@ -1079,26 +1199,32 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 boolean useFreq = (supported & OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL) != 0;
                 annotations.set(AK_USE_FREQ_FEATURE, useFreq ? "enabled" : "disabled");
 
-                annotations.set(AK_RX_MIN_FREQ_HZ, freqLmdaToAnnotation(rxMin, useFreq));
-                annotations.set(AK_RX_MAX_FREQ_HZ, freqLmdaToAnnotation(rxMax, useFreq));
-                annotations.set(AK_RX_GRID_HZ, freqLmdaToAnnotation(rxGrid, useFreq));
+                annotations.set(propFreq ? AK_RX_MIN_FREQ_HZ : AK_RX_MIN_LMDA_NM,
+                                freqLmdaToAnnotation(rxMin, useFreq));
+                annotations.set(propFreq ? AK_RX_MAX_FREQ_HZ : AK_RX_MAX_LMDA_NM,
+                                freqLmdaToAnnotation(rxMax, useFreq));
+                annotations.set(propFreq ? AK_RX_GRID_HZ : AK_RX_GRID_LMDA_NM,
+                                freqLmdaToAnnotation(rxGrid, useFreq));
 
-                annotations.set(AK_TX_MIN_FREQ_HZ, freqLmdaToAnnotation(txMin, useFreq));
-                annotations.set(AK_TX_MAX_FREQ_HZ, freqLmdaToAnnotation(txMax, useFreq));
-                annotations.set(AK_TX_GRID_HZ, freqLmdaToAnnotation(txGrid, useFreq));
+                annotations.set(propFreq ? AK_TX_MIN_FREQ_HZ : AK_TX_MIN_LMDA_NM,
+                                freqLmdaToAnnotation(txMin, useFreq));
+                annotations.set(propFreq ? AK_TX_MAX_FREQ_HZ : AK_TX_MAX_LMDA_NM,
+                                freqLmdaToAnnotation(txMax, useFreq));
+                annotations.set(propFreq ? AK_TX_GRID_HZ : AK_TX_GRID_LMDA_NM,
+                                freqLmdaToAnnotation(txGrid, useFreq));
 
                 // FIXME pretty confident this is not going to happen
                 // unless Device models Tx/Rx ports as separate port
                 if (rxMin == txMin) {
-                    annotations.set(AK_MIN_FREQ_HZ,
+                    annotations.set(propFreq ? AK_MIN_FREQ_HZ : AK_MIN_LMDA_NM,
                                     freqLmdaToAnnotation(rxMin, useFreq));
                 }
                 if (rxMax == txMax) {
-                    annotations.set(AK_MAX_FREQ_HZ,
+                    annotations.set(propFreq ? AK_MAX_FREQ_HZ : AK_MAX_LMDA_NM,
                                     freqLmdaToAnnotation(rxMax, useFreq));
                 }
                 if (rxGrid == txGrid) {
-                    annotations.set(AK_GRID_HZ,
+                    annotations.set(propFreq ? AK_GRID_HZ : AK_GRID_LMDA_NM,
                                     freqLmdaToAnnotation(rxGrid, useFreq));
                 }
 
