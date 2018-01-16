@@ -7,6 +7,7 @@ echo "sdn:rocks" | chpasswd
 echo "sdn ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99_sdn
 chmod 440 /etc/sudoers.d/99_sdn
 usermod -aG vboxsf sdn
+update-locale LC_ALL="en_US.UTF-8"
 
 # Java 8
 apt-get install software-properties-common -y
@@ -17,7 +18,11 @@ echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | 
 apt-get -y install \
     oracle-java8-installer oracle-java8-set-default \
     zip unzip \
-    bridge-utils
+    bridge-utils \
+    avahi-daemon \
+    htop \
+    valgrind \
+    git-review
 
 tee -a /etc/ssh/sshd_config <<EOF
 

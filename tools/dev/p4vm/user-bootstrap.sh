@@ -12,6 +12,7 @@ tee -a ~/.profile <<EOF
 # ONOS
 export ONOS_ROOT=~/onos
 source ~/onos/tools/dev/bash_profile
+source ~/onos/tools/dev/p4vm/bm-commands.sh
 EOF
 source ~/.profile
 
