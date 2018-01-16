@@ -33,13 +33,13 @@ public class RIPngEntry extends BasePacket {
     public static final int OPT_CODE_LEN = 1;
     public static final int ENTRY_LEN = 20;
     public static final byte INFINITY_METRIC = 16;
-    public static final byte NEXTHOP_METRIC =  -128; // actually it is 0xFF
+    public static final int NEXTHOP_METRIC =  255; // actually it is 0xFF
 
     private final Logger log = getLogger(getClass());
     protected byte[] prefix; // 16 bytes
     protected short routeTag;
-    protected byte prefixLen;
-    protected byte metric;
+    protected int prefixLen;
+    protected int metric;
 
     @Override
     public byte[] serialize() {
@@ -47,8 +47,8 @@ public class RIPngEntry extends BasePacket {
         byteBuffer = ByteBuffer.allocate(ENTRY_LEN);
         byteBuffer.put(prefix);
         byteBuffer.putShort(routeTag);
-        byteBuffer.put(prefixLen);
-        byteBuffer.put(metric);
+        byteBuffer.put((byte) prefixLen);
+        byteBuffer.put((byte) metric);
         return byteBuffer.array();
     }
 
@@ -76,8 +76,8 @@ public class RIPngEntry extends BasePacket {
             ripngEntry.prefix = new byte[IpAddress.INET6_BYTE_LENGTH];
             bb.get(ripngEntry.prefix);
             ripngEntry.routeTag = bb.getShort();
-            ripngEntry.prefixLen = bb.get();
-            ripngEntry.metric = bb.get();
+            ripngEntry.prefixLen = 0xFF & bb.get();
+            ripngEntry.metric = 0xFF & bb.get();
             return ripngEntry;
         };
     }
@@ -148,7 +148,7 @@ public class RIPngEntry extends BasePacket {
     /**
      * @return the prefix length
      */
-    public byte getPrefixLen() {
+    public int getPrefixLen() {
         return this.prefixLen;
     }
 
@@ -156,7 +156,7 @@ public class RIPngEntry extends BasePacket {
      * @param prefixlen the prefix length to set
      * @return this
      */
-    public RIPngEntry setPrefixLen(final byte prefixlen) {
+    public RIPngEntry setPrefixLen(final int prefixlen) {
         this.prefixLen = prefixlen;
         return this;
     }
@@ -164,7 +164,7 @@ public class RIPngEntry extends BasePacket {
     /**
      * @return the metric
      */
-    public byte getMetric() {
+    public int getMetric() {
         return this.metric;
     }
 
@@ -172,7 +172,7 @@ public class RIPngEntry extends BasePacket {
      * @param metric the route metric to set
      * @return this
      */
-    public RIPngEntry setMetric(final byte metric) {
+    public RIPngEntry setMetric(final int metric) {
         this.metric = metric;
         return this;
     }
@@ -184,8 +184,7 @@ public class RIPngEntry extends BasePacket {
      */
     @Override
     public String toString() {
-        return "RIPngEntry [prefix=" + Arrays.toString(this.prefix)
-                + ", route tag=" + this.routeTag
+        return "RIPngEntry [prefix=" + Arrays.toString(this.prefix) + ", route tag=" + this.routeTag
                 + ", prefix length=" + this.prefixLen
                 + ", metric = " + this.metric + "]";
     }
