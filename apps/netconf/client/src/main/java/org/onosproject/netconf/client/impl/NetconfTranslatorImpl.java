@@ -312,7 +312,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         }
 
         if (dbr instanceof LeafNode.Builder &&
-                (nodes != null || !nodes.isEmpty())) {
+                (nodes != null && !nodes.isEmpty())) {
             //exception "leaf/leaf-list can not have child node"
         }
 
