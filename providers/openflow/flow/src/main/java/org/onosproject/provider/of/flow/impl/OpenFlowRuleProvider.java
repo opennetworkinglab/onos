@@ -243,16 +243,18 @@ public class OpenFlowRuleProvider extends AbstractProvider
         if (sw == null) {
             return;
         }
-        if (adaptiveFlowSampling) {
-            // NewAdaptiveFlowStatsCollector Constructor
-            NewAdaptiveFlowStatsCollector fsc =
-                    new NewAdaptiveFlowStatsCollector(driverService, sw, flowPollFrequency);
-            stopCollectorIfNeeded(afsCollectors.put(new Dpid(sw.getId()), fsc));
-            fsc.start();
-        } else {
-            FlowStatsCollector fsc = new FlowStatsCollector(timer, sw, flowPollFrequency);
-            stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
-            fsc.start();
+        if (sw.features().getCapabilities().contains(OFCapabilities.FLOW_STATS)) {
+            if (adaptiveFlowSampling) {
+                // NewAdaptiveFlowStatsCollector Constructor
+                NewAdaptiveFlowStatsCollector fsc =
+                        new NewAdaptiveFlowStatsCollector(driverService, sw, flowPollFrequency);
+                stopCollectorIfNeeded(afsCollectors.put(new Dpid(sw.getId()), fsc));
+                fsc.start();
+            } else {
+                FlowStatsCollector fsc = new FlowStatsCollector(timer, sw, flowPollFrequency);
+                stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
+                fsc.start();
+            }
         }
         if (sw.features().getCapabilities().contains(OFCapabilities.TABLE_STATS)) {
             TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);

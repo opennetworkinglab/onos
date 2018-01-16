@@ -75,6 +75,7 @@ import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescProp;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFExpPort;
@@ -640,9 +641,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
-            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
-            stopCollectorIfNeeded(collectors.put(dpid, psc));
-            psc.start();
+            if (sw.features().getCapabilities().contains(OFCapabilities.PORT_STATS)) {
+                PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
+                stopCollectorIfNeeded(collectors.put(dpid, psc));
+                psc.start();
+            }
 
             //figure out race condition for collectors.remove() and collectors.put()
             if (controller.getSwitch(dpid) == null) {
