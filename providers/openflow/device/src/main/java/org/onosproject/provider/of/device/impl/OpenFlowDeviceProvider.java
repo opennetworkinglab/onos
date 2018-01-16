@@ -86,6 +86,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortDescProp;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropEthernet;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
@@ -202,6 +203,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      * Value is expected to be an integer.
      */
     public static final String AK_RX_GRID_HZ = "rxGrid";
+
+    /**
+     * Annotation key for indicating frequency must be used instead of
+     * wavelength for port tuning.
+     * Value is expected to be "enabled" or "disabled"
+     */
+    public static final String AK_USE_FREQ_FEATURE = "useFreqFeature";
 
     /**
      * Annotation key for minimum transmit power in dBm*10.
@@ -509,14 +517,29 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerService.updatePortStatistics(deviceId, stats);
     }
 
+    private static String lambdaToAnnotationHz(long lambda) {
+        // ref. OF1.5: wavelength (lambda) as nm * 100
+
+        long c = 299792458; // speed of light in m/s
+        // f = c / λ
+        // (m/s) * (nm/m) / (nm * 100) * 100
+        // annotations is in Hz
+        return Long.toString(lambda == 0 ? lambda : (c * 1_000_000_000 / lambda * 100));
+    }
 
     private static String mhzToAnnotation(long freqMhz) {
         return Long.toString(Frequency.ofMHz(freqMhz).asHz());
     }
 
+    private static String freqLmdaToAnnotation(long freqLmda, boolean useFreq) {
+        return useFreq ? mhzToAnnotation(freqLmda) : lambdaToAnnotationHz(freqLmda);
+    }
+
     private Collection<PortStatistics> buildPortStatistics(DeviceId deviceId,
                                                            List<OFPortStatsEntry> entries) {
         HashSet<PortStatistics> stats = Sets.newHashSet();
+        final Dpid dpid = dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
 
         for (OFPortStatsEntry entry : entries) {
             try {
@@ -533,23 +556,40 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 if (optical.isPresent()) {
                     long flags = optical.get().getFlags();
 
+                    boolean useFreq = false;
+                    for (OFPortDesc pd : sw.getPorts()) {
+                        if (pd.getPortNo().equals(entry.getPortNo())) {
+                            for (OFPortDescProp prop : pd.getProperties()) {
+                                if (prop instanceof OFPortDescPropOptical) {
+                                    OFPortDescPropOptical oprop = (OFPortDescPropOptical) prop;
+                                    long supported = oprop.getSupported();
+                                    int useFreqVal = OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL;
+                                    if ((supported & useFreqVal) != 0) {
+                                        useFreq = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     int txTune = OFPortStatsOpticalFlagsSerializerVer14.TX_TUNE_VAL;
                     long txFreq = optical.get().getTxFreqLmda();
                     long txOffset = optical.get().getTxOffset();
                     long txGridSpan = optical.get().getTxGridSpan();
                     annotations.set(AK_TX_TUNE_FEATURE, ((flags & txTune) != 0) ? "enabled" : "disabled");
-                    annotations.set(AK_TX_FREQ_HZ, mhzToAnnotation(txFreq));
-                    annotations.set(AK_TX_OFFSET_HZ, mhzToAnnotation(txOffset));
-                    annotations.set(AK_TX_GRID_SPAN_HZ, mhzToAnnotation(txGridSpan));
+                    annotations.set(AK_TX_FREQ_HZ, freqLmdaToAnnotation(txFreq, useFreq));
+                    annotations.set(AK_TX_OFFSET_HZ, freqLmdaToAnnotation(txOffset, useFreq));
+                    annotations.set(AK_TX_GRID_SPAN_HZ, freqLmdaToAnnotation(txGridSpan, useFreq));
 
                     int rxTune = OFPortStatsOpticalFlagsSerializerVer14.RX_TUNE_VAL;
                     long rxFreq = optical.get().getRxFreqLmda();
                     long rxOffset = optical.get().getRxOffset();
                     long rxGridSpan = optical.get().getRxGridSpan();
                     annotations.set(AK_RX_TUNE_FEATURE, ((flags & rxTune) != 0) ? "enabled" : "disabled");
-                    annotations.set(AK_RX_FREQ_HZ, mhzToAnnotation(rxFreq));
-                    annotations.set(AK_RX_OFFSET_HZ, mhzToAnnotation(rxOffset));
-                    annotations.set(AK_RX_GRID_SPAN_HZ, mhzToAnnotation(rxGridSpan));
+                    annotations.set(AK_RX_FREQ_HZ, freqLmdaToAnnotation(rxFreq, useFreq));
+                    annotations.set(AK_RX_OFFSET_HZ, freqLmdaToAnnotation(rxOffset, useFreq));
+                    annotations.set(AK_RX_GRID_SPAN_HZ, freqLmdaToAnnotation(rxGridSpan, useFreq));
 
                     int txPwrVal = OFPortStatsOpticalFlagsSerializerVer14.TX_PWR_VAL;
                     int txPwr = optical.get().getTxPwr();
@@ -986,20 +1026,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             return builder;
         }
 
-        private String mhzToAnnotation(long freqMhz) {
-            return OpenFlowDeviceProvider.mhzToAnnotation(freqMhz);
-        }
-
-        private String lambdaToAnnotationHz(long lambda) {
-            // ref. OF1.5: wavelength (lambda) as nm * 100
-
-            long c = 299792458; // speed of light in m/s
-            // f = c / λ
-            // (m/s) * (nm/m) / (nm * 100) * 100
-            // annotations is in Hz
-            return Long.toString(lambda == 0 ? lambda : (c * 1_000_000_000 / lambda * 100));
-        }
-
         private PortDescription buildPortDescription14(OFPortDesc port) {
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
             boolean enabled =
@@ -1050,57 +1076,30 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                         ((supported & rxTune) != 0) ? "enabled" : "disabled");
 
                 // wire value for OFOpticalPortFeatures.USE_FREQ
-                long useFreq = OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL;
-                if ((supported & useFreq) != 0) {
-                    // unit is in Frequency Mhz
-                    annotations.set(AK_RX_MIN_FREQ_HZ, mhzToAnnotation(rxMin));
-                    annotations.set(AK_RX_MAX_FREQ_HZ, mhzToAnnotation(rxMax));
-                    annotations.set(AK_RX_GRID_HZ, mhzToAnnotation(rxGrid));
+                boolean useFreq = (supported & OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL) != 0;
+                annotations.set(AK_USE_FREQ_FEATURE, useFreq ? "enabled" : "disabled");
 
-                    annotations.set(AK_TX_MIN_FREQ_HZ, mhzToAnnotation(txMin));
-                    annotations.set(AK_TX_MAX_FREQ_HZ, mhzToAnnotation(txMax));
-                    annotations.set(AK_TX_GRID_HZ, mhzToAnnotation(txGrid));
+                annotations.set(AK_RX_MIN_FREQ_HZ, freqLmdaToAnnotation(rxMin, useFreq));
+                annotations.set(AK_RX_MAX_FREQ_HZ, freqLmdaToAnnotation(rxMax, useFreq));
+                annotations.set(AK_RX_GRID_HZ, freqLmdaToAnnotation(rxGrid, useFreq));
 
-                    // FIXME pretty confident this is not going to happen
-                    // unless Device models Tx/Rx ports as separate port
-                    if (rxMin == txMin) {
-                        annotations.set(AK_MIN_FREQ_HZ,
-                                        mhzToAnnotation(rxMin));
-                    }
-                    if (rxMax == txMax) {
-                        annotations.set(AK_MAX_FREQ_HZ,
-                                        mhzToAnnotation(rxMax));
-                    }
-                    if (rxGrid == txGrid) {
-                        annotations.set(AK_GRID_HZ,
-                                        mhzToAnnotation(rxGrid));
-                    }
+                annotations.set(AK_TX_MIN_FREQ_HZ, freqLmdaToAnnotation(txMin, useFreq));
+                annotations.set(AK_TX_MAX_FREQ_HZ, freqLmdaToAnnotation(txMax, useFreq));
+                annotations.set(AK_TX_GRID_HZ, freqLmdaToAnnotation(txGrid, useFreq));
 
-                } else {
-                    // unit is in Lambda nm * 100
-                    annotations.set(AK_RX_MIN_FREQ_HZ, lambdaToAnnotationHz(rxMin));
-                    annotations.set(AK_RX_MAX_FREQ_HZ, lambdaToAnnotationHz(rxMax));
-                    annotations.set(AK_RX_GRID_HZ, lambdaToAnnotationHz(rxGrid));
-
-                    annotations.set(AK_TX_MIN_FREQ_HZ, lambdaToAnnotationHz(txMin));
-                    annotations.set(AK_TX_MAX_FREQ_HZ, lambdaToAnnotationHz(txMax));
-                    annotations.set(AK_TX_GRID_HZ, lambdaToAnnotationHz(txGrid));
-
-                    // FIXME pretty confident this is not going to happen
-                    // unless Device models Tx/Rx ports as separate port
-                    if (rxMin == txMin) {
-                        annotations.set(AK_MIN_FREQ_HZ,
-                                        lambdaToAnnotationHz(rxMin));
-                    }
-                    if (rxMax == txMax) {
-                        annotations.set(AK_MAX_FREQ_HZ,
-                                        lambdaToAnnotationHz(rxMax));
-                    }
-                    if (rxGrid == txGrid) {
-                        annotations.set(AK_GRID_HZ,
-                                        lambdaToAnnotationHz(rxGrid));
-                    }
-
+                // FIXME pretty confident this is not going to happen
+                // unless Device models Tx/Rx ports as separate port
+                if (rxMin == txMin) {
+                    annotations.set(AK_MIN_FREQ_HZ,
+                                    freqLmdaToAnnotation(rxMin, useFreq));
+                }
+                if (rxMax == txMax) {
+                    annotations.set(AK_MAX_FREQ_HZ,
+                                    freqLmdaToAnnotation(rxMax, useFreq));
+                }
+                if (rxGrid == txGrid) {
+                    annotations.set(AK_GRID_HZ,
+                                    freqLmdaToAnnotation(rxGrid, useFreq));
                 }
 
                 int txPwr = OFOpticalPortFeaturesSerializerVer14.TX_PWR_VAL;
