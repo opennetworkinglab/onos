@@ -362,6 +362,24 @@ public class FpmManager implements FpmInfoService {
         }
     }
 
+    private boolean routeInDhcpStore(IpPrefix prefix) {
+
+        if (dhcpStore != null) {
+            Collection<FpmRecord> dhcpRecords = dhcpStore.getFpmRecords();
+            return dhcpRecords.stream().anyMatch(record -> record.ipPrefix().equals(prefix));
+        }
+        return false;
+    }
+
+    private boolean routeInRipStore(IpPrefix prefix) {
+
+        if (ripStore != null) {
+            Collection<FpmRecord> ripRecords = ripStore.getFpmRecords();
+            return ripRecords.stream().anyMatch(record -> record.ipPrefix().equals(prefix));
+        }
+        return false;
+    }
+
     private void fpmMessage(FpmPeer peer, FpmHeader fpmMessage) {
         if (fpmMessage.type() == FpmHeader.FPM_TYPE_KEEPALIVE) {
             return;
@@ -399,6 +417,14 @@ public class FpmManager implements FpmInfoService {
         }
 
         IpPrefix prefix = IpPrefix.valueOf(dstAddress, rtNetlink.dstLength());
+
+        // Ignore routes that we sent.
+        if ((prefix.isIp4() && (gateway.equals(pdPushNextHopIPv4))) ||
+            gateway.equals(pdPushNextHopIPv6)) {
+            if (routeInDhcpStore(prefix) || routeInRipStore(prefix)) {
+                return;
+            }
+        }
 
         List<Route> updates = new LinkedList<>();
         List<Route> withdraws = new LinkedList<>();
