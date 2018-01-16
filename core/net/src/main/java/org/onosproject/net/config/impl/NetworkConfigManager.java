@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigFactory;
@@ -78,6 +79,9 @@ public class NetworkConfigManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigStore store;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
 
     @Activate
     public void activate() {
@@ -125,8 +129,13 @@ public class NetworkConfigManager
             factories.remove(key(configFactory));
             configClasses.remove(identifier(configFactory));
 
-            // Note that we are deliberately not removing subject factory key bindings.
-            store.removeConfigFactory(configFactory);
+            // Removing the config factory only if this is the only ONOS instance or if it's the last
+            // instance active in a cluster. otherwise the other instances lose access to the config factory
+            // and can't use the associated net-cfgs.
+            if (clusterService.getNodes().size() == 1) {
+                // Note that we are deliberately not removing subject factory key bindings.
+                store.removeConfigFactory(configFactory);
+            }
         }
     }
 
@@ -271,20 +280,20 @@ public class NetworkConfigManager
             store.clearConfig(subject, configClass);
         } else {
             store.clearQueuedConfig(subject, configKey);
-         }
+        }
     }
 
-     @Override
-     public <S> void removeConfig(S subject) {
+    @Override
+    public <S> void removeConfig(S subject) {
         checkPermission(CONFIG_WRITE);
         store.clearConfig(subject);
-     }
+    }
 
-     @Override
-     public <S> void removeConfig() {
-         checkPermission(CONFIG_WRITE);
-         store.clearConfig();
-     }
+    @Override
+    public <S> void removeConfig() {
+        checkPermission(CONFIG_WRITE);
+        store.clearConfig();
+    }
 
     // Auxiliary store delegate to receive notification about changes in
     // the network configuration store state - by the store itself.
