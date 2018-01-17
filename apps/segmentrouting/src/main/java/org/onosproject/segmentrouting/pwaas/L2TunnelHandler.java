@@ -373,7 +373,7 @@ public class L2TunnelHandler {
         // We terminate the tunnel
         result = deployPseudoWireTerm(pw.l2Tunnel(),
                                        pw.l2TunnelPolicy().cP2(),
-                                       pw.l2TunnelPolicy().cP2OuterTag(),
+                                       VlanId.NONE,
                                        FWD,
                                       spinePw);
 
@@ -414,7 +414,7 @@ public class L2TunnelHandler {
 
         result = deployPseudoWireTerm(pw.l2Tunnel(),
                                        pw.l2TunnelPolicy().cP1(),
-                                       pw.l2TunnelPolicy().cP1OuterTag(),
+                                       VlanId.NONE,
                                        REV,
                                       spinePw);
 
@@ -725,7 +725,7 @@ public class L2TunnelHandler {
                     return;
                 }
                 deployPseudoWireTerm(newPw.l2Tunnel(), newPw.l2TunnelPolicy().cP2(),
-                                      newPw.l2TunnelPolicy().cP2OuterTag(), FWD, finalNewPwSpine);
+                                      VlanId.NONE, FWD, finalNewPwSpine);
 
             }
         });
@@ -756,7 +756,7 @@ public class L2TunnelHandler {
                 }
                 deployPseudoWireTerm(newPw.l2Tunnel(),
                                       newPw.l2TunnelPolicy().cP1(),
-                                      newPw.l2TunnelPolicy().cP1OuterTag(),
+                                      VlanId.NONE,
                                       REV, finalNewPwSpine);
             }
         });
