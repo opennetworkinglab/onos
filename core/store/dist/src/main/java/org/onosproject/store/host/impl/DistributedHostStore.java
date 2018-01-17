@@ -477,7 +477,7 @@ public class DistributedHostStore
             }
         }
 
-        if (existingHosts.isEmpty()) {
+        if (existingHosts == null || existingHosts.isEmpty()) {
             return null;
         }
         return existingHosts;

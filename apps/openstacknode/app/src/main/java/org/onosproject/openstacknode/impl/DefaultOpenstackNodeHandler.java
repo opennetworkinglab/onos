@@ -474,6 +474,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return null;
         }
 
+        if (device == null) {
+            return null;
+        }
+
         ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
         ExtensionTreatment treatment = resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
         try {

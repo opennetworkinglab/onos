@@ -212,13 +212,13 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
         try {
              editcfg = (XMLConfiguration) cfg;
         } catch (ClassCastException e) {
-            e.printStackTrace();
+            return null;
         }
         StringWriter stringWriter = new StringWriter();
         try {
             editcfg.save(stringWriter);
         } catch (ConfigurationException e) {
-            e.printStackTrace();
+            return null;
         }
         String s = stringWriter.toString();
         String fromStr = buildStartTag(TARGET, false) + target +

@@ -108,14 +108,16 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<PortNumber>();
-        if (portCriterion.port() == PortNumber.ALL) {
-            for (Port port : deviceService.getPorts(deviceId)) {
-                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
-                    portnums.add(port.number());
+        if (portCriterion != null) {
+            if (portCriterion.port() == PortNumber.ALL) {
+                for (Port port : deviceService.getPorts(deviceId)) {
+                    if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                        portnums.add(port.number());
+                    }
                 }
+            } else {
+                portnums.add(portCriterion.port());
             }
-        } else {
-            portnums.add(portCriterion.port());
         }
 
         List<FlowRule> rules = new ArrayList<FlowRule>();

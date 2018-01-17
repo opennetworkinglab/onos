@@ -1609,7 +1609,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             DefaultTunnelDescription td;
             SparseAnnotations annotations = null;
             State tunnelState = PcepLspStatus.getTunnelStatusFromLspStatus(PcepLspStatus.values()[lspObj.getOFlag()]);
-            if (tunnel == null) {
+            if (tunnel == null && pathNameTlv != null) {
                 if (lspObj.getRFlag()) {
                     /*
                      * If PCC sends remove message and for any reason PCE does not have that entry, simply discard the

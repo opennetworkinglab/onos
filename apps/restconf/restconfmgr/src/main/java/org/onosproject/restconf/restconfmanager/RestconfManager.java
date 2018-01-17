@@ -312,7 +312,8 @@ public class RestconfManager implements RestconfService {
             }
             parentId = rid.copyBuilder().removeLastKey().build();
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            log.error("getDataForStore()", e);
+            return null;
         }
         ResourceData.Builder resData = DefaultResourceData.builder();
         resData.addDataNode(dbr.build());

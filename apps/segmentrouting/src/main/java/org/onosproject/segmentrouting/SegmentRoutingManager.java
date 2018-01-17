@@ -1295,7 +1295,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // not change if the link is a parallel link (same src-dst as another link.
         // However we still need to update ECMP hash groups to include new buckets
         // for the link that has come up.
-        if (mastershipService.isLocalMaster(link.src().deviceId())) {
+        if (groupHandler != null && mastershipService.isLocalMaster(link.src().deviceId())) {
             if (!seenBefore && isParallelLink(link)) {
                 // if link seen first time, we need to ensure hash-groups have all ports
                 log.debug("Attempting retryHash for paralled first-time link {}", link);

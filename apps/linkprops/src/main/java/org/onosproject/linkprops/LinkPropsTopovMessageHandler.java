@@ -248,26 +248,25 @@ public class LinkPropsTopovMessageHandler extends UiMessageHandler {
      */
     private Highlights getBandwidth(Set<Link> links, DeviceId devId) {
         LpLinkMap linkMap = new LpLinkMap();
+        Highlights highlights = new Highlights();
         if (links != null) {
             log.debug("Processing {} links", links.size());
             links.forEach(linkMap::add);
+
+            PortNumber portnum = PortNumber.portNumber((int) links.iterator().next().src().port().toLong());
+
+            for (LpLink dlink : linkMap.biLinks()) {
+                DiscreteResourceId parent = Resources.discrete(devId, portnum).id();
+                ContinuousResource continuousResource =
+                        (ContinuousResource) resourceQueryService.getAvailableResources(parent,
+                                Bandwidth.class).iterator().next();
+                double availBandwidth = continuousResource.value();
+
+                dlink.makeImportant().setLabel(Double.toString(availBandwidth) + " bytes/s");
+                highlights.add(dlink.highlight(null));
+            }
         } else {
             log.debug("No egress links found for device {}", devId);
-        }
-
-        Highlights highlights = new Highlights();
-
-        PortNumber portnum = PortNumber.portNumber((int) links.iterator().next().src().port().toLong());
-
-        for (LpLink dlink : linkMap.biLinks()) {
-            DiscreteResourceId parent = Resources.discrete(devId, portnum).id();
-            ContinuousResource continuousResource =
-                    (ContinuousResource) resourceQueryService.getAvailableResources(parent,
-                                                                                    Bandwidth.class).iterator().next();
-            double availBandwidth = continuousResource.value();
-
-            dlink.makeImportant().setLabel(Double.toString(availBandwidth) + " bytes/s");
-            highlights.add(dlink.highlight(null));
         }
         return highlights;
     }

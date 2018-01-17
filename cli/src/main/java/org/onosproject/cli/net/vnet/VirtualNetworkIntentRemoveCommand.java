@@ -140,7 +140,7 @@ public class VirtualNetworkIntentRemoveCommand extends AbstractShellCommand {
                     if (event.type() == IntentEvent.Type.WITHDRAWN ||
                             event.type() == IntentEvent.Type.FAILED) {
                         withdrawLatch.countDown();
-                    } else if (purgeAfterRemove &&
+                    } else if (purgeLatch != null && purgeAfterRemove &&
                             event.type() == IntentEvent.Type.PURGED) {
                         purgeLatch.countDown();
                     }
@@ -155,7 +155,7 @@ public class VirtualNetworkIntentRemoveCommand extends AbstractShellCommand {
         // request the withdraw
         intentService.withdraw(intent);
 
-        if (purgeAfterRemove || sync) {
+        if ((purgeAfterRemove || sync) && purgeLatch != null) {
             try { // wait for withdraw event
                 withdrawLatch.await(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {

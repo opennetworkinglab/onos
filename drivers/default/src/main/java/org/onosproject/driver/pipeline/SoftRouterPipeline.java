@@ -270,6 +270,12 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
 
         }
 
+        if (v == null || e == null) {
+            log.warn("Soft Router Pipeline ETH_DST and/or VLAN_ID not specified");
+            fail(filt, ObjectiveError.BADPARAMS);
+            return;
+        }
+
         log.debug("Modifying Port/VLAN/MAC filtering rules in filter table: {}/{}/{}",
                   p.port(), v.vlanId(), e.mac());
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
