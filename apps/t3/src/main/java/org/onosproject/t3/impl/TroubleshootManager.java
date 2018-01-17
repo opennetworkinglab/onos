@@ -39,6 +39,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
@@ -86,6 +87,7 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.Mo
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import static org.onosproject.t3.impl.TroubleshootUtils.compareMac;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -124,6 +126,9 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EdgePortService edgePortService;
 
     @Override
     public StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
@@ -394,7 +399,17 @@ public class TroubleshootManager implements TroubleshootService {
                     //continue the trace along the path
                     getTrace(completePath, dst, trace);
                 }
-
+            } else if (edgePortService.isEdgePoint(outputPath.getOutput()) &&
+                    trace.getInitialPacket().getCriterion(Criterion.Type.ETH_DST) != null &&
+                    ((EthCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.ETH_DST))
+                            .mac().isMulticast()) {
+                trace.addResultMessage("Packet is multicast and reached output " + outputPath.getOutput() +
+                        " which is enabled and is edge port");
+                computePath(completePath, trace, outputPath.getOutput());
+                completePath.clear();
+                if (!hasOtherOutput(in.deviceId(), trace, outputPath.getOutput())) {
+                    return trace;
+                }
             } else if (deviceService.getPort(cp).isEnabled()) {
                 EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) trace.getInitialPacket()
                         .getCriterion(Criterion.Type.ETH_TYPE);
@@ -423,6 +438,7 @@ public class TroubleshootManager implements TroubleshootService {
         return trace;
     }
 
+
     /**
      * If the initial packet comes tagged with a Vlan we output it with that to ONOS.
      * If ONOS applied a vlan we remove it.
@@ -430,6 +446,7 @@ public class TroubleshootManager implements TroubleshootService {
      * @param outputPath the output
      * @param trace      the trace we are building
      */
+
     private void handleVlanToController(GroupsInDevice outputPath, StaticPacketTrace trace) {
 
         VlanIdCriterion initialVid = (VlanIdCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID);
@@ -447,6 +464,20 @@ public class TroubleshootManager implements TroubleshootService {
             //Update final packet
             outputPath.setFinalPacket(packetUpdated.build());
         }
+    }
+
+    /**
+     * Checks if the device has other outputs than the given connect point.
+     *
+     * @param inDeviceId the device
+     * @param trace      the trace we are building
+     * @param cp         an output connect point
+     * @return true if the device has other outputs.
+     */
+    private boolean hasOtherOutput(DeviceId inDeviceId, StaticPacketTrace trace, ConnectPoint cp) {
+        return trace.getGroupOuputs(inDeviceId).stream().filter(groupsInDevice -> {
+            return !groupsInDevice.getOutput().equals(cp);
+        }).count() > 0;
     }
 
     /**
@@ -1075,28 +1106,72 @@ public class TroubleshootManager implements TroubleshootService {
      * @return true if the packet matches the flow.
      */
     private boolean match(TrafficSelector packet, FlowEntry flowEntry) {
-        //TODO handle MAC matching
         return flowEntry.selector().criteria().stream().allMatch(criterion -> {
             Criterion.Type type = criterion.type();
             //If the criterion has IP we need to do LPM to establish matching.
             if (type.equals(Criterion.Type.IPV4_SRC) || type.equals(Criterion.Type.IPV4_DST) ||
                     type.equals(Criterion.Type.IPV6_SRC) || type.equals(Criterion.Type.IPV6_DST)) {
-                IPCriterion ipCriterion = (IPCriterion) criterion;
-                IPCriterion matchCriterion = (IPCriterion) packet.getCriterion(ipCriterion.type());
-                //if the packet does not have an IPv4 or IPv6 criterion we return false
-                if (matchCriterion == null) {
-                    return false;
-                }
-                try {
-                    Subnet subnet = Subnet.createInstance(ipCriterion.ip().toString());
-                    return subnet.isInSubnet(matchCriterion.ip().address().toInetAddress());
-                } catch (UnknownHostException e) {
-                    return false;
-                }
+                return matchIp(packet, (IPCriterion) criterion);
                 //we check that the packet contains the criterion provided by the flow rule.
+            } else if (type.equals(Criterion.Type.ETH_SRC_MASKED)) {
+                return matchMac(packet, (EthCriterion) criterion, false);
+            } else if (type.equals(Criterion.Type.ETH_DST_MASKED)) {
+                return matchMac(packet, (EthCriterion) criterion, true);
             } else {
                 return packet.criteria().contains(criterion);
             }
         });
+    }
+
+    /**
+     * Checks if the packet has an dst or src IP and if that IP matches the subnet of the ip criterion.
+     *
+     * @param packet    the incoming packet
+     * @param criterion the criterion to match
+     * @return true if match
+     */
+    private boolean matchIp(TrafficSelector packet, IPCriterion criterion) {
+        IPCriterion matchCriterion = (IPCriterion) packet.getCriterion(criterion.type());
+        //if the packet does not have an IPv4 or IPv6 criterion we return true
+        if (matchCriterion == null) {
+            return false;
+        }
+        try {
+            log.debug("Checking if {} is under {}", matchCriterion.ip(), criterion.ip());
+            Subnet subnet = Subnet.createInstance(criterion.ip().toString());
+            return subnet.isInSubnet(matchCriterion.ip().address().toInetAddress());
+        } catch (UnknownHostException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the packet has a dst or src MAC and if that Mac matches the mask of the mac criterion.
+     *
+     * @param packet       the incoming packet
+     * @param hitCriterion the criterion to match
+     * @param dst          true if we are checking DST MAC
+     * @return true if match
+     */
+    private boolean matchMac(TrafficSelector packet, EthCriterion hitCriterion, boolean dst) {
+        //Packet can have only one EthCriterion
+        EthCriterion matchCriterion;
+        if (dst) {
+            matchCriterion = (EthCriterion) packet.criteria().stream().filter(criterion1 -> {
+                return criterion1.type().equals(Criterion.Type.ETH_DST_MASKED) ||
+                        criterion1.type().equals(Criterion.Type.ETH_DST);
+            }).findFirst().orElse(null);
+        } else {
+            matchCriterion = (EthCriterion) packet.criteria().stream().filter(criterion1 -> {
+                return criterion1.type().equals(Criterion.Type.ETH_SRC_MASKED) ||
+                        criterion1.type().equals(Criterion.Type.ETH_SRC);
+            }).findFirst().orElse(null);
+        }
+        //if the packet does not have an ETH criterion we return true
+        if (matchCriterion == null) {
+            return true;
+        }
+        log.debug("Checking if {} is under {}/{}", matchCriterion.mac(), hitCriterion.mac(), hitCriterion.mask());
+        return compareMac(matchCriterion.mac(), hitCriterion.mac(), hitCriterion.mask());
     }
 }

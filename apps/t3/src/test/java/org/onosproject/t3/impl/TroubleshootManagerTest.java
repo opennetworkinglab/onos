@@ -30,15 +30,18 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverServiceAdapter;
+import org.onosproject.net.edge.EdgePortServiceAdapter;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
@@ -84,6 +87,7 @@ public class TroubleshootManagerTest {
         mngr.groupService = new TestGroupService();
         mngr.deviceService = new TestDeviceService();
         mngr.mastershipService = new TestMastershipService();
+        mngr.edgePortService = new TestEdgePortService();
 
         assertNotNull("Manager should not be null", mngr);
 
@@ -320,6 +324,32 @@ public class TroubleshootManagerTest {
         log.info("trace {}", traceSuccess.resultMessage());
     }
 
+    /**
+     * Test multicast in single device.
+     */
+    @Test
+    public void multicastTest() throws Exception {
+
+        StaticPacketTrace traceSuccess = mngr.trace(PACKET_OK_MULTICAST, MULTICAST_IN_CP);
+
+        log.info("trace {}", traceSuccess);
+
+        log.info("trace {}", traceSuccess.resultMessage());
+
+        assertNotNull("trace should not be null", traceSuccess);
+        assertEquals("Trace should have " + 2 + " output", 2,
+                traceSuccess.getGroupOuputs(MULTICAST_GROUP_FLOW_DEVICE).size());
+        assertEquals("Trace should only have " + 2 + "output", 2,
+                traceSuccess.getCompletePaths().size());
+        assertTrue("Trace should be successful",
+                traceSuccess.resultMessage().contains("reached output"));
+        assertEquals("Incorrect Output CP", MULTICAST_OUT_CP_2,
+                traceSuccess.getGroupOuputs(MULTICAST_GROUP_FLOW_DEVICE).get(0).getOutput());
+        assertEquals("Incorrect Output CP", MULTICAST_OUT_CP,
+                traceSuccess.getGroupOuputs(MULTICAST_GROUP_FLOW_DEVICE).get(1).getOutput());
+
+    }
+
     private StaticPacketTrace testSuccess(TrafficSelector packet, ConnectPoint in, DeviceId deviceId, ConnectPoint out,
                                           int paths, int outputs) {
         StaticPacketTrace traceSuccess = mngr.trace(packet, in);
@@ -384,6 +414,8 @@ public class TroubleshootManagerTest {
                         HARDWARE_10_OUTPUT_FLOW_ENTRY);
             } else if (deviceId.equals(LLDP_FLOW_DEVICE)) {
                 return ImmutableList.of(LLDP_FLOW_ENTRY);
+            } else if (deviceId.equals(MULTICAST_GROUP_FLOW_DEVICE)) {
+                return ImmutableList.of(MULTICAST_GROUP_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -410,6 +442,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(TOPO_GROUP);
             } else if (deviceId.equals(DUAL_LINK_1) || deviceId.equals(DUAL_LINK_2)) {
                 return ImmutableList.of(DUAL_LINK_GROUP);
+            } else if (deviceId.equals(MULTICAST_GROUP_FLOW_DEVICE)) {
+                return ImmutableList.of(MULTICAST_GROUP);
             }
             return ImmutableList.of();
         }
@@ -424,7 +458,16 @@ public class TroubleshootManagerTest {
                     connectPoint.equals(DUAL_LINK_2_CP_2_OUT) || connectPoint.equals(DUAL_LINK_2_CP_3_OUT)) {
                 return ImmutableSet.of();
             }
-            return ImmutableSet.of(H1);
+            if (connectPoint.equals(SINGLE_FLOW_OUT_CP) ||
+                    connectPoint.equals(DUAL_FLOW_OUT_CP) ||
+                    connectPoint.equals(GROUP_FLOW_OUT_CP) ||
+                    connectPoint.equals(HARDWARE_DEVICE_OUT_CP) ||
+                    connectPoint.equals(HARDWARE_DEVICE_10_OUT_CP) ||
+                    connectPoint.equals(DEFERRED_CP_2_OUT) ||
+                    connectPoint.equals(DUAL_LINK_3_CP_3_OUT)) {
+                return ImmutableSet.of(H1);
+            }
+            return ImmutableSet.of();
         }
 
         @Override
@@ -525,11 +568,22 @@ public class TroubleshootManagerTest {
         }
 
         @Override
+        public Port getPort(ConnectPoint cp) {
+            return new DefaultPort(null, cp.port(), true, DefaultAnnotations.builder().build());
+        }
+
+        @Override
         public boolean isAvailable(DeviceId deviceId) {
-            if (deviceId.equals(OFFLINE_DEVICE)) {
-                return false;
-            }
-            return true;
+            return !deviceId.equals(OFFLINE_DEVICE);
+        }
+    }
+
+    private class TestEdgePortService extends EdgePortServiceAdapter {
+
+        @Override
+        public boolean isEdgePoint(ConnectPoint point) {
+            return point.equals(MULTICAST_OUT_CP) ||
+                    point.equals(MULTICAST_OUT_CP_2);
         }
     }
 
