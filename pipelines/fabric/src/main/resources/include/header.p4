@@ -115,6 +115,34 @@ header icmp_t {
     bit<64> timestamp;
 }
 
+#ifdef WITH_SPGW
+// GTPU v1
+header gtpu_t {
+    bit<3>  version;    /* version */
+    bit<1>  pt;         /* protocol type */
+    bit<1>  spare;      /* reserved */
+    bit<1>  ex_flag;    /* next extension hdr present? */
+    bit<1>  seq_flag;   /* sequence no. */
+    bit<1>  npdu_flag;  /* n-pdn number present ? */
+    bit<8>  msgtype;    /* message type */
+    bit<16> msglen;     /* message length */
+    bit<32> teid;       /* tunnel endpoint id */
+}
+
+struct spgw_meta_t {
+    bool              do_spgw;
+    bit<16>           l4_src_port;
+    bit<16>           l4_dst_port;
+    direction_t       direction;
+    pcc_gate_status_t pcc_gate_status;
+    sdf_rule_id_t     sdf_rule_id;
+    pcc_rule_id_t     pcc_rule_id;
+    bit<32>           dl_sess_teid;
+    bit<32>           dl_sess_enb_addr;
+    bit<32>           dl_sess_s1u_addr;
+}
+#endif // WITH_SPGW
+
 //Custom metadata definition
 struct fabric_metadata_t {
     fwd_type_t fwd_type;
@@ -124,12 +152,20 @@ struct fabric_metadata_t {
     bit<16> l4_src_port;
     bit<16> l4_dst_port;
     bit<16> original_ether_type;
+#ifdef WITH_SPGW
+    spgw_meta_t spgw;
+#endif // WITH_SPGW
 }
 
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
     mpls_t mpls;
+#ifdef WITH_SPGW
+    ipv4_t gtpu_ipv4;
+    udp_t gtpu_udp;
+    gtpu_t gtpu;
+#endif // WITH_SPGW
     ipv4_t ipv4;
     ipv6_t ipv6;
     arp_t arp;

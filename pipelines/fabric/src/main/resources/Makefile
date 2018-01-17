@@ -12,6 +12,12 @@ bmv2:
 	mv p4c-out/bmv2/fabric.p4rt p4c-out/bmv2/fabric.p4info
 	rm -f p4c-out/bmv2/fabric.p4i
 
+bmv2-spgw:
+	p4c-bm2-ss -o p4c-out/bmv2/fabric-spgw.json \
+	        $(BMV2_OPTIONS) -DWITH_SPGW \
+    		--p4runtime-file p4c-out/bmv2/fabric-spgw.p4info \
+    		--p4runtime-format text fabric.p4
+
 custom:
 	p4c -v -x p4-16 -b $(BACKEND) \
 		$(BACKEND_OPTIONS) -o p4c-out/$(BACKEND) \

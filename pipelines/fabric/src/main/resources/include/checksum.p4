@@ -17,6 +17,10 @@
 #ifndef __CHECKSUM__
 #define __CHECKSUM__
 
+#ifdef WITH_SPGW
+#include "spgw.p4"
+#endif // WITH_SPGW
+
 control FabricComputeChecksum(inout parsed_headers_t hdr,
                               inout fabric_metadata_t meta)
 {
@@ -38,6 +42,9 @@ control FabricComputeChecksum(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum,
             HashAlgorithm.csum16
         );
+#ifdef WITH_SPGW
+        update_gtpu_checksum.apply(hdr.gtpu_ipv4);
+#endif // WITH_SPGW
     }
 }
 
@@ -62,6 +69,9 @@ control FabricVerifyChecksum(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum,
             HashAlgorithm.csum16
         );
+#ifdef WITH_SPGW
+        verify_gtpu_checksum.apply(hdr.gtpu_ipv4);
+#endif // WITH_SPGW
     }
 }
 

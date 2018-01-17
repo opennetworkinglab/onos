@@ -26,6 +26,10 @@
 #include "include/checksum.p4"
 #include "include/parser.p4"
 
+#ifdef WITH_SPGW
+#include "include/spgw.p4"
+#endif // WITH_SPGW
+
 control FabricIngress (
 inout parsed_headers_t hdr,
 inout fabric_metadata_t fabric_metadata,
@@ -39,6 +43,12 @@ inout standard_metadata_t standard_metadata) {
 
     apply {
         packet_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
+#ifdef WITH_SPGW
+        fabric_metadata.spgw.l4_src_port = fabric_metadata.l4_src_port;
+        fabric_metadata.spgw.l4_dst_port = fabric_metadata.l4_dst_port;
+        spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
+                           fabric_metadata.spgw, hdr.ipv4);
+#endif // WITH_SPGW
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         forwarding.apply(hdr, fabric_metadata, standard_metadata);
         next.apply(hdr, fabric_metadata, standard_metadata);
@@ -53,6 +63,10 @@ control FabricEgress (inout parsed_headers_t hdr,
     PacketIoEgress() pkt_io_egress;
     apply {
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
+#ifdef WITH_SPGW
+        spgw_egress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
+                          fabric_metadata.spgw, standard_metadata);
+#endif // WITH_SPGW
     }
 }
 

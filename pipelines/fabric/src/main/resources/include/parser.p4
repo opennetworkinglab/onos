@@ -113,13 +113,46 @@ inout standard_metadata_t standard_metadata) {
         packet.extract(hdr.udp);
         fabric_metadata.l4_src_port = hdr.udp.src_port;
         fabric_metadata.l4_dst_port = hdr.udp.dst_port;
+#ifdef WITH_SPGW
+        transition select(hdr.udp.dst_port) {
+            UDP_PORT_GTPU: parse_gtpu;
+            default: accept;
+        }
+#else
         transition accept;
+#endif // WITH_SPGW
     }
 
     state parse_icmp {
         packet.extract(hdr.icmp);
         transition accept;
     }
+
+#ifdef WITH_SPGW
+    state parse_gtpu {
+        packet.extract(hdr.gtpu);
+        transition parse_ipv4_inner;
+    }
+
+    state parse_ipv4_inner {
+        hdr.gtpu_ipv4 = hdr.ipv4;
+        packet.extract(hdr.ipv4);
+        transition select(hdr.ipv4.protocol) {
+            PROTO_TCP: parse_tcp;
+            PROTO_UDP: parse_udp_inner;
+            PROTO_ICMP: parse_icmp;
+            default: accept;
+        }
+    }
+
+    state parse_udp_inner {
+        hdr.gtpu_udp = hdr.udp;
+        packet.extract(hdr.udp);
+        fabric_metadata.l4_src_port = hdr.udp.src_port;
+        fabric_metadata.l4_dst_port = hdr.udp.dst_port;
+        transition accept;
+    }
+#endif // WITH_SPGW
 }
 
 control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
@@ -129,6 +162,11 @@ control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.vlan_tag);
         packet.emit(hdr.mpls);
         packet.emit(hdr.arp);
+#ifdef WITH_SPGW
+        packet.emit(hdr.gtpu_ipv4);
+        packet.emit(hdr.gtpu_udp);
+        packet.emit(hdr.gtpu);
+#endif // WITH_SPGW
         packet.emit(hdr.ipv4);
         packet.emit(hdr.ipv6);
         packet.emit(hdr.tcp);

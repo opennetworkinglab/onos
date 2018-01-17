@@ -44,6 +44,8 @@ const bit<8> PROTO_TCP = 6;
 const bit<8> PROTO_UDP = 17;
 const bit<8> PROTO_ICMPV6 = 58;
 
+const bit<4> IPV4_MIN_IHL = 5;
+
 #ifndef CPU_PORT
 const port_num_t CPU_PORT = 255;
 #endif
@@ -56,5 +58,29 @@ const fwd_type_t FWD_IPV6_UNICAST = 4;
 const fwd_type_t FWD_IPV6_MULTICAST = 5;
 
 const bit<8> DEFAULT_MPLS_TTL = 64;
+const bit<8> DEFAULT_IPV4_TTL = 64;
+
+#define ETH_HDR_SIZE 14
+#define IPV4_HDR_SIZE 20
+#define UDP_HDR_SIZE 8
+
+#define UDP_PORT_GTPU 2152
+#define GTP_GPDU 0xff
+#define GTPU_VERSION 0x01
+#define GTP_PROTOCOL_TYPE_GTP 0x01
+
+typedef bit direction_t;
+typedef bit pcc_gate_status_t;
+typedef bit<32> sdf_rule_id_t;
+typedef bit<32> pcc_rule_id_t;
+
+const sdf_rule_id_t DEFAULT_SDF_RULE_ID = 0;
+const pcc_rule_id_t DEFAULT_PCC_RULE_ID = 0;
+
+const direction_t DIR_UPLINK = 1w0;
+const direction_t DIR_DOWNLINK = 1w1;
+
+const pcc_gate_status_t PCC_GATE_OPEN = 1w0;
+const pcc_gate_status_t PCC_GATE_CLOSED = 1w1;
 
 #endif
