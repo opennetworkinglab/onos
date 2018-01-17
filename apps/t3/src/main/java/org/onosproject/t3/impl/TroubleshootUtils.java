@@ -17,6 +17,7 @@
 package org.onosproject.t3.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.onlab.packet.MacAddress;
 
 import java.util.Map;
 
@@ -43,4 +44,36 @@ final class TroubleshootUtils {
             .put("accton-ofdpa3", true)
             .put("znyx-ofdpa", true)
             .build();
+
+    /**
+     * Checks if the Mac Address is inside a range between the min MAC and the mask.
+     * @param macAddress the MAC address to check
+     * @param minAddr the min MAC address
+     * @param maskAddr the mask
+     * @return true if in range, false otherwise.
+     */
+    static boolean compareMac(MacAddress macAddress, MacAddress minAddr, MacAddress maskAddr) {
+        byte[] mac = macAddress.toBytes();
+        byte[] min = minAddr.toBytes();
+        byte[] mask = maskAddr.toBytes();
+        boolean inRange = true;
+
+        int i = 0;
+
+        //if mask is 00 stop
+        while (inRange && i < mask.length && (mask[i] & 0xFF) != 0) {
+            int ibmac = mac[i] & 0xFF;
+            int ibmin = min[i] & 0xFF;
+            int ibmask = mask[i] & 0xFF;
+            if (ibmask == 255) {
+                inRange = ibmac == ibmin;
+            } else if (ibmac < ibmin || ibmac >= ibmask) {
+                inRange = false;
+                break;
+            }
+            i++;
+        }
+
+        return inRange;
+    }
 }

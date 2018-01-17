@@ -524,6 +524,37 @@ final class T3TestObjects {
             .build();
     static final FlowEntry DEFERRED_FLOW_ENTRY = new DefaultFlowEntry(DEFERRED_FLOW);
 
+    //Multicast Flow and Group Test
+    static final DeviceId MULTICAST_GROUP_FLOW_DEVICE = DeviceId.deviceId("MulticastGroupFlowDevice");
+
+    private static final TrafficSelector MULTICAST_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchIPDst(IpPrefix.valueOf("224.0.0.1/32"))
+            .matchEthDst(MacAddress.valueOf("01:00:5e:00:00:01"))
+            .build();
+
+    private static final FlowRule MULTICAST_GROUP_FLOW =
+            DefaultFlowEntry.builder().forDevice(MULTICAST_GROUP_FLOW_DEVICE)
+                    .forTable(0)
+                    .withPriority(100)
+                    .withSelector(MULTICAST_FLOW_SELECTOR)
+                    .withTreatment(GROUP_FLOW_TREATMENT)
+                    .fromApp(new DefaultApplicationId(0, "TestApp"))
+                    .makePermanent()
+                    .build();
+
+    static final FlowEntry MULTICAST_GROUP_FLOW_ENTRY = new DefaultFlowEntry(MULTICAST_GROUP_FLOW);
+
+    static final Group MULTICAST_GROUP = new DefaultGroup(GROUP_ID, MULTICAST_GROUP_FLOW_DEVICE,
+            Group.Type.SELECT, BUCKETS_MULTIPLE);
+
+    static final ConnectPoint MULTICAST_IN_CP = ConnectPoint.deviceConnectPoint(MULTICAST_GROUP_FLOW_DEVICE + "/" + 1);
+
+    static final ConnectPoint MULTICAST_OUT_CP = ConnectPoint.deviceConnectPoint(MULTICAST_GROUP_FLOW_DEVICE + "/" + 3);
+
+    static final ConnectPoint MULTICAST_OUT_CP_2 =
+            ConnectPoint.deviceConnectPoint(MULTICAST_GROUP_FLOW_DEVICE + "/" + 2);
+
     //match on port 1, clear deferred actions and output
     private static final TrafficTreatment DEFERRED_CLEAR_1_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
             .wipeDeferred()
@@ -597,6 +628,13 @@ final class T3TestObjects {
     static final TrafficSelector PACKET_LLDP = DefaultTrafficSelector.builder()
             .matchInPort(PortNumber.portNumber(1))
             .matchEthType(EthType.EtherType.LLDP.ethType().toShort())
+            .build();
+
+    static final TrafficSelector PACKET_OK_MULTICAST = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+            .matchEthDst(MacAddress.valueOf("01:00:5e:00:00:01"))
+            .matchIPDst(IpPrefix.valueOf("224.0.0.1/32"))
             .build();
 
     static final TrafficSelector PACKET_FAIL = DefaultTrafficSelector.builder()

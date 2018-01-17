@@ -111,7 +111,8 @@ final class T3CliUtils {
     //Prints the flows for a given trace and a specified level of verbosity
     private static StringBuilder printFlows(StaticPacketTrace trace, boolean verbose, ConnectPoint connectPoint,
                                             StringBuilder tracePrint) {
-        tracePrint.append("Flows");
+        tracePrint.append("Flows ");
+        tracePrint.append(trace.getFlowsForDevice(connectPoint.deviceId()).size());
         tracePrint.append("\n");
         trace.getFlowsForDevice(connectPoint.deviceId()).forEach(f -> {
             if (verbose) {
