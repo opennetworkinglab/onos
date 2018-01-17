@@ -63,7 +63,6 @@ function do_requirements {
         libjudy-dev \
         libpcap-dev \
         libpcre3-dev \
-        libprotobuf-c-dev \
         libreadline6 \
         libreadline6-dev \
         libssl-dev \
@@ -94,11 +93,16 @@ function do_requirements_1404 {
         dpkg-dev \
         g++-4.9 \
         gcc-4.9 \
-        libboost-iostreams-dev
+        cmake \
+        libbz2-dev
 
     # Needed for p4c.
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
     sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
+
+    if [ -z "$(ldconfig -p | grep libboost_iostreams.so.1.58.0)"  ]; then
+        do_boost
+    fi
 }
 
 function do_requirements_1604 {
@@ -106,7 +110,37 @@ function do_requirements_1604 {
     sudo apt-get install -y --no-install-recommends \
         ca-certificates \
         g++ \
-        libboost-iostreams1.58-dev
+        libboost-iostreams1.58-dev \
+        libprotobuf-c-dev
+}
+
+function do_boost {
+    cd ${BUILD_DIR}
+    wget https://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download -O boost_1_58_0.tar.bz2
+    tar --bzip2 -xf boost_1_58_0.tar.bz2
+    cd boost_1_58_0
+
+    ./bootstrap.sh --with-libraries=iostreams
+    sudo ./b2 install
+    sudo ldconfig
+
+    cd ..
+    sudo rm -rf boost_1_58_0
+}
+
+function do_protobuf-c {
+    cd ${BUILD_DIR}
+    git clone https://github.com/protobuf-c/protobuf-c.git
+    cd protobuf-c
+
+    ./autogen.sh
+    ./configure --prefix=/usr
+    make -j${NUM_CORES}
+    sudo make install
+    sudo ldconfig
+
+    cd ..
+    sudo rm -rf protobuf-c
 }
 
 function do_protobuf {
@@ -155,7 +189,7 @@ function do_libyang {
     git fetch
     git checkout ${LIBYANG_COMMIT}
 
-    mkdir build
+    mkdir -p build
     cd build
     cmake ..
     make -j${NUM_CORES}
@@ -163,7 +197,16 @@ function do_libyang {
     sudo ldconfig
 }
 
+function do_sysrepo_deps {
+    RELEASE=`lsb_release -rs`
+    if version_ge $RELEASE 14.04 && [ -z "$(ldconfig -p | grep libprotobuf-c)"  ]; then
+        do_protobuf-c
+    fi
+}
+
 function do_sysrepo {
+    do_sysrepo_deps
+
     cd ${BUILD_DIR}
     if [ ! -d sysrepo ]; then
       git clone https://github.com/sysrepo/sysrepo.git
@@ -172,7 +215,7 @@ function do_sysrepo {
     git fetch
     git checkout ${SYSREPO_COMMIT}
 
-    mkdir build
+    mkdir -p build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=Off \
         -DCALL_TARGET_BINS_DIRECTLY=Off ..
