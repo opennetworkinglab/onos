@@ -75,7 +75,14 @@ public class PhiAccrualFailureDetector {
         }
     }
 
-
+    /**
+     * Resets the failure detector for the given node.
+     *
+     * @param nodeId node identifier for the node for which to reset the failure detector
+     */
+    public void reset(NodeId nodeId) {
+        states.put(nodeId, new History());
+    }
 
     /**
      * Compute phi for the specified node id.

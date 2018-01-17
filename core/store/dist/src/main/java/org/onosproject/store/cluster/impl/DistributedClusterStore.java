@@ -334,6 +334,10 @@ public class DistributedClusterStore
         public void accept(Endpoint sender, byte[] message) {
             HeartbeatMessage hb = SERIALIZER.decode(message);
             if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
+                State state = nodeStates.get(hb.source().id());
+                if (state != null && !state.isActive() && hb.state.isActive()) {
+                    failureDetector.reset(hb.source().id());
+                }
                 failureDetector.report(hb.source().id());
                 updateNode(hb.source().id(), hb.state, hb.version);
             }
