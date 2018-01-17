@@ -827,15 +827,16 @@ public class ECFlowRuleStore
 
         public FlowEntry remove(DeviceId deviceId, FlowEntry rule) {
             final AtomicReference<FlowEntry> removedRule = new AtomicReference<>();
-            getFlowEntriesInternal(rule.deviceId(), rule.id())
-                .computeIfPresent((StoredFlowEntry) rule, (k, stored) -> {
+            final Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowTable = getFlowTable(deviceId);
+            flowTable.computeIfPresent(rule.id(), (flowId, flowEntries) -> {
+                flowEntries.computeIfPresent((StoredFlowEntry) rule, (k, stored) -> {
                     if (rule instanceof DefaultFlowEntry) {
                         DefaultFlowEntry toRemove = (DefaultFlowEntry) rule;
                         if (stored instanceof DefaultFlowEntry) {
                             DefaultFlowEntry storedEntry = (DefaultFlowEntry) stored;
                             if (toRemove.created() < storedEntry.created()) {
                                 log.debug("Trying to remove more recent flow entry {} (stored: {})",
-                                          toRemove, stored);
+                                    toRemove, stored);
                                 // the key is not updated, removedRule remains null
                                 return stored;
                             }
@@ -844,6 +845,8 @@ public class ECFlowRuleStore
                     removedRule.set(stored);
                     return null;
                 });
+                return flowEntries.isEmpty() ? null : flowEntries;
+            });
 
             if (removedRule.get() != null) {
                 lastUpdateTimes.put(deviceId, System.currentTimeMillis());
