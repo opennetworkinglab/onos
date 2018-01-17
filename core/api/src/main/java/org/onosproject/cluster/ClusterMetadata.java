@@ -17,6 +17,7 @@ package org.onosproject.cluster;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -140,17 +141,19 @@ public final class ClusterMetadata implements Provided {
     @Override
     public boolean equals(Object object) {
 
+        if (object == null) {
+            return false;
+        }
+
         if (!ClusterMetadata.class.isInstance(object)) {
             return false;
         }
         ClusterMetadata that = (ClusterMetadata) object;
 
-        if (!this.name.equals(that.name) || this.nodes.size() != that.nodes.size()
-                || this.partitions.size() != that.partitions.size()) {
-            return false;
-        }
-
-        return Sets.symmetricDifference(this.nodes, that.nodes).isEmpty()
-                && Sets.symmetricDifference(this.partitions, that.partitions).isEmpty();
+        return Objects.equals(this.name, that.name) &&
+               Objects.equals(this.nodes.size(), that.nodes.size()) &&
+               Objects.equals(this.partitions.size(), that.partitions.size()) &&
+               Sets.symmetricDifference(this.nodes, that.nodes).isEmpty() &&
+               Sets.symmetricDifference(this.partitions, that.partitions).isEmpty();
     }
 }

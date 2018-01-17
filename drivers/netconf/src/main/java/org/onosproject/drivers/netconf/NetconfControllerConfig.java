@@ -97,6 +97,7 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
                     );
                 } catch (IOException e) {
                     log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
+                    return;
                 }
                 device.getSession().editConfig(config.substring(config.indexOf("-->") + 3));
             } catch (NullPointerException e) {

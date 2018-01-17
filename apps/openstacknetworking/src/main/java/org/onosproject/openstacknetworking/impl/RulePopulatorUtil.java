@@ -98,6 +98,10 @@ public final class RulePopulatorUtil {
             return null;
         }
 
+        if (device == null) {
+            return null;
+        }
+
         ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
         ExtensionTreatment treatment = resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
         try {

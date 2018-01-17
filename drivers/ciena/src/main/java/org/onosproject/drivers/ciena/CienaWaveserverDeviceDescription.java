@@ -162,7 +162,8 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
 
         //Working in Ghz //(Nominal central frequency - 193.1)/channelSpacing = spacingMultiplier
         final int baseFrequency = 193100;
-        int spacingMult = (int) (toGbps(((int) config.getDouble(frequency) -
+
+        int spacingMult = chSpacing == null ? baseFrequency : (int) (toGbps(((int) config.getDouble(frequency) -
                 baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
 
         return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, OduSignalType.ODU4, isTunable,

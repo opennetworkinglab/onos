@@ -16,6 +16,7 @@
 
 package org.onosproject.actn.mdsc.pce.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -63,7 +64,11 @@ public class TeTunnelPceManager implements TeTunnelPceService {
                 }
             }
         }
-        return pce.computePaths(teTunnel);
+        if (pce != null) {
+            return pce.computePaths(teTunnel);
+        } else {
+            return ImmutableList.of();
+        }
     }
 
     @Override

@@ -381,7 +381,8 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
             return;
         }
 
-        EthCriterion e = null; VlanIdCriterion v = null;
+        EthCriterion e = null;
+        VlanIdCriterion v = null;
         Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -397,6 +398,12 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
                 fail(filt, ObjectiveError.UNSUPPORTED);
                 return;
             }
+        }
+
+        if (v == null || e == null) {
+            log.warn("Pica Pipeline ETH_DST and/or VLAN_ID not specified");
+            fail(filt, ObjectiveError.BADPARAMS);
+            return;
         }
 
         // cache for later use

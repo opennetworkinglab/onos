@@ -263,8 +263,10 @@ public class SdnIpReactiveRouting {
         case HOST_TO_INTERNET:
             // If the destination IP address is outside the local SDN network.
             // The Step 1 has already handled it. We do not need to do anything here.
-            intentRequestListener.setUpConnectivityHostToInternet(srcIpAddress,
-                    ipPrefix, route.nextHop());
+            if (route != null) {
+                intentRequestListener.setUpConnectivityHostToInternet(srcIpAddress,
+                        ipPrefix, route.nextHop());
+            }
             break;
         case INTERNET_TO_HOST:
             intentRequestListener.setUpConnectivityInternetToHost(dstIpAddress);

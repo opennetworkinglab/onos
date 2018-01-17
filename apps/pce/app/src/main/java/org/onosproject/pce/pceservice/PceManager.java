@@ -610,10 +610,7 @@ public class PceManager implements PceService {
             return false;
         }
 
-        DisjointPath path = null;
-        if (!paths.isEmpty()) {
-            path = paths.iterator().next();
-        }
+        DisjointPath path = paths.iterator().next();
 
         Builder annotationBuilder = DefaultAnnotations.builder();
         double bw = 0;

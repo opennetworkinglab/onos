@@ -93,7 +93,7 @@ public final class OpticalPortOperator implements PortConfigOperator {
         }
 
         OpticalPortConfig opc = lookupConfig(cp);
-        if (opc == null) {
+        if (descr == null || opc == null) {
             return descr;
         }
 

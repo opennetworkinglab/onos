@@ -75,22 +75,22 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
         try {
             UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            if (validateDeviceId(deviceId, jsonTree)) {
+            validateDeviceId(deviceId, jsonTree);
 
-                if (appId != null) {
-                    jsonTree.put("appId", appId);
-                }
-
-                DeviceId did = DeviceId.deviceId(deviceId);
-                FilteringObjective filteringObjective =
-                        codec(FilteringObjective.class).decode(jsonTree, this);
-                flowObjectiveService.filter(did, filteringObjective);
-                locationBuilder = uriInfo.getBaseUriBuilder()
-                        .path("flowobjectives")
-                        .path(did.toString())
-                        .path("filter")
-                        .path(Integer.toString(filteringObjective.id()));
+            if (appId != null) {
+                jsonTree.put("appId", appId);
             }
+
+            DeviceId did = DeviceId.deviceId(deviceId);
+            FilteringObjective filteringObjective =
+                    codec(FilteringObjective.class).decode(jsonTree, this);
+            flowObjectiveService.filter(did, filteringObjective);
+            locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("flowobjectives")
+                    .path(did.toString())
+                    .path("filter")
+                    .path(Integer.toString(filteringObjective.id()));
+
             return Response
                     .created(locationBuilder.build())
                     .build();
@@ -119,22 +119,22 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
         try {
             UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            if (validateDeviceId(deviceId, jsonTree)) {
+            validateDeviceId(deviceId, jsonTree);
 
-                if (appId != null) {
-                    jsonTree.put("appId", appId);
-                }
-
-                DeviceId did = DeviceId.deviceId(deviceId);
-                ForwardingObjective forwardingObjective =
-                        codec(ForwardingObjective.class).decode(jsonTree, this);
-                flowObjectiveService.forward(did, forwardingObjective);
-                locationBuilder = uriInfo.getBaseUriBuilder()
-                        .path("flowobjectives")
-                        .path(did.toString())
-                        .path("forward")
-                        .path(Integer.toString(forwardingObjective.id()));
+            if (appId != null) {
+                jsonTree.put("appId", appId);
             }
+
+            DeviceId did = DeviceId.deviceId(deviceId);
+            ForwardingObjective forwardingObjective =
+                    codec(ForwardingObjective.class).decode(jsonTree, this);
+            flowObjectiveService.forward(did, forwardingObjective);
+            locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("flowobjectives")
+                    .path(did.toString())
+                    .path("forward")
+                    .path(Integer.toString(forwardingObjective.id()));
+
             return Response
                     .created(locationBuilder.build())
                     .build();
@@ -163,22 +163,22 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
         try {
             UriBuilder locationBuilder = null;
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            if (validateDeviceId(deviceId, jsonTree)) {
+            validateDeviceId(deviceId, jsonTree);
 
-                if (appId != null) {
-                    jsonTree.put("appId", appId);
-                }
-
-                DeviceId did = DeviceId.deviceId(deviceId);
-                NextObjective nextObjective =
-                        codec(NextObjective.class).decode(jsonTree, this);
-                flowObjectiveService.next(did, nextObjective);
-                locationBuilder = uriInfo.getBaseUriBuilder()
-                        .path("flowobjectives")
-                        .path(did.toString())
-                        .path("next")
-                        .path(Integer.toString(nextObjective.id()));
+            if (appId != null) {
+                jsonTree.put("appId", appId);
             }
+
+            DeviceId did = DeviceId.deviceId(deviceId);
+            NextObjective nextObjective =
+                    codec(NextObjective.class).decode(jsonTree, this);
+            flowObjectiveService.next(did, nextObjective);
+            locationBuilder = uriInfo.getBaseUriBuilder()
+                    .path("flowobjectives")
+                    .path(did.toString())
+                    .path("next")
+                    .path(Integer.toString(nextObjective.id()));
+
             return Response
                     .created(locationBuilder.build())
                     .build();
@@ -234,15 +234,14 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
      *
      * @param deviceId device identifier
      * @param node     object node
-     * @return validity
+     * @throws IllegalArgumentException if the device id is invalid
      */
-    private boolean validateDeviceId(String deviceId, ObjectNode node) {
+    private void validateDeviceId(String deviceId, ObjectNode node) {
         JsonNode specifiedDeviceId = node.get("deviceId");
 
         if (specifiedDeviceId != null &&
                 !specifiedDeviceId.asText().equals(deviceId)) {
             throw new IllegalArgumentException(DEVICE_INVALID);
         }
-        return true;
     }
 }
