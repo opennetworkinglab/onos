@@ -509,6 +509,9 @@ public class DistributedApplicationStore extends ApplicationArchive
             ApplicationId appId = event.key();
             InternalApplicationHolder newApp = event.newValue() == null ? null : event.newValue().value();
             InternalApplicationHolder oldApp = event.oldValue() == null ? null : event.oldValue().value();
+            if (newApp == null || oldApp == null) {
+                return;
+            }
             if (event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) {
                 if (event.type() == MapEvent.Type.UPDATE && newApp.state() == oldApp.state()) {
                     return;

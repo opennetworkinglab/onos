@@ -418,6 +418,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             // IPv6: Use Neighbor Discovery
             //TODO need to implement ndp probe
             log.info("Triggering probe on device {} ", host);
+            return;
         }
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(host.location().port()).build();

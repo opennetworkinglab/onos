@@ -1005,6 +1005,10 @@ public class PcepClientControllerImpl implements PcepClientController {
                     }
                 }
 
+                if (ipv4LspIdenTlv == null) {
+                    return false;
+                }
+
                 LspKey lspKeyOfRpt = new LspKey(lspObj.getPlspId(), ipv4LspIdenTlv.getLspId());
                 tunnel = preSyncLspDbByKey.get(lspKeyOfRpt);
                 // PCE tunnel is matched with PCRpt LSP. Now delete it from the preSyncLspDb list as the residual
@@ -1059,7 +1063,8 @@ public class PcepClientControllerImpl implements PcepClientController {
                 // State different for PCC sent LSP and PCE known LSP, send PCUpd msg.
                 State tunnelState = PcepLspStatus
                         .getTunnelStatusFromLspStatus(PcepLspStatus.values()[lspObj.getOFlag()]);
-                if (tunnelState != tunnel.state()) {
+
+                if (tunnel != null && tunnelState != tunnel.state()) {
                     for (PcepEventListener l : pcepEventListener) {
                         l.handleEndOfSyncAction(tunnel, SEND_UPDATE);
                     }

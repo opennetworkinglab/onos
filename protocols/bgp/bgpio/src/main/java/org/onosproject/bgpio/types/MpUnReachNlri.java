@@ -402,7 +402,7 @@ public class MpUnReachNlri implements BgpValueType {
             if (listIterator.hasNext()) {
                 tlv1 = listIterator.next();
             }
-            while (listIterator.hasNext()) {
+            while (tlv1 != null && listIterator.hasNext()) {
                 BgpValueType tlv = listIterator.next();
                 if (tlv.getType() != tlv1.getType()) {
                     isAllFlowTypesIdentical = false;

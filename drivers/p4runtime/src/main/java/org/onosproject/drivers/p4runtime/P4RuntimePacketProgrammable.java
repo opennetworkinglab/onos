@@ -37,7 +37,7 @@ public class P4RuntimePacketProgrammable extends AbstractP4RuntimeHandlerBehavio
 
         final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
                 ? device.as(PiPipelineInterpreter.class) : null;
-        if (!device.is(PiPipelineInterpreter.class)) {
+        if (interpreter == null) {
             log.warn("Device {} with pipeconf {} has no interpreter, aborting emit operation", deviceId, pipeconf.id());
             return;
         }

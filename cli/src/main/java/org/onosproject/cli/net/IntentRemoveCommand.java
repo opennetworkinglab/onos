@@ -214,7 +214,7 @@ public class IntentRemoveCommand extends AbstractShellCommand {
                     if (event.type() == IntentEvent.Type.WITHDRAWN ||
                             event.type() == IntentEvent.Type.FAILED) {
                         withdrawLatch.countDown();
-                    } else if (purgeAfterRemove &&
+                    } else if (purgeLatch != null && purgeAfterRemove &&
                             event.type() == IntentEvent.Type.PURGED) {
                         purgeLatch.countDown();
                     }
@@ -229,13 +229,13 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         // request the withdraw
         intentService.withdraw(intent);
 
-        if (purgeAfterRemove || sync) {
+        if (withdrawLatch != null && (purgeAfterRemove || sync)) {
             try { // wait for withdraw event
                 withdrawLatch.await(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 print("Timed out waiting for intent {} withdraw", key);
             }
-            if (purgeAfterRemove && CAN_PURGE.contains(intentService.getIntentState(key))) {
+            if (purgeLatch != null && purgeAfterRemove && CAN_PURGE.contains(intentService.getIntentState(key))) {
                 intentService.purge(intent);
                 if (sync) { // wait for purge event
                     /* TODO
