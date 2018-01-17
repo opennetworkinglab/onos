@@ -218,15 +218,19 @@ public class UiWebSocket
     @Override
     public synchronized void onClose(int closeCode, String message) {
         try {
-            tokenService().revokeToken(sessionToken);
-            log.info("Session token revoked");
-        } catch (ServiceNotFoundException e) {
-            log.error("Unable to reference UiTokenService");
-        }
-        sessionToken = null;
+            try {
+                tokenService().revokeToken(sessionToken);
+                log.info("Session token revoked");
+            } catch (ServiceNotFoundException e) {
+                log.error("Unable to reference UiTokenService");
+            }
+            sessionToken = null;
 
-        topoSession.destroy();
-        destroyHandlersAndOverlays();
+            topoSession.destroy();
+            destroyHandlersAndOverlays();
+        } catch (Exception e) {
+            log.warn("Unexpected error", e);
+        }
         log.info("GUI client disconnected [close-code={}, message={}]",
                  closeCode, message);
     }
