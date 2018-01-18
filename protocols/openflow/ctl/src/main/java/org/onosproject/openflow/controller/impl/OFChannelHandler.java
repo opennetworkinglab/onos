@@ -380,8 +380,9 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                     h.portDescReplies.add((OFPortDescStatsReply) m);
                 }
                 //h.portDescReply = (OFPortDescStatsReply) m; // temp store
-                log.info("Received port desc reply for switch at {}",
-                        h.getSwitchInfoString());
+                log.debug("Received port desc reply for switch at {}: {}",
+                         h.getSwitchInfoString(),
+                         ((OFPortDescStatsReply) m).getEntries());
                 try {
                     h.sendHandshakeSetConfig();
                 } catch (IOException e) {
@@ -780,6 +781,9 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
             void processOFStatisticsReply(OFChannelHandler h,
                     OFStatsReply m) {
                 if (m.getStatsType().equals(OFStatsType.PORT_DESC)) {
+                    log.debug("Received port desc message from {}: {}",
+                             h.sw.getDpid(),
+                             ((OFPortDescStatsReply) m).getEntries());
                     h.sw.setPortDescReply((OFPortDescStatsReply) m);
                 }
                 h.dispatchMessage(m);

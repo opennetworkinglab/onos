@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -88,6 +89,14 @@ public class HostHandler {
 
     private void processHostAdded(Host host) {
         host.locations().forEach(location -> processHostAddedAtLocation(host, location));
+        // ensure dual-homed host locations have viable uplinks
+        if (host.locations().size() > 1) {
+            host.locations().forEach(loc -> {
+                if (srManager.mastershipService.isLocalMaster(loc.deviceId())) {
+                    srManager.linkHandler.checkUplinksForDualHomedHosts(loc);
+                }
+            });
+        }
     }
 
     void processHostAddedAtLocation(Host host, HostLocation location) {
@@ -276,6 +285,15 @@ public class HostHandler {
                         hostVlanId, ip, false)
             );
         });
+
+        // ensure dual-homed host locations have viable uplinks
+        if (newLocations.size() > prevLocations.size()) {
+            newLocations.forEach(loc -> {
+                if (srManager.mastershipService.isLocalMaster(loc.deviceId())) {
+                    srManager.linkHandler.checkUplinksForDualHomedHosts(loc);
+                }
+            });
+        }
     }
 
     void processHostUpdatedEvent(HostEvent event) {
@@ -639,5 +657,24 @@ public class HostHandler {
                     }
                 });
             }));
+    }
+
+    /**
+     * Returns the set of portnumbers on the given device that are part of the
+     * locations for dual-homed hosts.
+     *
+     * @param deviceId the given deviceId
+     * @return set of port numbers on given device that are dual-homed host
+     *         locations. May be empty if no dual homed hosts are connected to
+     *         the given device
+     */
+    Set<PortNumber> getDualHomedHostPorts(DeviceId deviceId) {
+        Set<PortNumber> dualHomedLocations = new HashSet<>();
+        srManager.hostService.getConnectedHosts(deviceId).stream()
+            .filter(host -> host.locations().size() == 2)
+            .forEach(host -> host.locations().stream()
+                     .filter(loc -> loc.deviceId().equals(deviceId))
+                        .forEach(loc -> dualHomedLocations.add(loc.port())));
+        return dualHomedLocations;
     }
 }
