@@ -434,6 +434,7 @@ public class DeviceManager
                     // can't be master if device is not reachable
                     try {
                         if (myRole == MASTER) {
+                            log.info("Local Role {}, Marking unreachable device {} offline", MASTER, deviceId);
                             post(store.markOffline(deviceId));
                         }
                         //relinquish master role and ability to be backup.
@@ -445,10 +446,11 @@ public class DeviceManager
                         log.error("Exception thrown while relinquishing role for {}", deviceId, e);
                     }
                 } else {
-                    // check if the device has master, if not, mark it offline
+                    // check if the device has master and is available to the store, if not, mark it offline
                     // only the nodes which has mastership role can mark any device offline.
+                    // This condition should never be hit unless in a device removed phase for NONE mastership roles.
                     NodeId master = mastershipService.getMasterFor(deviceId);
-                    if (master == null) {
+                    if (master == null && isAvailable(deviceId)) {
                         CompletableFuture<MastershipRole> roleFuture = mastershipService.requestRoleFor(deviceId);
                         roleFuture.thenAccept(role -> {
                             MastershipTerm term = termService.getMastershipTerm(deviceId);
