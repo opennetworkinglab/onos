@@ -50,6 +50,10 @@ import org.onosproject.net.provider.ProviderId;
  */
 final class T3TestObjects {
 
+    private T3TestObjects(){
+        //banning construction
+    }
+
     private static final String HOST_ONE_MAC = "00:00:00:00:00:01";
     private static final String HOST_TWO_MAC = "00:00:00:00:00:02";
     private static final String HOST_ONE_VLAN = "None";
@@ -221,7 +225,8 @@ final class T3TestObjects {
 
     private static final GroupBuckets BUCKETS_MULTIPLE = new GroupBuckets(ImmutableList.of(BUCKET, BUCKET_2));
 
-    static final Group TOPO_GROUP = new DefaultGroup(TOPO_GROUP_ID, TOPO_GROUP_FLOW_DEVICE, Group.Type.SELECT, BUCKETS_MULTIPLE);
+    static final Group TOPO_GROUP = new DefaultGroup(TOPO_GROUP_ID, TOPO_GROUP_FLOW_DEVICE,
+            Group.Type.SELECT, BUCKETS_MULTIPLE);
 
     static final FlowEntry TOPO_SECOND_INPUT_FLOW_ENTRY = new DefaultFlowEntry(TOPO_SECOND_INPUT_FLOW);
 
@@ -231,7 +236,8 @@ final class T3TestObjects {
 
     static final ConnectPoint TOPO_FLOW_OUT_CP_1 = ConnectPoint.deviceConnectPoint(TOPO_GROUP_FLOW_DEVICE + "/" + 2);
 
-    protected static final ConnectPoint TOPO_FLOW_OUT_CP_2 = ConnectPoint.deviceConnectPoint(TOPO_GROUP_FLOW_DEVICE + "/" + 3);
+    protected static final ConnectPoint TOPO_FLOW_OUT_CP_2 =
+            ConnectPoint.deviceConnectPoint(TOPO_GROUP_FLOW_DEVICE + "/" + 3);
 
     static final ConnectPoint TOPO_FLOW_4_IN_CP = ConnectPoint.deviceConnectPoint(TOPO_FLOW_4_DEVICE + "/" + 1);
 
@@ -303,6 +309,7 @@ final class T3TestObjects {
 
     static final TrafficSelector PACKET_OK = DefaultTrafficSelector.builder()
             .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
             .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
             .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
             .build();
