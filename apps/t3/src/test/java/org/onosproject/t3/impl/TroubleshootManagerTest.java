@@ -28,7 +28,6 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
-import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverServiceAdapter;
@@ -84,7 +83,7 @@ public class TroubleshootManagerTest {
     }
 
     /**
-     * Tests failure on device with no flows
+     * Tests failure on device with no flows.
      */
     @Test
     public void noFlows() {
@@ -113,7 +112,8 @@ public class TroubleshootManagerTest {
 
         //Test Success
 
-        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, DUAL_FLOW_IN_CP, DUAL_FLOW_DEVICE, DUAL_FLOW_OUT_CP, 1);
+        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, DUAL_FLOW_IN_CP, DUAL_FLOW_DEVICE,
+                DUAL_FLOW_OUT_CP, 1);
 
         //Testing Vlan
         Criterion criterion = traceSuccess.getGroupOuputs(DUAL_FLOW_DEVICE).get(0).
@@ -135,7 +135,8 @@ public class TroubleshootManagerTest {
     @Test
     public void flowAndGroup() throws Exception {
 
-        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, GROUP_FLOW_IN_CP, GROUP_FLOW_DEVICE, GROUP_FLOW_OUT_CP, 1);
+        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, GROUP_FLOW_IN_CP, GROUP_FLOW_DEVICE,
+                GROUP_FLOW_OUT_CP, 1);
 
         assertTrue("Wrong Output Group", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
                 .get(0).getGroups().contains(GROUP));
@@ -234,7 +235,7 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(TOPO_SINGLE_FLOW_ENTRY, TOPO_SECOND_INPUT_FLOW_ENTRY);
             } else if (deviceId.equals(TOPO_GROUP_FLOW_DEVICE)) {
                 return ImmutableList.of(TOPO_GROUP_FLOW_ENTRY);
-            } else if (deviceId.equals(HARDWARE_DEVICE)){
+            } else if (deviceId.equals(HARDWARE_DEVICE)) {
                 return ImmutableList.of(HARDWARE_ETH_FLOW_ENTRY, HARDWARE_FLOW_ENTRY);
             }
             return ImmutableList.of();
@@ -244,7 +245,7 @@ public class TroubleshootManagerTest {
     private class TestDriverService extends DriverServiceAdapter {
         @Override
         public Driver getDriver(DeviceId deviceId) {
-            if(deviceId.equals(HARDWARE_DEVICE)){
+            if (deviceId.equals(HARDWARE_DEVICE)) {
                 return new DefaultDriver("ofdpa", ImmutableList.of(),
                         "test", "test", "test", new HashMap<>(), new HashMap<>());
             }
