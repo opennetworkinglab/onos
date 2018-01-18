@@ -91,7 +91,8 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
      */
     public static String annotations(Annotations annotations) {
         StringBuilder sb = new StringBuilder();
-        for (String key : annotations.keys()) {
+        Set<String> keys = new TreeSet<>(annotations.keys());
+        for (String key : keys) {
             sb.append(", ").append(key).append('=').append(annotations.value(key));
         }
         return sb.toString();
