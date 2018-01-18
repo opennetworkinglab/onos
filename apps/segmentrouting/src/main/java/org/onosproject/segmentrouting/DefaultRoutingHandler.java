@@ -161,8 +161,8 @@ public class DefaultRoutingHandler {
     //  Route path handling
     //////////////////////////////////////
 
-    /* The following three methods represent the three major ways in routing
-     * is triggered in the network
+    /* The following three methods represent the three major ways in which
+     * route-path handling is triggered in the network
      *      a) due to configuration change
      *      b) due to route-added event
      *      c) due to change in the topology
@@ -416,11 +416,11 @@ public class DefaultRoutingHandler {
                 routeChanges = computeRouteChange();
 
                 // deal with linkUp of a seen-before link
-                if (linkUp != null && srManager.isSeenLink(linkUp)) {
-                    if (!srManager.isBidirectional(linkUp)) {
+                if (linkUp != null && srManager.linkHandler.isSeenLink(linkUp)) {
+                    if (!srManager.linkHandler.isBidirectional(linkUp)) {
                         log.warn("Not a bidirectional link yet .. not "
                                 + "processing link {}", linkUp);
-                        srManager.updateSeenLink(linkUp, true);
+                        srManager.linkHandler.updateSeenLink(linkUp, true);
                         populationStatus = Status.ABORTED;
                         return;
                     }
@@ -436,7 +436,7 @@ public class DefaultRoutingHandler {
                 // now that we are past the check for a previously seen link
                 // it is safe to update the store for the linkUp
                 if (linkUp != null) {
-                    srManager.updateSeenLink(linkUp, true);
+                    srManager.linkHandler.updateSeenLink(linkUp, true);
                 }
 
                 //deal with switchDown
