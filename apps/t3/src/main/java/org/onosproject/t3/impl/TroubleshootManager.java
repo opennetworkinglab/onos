@@ -16,6 +16,7 @@
 
 package org.onosproject.t3.impl;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Component;
@@ -28,6 +29,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.FlowEntry;
@@ -94,9 +96,16 @@ public class TroubleshootManager implements TroubleshootService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
     @Override
     public StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in) {
         log.info("Tracing packet {} coming in through {}", packet, in);
+        //device must exist in ONOS
+        Preconditions.checkNotNull(deviceService.getDevice(in.deviceId()),
+                "Device " + in.deviceId() + " must exist in ONOS");
+
         StaticPacketTrace trace = new StaticPacketTrace(packet, in);
         //FIXME this can be done recursively
         trace = traceInDevice(trace, packet, in);
@@ -253,6 +262,13 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in) {
         log.debug("Packet {} coming in from {}", packet, in);
+
+        //if device is not available exit here.
+        if (!deviceService.isAvailable(in.deviceId())) {
+            trace.addResultMessage("Device is offline " + in.deviceId());
+            return trace;
+        }
+
         List<FlowEntry> flows = new ArrayList<>();
         List<FlowEntry> outputFlows = new ArrayList<>();
 

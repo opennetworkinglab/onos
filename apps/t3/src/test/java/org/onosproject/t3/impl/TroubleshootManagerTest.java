@@ -19,15 +19,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultLink;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverServiceAdapter;
@@ -52,6 +57,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.t3.impl.T3TestObjects.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -72,6 +78,7 @@ public class TroubleshootManagerTest {
         mngr.linkService = new TestLinkService();
         mngr.driverService = new TestDriverService();
         mngr.groupService = new TestGroupService();
+        mngr.deviceService = new TestDeviceService();
 
         assertNotNull("Manager should not be null", mngr);
 
@@ -80,6 +87,26 @@ public class TroubleshootManagerTest {
         assertNotNull("Group Service should not be null", mngr.groupService);
         assertNotNull("Driver Service should not be null", mngr.driverService);
         assertNotNull("Link Service should not be null", mngr.linkService);
+        assertNotNull("Device Service should not be null", mngr.deviceService);
+    }
+
+    /**
+     * Tests failure on non existent device.
+     */
+    @Test(expected = NullPointerException.class)
+    public void nonExistentDevice() {
+        StaticPacketTrace traceFail = mngr.trace(PACKET_OK, ConnectPoint.deviceConnectPoint("nonexistent" + "/1"));
+    }
+
+    /**
+     * Tests failure on offline device.
+     */
+    @Test
+    public void offlineDevice() {
+        StaticPacketTrace traceFail = mngr.trace(PACKET_OK, ConnectPoint.deviceConnectPoint(OFFLINE_DEVICE + "/1"));
+        assertNotNull("Trace should not be null", traceFail);
+        assertNull("Trace should have 0 output", traceFail.getGroupOuputs(SINGLE_FLOW_DEVICE));
+        log.info("trace {}", traceFail.resultMessage());
     }
 
     /**
@@ -330,6 +357,26 @@ public class TroubleshootManagerTest {
                         .build());
             }
             return ImmutableSet.of();
+        }
+    }
+
+    private class TestDeviceService extends DeviceServiceAdapter {
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            if (deviceId.equals(DeviceId.deviceId("nonexistent"))) {
+                return null;
+            }
+            return new DefaultDevice(ProviderId.NONE, DeviceId.deviceId("test"), SWITCH,
+                    "test", "test", "test", "test", new ChassisId(),
+                    DefaultAnnotations.builder().set("foo", "bar").build());
+        }
+
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            if (deviceId.equals(OFFLINE_DEVICE)) {
+                return false;
+            }
+            return true;
         }
     }
 }

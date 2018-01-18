@@ -61,6 +61,9 @@ final class T3TestObjects {
     private static final String HOST_ONE = HOST_ONE_MAC + "/" + HOST_ONE_VLAN;
     private static final String HOST_TWO = HOST_TWO_MAC + "/" + HOST_TWO_VLAN;
 
+    //offline device
+    static final DeviceId OFFLINE_DEVICE = DeviceId.deviceId("offlineDevice");
+
     //Single Flow Test
     static final DeviceId SINGLE_FLOW_DEVICE = DeviceId.deviceId("SingleFlowDevice");
     private static final TrafficSelector SINGLE_FLOW_SELECTOR = DefaultTrafficSelector.builder()
