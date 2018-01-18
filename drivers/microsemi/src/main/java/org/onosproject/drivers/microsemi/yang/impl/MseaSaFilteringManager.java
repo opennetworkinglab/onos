@@ -119,7 +119,7 @@ public class MseaSaFilteringManager extends AbstractYangServiceImpl
                 reply.sourceIpaddressFiltering((SourceIpaddressFiltering) mo);
             }
         }
-        if (reply != null && reply.sourceIpaddressFiltering() != null &&
+        if (reply.sourceIpaddressFiltering() != null &&
                 reply.sourceIpaddressFiltering().interfaceEth0() != null) {
             return reply.sourceIpaddressFiltering().interfaceEth0().sourceAddressRange();
         } else {

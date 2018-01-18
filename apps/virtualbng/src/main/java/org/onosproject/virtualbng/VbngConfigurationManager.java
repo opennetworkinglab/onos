@@ -280,10 +280,10 @@ public class VbngConfigurationManager implements VbngConfigurationService {
                 return true;
             }
         }
-        if (!isPublicIpExist) {
-            log.info("The public IP address {} retrieved from XOS mapping does "
-                    + "not exist", publicIpAddress);
-        }
+
+        log.info("The public IP address {} retrieved from XOS mapping does "
+                + "not exist", publicIpAddress);
+
         return false;
     }
 

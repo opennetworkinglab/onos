@@ -274,7 +274,7 @@ public class BgpPathAttributes {
                     BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     AsPath.ASPATH_TYPE);
         }
-        if (!isMpUnReach && !isMpReach && !isNextHop) {
+        if (!isMpReach && !isNextHop) {
             log.debug("Mandatory attributes not Present");
             Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
                     BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,

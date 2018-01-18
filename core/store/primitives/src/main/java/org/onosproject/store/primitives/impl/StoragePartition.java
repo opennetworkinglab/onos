@@ -265,7 +265,7 @@ public abstract class StoragePartition implements Managed<StoragePartition> {
         // Only need to do action if our membership changed
         if (wasPresent) {
             leaveCluster();
-        } else if (isPresent) {
+        } else {
             joinCluster();
         }
     }

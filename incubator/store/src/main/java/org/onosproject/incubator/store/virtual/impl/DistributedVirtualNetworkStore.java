@@ -462,17 +462,15 @@ public class DistributedVirtualNetworkStore
             }
         });
 
-        if (hostIdSet != null) {
-            networkIdHostIdSetMap.compute(networkId, (id, existingHostIds) -> {
-                if (existingHostIds == null || existingHostIds.isEmpty()) {
-                    return new HashSet<>();
-                } else {
-                    return new HashSet<>(Sets.difference(existingHostIds, hostIdSet));
-                }
-            });
+        networkIdHostIdSetMap.compute(networkId, (id, existingHostIds) -> {
+            if (existingHostIds == null || existingHostIds.isEmpty()) {
+                return new HashSet<>();
+            } else {
+                return new HashSet<>(Sets.difference(existingHostIds, hostIdSet));
+            }
+        });
 
-            hostIdVirtualHostMap.remove(hostId);
-        }
+        hostIdVirtualHostMap.remove(hostId);
     }
 
     /**
@@ -567,15 +565,13 @@ public class DistributedVirtualNetworkStore
         Set<VirtualLink> virtualLinkSet = new HashSet<>();
         virtualLinkSet.add(virtualLink);
 
-        if (virtualLinkSet != null) {
-            networkIdVirtualLinkSetMap.compute(networkId, (id, existingVirtualLinks) -> {
-                if (existingVirtualLinks == null || existingVirtualLinks.isEmpty()) {
-                    return new HashSet<>();
-                } else {
-                    return new HashSet<>(Sets.difference(existingVirtualLinks, virtualLinkSet));
-                }
-            });
-        }
+        networkIdVirtualLinkSetMap.compute(networkId, (id, existingVirtualLinks) -> {
+            if (existingVirtualLinks == null || existingVirtualLinks.isEmpty()) {
+                return new HashSet<>();
+            } else {
+                return new HashSet<>(Sets.difference(existingVirtualLinks, virtualLinkSet));
+            }
+        });
         return virtualLink;
     }
 

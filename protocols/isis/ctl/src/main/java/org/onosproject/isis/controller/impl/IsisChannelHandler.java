@@ -217,12 +217,9 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
         if (message instanceof List) {
             List<IsisMessage> isisMessageList = (List<IsisMessage>) message;
             log.debug("IsisChannelHandler::List of IsisMessages Size {}", isisMessageList.size());
-            if (isisMessageList != null) {
-                for (IsisMessage isisMessage : isisMessageList) {
-                    processIsisMessage(isisMessage, ctx);
-                }
-            } else {
-                log.debug("IsisChannelHandler::IsisMessages Null List...!!");
+
+            for (IsisMessage isisMessage : isisMessageList) {
+                processIsisMessage(isisMessage, ctx);
             }
         }
         if (message instanceof IsisMessage) {

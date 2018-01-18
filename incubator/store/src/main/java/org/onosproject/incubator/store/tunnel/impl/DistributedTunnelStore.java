@@ -227,8 +227,7 @@ public class DistributedTunnelStore
         for (TunnelId id : idSet) {
             deletedTunnel = tunnelIdAsKeyStore.get(id);
 
-            if (producerName == null || (producerName != null
-                    && producerName.equals(deletedTunnel.providerId()))) {
+            if (producerName == null || producerName.equals(deletedTunnel.providerId())) {
                 tunnelIdAsKeyStore.remove(deletedTunnel.tunnelId());
 
                 event = new TunnelEvent(TunnelEvent.Type.TUNNEL_REMOVED,
@@ -256,8 +255,8 @@ public class DistributedTunnelStore
         for (TunnelId id : idSet) {
             deletedTunnel = tunnelIdAsKeyStore.get(id);
 
-            if (type.equals(deletedTunnel.type()) && (producerName == null || (producerName != null
-                    && producerName.equals(deletedTunnel.providerId())))) {
+            if (type.equals(deletedTunnel.type()) && (producerName == null ||
+                    producerName.equals(deletedTunnel.providerId()))) {
                 tunnelIdAsKeyStore.remove(deletedTunnel.tunnelId());
 
                 event = new TunnelEvent(TunnelEvent.Type.TUNNEL_REMOVED,

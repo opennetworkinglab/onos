@@ -916,7 +916,7 @@ public class TeTopologyManager
 
         if (newKey != null) {
             DefaultTeTopology newTopology = new DefaultTeTopology(
-                    newKey == null ? teTopology.teTopologyId() : newKey,
+                    newKey,
                     teTopology.teNodes(), teTopology.teLinks(),
                     teTopology.teTopologyIdStringValue(), new CommonTopologyData(teTopology));
             // Update with new data

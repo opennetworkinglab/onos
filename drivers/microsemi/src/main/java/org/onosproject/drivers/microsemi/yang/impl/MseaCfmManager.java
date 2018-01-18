@@ -239,7 +239,7 @@ public class MseaCfmManager extends AbstractYangServiceImpl
                 .addModelObject((ModelObject) mseaCfm.mefCfm()).build();
 
         ArrayList anis = new ArrayList<AnnotatedNodeInfo>();
-        if (mseaCfm != null && mseaCfm.mefCfm() != null) {
+        if (mseaCfm.mefCfm() != null) {
             for (MaintenanceDomain md:mseaCfm.mefCfm().maintenanceDomain()) {
                 for (MaintenanceAssociation ma:md.maintenanceAssociation()) {
                     for (MaintenanceAssociationEndPoint mep:ma.maintenanceAssociationEndPoint()) {

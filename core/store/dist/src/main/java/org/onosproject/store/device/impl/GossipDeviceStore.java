@@ -617,7 +617,7 @@ public class GossipDeviceStore
             return Collections.emptyList();
         }
 
-        return deviceEvents == null ? Collections.emptyList() : deviceEvents;
+        return deviceEvents;
     }
 
     private List<DeviceEvent> updatePortsInternal(ProviderId providerId,

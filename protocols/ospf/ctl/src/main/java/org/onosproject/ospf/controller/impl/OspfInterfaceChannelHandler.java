@@ -220,12 +220,9 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
         if (message instanceof List) {
             List<OspfMessage> ospfMessageList = (List<OspfMessage>) message;
             log.debug("OspfChannelHandler::List of IsisMessages Size {}", ospfMessageList.size());
-            if (ospfMessageList != null) {
-                for (OspfMessage ospfMessage : ospfMessageList) {
-                    processOspfMessage(ospfMessage, ctx);
-                }
-            } else {
-                log.debug("OspfChannelHandler::OspfMessages Null List...!!");
+
+            for (OspfMessage ospfMessage : ospfMessageList) {
+                processOspfMessage(ospfMessage, ctx);
             }
         }
         if (message instanceof OspfMessage) {

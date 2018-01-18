@@ -186,14 +186,12 @@ public class ChecksumCalculator {
         tempLsaByte[lsaChecksumPos1] = 0;
         tempLsaByte[lsaChecksumPos2] = 0;
         byte[] byteCheckSum = {0, 0};
-        if (lsaBytes != null) {
-            for (int i = 2; i < tempLsaByte.length; i++) {
-                checksumOut[0] = checksumOut[0] + ((int) tempLsaByte[i] & 0xFF);
-                checksumOut[1] = checksumOut[1] + checksumOut[0];
-            }
-            checksumOut[0] = checksumOut[0] % 255;
-            checksumOut[1] = checksumOut[1] % 255;
+        for (int i = 2; i < tempLsaByte.length; i++) {
+            checksumOut[0] = checksumOut[0] + ((int) tempLsaByte[i] & 0xFF);
+            checksumOut[1] = checksumOut[1] + checksumOut[0];
         }
+        checksumOut[0] = checksumOut[0] % 255;
+        checksumOut[1] = checksumOut[1] % 255;
         int byte1 = (int) ((tempLsaByte.length - lsaChecksumPos1 - 1) * checksumOut[0] - checksumOut[1]) % 255;
         if (byte1 <= 0) {
             byte1 += 255;

@@ -589,36 +589,34 @@ public class PointToPointIntentCompiler
                                                  PointToPointIntent pointIntent) {
         List<Intent> intentList = new ArrayList<>();
         intentList.addAll(oldInstallables);
-        erasePrimary = false;
-        eraseBackup = false;
-        if (intentList != null) {
-            Iterator<Intent> iterator = intentList.iterator();
-            while (iterator.hasNext() && !(erasePrimary && eraseBackup)) {
-                Intent intent = iterator.next();
-                intent.resources().forEach(resource -> {
-                    if (resource instanceof Link) {
-                        Link link = (Link) resource;
-                        if (link.state() == Link.State.INACTIVE) {
+
+        Iterator<Intent> iterator = intentList.iterator();
+        while (iterator.hasNext()) {
+            Intent intent = iterator.next();
+            intent.resources().forEach(resource -> {
+                if (resource instanceof Link) {
+                    Link link = (Link) resource;
+                    if (link.state() == Link.State.INACTIVE) {
+                        setPathsToRemove(intent);
+                    } else if (link instanceof EdgeLink) {
+                        ConnectPoint connectPoint = (link.src().elementId() instanceof DeviceId)
+                                ? link.src() : link.dst();
+                        Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
+                        if (port == null || !port.isEnabled()) {
                             setPathsToRemove(intent);
-                        } else if (link instanceof EdgeLink) {
-                            ConnectPoint connectPoint = (link.src().elementId() instanceof DeviceId)
-                                    ? link.src() : link.dst();
-                            Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
-                            if (port == null || !port.isEnabled()) {
-                                setPathsToRemove(intent);
-                            }
-                        } else {
-                            Port port1 = deviceService.getPort(link.src().deviceId(), link.src().port());
-                            Port port2 = deviceService.getPort(link.dst().deviceId(), link.dst().port());
-                            if (port1 == null || !port1.isEnabled() || port2 == null || !port2.isEnabled()) {
-                                setPathsToRemove(intent);
-                            }
+                        }
+                    } else {
+                        Port port1 = deviceService.getPort(link.src().deviceId(), link.src().port());
+                        Port port2 = deviceService.getPort(link.dst().deviceId(), link.dst().port());
+                        if (port1 == null || !port1.isEnabled() || port2 == null || !port2.isEnabled()) {
+                            setPathsToRemove(intent);
                         }
                     }
-                });
-            }
-            removeAndUpdateIntents(intentList, pointIntent);
+                }
+            });
         }
+        removeAndUpdateIntents(intentList, pointIntent);
+
         return intentList;
     }
 

@@ -1024,7 +1024,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         Boolean directConnFlag = directlyConnected(dhcp6Relay);
         ConnectPoint inPort = context.inPacket().receivedFrom();
-        if ((directConnFlag || (!directConnFlag && indirectDhcpServerIp == null))
+        if ((directConnFlag || indirectDhcpServerIp == null)
              && !inPort.equals(dhcpServerConnectPoint)) {
             log.warn("Receiving port {} is not the same as server connect point {} for direct or indirect-null",
                     inPort, dhcpServerConnectPoint);

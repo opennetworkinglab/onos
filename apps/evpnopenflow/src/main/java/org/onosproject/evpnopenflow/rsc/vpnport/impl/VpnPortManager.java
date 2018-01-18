@@ -290,8 +290,6 @@ public class VpnPortManager implements VpnPortService {
         String cidr = "0.0.0.0/0";
         String gatewayIp = "0.0.0.0";
         Set<HostRoute> hostRoutes = Sets.newHashSet();
-        String ipV6AddressMode = null;
-        String ipV6RaMode = null;
         TenantNetworkId tenantNetworkId = null;
         Set<AllocationPool> allocationPools = Sets.newHashSet();
         Iterable<TenantNetwork> networks
@@ -306,11 +304,11 @@ public class VpnPortManager implements VpnPortService {
         Subnet subnet = new DefaultSubnet(SubnetId.subnetId(id), subnetName,
                                           tenantNetworkId,
                                           tenantId, IpAddress.Version.INET,
-                                          cidr == null ? null : IpPrefix.valueOf(cidr),
-                                          gatewayIp == null ? null : IpAddress.valueOf(gatewayIp),
+                                          IpPrefix.valueOf(cidr),
+                                          IpAddress.valueOf(gatewayIp),
                                           false, false, hostRoutes,
-                                          ipV6AddressMode == null ? null : Subnet.Mode.valueOf(ipV6AddressMode),
-                                          ipV6RaMode == null ? null : Subnet.Mode.valueOf(ipV6RaMode),
+                                          null,
+                                          null,
                                           allocationPools);
 
         Set<Subnet> subnetsSet = Sets.newHashSet(subnet);

@@ -300,7 +300,7 @@ public class DistributedDynamicConfigStore
         entries = complete(ret);
         log.trace(" keystore.getChildren({})", spath);
         log.trace("  entries keys:{}", entries.keySet());
-        if ((entries != null) && (!entries.isEmpty())) {
+        if (!entries.isEmpty()) {
             entries.forEach((k, v) -> {
                 String[] names = k.split(ResourceIdParser.NM_CHK);
                 String name = names[0];

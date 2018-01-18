@@ -118,10 +118,7 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
             if (isLabelMapSet) {
                 return new PcepLabelUpdateVer1(labelMap);
             }
-            if (!isLabelDownloadSet && !isLabelMapSet) {
-                throw new PcepParseException(
-                        "Label Download or Label Map is not set while building PcepLabelUpdate Message");
-            }
+
             return new PcepLabelUpdateVer1();
         }
 

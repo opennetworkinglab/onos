@@ -504,7 +504,7 @@ public abstract class LinkCollectionCompiler<T> {
          * The ordering criteria is untagged. First we add the untagged
          * ports. Then the others.
          */
-        if (vlanIdCriterion == null && mplsLabelCriterion == null) {
+        if (vlanIdCriterion == null) {
             orderedList.addAll(untaggedEgressPoints);
             orderedList.addAll(vlanEgressPoints);
             orderedList.addAll(mplsEgressPoints);
