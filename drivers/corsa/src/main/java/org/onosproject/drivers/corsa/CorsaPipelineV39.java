@@ -270,6 +270,7 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
                             isPresentModEthDst = true;
                         }
                     }
+                    break;
                 case OUTPUT:
                     isPresentOutpuPort = true;
                 default:

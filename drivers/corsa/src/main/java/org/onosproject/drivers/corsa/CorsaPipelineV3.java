@@ -117,6 +117,7 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
                             isPresentModEthDst = true;
                         }
                     }
+                    break;
                 case OUTPUT:
                     isPresentOutpuPort = true;
                 default:
