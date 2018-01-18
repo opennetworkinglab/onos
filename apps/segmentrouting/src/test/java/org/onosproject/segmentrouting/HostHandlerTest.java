@@ -212,6 +212,7 @@ public class HostHandlerTest {
         srManager.cfgService = mockNetworkConfigRegistry;
         mockLocationProbingService = new MockLocationProbingService();
         srManager.probingService = mockLocationProbingService;
+        srManager.linkHandler = new MockLinkHandler(srManager);
 
         hostHandler = new HostHandler(srManager);
 

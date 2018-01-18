@@ -74,7 +74,7 @@ public class EcmpShortestPathGraph {
             currDistance = distanceQueue.poll();
 
             for (Link link : srManager.linkService.getDeviceEgressLinks(sw)) {
-                if (srManager.avoidLink(link)) {
+                if (srManager.linkHandler.avoidLink(link)) {
                     continue;
                 }
                 DeviceId reachedDevice = link.dst().deviceId();
