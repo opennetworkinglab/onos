@@ -581,13 +581,14 @@ public class McastHandler {
         existingPorts.remove(port);
 
         NextObjective newNextObj;
+        ObjectiveContext context;
         ForwardingObjective fwdObj;
         if (existingPorts.isEmpty()) {
-            // If this is the last sink, remove flows and groups
+            // If this is the last sink, remove flows and last bucket
             // NOTE: Rely on GroupStore garbage collection rather than explicitly
             //       remove L3MG since there might be other flows/groups refer to
             //       the same L2IG
-            ObjectiveContext context = new DefaultObjectiveContext(
+            context = new DefaultObjectiveContext(
                     (objective) -> log.debug("Successfully remove {} on {}/{}, vlan {}",
                             mcastIp, deviceId, port.toLong(), assignedVlan),
                     (objective, error) ->
@@ -595,21 +596,25 @@ public class McastHandler {
                                     mcastIp, deviceId, port.toLong(), assignedVlan, error));
             fwdObj = fwdObjBuilder(mcastIp, assignedVlan, nextObj.id()).remove(context);
             mcastNextObjStore.remove(mcastStoreKey);
-            srManager.flowObjectiveService.forward(deviceId, fwdObj);
         } else {
             // If this is not the last sink, update flows and groups
-            ObjectiveContext context = new DefaultObjectiveContext(
+            context = new DefaultObjectiveContext(
                     (objective) -> log.debug("Successfully update {} on {}/{}, vlan {}",
                             mcastIp, deviceId, port.toLong(), assignedVlan),
                     (objective, error) ->
                             log.warn("Failed to update {} on {}/{}, vlan {}: {}",
                                     mcastIp, deviceId, port.toLong(), assignedVlan, error));
-            newNextObj = nextObjBuilder(mcastIp, assignedVlan, existingPorts, null).add();
+            // Here we store the next objective with the remaining port
+            newNextObj = nextObjBuilder(mcastIp, assignedVlan,
+                                        existingPorts, nextObj.id()).removeFromExisting();
             fwdObj = fwdObjBuilder(mcastIp, assignedVlan, newNextObj.id()).add(context);
             mcastNextObjStore.put(mcastStoreKey, newNextObj);
-            srManager.flowObjectiveService.next(deviceId, newNextObj);
-            srManager.flowObjectiveService.forward(deviceId, fwdObj);
         }
+        // Let's modify the next objective removing the bucket
+        newNextObj = nextObjBuilder(mcastIp, assignedVlan,
+                                    ImmutableSet.of(port), nextObj.id()).removeFromExisting();
+        srManager.flowObjectiveService.next(deviceId, newNextObj);
+        srManager.flowObjectiveService.forward(deviceId, fwdObj);
         return existingPorts.isEmpty();
     }
 
