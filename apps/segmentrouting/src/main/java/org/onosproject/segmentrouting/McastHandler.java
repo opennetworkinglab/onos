@@ -504,9 +504,15 @@ public class McastHandler {
             IpAddress mcastIp, VlanId assignedVlan) {
         McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, deviceId);
         ImmutableSet.Builder<PortNumber> portBuilder = ImmutableSet.builder();
+        NextObjective newNextObj;
         if (!mcastNextObjStore.containsKey(mcastStoreKey)) {
             // First time someone request this mcast group via this device
             portBuilder.add(port);
+            // New nextObj
+            newNextObj = nextObjBuilder(mcastIp, assignedVlan,
+                                        portBuilder.build(), null).add();
+            // Store the new port
+            mcastNextObjStore.put(mcastStoreKey, newNextObj);
         } else {
             // This device already serves some subscribers of this mcast group
             NextObjective nextObj = mcastNextObjStore.get(mcastStoreKey).value();
@@ -516,7 +522,18 @@ public class McastHandler {
                 log.info("NextObj for {}/{} already exists. Abort", deviceId, port);
                 return;
             }
-            portBuilder.addAll(existingPorts).add(port);
+            // Let's add the port and reuse the previous one
+            portBuilder.addAll(existingPorts).add(port).build();
+            // Reuse previous nextObj
+            newNextObj = nextObjBuilder(mcastIp, assignedVlan,
+                                        portBuilder.build(), nextObj.id()).addToExisting();
+            // Store the final next objective and send only the difference to the driver
+            mcastNextObjStore.put(mcastStoreKey, newNextObj);
+            // Add just the new port
+            portBuilder = ImmutableSet.builder();
+            portBuilder.add(port);
+            newNextObj = nextObjBuilder(mcastIp, assignedVlan,
+                                        portBuilder.build(), nextObj.id()).addToExisting();
         }
         // Create, store and apply the new nextObj and fwdObj
         ObjectiveContext context = new DefaultObjectiveContext(
@@ -525,11 +542,8 @@ public class McastHandler {
                 (objective, error) ->
                         log.warn("Failed to add {} on {}/{}, vlan {}: {}",
                                 mcastIp, deviceId, port.toLong(), assignedVlan, error));
-        NextObjective newNextObj =
-                nextObjBuilder(mcastIp, assignedVlan, portBuilder.build()).add();
         ForwardingObjective fwdObj =
                 fwdObjBuilder(mcastIp, assignedVlan, newNextObj.id()).add(context);
-        mcastNextObjStore.put(mcastStoreKey, newNextObj);
         srManager.flowObjectiveService.next(deviceId, newNextObj);
         srManager.flowObjectiveService.forward(deviceId, fwdObj);
     }
@@ -590,7 +604,7 @@ public class McastHandler {
                     (objective, error) ->
                             log.warn("Failed to update {} on {}/{}, vlan {}: {}",
                                     mcastIp, deviceId, port.toLong(), assignedVlan, error));
-            newNextObj = nextObjBuilder(mcastIp, assignedVlan, existingPorts).add();
+            newNextObj = nextObjBuilder(mcastIp, assignedVlan, existingPorts, null).add();
             fwdObj = fwdObjBuilder(mcastIp, assignedVlan, newNextObj.id()).add(context);
             mcastNextObjStore.put(mcastStoreKey, newNextObj);
             srManager.flowObjectiveService.next(deviceId, newNextObj);
@@ -655,8 +669,11 @@ public class McastHandler {
      * @return next objective builder
      */
     private NextObjective.Builder nextObjBuilder(IpAddress mcastIp,
-            VlanId assignedVlan, Set<PortNumber> outPorts) {
-        int nextId = srManager.flowObjectiveService.allocateNextId();
+            VlanId assignedVlan, Set<PortNumber> outPorts, Integer nextId) {
+        // If nextId is null allocate a new one
+        if (nextId == null) {
+            nextId = srManager.flowObjectiveService.allocateNextId();
+        }
 
         TrafficSelector metadata =
                 DefaultTrafficSelector.builder()
