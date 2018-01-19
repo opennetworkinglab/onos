@@ -804,9 +804,9 @@ public class Ofdpa2GroupHandler {
         });
     }
 
-    private void createL3MulticastGroup(NextObjective nextObj, VlanId vlanId,
-                                        List<GroupInfo> groupInfos) {
+    private List<GroupBucket> createL3MulticastBucket(List<GroupInfo> groupInfos) {
         List<GroupBucket> l3McastBuckets = new ArrayList<>();
+        // For each inner group
         groupInfos.forEach(groupInfo -> {
             // Points to L3 interface group if there is one.
             // Otherwise points to L2 interface group directly.
@@ -817,6 +817,15 @@ public class Ofdpa2GroupHandler {
             GroupBucket abucket = DefaultGroupBucket.createAllGroupBucket(ttb.build());
             l3McastBuckets.add(abucket);
         });
+        // Done return the new list of buckets
+        return l3McastBuckets;
+    }
+
+
+    private void createL3MulticastGroup(NextObjective nextObj, VlanId vlanId,
+                                        List<GroupInfo> groupInfos) {
+        // Let's create a new list mcast buckets
+        List<GroupBucket> l3McastBuckets = createL3MulticastBucket(groupInfos);
 
         int l3MulticastIndex = getNextAvailableIndex();
         int l3MulticastGroupId = L3_MULTICAST_TYPE |
@@ -1337,18 +1346,8 @@ public class Ofdpa2GroupHandler {
                                              List<Deque<GroupKey>> allActiveKeys,
                                              List<GroupInfo> groupInfos,
                                              VlanId assignedVlan) {
-        // create the buckets to add to the outermost L3 Multicast group
-        List<GroupBucket> newBuckets = Lists.newArrayList();
-        groupInfos.forEach(groupInfo -> {
-            // Points to L3 interface group if there is one.
-            // Otherwise points to L2 interface group directly.
-            GroupDescription nextGroupDesc = (groupInfo.nextGroupDesc() != null) ?
-                    groupInfo.nextGroupDesc() : groupInfo.innerMostGroupDesc();
-            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.group(new GroupId(nextGroupDesc.givenGroupId()));
-            GroupBucket newBucket = DefaultGroupBucket.createAllGroupBucket(treatmentBuilder.build());
-            newBuckets.add(newBucket);
-        });
+        // Create the buckets to add to the outermost L3 Multicast group
+        List<GroupBucket> newBuckets = createL3MulticastBucket(groupInfos);
 
         // get the group being edited
         Group l3mcastGroup = retrieveTopLevelGroup(allActiveKeys, nextObj.id());
