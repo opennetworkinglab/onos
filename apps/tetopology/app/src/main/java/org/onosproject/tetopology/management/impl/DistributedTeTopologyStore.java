@@ -1100,7 +1100,7 @@ public class DistributedTeTopologyStore
         InternalNetwork intNework = networkMap.get(nodeKey.networkId());
         if (intNework != null && CollectionUtils.isNotEmpty(intNework.nodeIds())) {
             intNework.setChildUpdate(true);
-            intNework.nodeIds().remove(nodeKey.nodeId());
+            intNework.nodeIds().remove(nodeKey);
         }
         InternalNetworkNode intNode = networkNodeMap.remove(nodeKey);
         if (intNode != null && CollectionUtils.isNotEmpty(intNode.tpIds())) {
@@ -1287,7 +1287,7 @@ public class DistributedTeTopologyStore
         InternalNetwork intNework = networkMap.get(linkKey.networkId());
         if (intNework != null && CollectionUtils.isNotEmpty(intNework.linkIds())) {
             intNework.setChildUpdate(true);
-            intNework.linkIds().remove(linkKey.linkId());
+            intNework.linkIds().remove(linkKey);
         }
         // Remove it from networkLinkMap
         InternalNetworkLink intLink = networkLinkMap.remove(linkKey);

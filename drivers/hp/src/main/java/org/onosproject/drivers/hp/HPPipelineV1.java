@@ -261,7 +261,7 @@ public class HPPipelineV1 extends AbstractHPPipeline {
                  */
                 if (instruction.type() == Instruction.Type.L2MODIFICATION) {
 
-                    if (!this.hardwareInstructionsL3mod.contains(((L2ModificationInstruction) instruction).subtype())) {
+                    if (!this.hardwareInstructionsL2mod.contains(((L2ModificationInstruction) instruction).subtype())) {
                         log.warn("HP V1 Driver - L2MODIFICATION.subtype {} only supported in SOFTWARE",
                                 ((L2ModificationInstruction) instruction).subtype());
 
