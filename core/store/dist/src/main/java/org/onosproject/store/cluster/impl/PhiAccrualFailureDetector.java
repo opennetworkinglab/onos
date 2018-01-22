@@ -49,6 +49,17 @@ public class PhiAccrualFailureDetector {
     private double bootstrapPhiValue = DEFAULT_BOOTSTRAP_PHI_VALUE;
 
     /**
+     * Returns the last heartbeat time for the given node.
+     *
+     * @param nodeId the node identifier
+     * @return the last heartbeat time for the given node
+     */
+    public long getLastHeartbeatTime(NodeId nodeId) {
+        History nodeState = states.computeIfAbsent(nodeId, key -> new History());
+        return nodeState.latestHeartbeatTime();
+    }
+
+    /**
      * Report a new heart beat for the specified node id.
      * @param nodeId node id
      */
@@ -81,7 +92,7 @@ public class PhiAccrualFailureDetector {
      * @param nodeId node identifier for the node for which to reset the failure detector
      */
     public void reset(NodeId nodeId) {
-        states.put(nodeId, new History());
+        states.remove(nodeId);
     }
 
     /**

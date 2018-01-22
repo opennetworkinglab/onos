@@ -293,6 +293,7 @@ public class DistributedClusterStore
                 if (phi >= phiFailureThreshold) {
                     if (currentState.isActive()) {
                         updateNode(node.id(), State.INACTIVE, null);
+                        failureDetector.reset(node.id());
                     }
                 } else {
                     if (currentState == State.INACTIVE) {
@@ -334,11 +335,12 @@ public class DistributedClusterStore
         public void accept(Endpoint sender, byte[] message) {
             HeartbeatMessage hb = SERIALIZER.decode(message);
             if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
-                State state = nodeStates.get(hb.source().id());
-                if (state != null && !state.isActive() && hb.state.isActive()) {
-                    failureDetector.reset(hb.source().id());
+                // Avoid reporting heartbeats that have been enqueued by setting a minimum interval.
+                long heartbeatTime = System.currentTimeMillis();
+                long lastHeartbeatTime = failureDetector.getLastHeartbeatTime(hb.source().id());
+                if (heartbeatTime - lastHeartbeatTime > heartbeatInterval / 2) {
+                    failureDetector.report(hb.source().id(), heartbeatTime);
                 }
-                failureDetector.report(hb.source().id());
                 updateNode(hb.source().id(), hb.state, hb.version);
             }
         }
