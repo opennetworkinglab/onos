@@ -828,7 +828,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                       + "packet from client on port: {}. Aborting packet processing",
                       clientInterfaces.iterator().next().connectPoint());
             dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
-            return null;
+            return Lists.newArrayList();
         }
 
         IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
