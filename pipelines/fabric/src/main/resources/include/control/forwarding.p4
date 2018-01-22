@@ -27,6 +27,14 @@ control Forwarding (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
+    direct_counter(CounterType.packets_and_bytes) bridging_counter;
+    direct_counter(CounterType.packets_and_bytes) mpls_counter;
+    direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
+    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
+    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
+    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
+    direct_counter(CounterType.packets_and_bytes) acl_counter;
+
     action drop() {
         mark_to_drop();
     }
@@ -53,6 +61,7 @@ control Forwarding (
         actions = {
             set_next_id;
         }
+        counters = bridging_counter;
     }
 
     table mpls {
@@ -63,6 +72,7 @@ control Forwarding (
         actions = {
             pop_mpls_and_next;
         }
+        counters = mpls_counter;
     }
 
     table unicast_v4 {
@@ -73,6 +83,7 @@ control Forwarding (
         actions = {
             set_next_id;
         }
+        counters = unicast_v4_counter;
     }
 
     table multicast_v4 {
@@ -84,6 +95,7 @@ control Forwarding (
         actions = {
             set_next_id;
         }
+        counters = multicast_v4_counter;
     }
 
     table unicast_v6 {
@@ -94,6 +106,7 @@ control Forwarding (
         actions = {
             set_next_id;
         }
+        counters = unicast_v6_counter;
     }
 
     table multicast_v6 {
@@ -105,6 +118,7 @@ control Forwarding (
         actions = {
             set_next_id;
         }
+        counters = multicast_v6_counter;
     }
 
     table acl {
@@ -133,6 +147,7 @@ control Forwarding (
 
         const default_action = nop();
         size = 256;
+        counters = acl_counter;
     }
 
     apply {

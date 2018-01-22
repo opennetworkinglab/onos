@@ -25,6 +25,9 @@ control Next (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    direct_counter(CounterType.packets_and_bytes) simple_counter;
+    direct_counter(CounterType.packets_and_bytes) hashed_counter;
+    direct_counter(CounterType.packets_and_bytes) broadcast_counter;
 
     action output(port_num_t port_num) {
         standard_metadata.egress_spec = port_num;
@@ -92,7 +95,9 @@ control Next (
             output;
             set_vlan_output;
             l3_routing;
+            mpls_routing_v4;
         }
+        counters = simple_counter;
     }
 
     table hashed {
@@ -112,6 +117,7 @@ control Next (
         }
 
         implementation = ecmp_selector;
+        counters = hashed_counter;
     }
 
     /*
@@ -124,6 +130,7 @@ control Next (
         actions = {
             set_mcast_group;
         }
+        counters = broadcast_counter;
     }
 
     apply {

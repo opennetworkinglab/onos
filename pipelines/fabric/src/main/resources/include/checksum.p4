@@ -21,7 +21,6 @@ control FabricComputeChecksum(inout parsed_headers_t hdr,
                               inout fabric_metadata_t meta)
 {
     apply {
-#ifdef TARGET_BMV2
         update_checksum(hdr.ipv4.isValid(),
             {
                 hdr.ipv4.version,
@@ -39,7 +38,6 @@ control FabricComputeChecksum(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum,
             HashAlgorithm.csum16
         );
-#endif
     }
 }
 
@@ -47,7 +45,6 @@ control FabricVerifyChecksum(inout parsed_headers_t hdr,
                              inout fabric_metadata_t meta)
 {
     apply {
-#ifdef TARGET_BMV2
         verify_checksum(hdr.ipv4.isValid(),
             {
                 hdr.ipv4.version,
@@ -65,7 +62,6 @@ control FabricVerifyChecksum(inout parsed_headers_t hdr,
             hdr.ipv4.hdr_checksum,
             HashAlgorithm.csum16
         );
-#endif
     }
 }
 

@@ -34,7 +34,8 @@ tables {
   action_refs {
     id: 16826365
   }
-  const_default_action_id: 16826365
+  const_default_action_id: 16819938
+  direct_resource_ids: 302015144
   size: 1024
 }
 tables {
@@ -65,6 +66,7 @@ tables {
     id: 16838162
   }
   const_default_action_id: 16838162
+  direct_resource_ids: 302033694
   size: 1024
 }
 tables {
@@ -92,6 +94,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 302047449
   size: 1024
 }
 tables {
@@ -113,6 +116,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 302001577
   size: 1024
 }
 tables {
@@ -134,6 +138,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 302038636
   size: 1024
 }
 tables {
@@ -161,6 +166,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 302009236
   size: 1024
 }
 tables {
@@ -182,6 +188,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 301998193
   size: 1024
 }
 tables {
@@ -209,6 +216,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 302003792
   size: 1024
 }
 tables {
@@ -302,6 +310,7 @@ tables {
     id: 16819938
   }
   const_default_action_id: 16819938
+  direct_resource_ids: 302000008
   size: 256
 }
 tables {
@@ -326,9 +335,13 @@ tables {
     id: 16804266
   }
   action_refs {
+    id: 16841192
+  }
+  action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 301991179
   size: 1024
 }
 tables {
@@ -357,6 +370,7 @@ tables {
     annotations: "@defaultonly()"
   }
   implementation_id: 285225078
+  direct_resource_ids: 301993193
   size: 1024
 }
 tables {
@@ -378,6 +392,7 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 301995093
   size: 1024
 }
 actions {
@@ -628,6 +643,138 @@ counters {
     unit: PACKETS
   }
   size: 511
+}
+direct_counters {
+  preamble {
+    id: 302015144
+    name: "filtering.ingress_port_vlan_counter"
+    alias: "ingress_port_vlan_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33578399
+}
+direct_counters {
+  preamble {
+    id: 302033694
+    name: "filtering.fwd_classifier_counter"
+    alias: "fwd_classifier_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33619540
+}
+direct_counters {
+  preamble {
+    id: 302047449
+    name: "forwarding.bridging_counter"
+    alias: "bridging_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33569146
+}
+direct_counters {
+  preamble {
+    id: 302001577
+    name: "forwarding.mpls_counter"
+    alias: "mpls_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33565386
+}
+direct_counters {
+  preamble {
+    id: 302038636
+    name: "forwarding.unicast_v4_counter"
+    alias: "unicast_v4_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33589684
+}
+direct_counters {
+  preamble {
+    id: 302009236
+    name: "forwarding.multicast_v4_counter"
+    alias: "multicast_v4_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33615204
+}
+direct_counters {
+  preamble {
+    id: 301998193
+    name: "forwarding.unicast_v6_counter"
+    alias: "unicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33608345
+}
+direct_counters {
+  preamble {
+    id: 302003792
+    name: "forwarding.multicast_v6_counter"
+    alias: "multicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33592333
+}
+direct_counters {
+  preamble {
+    id: 302000008
+    name: "forwarding.acl_counter"
+    alias: "acl_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33587782
+}
+direct_counters {
+  preamble {
+    id: 301991179
+    name: "next.simple_counter"
+    alias: "simple_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33615740
+}
+direct_counters {
+  preamble {
+    id: 301993193
+    name: "next.hashed_counter"
+    alias: "hashed_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33569488
+}
+direct_counters {
+  preamble {
+    id: 301995093
+    name: "next.broadcast_counter"
+    alias: "broadcast_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33608545
 }
 controller_packet_metadata {
   preamble {

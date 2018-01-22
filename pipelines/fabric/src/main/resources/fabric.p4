@@ -35,6 +35,7 @@ inout standard_metadata_t standard_metadata) {
     Forwarding() forwarding;
     Next() next;
     PortCountersControl() port_counters_control;
+    EgressNextControl() egress_next;
 
     apply {
         packet_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
@@ -42,6 +43,7 @@ inout standard_metadata_t standard_metadata) {
         forwarding.apply(hdr, fabric_metadata, standard_metadata);
         next.apply(hdr, fabric_metadata, standard_metadata);
         port_counters_control.apply(hdr, fabric_metadata, standard_metadata);
+        egress_next.apply(hdr, fabric_metadata, standard_metadata);
     }
 }
 
@@ -49,9 +51,7 @@ control FabricEgress (inout parsed_headers_t hdr,
                       inout fabric_metadata_t fabric_metadata,
                       inout standard_metadata_t standard_metadata) {
     PacketIoEgress() pkt_io_egress;
-    EgressNextControl() egress_next;
     apply {
-        egress_next.apply(hdr, fabric_metadata, standard_metadata);
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
     }
 }

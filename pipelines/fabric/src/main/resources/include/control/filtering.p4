@@ -24,6 +24,8 @@ control Filtering (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
+    direct_counter(CounterType.packets_and_bytes) ingress_port_vlan_counter;
+    direct_counter(CounterType.packets_and_bytes) fwd_classifier_counter;
 
     action drop() {
         mark_to_drop();
@@ -65,7 +67,9 @@ control Filtering (
             nop;
             drop;
         }
-        const default_action = drop();
+
+        const default_action = nop();
+        counters = ingress_port_vlan_counter;
     }
 
     // Originally TMAC table in OF-DPA pipeline
@@ -81,6 +85,7 @@ control Filtering (
         }
 
         const default_action = set_forwarding_type(FWD_BRIDGING);
+        counters = fwd_classifier_counter;
     }
 
     apply {
