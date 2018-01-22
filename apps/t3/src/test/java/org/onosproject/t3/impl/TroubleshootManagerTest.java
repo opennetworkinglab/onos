@@ -106,8 +106,20 @@ public class TroubleshootManagerTest {
         StaticPacketTrace traceFail = mngr.trace(PACKET_OK, ConnectPoint.deviceConnectPoint(OFFLINE_DEVICE + "/1"));
         assertNotNull("Trace should not be null", traceFail);
         assertNull("Trace should have 0 output", traceFail.getGroupOuputs(SINGLE_FLOW_DEVICE));
+    }
+
+    /**
+     * Tests failure on same output.
+     */
+    @Test
+    public void sameOutput() {
+        StaticPacketTrace traceFail = mngr.trace(PACKET_OK, SAME_OUTPUT_FLOW_CP);
+        assertNotNull("Trace should not be null", traceFail);
+        assertTrue("Trace should be unsuccessful",
+                traceFail.resultMessage().contains("is same as initial input"));
         log.info("trace {}", traceFail.resultMessage());
     }
+
 
     /**
      * Tests failure on device with no flows.
@@ -264,6 +276,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(TOPO_GROUP_FLOW_ENTRY);
             } else if (deviceId.equals(HARDWARE_DEVICE)) {
                 return ImmutableList.of(HARDWARE_ETH_FLOW_ENTRY, HARDWARE_FLOW_ENTRY);
+            } else if (deviceId.equals(SAME_OUTPUT_FLOW_DEVICE)) {
+                return ImmutableList.of(SAME_OUTPUT_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
