@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
@@ -295,7 +294,7 @@ public class ApplicationsResourceTest extends ResourceTest {
                         .add(CoreService.class, coreService)
                         .add(CodecService.class, codecService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.TestApplicationId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
@@ -76,7 +75,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Junit tests for VirtualNetworkIntentService.
@@ -149,7 +151,6 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
                 .add(VirtualNetworkStore.class, virtualNetworkManagerStore)
                 .add(IntentService.class, intentService)
                 .add(WorkPartitionService.class, workPartitionService);
-        BaseResource.setServiceDirectory(testDirectory);
         TestUtils.setField(manager, "serviceDirectory", testDirectory);
 
         manager.activate();

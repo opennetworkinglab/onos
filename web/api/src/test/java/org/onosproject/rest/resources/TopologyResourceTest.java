@@ -23,16 +23,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultPort;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.Device;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
@@ -43,8 +42,10 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyServiceAdapter;
+
 import javax.ws.rs.client.WebTarget;
 import java.util.Set;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -183,7 +184,7 @@ public class TopologyResourceTest extends ResourceTest {
                         .add(DeviceService.class, mockDeviceService)
                         .add(TopologyService.class, topologyService)
                         .add(CodecService.class, codecService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

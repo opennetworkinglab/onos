@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cfm.CfmCodecContext;
 import org.onosproject.cfm.impl.CfmResourceTest;
 import org.onosproject.codec.CodecService;
@@ -87,7 +86,7 @@ public class LmWebResourceTest extends CfmResourceTest {
                 .add(CfmMepService.class, mepService)
                 .add(SoamService.class, soamService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         lm1 = DefaultLmEntry.builder(
                     DelayMeasurementCreate.Version.Y17312008,

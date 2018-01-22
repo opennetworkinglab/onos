@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -44,9 +43,19 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashSet;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for tenant REST APIs.
@@ -77,7 +86,7 @@ public class TenantWebResourceTest extends ResourceTest {
                         .add(VirtualNetworkAdminService.class, mockVnetAdminService)
                         .add(CodecService.class, codecService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

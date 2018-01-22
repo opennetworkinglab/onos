@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cfm.CfmCodecContext;
 import org.onosproject.cfm.impl.CfmResourceTest;
 import org.onosproject.codec.CodecService;
@@ -50,7 +49,6 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -61,7 +59,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -88,7 +88,7 @@ public class DmWebResourceTest extends CfmResourceTest {
                 .add(CfmMepService.class, mepService)
                 .add(SoamService.class, soamService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         DelayMeasurementStatCurrent.DmStatCurrentBuilder dmCurrBuilder1 =
                 (DelayMeasurementStatCurrent.DmStatCurrentBuilder)

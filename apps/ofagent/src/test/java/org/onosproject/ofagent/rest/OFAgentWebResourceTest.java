@@ -27,7 +27,6 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
-import org.onlab.rest.BaseResource;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
@@ -141,7 +140,7 @@ public class OFAgentWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
                 .add(OFAgentAdminService.class, mockOFAgentAdminService)
                 .add(OFAgentService.class, mockOFAgentService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

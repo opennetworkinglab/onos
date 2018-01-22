@@ -15,19 +15,10 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -37,7 +28,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.MacAddress;
-import org.onlab.rest.BaseResource;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
@@ -61,10 +51,17 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.easymock.EasyMock.anyObject;
@@ -276,7 +273,7 @@ public class FlowsResourceTest extends ResourceTest {
                         .add(CoreService.class, mockCoreService)
                         .add(ApplicationService.class, mockApplicationService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

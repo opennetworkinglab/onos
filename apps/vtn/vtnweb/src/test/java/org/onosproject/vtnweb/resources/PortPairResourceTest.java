@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairId;
@@ -135,7 +134,7 @@ public class PortPairResourceTest extends VtnResourceTest {
         SfcCodecContext context = new SfcCodecContext();
         ServiceDirectory testDirectory = new TestServiceDirectory().add(PortPairService.class, portPairService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
     }
 

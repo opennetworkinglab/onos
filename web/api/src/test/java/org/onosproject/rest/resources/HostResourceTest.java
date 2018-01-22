@@ -31,7 +31,6 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.DefaultHost;
@@ -99,7 +98,7 @@ public class HostResourceTest extends ResourceTest {
                         .add(HostAdminService.class, mockHostService)
                         .add(CodecService.class, codecService)
                         .add(HostProviderRegistry.class, mockHostProviderRegistry);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

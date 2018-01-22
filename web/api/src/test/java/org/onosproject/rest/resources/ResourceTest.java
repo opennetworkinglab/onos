@@ -21,6 +21,9 @@ import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.jetty.JettyTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.onlab.junit.TestUtils;
+import org.onlab.osgi.ServiceDirectory;
+import org.onlab.rest.BaseResource;
 
 /**
  * Base class for REST API tests.
@@ -57,5 +60,14 @@ public class ResourceTest extends JerseyTest {
     @Override
     protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
         return new JettyTestContainerFactory();
+    }
+
+    /**
+     * Sets up the test services directory in the base resource environment.
+     *
+     * @param testDirectory new test directory
+     */
+    protected void setServiceDirectory(ServiceDirectory testDirectory) {
+        TestUtils.setField(BaseResource.class, "services", testDirectory);
     }
 }

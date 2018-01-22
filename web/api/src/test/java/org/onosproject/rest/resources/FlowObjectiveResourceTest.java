@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
@@ -79,7 +78,7 @@ public class FlowObjectiveResourceTest extends ResourceTest {
                         .add(CodecService.class, codecService)
                         .add(CoreService.class, mockCoreService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

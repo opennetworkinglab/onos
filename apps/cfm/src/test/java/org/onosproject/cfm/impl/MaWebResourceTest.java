@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.VlanId;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cfm.CfmCodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.incubator.net.l2monitoring.cfm.Component;
@@ -43,7 +42,6 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -72,7 +70,7 @@ public class MaWebResourceTest extends CfmResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
                 .add(CfmMdService.class, mdService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         ma1 = DefaultMaintenanceAssociation
                 .builder(MANAME1, MDNAME1.getNameLength())

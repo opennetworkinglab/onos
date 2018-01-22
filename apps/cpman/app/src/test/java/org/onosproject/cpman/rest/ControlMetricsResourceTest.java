@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -151,7 +150,7 @@ public class ControlMetricsResourceTest extends ResourceTest {
                                 mockControlPlaneMonitorService)
                         .add(ClusterService.class, mockClusterService)
                         .add(CodecService.class, codecService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         nodeId = new NodeId("1");
         mockControlLoad = new MockControlLoad();

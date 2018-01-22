@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.MacAddress;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.codec.impl.MockCodecContext;
@@ -746,7 +745,7 @@ public class IntentsResourceTest extends ResourceTest {
                         .add(CodecService.class, codecService)
                         .add(CoreService.class, mockCoreService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         MockIdGenerator.cleanBind();
     }

@@ -20,7 +20,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.rest.resources.ResourceTest;
@@ -48,7 +47,7 @@ public class AlarmsWebResourceTest extends ResourceTest {
                 // Currently no alarms-service implemented
                 // .add(AlarmsService.class, alarmsService)
                 .add(CodecService.class, codecService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     @Test

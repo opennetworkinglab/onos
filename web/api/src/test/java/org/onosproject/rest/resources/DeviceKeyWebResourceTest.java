@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.key.DeviceKey;
@@ -109,7 +108,7 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
                         .add(DeviceKeyAdminService.class, mockDeviceKeyAdminService)
                         .add(CodecService.class, codecService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

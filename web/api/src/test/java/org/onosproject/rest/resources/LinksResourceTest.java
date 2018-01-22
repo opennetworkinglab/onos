@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.ConnectPoint;
@@ -162,7 +161,7 @@ public class LinksResourceTest extends ResourceTest {
                         .add(LinkService.class, mockLinkService)
                         .add(CodecService.class, codecService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

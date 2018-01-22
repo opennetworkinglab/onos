@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cfm.CfmCodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
@@ -65,7 +64,7 @@ public class MdWebResourceTest extends CfmResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
                 .add(CfmMdService.class, mdService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         mdList = new ArrayList<>();
 

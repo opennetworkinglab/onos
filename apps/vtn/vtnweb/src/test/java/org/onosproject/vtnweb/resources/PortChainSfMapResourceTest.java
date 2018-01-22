@@ -15,6 +15,25 @@
  */
 package org.onosproject.vtnweb.resources;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.onlab.osgi.ServiceDirectory;
+import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.codec.CodecService;
+import org.onosproject.vtnrsc.PortPairId;
+import org.onosproject.vtnrsc.ServiceFunctionGroup;
+import org.onosproject.vtnrsc.portchainsfmap.PortChainSfMapService;
+import org.onosproject.vtnweb.web.SfcCodecContext;
+
+import javax.ws.rs.client.WebTarget;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -22,28 +41,6 @@ import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.ws.rs.client.WebTarget;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.onlab.osgi.ServiceDirectory;
-import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
-import org.onosproject.codec.CodecService;
-import org.onosproject.vtnrsc.PortPairId;
-import org.onosproject.vtnrsc.ServiceFunctionGroup;
-import org.onosproject.vtnrsc.portchainsfmap.PortChainSfMapService;
-import org.onosproject.vtnweb.web.SfcCodecContext;
-
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.Lists;
 
 /**
  * Unit tests for port chain sf map REST APIs.
@@ -68,7 +65,7 @@ public class PortChainSfMapResourceTest extends VtnResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
                 .add(PortChainSfMapService.class, portChainSfMapService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

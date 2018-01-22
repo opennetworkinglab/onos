@@ -19,13 +19,11 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
@@ -43,6 +41,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -151,7 +150,7 @@ public class PortPairGroupResourceTest extends VtnResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
         .add(PortPairGroupService.class, portPairGroupService)
         .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
     }
 

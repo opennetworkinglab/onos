@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.VlanId;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cfm.CfmCodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceAssociation;
@@ -86,7 +85,7 @@ public class MepWebResourceTest extends CfmResourceTest {
                 .add(CfmMepService.class, mepService)
                 .add(CfmMdService.class, mdService)
                 .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
         mepEntry1 = DefaultMepEntry.builder(
                     MEPID1,

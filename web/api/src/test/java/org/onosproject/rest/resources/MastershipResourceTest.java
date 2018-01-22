@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.codec.CodecService;
@@ -170,7 +169,7 @@ public final class MastershipResourceTest extends ResourceTest {
                         .add(DeviceService.class, mockDeviceService)
                         .add(CodecService.class, codecService);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

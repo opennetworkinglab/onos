@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
@@ -142,7 +141,7 @@ public class RegionsResourceTest extends ResourceTest {
                 .add(RegionService.class, mockRegionService)
                 .add(RegionAdminService.class, mockRegionAdminService)
                 .add(CodecService.class, codecService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

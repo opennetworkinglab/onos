@@ -15,24 +15,18 @@
  */
 package org.onosproject.rest.resources;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.Link;
@@ -41,12 +35,15 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.config.SubjectFactory;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
@@ -204,7 +201,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(NetworkConfigService.class, mockNetworkConfigService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
     }
 
     /**

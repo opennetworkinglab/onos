@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -55,7 +54,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Junit tests for VirtualNetworkTopologyService.
@@ -77,7 +78,6 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
-        BaseResource.setServiceDirectory(testDirectory);
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.coreService = coreService;

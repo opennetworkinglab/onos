@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpPrefix;
-import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
@@ -208,7 +207,7 @@ public class FlowClassifierResourceTest extends VtnResourceTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
         .add(FlowClassifierService.class, flowClassifierService)
         .add(CodecService.class, context.codecManager());
-        BaseResource.setServiceDirectory(testDirectory);
+        setServiceDirectory(testDirectory);
 
     }
 

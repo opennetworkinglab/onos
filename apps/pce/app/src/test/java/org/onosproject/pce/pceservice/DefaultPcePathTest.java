@@ -17,21 +17,8 @@
 package org.onosproject.pce.pceservice;
 
 import com.google.common.collect.Lists;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.onosproject.pce.pceservice.PathComputationTest.D2;
-import static org.easymock.EasyMock.createMock;
-
 import com.google.common.testing.EqualsTester;
-
-import org.onlab.osgi.ServiceDirectory;
-import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
+import org.junit.Test;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
@@ -39,23 +26,17 @@ import org.onosproject.pce.pcestore.api.PceStore;
 
 import java.util.List;
 
+import static org.easymock.EasyMock.createMock;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.onosproject.pce.pceservice.PathComputationTest.D2;
+
 /**
  * Unit tests for DefaultPcePath class.
  */
 public class DefaultPcePathTest {
     private PceStore pceStore = createMock(PceStore.class);
 
-    @Before
-    public void setup() {
-
-       ServiceDirectory testDirectory = new TestServiceDirectory()
-                   .add(PceStore.class, pceStore);
-       BaseResource.setServiceDirectory(testDirectory);
-    }
-
-    @After
-    public void tearDownTest() {
-    }
     /**
      * Checks the operation of equals() methods.
      */
