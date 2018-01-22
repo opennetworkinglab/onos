@@ -155,7 +155,7 @@ public final class CeVlanMapUtils {
     public static String removeZeroIfPossible(String existingMap) {
         if (existingMap == null || existingMap.isEmpty()) {
             return "0";
-        } else if (existingMap == "0") {
+        } else if ("0".equals(existingMap)) {
             return existingMap;
         }
         return removeFromCeVlanMap(existingMap, (short) 0);

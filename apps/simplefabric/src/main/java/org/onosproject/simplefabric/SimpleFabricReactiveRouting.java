@@ -897,7 +897,7 @@ public class SimpleFabricReactiveRouting {
 
     // Dump Cli Handler
     private void dump(String subject, PrintStream out) {
-        if (subject == "intents") {
+        if ("intents".equals(subject)) {
             out.println("Reactive Routing Route Intents:\n");
             for (Intent entry : intentService.getIntents()) {
                 if (reactiveAppId.equals(entry.appId())) {
@@ -931,7 +931,7 @@ public class SimpleFabricReactiveRouting {
             }
             out.println("");
 
-        } else if (subject == "reactive-intents") {
+        } else if ("reactive-intents".equals(subject)) {
             for (Intent entry : intentService.getIntents()) {
                 if (reactiveAppId.equals(entry.appId())) {
                     MultiPointToSinglePointIntent intent = (MultiPointToSinglePointIntent) entry;

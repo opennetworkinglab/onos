@@ -384,7 +384,7 @@ public class SimpleFabricL2Forward {
 
     // Dump command handler
     private void dump(String subject, PrintStream out) {
-        if (subject == "intents") {
+        if ("intents".equals(subject)) {
             out.println("L2Forward Broadcast Intents:\n");
             for (SinglePointToMultiPointIntent intent: bctIntentsMap.values()) {
                 out.println("    " + intent.key().toString()

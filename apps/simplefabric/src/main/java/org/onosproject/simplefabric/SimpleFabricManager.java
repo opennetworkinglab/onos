@@ -510,7 +510,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
     // Dump handler
     protected void dump(String subject, PrintStream out) {
-        if (subject == "show") {
+        if ("show".equals(subject)) {
             out.println("Static Configuration Flag:");
             out.println("    ALLOW_ETH_ADDRESS_SELECTOR="
                         + SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR);
