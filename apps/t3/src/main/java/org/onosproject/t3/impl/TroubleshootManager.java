@@ -140,6 +140,7 @@ public class TroubleshootManager implements TroubleshootService {
             trace.addResultMessage("No output out of device " + in.deviceId() + ". Packet is dropped");
             return trace;
         }
+
         //If the trace has ouputs we analyze them all
         for (GroupsInDevice outputPath : trace.getGroupOuputs(in.deviceId())) {
             log.debug("Output path {}", outputPath.getOutput());
@@ -382,7 +383,7 @@ public class TroubleshootManager implements TroubleshootService {
 
             for (FlowEntry entry : flows) {
                 getGroupsFromInstructions(trace, groups, entry.treatment().allInstructions(),
-                        entry.deviceId(), builder, outputPorts);
+                        entry.deviceId(), builder, outputPorts, in);
             }
             packet = builder.build();
             log.debug("Groups hit by packet {}", packet);
@@ -412,15 +413,11 @@ public class TroubleshootManager implements TroubleshootService {
                                     TrafficSelector.Builder builder, List<PortNumber> outputPorts,
                                     Set<Instruction> outputFlowEntries) {
         if (outputFlowEntries.size() > 1) {
-            log.warn("There cannot be more than one OUTPUT instruction for {}", packet);
+            log.warn("There cannot be more than one flow entry with OUTPUT instruction for {}", packet);
         } else {
             OutputInstruction outputInstruction = (OutputInstruction) outputFlowEntries.iterator().next();
             //FIXME using GroupsInDevice for output even if flows.
-            trace.addGroupOutputPath(in.deviceId(),
-                    new GroupsInDevice(ConnectPoint.deviceConnectPoint(in.deviceId()
-                            + "/" + outputInstruction.port()),
-                            ImmutableList.of(), builder.build()));
-            outputPorts.add(outputInstruction.port());
+            buildOutputFromDevice(trace, in, builder, outputPorts, outputInstruction, ImmutableList.of());
         }
     }
 
@@ -474,7 +471,8 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private void getGroupsFromInstructions(StaticPacketTrace trace, List<Group> groupsForDevice,
                                            List<Instruction> instructions, DeviceId deviceId,
-                                           TrafficSelector.Builder builder, List<PortNumber> outputPorts) {
+                                           TrafficSelector.Builder builder, List<PortNumber> outputPorts,
+                                           ConnectPoint in) {
         List<Instruction> groupInstructionlist = new ArrayList<>();
         for (Instruction instruction : instructions) {
             log.debug("Considering Instruction {}", instruction);
@@ -484,11 +482,8 @@ public class TroubleshootManager implements TroubleshootService {
                 //if the instruction is not group we need to update the packet or add the output
                 //to the possible outputs for this packet
                 if (instruction.type().equals(Instruction.Type.OUTPUT)) {
-                    outputPorts.add(((OutputInstruction) instruction).port());
-                    trace.addGroupOutputPath(deviceId,
-                            new GroupsInDevice(ConnectPoint.deviceConnectPoint(deviceId + "/" +
-                                    ((OutputInstruction) instruction).port()),
-                                    groupsForDevice, builder.build()));
+                    buildOutputFromDevice(trace, in, builder, outputPorts,
+                            (OutputInstruction) instruction, groupsForDevice);
                 } else {
                     builder = translateInstruction(builder, instruction);
                 }
@@ -512,8 +507,34 @@ public class TroubleshootManager implements TroubleshootService {
             //Cycle in each of the group's buckets and add them to the groups for this Device.
             for (GroupBucket bucket : group.buckets().buckets()) {
                 getGroupsFromInstructions(trace, groupsForDevice, bucket.treatment().allInstructions(),
-                        deviceId, builder, outputPorts);
+                        deviceId, builder, outputPorts, in);
             }
+        }
+    }
+
+    /**
+     * Check if the output is the input port, if so adds a dop result message, otherwise builds
+     * a possible output from this device.
+     *
+     * @param trace             the trace
+     * @param in                the input connect point
+     * @param builder           the packet builder
+     * @param outputPorts       the list of output ports for this device
+     * @param outputInstruction the output instruction
+     * @param groupsForDevice
+     */
+    private void buildOutputFromDevice(StaticPacketTrace trace, ConnectPoint in, TrafficSelector.Builder builder,
+                                       List<PortNumber> outputPorts, OutputInstruction outputInstruction,
+                                       List<Group> groupsForDevice) {
+        ConnectPoint output = ConnectPoint.deviceConnectPoint(in.deviceId() + "/" +
+                outputInstruction.port());
+        if (output.equals(in)) {
+            trace.addResultMessage("Connect point out " + output + " is same as initial input " +
+                    trace.getInitialConnectPoint());
+        } else {
+            trace.addGroupOutputPath(in.deviceId(),
+                    new GroupsInDevice(output, groupsForDevice, builder.build()));
+            outputPorts.add(outputInstruction.port());
         }
     }
 

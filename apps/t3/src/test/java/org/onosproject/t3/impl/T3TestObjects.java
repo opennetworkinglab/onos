@@ -88,6 +88,24 @@ final class T3TestObjects {
 
     static final ConnectPoint SINGLE_FLOW_OUT_CP = ConnectPoint.deviceConnectPoint(SINGLE_FLOW_DEVICE + "/" + 2);
 
+    //same output as input
+    static final DeviceId SAME_OUTPUT_FLOW_DEVICE = DeviceId.deviceId("sameOutputDevice");
+
+    private static final TrafficTreatment SAME_OUTPUT_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.portNumber(1)).build();
+    private static final FlowRule SAME_OUTPUT_FLOW = DefaultFlowEntry.builder().forDevice(SAME_OUTPUT_FLOW_DEVICE)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(SAME_OUTPUT_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry SAME_OUTPUT_FLOW_ENTRY = new DefaultFlowEntry(SAME_OUTPUT_FLOW);
+
+    static final ConnectPoint SAME_OUTPUT_FLOW_CP = ConnectPoint.deviceConnectPoint(SAME_OUTPUT_FLOW_DEVICE + "/" + 1);
+
+
     //Dual Flow Test
     static final DeviceId DUAL_FLOW_DEVICE = DeviceId.deviceId("DualFlowDevice");
     private static final TrafficTreatment TRANSITION_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
