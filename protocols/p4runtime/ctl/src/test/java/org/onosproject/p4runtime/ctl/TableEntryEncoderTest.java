@@ -30,7 +30,9 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
@@ -57,15 +59,20 @@ import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encode;
 public class TableEntryEncoderTest {
     private static final String DOT = ".";
     private static final String TABLE_0 = "table0";
+    private static final String TABLE_ECMP = "ecmp";
     private static final String SET_EGRESS_PORT = "set_egress_port";
     private static final String PORT = "port";
     private static final String HDR = "hdr";
+    private static final String META = "meta";
     private static final String ETHERNET = "ethernet";
     private static final String DST_ADDR = "dstAddr";
     private static final String SRC_ADDR = "srcAddr";
     private static final String STANDARD_METADATA = "standard_metadata";
+    private static final String ECMP_METADATA = "ecmp_metadata";
     private static final String INGRESS_PORT = "ingress_port";
     private static final String ETHER_TYPE = "etherType";
+    private static final String ECMP_GROUP_ID = "ecmp_group_id";
+    private static final String ECMP_ACT_PROFILE = "ecmp_selector";
 
     private final Random rand = new Random();
     private final URL p4InfoUrl = this.getClass().getResource("/test.p4info");
@@ -83,9 +90,12 @@ public class TableEntryEncoderTest {
     private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + SRC_ADDR);
     private final PiMatchFieldId inPortFieldId = PiMatchFieldId.of(STANDARD_METADATA + DOT + INGRESS_PORT);
     private final PiMatchFieldId ethTypeFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + ETHER_TYPE);
+    private final PiMatchFieldId ecmpGroupFieldId =
+            PiMatchFieldId.of(META + DOT + ECMP_METADATA + DOT + ECMP_GROUP_ID);
     private final PiActionParamId portParamId = PiActionParamId.of(PORT);
     private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
     private final PiTableId tableId = PiTableId.of(TABLE_0);
+    private final PiTableId ecmpTableId = PiTableId.of(TABLE_ECMP);
 
     private final PiTableEntry piTableEntry = PiTableEntry
             .builder()
@@ -101,6 +111,17 @@ public class TableEntryEncoderTest {
                                 .withId(outActionId)
                                 .withParameter(new PiActionParam(portParamId, portValue))
                                 .build())
+            .withPriority(1)
+            .withCookie(2)
+            .build();
+
+    private final PiTableEntry piTableEntryWithGroupAction = PiTableEntry
+            .builder()
+            .forTable(ecmpTableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiExactFieldMatch(ecmpGroupFieldId, ofOnes(1)))
+                                  .build())
+            .withAction(PiActionGroupId.of(1))
             .withPriority(1)
             .withCookie(2)
             .build();
@@ -126,8 +147,7 @@ public class TableEntryEncoderTest {
     }
 
     @Test
-    public void testTableEntryEncoder()
-            throws P4InfoBrowser.NotFoundException, ImmutableByteSequence.ByteSequenceTrimException {
+    public void testTableEntryEncoder() throws P4InfoBrowser.NotFoundException {
 
         Collection<TableEntry> result = encode(Lists.newArrayList(piTableEntry), defaultPipeconf);
         assertThat(result, hasSize(1));
@@ -168,5 +188,34 @@ public class TableEntryEncoderTest {
         assertThat(encodedActionParam, is(portValue.asArray()));
 
         // TODO: improve, assert other field match types (ternary, LPM)
+    }
+
+    @Test
+    public void testActopProfileGroup() throws P4InfoBrowser.NotFoundException {
+        Collection<TableEntry> result = encode(Lists.newArrayList(piTableEntryWithGroupAction), defaultPipeconf);
+        assertThat(result, hasSize(1));
+
+        TableEntry tableEntryMsg = result.iterator().next();
+
+        Collection<PiTableEntry> decodedResults = decode(Lists.newArrayList(tableEntryMsg), defaultPipeconf);
+        PiTableEntry decodedPiTableEntry = decodedResults.iterator().next();
+
+        // Test equality for decoded entry.
+        new EqualsTester()
+                .addEqualityGroup(piTableEntryWithGroupAction, decodedPiTableEntry)
+                .testEquals();
+
+        // Table ID.
+        int p4InfoTableId = browser.tables().getByName(ecmpTableId.id()).getPreamble().getId();
+        int encodedTableId = tableEntryMsg.getTableId();
+        assertThat(encodedTableId, is(p4InfoTableId));
+
+        // Exact match.
+        byte[] encodedTernaryMatchValue = tableEntryMsg.getMatch(0).getExact().getValue().toByteArray();
+        assertThat(encodedTernaryMatchValue, is(new byte[]{(byte) 0xff}));
+
+        // Action profile group id
+        int actionProfileGroupId = tableEntryMsg.getAction().getActionProfileGroupId();
+        assertThat(actionProfileGroupId, is(1));
     }
 }

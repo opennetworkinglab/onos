@@ -447,6 +447,10 @@ final class TableEntryEncoder {
             case ACTION:
                 Action actionMsg = tableActionMsg.getAction();
                 return decodeActionMsg(actionMsg, browser);
+            case ACTION_PROFILE_GROUP_ID:
+                return PiActionGroupId.of(tableActionMsg.getActionProfileGroupId());
+            case ACTION_PROFILE_MEMBER_ID:
+                return PiActionGroupMemberId.of(tableActionMsg.getActionProfileMemberId());
             default:
                 throw new EncodeException(
                         format("Decoding of table action type %s not implemented", typeCase.name()));
