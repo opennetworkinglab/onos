@@ -64,13 +64,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class StoragePartitionClient implements DistributedPrimitiveCreator, Managed<StoragePartitionClient> {
 
+    private static final int MAX_RETRIES = 8;
+    private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
+
     private final Logger log = getLogger(getClass());
 
     private final StoragePartition partition;
     private final MemberId localMemberId;
     private final RaftClientProtocol protocol;
     private RaftClient client;
-    private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
     private final com.google.common.base.Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
             Suppliers.memoize(() -> newAsyncConsistentMap(ATOMIC_VALUES_CONSISTENT_MAP_NAME,
                                                           Serializer.using(KryoNamespaces.BASIC)));
@@ -110,7 +112,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withTimeout(Duration.ofSeconds(30))
-                        .withMaxRetries(5)
+                        .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
                         .join());
@@ -135,7 +137,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withTimeout(Duration.ofSeconds(30))
-                        .withMaxRetries(5)
+                        .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
                         .join());
@@ -159,7 +161,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withTimeout(Duration.ofSeconds(30))
-                        .withMaxRetries(5)
+                        .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
                         .join());
@@ -189,7 +191,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withTimeout(Duration.ofSeconds(30))
-                .withMaxRetries(5)
+                .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
                 .join());
@@ -211,7 +213,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withTimeout(Duration.ofSeconds(30))
-                .withMaxRetries(5)
+                .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
                 .join());
@@ -235,7 +237,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withTimeout(Duration.ofSeconds(5))
-                .withMaxRetries(5)
+                .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
                 .join());
@@ -250,7 +252,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withReadConsistency(ReadConsistency.SEQUENTIAL)
                 .withCommunicationStrategy(CommunicationStrategy.ANY)
                 .withTimeout(Duration.ofSeconds(30))
-                .withMaxRetries(5)
+                .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
                 .join());
@@ -266,7 +268,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(Duration.ofMillis(timeUnit.toMillis(leaderTimeout)))
                 .withMaxTimeout(Duration.ofSeconds(5))
-                .withMaxRetries(5)
+                .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
                 .join());
