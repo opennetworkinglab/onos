@@ -38,7 +38,7 @@ public final class RouteAttributePriority extends RouteAttribute {
      * @param type type
      * @param priority priority
      */
-    public RouteAttributePriority(int length, int type, long priority) {
+    private RouteAttributePriority(int length, int type, long priority) {
         super(length, type);
 
         this.priority = priority;
@@ -87,8 +87,57 @@ public final class RouteAttributePriority extends RouteAttribute {
     @Override
     public void encode(ChannelBuffer cb) {
 
-        cb.writeShort(Short.reverseBytes((short) length()));
-        cb.writeShort(Short.reverseBytes((short) type()));
+        super.encode(cb);
         cb.writeInt(Integer.reverseBytes((int) priority));
+    }
+
+    /**
+     * Returns a new RouteAttributePriority builder.
+     *
+     * @return RouteAttributePriority builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * RouteAttributePriority Builder.
+     */
+    public static final class Builder extends RouteAttribute.Builder<Builder> {
+
+        private long priority = 0;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {}
+
+        /**
+         * Override abstract method.
+         */
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets priority for RouteAttributePriority that will be built.
+         *
+         * @param priority to use for built RouteAttributePriority
+         * @return this builder
+         */
+        public Builder priority(long priority) {
+            this.priority = priority;
+            return this;
+        }
+
+        /**
+         * Builds the RouteAttributePriority.
+         *
+         * @return RouteAttributePriority reference
+         */
+        public RouteAttributePriority build() {
+            return new RouteAttributePriority(length, type, priority);
+        }
     }
 }

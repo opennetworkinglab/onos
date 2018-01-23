@@ -67,7 +67,7 @@ public final class RtNetlink {
      * @param flags flags
      * @param attributes list of attributes
      */
-    public RtNetlink(short addressFamily,
+    private RtNetlink(short addressFamily,
                       int dstLength,
                       int srcLength,
                       short tos,
@@ -270,4 +270,163 @@ public final class RtNetlink {
         }
     }
 
+    /**
+     * Returns a new RtNetlink builder.
+     *
+     * @return RtNetlink builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * RtNetlink Builder.
+     */
+    public static final class Builder {
+
+        private short addressFamily = RT_ADDRESS_FAMILY_INET;
+        private int dstLength = 0;
+        private int srcLength = 0;
+        private short tos = 0;
+        private short table = 0;
+        private RtProtocol protocol = RtProtocol.ZEBRA;
+        private short scope = 0;
+        private short type = FpmHeader.FPM_TYPE_NETLINK;
+        private long flags = 0;
+        private List<RouteAttribute> attributes = new ArrayList<>();
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {
+        }
+
+        /**
+         * Sets addressFamily for the RtNetlink that will be built.
+         *
+         * @param addressFamily to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder addressFamily(short addressFamily) {
+            this.addressFamily = addressFamily;
+            return this;
+        }
+
+        /**
+         * Sets dstLength for the RtNetlink that will be built.
+         *
+         * @param dstLength to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder dstLength(int dstLength) {
+            this.dstLength = dstLength;
+            return this;
+        }
+
+        /**
+         * Sets srcLength for the RtNetlink that will be built.
+         *
+         * @param srcLength to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder srcLength(int srcLength) {
+            this.srcLength = srcLength;
+            return this;
+        }
+
+        /**
+         * Sets tos for the RtNetlink that will be built.
+         *
+         * @param tos to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder tos(short tos) {
+            this.tos = tos;
+            return this;
+        }
+
+        /**
+         * Sets table for the RtNetlink that will be built.
+         *
+         * @param table to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder table(short table) {
+            this.table = table;
+            return this;
+        }
+
+        /**
+         * Sets protocol for the RtNetlink that will be built.
+         *
+         * @param protocol to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder protocol(RtProtocol protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        /**
+         * Sets scope for the RtNetlink that will be built.
+         *
+         * @param scope to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder scope(short scope) {
+            this.scope = scope;
+            return this;
+        }
+
+        /**
+         * Sets type for the RtNetlink that will be built.
+         *
+         * @param type to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder type(short type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * Sets flags for the RtNetlink that will be built.
+         *
+         * @param flags to use for built RtNetlink
+         * @return this builder
+         */
+        public Builder flags(long flags) {
+            this.flags = flags;
+            return this;
+        }
+
+        /**
+         * Adds attribute for the RtNetlink that will be built.
+         *
+         * @param ra to add to list of route attributes
+         * @return this builder
+         */
+        public Builder routeAttribute(RouteAttribute ra) {
+            attributes.add(ra);
+            return this;
+        }
+
+        /**
+         * Builds the RtNetlink.
+         *
+         * @return RtNetlink reference
+         */
+        public RtNetlink build() {
+            return new RtNetlink(addressFamily,
+                                 dstLength,
+                                 srcLength,
+                                 tos,
+                                 table,
+                                 protocol,
+                                 scope,
+                                 type,
+                                 flags,
+                                 attributes);
+        }
+    }
 }
