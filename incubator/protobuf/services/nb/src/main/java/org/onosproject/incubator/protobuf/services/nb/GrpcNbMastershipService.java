@@ -63,7 +63,7 @@ public class GrpcNbMastershipService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
-    private static MastershipServiceNbServerInternal instance = null;
+    private MastershipServiceNbServerInternal instance = null;
 
     @Activate
     public void activate() {

@@ -140,7 +140,7 @@ public final class SubjectFactories {
      *
      * @param service core service reference
      */
-    public static void setCoreService(CoreService service) {
+    public static synchronized void setCoreService(CoreService service) {
         coreService = service;
     }
 

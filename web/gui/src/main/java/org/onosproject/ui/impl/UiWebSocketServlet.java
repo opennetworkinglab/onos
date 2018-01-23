@@ -38,6 +38,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
     private static final long PING_DELAY_MS = 5000;
 
     private static UiWebSocketServlet instance;
+    private static final Object INSTANCE_LOCK = new Object();
 
     private ServiceDirectory directory = new DefaultServiceDirectory();
 
@@ -50,19 +51,23 @@ public class UiWebSocketServlet extends WebSocketServlet {
      * Closes all currently open UI web-sockets.
      */
     public static void closeAll() {
-        if (instance != null) {
-            instance.isStopped = true;
-            instance.sockets.forEach(UiWebSocket::close);
-            instance.sockets.clear();
-            instance.pruner.cancel();
-            instance.timer.cancel();
+        synchronized (INSTANCE_LOCK) {
+            if (instance != null) {
+                instance.isStopped = true;
+                instance.sockets.forEach(UiWebSocket::close);
+                instance.sockets.clear();
+                instance.pruner.cancel();
+                instance.timer.cancel();
+            }
         }
     }
 
     @Override
     public void init() throws ServletException {
         super.init();
-        instance = this;
+        synchronized (INSTANCE_LOCK) {
+            instance = this;
+        }
         timer.schedule(pruner, PING_DELAY_MS, PING_DELAY_MS);
     }
 
@@ -93,8 +98,10 @@ public class UiWebSocketServlet extends WebSocketServlet {
      * @param payload message payload
      */
     static void sendToAll(String type, ObjectNode payload) {
-        if (instance != null) {
-            instance.sockets.forEach(ws -> ws.sendMessage(type, payload));
+        synchronized (INSTANCE_LOCK) {
+            if (instance != null) {
+                instance.sockets.forEach(ws -> ws.sendMessage(type, payload));
+            }
         }
     }
 
@@ -106,9 +113,11 @@ public class UiWebSocketServlet extends WebSocketServlet {
      * @param payload  message payload
      */
     static void sendToUser(String userName, String type, ObjectNode payload) {
-        if (instance != null) {
-            instance.sockets.stream().filter(ws -> userName.equals(ws.userName()))
-                    .forEach(ws -> ws.sendMessage(type, payload));
+        synchronized (INSTANCE_LOCK) {
+            if (instance != null) {
+                instance.sockets.stream().filter(ws -> userName.equals(ws.userName()))
+                        .forEach(ws -> ws.sendMessage(type, payload));
+            }
         }
     }
 

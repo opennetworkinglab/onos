@@ -52,7 +52,7 @@ public class GrpcNbDeviceService {
 
     private final Logger log = getLogger(getClass());
 
-    private static DeviceServiceNbServerInternal instance = null;
+    private DeviceServiceNbServerInternal instance = null;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GrpcServiceRegistry registry;

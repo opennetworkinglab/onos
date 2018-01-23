@@ -74,7 +74,7 @@ public class GrpcNbHostService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    private static HostServiceNBServerInternal instance = null;
+    private HostServiceNBServerInternal instance = null;
 
     @Activate
     public void activate() {

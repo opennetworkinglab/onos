@@ -195,7 +195,7 @@ public class YangXmlUtils {
      *
      * @return instance of YangXmlUtils
      */
-    public static YangXmlUtils getInstance() {
+    public static synchronized YangXmlUtils getInstance() {
         if (instance == null) {
             instance = new YangXmlUtils();
         }

@@ -38,8 +38,8 @@ import static org.onosproject.cli.AbstractShellCommand.get;
  * VPLS optional argument completer.
  */
 public class VplsOptArgCompleter extends AbstractChoicesCompleter {
-    protected static Vpls vpls;
-    protected static InterfaceService interfaceService;
+    protected Vpls vpls;
+    protected InterfaceService interfaceService;
 
     @Override
     public List<String> choices() {

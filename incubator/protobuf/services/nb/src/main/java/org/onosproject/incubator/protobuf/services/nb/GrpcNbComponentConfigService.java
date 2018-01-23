@@ -62,7 +62,7 @@ public class GrpcNbComponentConfigService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
-    private static ComponentConfigServiceNbServerInternal instance = null;
+    private ComponentConfigServiceNbServerInternal instance = null;
 
     @Activate
     public void activate() {

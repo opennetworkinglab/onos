@@ -96,7 +96,7 @@ public final class PceccSrTeBeHandler {
      *
      * @return this class single instance
      */
-    public static PceccSrTeBeHandler getInstance() {
+    public static synchronized PceccSrTeBeHandler getInstance() {
         if (srTeHandlerInstance == null) {
             srTeHandlerInstance = new PceccSrTeBeHandler();
         }

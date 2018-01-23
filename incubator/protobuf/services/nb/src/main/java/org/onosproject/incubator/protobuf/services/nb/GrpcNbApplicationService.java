@@ -59,7 +59,7 @@ public class GrpcNbApplicationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationService applicationService;
 
-    private static ApplicationServiceNbServerInternal instance = null;
+    private ApplicationServiceNbServerInternal instance = null;
 
 
     @Activate

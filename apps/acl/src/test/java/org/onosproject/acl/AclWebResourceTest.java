@@ -67,8 +67,7 @@ public class AclWebResourceTest extends JerseyTest {
                 .add(AclStore.class, mockAclStore);
         BaseResource.setServiceDirectory(testDirectory);
 
-        IdGenerator idGenerator = new MockIdGenerator();
-        AclRule.bindIdGenerator(idGenerator);
+        AclRule.idGenerator = new MockIdGenerator();
     }
 
     @After

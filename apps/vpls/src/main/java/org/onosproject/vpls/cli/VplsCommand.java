@@ -101,8 +101,8 @@ public class VplsCommand extends AbstractShellCommand {
             COLOR_ERROR + "Interface " + BOLD + "%s" + RESET + COLOR_ERROR +
                     " cannot be removed from VPLS " + BOLD + "%s" + RESET + ".";
 
-    protected static Vpls vpls;
-    protected static InterfaceService interfaceService;
+    protected Vpls vpls;
+    protected InterfaceService interfaceService;
 
     @Argument(index = 0, name = "command", description = "Command name (add-if|" +
             "create|delete|list|rem-if|set-encap|show)",
@@ -377,7 +377,7 @@ public class VplsCommand extends AbstractShellCommand {
      * @return true if the interface is already associated to a VPLS; false
      * otherwise
      */
-    private static boolean isIfaceAssociated(Interface iface) {
+    private boolean isIfaceAssociated(Interface iface) {
         return vpls.getAllVpls()
                 .stream()
                 .map(VplsData::interfaces)

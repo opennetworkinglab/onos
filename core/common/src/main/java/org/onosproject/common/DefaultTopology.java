@@ -119,7 +119,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @param linkWeigher new default link-weight
      */
-    public static void setDefaultLinkWeigher(LinkWeigher linkWeigher) {
+    public static synchronized void setDefaultLinkWeigher(LinkWeigher linkWeigher) {
         log.info("Setting new default link-weight function to {}", linkWeigher);
         defaultLinkWeigher = linkWeigher;
     }
@@ -130,7 +130,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @param graphPathSearch new default algorithm
      */
-    public static void setDefaultGraphPathSearch(
+    public static synchronized void setDefaultGraphPathSearch(
             GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch) {
         log.info("Setting new default graph path algorithm to {}", graphPathSearch);
         defaultGraphPathSearch = graphPathSearch;

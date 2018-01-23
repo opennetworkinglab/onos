@@ -113,7 +113,7 @@ public final class BasicPceccHandler {
      *
      * @return this class single instance
      */
-    public static BasicPceccHandler getInstance() {
+    public static synchronized BasicPceccHandler getInstance() {
         if (crHandlerInstance == null) {
             crHandlerInstance = new BasicPceccHandler();
         }

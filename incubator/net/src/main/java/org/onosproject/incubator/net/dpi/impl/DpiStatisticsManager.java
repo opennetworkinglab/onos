@@ -67,7 +67,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class DpiStatisticsManager implements DpiStatisticsManagerService {
 
-    private static ServerSocket serverSocket;
+    private ServerSocket serverSocket;
     private static int port = 11990; // socket server listening port
 
     private final Logger log = getLogger(getClass());

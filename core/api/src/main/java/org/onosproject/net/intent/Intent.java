@@ -48,6 +48,7 @@ public abstract class Intent {
     private final ResourceGroup resourceGroup;
 
     private static IdGenerator idGenerator;
+    private static final Object ID_GENERATOR_LOCK = new Object();
 
     /**
      * Constructor for serializer.
@@ -248,8 +249,10 @@ public abstract class Intent {
      * @param newIdGenerator id generator
      */
     public static void bindIdGenerator(IdGenerator newIdGenerator) {
-        checkState(idGenerator == null, "Id generator is already bound.");
-        idGenerator = checkNotNull(newIdGenerator);
+        synchronized (ID_GENERATOR_LOCK) {
+            checkState(idGenerator == null, "Id generator is already bound.");
+            idGenerator = checkNotNull(newIdGenerator);
+        }
     }
 
     /**
@@ -260,8 +263,10 @@ public abstract class Intent {
      * @param oldIdGenerator the current id generator
      */
     public static void unbindIdGenerator(IdGenerator oldIdGenerator) {
-        if (idGenerator == oldIdGenerator) {
-            idGenerator = null;
+        synchronized (ID_GENERATOR_LOCK) {
+            if (idGenerator == oldIdGenerator) {
+                idGenerator = null;
+            }
         }
     }
 

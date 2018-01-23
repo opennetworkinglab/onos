@@ -86,10 +86,10 @@ import static org.onosproject.gluon.rsc.GluonConstants.SUBKEYS_RECEIVED;
 
 public class GluonServer {
 
-    private static String protonKeyUri;
-    private static String serverUri;
+    private String protonKeyUri;
+    private String serverUri;
 
-    private static CloseableHttpAsyncClient httpClient;
+    private CloseableHttpAsyncClient httpClient;
 
     //store gluon server supported subkeys
     private List<String> subKeys = new LinkedList<>();

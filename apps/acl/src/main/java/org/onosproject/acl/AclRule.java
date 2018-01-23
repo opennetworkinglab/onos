@@ -43,7 +43,7 @@ public final class AclRule {
     private final short dstTpPort;
     private final Action action;
 
-    private static IdGenerator idGenerator;
+    protected static IdGenerator idGenerator;
 
     /**
      * Enum type for ACL rule's action.
