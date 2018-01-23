@@ -40,7 +40,7 @@ public final class RouteAttributeGateway extends RouteAttribute {
      * @param type type
      * @param gateway gateway address
      */
-    public RouteAttributeGateway(int length, int type, IpAddress gateway) {
+    private RouteAttributeGateway(int length, int type, IpAddress gateway) {
         super(length, type);
 
         this.gateway = gateway;
@@ -93,8 +93,7 @@ public final class RouteAttributeGateway extends RouteAttribute {
     @Override
     public void encode(ChannelBuffer cb) {
 
-        cb.writeShort(Short.reverseBytes((short) length()));
-        cb.writeShort(Short.reverseBytes((short) type()));
+        super.encode(cb);
 
         ChannelBuffer buffer =  ChannelBuffers.copiedBuffer(gateway.toOctets());
         if (length() == Ip6Address.BYTE_LENGTH +
@@ -105,6 +104,56 @@ public final class RouteAttributeGateway extends RouteAttribute {
             cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
         } else {
             throw new IllegalArgumentException("Gateway address length incorrect!");
+        }
+    }
+
+    /**
+     * Returns a new RouteAttributeGateway builder.
+     *
+     * @return RouteAttributeGateway builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * RouteAttributeGateway Builder.
+     */
+    public static final class Builder extends RouteAttribute.Builder<Builder> {
+
+        private IpAddress gateway = null;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {}
+
+        /**
+         * Override abstract method.
+         */
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets gateway for RouteAttributeGateway that will be built.
+         *
+         * @param gateway to use for built RouteAttributeGateway
+         * @return this builder
+         */
+        public Builder gateway(IpAddress gateway) {
+            this.gateway = gateway;
+            return this;
+        }
+
+        /**
+         * Builds the RouteAttributeGateway.
+         *
+         * @return RouteAttributeGateway reference
+         */
+        public RouteAttributeGateway build() {
+            return new RouteAttributeGateway(length, type, gateway);
         }
     }
 }

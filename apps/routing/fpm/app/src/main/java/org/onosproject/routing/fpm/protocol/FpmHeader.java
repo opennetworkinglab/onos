@@ -63,7 +63,7 @@ public final class FpmHeader {
      * @param length length
      * @param netlink netlink header
      */
-    public FpmHeader(short version, short type, int length, Netlink netlink) {
+    private FpmHeader(short version, short type, int length, Netlink netlink) {
         this.version = version;
         this.type = type;
         this.length = length;
@@ -168,5 +168,84 @@ public final class FpmHeader {
 
         netlink.encode(cb);
         return cb;
+    }
+
+    /**
+     * Returns a new FpmHeader builder.
+     *
+     * @return FpmHeader builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * FpmHeader Builder.
+     */
+    public static final class Builder {
+
+        private short version = FPM_VERSION_1;
+        private short type = FPM_TYPE_NETLINK;
+        private int length = 0;
+        private Netlink netlink = null;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {
+        }
+
+        /**
+         * Sets version for the FpmHeader that will be built.
+         *
+         * @param version to use for built FpmHeader
+         * @return this builder
+         */
+        public Builder version(short version) {
+            this.version = version;
+            return this;
+        }
+
+        /**
+         * Sets type for the FpmHeader that will be built.
+         *
+         * @param type to use for built FpmHeader
+         * @return this builder
+         */
+        public Builder type(short type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * Sets length for the FpmHeader that will be built.
+         *
+         * @param length to use for built FpmHeader
+         * @return this builder
+         */
+        public Builder length(int length) {
+            this.length = length;
+            return this;
+        }
+
+        /**
+         * Sets netlink for the FpmHeader that will be built.
+         *
+         * @param netlink to use for built FpmHeader
+         * @return this builder
+         */
+        public Builder netlink(Netlink netlink) {
+            this.netlink = netlink;
+            return this;
+        }
+
+        /**
+         * Builds the FpmHeader.
+         *
+         * @return FpmHeader reference
+         */
+        public FpmHeader build() {
+            return new FpmHeader(version, type, length, netlink);
+        }
     }
 }

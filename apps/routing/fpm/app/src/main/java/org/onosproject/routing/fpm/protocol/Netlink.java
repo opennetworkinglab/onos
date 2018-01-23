@@ -55,7 +55,7 @@ public final class Netlink {
      * @param processPortId port ID
      * @param rtNetlink netlink routing message
      */
-    public Netlink(long length, NetlinkMessageType type, int flags, long sequence,
+    private Netlink(long length, NetlinkMessageType type, int flags, long sequence,
                     long processPortId, RtNetlink rtNetlink) {
         this.length = length;
         this.type = type;
@@ -188,4 +188,106 @@ public final class Netlink {
         rtNetlink.encode(cb);
     }
 
+    /**
+     * Returns a new Netlink builder.
+     *
+     * @return Netlink builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Netlink Builder.
+     */
+    public static final class Builder {
+
+        private long length = 0;
+        private NetlinkMessageType type = NetlinkMessageType.RTM_NEWROUTE;
+        private int flags = 0;
+        private long sequence = 0;
+        private long processPortId = 0;
+        private RtNetlink rtNetlink = null;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {
+        }
+
+        /**
+         * Sets length for the Netlink that will be built.
+         *
+         * @param length to use for built Netlink
+         * @return this builder
+         */
+        public Builder length(long length) {
+            this.length = length;
+            return this;
+        }
+
+        /**
+         * Sets type for the Netlink that will be built.
+         *
+         * @param type to use for built Netlink
+         * @return this builder
+         */
+        public Builder type(NetlinkMessageType type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * Sets flags for the Netlink that will be built.
+         *
+         * @param flags to use for built Netlink
+         * @return this builder
+         */
+        public Builder flags(int flags) {
+            this.flags = flags;
+            return this;
+        }
+
+        /**
+         * Sets sequence for the Netlink that will be built.
+         *
+         * @param sequence to use for built Netlink
+         * @return this builder
+         */
+        public Builder sequence(long sequence) {
+            this.sequence = sequence;
+            return this;
+        }
+
+        /**
+         * Sets processPortId for the Netlink that will be built.
+         *
+         * @param processPortId to use for built Netlink
+         * @return this builder
+         */
+        public Builder processPortId(long processPortId) {
+            this.processPortId = processPortId;
+            return this;
+        }
+
+        /**
+         * Sets rtNetlink for the Netlink that will be built.
+         *
+         * @param rtNetlink to use for built Netlink
+         * @return this builder
+         */
+        public Builder rtNetlink(RtNetlink rtNetlink) {
+            this.rtNetlink = rtNetlink;
+            return this;
+        }
+
+        /**
+         * Builds the Netlink.
+         *
+         * @return Netlink reference
+         */
+        public Netlink build() {
+            return new Netlink(length, type, flags, sequence, processPortId, rtNetlink);
+        }
+    }
 }

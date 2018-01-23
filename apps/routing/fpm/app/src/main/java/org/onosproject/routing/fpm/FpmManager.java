@@ -75,7 +75,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -531,24 +530,23 @@ public class FpmManager implements FpmInfoService {
 
     private void sendRouteUpdateToChannel(boolean isAdd, IpPrefix prefix, Channel ch) {
 
-        int netLinkLength;
-        short addrFamily;
-        IpAddress pdPushNextHop;
-
         if (!pdPushEnabled) {
             return;
         }
 
         try {
-            // Construct list of route attributes.
-            List<RouteAttribute> attributes = new ArrayList<>();
+            int raLength;
+            short addrFamily;
+            IpAddress pdPushNextHop;
+
+            // Build route attributes.
             if (prefix.isIp4()) {
                 if (pdPushNextHopIPv4 == null) {
                     log.info("Prefix not pushed because ipv4 next-hop is null.");
                     return;
                 }
                 pdPushNextHop = pdPushNextHopIPv4;
-                netLinkLength =  Ip4Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
+                raLength =  Ip4Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
                 addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET;
             } else {
                 if (pdPushNextHopIPv6 == null) {
@@ -556,70 +554,48 @@ public class FpmManager implements FpmInfoService {
                     return;
                 }
                 pdPushNextHop = pdPushNextHopIPv6;
-                netLinkLength =  Ip6Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
+                raLength =  Ip6Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
                 addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET6;
             }
 
-            RouteAttributeDst raDst = new RouteAttributeDst(
-                netLinkLength,
-                RouteAttribute.RTA_DST,
-                prefix.address());
-            attributes.add(raDst);
+             RouteAttributeDst raDst = RouteAttributeDst.builder()
+                .length(raLength)
+                .type(RouteAttribute.RTA_DST)
+                .dstAddress(prefix.address())
+                .build();
 
-            RouteAttributeGateway raGateway = new RouteAttributeGateway(
-                netLinkLength,
-                RouteAttribute.RTA_GATEWAY,
-                pdPushNextHop);
-            attributes.add(raGateway);
+            RouteAttributeGateway raGateway = RouteAttributeGateway.builder()
+                .length(raLength)
+                .type(RouteAttribute.RTA_GATEWAY)
+                .gateway(pdPushNextHop)
+                .build();
 
-            // Add RtNetlink header.
-            int srcLength = 0;
-            short tos = 0;
-            short table = 0;
-            short scope = 0;
-            long rtFlags = 0;
+            // Build RtNetlink.
+            RtNetlink rtNetlink = RtNetlink.builder()
+                .addressFamily(addrFamily)
+                .dstLength(prefix.prefixLength())
+                .routeAttribute(raDst)
+                .routeAttribute(raGateway)
+                .build();
+
+            // Build Netlink.
             int messageLength = raDst.length() + raGateway.length() +
-                RtNetlink.RT_NETLINK_LENGTH;
+                                RtNetlink.RT_NETLINK_LENGTH + Netlink.NETLINK_HEADER_LENGTH;
+            Netlink netLink = Netlink.builder()
+                .length(messageLength)
+                .type(isAdd ? NetlinkMessageType.RTM_NEWROUTE : NetlinkMessageType.RTM_DELROUTE)
+                .flags(Netlink.NETLINK_REQUEST | Netlink.NETLINK_CREATE)
+                .rtNetlink(rtNetlink)
+                .build();
 
-            RtNetlink rtNetlink =  new RtNetlink(
-                addrFamily,
-                prefix.prefixLength(),
-                srcLength,
-                tos,
-                table,
-                RtProtocol.ZEBRA,
-                scope,
-                FpmHeader.FPM_TYPE_NETLINK,
-                rtFlags,
-                attributes);
-
-            // Add Netlink header.
-            NetlinkMessageType nlMsgType;
-            if (isAdd) {
-                nlMsgType = NetlinkMessageType.RTM_NEWROUTE;
-            } else {
-                nlMsgType = NetlinkMessageType.RTM_DELROUTE;
-            }
-            int flags = Netlink.NETLINK_REQUEST | Netlink.NETLINK_CREATE;
-            long sequence = 0;
-            long processPortId = 0;
-            messageLength += Netlink.NETLINK_HEADER_LENGTH;
-
-            Netlink netLink = new Netlink(messageLength,
-                nlMsgType,
-                flags,
-                sequence,
-                processPortId,
-                rtNetlink);
-
+            // Build FpmHeader.
             messageLength += FpmHeader.FPM_HEADER_LENGTH;
-
-            // Add FpmHeader.
-            FpmHeader fpmMessage = new FpmHeader(
-                FpmHeader.FPM_VERSION_1,
-                FpmHeader.FPM_TYPE_NETLINK,
-                messageLength,
-                netLink);
+            FpmHeader fpmMessage = FpmHeader.builder()
+                .version(FpmHeader.FPM_VERSION_1)
+                .type(FpmHeader.FPM_TYPE_NETLINK)
+                .length(messageLength)
+                .netlink(netLink)
+                .build();
 
             // Encode message in a channel buffer and transmit.
             ch.write(fpmMessage.encode());

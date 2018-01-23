@@ -38,7 +38,7 @@ public final class RouteAttributeDst extends RouteAttribute {
      * @param type type
      * @param dstAddress destination address
      */
-    public RouteAttributeDst(int length, int type, IpAddress dstAddress) {
+    private RouteAttributeDst(int length, int type, IpAddress dstAddress) {
         super(length, type);
 
         this.dstAddress = dstAddress;
@@ -91,8 +91,7 @@ public final class RouteAttributeDst extends RouteAttribute {
     @Override
     public void encode(ChannelBuffer cb) {
 
-        cb.writeShort(Short.reverseBytes((short) length()));
-        cb.writeShort(Short.reverseBytes((short) type()));
+        super.encode(cb);
 
         ChannelBuffer buffer =  ChannelBuffers.copiedBuffer(dstAddress.toOctets());
         if (length() == Ip6Address.BYTE_LENGTH +
@@ -103,6 +102,56 @@ public final class RouteAttributeDst extends RouteAttribute {
             cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
         } else {
             throw new IllegalArgumentException("Dst address length incorrect!");
+        }
+    }
+
+    /**
+     * Returns a new RouteAttributeDst builder.
+     *
+     * @return RouteAttributeDst builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * RouteAttributeDst Builder.
+     */
+    public static final class Builder extends RouteAttribute.Builder<Builder> {
+
+        private IpAddress dstAddress = null;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {}
+
+        /**
+         * Override abstract method.
+         */
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets dstAddress for RouteAttributeDst that will be built.
+         *
+         * @param dstAddress to use for built RouteAttributeDst
+         * @return this builder
+         */
+        public Builder dstAddress(IpAddress dstAddress) {
+            this.dstAddress = dstAddress;
+            return this;
+        }
+
+        /**
+         * Builds the RouteAttributeDst.
+         *
+         * @return RouteAttributeDst reference
+         */
+        public RouteAttributeDst build() {
+            return new RouteAttributeDst(length, type, dstAddress);
         }
     }
 }

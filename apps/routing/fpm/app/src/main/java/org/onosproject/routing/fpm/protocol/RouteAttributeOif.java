@@ -38,7 +38,7 @@ public final class RouteAttributeOif extends RouteAttribute {
      * @param type type
      * @param outputInterface output interface
      */
-    public RouteAttributeOif(int length, int type, long outputInterface) {
+    private RouteAttributeOif(int length, int type, long outputInterface) {
         super(length, type);
 
         this.outputInterface = outputInterface;
@@ -87,8 +87,57 @@ public final class RouteAttributeOif extends RouteAttribute {
     @Override
     public void encode(ChannelBuffer cb) {
 
-        cb.writeShort(Short.reverseBytes((short) length()));
-        cb.writeShort(Short.reverseBytes((short) type()));
+        super.encode(cb);
         cb.writeInt(Integer.reverseBytes((int) outputInterface));
+    }
+
+    /**
+     * Returns a new RouteAttributeOif builder.
+     *
+     * @return RouteAttributeOif builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * RouteAttributeOif Builder.
+     */
+    public static final class Builder extends RouteAttribute.Builder<Builder> {
+
+        private long outputInterface = 0;
+
+        /**
+        * Hide class constructor.
+        */
+        private Builder() {}
+
+        /**
+         * Override abstract method.
+         */
+        @Override
+        public Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets outputInterface for RouteAttributeOif that will be built.
+         *
+         * @param outputInterface to use for built RouteAttributeOif
+         * @return this builder
+         */
+        public Builder outputInterface(long outputInterface) {
+            this.outputInterface = outputInterface;
+            return this;
+        }
+
+        /**
+         * Builds the RouteAttributeOif.
+         *
+         * @return RouteAttributeOif reference
+         */
+        public RouteAttributeOif build() {
+            return new RouteAttributeOif(length, type, outputInterface);
+        }
     }
 }

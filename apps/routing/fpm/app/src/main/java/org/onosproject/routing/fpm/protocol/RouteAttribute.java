@@ -121,6 +121,43 @@ public abstract class RouteAttribute {
      *
      * @param cb channelbuffer to be filled in
      */
-    public abstract void encode(ChannelBuffer cb);
+    public void encode(ChannelBuffer cb) {
+        cb.writeShort(Short.reverseBytes((short) length()));
+        cb.writeShort(Short.reverseBytes((short) type()));
+    }
 
+    /**
+     * RouteAttribute Builder.
+     */
+    public abstract static class Builder<T extends Builder<T>> {
+
+        protected int length;
+        protected int type;
+
+        public Builder() {}
+
+        public abstract T getThis();
+
+        /**
+         * Sets length for RouteAttribute that will be built.
+         *
+         * @param length to use for built RtNetlink
+         * @return this generic builder type
+         */
+        public T length(int length) {
+            this.length = length;
+            return getThis();
+        }
+
+        /**
+         * Sets type for RouteAttribute that will be built.
+         *
+         * @param type to use for built RtNetlink
+         * @return this generic builder type
+         */
+        public T type(int type) {
+            this.type = type;
+            return getThis();
+        }
+    }
 }
