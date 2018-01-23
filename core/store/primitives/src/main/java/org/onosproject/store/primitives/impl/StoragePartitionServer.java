@@ -42,7 +42,8 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
 
     private static final int MAX_SEGMENT_SIZE = 1024 * 1024 * 64;
     private static final long ELECTION_TIMEOUT_MILLIS = 2500;
-    private static final long HEARTBEAT_INTERVAL_MILLIS = 250;
+    private static final int ELECTION_THRESHOLD = 5;
+    private static final long HEARTBEAT_INTERVAL_MILLIS = 500;
 
     private final MemberId localMemberId;
     private final StoragePartition partition;
@@ -103,8 +104,11 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 .withProtocol(protocol.get())
                 .withElectionTimeout(Duration.ofMillis(ELECTION_TIMEOUT_MILLIS))
                 .withHeartbeatInterval(Duration.ofMillis(HEARTBEAT_INTERVAL_MILLIS))
+                .withElectionThreshold(ELECTION_THRESHOLD)
                 .withStorage(RaftStorage.newBuilder()
-                        .withStorageLevel(StorageLevel.MAPPED)
+                        .withPrefix(String.format("partition-%s", partition.getId()))
+                        .withStorageLevel(StorageLevel.DISK)
+                        .withFlushOnCommit()
                         .withSerializer(new AtomixSerializerAdapter(Serializer.using(StorageNamespaces.RAFT_STORAGE)))
                         .withDirectory(dataFolder)
                         .withMaxSegmentSize(MAX_SEGMENT_SIZE)
