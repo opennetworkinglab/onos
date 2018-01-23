@@ -154,13 +154,10 @@ control Forwarding (
         if(fabric_metadata.fwd_type == FWD_BRIDGING) bridging.apply();
         else if (fabric_metadata.fwd_type == FWD_MPLS) {
             mpls.apply();
-            if (hdr.ipv4.isValid()) {
-                hdr.ethernet.ether_type = ETHERTYPE_IPV4;
-                fabric_metadata.original_ether_type = ETHERTYPE_IPV4;
-            } else {
-                hdr.ethernet.ether_type = ETHERTYPE_IPV6;
-                fabric_metadata.original_ether_type = ETHERTYPE_IPV6;
-            }
+
+            // TODO: IPv6
+            hdr.vlan_tag.ether_type = ETHERTYPE_IPV4;
+            fabric_metadata.original_ether_type = ETHERTYPE_IPV4;
         }
         else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
         else if (fabric_metadata.fwd_type == FWD_IPV4_MULTICAST) multicast_v4.apply();

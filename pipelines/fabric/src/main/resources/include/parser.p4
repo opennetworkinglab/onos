@@ -41,8 +41,6 @@ inout standard_metadata_t standard_metadata) {
         packet.extract(hdr.ethernet);
         fabric_metadata.original_ether_type = hdr.ethernet.ether_type;
         transition select(hdr.ethernet.ether_type){
-            ETHERTYPE_QINQ_NON_STD: parse_vlan_tag;
-            ETHERTYPE_QINQ: parse_vlan_tag;
             ETHERTYPE_VLAN: parse_vlan_tag;
             ETHERTYPE_MPLS: parse_mpls;
             ETHERTYPE_ARP: parse_arp;
@@ -55,20 +53,10 @@ inout standard_metadata_t standard_metadata) {
     state parse_vlan_tag {
         packet.extract(hdr.vlan_tag);
         transition select(hdr.vlan_tag.ether_type){
-            ETHERTYPE_VLAN: parse_inner_vlan_tag;
             ETHERTYPE_ARP: parse_arp;
             ETHERTYPE_IPV4: parse_ipv4;
             ETHERTYPE_IPV6: parse_ipv6;
-            default: accept;
-        }
-    }
-
-    state parse_inner_vlan_tag {
-        packet.extract(hdr.inner_vlan_tag);
-        transition select(hdr.vlan_tag.ether_type){
-            ETHERTYPE_ARP: parse_arp;
-            ETHERTYPE_IPV4: parse_ipv4;
-            ETHERTYPE_IPV6: parse_ipv6;
+            ETHERTYPE_MPLS: parse_mpls;
             default: accept;
         }
     }
@@ -139,7 +127,6 @@ control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.packet_in);
         packet.emit(hdr.ethernet);
         packet.emit(hdr.vlan_tag);
-        packet.emit(hdr.inner_vlan_tag);
         packet.emit(hdr.mpls);
         packet.emit(hdr.arp);
         packet.emit(hdr.ipv4);

@@ -63,7 +63,7 @@ control Next (
     action push_mpls (mpls_label_t label, bit<3> tc) {
         // Suppose that the maximum number of label is one.
         hdr.mpls.setValid();
-        hdr.ethernet.ether_type = ETHERTYPE_MPLS;
+        hdr.vlan_tag.ether_type = ETHERTYPE_MPLS;
         hdr.mpls.label = label;
         hdr.mpls.tc = tc;
         hdr.mpls.bos = 1w1; // BOS = TRUE
@@ -157,11 +157,7 @@ control EgressNextControl (
     apply {
         // pop internal vlan if the meta is set
         if (fabric_metadata.pop_vlan_at_egress) {
-            if (hdr.mpls.isValid()) {
-                hdr.ethernet.ether_type = ETHERTYPE_MPLS;
-            } else {
-                hdr.ethernet.ether_type = fabric_metadata.original_ether_type;
-            }
+            hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
             hdr.vlan_tag.setInvalid();
         }
     }

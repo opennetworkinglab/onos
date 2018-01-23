@@ -129,7 +129,6 @@ struct fabric_metadata_t {
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
-    vlan_tag_t inner_vlan_tag;
     mpls_t mpls;
     ipv4_t ipv4;
     ipv6_t ipv6;
