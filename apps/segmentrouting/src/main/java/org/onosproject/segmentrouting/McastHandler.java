@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
@@ -63,6 +64,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -782,21 +784,75 @@ public class McastHandler {
             return Optional.empty();
         }
 
-        // If one of the available path is used before, use the same path
-        McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, src);
-        if (mcastNextObjStore.containsKey(mcastStoreKey)) {
-            NextObjective nextObj = mcastNextObjStore.get(mcastStoreKey).value();
-            Set<PortNumber> existingPorts = getPorts(nextObj.next());
-            for (Path path : allPaths) {
-                PortNumber srcPort = path.links().get(0).src().port();
-                if (existingPorts.contains(srcPort)) {
-                    return Optional.of(path);
+        // Create a map index of suitablity-to-list of paths. For example
+        // a path in the list associated to the index 1 shares only the
+        // first hop and it is less suitable of a path belonging to the index
+        // 2 that shares leaf-spine.
+        Map<Integer, List<Path>> eligiblePaths = Maps.newHashMap();
+        // Some init steps
+        int nhop;
+        McastStoreKey mcastStoreKey;
+        Link hop;
+        PortNumber srcPort;
+        Set<PortNumber> existingPorts;
+        NextObjective nextObj;
+        // Iterate over paths looking for eligible paths
+        for (Path path : allPaths) {
+            // Unlikely, it will happen...
+            if (!src.equals(path.links().get(0).src().deviceId())) {
+                continue;
+            }
+            nhop = 0;
+            // Iterate over the links
+            while (nhop < path.links().size()) {
+                // Get the link and verify if a next related
+                // to the src device exist in the store
+                hop = path.links().get(nhop);
+                mcastStoreKey = new McastStoreKey(mcastIp, hop.src().deviceId());
+                // It does not exist in the store, exit
+                if (!mcastNextObjStore.containsKey(mcastStoreKey)) {
+                    break;
                 }
+                // Get the output ports on the next
+                nextObj = mcastNextObjStore.get(mcastStoreKey).value();
+                existingPorts = getPorts(nextObj.next());
+                // And the src port on the link
+                srcPort = hop.src().port();
+                // the src port is not used as output, exit
+                if (!existingPorts.contains(srcPort)) {
+                    break;
+                }
+                nhop++;
+            }
+            // n_hop defines the index
+            if (nhop > 0) {
+                eligiblePaths.compute(nhop, (index, paths) -> {
+                    paths = paths == null ? Lists.newArrayList() : paths;
+                    paths.add(path);
+                    return paths;
+                });
             }
         }
-        // Otherwise, randomly pick a path
-        Collections.shuffle(allPaths);
-        return allPaths.stream().findFirst();
+
+        // No suitable paths
+        if (eligiblePaths.isEmpty()) {
+            log.debug("No eligiblePath(s) found from {} to {}", src, dst);
+            // Otherwise, randomly pick a path
+            Collections.shuffle(allPaths);
+            return allPaths.stream().findFirst();
+        }
+
+        // Let's take the best ones
+        Integer bestIndex = eligiblePaths.keySet()
+                .stream()
+                .sorted(Comparator.reverseOrder())
+                .findFirst().orElse(null);
+        List<Path> bestPaths = eligiblePaths.get(bestIndex);
+        log.debug("{} eligiblePath(s) found from {} to {}",
+                  bestPaths.size(), src, dst);
+        // randomly pick a path on the highest index
+        Collections.shuffle(bestPaths);
+        return bestPaths.stream().findFirst();
     }
 
     /**
