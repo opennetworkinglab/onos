@@ -87,6 +87,7 @@ import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.group.GroupDescription.Type.ALL;
+import static org.onosproject.net.group.GroupDescription.Type.INDIRECT;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -247,23 +248,34 @@ public class Ofdpa2GroupHandler {
      * a chain of groups. The simple Next Objective passed
      * in by the application has to be broken up into a group chain
      * comprising of an L3 Unicast Group that points to an L2 Interface
-     * Group which in-turn points to an output port. In some cases, the simple
+     * Group which in-turn points to an output port or an MPLS Interface Group
+     * that points to an L2 Interface Group. In some cases, the simple
      * next Objective can just be an L2 interface without the need for chaining.
+     * Further, if the label is set to the Next objective then the Group chain
+     * MPLS Swap - MPLS Interface - L2 Interface is created
      *
      * @param nextObj  the nextObjective of type SIMPLE
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
         TrafficTreatment treatment = nextObj.next().iterator().next();
-        // determine if plain L2 or L3->L2
+        // determine if plain L2 or L3->L2 or MPLS Swap -> MPLS Interface -> L2
         boolean plainL2 = true;
+        boolean mplsSwap = false;
+        MplsLabel mplsLabel = null;
         for (Instruction ins : treatment.allInstructions()) {
             if (ins.type() == Instruction.Type.L2MODIFICATION) {
                 L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
                 if (l2ins.subtype() == L2ModificationInstruction.L2SubType.ETH_DST ||
                         l2ins.subtype() == L2ModificationInstruction.L2SubType.ETH_SRC) {
                     plainL2 = false;
-                    break;
                 }
+                // mpls label in simple next objectives is used only to indicate
+                // a MPLS Swap group before the MPLS Interface Group
+                if (l2ins.subtype() == L2ModificationInstruction.L2SubType.MPLS_LABEL) {
+                    mplsSwap = true;
+                    mplsLabel = ((L2ModificationInstruction.ModMplsLabelInstruction) l2ins).label();
+                }
+
             }
         }
 
@@ -288,13 +300,59 @@ public class Ofdpa2GroupHandler {
 
         }
 
-        if (!isPw) {
+        if (mplsSwap) {
+            log.debug("Creating a MPLS Swap - MPLS Interface - L2 Interface group chain.");
+
+            // break up simple next objective to GroupChain objects
+            GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
+                                                  nextObj.appId(), true,
+                                                  nextObj.meta());
+            if (groupInfo == null) {
+                log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
+                fail(nextObj, ObjectiveError.BADPARAMS);
+                return;
+            }
+
+            Deque<GroupKey> gkeyChain = new ArrayDeque<>();
+            gkeyChain.addFirst(groupInfo.innerMostGroupDesc().appCookie());
+            gkeyChain.addFirst(groupInfo.nextGroupDesc().appCookie());
+
+            // creating the mpls swap group and adding it to the chain
+            GroupChainElem groupChainElem;
+            GroupKey groupKey;
+            GroupDescription groupDescription;
+            int nextGid = groupInfo.nextGroupDesc().givenGroupId();
+            int index = getNextAvailableIndex();
+
+            groupDescription = createMplsSwap(
+                    nextGid,
+                    OfdpaMplsGroupSubType.MPLS_SWAP_LABEL,
+                    index,
+                    mplsLabel,
+                    nextObj.appId()
+            );
+
+            groupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(index));
+            groupChainElem = new GroupChainElem(groupDescription, 1, false, deviceId);
+            updatePendingGroups(groupInfo.nextGroupDesc().appCookie(), groupChainElem);
+            gkeyChain.addFirst(groupKey);
+
+            // create a new List from singletonList that is mutable
+            OfdpaNextGroup ofdpaGrp = new OfdpaNextGroup(Collections.singletonList(gkeyChain), nextObj);
+            updatePendingNextObjective(groupInfo.nextGroupDesc().appCookie(), ofdpaGrp);
+
+            // now we are ready to send the l2 groupDescription (inner), as all the stores
+            // that will get async replies have been updated. By waiting to update
+            // the stores, we prevent nasty race conditions.
+            groupService.addGroup(groupInfo.innerMostGroupDesc());
+        } else if (!isPw) {
             // break up simple next objective to GroupChain objects
             GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
                                                   nextObj.appId(), isMpls,
                                                   nextObj.meta());
             if (groupInfo == null) {
                 log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
+                fail(nextObj, ObjectiveError.BADPARAMS);
                 return;
             }
             // create object for local and distributed storage
@@ -349,6 +407,45 @@ public class Ofdpa2GroupHandler {
 
         // Start installing the inner-most group
         groupService.addGroup(l2InterfaceGroupDesc);
+    }
+
+    /**
+     * Creates an Mpls group of type swap.
+     *
+     * @param nextGroupId the next group in the chain
+     * @param subtype the mpls swap label group subtype
+     * @param index the index of the group
+     * @param mplsLabel the mpls label to swap
+     * @param applicationId the application id
+     * @return the group description
+     */
+    protected GroupDescription createMplsSwap(int nextGroupId,
+                                              OfdpaMplsGroupSubType subtype,
+                                              int index,
+                                              MplsLabel mplsLabel,
+                                              ApplicationId applicationId) {
+
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.setMpls(mplsLabel);
+
+        // We point the group to the next group.
+        treatment.group(new GroupId(nextGroupId));
+        GroupBucket groupBucket = DefaultGroupBucket
+                .createIndirectGroupBucket(treatment.build());
+        // Finally we build the group description.
+        int groupId = makeMplsLabelGroupId(subtype, index);
+        GroupKey groupKey = new DefaultGroupKey(
+                Ofdpa2Pipeline.appKryo.serialize(index)
+        );
+        return new DefaultGroupDescription(
+                deviceId,
+                INDIRECT,
+                new GroupBuckets(Collections.singletonList(groupBucket)),
+                groupKey,
+                groupId,
+                applicationId
+        );
     }
 
     /**
