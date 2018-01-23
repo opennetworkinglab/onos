@@ -66,7 +66,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
-import static org.onosproject.net.pi.impl.PiFlowRuleTranslatorImpl.MAX_PI_PRIORITY;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
@@ -199,8 +198,10 @@ public class PiTranslatorServiceTest {
                    ethTypeParam.value().asReadOnlyBuffer().getShort(), is(equalTo(ethType)));
         assertThat("Incorrect ethType match param mask",
                    ethTypeParam.mask().asReadOnlyBuffer().getShort(), is(equalTo(ETH_TYPE_MASK)));
-        assertThat("Incorrect priority value",
-                   entry1.priority().get(), is(equalTo(MAX_PI_PRIORITY - rule1.priority())));
+        // FIXME: re-enable when P4Runtime priority handling will be moved out of transltion service
+        // see PiFlowRuleTranslatorImpl
+        // assertThat("Incorrect priority value",
+        //            entry1.priority().get(), is(equalTo(MAX_PI_PRIORITY - rule1.priority())));
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
 

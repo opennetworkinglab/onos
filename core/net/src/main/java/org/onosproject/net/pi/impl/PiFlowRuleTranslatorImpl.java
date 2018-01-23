@@ -31,6 +31,7 @@ import org.onosproject.net.pi.model.PiActionModel;
 import org.onosproject.net.pi.model.PiActionParamModel;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMatchFieldModel;
+import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
@@ -103,25 +104,22 @@ final class PiFlowRuleTranslatorImpl {
         // Build PI entry.
         final PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
-        // In the P4 world 0 is the highest priority, in ONOS the lowest one.
-        // FIXME: move priority conversion to the driver, where different constraints might apply
-        // e.g. less bits for encoding priority in TCAM-based implementations.
-        final int newPriority;
-        if (rule.priority() > MAX_PI_PRIORITY) {
-            log.warn("Flow rule priority too big, setting translated priority to max value {}: {}",
-                     MAX_PI_PRIORITY, rule);
-            newPriority = 0;
-        } else {
-            newPriority = MAX_PI_PRIORITY - rule.priority();
-        }
+        // FIXME: P4Runtime limit
+        // Need to ignore priority if no TCAM lookup match field
+        boolean dontIgnorePriority = fieldMatches.stream()
+                .anyMatch(match -> match.type() == PiMatchType.TERNARY ||
+                        match.type() == PiMatchType.RANGE);
 
         tableEntryBuilder
                 .forTable(piTableId)
-                .withPriority(newPriority)
                 .withMatchKey(PiMatchKey.builder()
                                       .addFieldMatches(fieldMatches)
                                       .build())
                 .withAction(piTableAction);
+
+        if (dontIgnorePriority) {
+            tableEntryBuilder.withPriority(rule.priority());
+        }
 
         if (!rule.isPermanent()) {
             if (tableModel.supportsAging()) {

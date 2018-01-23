@@ -220,8 +220,7 @@ final class TableEntryEncoder {
 
         // Priority.
         // FIXME: check on P4Runtime if/what is the default priority.
-        int priority = piTableEntry.priority().orElse(0);
-        tableEntryMsgBuilder.setPriority(priority);
+        piTableEntry.priority().ifPresent(tableEntryMsgBuilder::setPriority);
 
         // Controller metadata (cookie)
         tableEntryMsgBuilder.setControllerMetadata(piTableEntry.cookie());
