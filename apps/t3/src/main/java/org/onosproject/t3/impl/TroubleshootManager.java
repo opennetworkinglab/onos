@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -59,6 +61,7 @@ import org.slf4j.Logger;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -98,6 +101,9 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Override
     public StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in) {
@@ -143,20 +149,39 @@ public class TroubleshootManager implements TroubleshootService {
 
         //If the trace has ouputs we analyze them all
         for (GroupsInDevice outputPath : trace.getGroupOuputs(in.deviceId())) {
-            log.debug("Output path {}", outputPath.getOutput());
+
+            ConnectPoint cp = outputPath.getOutput();
+            log.debug("Output path {}", cp);
+
             //Hosts for the the given output
-            Set<Host> hostsList = hostService.getConnectedHosts(outputPath.getOutput());
+            Set<Host> hostsList = hostService.getConnectedHosts(cp);
             //Hosts queried from the original ip or mac
             Set<Host> hosts = getHosts(trace);
 
             //If the two host collections contain the same item it means we reached the proper output
             if (!Collections.disjoint(hostsList, hosts)) {
                 log.debug("Stopping here because host is expected destination");
-                trace.addResultMessage("Reached required destination Host");
+                trace.addResultMessage("Reached required destination Host " + cp);
                 computePath(completePath, trace, outputPath.getOutput());
                 break;
+            } else if (cp.port().equals(PortNumber.CONTROLLER)) {
+                //Getting the master when the packet gets sent as packet in
+                NodeId master = mastershipService.getMasterFor(cp.deviceId());
+                trace.addResultMessage("Packet goes to the controller " + master.id());
+                computePath(completePath, trace, outputPath.getOutput());
+
+            } else if (outputPath.getFinalPacket().getCriterion(Criterion.Type.ETH_TYPE) != null &&
+                    ((EthTypeCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.ETH_TYPE)).ethType()
+                            .equals(EtherType.ARP.ethType()) && deviceService.getPort(cp).isEnabled() &&
+                    linkService.getEgressLinks(cp).isEmpty()) {
+                if (hostsList.isEmpty()) {
+                    trace.addResultMessage("Packet is ARP and reached " + cp + " with no hosts connected ");
+                } else {
+                    trace.addResultMessage("Packet is ARP and reached " + cp + " with hosts " + hostsList);
+                }
+                computePath(completePath, trace, outputPath.getOutput());
+
             } else {
-                ConnectPoint cp = outputPath.getOutput();
                 //let's add the ouput for the input
                 completePath.add(cp);
                 log.debug("------------------------------------------------------------");
@@ -169,7 +194,6 @@ public class TroubleshootManager implements TroubleshootService {
                     log.warn("No links out of {}", cp);
                     computePath(completePath, trace, cp);
                     trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
-                    return trace;
                 }
                 //For each link we trace the corresponding device
                 for (Link link : links) {
@@ -351,7 +375,7 @@ public class TroubleshootManager implements TroubleshootService {
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
         packet.criteria().forEach(builder::add);
         //Adding all the flows to the trace
-        trace.addFlowsForDevice(in.deviceId(), flows);
+        trace.addFlowsForDevice(in.deviceId(), ImmutableList.copyOf(flows));
 
         log.debug("Flows traversed by {}", packet);
         flows.forEach(entry -> {
@@ -364,61 +388,53 @@ public class TroubleshootManager implements TroubleshootService {
         });
         List<PortNumber> outputPorts = new ArrayList<>();
 
-        //Decide Output for packet when flow rule contains an OUTPUT instruction
-        Set<Instruction> outputFlowEntries = outputFlows.stream().flatMap(flow -> {
-            return flow.treatment().allInstructions().stream();
-        })
-                .filter(instruction -> {
-                    return instruction.type().equals(Instruction.Type.OUTPUT);
-                }).collect(Collectors.toSet());
-        log.debug("Output instructions {}", outputFlowEntries);
+        //TODO optimization
 
-        if (outputFlowEntries.size() != 0) {
-            outputThroughFlows(trace, packet, in, builder, outputPorts, outputFlowEntries);
+        //outputFlows contains also last rule of device, so we need filtering for OUTPUT instructions.
+        List<FlowEntry> outputFlowEntries = outputFlows.stream().filter(flow -> flow.treatment()
+                .allInstructions().stream().filter(instruction -> instruction.type()
+                        .equals(Instruction.Type.OUTPUT)).count() > 0).collect(Collectors.toList());
 
-        } else {
-            log.debug("Handling Groups");
-            //Analyze Groups
-            List<Group> groups = new ArrayList<>();
-
-            for (FlowEntry entry : flows) {
-                getGroupsFromInstructions(trace, groups, entry.treatment().allInstructions(),
-                        entry.deviceId(), builder, outputPorts, in);
-            }
-            packet = builder.build();
-            log.debug("Groups hit by packet {}", packet);
-            groups.forEach(group -> {
-                log.debug("Group {}", group);
-            });
+        if (outputFlowEntries.size() > 1) {
+            trace.addResultMessage("More than one flow rule with OUTPUT instruction");
+            log.warn("There cannot be more than one flow entry with OUTPUT instruction for {}", packet);
         }
+
+        if (outputFlowEntries.size() == 1) {
+
+            OutputInstruction outputInstruction = (OutputInstruction) outputFlowEntries.get(0).treatment()
+                    .allInstructions().stream()
+                    .filter(instruction -> {
+                        return instruction.type().equals(Instruction.Type.OUTPUT);
+                    }).findFirst().get();
+
+            //FIXME using GroupsInDevice for output even if flows.
+            buildOutputFromDevice(trace, in, builder, outputPorts, outputInstruction, ImmutableList.of());
+
+        }
+        log.debug("Handling Groups");
+        //Analyze Groups
+        List<Group> groups = new ArrayList<>();
+
+        Collection<FlowEntry> nonOutputFlows = flows;
+        nonOutputFlows.removeAll(outputFlowEntries);
+
+        for (FlowEntry entry : flows) {
+            getGroupsFromInstructions(trace, groups, entry.treatment().allInstructions(),
+                    entry.deviceId(), builder, outputPorts, in);
+        }
+        packet = builder.build();
+        log.debug("Groups hit by packet {}", packet);
+        groups.forEach(group -> {
+            log.debug("Group {}", group);
+        });
+
         log.debug("Output ports for packet {}", packet);
         outputPorts.forEach(port -> {
             log.debug("Port {}", port);
         });
         log.debug("Output Packet {}", packet);
         return trace;
-    }
-
-    /**
-     * Method that saves the output if that si done via an OUTPUT treatment of a flow rule.
-     *
-     * @param trace             the trace
-     * @param packet            the packet coming in to this device
-     * @param in                the input connect point for this device
-     * @param builder           the updated packet0
-     * @param outputPorts       the list of output ports for this device
-     * @param outputFlowEntries the list of flow entries with OUTPUT treatment
-     */
-    private void outputThroughFlows(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in,
-                                    TrafficSelector.Builder builder, List<PortNumber> outputPorts,
-                                    Set<Instruction> outputFlowEntries) {
-        if (outputFlowEntries.size() > 1) {
-            log.warn("There cannot be more than one flow entry with OUTPUT instruction for {}", packet);
-        } else {
-            OutputInstruction outputInstruction = (OutputInstruction) outputFlowEntries.iterator().next();
-            //FIXME using GroupsInDevice for output even if flows.
-            buildOutputFromDevice(trace, in, builder, outputPorts, outputInstruction, ImmutableList.of());
-        }
     }
 
     /**
@@ -528,8 +544,7 @@ public class TroubleshootManager implements TroubleshootService {
     private void buildOutputFromDevice(StaticPacketTrace trace, ConnectPoint in, TrafficSelector.Builder builder,
                                        List<PortNumber> outputPorts, OutputInstruction outputInstruction,
                                        List<Group> groupsForDevice) {
-        ConnectPoint output = ConnectPoint.deviceConnectPoint(in.deviceId() + "/" +
-                outputInstruction.port());
+        ConnectPoint output = new ConnectPoint(in.deviceId(), outputInstruction.port());
         if (output.equals(in)) {
             trace.addResultMessage("Connect point out " + output + " is same as initial input " +
                     trace.getInitialConnectPoint());

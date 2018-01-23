@@ -24,6 +24,8 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -32,6 +34,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
@@ -79,6 +82,7 @@ public class TroubleshootManagerTest {
         mngr.driverService = new TestDriverService();
         mngr.groupService = new TestGroupService();
         mngr.deviceService = new TestDeviceService();
+        mngr.mastershipService = new TestMastershipService();
 
         assertNotNull("Manager should not be null", mngr);
 
@@ -118,6 +122,22 @@ public class TroubleshootManagerTest {
         assertTrue("Trace should be unsuccessful",
                 traceFail.resultMessage().contains("is same as initial input"));
         log.info("trace {}", traceFail.resultMessage());
+    }
+
+    /**
+     * Tests ARP to controller.
+     */
+    @Test
+    public void arpToController() {
+        StaticPacketTrace traceSuccess = mngr.trace(PACKET_ARP, ARP_FLOW_CP);
+        assertNotNull("Trace should not be null", traceSuccess);
+        assertTrue("Trace should be successful",
+                traceSuccess.resultMessage().contains("Packet goes to the controller"));
+        assertTrue("Master should be Master1",
+                traceSuccess.resultMessage().contains(MASTER_1));
+        ConnectPoint connectPoint = traceSuccess.getGroupOuputs(ARP_FLOW_DEVICE).get(0).getOutput();
+        assertEquals("Packet Should go to CONTROLLER", PortNumber.CONTROLLER, connectPoint.port());
+        log.info("trace {}", traceSuccess.resultMessage());
     }
 
 
@@ -285,6 +305,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(HARDWARE_ETH_FLOW_ENTRY, HARDWARE_FLOW_ENTRY);
             } else if (deviceId.equals(SAME_OUTPUT_FLOW_DEVICE)) {
                 return ImmutableList.of(SAME_OUTPUT_FLOW_ENTRY);
+            } else if (deviceId.equals(ARP_FLOW_DEVICE)) {
+                return ImmutableList.of(ARP_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -398,6 +420,13 @@ public class TroubleshootManagerTest {
                 return false;
             }
             return true;
+        }
+    }
+
+    private class TestMastershipService extends MastershipServiceAdapter {
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return NodeId.nodeId(MASTER_1);
         }
     }
 }
