@@ -51,7 +51,7 @@ import org.onosproject.net.provider.ProviderId;
  */
 final class T3TestObjects {
 
-    private T3TestObjects(){
+    private T3TestObjects() {
         //banning construction
     }
 
@@ -105,6 +105,28 @@ final class T3TestObjects {
     static final FlowEntry SAME_OUTPUT_FLOW_ENTRY = new DefaultFlowEntry(SAME_OUTPUT_FLOW);
 
     static final ConnectPoint SAME_OUTPUT_FLOW_CP = ConnectPoint.deviceConnectPoint(SAME_OUTPUT_FLOW_DEVICE + "/" + 1);
+
+    //ARP
+    static final DeviceId ARP_FLOW_DEVICE = DeviceId.deviceId("ArpDevice");
+
+    private static final TrafficSelector ARP_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+            .build();
+
+    private static final TrafficTreatment ARP_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.CONTROLLER).build();
+    private static final FlowRule ARP_FLOW = DefaultFlowEntry.builder().forDevice(ARP_FLOW_DEVICE)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(ARP_FLOW_SELECTOR)
+            .withTreatment(ARP_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry ARP_FLOW_ENTRY = new DefaultFlowEntry(ARP_FLOW);
+
+    static final ConnectPoint ARP_FLOW_CP = ConnectPoint.deviceConnectPoint(ARP_FLOW_DEVICE + "/" + 1);
 
 
     //Dual Flow Test
@@ -323,9 +345,9 @@ final class T3TestObjects {
     static final FlowEntry HARDWARE_ETH_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_ETH_FLOW);
 
 
-
-
     //helper elements
+
+    static final String MASTER_1 = "Master1";
 
     static final Host H1 = new DefaultHost(ProviderId.NONE, HostId.hostId(HOST_ONE), MacAddress.valueOf(100),
             VlanId.NONE, new HostLocation(SINGLE_FLOW_DEVICE, PortNumber.portNumber(2), 0),
@@ -346,6 +368,12 @@ final class T3TestObjects {
             .matchInPort(PortNumber.portNumber(1))
             .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
             .matchIPDst(IpPrefix.valueOf("127.0.0.3/32"))
+            .build();
+
+    static final TrafficSelector PACKET_ARP = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchIPDst(IpPrefix.valueOf("255.255.255.255/32"))
+            .matchEthType(EthType.EtherType.ARP.ethType().toShort())
             .build();
 
     static final TrafficSelector PACKET_FAIL = DefaultTrafficSelector.builder()
