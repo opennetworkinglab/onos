@@ -419,8 +419,8 @@ public class FpmManager implements FpmInfoService {
         IpPrefix prefix = IpPrefix.valueOf(dstAddress, rtNetlink.dstLength());
 
         // Ignore routes that we sent.
-        if ((prefix.isIp4() && (gateway.equals(pdPushNextHopIPv4))) ||
-            gateway.equals(pdPushNextHopIPv6)) {
+        if (gateway != null && ((prefix.isIp4() && (gateway.equals(pdPushNextHopIPv4))) ||
+            gateway.equals(pdPushNextHopIPv6))) {
             if (routeInDhcpStore(prefix) || routeInRipStore(prefix)) {
                 return;
             }

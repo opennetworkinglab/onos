@@ -626,15 +626,17 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
         }
 
-        record.getV6Counters().incrementCounter(dhcp6HandlerUtil.getMsgTypeStr(leafMsgType));
-        record.addLocation(new HostLocation(location, System.currentTimeMillis()));
-        record.ip6Status(DHCP6.MsgType.getType(leafMsgType));
-        record.setDirectlyConnected(directConnFlag);
-        if (!directConnFlag) {
-            // Update gateway mac address if the host is not directly connected
-            record.nextHop(srcMac);
+        if (record != null) {
+            record.getV6Counters().incrementCounter(dhcp6HandlerUtil.getMsgTypeStr(leafMsgType));
+            record.addLocation(new HostLocation(location, System.currentTimeMillis()));
+            record.ip6Status(DHCP6.MsgType.getType(leafMsgType));
+            record.setDirectlyConnected(directConnFlag);
+            if (!directConnFlag) {
+                // Update gateway mac address if the host is not directly connected
+                record.nextHop(srcMac);
+            }
+            record.updateLastSeen();
         }
-        record.updateLastSeen();
         dhcpRelayStore.updateDhcpRecord(leafHostId, record);
         // TODO Use AtomicInteger for the counters
         try {
