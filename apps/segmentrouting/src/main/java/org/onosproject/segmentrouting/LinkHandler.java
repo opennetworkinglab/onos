@@ -158,18 +158,20 @@ public class LinkHandler {
             // However we still need to update ECMP hash groups to include new
             // buckets
             // for the link that has come up.
-            if (!seenBefore && isParallelLink(link)) {
-                // if link seen first time, we need to ensure hash-groups have
-                // all ports
-                log.debug("Attempting retryHash for paralled first-time link {}",
-                          link);
-                groupHandler.retryHash(link, false, true);
-            } else {
-                // seen before-link
-                if (isParallelLink(link)) {
-                    log.debug("Attempting retryHash for paralled seen-before "
-                            + "link {}", link);
-                    groupHandler.retryHash(link, false, false);
+            if (groupHandler != null) {
+                if (!seenBefore && isParallelLink(link)) {
+                    // if link seen first time, we need to ensure hash-groups have
+                    // all ports
+                    log.debug("Attempting retryHash for paralled first-time link {}",
+                            link);
+                    groupHandler.retryHash(link, false, true);
+                } else {
+                    // seen before-link
+                    if (isParallelLink(link)) {
+                        log.debug("Attempting retryHash for paralled seen-before "
+                                + "link {}", link);
+                        groupHandler.retryHash(link, false, false);
+                    }
                 }
             }
         }
