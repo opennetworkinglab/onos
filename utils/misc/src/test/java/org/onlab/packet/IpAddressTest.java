@@ -763,7 +763,7 @@ public class IpAddressTest {
     @Test
     public void testIsSelfAssignedIpv4() {
         IpAddress normalIP = IpAddress.valueOf("10.0.0.1");
-        IpAddress selfAssignedIP = IpAddress.valueOf("169.1.2.3");
+        IpAddress selfAssignedIP = IpAddress.valueOf("169.254.2.3");
         assertFalse(normalIP.isSelfAssigned());
         assertTrue(selfAssignedIP.isSelfAssigned());
     }
