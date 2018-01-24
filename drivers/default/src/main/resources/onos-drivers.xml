@@ -76,6 +76,7 @@
 
     <!--  Driver for OFDPA 3.0 EA*.
        ~  TODO: version number from switch is still 2.0. Update when 3.0 is GA.
+       ~  TODO: remove Ofdpa3SwitchHandshaker when bug for GroupStats is fixed.
       -->
     <driver name="ofdpa3" extends="ofdpa"
             manufacturer="Broadcom Corp\." hwVersion="OF-DPA 2.0" swVersion="OF-DPA 2.0">
@@ -93,6 +94,8 @@
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.net.flow.ExtensionSelectorCodec"
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.Ofdpa3SwitchHandshaker"/>
     </driver>
 
     <driver name="xpliant" extends="ofdpa3"
