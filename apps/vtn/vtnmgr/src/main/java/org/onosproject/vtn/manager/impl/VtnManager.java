@@ -1121,7 +1121,7 @@ public class VtnManager implements VtnService {
                     break;
                 }
             }
-            if (host != null && vmPort != null && fipPort != null) {
+            if (host != null && fipPort != null) {
                 DeviceId deviceId = host.location().deviceId();
                 Port exPort = exPortOfDevice.get(deviceId);
                 TenantRouter tenantRouter = TenantRouter
@@ -1205,8 +1205,7 @@ public class VtnManager implements VtnService {
                     .programExternalOut(deviceId, fipNetwork.segmentationId(),
                                         exPort.number(), exPortMac, operation);
         } else if (operation == Objective.Operation.REMOVE) {
-            if (hostFlag || (!hostFlag
-                    && routerInfFlagOfTenantRouter.get(tenantRouter) == null)) {
+            if (hostFlag || (routerInfFlagOfTenantRouter.get(tenantRouter) == null)) {
                 sendNorthSouthL3Flows(deviceId, floatingIp, dstVmGwIp, dstVmGwMac,
                                       l3vni, vmNetwork, vmPort, host, operation);
             }
