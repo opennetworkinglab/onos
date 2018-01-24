@@ -164,7 +164,6 @@ public class RestDeviceProvider extends AbstractProvider
     @Deactivate
     public void deactivate() {
         cfgService.removeListener(configListener);
-        controller.getDevices().keySet().forEach(this::deviceRemoved);
         providerRegistry.unregister(this);
         providerService = null;
         factories.forEach(cfgService::unregisterConfigFactory);
