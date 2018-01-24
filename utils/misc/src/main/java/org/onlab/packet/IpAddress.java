@@ -335,7 +335,7 @@ public class IpAddress implements Comparable<IpAddress> {
      * @return true if this address is self-assigned
      */
     public boolean isSelfAssigned() {
-        return isIp4() && octets[0] == (byte) 169;
+        return isIp4() && octets[0] == (byte) 169 && octets[1] == (byte) 254;
     }
 
     /**
