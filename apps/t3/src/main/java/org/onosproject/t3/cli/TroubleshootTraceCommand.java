@@ -18,7 +18,6 @@ package org.onosproject.t3.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
-import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
@@ -33,6 +32,8 @@ import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 
 import java.util.List;
+
+import static org.onlab.packet.EthType.EtherType;
 
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
@@ -71,8 +72,8 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Option(name = "-stp", aliases = "--srcTcpPort", description = "Source TCP Port")
     String srcTcpPort = null;
 
-    @Option(name = "-d", aliases = "--dstIp", description = "Destination IP", valueToShowInHelp = "255.255.255.255")
-    String dstIp = "255.255.255.255";
+    @Option(name = "-d", aliases = "--dstIp", description = "Destination IP")
+    String dstIp = null;
 
     @Option(name = "-dm", aliases = "--dstMac", description = "Destination MAC")
     String dstMac = null;
@@ -90,13 +91,18 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
         ConnectPoint cp = ConnectPoint.deviceConnectPoint(srcPort);
+        EtherType type = EtherType.valueOf(ethType.toUpperCase());
 
         //Input Port must be specified
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
                 .matchInPort(cp.port());
 
         if (srcIp != null) {
-            selectorBuilder.matchIPSrc(IpAddress.valueOf(srcIp).toIpPrefix());
+            if (type.equals(EtherType.IPV6)) {
+                selectorBuilder.matchIPv6Src(IpAddress.valueOf(srcIp).toIpPrefix());
+            } else {
+                selectorBuilder.matchIPSrc(IpAddress.valueOf(srcIp).toIpPrefix());
+            }
         }
 
         if (srcMac != null) {
@@ -104,14 +110,19 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
         }
 
         //if EthType option is not specified using IPv4
-        selectorBuilder.matchEthType(EthType.EtherType.valueOf(ethType.toUpperCase()).ethType().toShort());
+        selectorBuilder.matchEthType(type.ethType().toShort());
 
         if (srcTcpPort != null) {
             selectorBuilder.matchTcpSrc(TpPort.tpPort(Integer.parseInt(srcTcpPort)));
         }
 
-        //if destination Ip option is not specified using broadcast 255.255.255.255
-        selectorBuilder.matchIPDst(IpAddress.valueOf(dstIp).toIpPrefix());
+        if (dstIp != null) {
+            if (type.equals(EtherType.IPV6)) {
+                selectorBuilder.matchIPv6Dst(IpAddress.valueOf(dstIp).toIpPrefix());
+            } else {
+                selectorBuilder.matchIPDst(IpAddress.valueOf(dstIp).toIpPrefix());
+            }
+        }
 
         if (dstMac != null) {
             selectorBuilder.matchEthDst(MacAddress.valueOf(dstMac));
