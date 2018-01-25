@@ -21,9 +21,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Sets;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import org.onlab.util.KryoNamespace;
@@ -63,29 +60,9 @@ public class AtomixLeaderElector extends AbstractRaftPrimitive implements AsyncL
             .build());
 
     private final Set<Consumer<Change<Leadership>>> leadershipChangeListeners = Sets.newCopyOnWriteArraySet();
-    private final Consumer<Change<Leadership>> cacheUpdater;
-    private final Consumer<Status> statusListener;
-
-    private final LoadingCache<String, CompletableFuture<Leadership>> cache;
 
     public AtomixLeaderElector(RaftProxy proxy) {
         super(proxy);
-        cache = CacheBuilder.newBuilder()
-                .maximumSize(1000)
-                .build(CacheLoader.from(topic -> proxy.invoke(
-                        GET_LEADERSHIP, SERIALIZER::encode, new GetLeadership(topic), SERIALIZER::decode)));
-
-        cacheUpdater = change -> {
-            Leadership leadership = change.newValue();
-            cache.put(leadership.topic(), CompletableFuture.completedFuture(leadership));
-        };
-        statusListener = status -> {
-            if (status == Status.SUSPENDED || status == Status.INACTIVE) {
-                cache.invalidateAll();
-            }
-        };
-        addStatusChangeListener(statusListener);
-
         proxy.addStateChangeListener(state -> {
             if (state == RaftProxy.State.CONNECTED && isListening()) {
                 proxy.invoke(ADD_LISTENER);
@@ -94,43 +71,29 @@ public class AtomixLeaderElector extends AbstractRaftPrimitive implements AsyncL
         proxy.addEventListener(CHANGE, SERIALIZER::decode, this::handleEvent);
     }
 
-    @Override
-    public CompletableFuture<Void> destroy() {
-        removeStatusChangeListener(statusListener);
-        return removeChangeListener(cacheUpdater);
-    }
-
-    public CompletableFuture<AtomixLeaderElector> setupCache() {
-        return addChangeListener(cacheUpdater).thenApply(v -> this);
-    }
-
     private void handleEvent(List<Change<Leadership>> changes) {
         changes.forEach(change -> leadershipChangeListeners.forEach(l -> l.accept(change)));
     }
 
     @Override
     public CompletableFuture<Leadership> run(String topic, NodeId nodeId) {
-        return proxy.<Run, Leadership>invoke(RUN, SERIALIZER::encode, new Run(topic, nodeId), SERIALIZER::decode)
-                .whenComplete((r, e) -> cache.invalidate(topic));
+        return proxy.<Run, Leadership>invoke(RUN, SERIALIZER::encode, new Run(topic, nodeId), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Void> withdraw(String topic) {
-        return proxy.invoke(WITHDRAW, SERIALIZER::encode, new Withdraw(topic))
-                .whenComplete((r, e) -> cache.invalidate(topic));
+        return proxy.invoke(WITHDRAW, SERIALIZER::encode, new Withdraw(topic));
     }
 
     @Override
     public CompletableFuture<Boolean> anoint(String topic, NodeId nodeId) {
-        return proxy.<Anoint, Boolean>invoke(ANOINT, SERIALIZER::encode, new Anoint(topic, nodeId), SERIALIZER::decode)
-                .whenComplete((r, e) -> cache.invalidate(topic));
+        return proxy.<Anoint, Boolean>invoke(ANOINT, SERIALIZER::encode, new Anoint(topic, nodeId), SERIALIZER::decode);
     }
 
     @Override
     public CompletableFuture<Boolean> promote(String topic, NodeId nodeId) {
         return proxy.<Promote, Boolean>invoke(
-                PROMOTE, SERIALIZER::encode, new Promote(topic, nodeId), SERIALIZER::decode)
-                .whenComplete((r, e) -> cache.invalidate(topic));
+                PROMOTE, SERIALIZER::encode, new Promote(topic, nodeId), SERIALIZER::decode);
     }
 
     @Override
@@ -140,12 +103,7 @@ public class AtomixLeaderElector extends AbstractRaftPrimitive implements AsyncL
 
     @Override
     public CompletableFuture<Leadership> getLeadership(String topic) {
-        return cache.getUnchecked(topic)
-                .whenComplete((r, e) -> {
-                    if (e != null) {
-                        cache.invalidate(topic);
-                    }
-                });
+        return proxy.invoke(GET_LEADERSHIP, SERIALIZER::encode, new GetLeadership(topic), SERIALIZER::decode);
     }
 
     @Override

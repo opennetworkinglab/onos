@@ -32,6 +32,10 @@ public class DefaultLeaderElectorBuilder extends LeaderElectorBuilder {
 
     @Override
     public AsyncLeaderElector build() {
-        return primitiveCreator.newAsyncLeaderElector(name());
+        AsyncLeaderElector leaderElector = primitiveCreator.newAsyncLeaderElector(name());
+        if (relaxedReadConsistency()) {
+            leaderElector = new CachingAsyncLeaderElector(leaderElector);
+        }
+        return leaderElector;
     }
 }

@@ -120,6 +120,7 @@ public class DistributedLeadershipStore
         localNodeId = clusterService.getLocalNode().id();
         leaderElector = storageService.leaderElectorBuilder()
                       .withName("onos-leadership-elections")
+                      .withRelaxedReadConsistency()
                       .build()
                       .asLeaderElector();
         leaderElector.addChangeListener(leadershipChangeListener);
