@@ -52,7 +52,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -67,7 +66,6 @@ public class DefaultRoutingHandler {
     private static final long RETRY_INTERVAL_MS = 250L;
     private static final int RETRY_INTERVAL_SCALE = 1;
     private static final long STABLITY_THRESHOLD = 10; //secs
-    private static final int UPDATE_INTERVAL = 5; //secs
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
@@ -261,8 +259,17 @@ public class DefaultRoutingHandler {
             rulePopulator.resetCounter();
             log.info("Starting to populate routing rules for added routes, subnets={}, cpts={}",
                     subnets, cpts);
-            // Take snapshots of the topology
-            updatedEcmpSpgMap = new HashMap<>();
+            // In principle an update to a subnet/prefix should not require a
+            // new ECMPspg calculation as it is not a topology event. As a
+            // result, we use the current/existing ECMPspg in the updated map
+            // used by the redoRouting method.
+            currentEcmpSpgMap.entrySet().forEach(entry -> {
+                updatedEcmpSpgMap.put(entry.getKey(), entry.getValue());
+                if (log.isDebugEnabled()) {
+                    log.debug("Root switch: {}", entry.getKey());
+                    log.debug("  Current/Existing SPG: {}", entry.getValue());
+                }
+            });
             Set<EdgePair> edgePairs = new HashSet<>();
             Set<ArrayList<DeviceId>> routeChanges = new HashSet<>();
             boolean handleRouting = false;
@@ -281,9 +288,13 @@ public class DefaultRoutingHandler {
                     return;
                 }
                 for (ConnectPoint cp : cpts) {
-                    EcmpShortestPathGraph ecmpSpgUpdated =
+                    if (updatedEcmpSpgMap.get(cp.deviceId()) == null) {
+                        EcmpShortestPathGraph ecmpSpgUpdated =
                             new EcmpShortestPathGraph(cp.deviceId(), srManager);
-                    updatedEcmpSpgMap.put(cp.deviceId(), ecmpSpgUpdated);
+                        updatedEcmpSpgMap.put(cp.deviceId(), ecmpSpgUpdated);
+                        log.warn("populateSubnet: no updated graph for dev:{}"
+                                + " ... creating", cp.deviceId());
+                    }
                     DeviceId retId = shouldHandleRouting(cp.deviceId());
                     if (retId == null) {
                         continue;
@@ -293,9 +304,13 @@ public class DefaultRoutingHandler {
             } else {
                 // single connect point
                 DeviceId dstSw = cpts.iterator().next().deviceId();
-                EcmpShortestPathGraph ecmpSpgUpdated =
+                if (updatedEcmpSpgMap.get(dstSw) == null) {
+                    EcmpShortestPathGraph ecmpSpgUpdated =
                         new EcmpShortestPathGraph(dstSw, srManager);
-                updatedEcmpSpgMap.put(dstSw, ecmpSpgUpdated);
+                    updatedEcmpSpgMap.put(dstSw, ecmpSpgUpdated);
+                    log.warn("populateSubnet: no updated graph for dev:{}"
+                            + " ... creating", dstSw);
+                }
                 if (srManager.mastershipService.isLocalMaster(dstSw)) {
                     handleRouting = true;
                 }
@@ -375,14 +390,12 @@ public class DefaultRoutingHandler {
             return;
         }
         lastRoutingChange = Instant.now();
-        executorService.schedule(new UpdateMaps(), UPDATE_INTERVAL,
-                                 TimeUnit.SECONDS);
         statusLock.lock();
         try {
 
             if (populationStatus == Status.STARTED) {
                 log.warn("Previous rule population is not finished. Cannot"
-                        + " proceeed with routingRules for Link Status change");
+                        + " proceeed with routingRules for Topology change");
                 return;
             }
 
@@ -402,13 +415,14 @@ public class DefaultRoutingHandler {
                 }
             }
 
-            log.info("Starting to populate routing rules from link status change");
+            log.info("Starting to populate routing rules from Topology change");
 
             Set<ArrayList<DeviceId>> routeChanges;
             log.debug("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
-            rulePopulator.resetCounter();
+            rulePopulator.resetCounter(); //XXX maybe useful to have a rehash ctr
+            boolean hashGroupsChanged = false;
             // try optimized re-routing
             if (linkDown == null) {
                 // either a linkUp or a switchDown - compute all route changes by
@@ -429,6 +443,7 @@ public class DefaultRoutingHandler {
                     processHashGroupChange(routeChanges, false, null);
                     // clear out routesChanges so a re-route is not attempted
                     routeChanges = ImmutableSet.of();
+                    hashGroupsChanged = true;
                 }
                 // for a linkUp of a never-seen-before link
                 // let it fall through to a reroute of the routeChanges
@@ -444,6 +459,7 @@ public class DefaultRoutingHandler {
                     processHashGroupChange(routeChanges, true, switchDown);
                     // clear out routesChanges so a re-route is not attempted
                     routeChanges = ImmutableSet.of();
+                    hashGroupsChanged = true;
                 }
             } else {
                 // link has gone down
@@ -453,19 +469,29 @@ public class DefaultRoutingHandler {
                     processHashGroupChange(routeChanges, true, null);
                     // clear out routesChanges so a re-route is not attempted
                     routeChanges = ImmutableSet.of();
+                    hashGroupsChanged = true;
                 }
             }
 
             // do full re-routing if optimized routing returns null routeChanges
             if (routeChanges == null) {
-                log.info("Optimized routing failed... opting for full reroute");
+                log.warn("Optimized routing failed... opting for full reroute");
                 populationStatus = Status.ABORTED;
                 populateAllRoutingRules();
                 return;
             }
 
             if (routeChanges.isEmpty()) {
-                log.info("No re-route attempted for the link status change");
+                if (hashGroupsChanged) {
+                    log.info("Hash-groups changed for link status change");
+                } else {
+                    log.info("No re-route or re-hash attempted for the link"
+                            + " status change");
+                    updatedEcmpSpgMap.keySet().forEach(devId -> {
+                        currentEcmpSpgMap.put(devId, updatedEcmpSpgMap.get(devId));
+                        log.debug("Updating ECMPspg for remaining dev:{}", devId);
+                    });
+                }
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
                 return;
@@ -488,7 +514,6 @@ public class DefaultRoutingHandler {
             statusLock.unlock();
         }
     }
-
 
     /**
      * Processes a set a route-path changes by reprogramming routing rules and
@@ -537,7 +562,9 @@ public class DefaultRoutingHandler {
         }
 
         // whatever is left in changedRoutes is now processed for individual dsts.
-        if (!redoRoutingIndividualDests(subnets, changedRoutes)) {
+        Set<DeviceId> updatedDevices = Sets.newHashSet();
+        if (!redoRoutingIndividualDests(subnets, changedRoutes,
+                                        updatedDevices)) {
             return false; //abort routing and fail fast
         }
 
@@ -547,6 +574,15 @@ public class DefaultRoutingHandler {
             currentEcmpSpgMap.put(ep.dev2, updatedEcmpSpgMap.get(ep.dev2));
             log.debug("Updating ECMPspg for edge-pair:{}-{}", ep.dev1, ep.dev2);
         }
+
+        // here is where we update all devices not touched by this instance
+        updatedEcmpSpgMap.keySet().stream()
+            .filter(devId -> !edgePairs.stream().anyMatch(ep -> ep.includes(devId)))
+            .filter(devId -> !updatedDevices.contains(devId))
+            .forEach(devId -> {
+                currentEcmpSpgMap.put(devId, updatedEcmpSpgMap.get(devId));
+                log.debug("Updating ECMPspg for remaining dev:{}", devId);
+            });
         return true;
     }
 
@@ -621,9 +657,14 @@ public class DefaultRoutingHandler {
                                                          : subnets;
                 ipDev1 = (ipDev1 == null) ? Sets.newHashSet() : ipDev1;
                 ipDev2 = (ipDev2 == null) ? Sets.newHashSet() : ipDev2;
+                Set<DeviceId> nhDev1 = perDstNextHops.get(ep.dev1);
+                Set<DeviceId> nhDev2 = perDstNextHops.get(ep.dev2);
                 // handle routing to subnets common to edge-pair
-                // only if the targetSw is not part of the edge-pair
-                if (!ep.includes(targetSw)) {
+                // only if the targetSw is not part of the edge-pair and there
+                // exists a next hop to at least one of the devices in the edge-pair
+                if (!ep.includes(targetSw)
+                        && ((nhDev1 != null && !nhDev1.isEmpty())
+                                || (nhDev2 != null && !nhDev2.isEmpty()))) {
                     if (!populateEcmpRoutingRulePartial(
                              targetSw,
                              ep.dev1, ep.dev2,
@@ -632,11 +673,13 @@ public class DefaultRoutingHandler {
                         return false; // abort everything and fail fast
                     }
                 }
-                // handle routing to subnets that only belong to dev1
+                // handle routing to subnets that only belong to dev1 only if
+                // a next-hop exists from the target to dev1
                 Set<IpPrefix> onlyDev1Subnets = Sets.difference(ipDev1, ipDev2);
-                if (!onlyDev1Subnets.isEmpty() && perDstNextHops.get(ep.dev1) != null) {
+                if (!onlyDev1Subnets.isEmpty()
+                        && nhDev1 != null  && !nhDev1.isEmpty()) {
                     Map<DeviceId, Set<DeviceId>> onlyDev1NextHops = new HashMap<>();
-                    onlyDev1NextHops.put(ep.dev1, perDstNextHops.get(ep.dev1));
+                    onlyDev1NextHops.put(ep.dev1, nhDev1);
                     if (!populateEcmpRoutingRulePartial(
                             targetSw,
                             ep.dev1, null,
@@ -645,11 +688,13 @@ public class DefaultRoutingHandler {
                         return false; // abort everything and fail fast
                     }
                 }
-                // handle routing to subnets that only belong to dev2
+                // handle routing to subnets that only belong to dev2 only if
+                // a next-hop exists from the target to dev2
                 Set<IpPrefix> onlyDev2Subnets = Sets.difference(ipDev2, ipDev1);
-                if (!onlyDev2Subnets.isEmpty() && perDstNextHops.get(ep.dev2) != null) {
+                if (!onlyDev2Subnets.isEmpty()
+                        && nhDev2 != null && !nhDev2.isEmpty()) {
                     Map<DeviceId, Set<DeviceId>> onlyDev2NextHops = new HashMap<>();
-                    onlyDev2NextHops.put(ep.dev2, perDstNextHops.get(ep.dev2));
+                    onlyDev2NextHops.put(ep.dev2, nhDev2);
                     if (!populateEcmpRoutingRulePartial(
                             targetSw,
                             ep.dev2, null,
@@ -680,7 +725,8 @@ public class DefaultRoutingHandler {
      * @return true if successful
      */
     private boolean redoRoutingIndividualDests(Set<IpPrefix> subnets,
-                                               Set<ArrayList<DeviceId>> changedRoutes) {
+                                               Set<ArrayList<DeviceId>> changedRoutes,
+                                               Set<DeviceId> updatedDevices) {
         // aggregate route-path changes for each dst device
         HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
                 new HashMap<>();
@@ -726,6 +772,7 @@ public class DefaultRoutingHandler {
             //is updated here, without any flows being pushed.
             currentEcmpSpgMap.put(impactedDstDevice,
                                   updatedEcmpSpgMap.get(impactedDstDevice));
+            updatedDevices.add(impactedDstDevice);
             log.debug("Updating ECMPspg for impacted dev:{}", impactedDstDevice);
         }
         return true;
@@ -873,7 +920,8 @@ public class DefaultRoutingHandler {
                 changedRoutes.add(route);
             }
         }
-
+        boolean someFailed = false;
+        Set<DeviceId> updatedDevices = Sets.newHashSet();
         for (ArrayList<DeviceId> route : changedRoutes) {
             DeviceId targetSw = route.get(0);
             DeviceId dstSw = route.get(1);
@@ -887,14 +935,20 @@ public class DefaultRoutingHandler {
                     currentEcmpSpgMap.remove(targetSw);
                     log.debug("Updating ECMPspg for dst:{} removing failed switch "
                             + "target:{}", dstSw, targetSw);
+                    updatedDevices.add(targetSw);
+                    updatedDevices.add(dstSw);
                     continue;
                 }
                 //linkfailed - update both sides
                 if (success) {
                     currentEcmpSpgMap.put(targetSw, updatedEcmpSpgMap.get(targetSw));
                     currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
-                    log.debug("Updating ECMPspg for dst:{} and target:{} for linkdown",
-                              dstSw, targetSw);
+                    log.debug("Updating ECMPspg for dst:{} and target:{} for linkdown"
+                            + " or switchdown", dstSw, targetSw);
+                    updatedDevices.add(targetSw);
+                    updatedDevices.add(dstSw);
+                } else {
+                    someFailed = true;
                 }
             } else {
                 //linkup of seen before link
@@ -904,8 +958,21 @@ public class DefaultRoutingHandler {
                     currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
                     log.debug("Updating ECMPspg for target:{} and dst:{} for linkup",
                               targetSw, dstSw);
+                    updatedDevices.add(targetSw);
+                    updatedDevices.add(dstSw);
+                } else {
+                    someFailed = true;
                 }
             }
+        }
+        if (!someFailed) {
+            // here is where we update all devices not touched by this instance
+            updatedEcmpSpgMap.keySet().stream()
+                .filter(devId -> !updatedDevices.contains(devId))
+                .forEach(devId -> {
+                    currentEcmpSpgMap.put(devId, updatedEcmpSpgMap.get(devId));
+                    log.debug("Updating ECMPspg for remaining dev:{}", devId);
+            });
         }
     }
 
@@ -1027,9 +1094,21 @@ public class DefaultRoutingHandler {
      * @param deviceId the device for which graphs need to be purged
      */
     protected void purgeEcmpGraph(DeviceId deviceId) {
-        currentEcmpSpgMap.remove(deviceId); // XXX reconsider
-        if (updatedEcmpSpgMap != null) {
-            updatedEcmpSpgMap.remove(deviceId);
+        statusLock.lock();
+        try {
+
+            if (populationStatus == Status.STARTED) {
+                log.warn("Previous rule population is not finished. Cannot"
+                        + " proceeed with purgeEcmpGraph for {}", deviceId);
+                return;
+            }
+            log.debug("Updating ECMPspg for unavailable dev:{}", deviceId);
+            currentEcmpSpgMap.remove(deviceId);
+            if (updatedEcmpSpgMap != null) {
+                updatedEcmpSpgMap.remove(deviceId);
+            }
+        } finally {
+            statusLock.unlock();
         }
     }
 
@@ -1421,35 +1500,6 @@ public class DefaultRoutingHandler {
                     .add("Dev1", dev1)
                     .add("Dev2", dev2)
                     .toString();
-        }
-    }
-
-    /**
-     * Updates the currentEcmpSpgGraph for all devices.
-     */
-    private void updateEcmpSpgMaps() {
-        for (Device sw : srManager.deviceService.getDevices()) {
-            EcmpShortestPathGraph ecmpSpgUpdated =
-                    new EcmpShortestPathGraph(sw.id(), srManager);
-            currentEcmpSpgMap.put(sw.id(), ecmpSpgUpdated);
-        }
-    }
-
-    /**
-     * Ensures routing is stable before updating all ECMP SPG graphs.
-     *
-     * TODO: CORD-1843 will ensure maps are updated faster, potentially while
-     * topology/routing is still unstable
-     */
-    private final class UpdateMaps implements Runnable {
-        @Override
-        public void run() {
-            if (isRoutingStable()) {
-                updateEcmpSpgMaps();
-            } else {
-                executorService.schedule(new UpdateMaps(), UPDATE_INTERVAL,
-                                         TimeUnit.SECONDS);
-            }
         }
     }
 

@@ -640,6 +640,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    @Override
+    public ImmutableMap<Link, Boolean> getSeenLinks() {
+        return linkHandler.getSeenLinks();
+    }
+
+    @Override
+    public ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState() {
+        return linkHandler.getDownedPorts();
+    }
+
     /**
      * Extracts the application ID from the manager.
      *
@@ -1157,12 +1167,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (gh != null) {
             gh.shutdown();
         }
-        defaultRoutingHandler.purgeEcmpGraph(device.id());
         // Note that a switch going down is associated with all of its links
         // going down as well, but it is treated as a single switch down event
         // while the link-downs are ignored.
         defaultRoutingHandler
             .populateRoutingRulesForLinkStatusChange(null, null, device.id());
+        defaultRoutingHandler.purgeEcmpGraph(device.id());
         mcastHandler.removeDevice(device.id());
         xConnectHandler.removeDevice(device.id());
     }

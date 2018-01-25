@@ -17,6 +17,8 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
@@ -189,4 +191,20 @@ public interface SegmentRoutingService {
      * @param id the device identifier
      */
     void verifyGroups(DeviceId id);
+
+    /**
+     * Returns the internal link state as seen by this instance of the
+     * controller.
+     *
+     * @return the internal link state
+     */
+    ImmutableMap<Link, Boolean> getSeenLinks();
+
+    /**
+     * Returns the ports administratively disabled by the controller.
+     *
+     * @return a map of devices and port numbers for administratively disabled
+     *         ports. Does not include ports manually disabled by the operator.
+     */
+    ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState();
 }

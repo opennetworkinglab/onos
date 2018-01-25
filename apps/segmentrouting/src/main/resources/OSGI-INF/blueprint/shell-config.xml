@@ -35,10 +35,10 @@
         <command>
             <action class="org.onosproject.segmentrouting.cli.TunnelRemoveCommand"/>
         </command>
-        -->
         <command>
             <action class="org.onosproject.segmentrouting.cli.RerouteNetworkCommand"/>
         </command>
+        -->
         <command>
             <action class="org.onosproject.segmentrouting.cli.DeviceSubnetListCommand"/>
         </command>
@@ -65,6 +65,9 @@
         </command>
         <command>
             <action class="org.onosproject.segmentrouting.cli.PseudowireAddCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.LinkStateCommand"/>
         </command>
     </command-bundle>
 
