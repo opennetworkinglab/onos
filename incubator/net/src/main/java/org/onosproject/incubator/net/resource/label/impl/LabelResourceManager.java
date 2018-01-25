@@ -130,13 +130,11 @@ public class LabelResourceManager
     public Collection<LabelResource> applyFromDevicePool(DeviceId deviceId,
                                                          long applyNum) {
         checkNotNull(deviceId, "deviceId is not null");
-        checkNotNull(applyNum, "applyNum is not null");
         return store.applyFromDevicePool(deviceId, applyNum);
     }
 
     @Override
     public Collection<LabelResource> applyFromGlobalPool(long applyNum) {
-        checkNotNull(applyNum, "applyNum is not null");
         return store.applyFromGlobalPool(applyNum);
     }
 

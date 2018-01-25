@@ -155,6 +155,6 @@ public class ClusterMessage {
 
     @Override
     public int hashCode() {
-        return Objects.hash(sender, subject, payload);
+        return Objects.hash(sender, subject, Arrays.hashCode(payload));
     }
 }

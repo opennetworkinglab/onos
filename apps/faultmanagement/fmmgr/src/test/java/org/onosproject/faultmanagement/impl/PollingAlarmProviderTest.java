@@ -120,7 +120,7 @@ public class PollingAlarmProviderTest {
 
     @Test
     public void activate() throws Exception {
-        assertFalse("Provider should be registered", providerRegistry.getProviders().contains(provider));
+        assertFalse("Provider should be registered", providerRegistry.getProviders().contains(provider.id()));
         assertEquals("Device listener should be added", 1, deviceListeners.size());
         assertEquals("Incorrect alarm provider service", alarmProviderService, provider.providerService);
         assertEquals("Mastership listener should be added", 1, mastershipListeners.size());
@@ -135,7 +135,7 @@ public class PollingAlarmProviderTest {
         provider.deactivate();
         assertEquals("Device listener should be removed", 0, deviceListeners.size());
         assertEquals("Mastership listener should be removed", 0, mastershipListeners.size());
-        assertFalse("Provider should not be registered", providerRegistry.getProviders().contains(provider));
+        assertFalse("Provider should not be registered", providerRegistry.getProviders().contains(provider.id()));
         assertTrue(provider.alarmsExecutor.isShutdown());
         assertNull(provider.providerService);
     }

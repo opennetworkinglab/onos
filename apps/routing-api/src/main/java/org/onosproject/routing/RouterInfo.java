@@ -43,7 +43,7 @@ public class RouterInfo {
      */
     public RouterInfo(ConnectPoint controlPlaneConnectPoint, boolean ospfEnabled, Set<String> interfaces) {
         this.controlPlaneConnectPoint = checkNotNull(controlPlaneConnectPoint);
-        this.ospfEnabled = checkNotNull(ospfEnabled);
+        this.ospfEnabled = ospfEnabled;
         this.interfaces = ImmutableSet.copyOf(checkNotNull(interfaces));
     }
 

@@ -17,7 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import org.onosproject.net.flow.AbstractExtension;
 import java.util.Arrays;
-import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 
@@ -57,7 +56,7 @@ public class UnresolvedExtensionSelector extends AbstractExtension implements Ex
 
     @Override
     public int hashCode() {
-        return Objects.hash(bytes);
+        return Arrays.hashCode(bytes);
     }
 
     @Override

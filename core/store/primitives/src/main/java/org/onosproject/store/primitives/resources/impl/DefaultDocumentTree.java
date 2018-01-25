@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.onosproject.store.service.DocumentPath;
@@ -148,13 +149,17 @@ public class DefaultDocumentTree<V> implements DocumentTree<V> {
     }
 
     @Override
-    public boolean replace(DocumentPath path, V newValue, V currentValue) {
+    public boolean replace(DocumentPath path, V newValue, V expectedValue) {
         checkRootModification(path);
-        if (Objects.equals(newValue, currentValue)) {
+        if (Objects.equals(newValue, expectedValue)) {
             return false;
         }
         DocumentTreeNode<V> node = getNode(path);
-        if (node != null && Objects.equals(Versioned.valueOrNull(node.value()), currentValue)) {
+        V prevValue = Optional.ofNullable(node)
+                    .map(DocumentTreeNode::value)
+                    .map(Versioned::valueOrNull)
+                    .orElse(null);
+        if (Objects.equals(prevValue, expectedValue)) {
             set(path, newValue);
             return true;
         }

@@ -75,7 +75,7 @@ public class ThirdPartyMessage implements OFMessage {
 
     @Override
     public int hashCodeIgnoreXid() {
-        return payLoad.hashCode();
+        return Arrays.hashCode(payLoad);
     }
 
     @Override

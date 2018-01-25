@@ -225,7 +225,7 @@ public class NetconfDeviceProviderTest {
     public void deactivate() throws Exception {
         provider.deactivate();
         assertNull("Device listener should be removed", deviceService.listener);
-        assertFalse("Provider should not be registered", deviceRegistry.getProviders().contains(provider));
+        assertFalse("Provider should not be registered", deviceRegistry.getProviders().contains(provider.id()));
         assertTrue("Thread to connect device should be shutdown", provider.executor.isShutdown());
         assertTrue("Scheduled task to update device should be shutdown", provider.scheduledTask.isCancelled());
         assertNull("Provider service should be null", provider.providerService);

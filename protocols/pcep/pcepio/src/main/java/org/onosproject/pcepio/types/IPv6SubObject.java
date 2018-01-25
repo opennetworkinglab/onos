@@ -130,7 +130,7 @@ public class IPv6SubObject implements PcepValueType {
         boolean bFoundNoMask = true;
         //value starts from 3rd byte.
         for (int i = 2; i < 20; ++i) {
-            if (0xFF != raw[i]) {
+            if ((byte) 0xFF != raw[i]) {
                 bFoundNoMask = false;
             }
         }

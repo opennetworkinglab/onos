@@ -47,6 +47,7 @@ public class MastershipBasedTimestampTest {
         assertEquals(sequenceNumber, ts.sequenceNumber());
     }
 
+    @SuppressWarnings("SelfComparison")
     @Test
     public final void testCompareTo() {
         assertTrue(TS_1_1.compareTo(TS_1_1) == 0);

@@ -411,7 +411,7 @@ public class McastHandler {
                 log.info("NextObj for {}/{} already exists. Abort", deviceId, port);
                 return;
             }
-            portBuilder.addAll(existingPorts).add(port).build();
+            portBuilder.addAll(existingPorts).add(port);
         }
         // Create, store and apply the new nextObj and fwdObj
         ObjectiveContext context = new DefaultObjectiveContext(

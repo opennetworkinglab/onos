@@ -73,6 +73,7 @@ public class DocumentPathTest {
         DocumentPath path1 = exceptions("node|name", parentPath);
     }
 
+    @SuppressWarnings("SelfComparison")
     @Test
     public void comparePaths() {
         DocumentPath one = path("root");

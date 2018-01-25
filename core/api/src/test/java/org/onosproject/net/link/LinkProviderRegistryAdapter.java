@@ -36,11 +36,18 @@ public class LinkProviderRegistryAdapter implements LinkProviderRegistry {
 
     @Override
     public void unregister(LinkProvider provider) {
+        if (providerService != null && provider.id().equals(providerService.provider().id())) {
+            providerService = null;
+        }
     }
 
     @Override
     public Set<ProviderId> getProviders() {
-        return ImmutableSet.of(providerService.provider().id());
+        if (providerService != null) {
+            return ImmutableSet.of(providerService.provider().id());
+        } else {
+            return ImmutableSet.of();
+        }
     }
 
     public LinkProviderServiceAdapter registeredProvider() {

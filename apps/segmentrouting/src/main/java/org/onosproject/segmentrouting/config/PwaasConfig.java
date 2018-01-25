@@ -204,9 +204,9 @@ public class PwaasConfig extends Config<ApplicationId> {
                                                                             tunnelId)));
         }
 
-        if (((!ingressOuter.equals(VlanId.NONE) && !ingressOuter.equals(VlanId.NONE)) &&
+        if (((!ingressOuter.equals(VlanId.NONE) && !ingressInner.equals(VlanId.NONE)) &&
                 (egressOuter.equals(VlanId.NONE) && egressInner.equals(VlanId.NONE)))
-                || ((ingressOuter.equals(VlanId.NONE) && ingressOuter.equals(VlanId.NONE)) &&
+                || ((ingressOuter.equals(VlanId.NONE) && ingressInner.equals(VlanId.NONE)) &&
                 (!egressOuter.equals(VlanId.NONE) && !egressInner.equals(VlanId.NONE)))) {
             throw new IllegalArgumentException(String.valueOf(String.format("Support for double tag <-> untag is not" +
                                                                                     "supported for pseudowire %d.",

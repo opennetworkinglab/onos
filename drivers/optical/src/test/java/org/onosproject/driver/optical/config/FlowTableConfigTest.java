@@ -51,11 +51,11 @@ public class FlowTableConfigTest extends BaseConfigTestHelper {
     private static final DeviceId DID = DeviceId.deviceId("of:0000000000000001");
     private static final PortNumber PN_1 = portNumber(1);
     private static final PortNumber PN_2 = portNumber(2);
-    private static final int FLOW_ID_3 = 3;
+    private static final long FLOW_ID_3 = 3;
     private static final int PRIO_4 = 4;
 
     private static final DefaultApplicationId APP_ID =
-                new DefaultApplicationId(FLOW_ID_3 >>> 48, "test");
+                new DefaultApplicationId((int) (FLOW_ID_3 >>> 48), "test");
 
     private static final OchSignal LAMBDA_42 = OchSignal.newFlexGridSlot(42);
 

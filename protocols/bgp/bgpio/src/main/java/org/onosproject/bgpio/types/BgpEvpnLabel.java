@@ -16,7 +16,7 @@
 
 package org.onosproject.bgpio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
 import com.google.common.base.MoreObjects;
 
@@ -87,9 +87,7 @@ public class BgpEvpnLabel implements Comparable<BgpEvpnLabel> {
 
             BgpEvpnLabel that = (BgpEvpnLabel) obj;
 
-            if (this.mplsLabel == that.mplsLabel) {
-                return true;
-            }
+            return Arrays.equals(this.mplsLabel, that.mplsLabel);
         }
 
         return false;
@@ -97,7 +95,7 @@ public class BgpEvpnLabel implements Comparable<BgpEvpnLabel> {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(mplsLabel);
+        return Arrays.hashCode(mplsLabel);
     }
 
     @Override

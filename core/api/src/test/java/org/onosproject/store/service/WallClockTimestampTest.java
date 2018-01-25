@@ -30,6 +30,7 @@ import com.google.common.testing.EqualsTester;
  */
 public class WallClockTimestampTest {
 
+    @SuppressWarnings("SelfComparison")
     @Test
     public final void testBasic() throws InterruptedException {
         WallClockTimestamp ts1 = new WallClockTimestamp();

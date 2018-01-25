@@ -17,7 +17,10 @@
 package org.onosproject.bgpio.types;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+
+import java.util.Arrays;
+import java.util.Objects;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
@@ -107,7 +110,7 @@ public class RouteTarget implements BgpValueType {
         if (obj instanceof RouteTarget) {
             RouteTarget that = (RouteTarget) obj;
             if (this.type == that.type
-                    && this.routeTarget == that.routeTarget) {
+                    && Arrays.equals(this.routeTarget, that.routeTarget)) {
                 return true;
             }
         }
@@ -116,7 +119,7 @@ public class RouteTarget implements BgpValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(routeTarget);
+        return Objects.hash(type, Arrays.hashCode(routeTarget));
     }
 
     @Override
