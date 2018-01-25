@@ -27,6 +27,8 @@ import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyWriter;
+import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
+import org.onosproject.lisp.msg.protocols.LispMapReply.ReplyBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
 import java.util.List;
@@ -34,9 +36,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordBuilder;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyBuilder;
 
 /**
  * Unit tests for DefaultLispMapReply class.

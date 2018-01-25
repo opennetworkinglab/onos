@@ -126,6 +126,7 @@ public class PortAnnotationConfigTest {
         assertThat(annotations.get(key), is(value));
     }
 
+    @Test
     public void writeEntryTest() throws JsonProcessingException, IOException {
 
         PortAnnotationConfig w = new PortAnnotationConfig();
@@ -146,6 +147,7 @@ public class PortAnnotationConfigTest {
         assertThat(annotations.get(key), is(value));
     }
 
+    @Test
     public void writeMapTest() throws JsonProcessingException, IOException {
 
         PortAnnotationConfig w = new PortAnnotationConfig();

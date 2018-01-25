@@ -99,7 +99,7 @@ public class ControlLoadSnapshot {
 
     @Override
     public int hashCode() {
-        return Objects.hash(latest, average, time, recent);
+        return Objects.hash(latest, average, time, Arrays.hashCode(recent));
     }
 
     @Override

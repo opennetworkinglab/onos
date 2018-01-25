@@ -317,7 +317,7 @@ public class GossipDeviceStore
                     ? deviceClockService.getTimestamp(deviceId)
                     : removalRequest.getOrDefault(deviceId, DEFAULT_TIMESTAMP);
         } catch (IllegalStateException e) {
-            newTimestamp = removalRequest.getOrDefault(deviceDescription, DEFAULT_TIMESTAMP);
+            newTimestamp = removalRequest.getOrDefault(deviceId, DEFAULT_TIMESTAMP);
             isMaster = false;
         }
         final Timestamped<DeviceDescription> deltaDesc = new Timestamped<>(deviceDescription, newTimestamp);

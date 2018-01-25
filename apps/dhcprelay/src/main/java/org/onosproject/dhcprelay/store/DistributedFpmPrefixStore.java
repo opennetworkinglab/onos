@@ -91,7 +91,7 @@ public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
 
     @Override
     public void setDelegate(StoreDelegate<FpmPrefixStoreEvent> delegate) {
-        checkNotNull("Delegate can't be null", delegate);
+        checkNotNull(delegate, "Delegate can't be null");
         this.delegate = delegate;
     }
 
@@ -122,6 +122,7 @@ public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
      * @param prefix the route prefix in the advertisement
      * @param fpmRecord the route for fpm
      **/
+    @Override
     public void addFpmRecord(IpPrefix prefix, FpmRecord fpmRecord) {
         checkNotNull(prefix, "Prefix can't be null");
         checkNotNull(fpmRecord, "Fpm record can't be null");
@@ -134,6 +135,7 @@ public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
      * @param prefix the route prefix in the advertisement
      * @return none
      **/
+    @Override
     public Optional<FpmRecord> removeFpmRecord(IpPrefix prefix) {
         checkNotNull(prefix, "Prefix can't be null");
         return Optional.ofNullable(dhcpFpmRecords.remove(prefix));

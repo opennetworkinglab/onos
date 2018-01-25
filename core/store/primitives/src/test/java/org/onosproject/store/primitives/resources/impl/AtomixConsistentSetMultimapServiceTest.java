@@ -15,8 +15,8 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import io.atomix.protocols.raft.service.ServiceId;
 import io.atomix.protocols.raft.service.impl.DefaultCommit;
@@ -57,7 +57,7 @@ public class AtomixConsistentSetMultimapServiceTest {
                 2,
                 PUT,
                 new AtomixConsistentSetMultimapOperations.Put(
-                        "foo", Arrays.asList("Hello world!".getBytes()), Match.ANY),
+                        "foo", Collections.singletonList("Hello world!".getBytes()), Match.ANY),
                 mock(RaftSessionContext.class),
                 System.currentTimeMillis()));
 

@@ -39,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -303,7 +304,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                 print(LONG_FORMAT, Long.toHexString(f.id().value()), f.state(),
                         f.bytes(), f.packets(), f.life(), f.liveType(), f.priority(), f.table(),
                         appId != null ? appId.name() : "<none>",
-                        f.payLoad() == null ? null : f.payLoad().payLoad().toString(),
+                        f.payLoad() == null ? null : Arrays.toString(f.payLoad().payLoad()),
                         f.selector().criteria(), f.treatment());
             }
         }

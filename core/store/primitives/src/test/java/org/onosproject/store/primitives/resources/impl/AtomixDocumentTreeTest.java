@@ -27,6 +27,7 @@ import java.util.concurrent.BlockingQueue;
 import com.google.common.base.Throwables;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
+
 import org.junit.Test;
 import org.onosproject.store.primitives.NodeUpdate;
 import org.onosproject.store.primitives.TransactionId;
@@ -219,6 +220,9 @@ public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
         assertArrayEquals("newAB".getBytes(), tree.get(path("root.a.b")).join().value());
 
         assertFalse(tree.replace(path("root.a.d"), "bar".getBytes(), "foo".getBytes()).join());
+
+        assertTrue(tree.replace(path("root.x"), "beta".getBytes(), null).join());
+
     }
 
     /**

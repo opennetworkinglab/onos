@@ -1447,7 +1447,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
         if (dispatcherHandle.isDone()) {
             // dispatcher terminated for some reason, restart
 
-            dispatcherHandle = dispatcher.submit(() -> {
+            dispatcherHandle = dispatcher.submit((Runnable) () -> {
                 try {
                     List<OFMessage> msgs = new ArrayList<>();
                     for (;;) {

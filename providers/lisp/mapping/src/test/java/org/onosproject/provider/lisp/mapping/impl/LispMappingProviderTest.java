@@ -78,7 +78,7 @@ public class LispMappingProviderTest {
         provider.deactivate();
 
         assertFalse("Provider should not be registered",
-                            providerRegistry.getProviders().contains(provider));
+                            providerRegistry.getProviders().contains(provider.id()));
         assertNull("Provider service should be null",
                             provider.providerService);
         assertEquals("Controller listener should be removed", 0,

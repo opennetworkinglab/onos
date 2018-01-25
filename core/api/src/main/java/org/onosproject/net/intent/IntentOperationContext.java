@@ -103,7 +103,7 @@ public class IntentOperationContext<T extends Intent> {
         IntentOperationContext that = (IntentOperationContext) obj;
         return Objects.equals(intentsToInstall, that.intentsToInstall) &&
                 Objects.equals(intentsToUninstall, that.intentsToUninstall) &&
-                Objects.equals(intentInstallationContext, intentInstallationContext);
+                Objects.equals(intentInstallationContext, that.intentInstallationContext);
     }
 
     @Override

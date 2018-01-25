@@ -99,7 +99,7 @@ public class NexthopIPv6addressTlv implements PcepValueType {
         boolean bFoundNoMask = true;
         //value starts from 3rd byte.
         for (int i = 5; i < 20; ++i) {
-            if (0xFF != raw[i]) {
+            if ((byte) 0xFF != raw[i]) {
                 bFoundNoMask = false;
             }
         }

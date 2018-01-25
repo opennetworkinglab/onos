@@ -49,7 +49,6 @@ public class Ofdpa3SetMplsType extends AbstractExtension implements ExtensionTre
      * @param mplsType MPLS type in short
      */
     public Ofdpa3SetMplsType(short mplsType) {
-        checkNotNull(mplsType);
         this.mplsType = mplsType;
     }
 

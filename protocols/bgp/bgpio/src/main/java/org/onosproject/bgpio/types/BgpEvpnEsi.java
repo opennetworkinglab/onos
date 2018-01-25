@@ -16,7 +16,7 @@
 
 package org.onosproject.bgpio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
 import com.google.common.base.MoreObjects;
 
@@ -78,7 +78,7 @@ public class BgpEvpnEsi
 
     @Override
     public int hashCode() {
-        return Objects.hash(ethernetSegmentidentifier);
+        return Arrays.hashCode(ethernetSegmentidentifier);
     };
 
     @Override
@@ -89,9 +89,7 @@ public class BgpEvpnEsi
 
         if (obj instanceof BgpEvpnEsi) {
             BgpEvpnEsi that = (BgpEvpnEsi) obj;
-            if (this.ethernetSegmentidentifier == that.ethernetSegmentidentifier) {
-                return true;
-            }
+            return Arrays.equals(this.ethernetSegmentidentifier, that.ethernetSegmentidentifier);
         }
 
         return false;
