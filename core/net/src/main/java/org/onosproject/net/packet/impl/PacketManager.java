@@ -385,9 +385,19 @@ public class PacketManager
             // TODO filter packets sent to processors based on registrations
             for (ProcessorEntry entry : processors) {
                 try {
+                    if (log.isTraceEnabled()) {
+                        log.trace("Starting packet processing by {}",
+                                entry.processor().getClass().getName());
+                    }
+
                     long start = System.nanoTime();
                     entry.processor().process(context);
                     entry.addNanos(System.nanoTime() - start);
+
+                    if (log.isTraceEnabled()) {
+                        log.trace("Finished packet processing by {}",
+                                entry.processor().getClass().getName());
+                    }
                 } catch (Exception e) {
                     log.warn("Packet processor {} threw an exception", entry.processor(), e);
                 }

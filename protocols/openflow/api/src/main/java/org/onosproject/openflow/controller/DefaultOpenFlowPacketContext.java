@@ -105,13 +105,17 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         checkPermission(PACKET_READ);
 
         try {
-            return Ethernet.deserializer().deserialize(pktin.getData(), 0, pktin.getData().length);
+            return Ethernet.deserializer().deserialize(
+                    pktin.getData(), 0, pktin.getData().length);
         } catch (BufferUnderflowException | NullPointerException |
                 DeserializationException e) {
             Logger log = LoggerFactory.getLogger(getClass());
-            log.error("packet deserialization problem : {}", e.getMessage());
-            return null;
+            log.error("Packet deserialization problem", e);
+        } catch (Exception e) {
+            Logger log = LoggerFactory.getLogger(getClass());
+            log.error("Unexpected packet deserialization problem", e);
         }
+        return null;
     }
 
     @Override
