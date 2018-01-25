@@ -58,7 +58,10 @@
                 <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                       requires="~Secure-SSH-${#}"/>
 
-                <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}" delay="3"
+                <step name="Check-Nodes-${#}"
+                      exec="onos-check-nodes ${OC#}"
+                      unless="${ONOS_STC_FORM_START}"
+                      delay="3"
                       requires="~Wait-for-Start-${#}"/>
                 <step name="Check-Components-${#}" delay="5"
                       exec="onos-check-components ${OC#}"
@@ -73,5 +76,23 @@
             </parallel>
         </group>
 
+        <group name="Form" if="${ONOS_STC_FORM_START}" requires="Verify">
+            <step name="Form-Cluster" exec="onos-form-cluster cell"/>
+            <parallel var="${OC#}">
+                <step name="Form-Cluster-Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
+                      requires="Form-Cluster"/>
+
+                <step name="Form-Cluster-Check-Nodes-${#}" exec="onos-check-nodes ${OC#}" delay="3"
+                      requires="~Form-Cluster-Wait-for-Start-${#}"/>
+                <step name="Form-Cluster-Check-Components-${#}" delay="5"
+                      exec="onos-check-components ${OC#}"
+                      requires="~Form-Cluster-Wait-for-Start-${#}"/>
+
+                <step name="Form-Cluster-Check-Logs-${#}" exec="onos-check-logs ${OC#}"
+                      requires="~Form-Cluster-Check-Components-${#}"/>
+                <step name="Form-Cluster-Check-Apps-${#}" exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"
+                      requires="~Form-Cluster-Check-Components-${#}"/>
+            </parallel>
+        </group>
     </group>
 </scenario>

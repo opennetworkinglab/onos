@@ -62,9 +62,11 @@ ssh -tt $remote "
 "
 
 # Generate a default cluster.json from the ON* environment variables
-CDEF_FILE=/tmp/${remote}.cluster.json
-onos-gen-partitions $CDEF_FILE
-scp -q $CDEF_FILE $remote:$ONOS_INSTALL_DIR/config/cluster.json
+if [[ -z "${ONOS_STC_FORM_START}" ]]; then
+    CDEF_FILE=/tmp/${remote}.cluster.json
+    onos-gen-partitions $CDEF_FILE
+    scp -q $CDEF_FILE $remote:$ONOS_INSTALL_DIR/config/cluster.json
+fi
 
 # Copy tools/package/config/ to remote
 scp -qr ${ONOS_ROOT}/tools/package/config/ $remote:$ONOS_INSTALL_DIR/
