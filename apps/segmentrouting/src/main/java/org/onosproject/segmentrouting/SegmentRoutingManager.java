@@ -490,6 +490,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         portNextObjStore.destroy();
         tunnelStore.destroy();
         policyStore.destroy();
+
+        mcastHandler.terminate();
         log.info("Stopped");
     }
 
