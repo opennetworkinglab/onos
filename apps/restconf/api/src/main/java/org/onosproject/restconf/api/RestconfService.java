@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Abstraction of RESTCONF Server functionality according to the
- * RESTCONF RFC (no official RFC number yet).
+ * RESTCONF RFC 8040.
  */
 public interface RestconfService {
     /**

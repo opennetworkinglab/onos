@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onosproject.restconf.api.RestconfError;
 import org.onosproject.restconf.api.RestconfException;
 import org.onosproject.restconf.api.RestconfRpcOutput;
-import org.onosproject.restconf.utils.exceptions.RestconfUtilsException;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.model.ResourceData;
@@ -43,13 +43,9 @@ import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Optional;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.EXPECTATION_FAILED;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
-import static javax.ws.rs.core.Response.Status.REQUEST_TIMEOUT;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * Utilities used by the RESTCONF app.
@@ -84,7 +80,9 @@ public final class RestconfUtils {
         try {
             rootNode = (ObjectNode) mapper.readTree(inputStream);
         } catch (IOException e) {
-            throw new RestconfUtilsException("ERROR: InputStream failed to parse");
+            throw new RestconfException("ERROR: InputStream failed to parse",
+                    e, RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                    Optional.empty());
         }
         return rootNode;
     }
@@ -101,7 +99,9 @@ public final class RestconfUtils {
         try {
             inputStream = IOUtils.toInputStream(json);
         } catch (Exception e) {
-            throw new RestconfUtilsException("ERROR: Json Node failed to parse");
+            throw new RestconfException("ERROR: Json Node failed to parse", e,
+                RestconfError.ErrorTag.MALFORMED_MESSAGE, BAD_REQUEST,
+                Optional.empty());
         }
         return inputStream;
     }
@@ -142,13 +142,19 @@ public final class RestconfUtils {
             // CompositeStream --- YangRuntimeService ---> CompositeData.
             CompositeData compositeData = YANG_RUNTIME.decode(compositeStream, context);
             resourceData = compositeData.resourceData();
+        } catch (RestconfException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("convertJsonToDataNode failure: {}", ex.getMessage());
             log.debug("convertJsonToDataNode failure", ex);
+            throw new RestconfException("ERROR: JSON cannot be converted to DataNode",
+                    ex, RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                    Optional.of(uri.getPath()));
         }
         if (resourceData == null) {
             throw new RestconfException("ERROR: JSON cannot be converted to DataNode",
-                                        INTERNAL_SERVER_ERROR);
+                RestconfError.ErrorTag.DATA_MISSING, CONFLICT,
+                Optional.of(uri.getPath()), Optional.empty());
         }
         return resourceData;
     }
@@ -193,7 +199,8 @@ public final class RestconfUtils {
         }
         if (rootNode == null) {
             throw new RestconfException("ERROR: InputStream can not be convert to ObjectNode",
-                                        INTERNAL_SERVER_ERROR);
+                    null, RestconfError.ErrorTag.DATA_MISSING, CONFLICT,
+                    Optional.empty());
         }
         return rootNode;
     }

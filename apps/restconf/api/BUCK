@@ -6,6 +6,11 @@ COMPILE_DEPS = [
     '//lib:jersey-server',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST_REST',
+]
+
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )

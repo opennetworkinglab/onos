@@ -28,6 +28,7 @@ import org.glassfish.jersey.server.ChunkedOutput;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
+import org.onosproject.restconf.api.RestconfError;
 import org.onosproject.restconf.api.RestconfException;
 import org.onosproject.restconf.api.RestconfRpcOutput;
 import org.onosproject.restconf.api.RestconfService;
@@ -46,13 +47,17 @@ import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.onosproject.d.config.ResourceIds.parentOf;
 import static org.onosproject.restconf.utils.RestconfUtils.convertDataNodeToJson;
@@ -119,8 +124,9 @@ public class RestconfManager implements RestconfService {
             dataNode = dynamicConfigService.readNode(rl.ridForDynConfig(), filter);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
-            throw new RestconfException("ERROR: DynamicConfigService",
-                                        INTERNAL_SERVER_ERROR);
+            throw new RestconfException("ERROR: DynamicConfigService", e,
+                    RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                    Optional.of(uri.getPath()));
         }
         ObjectNode rootNode = convertDataNodeToJson(rl.ridForYangRuntime(), dataNode);
         return rootNode;
@@ -146,9 +152,16 @@ public class RestconfManager implements RestconfService {
         try {
             dynamicConfigService.createNode(rl.ridForDynConfig(), dataNode);
         } catch (FailedException e) {
-            log.error("ERROR: DynamicConfigService: ", e);
-            throw new RestconfException("ERROR: DynamicConfigService",
-                                        INTERNAL_SERVER_ERROR);
+            if (e.getMessage().startsWith("Requested node already present")) {
+                throw new RestconfException("Already exists", e,
+                        RestconfError.ErrorTag.DATA_EXISTS, CONFLICT,
+                        Optional.of(uri.getPath()));
+            } else {
+                log.error("ERROR: DynamicConfigService: ", e);
+                throw new RestconfException("ERROR: DynamicConfigService", e,
+                    RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                    Optional.of(uri.getPath()));
+            }
         }
     }
 
@@ -176,8 +189,9 @@ public class RestconfManager implements RestconfService {
 
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
-            throw new RestconfException("ERROR: DynamicConfigService",
-                                        INTERNAL_SERVER_ERROR);
+            throw new RestconfException("ERROR: DynamicConfigService", e,
+                RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                Optional.of(uri.getPath()));
         }
     }
 
@@ -191,8 +205,9 @@ public class RestconfManager implements RestconfService {
             }
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
-            throw new RestconfException("ERROR: DynamicConfigService",
-                                        INTERNAL_SERVER_ERROR);
+            throw new RestconfException("ERROR: DynamicConfigService", e,
+                RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                Optional.of(uri.getPath()));
         }
     }
 
@@ -217,8 +232,9 @@ public class RestconfManager implements RestconfService {
             dynamicConfigService.updateNode(parentOf(rl.ridForDynConfig()), dataNode);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
-            throw new RestconfException("ERROR: DynamicConfigService",
-                                        INTERNAL_SERVER_ERROR);
+            throw new RestconfException("ERROR: DynamicConfigService", e,
+                RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
+                Optional.of(uri.getPath()));
         }
     }
 
@@ -240,6 +256,10 @@ public class RestconfManager implements RestconfService {
                                      ChunkedOutput<String> output)
             throws RestconfException {
         //TODO: to be completed
+        throw new RestconfException("Not implemented",
+                RestconfError.ErrorTag.OPERATION_NOT_SUPPORTED,
+                Response.Status.NOT_IMPLEMENTED,
+                Optional.empty(), Optional.of("subscribeEventStream not yet implemented"));
     }
 
     @Override
@@ -267,12 +287,26 @@ public class RestconfManager implements RestconfService {
         } catch (InterruptedException e) {
             log.error("ERROR: computeResultQ.take() has been interrupted.");
             log.debug("executeRpc Exception:", e);
-            restconfOutput = new RestconfRpcOutput(INTERNAL_SERVER_ERROR, null);
+            RestconfError error =
+                    RestconfError.builder(RestconfError.ErrorType.RPC,
+                    RestconfError.ErrorTag.OPERATION_FAILED)
+                        .errorMessage("RPC execution has been interrupted")
+                        .errorPath(uri.getPath())
+                        .build();
+            restconfOutput = new RestconfRpcOutput(INTERNAL_SERVER_ERROR,
+                    RestconfError.wrapErrorAsJson(Arrays.asList(error)));
             restconfOutput.reason("RPC execution has been interrupted");
         } catch (Exception e) {
             log.error("ERROR: executeRpc: {}", e.getMessage());
             log.debug("executeRpc Exception:", e);
-            restconfOutput = new RestconfRpcOutput(INTERNAL_SERVER_ERROR, null);
+            RestconfError error =
+                    RestconfError.builder(RestconfError.ErrorType.RPC,
+                            RestconfError.ErrorTag.OPERATION_FAILED)
+                            .errorMessage(e.getMessage())
+                            .errorPath(uri.getPath())
+                            .build();
+            restconfOutput = new RestconfRpcOutput(INTERNAL_SERVER_ERROR,
+                    RestconfError.wrapErrorAsJson(Arrays.asList(error)));
             restconfOutput.reason(e.getMessage());
         }
 
