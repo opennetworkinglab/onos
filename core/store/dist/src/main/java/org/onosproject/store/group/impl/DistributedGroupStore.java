@@ -435,7 +435,7 @@ public class DistributedGroupStore
         // Check if a group is existing with the same key
         Group existingGroup = getGroup(groupDesc.deviceId(), groupDesc.appCookie());
         if (existingGroup != null) {
-            log.info("Group already exists with the same key {} in dev:{} with id:0x{}",
+            log.debug("Group already exists with the same key {} in dev:{} with id:0x{}",
                      groupDesc.appCookie(), groupDesc.deviceId(),
                      Integer.toHexString(existingGroup.id().id()));
             return;

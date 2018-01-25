@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostLocation;
@@ -35,6 +37,7 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 public class LinkHandler {
@@ -43,15 +46,11 @@ public class LinkHandler {
     protected LinkService linkService;
 
     // Local store for all links seen and their present status, used for
-    // optimized routing. The existence of the link in the keys is enough to
-    // know
+    // optimized routing. The existence of the link in the keys is enough to know
     // if the link has been "seen-before" by this instance of the controller.
     // The boolean value indicates if the link is currently up or not.
-    // XXX Currently the optimized routing logic depends on "forgetting" a link
-    // when a switch goes down, but "remembering" it when only the link goes
-    // down.
-    // Consider changing this logic so we can use the Link Service instead of
-    // a local cache.
+    // Currently the optimized routing logic depends on "forgetting" a link
+    // when a switch goes down, but "remembering" it when only the link goes down.
     private Map<Link, Boolean> seenLinks = new ConcurrentHashMap<>();
 
     private EventuallyConsistentMap<DeviceId, Set<PortNumber>> downedPortStore = null;
@@ -106,8 +105,7 @@ public class LinkHandler {
         }
 
         // Irrespective of whether the local is a MASTER or not for this device,
-        // create group handler instance and push default TTP flow rules if
-        // needed,
+        // create group handler instance and push default TTP flow rules if needed,
         // as in a multi-instance setup, instances can initiate groups for any
         // device.
         DefaultGroupHandler groupHandler = srManager.groupHandlerMap
@@ -151,12 +149,9 @@ public class LinkHandler {
             // handle edge-ports for dual-homed hosts
             updateDualHomedHostPorts(link, true);
 
-            // It's possible that linkUp causes no route-path change as ECMP
-            // graph does
+            // It's possible that linkUp causes no route-path change as ECMP graph does
             // not change if the link is a parallel link (same src-dst as
-            // another link.
-            // However we still need to update ECMP hash groups to include new
-            // buckets
+            // another link). However we still need to update ECMP hash groups to include new buckets
             // for the link that has come up.
             if (groupHandler != null) {
                 if (!seenBefore && isParallelLink(link)) {
@@ -193,6 +188,10 @@ public class LinkHandler {
         // when removing links, update seen links first, before doing route-path
         // changes
         updateSeenLink(link, false);
+        // handle edge-ports for dual-homed hosts
+        if (srManager.mastershipService.isLocalMaster(link.src().deviceId())) {
+            updateDualHomedHostPorts(link, false);
+        }
 
         // device availability check helps to ensure that multiple link-removed
         // events are actually treated as a single switch removed event.
@@ -207,11 +206,6 @@ public class LinkHandler {
                 && !srManager.deviceService.isAvailable(link.dst().deviceId())) {
             purgeSeenLink(link);
             return;
-        }
-
-        // handle edge-ports for dual-homed hosts
-        if (srManager.mastershipService.isLocalMaster(link.src().deviceId())) {
-            updateDualHomedHostPorts(link, false);
         }
 
         log.debug("Starting optimized route-path processing for removed link "
@@ -313,7 +307,7 @@ public class LinkHandler {
      * @param added true if link was added, false if link was removed
      */
     private void updateDualHomedHostPorts(Link link, boolean added) {
-        if (!lastUplink(link)) {
+        if (!onlyUplink(link)) {
             return;
         }
         if (added) {
@@ -349,7 +343,7 @@ public class LinkHandler {
     }
 
     /**
-     * Returns true if given link is the last active uplink from src-device of
+     * Returns true if given link is the only active uplink from src-device of
      * link. An uplink is defined as a unidirectional link with src as
      * edgeRouter and dst as non-edgeRouter.
      *
@@ -357,28 +351,35 @@ public class LinkHandler {
      * @return true if given link is-the-first/was-the-last uplink from the src
      *         device
      */
-    private boolean lastUplink(Link link) {
+    private boolean onlyUplink(Link link) {
         DeviceConfiguration devConfig = srManager.deviceConfiguration;
         try {
-            if (!devConfig.isEdgeDevice(link.src().deviceId())) {
+            if (!devConfig.isEdgeDevice(link.src().deviceId())
+                    || devConfig.isEdgeDevice(link.dst().deviceId())) {
                 return false;
             }
-            Set<Link> devLinks = srManager.linkService
-                    .getDeviceLinks(link.src().deviceId());
-            boolean foundOtherUplink = false;
+            // note that using linkservice here would cause race conditions as
+            // more links can show up while the app is still processing the first one
+            Set<Link> devLinks = seenLinks.entrySet().stream()
+                    .filter(entry -> entry.getKey().src().deviceId()
+                            .equals(link.src().deviceId()))
+                    .filter(entry -> entry.getValue())
+                    .filter(entry -> !entry.getKey().equals(link))
+                    .map(entry -> entry.getKey())
+                    .collect(Collectors.toSet());
+
             for (Link l : devLinks) {
-                if (devConfig.isEdgeDevice(l.dst().deviceId()) || l.equals(link)
-                        || l.state() == Link.State.INACTIVE) {
+                if (devConfig.isEdgeDevice(l.dst().deviceId())) {
                     continue;
                 }
-                foundOtherUplink = true;
-                break;
+                log.debug("Link {} is not the only active uplink. Found another"
+                        + "link {}", link, l);
+                return false;
             }
-            if (!foundOtherUplink) {
-                return true;
-            }
+            log.debug("Link {} is the only uplink", link);
+            return true;
         } catch (DeviceConfigNotFoundException e) {
-            log.warn("Unable to determine if link is last uplink"
+            log.warn("Unable to determine if link is only uplink"
                     + e.getMessage());
         }
         return false;
@@ -558,6 +559,14 @@ public class LinkHandler {
             p.add(loc.port());
         }
         downedPortStore.put(loc.deviceId(), p);
+    }
+
+    ImmutableMap<Link, Boolean> getSeenLinks() {
+        return ImmutableMap.copyOf(seenLinks);
+    }
+
+    ImmutableMap<DeviceId, Set<PortNumber>> getDownedPorts() {
+        return ImmutableMap.copyOf(downedPortStore.entrySet());
     }
 
 }
