@@ -170,10 +170,11 @@ public class DistributedLeadershipStore
                 groupedThreads("onos/store/dist/cluster/leadership", "status-change-handler", log));
         localNodeId = clusterService.getLocalNode().id();
         leaderElector = storageService.leaderElectorBuilder()
-                .withName("onos-leadership-elections")
-                .withElectionTimeout(electionTimeoutMillis)
-                .build()
-                .asLeaderElector();
+                      .withName("onos-leadership-elections")
+                      .withElectionTimeout(electionTimeoutMillis)
+                      .withRelaxedReadConsistency()
+                      .build()
+                      .asLeaderElector();
         leaderElector.addChangeListener(leadershipChangeListener);
         leaderElector.addStatusChangeListener(clientStatusListener);
         upgradeService.addListener(upgradeListener);
