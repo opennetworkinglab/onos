@@ -179,6 +179,13 @@ public class TroubleshootManagerTest {
 
         assertTrue("Wrong Output Group", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
                 .get(0).getGroups().contains(GROUP));
+        assertEquals("Packet should not have MPLS Label", EthType.EtherType.IPV4.ethType(),
+                ((EthTypeCriterion) traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
+                        .get(0).getFinalPacket().getCriterion(Criterion.Type.ETH_TYPE)).ethType());
+        assertNull("Packet should not have MPLS Label", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
+                .get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_LABEL));
+        assertNull("Packet should not have MPLS Label", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
+                .get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_BOS));
 
     }
 

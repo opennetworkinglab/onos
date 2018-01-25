@@ -20,6 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -84,8 +85,11 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Option(name = "-vid", aliases = "--vlanId", description = "Vlan of incoming packet", valueToShowInHelp = "None")
     String vlan = "None";
 
+    @Option(name = "-ml", aliases = "--mplsLabel", description = "Mpls label of incoming packet")
+    String mplsLabel = null;
+
     @Option(name = "-mb", aliases = "--mplsBos", description = "MPLS BOS", valueToShowInHelp = "True")
-    String mplsBos = "true";
+    String mplsBos = null;
 
     @Override
     protected void execute() {
@@ -134,8 +138,13 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
         //if vlan option is not specified using NONE
         selectorBuilder.matchVlanId(VlanId.vlanId(vlan));
 
-        //if mplsBos option is not specified using True
-        selectorBuilder.matchMplsBos(Boolean.valueOf(mplsBos));
+        if (mplsLabel != null) {
+            selectorBuilder.matchMplsLabel(MplsLabel.mplsLabel(Integer.parseInt(mplsLabel)));
+        }
+
+        if (mplsBos != null) {
+            selectorBuilder.matchMplsBos(Boolean.valueOf(mplsBos));
+        }
 
         TrafficSelector packet = selectorBuilder.build();
 
