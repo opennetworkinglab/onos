@@ -67,7 +67,7 @@ public final class PipeconfFactory {
         try {
             pipelineModel = P4InfoParser.parse(P4INFO_URL);
         } catch (P4InfoParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         return DefaultPiPipeconf.builder()

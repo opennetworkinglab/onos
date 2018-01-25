@@ -100,7 +100,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         try {
             reply = session.get(routingTableBuilder());
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
         Collection<StaticRoute> devicesStaticRoutes =
@@ -241,7 +241,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
                 }
             }
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
         return false;
@@ -335,7 +335,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         try {
             replay = session.get(commitBuilder());
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
 
@@ -355,7 +355,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         try {
             replay = session.get(rollbackBuilder(0));
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.",
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.",
                     e));
         }
 

@@ -56,7 +56,7 @@ public final class OFMessageEncoder extends ChannelOutboundHandlerAdapter {
     @Override
     public void write(ChannelHandlerContext ctx,
                       Object msg,
-                      ChannelPromise promise) throws Exception {
+                      ChannelPromise promise) {
 
         ByteBuf buf = null;
         try {

@@ -1004,7 +1004,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     sigType = CltSignalType.CLT_100GBE;
                     break;
                 default:
-                    throw new RuntimeException("Un recognize OduClt speed: " + portSpeedInMbps.toString());
+                    throw new IllegalArgumentException("Un recognize OduClt speed: " + portSpeedInMbps.toString());
             }
 
             SparseAnnotations annotations = buildOduCltAnnotation(port);

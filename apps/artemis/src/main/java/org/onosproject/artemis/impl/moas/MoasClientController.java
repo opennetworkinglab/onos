@@ -82,18 +82,13 @@ public class MoasClientController {
      * Bootstrap netty socket.
      *
      * @return bootstrap
-     * @throws Exception exception
      */
-    private Bootstrap createBootstrap() throws Exception {
-        try {
-            workerGroup = new NioEventLoopGroup();
-            return new Bootstrap()
-                    .group(workerGroup)
-                    .channel(NioSocketChannel.class)
-                    .option(ChannelOption.SO_KEEPALIVE, true);
-        } catch (Exception e) {
-            throw new Exception(e);
-        }
+    private Bootstrap createBootstrap() {
+        workerGroup = new NioEventLoopGroup();
+        return new Bootstrap()
+                .group(workerGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true);
     }
 
     /**

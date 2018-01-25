@@ -82,7 +82,7 @@ public class IsisLspQueueConsumer implements Runnable {
      *
      * @param wrapper LSP wrapper instance
      */
-    private void processRefreshLsp(LspWrapper wrapper) throws Exception {
+    private void processRefreshLsp(LspWrapper wrapper) {
         if (wrapper.isSelfOriginated()) { //self originated
             DefaultIsisInterface isisInterface = (DefaultIsisInterface) wrapper.isisInterface();
             Channel channel = isisInterface.channel();

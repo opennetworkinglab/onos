@@ -1357,9 +1357,9 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
         return getSwitchInfoString();
     }
 
-    protected void channelIdle(ChannelHandlerContext ctx,
+    private void channelIdle(ChannelHandlerContext ctx,
                                IdleStateEvent e)
-            throws Exception {
+            throws IOException {
         OFMessage m = factory.buildEchoRequest().build();
         log.debug("Sending Echo Request on idle channel: {}",
                   ctx.channel());

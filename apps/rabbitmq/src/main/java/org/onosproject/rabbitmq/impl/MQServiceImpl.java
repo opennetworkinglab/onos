@@ -91,7 +91,7 @@ public class MQServiceImpl implements MQService {
                                             prop.getProperty(SENDER_QUEUE)),
                     msgOutQueue);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
         manageSender.start();
     }

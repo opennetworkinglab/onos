@@ -582,7 +582,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 providerService.deviceDisconnected(deviceId);
             }
             deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(deviceId.toString()));
-            throw new RuntimeException(new NetconfException(
+            throw new IllegalStateException(new NetconfException(
                     "Can't connect to NETCONF device " + deviceId, e));
 
         }

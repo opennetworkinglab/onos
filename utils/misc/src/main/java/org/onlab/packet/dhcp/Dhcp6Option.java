@@ -74,7 +74,7 @@ public class Dhcp6Option extends BasePacket {
         try {
             this.payload = Data.deserializer().deserialize(data, 0, data.length);
         } catch (DeserializationException e) {
-            throw new RuntimeException("Invalid data");
+            throw new IllegalArgumentException("Invalid data");
         }
     }
 

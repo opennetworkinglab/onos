@@ -131,7 +131,7 @@ public class RouterWebResource extends AbstractWebResource {
             }
             return Response.status(CREATED).entity(result.toString()).build();
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException | IOException e) {
             return Response.status(BAD_REQUEST).entity(e.getMessage()).build();
         }
     }
@@ -271,8 +271,7 @@ public class RouterWebResource extends AbstractWebResource {
         }
     }
 
-    private Collection<Router> createOrUpdateByInputStream(JsonNode subnode)
-            throws Exception {
+    private Collection<Router> createOrUpdateByInputStream(JsonNode subnode) {
         checkNotNull(subnode, JSON_NOT_NULL);
         JsonNode routerNode = subnode.get("routers");
         if (routerNode == null) {
@@ -281,7 +280,7 @@ public class RouterWebResource extends AbstractWebResource {
         log.debug("routerNode is {}", routerNode.toString());
 
         if (routerNode.isArray()) {
-            throw new Exception("only singleton requests allowed");
+            throw new IllegalArgumentException("only singleton requests allowed");
         } else {
             return changeJsonToSub(routerNode);
         }
@@ -292,10 +291,8 @@ public class RouterWebResource extends AbstractWebResource {
      *
      * @param routerNode the router json node
      * @return routers a collection of router
-     * @throws Exception when any argument is illegal
      */
-    public Collection<Router> changeJsonToSub(JsonNode routerNode)
-            throws Exception {
+    public Collection<Router> changeJsonToSub(JsonNode routerNode) {
         checkNotNull(routerNode, JSON_NOT_NULL);
         Map<RouterId, Router> subMap = new HashMap<RouterId, Router>();
         if (!routerNode.hasNonNull("id")) {
@@ -361,11 +358,9 @@ public class RouterWebResource extends AbstractWebResource {
      * @param subnode the router json node
      * @param routerId the router identify
      * @return routers a collection of router
-     * @throws Exception when any argument is illegal
      */
     public Collection<Router> changeUpdateJsonToSub(JsonNode subnode,
-                                                    String routerId)
-                                                            throws Exception {
+                                                    String routerId) {
         checkNotNull(subnode, JSON_NOT_NULL);
         checkNotNull(routerId, "routerId should not be null");
         Map<RouterId, Router> subMap = new HashMap<RouterId, Router>();

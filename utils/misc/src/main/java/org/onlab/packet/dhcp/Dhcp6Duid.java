@@ -51,7 +51,7 @@ public class Dhcp6Duid extends BasePacket {
                 case 3:
                     return DUID_LL;
                 default:
-                    throw new RuntimeException("Unknown type: " + type);
+                    throw new IllegalArgumentException("Unknown type: " + type);
             }
         }
     }
@@ -139,7 +139,7 @@ public class Dhcp6Duid extends BasePacket {
                 byteBuffer.put(linkLayerAddress);
                 break;
             default:
-                throw new RuntimeException("Unknown duidType: " + duidType.toString());
+                throw new IllegalArgumentException("Unknown duidType: " + duidType.toString());
         }
         return byteBuffer.array();
     }
@@ -171,7 +171,7 @@ public class Dhcp6Duid extends BasePacket {
                     byteBuffer.get(duid.linkLayerAddress);
                     break;
                 default:
-                    throw new RuntimeException("Unknown type: " + duidType);
+                    throw new IllegalArgumentException("Unknown type: " + duidType);
             }
             return duid;
         };

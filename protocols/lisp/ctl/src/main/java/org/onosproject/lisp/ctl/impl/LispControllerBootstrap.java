@@ -70,8 +70,8 @@ public class LispControllerBootstrap {
                 f.sync();
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -69,7 +69,7 @@ public final class OplinkNetconfUtility {
         try {
             reply = session.get(filter, null);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.", e));
         }
         return reply;
     }
@@ -88,7 +88,7 @@ public final class OplinkNetconfUtility {
         try {
             reply = session.getConfig(DatastoreId.RUNNING, filter);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.", e));
         }
         return reply;
     }
@@ -108,7 +108,7 @@ public final class OplinkNetconfUtility {
         try {
             reply = session.editConfig(DatastoreId.RUNNING, mode, cfg);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to edit configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to edit configuration.", e));
         }
         return reply;
     }

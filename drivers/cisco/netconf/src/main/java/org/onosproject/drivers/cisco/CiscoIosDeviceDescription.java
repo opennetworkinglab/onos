@@ -49,7 +49,7 @@ public class CiscoIosDeviceDescription extends AbstractHandlerBehaviour
         try {
             version = session.get(showVersionRequestBuilder());
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve version info.", e));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve version info.", e));
         }
 
         String[] details = TextBlockParserCisco.parseCiscoIosDeviceDetails(version);

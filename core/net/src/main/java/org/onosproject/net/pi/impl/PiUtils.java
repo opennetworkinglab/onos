@@ -54,7 +54,8 @@ final class PiUtils {
                         .orElse(null)
                         .newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(format("Unable to instantiate interpreter of pipeconf %s", pipeconf.id()));
+                throw new IllegalArgumentException(format("Unable to instantiate interpreter of pipeconf %s",
+                                                          pipeconf.id()));
             }
         }
     }

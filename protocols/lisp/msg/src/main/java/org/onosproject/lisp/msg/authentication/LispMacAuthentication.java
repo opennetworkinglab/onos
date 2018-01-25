@@ -75,10 +75,10 @@ public class LispMacAuthentication {
             return mac.doFinal(data);
         } catch (NoSuchAlgorithmException e) {
             log.warn(NOT_SUPPORT_ALGORITHM_MSG, algorithm, e.getMessage());
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         } catch (InvalidKeyException e) {
             log.warn(INVALID_KEY_MSG, key, e.getMessage());
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 }

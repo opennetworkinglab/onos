@@ -18,7 +18,6 @@ package org.onosproject.openflow.controller.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -29,7 +28,6 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
-
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -50,9 +48,15 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
@@ -147,7 +151,6 @@ public class Controller {
      */
     public void run() {
 
-        try {
             final ServerBootstrap bootstrap = createServerBootStrap();
             bootstrap.option(ChannelOption.SO_REUSEADDR, true);
             bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -163,10 +166,6 @@ public class Controller {
                 cg.add(bootstrap.bind(port).syncUninterruptibly().channel());
                 log.info("Listening for switch connections on {}", port);
             });
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
     }
 
@@ -236,13 +235,9 @@ public class Controller {
 
         cg = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
-        try {
-            getTlsParameters();
-            if (enableOfTls) {
-                initSsl();
-            }
-        } catch (Exception ex) {
-            log.error("SSL init failed: {}", ex.getMessage());
+        getTlsParameters();
+        if (enableOfTls) {
+            initSsl();
         }
     }
 
@@ -274,19 +269,24 @@ public class Controller {
         }
     }
 
-    private void initSsl() throws Exception {
-        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        KeyStore ts = KeyStore.getInstance("JKS");
-        ts.load(new FileInputStream(tsLocation), tsPwd);
-        tmFactory.init(ts);
+    private void initSsl() {
+        try {
+            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            KeyStore ts = KeyStore.getInstance("JKS");
+            ts.load(new FileInputStream(tsLocation), tsPwd);
+            tmFactory.init(ts);
 
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(new FileInputStream(ksLocation), ksPwd);
-        kmf.init(ks, ksPwd);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(new FileInputStream(ksLocation), ksPwd);
+            kmf.init(ks, ksPwd);
 
-        sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+        } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException |
+                IOException | KeyManagementException | UnrecoverableKeyException ex) {
+            log.error("SSL init failed: {}", ex.getMessage());
+        }
     }
 
     // **************

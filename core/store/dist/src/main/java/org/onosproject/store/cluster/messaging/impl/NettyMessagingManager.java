@@ -158,7 +158,7 @@ public class NettyMessagingManager implements MessagingService {
     protected ClusterMetadataService clusterMetadataService;
 
     @Activate
-    public void activate() throws Exception {
+    public void activate() throws InterruptedException {
         ControllerNode localNode = clusterMetadataService.getLocalNode();
         getTlsParameters();
 
@@ -179,7 +179,7 @@ public class NettyMessagingManager implements MessagingService {
     }
 
     @Deactivate
-    public void deactivate() throws Exception {
+    public void deactivate() {
         if (started.get()) {
             serverGroup.shutdownGracefully();
             clientGroup.shutdownGracefully();

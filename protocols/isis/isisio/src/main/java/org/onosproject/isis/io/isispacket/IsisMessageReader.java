@@ -105,7 +105,7 @@ public class IsisMessageReader {
      * @return ISIS header
      * @throws Exception
      */
-    private IsisHeader getIsisHeader(ChannelBuffer channelBuffer) throws Exception {
+    private IsisHeader getIsisHeader(ChannelBuffer channelBuffer) {
 
         IsisHeader isisHeader = new IsisHeader();
         isisHeader.setIrpDiscriminator(channelBuffer.readByte());

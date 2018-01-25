@@ -293,7 +293,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             }
         } catch (IOException e) {
             log.warn("Error in reading from the session for device {} ", netconfDeviceInfo, e);
-            throw new RuntimeException(new NetconfException("Error in reading from the session for device {}" +
+            throw new IllegalStateException(new NetconfException("Error in reading from the session for device {}" +
                     netconfDeviceInfo, e));
             //TODO should we send a socket closed message to listeners ?
         }

@@ -428,7 +428,7 @@ final class PiFlowRuleTranslatorImpl {
                     return fieldMatch;
                 default:
                     // Should never be here.
-                    throw new RuntimeException(
+                    throw new IllegalArgumentException(
                             "Unrecognized match type " + fieldModel.matchType().name());
             }
         } catch (ByteSequenceTrimException e) {

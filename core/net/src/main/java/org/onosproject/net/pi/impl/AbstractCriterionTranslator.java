@@ -112,7 +112,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
                 }
                 break;
             default:
-                throw new RuntimeException("Unrecognized init type " + initType.name());
+                throw new IllegalArgumentException("Unrecognized init type " + initType.name());
         }
         return value;
     }
@@ -129,7 +129,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
                 mask = getMaskFromPrefixLength(prefixLength, value.size());
                 break;
             default:
-                throw new RuntimeException("Unrecognized init type " + initType.name());
+                throw new IllegalArgumentException("Unrecognized init type " + initType.name());
         }
 
         return Pair.of(value, mask);
@@ -150,7 +150,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
             case LPM:
                 break;
             default:
-                throw new RuntimeException("Unrecognized init type " + initType.name());
+                throw new IllegalArgumentException("Unrecognized init type " + initType.name());
         }
 
         return Pair.of(value, prefixLength);

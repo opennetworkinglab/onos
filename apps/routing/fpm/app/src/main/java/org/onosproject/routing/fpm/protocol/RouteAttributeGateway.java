@@ -104,7 +104,7 @@ public final class RouteAttributeGateway extends RouteAttribute {
                 RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
             cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
         } else {
-            throw new RuntimeException("Gateway address length incorrect!");
+            throw new IllegalArgumentException("Gateway address length incorrect!");
         }
     }
 }

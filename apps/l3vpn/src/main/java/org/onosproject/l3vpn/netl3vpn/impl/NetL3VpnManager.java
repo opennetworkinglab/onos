@@ -240,7 +240,7 @@ public class NetL3VpnManager {
             value = l3VpnIdGen.getNewId();
         }
         if (value > ID_LIMIT) {
-            throw new RuntimeException(ID_LIMIT_EXCEEDED);
+            throw new IllegalStateException(ID_LIMIT_EXCEEDED);
         }
         return CONS_HUNDRED + String.valueOf(value);
     }

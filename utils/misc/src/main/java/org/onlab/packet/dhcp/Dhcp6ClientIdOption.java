@@ -49,7 +49,7 @@ public final class Dhcp6ClientIdOption extends Dhcp6Option {
             Dhcp6Duid duid = Dhcp6Duid.deserializer().deserialize(data, 0, data.length);
             this.setDuid(duid);
         } catch (DeserializationException e) {
-            throw new RuntimeException("Invalid DUID");
+            throw new IllegalArgumentException("Invalid DUID");
         }
 
     }

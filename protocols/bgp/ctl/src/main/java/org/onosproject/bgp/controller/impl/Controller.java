@@ -129,7 +129,7 @@ public class Controller {
             cg.add(serverChannel);
             log.info("Listening for Peer connection on {}", sa);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

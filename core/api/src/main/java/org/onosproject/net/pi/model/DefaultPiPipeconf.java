@@ -80,7 +80,7 @@ public final class DefaultPiPipeconf implements PiPipeconf {
             try {
                 return Optional.of(extensions.get(type).openStream());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
         } else {
             return Optional.empty();

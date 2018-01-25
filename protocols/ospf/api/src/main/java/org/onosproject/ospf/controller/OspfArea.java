@@ -16,7 +16,6 @@
 package org.onosproject.ospf.controller;
 
 import org.onlab.packet.Ip4Address;
-import org.onosproject.ospf.exceptions.OspfParseException;
 
 import java.util.List;
 
@@ -200,9 +199,8 @@ public interface OspfArea {
      *
      * @param ospfLsa       LSA instance
      * @param ospfInterface interface instance
-     * @throws OspfParseException might throws exception
      */
-    void addLsa(OspfLsa ospfLsa, OspfInterface ospfInterface) throws OspfParseException;
+    void addLsa(OspfLsa ospfLsa, OspfInterface ospfInterface);
 
     /**
      * Sets router sequence number for router LSA.

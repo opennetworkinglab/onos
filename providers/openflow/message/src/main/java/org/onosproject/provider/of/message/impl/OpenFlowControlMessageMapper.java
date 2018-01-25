@@ -59,7 +59,7 @@ public final class OpenFlowControlMessageMapper {
      */
     private static <I, O> O lookup(BiMap<I, O> map, I input, Class<O> cls) {
         if (!map.containsKey(input)) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     String.format("No mapping found for %s when converting to %s",
                             input, cls.getName()));
         }

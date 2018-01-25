@@ -102,7 +102,7 @@ public final class RouteAttributeDst extends RouteAttribute {
                 RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH) {
             cb.writeBytes(buffer, Ip4Address.BYTE_LENGTH);
         } else {
-            throw new RuntimeException("Dst address length incorrect!");
+            throw new IllegalArgumentException("Dst address length incorrect!");
         }
     }
 }

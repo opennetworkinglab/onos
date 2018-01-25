@@ -206,7 +206,7 @@ public class Controller {
      * @param json posted json
      * @return list of processes configured
      */
-    private List<IsisProcess> getConfig(JsonNode json) throws Exception {
+    private List<IsisProcess> getConfig(JsonNode json) {
         List<IsisProcess> isisProcessesList = new ArrayList<>();
         JsonNode jsonNodes = json;
         if (jsonNodes == null) {

@@ -82,7 +82,7 @@ public final class PolatisNetconfUtility {
         try {
             reply = session.get(filter, null);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.", e));
         }
         return reply;
     }
@@ -100,7 +100,7 @@ public final class PolatisNetconfUtility {
         try {
             reply = session.getConfig(DatastoreId.RUNNING, filter);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve configuration.", e));
         }
         return reply;
     }
@@ -119,7 +119,7 @@ public final class PolatisNetconfUtility {
         try {
             reply = session.editConfig(DatastoreId.RUNNING, mode, cfg);
         } catch (NetconfException e) {
-            throw new RuntimeException(new NetconfException("Failed to edit configuration.", e));
+            throw new IllegalStateException(new NetconfException("Failed to edit configuration.", e));
         }
         return reply;
     }
@@ -223,7 +223,7 @@ public final class PolatisNetconfUtility {
         NetconfController controller = checkNotNull(handler.get(NetconfController.class));
         NetconfSession session = controller.getNetconfDevice(handler.data().deviceId()).getSession();
         if (session == null) {
-            throw new RuntimeException(new NetconfException("Failed to retrieve the netconf device."));
+            throw new IllegalStateException(new NetconfException("Failed to retrieve the netconf device."));
         }
         return session;
     }
