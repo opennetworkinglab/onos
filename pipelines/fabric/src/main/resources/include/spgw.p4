@@ -144,6 +144,7 @@ control spgw_ingress(
                 spgw_meta.do_spgw = true;
             }
         } else {
+            spgw_meta.direction = DIR_DOWNLINK;
             if (ue_filter_table.apply().hit) {
                 spgw_meta.do_spgw = true;
             }
@@ -192,7 +193,28 @@ control spgw_egress(
     ) {
 
     action gtpu_encap() {
-        // GTPU
+        gtpu_ipv4.setValid();
+        gtpu_ipv4.version = IP_VERSION_4;
+        gtpu_ipv4.ihl = IPV4_MIN_IHL;
+        gtpu_ipv4.diffserv = 0;
+        gtpu_ipv4.total_len = (bit<16>) (std_meta.packet_length
+            - ETH_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
+        gtpu_ipv4.identification = 0x1513; /* From NGIC */
+        gtpu_ipv4.flags = 0;
+        gtpu_ipv4.frag_offset = 0;
+        gtpu_ipv4.ttl = DEFAULT_IPV4_TTL;
+        gtpu_ipv4.protocol = PROTO_UDP;
+        gtpu_ipv4.dst_addr = spgw_meta.dl_sess_enb_addr;
+        gtpu_ipv4.src_addr = spgw_meta.dl_sess_s1u_addr;
+        gtpu_ipv4.hdr_checksum = 0; // Updated later
+
+        gtpu_udp.setValid();
+        gtpu_udp.src_port = UDP_PORT_GTPU;
+        gtpu_udp.dst_port = UDP_PORT_GTPU;
+        gtpu_udp.len = (bit<16>) (std_meta.packet_length
+            - ETH_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
+        gtpu_udp.checksum = 0; // Updated later
+
         gtpu.setValid();
         gtpu.version = GTPU_VERSION;
         gtpu.pt = GTP_PROTOCOL_TYPE_GTP;
@@ -203,28 +225,6 @@ control spgw_egress(
         gtpu.msgtype = GTP_GPDU;
         gtpu.msglen = (bit<16>) (std_meta.packet_length - ETH_HDR_SIZE);
         gtpu.teid = spgw_meta.dl_sess_teid;
-        // Outer IPv4
-        gtpu_ipv4.setValid();
-        gtpu_ipv4.version = IP_VERSION_4;
-        gtpu_ipv4.ihl = IPV4_MIN_IHL;
-        gtpu_ipv4.diffserv = 0;
-        gtpu_ipv4.total_len = (bit<16>) (std_meta.packet_length
-            - ETH_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE);
-        gtpu_ipv4.identification = 0x1513; /* From NGIC */
-        gtpu_ipv4.flags = 0;
-        gtpu_ipv4.frag_offset = 0;
-        gtpu_ipv4.ttl = DEFAULT_IPV4_TTL;
-        gtpu_ipv4.protocol = PROTO_UDP;
-        gtpu_ipv4.dst_addr = spgw_meta.dl_sess_enb_addr;
-        gtpu_ipv4.src_addr = spgw_meta.dl_sess_s1u_addr;
-        gtpu_ipv4.hdr_checksum = 0; /* Updated later */
-        // Outer UDP
-        gtpu_udp.setValid();
-        gtpu_udp.src_port = UDP_PORT_GTPU;
-        gtpu_udp.dst_port = UDP_PORT_GTPU;
-        gtpu_udp.len = (bit<16>) (std_meta.packet_length
-            - ETH_HDR_SIZE + UDP_HDR_SIZE);
-        gtpu_udp.checksum = 0; /* Ignore, won't be updated */
     }
 
     apply {
@@ -235,7 +235,9 @@ control spgw_egress(
 }
 
 
-control verify_gtpu_checksum(inout ipv4_t gtpu_ipv4) {
+control verify_gtpu_checksum(
+        inout ipv4_t gtpu_ipv4
+    ) {
     apply {
         verify_checksum(gtpu_ipv4.isValid(),
             {
@@ -258,7 +260,13 @@ control verify_gtpu_checksum(inout ipv4_t gtpu_ipv4) {
 }
 
 
-control update_gtpu_checksum(inout ipv4_t gtpu_ipv4) {
+control update_gtpu_checksum(
+        inout ipv4_t gtpu_ipv4,
+        inout udp_t  gtpu_udp,
+        in    gtpu_t gtpu,
+        in    ipv4_t ipv4,
+        in    udp_t  udp
+    ) {
     apply {
         // Compute outer IPv4 checksum.
         update_checksum(gtpu_ipv4.isValid(),
@@ -276,6 +284,27 @@ control update_gtpu_checksum(inout ipv4_t gtpu_ipv4) {
                 gtpu_ipv4.dst_addr
             },
             gtpu_ipv4.hdr_checksum,
+            HashAlgorithm.csum16
+        );
+
+        // Compute outer UDP checksum.
+        update_checksum_with_payload(gtpu_udp.isValid(),
+            {
+                gtpu_ipv4.src_addr,
+                gtpu_ipv4.dst_addr,
+                8w0,
+                gtpu_ipv4.protocol,
+                gtpu_udp.len,
+                gtpu_udp.src_port,
+                gtpu_udp.dst_port,
+                gtpu_udp.len,
+                gtpu,
+                ipv4,
+                // FIXME: we are assuming only UDP for downlink packets
+                // How to conditionally switch between UDP/TCP/ICMP?
+                udp
+            },
+            gtpu_udp.checksum,
             HashAlgorithm.csum16
         );
     }

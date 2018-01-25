@@ -63,6 +63,7 @@ const bit<8> DEFAULT_IPV4_TTL = 64;
 #define ETH_HDR_SIZE 14
 #define IPV4_HDR_SIZE 20
 #define UDP_HDR_SIZE 8
+#define GTP_HDR_SIZE 8
 
 #define UDP_PORT_GTPU 2152
 #define GTP_GPDU 0xff
