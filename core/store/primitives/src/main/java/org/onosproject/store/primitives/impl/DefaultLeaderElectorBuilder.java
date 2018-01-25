@@ -15,11 +15,11 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import java.util.concurrent.TimeUnit;
-
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.LeaderElectorBuilder;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default implementation of {@code LeaderElectorBuilder}.
@@ -34,6 +34,11 @@ public class DefaultLeaderElectorBuilder extends LeaderElectorBuilder {
 
     @Override
     public AsyncLeaderElector build() {
-        return primitiveCreator.newAsyncLeaderElector(name(), electionTimeoutMillis(), TimeUnit.MILLISECONDS);
+        AsyncLeaderElector leaderElector = primitiveCreator.newAsyncLeaderElector(name(), electionTimeoutMillis(),
+                                                                                  TimeUnit.MILLISECONDS);
+        if (relaxedReadConsistency()) {
+            leaderElector = new CachingAsyncLeaderElector(leaderElector);
+        }
+        return leaderElector;
     }
 }
