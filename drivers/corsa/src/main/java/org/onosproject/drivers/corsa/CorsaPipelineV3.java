@@ -82,10 +82,8 @@ public class CorsaPipelineV3 extends AbstractCorsaPipeline {
                     switch (i.type()) {
                         case L2MODIFICATION:
                             L2ModificationInstruction l2i = (L2ModificationInstruction) i;
-                            if (l2i instanceof L2ModificationInstruction.ModVlanIdInstruction ||
-                                    l2i instanceof L2ModificationInstruction.ModEtherInstruction) {
-                                return true;
-                            }
+                            return l2i instanceof L2ModificationInstruction.ModVlanIdInstruction ||
+                                    l2i instanceof L2ModificationInstruction.ModEtherInstruction;
                         case OUTPUT:
                             return true;
                         default:

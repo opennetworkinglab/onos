@@ -234,12 +234,10 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
                     switch (i.type()) {
                         case L2MODIFICATION:
                             L2ModificationInstruction l2i = (L2ModificationInstruction) i;
-                            if (l2i.subtype() == VLAN_ID ||
+                            return l2i.subtype() == VLAN_ID ||
                                     l2i.subtype() == VLAN_POP ||
                                     l2i.subtype() == ETH_DST ||
-                                    l2i.subtype() == ETH_SRC) {
-                                return true;
-                            }
+                                    l2i.subtype() == ETH_SRC;
                         case OUTPUT:
                             return true;
                         default:
