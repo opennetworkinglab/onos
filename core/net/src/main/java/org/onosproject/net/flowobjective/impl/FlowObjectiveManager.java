@@ -208,7 +208,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         public ObjectiveInstaller(DeviceId deviceId, Objective objective, int attemps) {
             this.deviceId = checkNotNull(deviceId);
             this.objective = checkNotNull(objective);
-            this.numAttempts = checkNotNull(attemps);
+            this.numAttempts = attemps;
         }
 
         @Override

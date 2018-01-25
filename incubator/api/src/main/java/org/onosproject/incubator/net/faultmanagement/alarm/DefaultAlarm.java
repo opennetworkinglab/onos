@@ -427,8 +427,6 @@ public final class DefaultAlarm implements Alarm {
             checkNotNull(id, "Must specify an alarm id");
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(description, "Must specify a description");
-            checkNotNull(timeRaised, "Must specify a time raised");
-            checkNotNull(timeUpdated, "Must specify a time updated");
             checkNotNull(severity, "Must specify a severity");
 
             return new DefaultAlarm(id, deviceId, description, source, timeRaised, timeUpdated, timeCleared,

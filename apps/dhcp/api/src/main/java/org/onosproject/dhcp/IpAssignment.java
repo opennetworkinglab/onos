@@ -310,7 +310,6 @@ public final class IpAssignment {
         private void validateInputs() {
             checkNotNull(ipAddress, "IP Address must be specified");
             checkNotNull(assignmentStatus, "Assignment Status must be specified");
-            checkNotNull(leasePeriod, "Lease Period must be specified");
             checkNotNull(timeStamp, "Timestamp must be specified");
 
             switch (assignmentStatus) {

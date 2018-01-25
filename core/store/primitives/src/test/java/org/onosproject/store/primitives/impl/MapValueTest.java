@@ -48,6 +48,7 @@ public class MapValueTest {
         assertEquals(actual, expected);
     }
 
+    @SuppressWarnings("SelfComparison")
     @Test
     public void testComparison() {
         Timestamp ts1 = new LogicalTimestamp(9);

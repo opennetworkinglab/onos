@@ -148,7 +148,7 @@ public class PiPipeconfManagerTest {
     @Test
     public void register() {
         piPipeconfService.register(piPipeconf);
-        assertTrue("PiPipeconf should be registered", piPipeconfService.piPipeconfs.contains(piPipeconf));
+        assertTrue("PiPipeconf should be registered", piPipeconfService.piPipeconfs.containsValue(piPipeconf));
     }
 
     @Test

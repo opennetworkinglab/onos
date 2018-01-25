@@ -90,6 +90,7 @@ public final class TestEventuallyConsistentMap<K, V> extends EventuallyConsisten
         return map.get(key);
     }
 
+    @SuppressWarnings("ReturnValueIgnored")
     @Override
     public void put(K key, V value) {
         map.put(key, value);

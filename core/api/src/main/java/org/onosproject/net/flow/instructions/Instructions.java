@@ -97,7 +97,6 @@ public final class Instructions {
      * @return set-queue instruction
      */
     public static SetQueueInstruction setQueue(final long queueId, final PortNumber port) {
-        checkNotNull(queueId, "queue ID cannot be null");
         return new SetQueueInstruction(queueId, port);
     }
 
@@ -324,7 +323,6 @@ public final class Instructions {
      * @return a l3 modification
      */
     public static L3ModificationInstruction modL3ArpOp(short op) {
-        checkNotNull(op, "Arp operation cannot be null");
         return new ModArpOpInstruction(L3SubType.ARP_OP, op);
     }
 
@@ -424,7 +422,6 @@ public final class Instructions {
      * @return a L2 modification
      */
     public static L2ModificationInstruction modTunnelId(long tunnelId) {
-        checkNotNull(tunnelId, "Tunnel id cannot be null");
         return new L2ModificationInstruction.ModTunnelIdInstruction(tunnelId);
     }
 

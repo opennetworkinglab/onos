@@ -553,8 +553,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
         }
 
-        List<Intent> installable = service.getInstallableIntents(intent.key());
-        installable.stream().filter(i -> contentFilter.filter(i));
+        List<Intent> installable = service.getInstallableIntents(intent.key())
+            .stream().filter(i -> contentFilter.filter(i))
+            .collect(Collectors.toList());
         if (showInstallable && installable != null && !installable.isEmpty()) {
             builder.append('\n').append(format(INSTALLABLE, installable));
         }

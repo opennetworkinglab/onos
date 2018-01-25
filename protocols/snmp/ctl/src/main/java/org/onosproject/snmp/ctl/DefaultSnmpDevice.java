@@ -50,7 +50,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
     public DefaultSnmpDevice(String snmpHost, int snmpPort, String username, String community) {
 
         this.snmpHost = checkNotNull(snmpHost, "SNMP Device IP cannot be null");
-        this.snmpPort = checkNotNull(snmpPort, "SNMP Device port cannot be null");
+        this.snmpPort = snmpPort;
         this.username = username;
         this.community = community;
         this.deviceId = createDeviceId();

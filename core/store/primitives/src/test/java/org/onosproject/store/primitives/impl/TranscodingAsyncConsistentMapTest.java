@@ -115,6 +115,7 @@ public class TranscodingAsyncConsistentMapTest {
         assertFalse(transcodingMap.containsValue(DEV1).join());
     }
 
+    @Test
     public void testGet() throws Exception {
         assertNull(transcodingMap.get(KEY1).join().value());
         transcodingMap.put(KEY2, DEV1).join();

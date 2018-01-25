@@ -15,8 +15,8 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.cluster.MemberId;
@@ -93,7 +93,7 @@ public class AtomixWorkQueueServiceTest {
         service.add(new DefaultCommit<>(
                 2,
                 ADD,
-                new AtomixWorkQueueOperations.Add(Arrays.asList("Hello world!".getBytes())),
+                new AtomixWorkQueueOperations.Add(Collections.singletonList("Hello world!".getBytes())),
                 session,
                 System.currentTimeMillis()));
 

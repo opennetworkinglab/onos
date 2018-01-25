@@ -80,7 +80,7 @@ public class LsdbAgeImpl implements LsdbAge {
         return Objects.equal(ageBins, that.ageBins) &&
                 Objects.equal(ageCounter, that.ageCounter) &&
                 Objects.equal(ageCounterRollOver, that.ageCounterRollOver) &&
-                Objects.equal(lsaQueue, lsaQueue);
+                Objects.equal(lsaQueue, that.lsaQueue);
     }
 
     @Override
@@ -94,6 +94,7 @@ public class LsdbAgeImpl implements LsdbAge {
      * @param binKey key to store in bin
      * @param lsaBin LSA bin instance
      */
+    @Override
     public void addLsaBin(Integer binKey, LsaBin lsaBin) {
         if (!ageBins.containsKey(binKey)) {
             ageBins.put(binKey, lsaBin);
@@ -106,6 +107,7 @@ public class LsdbAgeImpl implements LsdbAge {
      * @param binKey key
      * @return bin instance
      */
+    @Override
     public LsaBin getLsaBin(Integer binKey) {
 
         return ageBins.get(binKey);
@@ -117,6 +119,7 @@ public class LsdbAgeImpl implements LsdbAge {
      * @param key     key
      * @param wrapper wrapper instance
      */
+    @Override
     public void addLsaToMaxAgeBin(String key, LsaWrapper wrapper) {
         maxAgeBin.addOspfLsa(key, wrapper);
     }
@@ -126,6 +129,7 @@ public class LsdbAgeImpl implements LsdbAge {
      *
      * @param lsaWrapper wrapper instance
      */
+    @Override
     public void removeLsaFromBin(LsaWrapper lsaWrapper) {
         if (ageBins.containsKey(lsaWrapper.binNumber())) {
             LsaBin lsaBin = ageBins.get(lsaWrapper.binNumber());
@@ -137,6 +141,7 @@ public class LsdbAgeImpl implements LsdbAge {
     /**
      * Starts the aging timer and queue consumer.
      */
+    @Override
     public void startDbAging() {
         startDbAgeTimer();
         queueConsumer = new LsaQueueConsumer(lsaQueue, channel, ospfArea);
@@ -147,6 +152,7 @@ public class LsdbAgeImpl implements LsdbAge {
     /**
      * Gets called every 1 second as part of the timer.
      */
+    @Override
     public void ageLsaAndFlood() {
         //every 5 mins checksum validation
         checkAges();
@@ -167,6 +173,7 @@ public class LsdbAgeImpl implements LsdbAge {
     /**
      * If the LSA have completed the MaxAge - they are moved called stop aging and flooded.
      */
+    @Override
     public void maxAgeLsa() {
         if (ageCounter == 0) {
             return;
@@ -178,7 +185,7 @@ public class LsdbAgeImpl implements LsdbAge {
         }
         Map lsaBinMap = lsaBin.listOfLsa();
         for (Object key : lsaBinMap.keySet()) {
-            LsaWrapper lsa = (LsaWrapper) lsaBinMap.get((String) key);
+            LsaWrapper lsa = (LsaWrapper) lsaBinMap.get(key);
             if (lsa.currentAge() == OspfParameters.MAXAGE) {
                 lsa.setLsaProcessing(OspfParameters.MAXAGELSA);
                 log.debug("Lsa picked for maxage flooding. Age Counter: {}, AgeCounterRollover: {}, " +
@@ -198,7 +205,7 @@ public class LsdbAgeImpl implements LsdbAge {
         //Get from maxAgeBin
         Map lsaMaxAgeBinMap = maxAgeBin.listOfLsa();
         for (Object key : lsaMaxAgeBinMap.keySet()) {
-            LsaWrapper lsa = (LsaWrapper) lsaMaxAgeBinMap.get((String) key);
+            LsaWrapper lsa = (LsaWrapper) lsaMaxAgeBinMap.get(key);
             lsa.setLsaProcessing(OspfParameters.MAXAGELSA);
             log.debug("Lsa picked for maxage flooding. Age Counter: {}, LSA Type: {}, LSA Key: {}",
                       ageCounter, lsa.lsaType(), key);
@@ -217,6 +224,7 @@ public class LsdbAgeImpl implements LsdbAge {
     /*
      * If the LSA is in age bin of 1800 - it's pushed into refresh list.
      */
+    @Override
     public void refreshLsa() {
         int binNumber;
         if (ageCounter < OspfParameters.LSREFRESHTIME) {
@@ -230,7 +238,7 @@ public class LsdbAgeImpl implements LsdbAge {
         }
         Map lsaBinMap = lsaBin.listOfLsa();
         for (Object key : lsaBinMap.keySet()) {
-            LsaWrapper lsa = (LsaWrapper) lsaBinMap.get((String) key);
+            LsaWrapper lsa = (LsaWrapper) lsaBinMap.get(key);
             try {
                 if (lsa.isSelfOriginated()) {
                     log.debug("Lsa picked for refreshLsa. binNumber: {}, LSA Type: {}, LSA Key: {}",
@@ -259,7 +267,7 @@ public class LsdbAgeImpl implements LsdbAge {
             }
             Map lsaBinMap = lsaBin.listOfLsa();
             for (Object key : lsaBinMap.keySet()) {
-                LsaWrapper lsa = (LsaWrapper) lsaBinMap.get((String) key);
+                LsaWrapper lsa = (LsaWrapper) lsaBinMap.get(key);
                 lsa.setLsaProcessing(OspfParameters.VERIFYCHECKSUM);
                 try {
                     lsaQueue.put(lsa);
@@ -319,6 +327,7 @@ public class LsdbAgeImpl implements LsdbAge {
      *
      * @return ageCounter
      */
+    @Override
     public int getAgeCounter() {
         return ageCounter;
     }
@@ -328,6 +337,7 @@ public class LsdbAgeImpl implements LsdbAge {
      *
      * @return the age counter roll over value
      */
+    @Override
     public int getAgeCounterRollOver() {
         return ageCounterRollOver;
     }
@@ -337,6 +347,7 @@ public class LsdbAgeImpl implements LsdbAge {
      *
      * @return lsa bin instance
      */
+    @Override
     public LsaBin getMaxAgeBin() {
         return maxAgeBin;
     }
@@ -347,6 +358,7 @@ public class LsdbAgeImpl implements LsdbAge {
      * @param x Can be either age or ageCounter
      * @return bin number.
      */
+    @Override
     public int age2Bin(int x) {
         if (x <= ageCounter) {
             return (ageCounter - x);

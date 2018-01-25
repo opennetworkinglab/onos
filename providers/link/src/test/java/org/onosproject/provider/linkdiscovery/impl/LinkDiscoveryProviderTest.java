@@ -149,7 +149,7 @@ public class LinkDiscoveryProviderTest {
 
     @Test
     public void activate() throws Exception {
-        assertFalse("Provider should be registered", linkRegistry.getProviders().contains(provider));
+        assertTrue("Provider should be registered", linkRegistry.getProviders().contains(provider.id()));
         assertEquals("Device service should be registered", provider.deviceService, deviceService);
         assertEquals("Device listener should be added", 1, deviceListeners.size());
         assertNotNull("Registration expected", providerService);
@@ -177,7 +177,7 @@ public class LinkDiscoveryProviderTest {
     public void deactivate() throws Exception {
         provider.deactivate();
         assertEquals("Device listener should be removed", 0, deviceListeners.size());
-        assertFalse("Provider should not be registered", linkRegistry.getProviders().contains(provider));
+        assertFalse("Provider should not be registered", linkRegistry.getProviders().contains(provider.id()));
         assertTrue(provider.executor.isShutdown());
         assertNull(provider.providerService);
     }

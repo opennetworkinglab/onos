@@ -55,9 +55,9 @@ public final class DefaultRouter implements Router {
                          List<String> routes) {
         this.id = checkNotNull(id, "id cannot be null");
         this.name = routerName;
-        this.adminStateUp = checkNotNull(adminStateUp, "adminStateUp cannot be null");
+        this.adminStateUp = adminStateUp;
         this.status = checkNotNull(status, "status cannot be null");
-        this.distributed = checkNotNull(distributed, "distributed cannot be null");
+        this.distributed = distributed;
         this.externalGatewayInfo = externalGatewayInfo;
         this.gatewayPortId = gatewayPortId;
         this.tenantId = checkNotNull(tenantId, "tenantId cannot be null");

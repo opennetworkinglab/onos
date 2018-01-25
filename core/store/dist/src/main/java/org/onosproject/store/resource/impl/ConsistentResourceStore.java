@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.groupingBy;
 import static org.onosproject.net.resource.ResourceEvent.Type.RESOURCE_ADDED;
 import static org.onosproject.net.resource.ResourceEvent.Type.RESOURCE_REMOVED;
 
@@ -132,7 +133,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             // the order is preserved by LinkedHashMap
             Map<DiscreteResource, List<Resource>> resourceMap = resources.stream()
                     .filter(x -> x.parent().isPresent())
-                    .collect(Collectors.groupingBy(x -> x.parent().get(), LinkedHashMap::new, Collectors.toList()));
+                    .collect(groupingBy(x -> x.parent().get(), LinkedHashMap::new, Collectors.<Resource>toList()));
 
             TransactionalDiscreteResourceSubStore discreteTxStore = discreteStore.transactional(tx);
             TransactionalContinuousResourceSubStore continuousTxStore = continuousStore.transactional(tx);

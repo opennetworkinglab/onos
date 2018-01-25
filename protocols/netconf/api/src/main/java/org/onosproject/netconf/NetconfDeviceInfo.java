@@ -67,7 +67,7 @@ public class NetconfDeviceInfo {
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port) {
         checkArgument(!name.equals(""), "Empty device username");
-        checkNotNull(port > 0, "Negative port");
+        checkArgument(port > 0, "Negative port");
         checkNotNull(ipAddress, "Null ip address");
         this.name = name;
         this.password = password;
@@ -96,7 +96,7 @@ public class NetconfDeviceInfo {
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port, String keyString) {
         checkArgument(!name.equals(""), "Empty device name");
-        checkNotNull(port > 0, "Negative port");
+        checkArgument(port > 0, "Negative port");
         checkNotNull(ipAddress, "Null ip address");
         this.name = name;
         this.password = password;
@@ -116,7 +116,7 @@ public class NetconfDeviceInfo {
      */
     public NetconfDeviceInfo(NetconfDeviceConfig netconfConfig) {
         checkArgument(!netconfConfig.username().isEmpty(), "Empty device name");
-        checkNotNull(netconfConfig.port() > 0, "Negative port");
+        checkArgument(netconfConfig.port() > 0, "Negative port");
         checkNotNull(netconfConfig.ip(), "Null ip address");
 
         this.name = netconfConfig.username();

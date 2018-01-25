@@ -65,7 +65,6 @@ public class NiciraResubmitTable extends AbstractExtension implements
      */
     public NiciraResubmitTable(PortNumber inPort, short table) {
         checkNotNull(inPort);
-        checkNotNull(table);
         this.inPort = inPort;
         this.table = table;
     }
@@ -76,7 +75,6 @@ public class NiciraResubmitTable extends AbstractExtension implements
      * @param table table
      */
     public NiciraResubmitTable(short table) {
-        checkNotNull(table);
         this.inPort = DEFAULT_IN_PORT;
         this.table = table;
     }

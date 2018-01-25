@@ -317,7 +317,7 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
         public ObjectiveInstaller(DeviceId deviceId, Objective objective, int attemps) {
             this.deviceId = checkNotNull(deviceId);
             this.objective = checkNotNull(objective);
-            this.numAttempts = checkNotNull(attemps);
+            this.numAttempts = attemps;
         }
 
         @Override

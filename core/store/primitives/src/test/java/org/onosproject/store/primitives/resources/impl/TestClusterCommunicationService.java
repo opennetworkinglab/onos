@@ -72,9 +72,9 @@ public class TestClusterCommunicationService implements ClusterCommunicationServ
 
     @Override
     public <M> void multicast(M message, MessageSubject subject, Function<M, byte[]> encoder, Set<NodeId> nodeIds) {
-        nodes.values().stream()
-                .filter(n -> nodeIds.contains(n))
-                .forEach(n -> n.handle(subject, encoder.apply(message)));
+        nodes.entrySet().stream()
+                .filter(e -> nodeIds.contains(e.getKey()))
+                .forEach(e -> e.getValue().handle(subject, encoder.apply(message)));
     }
 
     @Override
