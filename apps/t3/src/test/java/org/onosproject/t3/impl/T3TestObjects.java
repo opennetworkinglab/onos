@@ -21,6 +21,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
@@ -144,6 +145,8 @@ final class T3TestObjects {
     private static final GroupId GROUP_ID = GroupId.valueOf(1);
 
     private static final TrafficTreatment GROUP_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .pushMpls()
+            .setMpls(MplsLabel.mplsLabel(100))
             .group(GROUP_ID)
             .build();
     private static final FlowRule GROUP_FLOW = DefaultFlowEntry.builder().forDevice(GROUP_FLOW_DEVICE)
@@ -156,7 +159,11 @@ final class T3TestObjects {
             .build();
     static final FlowEntry GROUP_FLOW_ENTRY = new DefaultFlowEntry(GROUP_FLOW);
 
-    private static final GroupBucket BUCKET = DefaultGroupBucket.createSelectGroupBucket(OUTPUT_FLOW_TREATMENT);
+    private static final TrafficTreatment OUTPUT_GROUP_TREATMENT = DefaultTrafficTreatment.builder()
+            .popMpls(EthType.EtherType.IPV4.ethType())
+            .setOutput(PortNumber.portNumber(2)).build();
+
+    private static final GroupBucket BUCKET = DefaultGroupBucket.createSelectGroupBucket(OUTPUT_GROUP_TREATMENT);
 
     private static final GroupBuckets BUCKETS = new GroupBuckets(ImmutableList.of(BUCKET));
 

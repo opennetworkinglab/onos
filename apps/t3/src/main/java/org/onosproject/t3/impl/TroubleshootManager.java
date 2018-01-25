@@ -435,9 +435,11 @@ public class TroubleshootManager implements TroubleshootService {
         //If the pakcet comes in with the expected elements we update it as per OFDPA spec.
         if (mplsCriterion != null && ((EthTypeCriterion) mplsCriterion).ethType()
                 .equals(EtherType.MPLS_UNICAST.ethType())) {
+            //TODO update with parsing with eth MPLS pop Instruction for treating label an bos
             Instruction ethInstruction = Instructions.popMpls(((EthTypeCriterion) trace.getInitialPacket()
                     .getCriterion(Criterion.Type.ETH_TYPE)).ethType());
             //FIXME what do we use as L3_Unicast mpls Label ?
+            //translateInstruction(builder, ethInstruction);
             builder.add(ethInstruction);
         }
         packet = updatePacket(packet, builder.build()).build();
@@ -548,9 +550,10 @@ public class TroubleshootManager implements TroubleshootService {
     private TrafficSelector.Builder updatePacket(TrafficSelector packet, List<Instruction> instructions) {
         TrafficSelector.Builder newSelector = DefaultTrafficSelector.builder();
         packet.criteria().forEach(newSelector::add);
-        instructions.forEach(instruction -> {
-            translateInstruction(newSelector, instruction);
-        });
+        //FIXME optimize
+        for (Instruction instruction : instructions) {
+            newSelector = translateInstruction(newSelector, instruction);
+        }
         return newSelector;
     }
 
@@ -563,6 +566,7 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private TrafficSelector.Builder translateInstruction(TrafficSelector.Builder newSelector, Instruction instruction) {
         log.debug("Translating instruction {}", instruction);
+        log.debug("New Selector {}", newSelector.build());
         //TODO add as required
         Criterion criterion = null;
         switch (instruction.type()) {
@@ -587,11 +591,24 @@ public class TroubleshootManager implements TroubleshootService {
                         L2ModificationInstruction.ModMplsHeaderInstruction mplsPopInstruction =
                                 (L2ModificationInstruction.ModMplsHeaderInstruction) instruction;
                         criterion = Criteria.matchEthType(mplsPopInstruction.ethernetType().toShort());
+
+                        //When popping MPLS we remove label and BOS
+                        TrafficSelector temporaryPacket = newSelector.build();
+                        if (temporaryPacket.getCriterion(Criterion.Type.MPLS_LABEL) != null) {
+                            TrafficSelector.Builder noMplsSelector = DefaultTrafficSelector.builder();
+                            temporaryPacket.criteria().stream().filter(c -> {
+                                return !c.type().equals(Criterion.Type.MPLS_LABEL) &&
+                                        !c.type().equals(Criterion.Type.MPLS_BOS);
+                            }).forEach(noMplsSelector::add);
+                            newSelector = noMplsSelector;
+                        }
+
                         break;
                     case MPLS_LABEL:
                         L2ModificationInstruction.ModMplsLabelInstruction mplsLabelInstruction =
                                 (L2ModificationInstruction.ModMplsLabelInstruction) instruction;
                         criterion = Criteria.matchMplsLabel(mplsLabelInstruction.label());
+                        newSelector.matchMplsBos(true);
                         break;
                     case ETH_DST:
                         L2ModificationInstruction.ModEtherInstruction modEtherDstInstruction =
