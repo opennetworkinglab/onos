@@ -252,6 +252,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return true;
     }
 
+    /**
+     * Determines whether this driver should continue to retry flows that point
+     * to empty groups. See CORD-554.
+     *
+     * @return true if the driver should retry flows
+     */
+    protected boolean shouldRetry() {
+        return true;
+    }
+
     //////////////////////////////////////
     //  Flow Objectives
     //////////////////////////////////////
@@ -1276,11 +1286,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     return Collections.emptySet();
                 }
                 tb.deferred().group(group.id());
-                // check if group is empty
+                // retrying flows may be necessary due to bug CORD-554
                 if (gkeys.size() == 1 && gkeys.get(0).size() == 1) {
-                    log.warn("Found empty group 0x{} in dev:{} .. will retry fwd:{}",
-                             Integer.toHexString(group.id().id()), deviceId, fwd.id());
-                    emptyGroup = true;
+                    if (shouldRetry()) {
+                        log.warn("Found empty group 0x{} in dev:{} .. will retry fwd:{}",
+                                 Integer.toHexString(group.id().id()), deviceId,
+                                 fwd.id());
+                        emptyGroup = true;
+                    }
                 }
             } else {
                 log.warn("Cannot find group for nextId:{} in dev:{}. Aborting fwd:{}",
@@ -1322,7 +1335,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             );
             log.debug("Default rule 0.0.0.0/0 is being installed two rules");
         }
-        // XXX retrying flows may be necessary due to bug CORD-554
+
         if (emptyGroup) {
             executorService.schedule(new RetryFlows(fwd, flowRuleCollection),
                                      RETRY_MS, TimeUnit.MILLISECONDS);

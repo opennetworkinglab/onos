@@ -89,6 +89,11 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     }
 
     @Override
+    protected boolean shouldRetry() {
+        return false;
+    }
+
+    @Override
     protected void processFilter(FilteringObjective filteringObjective,
                                  boolean install,
                                  ApplicationId applicationId) {
