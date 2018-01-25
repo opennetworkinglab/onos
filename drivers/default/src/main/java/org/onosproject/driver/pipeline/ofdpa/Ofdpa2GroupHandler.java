@@ -1588,8 +1588,8 @@ public class Ofdpa2GroupHandler {
      *             modified to match the given next objective
      */
     protected void verifyGroup(NextObjective nextObjective, NextGroup next) {
-        if (nextObjective.type() != NextObjective.Type.HASHED) {
-            log.warn("verification not supported for {} group", nextObjective.type());
+        if (nextObjective.type() == NextObjective.Type.SIMPLE) {
+            log.warn("verification not supported for indirect group");
             fail(nextObjective, ObjectiveError.UNSUPPORTED);
             return;
         }
@@ -1640,17 +1640,25 @@ public class Ofdpa2GroupHandler {
             indicesToRemove.addAll(otherIndices);
         }
 
+        log.debug("Buckets to create {}", bucketsToCreate);
+        log.debug("Indices to remove {}", indicesToRemove);
+
         if (!bucketsToCreate.isEmpty()) {
             log.info("creating {} buckets as part of nextId: {} verification",
                      bucketsToCreate.size(), nextObjective.id());
             //create a nextObjective only with these buckets
             NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
                     .withId(nextObjective.id())
-                    .withType(NextObjective.Type.HASHED)
+                    .withType(nextObjective.type())
                     .withMeta(nextObjective.meta())
                     .fromApp(nextObjective.appId());
-            bucketsToCreate.forEach(bucket -> nextObjBuilder.addTreatment(bucket));
-            addBucketToHashGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+            bucketsToCreate.forEach(nextObjBuilder::addTreatment);
+            // According to the next type we call the proper add function
+            if (nextObjective.type() == NextObjective.Type.HASHED) {
+                addBucketToHashGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+            } else {
+                addBucketToBroadcastGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+            }
         }
 
         if (!indicesToRemove.isEmpty()) {
@@ -1667,9 +1675,9 @@ public class Ofdpa2GroupHandler {
             // Nevertheless groupStore may not be in sync due to bug in the store
             // - see CORD-1844. XXX When this bug is fixed, the rest of this verify
             // method will not be required.
-            GroupKey hashGroupKey = allActiveKeys.get(0).peekFirst();
-            Group hashGroup = groupService.getGroup(deviceId, hashGroupKey);
-            int actualGroupSize = hashGroup.buckets().buckets().size();
+            GroupKey topGroupKey = allActiveKeys.get(0).peekFirst();
+            Group topGroup = groupService.getGroup(deviceId, topGroupKey);
+            int actualGroupSize = topGroup.buckets().buckets().size();
             int objGroupSize = nextObjective.next().size();
             if (actualGroupSize != objGroupSize) {
                 log.warn("Mismatch detected in device:{}, nextId:{}, nextObjective-size"
@@ -1677,9 +1685,10 @@ public class Ofdpa2GroupHandler {
                         objGroupSize, actualGroupSize);
             }
             if (actualGroupSize > objGroupSize) {
+                // Group in the device has more chains
                 List<GroupBucket> bucketsToRemove = Lists.newArrayList();
                 //check every bucket in the actual group
-                for (GroupBucket bucket : hashGroup.buckets().buckets()) {
+                for (GroupBucket bucket : topGroup.buckets().buckets()) {
                     GroupInstruction g = (GroupInstruction) bucket.treatment()
                                             .allInstructions().iterator().next();
                     GroupId gidToCheck = g.groupId(); // the group pointed to
@@ -1707,11 +1716,12 @@ public class Ofdpa2GroupHandler {
                             + "buckets to remove");
                 } else {
                     GroupBuckets removeBuckets = new GroupBuckets(bucketsToRemove);
-                    groupService.removeBucketsFromGroup(deviceId, hashGroupKey,
-                                                        removeBuckets, hashGroupKey,
+                    groupService.removeBucketsFromGroup(deviceId, topGroupKey,
+                                                        removeBuckets, topGroupKey,
                                                         nextObjective.appId());
                 }
             } else if (actualGroupSize < objGroupSize) {
+                // Group in the device has less chains
                 // should also add buckets not in group-store but in obj-store
                 List<GroupBucket> bucketsToAdd = Lists.newArrayList();
                 //check every bucket in the obj
@@ -1727,7 +1737,7 @@ public class Ofdpa2GroupHandler {
                         continue;
                     }
                     boolean matches = false;
-                    for (GroupBucket bucket : hashGroup.buckets().buckets()) {
+                    for (GroupBucket bucket : topGroup.buckets().buckets()) {
                         GroupInstruction g = (GroupInstruction) bucket.treatment()
                                                 .allInstructions().iterator().next();
                         GroupId gidToCheck = g.groupId(); // the group pointed to
@@ -1741,7 +1751,12 @@ public class Ofdpa2GroupHandler {
                         TrafficTreatment t = DefaultTrafficTreatment.builder()
                                                 .group(pointedGroup.id())
                                                 .build();
-                        bucketsToAdd.add(DefaultGroupBucket.createSelectGroupBucket(t));
+                        // Create the proper bucket according to the next type
+                        if (nextObjective.type() == NextObjective.Type.HASHED) {
+                            bucketsToAdd.add(DefaultGroupBucket.createSelectGroupBucket(t));
+                        } else {
+                            bucketsToAdd.add(DefaultGroupBucket.createAllGroupBucket(t));
+                        }
                     }
                 }
                 if (bucketsToAdd.isEmpty()) {
@@ -1749,8 +1764,8 @@ public class Ofdpa2GroupHandler {
                             + "buckets to add");
                 } else {
                     GroupBuckets addBuckets = new GroupBuckets(bucketsToAdd);
-                    groupService.addBucketsToGroup(deviceId, hashGroupKey,
-                                                   addBuckets, hashGroupKey,
+                    groupService.addBucketsToGroup(deviceId, topGroupKey,
+                                                   addBuckets, topGroupKey,
                                                    nextObjective.appId());
                 }
             }
