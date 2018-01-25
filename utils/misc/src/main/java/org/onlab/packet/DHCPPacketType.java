@@ -80,7 +80,7 @@ public enum DHCPPacketType {
             break;
         }
 
-        return null;
+        return "";
     }
 
     public static DHCPPacketType getType(final int value) {
