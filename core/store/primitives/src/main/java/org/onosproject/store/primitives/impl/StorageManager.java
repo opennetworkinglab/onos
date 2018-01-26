@@ -53,6 +53,7 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMultimapBuilder;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
+import org.onosproject.store.service.DistributedLockBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -188,6 +189,12 @@ public class StorageManager implements StorageService, StorageAdminService {
     public TransactionContextBuilder transactionContextBuilder() {
         checkPermission(STORAGE_WRITE);
         return new DefaultTransactionContextBuilder(transactionIdGenerator.get(), transactionManager);
+    }
+
+    @Override
+    public DistributedLockBuilder lockBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultDistributedLockBuilder(federatedPrimitiveCreator);
     }
 
     @Override

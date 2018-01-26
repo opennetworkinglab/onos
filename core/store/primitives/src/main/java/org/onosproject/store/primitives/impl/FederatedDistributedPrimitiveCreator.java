@@ -37,6 +37,7 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
@@ -120,6 +121,11 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     @Override
     public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
         return getCreator(name).newAsyncAtomicValue(name, serializer);
+    }
+
+    @Override
+    public AsyncDistributedLock newAsyncDistributedLock(String name) {
+        return getCreator(name).newAsyncDistributedLock(name);
     }
 
     @Override

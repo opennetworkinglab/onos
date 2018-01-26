@@ -39,6 +39,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapServic
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapService;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapService;
 import org.onosproject.store.primitives.resources.impl.AtomixCounterService;
+import org.onosproject.store.primitives.resources.impl.AtomixDistributedLockService;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTreeService;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElectorService;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueueService;
@@ -75,6 +76,7 @@ public class StoragePartition implements Managed<StoragePartition> {
                             () -> new AtomixDocumentTreeService(Ordering.NATURAL))
                     .put(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), Ordering.INSERTION),
                             () -> new AtomixDocumentTreeService(Ordering.INSERTION))
+                    .put(DistributedPrimitive.Type.LOCK.name(), AtomixDistributedLockService::new)
                     .build();
 
     public StoragePartition(Partition partition,

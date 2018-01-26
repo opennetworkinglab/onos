@@ -107,6 +107,13 @@ public interface StorageService {
     <V> AtomicValueBuilder<V> atomicValueBuilder();
 
     /**
+     * Creates a new DistributedLockBuilder.
+     *
+     * @return lock builder
+     */
+    DistributedLockBuilder lockBuilder();
+
+    /**
      * Creates a new LeaderElectorBuilder.
      *
      * @return leader elector builder

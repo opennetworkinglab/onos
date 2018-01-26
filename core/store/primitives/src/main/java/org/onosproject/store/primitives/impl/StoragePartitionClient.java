@@ -34,6 +34,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
+import org.onosproject.store.primitives.resources.impl.AtomixDistributedLock;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTree;
 import org.onosproject.store.primitives.resources.impl.AtomixIdGenerator;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
@@ -46,6 +47,7 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
@@ -257,6 +259,21 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .open()
                 .join());
         return new DefaultDistributedDocumentTree<>(name, atomixDocumentTree, serializer);
+    }
+
+    @Override
+    public AsyncDistributedLock newAsyncDistributedLock(String name) {
+        return new AtomixDistributedLock(client.newProxyBuilder()
+                .withName(name)
+                .withServiceType(DistributedPrimitive.Type.LOCK.name())
+                .withReadConsistency(ReadConsistency.LINEARIZABLE)
+                .withCommunicationStrategy(CommunicationStrategy.LEADER)
+                .withMinTimeout(Duration.ofSeconds(1))
+                .withMaxTimeout(Duration.ofSeconds(5))
+                .withMaxRetries(MAX_RETRIES)
+                .build()
+                .open()
+                .join());
     }
 
     @Override

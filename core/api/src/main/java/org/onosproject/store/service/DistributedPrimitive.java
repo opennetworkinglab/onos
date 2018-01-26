@@ -99,7 +99,12 @@ public interface DistributedPrimitive {
         /**
          * Transaction Context.
          */
-        TRANSACTION_CONTEXT
+        TRANSACTION_CONTEXT,
+
+        /**
+         * Distributed lock.
+         */
+        LOCK,
     }
 
     /**

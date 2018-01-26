@@ -24,6 +24,7 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
@@ -113,6 +114,14 @@ public interface DistributedPrimitiveCreator {
      * @return set
      */
     <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer);
+
+    /**
+     * Creates a new {@code AsyncDistributedLock}.
+     *
+     * @param name lock name
+     * @return lock
+     */
+    AsyncDistributedLock newAsyncDistributedLock(String name);
 
     /**
      * Creates a new {@code AsyncLeaderElector}.
