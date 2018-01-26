@@ -52,6 +52,9 @@
         <command>
             <action class="org.onosproject.distributedprimitives.cli.LeaderElectorTestCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.DistributedLockTestCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
