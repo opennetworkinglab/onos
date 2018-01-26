@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-dhcp</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.10.11</version>
+        <version>1.10.12-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-dhcp</artifactId>
