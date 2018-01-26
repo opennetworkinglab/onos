@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import org.onlab.packet.VlanId;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.Driver;
@@ -37,10 +38,14 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 import org.slf4j.Logger;
@@ -76,6 +81,9 @@ public class FabricNextPipeliner {
                 break;
             case HASHED:
                 processHashedNext(nextObjective, resultBuilder);
+                break;
+            case BROADCAST:
+                processBroadcastNext(nextObjective, resultBuilder);
                 break;
             default:
                 log.warn("Unsupported next type {}", nextObjective);
@@ -291,5 +299,63 @@ public class FabricNextPipeliner {
         return DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
+    }
+
+    private void processBroadcastNext(NextObjective next, PipelinerTranslationResult.Builder resultBuilder) {
+        int groupId = next.id();
+        List<GroupBucket> bucketList = next.next().stream()
+                .filter(treatment -> treatment != null)
+                .map(DefaultGroupBucket::createAllGroupBucket)
+                .collect(Collectors.toList());
+
+        if (bucketList.size() != next.next().size()) {
+            // some action not converted
+            // set error
+            log.warn("Expected bucket size {}, got {}", next.next().size(), bucketList.size());
+            resultBuilder.setError(ObjectiveError.BADPARAMS);
+            return;
+        }
+
+        GroupBuckets buckets = new GroupBuckets(bucketList);
+        //Used DefaultGroupKey instead of PiGroupKey
+        //as we don't have any action profile to apply to the groups of ALL type
+        GroupKey groupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(groupId));
+
+        resultBuilder.addGroup(new DefaultGroupDescription(deviceId,
+                                                           GroupDescription.Type.ALL,
+                                                           buckets,
+                                                           groupKey,
+                                                           groupId,
+                                                           next.appId()));
+        //flow rule
+        TrafficSelector selector = buildNextIdSelector(next.id());
+        PiActionParam groupIdParam = new PiActionParam(FabricConstants.GID,
+                                                       ImmutableByteSequence.copyFrom(groupId));
+
+        PiAction setMcGroupAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_MCAST_GROUP)
+                .withParameter(groupIdParam)
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(setMcGroupAction)
+                .build();
+
+        resultBuilder.addFlowRule(DefaultFlowRule.builder()
+                                          .withSelector(selector)
+                                          .withTreatment(treatment)
+                                          .forTable(FabricConstants.FABRIC_INGRESS_NEXT_MULTICAST)
+                                          .makePermanent()
+                                          .withPriority(next.priority())
+                                          .forDevice(deviceId)
+                                          .fromApp(next.appId())
+                                          .build());
+
+        // Egress VLAN handling
+        next.next().forEach(trafficTreatment -> {
+            PortNumber outputPort = getOutputPort(trafficTreatment);
+            if (includesPopVlanInst(trafficTreatment) && outputPort != null) {
+                processVlanPopRule(outputPort, next, resultBuilder);
+            }
+        });
     }
 }
