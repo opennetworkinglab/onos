@@ -125,9 +125,6 @@ public class PortViewMessageHandler extends UiMessageHandler {
                         ds.getPortDeltaStatistics(deviceId) :
                         ds.getPortStatistics(deviceId);
                 for (PortStatistics stat : stats) {
-                    if (nz && stat.isZero()) {
-                        continue;
-                    }
                     populateRow(tm.addRow(), stat);
                 }
             }
