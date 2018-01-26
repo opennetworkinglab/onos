@@ -60,6 +60,11 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public DistributedLockBuilder lockBuilder() {
+        return null;
+    }
+
+    @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
         return null;
     }
