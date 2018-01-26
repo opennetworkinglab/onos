@@ -131,15 +131,17 @@ header gtpu_t {
 
 struct spgw_meta_t {
     bool              do_spgw;
+    direction_t       direction;
+    bit<32>           teid;
+    bit<32>           s1u_enb_addr;
+    bit<32>           s1u_sgw_addr;
+#ifdef WITH_SPGW_PCC_GATING
     bit<16>           l4_src_port;
     bit<16>           l4_dst_port;
-    direction_t       direction;
     pcc_gate_status_t pcc_gate_status;
     sdf_rule_id_t     sdf_rule_id;
     pcc_rule_id_t     pcc_rule_id;
-    bit<32>           dl_sess_teid;
-    bit<32>           dl_sess_enb_addr;
-    bit<32>           dl_sess_s1u_addr;
+#endif // WITH_SPGW_PCC_GATING
 }
 #endif // WITH_SPGW
 
@@ -167,7 +169,9 @@ struct parsed_headers_t {
     gtpu_t gtpu;
 #endif // WITH_SPGW
     ipv4_t ipv4;
+#ifdef WITH_IPV6
     ipv6_t ipv6;
+#endif // WITH_IPV6
     arp_t arp;
     tcp_t tcp;
     udp_t udp;

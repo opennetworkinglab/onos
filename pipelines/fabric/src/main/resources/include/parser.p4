@@ -143,9 +143,8 @@ inout standard_metadata_t standard_metadata) {
     }
 
     state parse_ipv4_inner {
-        hdr.gtpu_ipv4 = hdr.ipv4;
-        packet.extract(hdr.ipv4);
-        transition select(hdr.ipv4.protocol) {
+        packet.extract(hdr.gtpu_ipv4);
+        transition select(hdr.gtpu_ipv4.protocol) {
             PROTO_TCP: parse_tcp;
             PROTO_UDP: parse_udp_inner;
             PROTO_ICMP: parse_icmp;
@@ -154,10 +153,9 @@ inout standard_metadata_t standard_metadata) {
     }
 
     state parse_udp_inner {
-        hdr.gtpu_udp = hdr.udp;
-        packet.extract(hdr.udp);
-        fabric_metadata.l4_src_port = hdr.udp.src_port;
-        fabric_metadata.l4_dst_port = hdr.udp.dst_port;
+        packet.extract(hdr.gtpu_udp);
+        fabric_metadata.l4_src_port = hdr.gtpu_udp.src_port;
+        fabric_metadata.l4_dst_port = hdr.gtpu_udp.dst_port;
         transition accept;
     }
 #endif // WITH_SPGW

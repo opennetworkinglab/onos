@@ -23,97 +23,13 @@ tables {
   }
   match_fields {
     id: 1
-    name: "gtpu_ipv4.dst_addr"
+    name: "spgw_meta.s1u_sgw_addr"
     bitwidth: 32
     match_type: EXACT
   }
   action_refs {
     id: 16800567
   }
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33588697
-    name: "spgw_ingress.sdf_rule_lookup"
-    alias: "sdf_rule_lookup"
-  }
-  match_fields {
-    id: 1
-    name: "spgw_meta.direction"
-    bitwidth: 1
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "ipv4.src_addr"
-    bitwidth: 32
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 3
-    name: "ipv4.dst_addr"
-    bitwidth: 32
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 4
-    name: "ipv4.protocol"
-    bitwidth: 8
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 5
-    name: "spgw_meta.l4_src_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 6
-    name: "spgw_meta.l4_dst_port"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  action_refs {
-    id: 16828302
-  }
-  const_default_action_id: 16828302
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33560573
-    name: "spgw_ingress.pcc_rule_lookup"
-    alias: "pcc_rule_lookup"
-  }
-  match_fields {
-    id: 1
-    name: "spgw_meta.sdf_rule_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16834409
-  }
-  const_default_action_id: 16834409
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33618268
-    name: "spgw_ingress.pcc_info_lookup"
-    alias: "pcc_info_lookup"
-  }
-  match_fields {
-    id: 1
-    name: "spgw_meta.pcc_rule_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16827998
-  }
-  const_default_action_id: 16827998
   size: 1024
 }
 tables {
@@ -332,56 +248,6 @@ tables {
 }
 tables {
   preamble {
-    id: 33608345
-    name: "forwarding.unicast_v6"
-    alias: "unicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16829931
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 301998193
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33592333
-    name: "forwarding.multicast_v6"
-    alias: "multicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.vlan_tag.vlan_id"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16829931
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302003792
-  size: 1024
-}
-tables {
-  preamble {
     id: 33587782
     name: "forwarding.acl"
     alias: "acl"
@@ -572,45 +438,16 @@ actions {
 }
 actions {
   preamble {
+    id: 16840488
+    name: "spgw_ingress.drop_now"
+    alias: "drop_now"
+  }
+}
+actions {
+  preamble {
     id: 16808035
     name: "spgw_ingress.gtpu_decap"
     alias: "gtpu_decap"
-  }
-}
-actions {
-  preamble {
-    id: 16828302
-    name: "spgw_ingress.set_sdf_rule_id"
-    alias: "set_sdf_rule_id"
-  }
-  params {
-    id: 1
-    name: "id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16834409
-    name: "spgw_ingress.set_pcc_rule_id"
-    alias: "set_pcc_rule_id"
-  }
-  params {
-    id: 1
-    name: "id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16827998
-    name: "spgw_ingress.set_pcc_info"
-    alias: "set_pcc_info"
-  }
-  params {
-    id: 1
-    name: "gate_status"
-    bitwidth: 1
   }
 }
 actions {
@@ -621,17 +458,17 @@ actions {
   }
   params {
     id: 1
-    name: "dl_sess_teid"
+    name: "teid"
     bitwidth: 32
   }
   params {
     id: 2
-    name: "dl_sess_enb_addr"
+    name: "s1u_enb_addr"
     bitwidth: 32
   }
   params {
     id: 3
-    name: "dl_sess_s1u_addr"
+    name: "s1u_sgw_addr"
     bitwidth: 32
   }
 }
@@ -960,28 +797,6 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33615204
-}
-direct_counters {
-  preamble {
-    id: 301998193
-    name: "forwarding.unicast_v6_counter"
-    alias: "unicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33608345
-}
-direct_counters {
-  preamble {
-    id: 302003792
-    name: "forwarding.multicast_v6_counter"
-    alias: "multicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33592333
 }
 direct_counters {
   preamble {

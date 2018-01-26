@@ -44,10 +44,12 @@ inout standard_metadata_t standard_metadata) {
     apply {
         packet_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
+#ifdef WITH_SPGW_PCC_GATING
         fabric_metadata.spgw.l4_src_port = fabric_metadata.l4_src_port;
         fabric_metadata.spgw.l4_dst_port = fabric_metadata.l4_dst_port;
+#endif // WITH_SPGW_PCC_GATING
         spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                           fabric_metadata.spgw, hdr.ipv4);
+                           hdr.ipv4, hdr.udp, fabric_metadata.spgw);
 #endif // WITH_SPGW
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         forwarding.apply(hdr, fabric_metadata, standard_metadata);
