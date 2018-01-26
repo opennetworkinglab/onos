@@ -38,6 +38,9 @@
             <import file="${ONOS_SCENARIOS}/dist-leader.xml"/>
             <dependency name="Distributed-Primitive-Leader"/>
 
+            <import file="${ONOS_SCENARIOS}/dist-lock.xml"/>
+            <dependency name="Distributed-Primitive-Lock"/>
+
             <import file="${ONOS_SCENARIOS}/dist-work-queue.xml"/>
             <dependency name="Distributed-Primitive-WorkQueue"/>
 

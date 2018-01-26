@@ -18,7 +18,7 @@ function print_usage {
     echo "    ARGS             The command arguments"
     echo "    [-h | --help]   Print this help"
     echo
-    echo "COMMAND:  <crash | partition | partition-halves | partition-bridge | heal | delay | drop | reorder | duplicate | corrupt | restore>"
+    echo "COMMAND:  <crash | partition | isolate | partition-halves | partition-bridge | heal | delay | drop | reorder | duplicate | corrupt | restore>"
     echo
     echo "               crash    Crashes the given host using \"kill -9\""
     echo
@@ -45,6 +45,14 @@ function print_usage {
     echo "                            $command_name 10.127.10.111 partition"
     echo "                            $command_name 10.127.10.111 partition 10.127.10.111"
     echo "                            $command_name 10.127.10.111 partition 10.127.10.112 10.127.10.113"
+    echo
+    echo "             isolate    Isolate the given host from all other hosts"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name <HOST> isolate"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name 10.127.10.111 isolate"
     echo
     echo "    partition-halves    Splits the cluster into two partitions - this is only recommended for clusters with an odd number of nodes"
     echo
@@ -306,6 +314,25 @@ heal)
         done
         ;;
 
+    # Isolates the node from all other nodes
+    isolate)
+
+        # Default to ONOS nodes.
+        if [ -z "${1}" ]; then
+            nodes=$(onos_nodes)
+        else
+            nodes="${*}"
+        fi
+
+        # Iterate through all ONOS nodes and partition the host from them.
+        for node in ${nodes}; do
+            if [[ $node != $host ]]; then
+                partition ${host} ${node}
+                partition ${node} ${host}
+            fi
+        done
+        ;;
+
     # Splits the cluster into two halves, preserving the provided host as a bridge between the two halves.
     partition-bridge)
 
@@ -338,7 +365,9 @@ heal)
 
         # Iterate through all provided nodes and heal partitions.
         for node in $nodes; do
-            heal ${host} ${node}
+            if [[ $node != $host ]]; then
+                heal ${host} ${node}
+            fi
         done
         ;;
 

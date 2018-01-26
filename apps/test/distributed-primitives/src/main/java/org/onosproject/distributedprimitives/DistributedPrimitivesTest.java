@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.DistributedLock;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LeaderElector;
 import org.onosproject.store.service.StorageService;
@@ -34,7 +35,6 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * Simple application to test distributed primitives.
@@ -56,6 +56,7 @@ public class DistributedPrimitivesTest {
 
     private final Map<String, EventuallyConsistentMap<String, String>> maps = Maps.newConcurrentMap();
     private final Map<String, LeaderElector> electors = Maps.newConcurrentMap();
+    private final Map<String, DistributedLock> locks = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
@@ -90,8 +91,21 @@ public class DistributedPrimitivesTest {
      */
     public LeaderElector getLeaderElector(String name) {
         return electors.computeIfAbsent(name, n -> storageService.leaderElectorBuilder()
-                .withName(name)
-                .build()
-                .asLeaderElector());
+            .withName(name)
+            .build()
+            .asLeaderElector());
+    }
+
+    /**
+     * Returns a lock instance by name.
+     *
+     * @param name the lock name
+     * @return the lock
+     */
+    public DistributedLock getLock(String name) {
+        return locks.computeIfAbsent(name, n -> storageService.lockBuilder()
+            .withName(name)
+            .build()
+            .asLock());
     }
 }
