@@ -113,7 +113,9 @@ public class RouteManager implements RouteService, RouteAdminService {
     @Deactivate
     protected void deactivate() {
         routeMonitor.shutdown();
-        listeners.values().forEach(ListenerQueue::stop);
+        synchronized (this) {
+            listeners.values().forEach(ListenerQueue::stop);
+        }
 
         routeStore.unsetDelegate(delegate);
         hostService.removeListener(hostListener);
@@ -176,6 +178,7 @@ public class RouteManager implements RouteService, RouteAdminService {
         return routeSets.stream().flatMap(r -> r.routes().stream()).collect(Collectors.toList());
     }
 
+    @Override
     public Collection<RouteTableId> getRouteTables() {
         return routeStore.getRouteTables();
     }

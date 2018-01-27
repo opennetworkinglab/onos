@@ -44,6 +44,33 @@
 
     <build>
         <plugins>
+
+            <!-- FIXME: YANG tool generates problematic code -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs>
+                      <arg>-XepDisableAllChecks</arg>
+                      <arg>-Xep:BetaApi:OFF</arg>
+                    </compilerArgs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <compilerArgs>
+                              <arg>-XepDisableAllChecks</arg>
+                              <arg>-Xep:BetaApi:OFF</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
            <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-yang-maven-plugin</artifactId>

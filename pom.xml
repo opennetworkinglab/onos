@@ -240,4 +240,67 @@
         </dependencies>
     </dependencyManagement>
 
+    <properties>
+        <errorprone.version>2.2.0</errorprone.version>
+        <betachecker.version>1.0</betachecker.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <compilerId>javac-with-errorprone</compilerId>
+                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                    <annotationProcessorPaths>
+                      <path>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava-beta-checker</artifactId>
+                        <version>${betachecker.version}</version>
+                      </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                      <arg>-Xep:BetaApi:WARN</arg>
+                      <!-- <arg>-Xep:BetaApi:ERROR</arg>  -->
+                      <!-- Add following to disable error-prone -->
+                      <!-- <arg>-XepDisableAllChecks</arg> -->
+                    </compilerArgs>
+                </configuration>
+                <executions>
+                    <execution>
+                      <id>default-testCompile</id>
+                      <phase>test-compile</phase>
+                      <goals>
+                        <goal>testCompile</goal>
+                      </goals>
+                      <configuration>
+                        <!-- Disable Beta Checker for tests -->
+                        <compilerArgs>
+                          <arg>-Xep:BetaApi:OFF</arg>
+                        </compilerArgs>
+                      </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                      <groupId>org.codehaus.plexus</groupId>
+                      <artifactId>plexus-compiler-javac-errorprone</artifactId>
+                      <version>2.8.2</version>
+                    </dependency>
+                    <dependency>
+                      <groupId>com.google.errorprone</groupId>
+                      <artifactId>error_prone_core</artifactId>
+                      <!-- override plexus-compiler-javac-errorprone's dependency with the
+                           latest Error Prone version -->
+                      <version>${errorprone.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

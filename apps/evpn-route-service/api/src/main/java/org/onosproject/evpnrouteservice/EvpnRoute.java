@@ -115,7 +115,6 @@ public class EvpnRoute {
         checkNotNull(prefixMac);
         checkNotNull(prefix);
         //checkNotNull(nextHop); //next hop can be null in case of MP un reach.
-        checkNotNull(labelToInt);
         this.source = checkNotNull(source);
         this.prefix = prefix;
         this.prefixMac = prefixMac;
@@ -258,7 +257,7 @@ public class EvpnRoute {
 
         EvpnRoute that = (EvpnRoute) other;
 
-        return Objects.equals(prefixMac, prefixMac)
+        return Objects.equals(prefixMac, that.prefixMac)
                 && Objects.equals(prefix, that.prefix)
                 && Objects.equals(nextHop, that.nextHop)
                 && Objects.equals(this.rd, that.rd)

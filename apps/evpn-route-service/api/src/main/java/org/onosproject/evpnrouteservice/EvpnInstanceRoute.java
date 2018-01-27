@@ -198,7 +198,7 @@ public class EvpnInstanceRoute {
 
         EvpnInstanceRoute that = (EvpnInstanceRoute) other;
 
-        return Objects.equals(prefix, prefix)
+        return Objects.equals(prefix, that.prefix)
                 && Objects.equals(nextHop, that.nextHop)
                 && Objects.equals(evpnName, that.evpnName)
                 && Objects.equals(rd, that.rd)

@@ -143,7 +143,7 @@ public final class DefaultBuilder {
         for (long i = 0; i < numTtps; i++) {
             ttps.put(i, ttpBuilder(i));
         }
-        ttp = ttps.get(FIRST_INDEX);
+        ttp = ttps.get((long) FIRST_INDEX);
         //TeNode
         teNode = new DefaultTeNode(teNodeId, underlayTopologyId,
                                    supportTeNodeId, sourceTeNodeId,

@@ -89,6 +89,7 @@ public final class VtnEventuallyConsistentMapTest<K, V> extends VtnEventuallyCon
         return map.get(key);
     }
 
+    @SuppressWarnings("ReturnValueIgnored")
     @Override
     public void put(K key, V value) {
         map.put(key, value);

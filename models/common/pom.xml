@@ -116,6 +116,17 @@
                 </executions>
             </plugin>
 
+            <!-- FIXME: YANG tool generates problematic code -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs>
+                      <arg>-XepDisableAllChecks</arg>
+                      <arg>-Xep:BetaApi:OFF</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
 
         </plugins>
 

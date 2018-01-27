@@ -81,7 +81,9 @@ public class EvpnRouteManager implements EvpnRouteService,
     @Deactivate
     protected void deactivate() {
         evpnRouteStore.unsetDelegate(evpnRouteStoreDelegate);
-        listeners.values().forEach(EvpnListenerQueue::stop);
+        synchronized (this) {
+            listeners.values().forEach(EvpnListenerQueue::stop);
+        }
     }
 
     /**
@@ -148,6 +150,7 @@ public class EvpnRouteManager implements EvpnRouteService,
     }
 
 
+    @Override
     public Collection<EvpnRouteTableId> getRouteTables() {
         return evpnRouteStore.getRouteTables();
     }

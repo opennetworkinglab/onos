@@ -772,7 +772,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private void findTunnelAndHighlights() {
         Collection<Tunnel> tunnelSet = null;
         Highlights highlights = new Highlights();
-        paths.removeAll(paths);
+        paths.clear();
         tunnelSet = tunnelService.queryTunnel(MPLS);
         if (tunnelSet.size() == 0) {
             log.warn("Tunnel does not exist");
@@ -819,7 +819,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      */
     private void highlightsForTunnel(List<Tunnel> tunnels) {
         Highlights highlights = new Highlights();
-        paths.removeAll(paths);
+        paths.clear();
 
         if (tunnels.isEmpty()) {
             log.error("path does not exist");

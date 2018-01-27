@@ -52,6 +52,7 @@ import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostServiceAdapter;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -396,7 +397,11 @@ public abstract class VplsTest {
         @Override
         public Set<Interface> getInterfacesByIp(IpAddress ip) {
             return AVAILABLE_INTERFACES.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
+                    .filter(intf -> intf.ipAddressesList().stream()
+                                .map(InterfaceIpAddress::ipAddress)
+                                .filter(ip::equals)
+                                .findAny()
+                                .isPresent())
                     .collect(Collectors.toSet());
         }
 
@@ -410,7 +415,11 @@ public abstract class VplsTest {
         @Override
         public Interface getMatchingInterface(IpAddress ip) {
             return AVAILABLE_INTERFACES.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
+                    .filter(intf -> intf.ipAddressesList().stream()
+                            .map(InterfaceIpAddress::ipAddress)
+                            .filter(ip::equals)
+                            .findAny()
+                            .isPresent())
                     .findFirst()
                     .orElse(null);
         }
@@ -418,7 +427,11 @@ public abstract class VplsTest {
         @Override
         public Set<Interface> getMatchingInterfaces(IpAddress ip) {
             return AVAILABLE_INTERFACES.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
+                    .filter(intf -> intf.ipAddressesList().stream()
+                            .map(InterfaceIpAddress::ipAddress)
+                            .filter(ip::equals)
+                            .findAny()
+                            .isPresent())
                     .collect(Collectors.toSet());
         }
     }

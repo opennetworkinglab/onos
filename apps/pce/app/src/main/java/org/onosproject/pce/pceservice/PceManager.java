@@ -398,7 +398,7 @@ public class PceManager implements PceService {
                     //Log.info("computeExplicitPath :: finalComputedPath " + finalComputedPath);
 
                     if (finalComputedPath != null && !finalComputedPath.get(finalComputedPath.size() - 1).links()
-                            .contains((Link) info.value())) {
+                            .contains(info.value())) {
                         finalComputedPath = null;
                     }
                 }
@@ -913,7 +913,6 @@ public class PceManager implements PceService {
     private boolean releaseSharedBwForNewTunnel(Path computedPath, double bandwidthConstraint,
                                                 SharedBandwidthConstraint shBwConstraint) {
         checkNotNull(computedPath);
-        checkNotNull(bandwidthConstraint);
         double bwToAllocate;
 
         Double additionalBwValue = null;
@@ -1071,7 +1070,6 @@ public class PceManager implements PceService {
     private boolean reserveBandwidth(Path computedPath, double bandwidthConstraint,
                                   SharedBandwidthConstraint shBwConstraint) {
         checkNotNull(computedPath);
-        checkNotNull(bandwidthConstraint);
         Resource resource = null;
         double bwToAllocate = 0;
         Map<Link, Double> linkMap = new HashMap<>();

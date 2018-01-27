@@ -67,7 +67,6 @@ public final class DefaultInfluxMetric implements InfluxMetric {
 
         @Override
         public InfluxMetric build() {
-            checkNotNull(oneMinRate, ONE_MIN_RATE_MSG);
             checkNotNull(timestamp, TIMESTAMP_MSG);
 
             return new DefaultInfluxMetric(oneMinRate, parseTime(timestamp));

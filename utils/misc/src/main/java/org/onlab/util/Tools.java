@@ -162,7 +162,7 @@ public abstract class Tools {
      * @param collection collection to test
      * @return true if null or empty; false otherwise
      */
-    public static boolean isNullOrEmpty(Collection collection) {
+    public static boolean isNullOrEmpty(Collection<?> collection) {
         return collection == null || collection.isEmpty();
     }
 

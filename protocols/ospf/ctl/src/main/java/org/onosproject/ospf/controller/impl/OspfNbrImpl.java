@@ -218,6 +218,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return the IP address of this neighbor
      */
+    @Override
     public Ip4Address neighborIpAddr() {
         return neighborIpAddr;
     }
@@ -227,6 +228,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return true if the neighbor is opaque enabled else false.
      */
+    @Override
     public boolean isOpaqueCapable() {
         return isOpaqueCapable;
     }
@@ -236,6 +238,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param isOpaqueCapable true if the neighbor is opaque enabledelse false
      */
+    @Override
     public void setIsOpaqueCapable(boolean isOpaqueCapable) {
         this.isOpaqueCapable = isOpaqueCapable;
     }
@@ -245,6 +248,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param routerDeadInterval router dead interval
      */
+    @Override
     public void setRouterDeadInterval(int routerDeadInterval) {
         this.routerDeadInterval = routerDeadInterval;
     }
@@ -386,7 +390,7 @@ public class OspfNbrImpl implements OspfNbr {
             state = OspfNeighborState.EXCHANGE;
             boolean excludeMaxAgeLsa = true;
             //list of contents of area wise LSA
-            ddSummaryList = (CopyOnWriteArrayList) ospfArea.getLsaHeaders(excludeMaxAgeLsa, isOpaqueCapable);
+            ddSummaryList = ospfArea.getLsaHeaders(excludeMaxAgeLsa, isOpaqueCapable);
 
             if (neighborIsMaster) {
                 processLsas(payload);
@@ -558,6 +562,7 @@ public class OspfNbrImpl implements OspfNbr {
      * @param ch netty channel instance
      * @throws Exception on error
      */
+    @Override
     public void badLSReq(Channel ch) throws Exception {
         log.debug("OSPFNbr::badLSReq...!!!");
 
@@ -837,6 +842,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param ch netty channel instance
      */
+    @Override
     public void adjOk(Channel ch) {
         log.debug("OSPFNbr::adjOk...!!!");
         if (ospfInterface.interfaceType() != OspfInterfaceType.POINT_TO_POINT.value()) {
@@ -1176,7 +1182,7 @@ public class OspfNbrImpl implements OspfNbr {
             }
         }
         // RFC 2328 Section 13  (6)
-        if (lsReqList.contains(key)) {
+        if (lsReqList.containsValue(key)) {
             badLSReq(ch);
         }
         if (status.equals("same")) { //13 (7)
@@ -1397,6 +1403,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Starts the inactivity timer.
      */
+    @Override
     public void startInactivityTimeCheck() {
         if (!inActivityTimerScheduled) {
             log.debug("OSPFNbr::startInactivityTimeCheck");
@@ -1411,6 +1418,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the inactivity timer.
      */
+    @Override
     public void stopInactivityTimeCheck() {
         if (inActivityTimerScheduled) {
             log.debug("OSPFNbr::stopInactivityTimeCheck ");
@@ -1440,6 +1448,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the flooding timer.
      */
+    @Override
     public void stopFloodingTimer() {
         if (floodingTimerScheduled) {
             log.debug("OSPFNbr::stopFloodingTimer ");
@@ -1467,6 +1476,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops the Dd Retransmission executor task.
      */
+    @Override
     public void stopRxMtDdTimer() {
         if (rxmtDdPacketTimerScheduled) {
             exServiceRxmtDDPacket.shutdown();
@@ -1494,6 +1504,7 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * Stops Ls request retransmission executor task.
      */
+    @Override
     public void stopRxMtLsrTimer() {
         if (rxmtLsrTimerScheduled) {
             exServiceRxmtLsr.shutdown();
@@ -1524,6 +1535,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return neighbor id
      */
+    @Override
     public Ip4Address neighborId() {
         return neighborId;
     }
@@ -1533,6 +1545,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param neighborId neighbor id
      */
+    @Override
     public void setNeighborId(Ip4Address neighborId) {
         this.neighborId = neighborId;
     }
@@ -1542,6 +1555,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return neighbor DR address
      */
+    @Override
     public Ip4Address neighborDr() {
         return neighborDr;
     }
@@ -1551,6 +1565,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param neighborDr neighbor DR address
      */
+    @Override
     public void setNeighborDr(Ip4Address neighborDr) {
         this.neighborDr = neighborDr;
     }
@@ -1560,6 +1575,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return neighbor BDR address
      */
+    @Override
     public Ip4Address neighborBdr() {
         return neighborBdr;
     }
@@ -1569,6 +1585,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param neighborBdr neighbor BDR address
      */
+    @Override
     public void setNeighborBdr(Ip4Address neighborBdr) {
         this.neighborBdr = neighborBdr;
     }
@@ -1578,6 +1595,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return router priority
      */
+    @Override
     public int routerPriority() {
         return routerPriority;
     }
@@ -1587,6 +1605,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param routerPriority router priority
      */
+    @Override
     public void setRouterPriority(int routerPriority) {
         this.routerPriority = routerPriority;
     }
@@ -1596,6 +1615,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return options value
      */
+    @Override
     public int options() {
         return options;
     }
@@ -1605,6 +1625,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param options options value
      */
+    @Override
     public void setOptions(int options) {
         this.options = options;
     }
@@ -1614,6 +1635,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return DD sequence number
      */
+    @Override
     public long ddSeqNum() {
         return ddSeqNum;
     }
@@ -1623,6 +1645,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param ddSeqNum DD sequence number
      */
+    @Override
     public void setDdSeqNum(long ddSeqNum) {
         this.ddSeqNum = ddSeqNum;
     }
@@ -1632,6 +1655,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return true if neighbor is master else false
      */
+    @Override
     public int isMaster() {
         return isMaster;
     }
@@ -1677,6 +1701,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return neighbors state
      */
+    @Override
     public OspfNeighborState getState() {
         return state;
     }
@@ -1695,6 +1720,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param isMaster neighbor is master or not
      */
+    @Override
     public void setIsMaster(int isMaster) {
         this.isMaster = isMaster;
     }
@@ -1704,6 +1730,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return ls request list
      */
+    @Override
     public Hashtable getLsReqList() {
         return lsReqList;
     }
@@ -1713,6 +1740,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return reTxList instance
      */
+    @Override
     public Map getReTxList() {
         return reTxList;
     }
@@ -1722,6 +1750,7 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @return pendingReTxList instance
      */
+    @Override
     public Map<String, OspfLsa> getPendingReTxList() {
         return pendingReTxList;
     }

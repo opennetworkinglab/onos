@@ -217,7 +217,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     TunnelProviderService service;
 
-    HashMap<String, TunnelId> tunnelMap = new HashMap<String, TunnelId>();
+    HashMap<String, TunnelId> tunnelMap = new HashMap<>();
     HashMap<TunnelId, TunnelStatistics> tunnelStatisticsMap = new HashMap<>();
     private HashMap<String, TunnelStatsCollector> collectors = Maps.newHashMap();
 
@@ -885,7 +885,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      * @return list of ERO subobjects
      */
     private LinkedList<PcepValueType> createPcepPath(Path path) {
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
         List<Link> listLink = path.links();
         ConnectPoint source = null;
         ConnectPoint destination = null;
@@ -952,7 +952,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             return null;
         }
 
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         // set PathSetupTypeTlv of SRP object
         tlv = new PathSetupTypeTlv(lspType.type());
@@ -962,8 +962,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         PcepSrpObject srpobj = pc.factory().buildSrpObject().setSrpID(srpId).setRFlag(false)
                 .setOptionalTlv(llOptionalTlv).build();
 
-        llOptionalTlv = new LinkedList<PcepValueType>();
-        LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = new LinkedList<PcInitiatedLspRequest>();
+        llOptionalTlv = new LinkedList<>();
+        LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = new LinkedList<>();
 
         // set LSP identifiers TLV
         short localLspId = 0;
@@ -1089,7 +1089,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             int srpId = SrpIdGenerators.create();
 
             PcepValueType tlv;
-            LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+            LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
             // set PathSetupTypeTlv of SRP object
             tlv = new PathSetupTypeTlv(LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE))
@@ -1100,8 +1100,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepSrpObject srpobj = pc.factory().buildSrpObject().setSrpID(srpId).setRFlag(true)
                     .setOptionalTlv(llOptionalTlv).build();
 
-            llOptionalTlv = new LinkedList<PcepValueType>();
-            LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = new LinkedList<PcInitiatedLspRequest>();
+            llOptionalTlv = new LinkedList<>();
+            LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = new LinkedList<>();
 
             tlv = new SymbolicPathNameTlv(tunnel.tunnelName().value().getBytes());
             llOptionalTlv.add(tlv);
@@ -1183,8 +1183,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 llSubObjects = createPcepPath(path);
             }
 
-            LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
-            LinkedList<PcepUpdateRequest> llUpdateRequestList = new LinkedList<PcepUpdateRequest>();
+            LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
+            LinkedList<PcepUpdateRequest> llUpdateRequestList = new LinkedList<>();
 
             // set PathSetupTypeTlv of SRP object
             tlv = new PathSetupTypeTlv(lspSigType.type());
@@ -1194,7 +1194,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepSrpObject srpobj = pc.factory().buildSrpObject().setSrpID(srpId).setRFlag(false)
                     .setOptionalTlv(llOptionalTlv).build();
 
-            llOptionalTlv = new LinkedList<PcepValueType>();
+            llOptionalTlv = new LinkedList<>();
 
             // Lsp Identifier tlv is required for all modes of lsp
             String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
@@ -1661,7 +1661,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 if (mastershipService.isLocalMaster(deviceId)) {
                     TunnelId tId = tunnelAdded(td, tunnelState);
                     Tunnel tunnelInserted = new DefaultTunnel(providerId, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
-                            tunnelState, new GroupId(0), tId, TunnelName.tunnelName(String.valueOf(pathNameTlv
+                            tunnelState, new GroupId(0), tId, TunnelName.tunnelName(Arrays.toString(pathNameTlv
                                     .getValue())), path, labelStack, annotations);
 
                     PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnelInserted, path, LSP_STATE_RPT);

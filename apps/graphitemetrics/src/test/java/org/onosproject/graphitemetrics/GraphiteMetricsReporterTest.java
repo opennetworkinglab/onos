@@ -49,13 +49,6 @@ public class GraphiteMetricsReporterTest {
     }
 
     /**
-     * Tears down graphite metrics reporter instance.
-     */
-    public void tearDown() {
-        gmr.deactivate();
-    }
-
-    /**
      * Tests whether the containsName method can always return the correct result
      * with the given metric name and a set of prefixes.
      */

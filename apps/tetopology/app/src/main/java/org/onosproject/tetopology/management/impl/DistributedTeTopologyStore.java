@@ -1316,7 +1316,7 @@ public class DistributedTeTopologyStore
         TeNodeKey myTeNodeKey;
         InternalNetworkNode intNode = null;
         if (!parentUpdate) {
-            intNode = networkNodeMap.get(tpKey.nodeId());
+            intNode = networkNodeMap.get(tpKey);
             if (intNode == null) {
                 log.error(" node is not in dataStore for tp update {}", tpKey);
                 return;
@@ -1351,7 +1351,7 @@ public class DistributedTeTopologyStore
     @Override
     public void removeTerminationPoint(TerminationPointKey tpKey) {
         // Update InternalNetworkNode
-        InternalNetworkNode intNode = networkNodeMap.get(tpKey.nodeId());
+        InternalNetworkNode intNode = networkNodeMap.get(tpKey);
         if (intNode != null && CollectionUtils.isNotEmpty(intNode.tpIds())) {
             intNode.setChildUpdate(true);
             intNode.tpIds().remove(tpKey.tpId());

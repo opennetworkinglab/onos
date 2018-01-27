@@ -697,7 +697,7 @@ public class SimpleTeTopologyStore
         if (intNework != null
                 && CollectionUtils.isNotEmpty(intNework.nodeIds())) {
             intNework.setChildUpdate(true);
-            intNework.nodeIds().remove(nodeKey.nodeId());
+            intNework.nodeIds().remove(nodeKey);
         }
         InternalNetworkNode intNode = networkNodeMap.remove(nodeKey);
         if (intNode != null && CollectionUtils.isNotEmpty(intNode.tpIds())) {
@@ -905,7 +905,7 @@ public class SimpleTeTopologyStore
         if (intNework != null
                 && CollectionUtils.isNotEmpty(intNework.linkIds())) {
             intNework.setChildUpdate(true);
-            intNework.linkIds().remove(linkKey.linkId());
+            intNework.linkIds().remove(linkKey);
         }
         // Remove it from networkLinkMap
         InternalNetworkLink intLink = networkLinkMap.remove(linkKey);
@@ -937,7 +937,7 @@ public class SimpleTeTopologyStore
         TeNodeKey myTeNodeKey;
         InternalNetworkNode intNode = null;
         if (!parentUpdate) {
-            intNode = networkNodeMap.get(tpKey.nodeId());
+            intNode = networkNodeMap.get(tpKey);
             if (intNode == null) {
                 log.error(" node is not in dataStore for tp update {}", tpKey);
                 return;
@@ -974,7 +974,7 @@ public class SimpleTeTopologyStore
     @Override
     public void removeTerminationPoint(TerminationPointKey tpKey) {
         // Update InternalNetworkNode
-        InternalNetworkNode intNode = networkNodeMap.get(tpKey.nodeId());
+        InternalNetworkNode intNode = networkNodeMap.get(tpKey);
         if (intNode != null && CollectionUtils.isNotEmpty(intNode.tpIds())) {
             intNode.setChildUpdate(true);
             intNode.tpIds().remove(tpKey.tpId());

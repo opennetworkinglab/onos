@@ -160,14 +160,17 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
     private final Map<ConnectPoint, Map.Entry<ScheduledFuture<?>, List<InterfaceIpAddress>>> transmitters =
             new LinkedHashMap<>();
 
+    // TODO: should consider using concurrent variants
     @GuardedBy(value = "this")
     private final Map<DeviceId, List<InterfaceIpAddress>> globalPrefixes = new LinkedHashMap<>();
 
     @Override
-    public ImmutableMap<DeviceId, List<InterfaceIpAddress>> getGlobalPrefixes() {
+    public synchronized ImmutableMap<DeviceId, List<InterfaceIpAddress>> getGlobalPrefixes() {
         return ImmutableMap.copyOf(globalPrefixes);
     }
 
+    @SuppressWarnings("GuardedBy")
+    @GuardedBy(value = "this")
     private Function<Interface, Map.Entry<ConnectPoint, List<InterfaceIpAddress>>> prefixGenerator =
             i -> {
                 Map.Entry<ConnectPoint, List<InterfaceIpAddress>> prefixEntry;
@@ -282,6 +285,7 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
         clearThreadPool();
     }
 
+    @SuppressWarnings("GuardedBy")
     // Loading global prefixes for devices from network configuration
     private synchronized void loadGlobalPrefixConfig() {
         globalPrefixes.clear();
@@ -507,6 +511,7 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
             solicitHostAddress = ipv6Address;
         }
 
+        @Override
         public void run() {
             // Router Advertisement header filling. Please refer RFC-2461.
             RouterAdvertisement ra = new RouterAdvertisement();
