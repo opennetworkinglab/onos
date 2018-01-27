@@ -704,19 +704,20 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <!-- TODO: update once following issue is fixed. -->
-                    <!-- https://jira.codehaus.org/browse/MCOMPILER-205 -->
-                    <version>2.5.1</version>
+                    <version>3.7.0</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
+                        <compilerArgs>
+                            <compilerArg>-Xpkginfo:always</compilerArg>
+                        </compilerArgs>
                     </configuration>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.20</version>
+                    <version>2.20.1</version>
                     <configuration>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <printSummary>true</printSummary>
@@ -728,7 +729,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.4</version>
+                    <version>3.0.0</version>
                     <configuration>
                         <tags>
                             <tag>
@@ -775,7 +776,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.0</version>
                 </plugin>
 
                 <plugin>
@@ -877,7 +878,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>2.17</version>
+                <version>3.0.0</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.onosproject</groupId>
@@ -891,12 +892,6 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <!-- begin: workaround for unexpected NullPointerException on Eclipse -->
-                    <sourceDirectory>${project.build.sourceDirectory}
-                    </sourceDirectory>
-                    <testSourceDirectory>${project.build.testSourceDirectory}
-                    </testSourceDirectory>
-                    <!-- end: workaround for unexpected NullPointerException on Eclipse -->
                     <configLocation>onos/checkstyle-mvn.xml</configLocation>
                     <suppressionsLocation>onos/suppressions.xml
                     </suppressionsLocation>
@@ -943,7 +938,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.9</version>
+                <version>0.8.0</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
