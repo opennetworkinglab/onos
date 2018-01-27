@@ -139,9 +139,11 @@ control Next (
                 if(hdr.ipv4.isValid()) {
                     hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
                 }
+#ifdef WITH_IPV6
                 else if (hdr.ipv6.isValid()) {
                     hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
                 }
+#endif // WITH_IPV6
             }
         }
         hashed.apply();

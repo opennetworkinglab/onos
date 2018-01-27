@@ -31,8 +31,6 @@ control Forwarding (
     direct_counter(CounterType.packets_and_bytes) mpls_counter;
     direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
     direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
-    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
-    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
     direct_counter(CounterType.packets_and_bytes) acl_counter;
 
     action drop() {
@@ -98,6 +96,10 @@ control Forwarding (
         counters = multicast_v4_counter;
     }
 
+#ifdef WITH_IPV6
+    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
+    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
+
     table unicast_v6 {
         key = {
             hdr.ipv6.dst_addr: lpm;
@@ -120,6 +122,7 @@ control Forwarding (
         }
         counters = multicast_v6_counter;
     }
+#endif // WITH_IPV6
 
     table acl {
         key = {
@@ -161,8 +164,10 @@ control Forwarding (
         }
         else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
         else if (fabric_metadata.fwd_type == FWD_IPV4_MULTICAST) multicast_v4.apply();
+#ifdef WITH_IPV6
         else if (fabric_metadata.fwd_type == FWD_IPV6_UNICAST) unicast_v6.apply();
         else if (fabric_metadata.fwd_type == FWD_IPV6_MULTICAST) multicast_v6.apply();
+#endif // WITH_IPV6
         acl.apply();
     }
 }

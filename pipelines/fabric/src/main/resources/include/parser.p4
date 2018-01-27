@@ -45,7 +45,9 @@ inout standard_metadata_t standard_metadata) {
             ETHERTYPE_MPLS: parse_mpls;
             ETHERTYPE_ARP: parse_arp;
             ETHERTYPE_IPV4: parse_ipv4;
+#ifdef WITH_IPV6
             ETHERTYPE_IPV6: parse_ipv6;
+#endif // WITH_IPV6
             default: accept;
         }
     }
@@ -55,7 +57,9 @@ inout standard_metadata_t standard_metadata) {
         transition select(hdr.vlan_tag.ether_type){
             ETHERTYPE_ARP: parse_arp;
             ETHERTYPE_IPV4: parse_ipv4;
+#ifdef WITH_IPV6
             ETHERTYPE_IPV6: parse_ipv6;
+#endif // WITH_IPV6
             ETHERTYPE_MPLS: parse_mpls;
             default: accept;
         }
@@ -69,7 +73,9 @@ inout standard_metadata_t standard_metadata) {
         transition select(packet.lookahead<bit<4>>()) {
             //The packet should be either IPv4 or IPv6.
             IP_VERSION_4: parse_ipv4;
+#ifdef WITH_IPV6
             IP_VERSION_6: parse_ipv6;
+#endif // WITH_IPV6
             default: parse_ethernet;
         }
     }
@@ -86,6 +92,7 @@ inout standard_metadata_t standard_metadata) {
         }
     }
 
+#ifdef WITH_IPV6
     state parse_ipv6 {
         packet.extract(hdr.ipv6);
         fabric_metadata.ip_proto = hdr.ipv6.next_hdr;
@@ -96,6 +103,7 @@ inout standard_metadata_t standard_metadata) {
             default: accept;
         }
     }
+#endif // WITH_IPV6
 
     state parse_arp {
         packet.extract(hdr.arp);
@@ -168,7 +176,9 @@ control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.gtpu);
 #endif // WITH_SPGW
         packet.emit(hdr.ipv4);
+#ifdef WITH_IPV6
         packet.emit(hdr.ipv6);
+#endif // WITH_IPV6
         packet.emit(hdr.tcp);
         packet.emit(hdr.udp);
         packet.emit(hdr.icmp);
