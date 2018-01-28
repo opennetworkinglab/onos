@@ -530,6 +530,11 @@ public class DeviceManager
             PortDescriptionsConfig portConfig = networkConfigService.getConfig(deviceId, PortDescriptionsConfig.class);
             // Generate updated description and establish my Role
             deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
+            DeviceAnnotationConfig annoConfig = networkConfigService.getConfig(deviceId, DeviceAnnotationConfig.class);
+            if (annoConfig != null) {
+                deviceDescription = deviceAnnotationOp.combine(deviceId, deviceDescription, Optional.of(annoConfig));
+            }
+
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
                                          .thenAccept(role -> {
                                              log.info("Local role is {} for {}", role, deviceId);
