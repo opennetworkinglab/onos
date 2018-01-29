@@ -8,8 +8,6 @@ set -e
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-#FIXME need to export s3Creds
-
 # Stage the onos tar in /tmp
 rm -f $ONOS_TAR
 cp $(onos-buck build onos --show-output | tail -1 | cut -d\  -f2) $ONOS_TAR
@@ -25,4 +23,15 @@ popd
 rm -f $ONOS_TEST_TAR
 cp $(onos-buck build //:onos-test --show-output | tail -1 | cut -d\  -f2) $ONOS_TEST_TAR
 
-onosUploadBits.py ${ONOS_VERSION%-*}
+# use this to upload to AWS
+# onosUploadBits.py ${ONOS_VERSION%-*}
+
+# use this to upload to maven central
+if echo $ONOS_VERSION | grep '-'; then
+    echo "ONOS version $ONOS_VERSION is a beta or RC. Skipping publishing .tar.gz files"
+    exit 0
+fi
+UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-releases/$ONOS_VERSION"
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $ONOS_TAR $UPLOAD_BASE/onos-$ONOS_VERSION.tar.gz
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $ONOS_TEST_TAR $UPLOAD_BASE/onos-test-$ONOS_VERSION.tar.gz
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $ONOS_ZIP $UPLOAD_BASE/onos-$ONOS_VERSION.zip
