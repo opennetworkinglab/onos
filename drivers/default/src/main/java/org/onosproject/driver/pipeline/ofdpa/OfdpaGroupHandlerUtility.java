@@ -263,6 +263,67 @@ public final class OfdpaGroupHandlerUtility {
         return indices;
     }
 
+
+    /**
+     * Get indices to remove comparing next group with next objective.
+     *
+     * @param allActiveKeys the representation of the group
+     * @param nextObjective the next objective to verify
+     * @param groupService groups service for querying group information
+     * @param deviceId the device id for the device that contains the group
+     * @return a list of indexes in the allActiveKeys to remove.
+     */
+    public static List<Integer> indicesToRemoveFromNextGroup(List<Deque<GroupKey>> allActiveKeys,
+                                                       NextObjective nextObjective,
+                                                       GroupService groupService,
+                                                       DeviceId deviceId) {
+        List<Integer> indicesToRemove = Lists.newArrayList();
+        int index = 0;
+        // Iterate over the chain in the next data
+        for (Deque<GroupKey> keyChain : allActiveKeys) {
+            // Valid chain should have at least two elements
+            if (keyChain.size() >= 2) {
+                // Get last group (l2if) and retrieve port number
+                GroupKey ifaceGroupKey = keyChain.peekLast();
+                Group ifaceGroup = groupService.getGroup(deviceId, ifaceGroupKey);
+                if (ifaceGroup != null && !ifaceGroup.buckets().buckets().isEmpty()) {
+                    PortNumber portNumber = readOutPortFromTreatment(
+                            ifaceGroup.buckets().buckets().iterator().next().treatment());
+                    // If there is not a port number continue
+                    if (portNumber != null) {
+                        // check for label in the 2nd group of this chain
+                        GroupKey secondKey = (GroupKey) keyChain.toArray()[1];
+                        Group secondGroup = groupService.getGroup(deviceId, secondKey);
+                        // If there is not a second group or there are no buckets continue
+                        if (secondGroup != null && !secondGroup.buckets().buckets().isEmpty()) {
+                            // Get label or -1
+                            int label = readLabelFromTreatment(
+                                    secondGroup.buckets().buckets()
+                                            .iterator().next().treatment());
+                            // Iterate over the next treatments looking for the port and the label
+                            boolean matches = false;
+                            for (TrafficTreatment t : nextObjective.next()) {
+                                PortNumber tPort = readOutPortFromTreatment(t);
+                                int tLabel = readLabelFromTreatment(t);
+                                if (tPort != null && tPort.equals(portNumber) && tLabel == label) {
+                                    // We found it, exit
+                                    matches = true;
+                                    break;
+                                }
+                            }
+                            // Not found, we have to remove it
+                            if (!matches) {
+                                indicesToRemove.add(index);
+                            }
+                        }
+                    }
+                }
+            }
+            index++;
+        }
+        return indicesToRemove;
+    }
+
     /**
      * The purpose of this function is to verify if the hashed next
      * objective is supported by the current pipeline.

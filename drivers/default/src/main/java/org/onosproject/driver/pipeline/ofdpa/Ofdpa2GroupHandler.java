@@ -1597,6 +1597,9 @@ public class Ofdpa2GroupHandler {
         List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
         List<TrafficTreatment> bucketsToCreate = Lists.newArrayList();
         List<Integer> indicesToRemove = Lists.newArrayList();
+
+        // Iterating over the treatments of the next objective allows
+        // to detect missing buckets and/or duplicate buckets (to be removed)
         for (TrafficTreatment bkt : nextObjective.next()) {
             PortNumber portNumber = readOutPortFromTreatment(bkt);
             int label = readLabelFromTreatment(bkt);
@@ -1619,6 +1622,22 @@ public class Ofdpa2GroupHandler {
                 existing.remove(0);
                 indicesToRemove.addAll(existing);
             }
+        }
+
+        // Detect situation where the next data has more buckets
+        // (not duplicates) respect to the next objective
+        if (allActiveKeys.size() > nextObjective.next().size()) {
+            log.warn("Mismatch detected between next and flowobjstore for device {}: " +
+                             "nextId:{}, nextObjective-size:{} next-size:{} .. correcting",
+                     deviceId, nextObjective.id(), nextObjective.next().size(), allActiveKeys.size());
+            List<Integer> otherIndices = indicesToRemoveFromNextGroup(allActiveKeys, nextObjective,
+                                                                      groupService, deviceId);
+            // Filter out the indices not present
+            otherIndices = otherIndices.stream()
+                    .filter(index -> !indicesToRemove.contains(index))
+                    .collect(Collectors.toList());
+            // Add all to the final list
+            indicesToRemove.addAll(otherIndices);
         }
 
         if (!bucketsToCreate.isEmpty()) {
