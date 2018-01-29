@@ -44,8 +44,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
+import org.onosproject.net.intf.InterfaceService;
 
-
+import org.onosproject.net.Host;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.HostLocation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -68,6 +71,127 @@ public class Dhcp6HandlerUtil {
         return null;
     }
 
+    /**
+     *
+     * process the LQ reply packet from dhcp server.
+     *
+     * @param defaultServerInfoList default server list
+     * @param indirectServerInfoList default indirect server list
+     * @param serverInterface server interface
+     * @param interfaceService interface service
+     * @param hostService host service
+     * @param context packet context
+     * @param receivedPacket server ethernet packet
+     * @param recevingInterfaces set of server side interfaces
+     * @return a packet ready to be sent to relevant output interface
+     */
+    public InternalPacket processLQ6PacketFromServer(
+            List<DhcpServerInfo> defaultServerInfoList,
+            List<DhcpServerInfo> indirectServerInfoList,
+            Interface serverInterface,
+            InterfaceService interfaceService,
+            HostService hostService,
+            PacketContext context,
+            Ethernet receivedPacket, Set<Interface> recevingInterfaces) {
+        // get dhcp6 header.
+        Ethernet etherReply = (Ethernet) receivedPacket.clone();
+        IPv6 ipv6Packet = (IPv6) etherReply.getPayload();
+        UDP udpPacket = (UDP) ipv6Packet.getPayload();
+        DHCP6 lq6Reply = (DHCP6) udpPacket.getPayload();
+
+        // TODO: refactor
+        ConnectPoint receivedFrom = context.inPacket().receivedFrom();
+        DeviceId receivedFromDevice = receivedFrom.deviceId();
+        DhcpServerInfo serverInfo;
+        Ip6Address dhcpServerIp = null;
+        ConnectPoint dhcpServerConnectPoint = null;
+        MacAddress dhcpConnectMac = null;
+        VlanId dhcpConnectVlan = null;
+        Ip6Address dhcpGatewayIp = null;
+
+        // todo: refactor
+        Ip6Address indirectDhcpServerIp = null;
+        ConnectPoint indirectDhcpServerConnectPoint = null;
+        MacAddress indirectDhcpConnectMac = null;
+        VlanId indirectDhcpConnectVlan = null;
+        Ip6Address indirectDhcpGatewayIp = null;
+        Ip6Address indirectRelayAgentIpFromCfg = null;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            dhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            dhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        }
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            indirectDhcpConnectMac = serverInfo.getDhcpConnectMac().orElse(null);
+            indirectDhcpGatewayIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            indirectDhcpServerIp = serverInfo.getDhcpServerIp6().orElse(null);
+            indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+            indirectRelayAgentIpFromCfg = serverInfo.getRelayAgentIp6(receivedFromDevice).orElse(null);
+        }
+
+        Boolean directConnFlag = directlyConnected(lq6Reply);
+        ConnectPoint inPort = context.inPacket().receivedFrom();
+        if ((directConnFlag || (!directConnFlag && indirectDhcpServerIp == null))
+                && !inPort.equals(dhcpServerConnectPoint)) {
+            log.warn("Receiving port {} is not the same as server connect point {} for direct or indirect-null",
+                     inPort, dhcpServerConnectPoint);
+            return null;
+        }
+
+        if (!directConnFlag && indirectDhcpServerIp != null &&
+                !inPort.equals(indirectDhcpServerConnectPoint)) {
+            log.warn("Receiving port {} is not the same as server connect point {} for indirect",
+                     inPort, indirectDhcpServerConnectPoint);
+            return null;
+        }
+
+
+        Ip6Address nextHopIP =  Ip6Address.valueOf(ipv6Packet.getDestinationAddress());
+        // use hosts store to find out the next hop mac and connection point
+        Set<Host> hosts = hostService.getHostsByIp(nextHopIP);
+        Host host;
+        if (!hosts.isEmpty()) {
+            host = hosts.iterator().next();
+        } else {
+            log.warn("Host {} is not in store", nextHopIP);
+            return null;
+        }
+
+        HostLocation hl = host.location();
+        String clientConnectionPointStr = hl.toString(); // iterator().next());
+        ConnectPoint clientConnectionPoint = ConnectPoint.deviceConnectPoint(clientConnectionPointStr);
+
+
+        VlanId originalPacketVlanId = VlanId.vlanId(etherReply.getVlanID());
+        Interface iface;
+        iface = interfaceService.getInterfacesByPort(clientConnectionPoint)
+                .stream()
+                .filter(iface1 -> interfaceContainsVlan(iface1, originalPacketVlanId))
+                .findFirst()
+                .orElse(null);
+
+        etherReply.setSourceMACAddress(iface.mac());
+        etherReply.setDestinationMACAddress(host.mac());
+
+
+        // add host or route
+        //addHostOrRoute(directConnFlag, clientConnectionPoint, lq6Reply, embeddedDhcp6, clientMac, clientInterface);
+        // workaround for a bug where core sends src port as 547 (server)
+        udpPacket.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
+        udpPacket.setPayload(lq6Reply);
+        udpPacket.resetChecksum();
+        ipv6Packet.setPayload(udpPacket);
+        etherReply.setPayload(ipv6Packet);
+
+        return new Dhcp6HandlerUtil().new InternalPacket(etherReply, clientConnectionPoint);
+    }
     /**
      * Returns the first interface ip from interface.
      *
@@ -258,7 +382,14 @@ public class Dhcp6HandlerUtil {
      * @return true if the host is directly connected to the network; false otherwise
      */
     public boolean directlyConnected(DHCP6 dhcp6Payload) {
+
         log.debug("directlyConnected enters");
+        if (dhcp6Payload.getMsgType() == DHCP6.MsgType.LEASEQUERY.value() ||
+                dhcp6Payload.getMsgType() == DHCP6.MsgType.LEASEQUERY_REPLY.value()) {
+            log.debug("directlyConnected false. MsgType {}", dhcp6Payload.getMsgType());
+
+            return false;
+        }
 
         if (dhcp6Payload.getMsgType() != DHCP6.MsgType.RELAY_FORW.value() &&
                 dhcp6Payload.getMsgType() != DHCP6.MsgType.RELAY_REPL.value()) {
