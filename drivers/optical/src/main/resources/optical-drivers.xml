@@ -102,6 +102,7 @@
         <!-- TODO use OF1.4 reported information when ready -->
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
+        <property name="meterCapable">false</property>
     </driver>
 
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">
