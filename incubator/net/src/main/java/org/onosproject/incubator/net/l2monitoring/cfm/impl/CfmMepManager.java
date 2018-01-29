@@ -15,11 +15,6 @@
  */
 package org.onosproject.incubator.net.l2monitoring.cfm.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -49,6 +44,11 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the CFM North and South Bound Interfaces.
@@ -281,7 +281,7 @@ public class CfmMepManager
                 case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
                     if (!deviceService.isAvailable(deviceId)) {
-                        log.warn("Device {} has been removed or changed", deviceId);
+                        log.debug("Device {} has been removed or changed", deviceId);
                     }
                     break;
                 default:
