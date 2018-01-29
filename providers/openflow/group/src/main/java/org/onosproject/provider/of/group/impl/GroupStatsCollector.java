@@ -19,6 +19,7 @@ package org.onosproject.provider.of.group.impl;
 import org.onlab.util.Timer;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
+import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsRequest;
 import org.projectfloodlight.openflow.types.OFGroup;
@@ -59,7 +60,7 @@ public class GroupStatsCollector implements TimerTask {
     public void run(Timeout timeout) throws Exception {
         log.trace("Collecting stats for {}", sw.getStringId());
 
-        sendGroupStatisticRequest();
+        sendGroupStatisticRequests();
 
         if (!this.stopTimer) {
             log.trace("Scheduling stats collection in {} seconds for {}",
@@ -69,7 +70,23 @@ public class GroupStatsCollector implements TimerTask {
         }
     }
 
-    private void sendGroupStatisticRequest() {
+    private void sendGroupDescStatisticRequest(long xid) {
+        OFGroupDescStatsRequest descStatsRequest =
+                sw.factory().buildGroupDescStatsRequest()
+                        .setXid(xid)
+                        .build();
+        sw.sendMsg(descStatsRequest);
+    }
+
+    private void sendGroupStatisticRequest(long xid) {
+        OFGroupStatsRequest statsRequest = sw.factory().buildGroupStatsRequest()
+            .setGroup(OFGroup.ALL)
+            .setXid(xid)
+            .build();
+        sw.sendMsg(statsRequest);
+    }
+
+    private void sendGroupStatisticRequests() {
         if (log.isTraceEnabled()) {
             log.trace("sendGroupStatistics {}:{}", sw.getStringId(), sw.getRole());
         }
@@ -79,19 +96,15 @@ public class GroupStatsCollector implements TimerTask {
         if (!sw.isConnected()) {
             return;
         }
-        long statsXid = OpenFlowGroupProvider.getXidAndAdd(2);
-        OFGroupStatsRequest statsRequest = sw.factory().buildGroupStatsRequest()
-                .setGroup(OFGroup.ALL)
-                .setXid(statsXid)
-                .build();
-        sw.sendMsg(statsRequest);
 
-        long descXid = statsXid + 1;
-        OFGroupDescStatsRequest descStatsRequest =
-                sw.factory().buildGroupDescStatsRequest()
-                        .setXid(descXid)
-                        .build();
-        sw.sendMsg(descStatsRequest);
+        if (sw.features().getCapabilities().contains(OFCapabilities.GROUP_STATS)) {
+            long xid = OpenFlowGroupProvider.getXidAndAdd(2);
+            sendGroupDescStatisticRequest(xid);
+            sendGroupStatisticRequest(xid + 1);
+        } else {
+            long xid = OpenFlowGroupProvider.getXidAndAdd(1);
+            sendGroupDescStatisticRequest(xid);
+        }
     }
 
     public void adjustRate(int pollInterval) {
