@@ -39,8 +39,11 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.dhcp.Dhcp6ClientDataOption;
+import org.onlab.packet.dhcp.Dhcp6LeaseQueryOption;
 import org.onlab.packet.dhcp.Dhcp6RelayOption;
 import org.onlab.packet.dhcp.Dhcp6InterfaceIdOption;
+import org.onlab.packet.dhcp.Dhcp6Option;
 import org.onlab.packet.dhcp.Dhcp6IaNaOption;
 import org.onlab.packet.dhcp.Dhcp6IaTaOption;
 import org.onlab.packet.dhcp.Dhcp6IaPdOption;
@@ -102,8 +105,6 @@ import org.slf4j.LoggerFactory;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.dhcprelay.Dhcp6HandlerUtil.InternalPacket;
-
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Collection;
@@ -116,6 +117,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 import java.util.concurrent.Semaphore;
+
 
 @Component
 @Service
@@ -139,9 +141,18 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             .matchUdpSrc(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
             .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
             .build();
+    // lease query reply is from server to client (no relay in between) - so we need to
+    // catch that scenario also ..
+    private static final TrafficSelector LEASE_QUERY_RESPONSE_SELECTOR = DefaultTrafficSelector.builder()
+            .matchEthType(Ethernet.TYPE_IPV6)
+            .matchIPProtocol(IPv6.PROTOCOL_UDP)
+            .matchUdpSrc(TpPort.tpPort(UDP.DHCP_V6_SERVER_PORT))
+            .matchUdpDst(TpPort.tpPort(UDP.DHCP_V6_CLIENT_PORT))
+            .build();
     static final Set<TrafficSelector> DHCP_SELECTORS = ImmutableSet.of(
             CLIENT_SERVER_SELECTOR,
-            SERVER_RELAY_SELECTOR
+            SERVER_RELAY_SELECTOR,
+            LEASE_QUERY_RESPONSE_SELECTOR
     );
     private static Logger log = LoggerFactory.getLogger(Dhcp6HandlerImpl.class);
 
@@ -182,11 +193,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected ApplicationId appId;
     protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
     private InternalHostListener hostListener = new InternalHostListener();
-
     private Boolean dhcpFpmEnabled = false;
-
     private Dhcp6HandlerUtil dhcp6HandlerUtil = new Dhcp6HandlerUtil();
-
     private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
     private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
     private class IpAddressInfo {
@@ -211,10 +219,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                             DHCP6.MsgType.RELEASE.value(),
                             DHCP6.MsgType.DECLINE.value(),
                             DHCP6.MsgType.CONFIRM.value(),
-                            DHCP6.MsgType.RELAY_FORW.value());
+                            DHCP6.MsgType.RELAY_FORW.value(),
+                            DHCP6.MsgType.LEASEQUERY.value());
     // SERVER message types
     public static final Set<Byte> MSG_TYPE_FROM_SERVER =
-            ImmutableSet.of(DHCP6.MsgType.RELAY_REPL.value());
+            ImmutableSet.of(DHCP6.MsgType.RELAY_REPL.value(),
+                            DHCP6.MsgType.LEASEQUERY_REPLY.value());
 
     @Activate
     protected void activate() {
@@ -267,7 +277,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
             processIgnoreVlanRule(deviceId, vlanId, ADD);
         });
-
         ignoredVlans.forEach((deviceId, vlanId) -> {
             if (!config.ignoredVlans().get(deviceId).contains(vlanId)) {
                 // not contains in new config, remove it
@@ -287,6 +296,160 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         });
     }
 
+    public DhcpRecord getDhcpRelayRecordFor(Ip6Address clientAddress) {
+
+        Collection<DhcpRecord>  records = dhcpRelayStore.getDhcpRecords();
+        DhcpRecord dr = null;
+        for (DhcpRecord e:records) {
+            if (e.ip6Address().isPresent()) {
+                if (e.ip6Address().get().equals(clientAddress)) {
+                    dr = e;
+                    break;
+                }
+            }
+        }
+        return dr;
+    }
+
+    public MacAddress findNextHopMacForIp6FromRelayStore(Ip6Address clientAddress,
+                                                         MacAddress clientMacAddress, VlanId vlanID) {
+
+        DhcpRecord dr = getDhcpRelayRecordFor(clientAddress);
+
+        if (dr != null) {
+           Optional<MacAddress> nextHopTempMac = dr.nextHopTemp();
+            if (nextHopTempMac.isPresent()) {
+                log.info("findNextHopForIp6FromRelayStore " + clientAddress + " got mac " + nextHopTempMac.toString());
+                return nextHopTempMac.get();
+            }
+        } else {
+            log.warn("findNextHopMacForIp6FromRelayStore could NOT find next hop for " + clientAddress);
+            return null;
+        }
+        return null;
+    }
+
+    public Ip6Address findNextHopIp6FromRelayStore(Ip6Address clientAddress) {
+
+        DhcpRecord dr = getDhcpRelayRecordFor(clientAddress);
+        if (dr != null) {
+            Optional<MacAddress> nextHopMac = dr.nextHop();
+            if (nextHopMac.isPresent()) {
+                // find the local ip6 from the host store
+                HostId gwHostId = HostId.hostId(nextHopMac.get(), dr.vlanId());
+                Host gwHost = hostService.getHost(gwHostId);
+                if (gwHost == null) {
+                    log.warn("Can't find next hop host ID {}", gwHostId);
+                    return null;
+                }
+                Ip6Address nextHopIp = gwHost.ipAddresses()
+                        .stream()
+                        .filter(IpAddress::isIp6)
+                        .filter(IpAddress::isLinkLocal)
+                        .map(IpAddress::getIp6Address)
+                        .findFirst()
+                        .orElse(null);
+
+                log.info("findNextHopIp6FromRelayStore " + clientAddress + " got mac " +
+                                 nextHopMac.toString() + " ip6 " + nextHopIp);
+                return nextHopIp;
+            }
+        } else {
+            log.warn("findNextHopIp6FromRelayStore could NOT find next hop for " + clientAddress);
+            return null;
+        }
+        return null;
+    }
+
+    private void setPotentialNextHopForIp6InRelayStore(Ip6Address clientAddress,
+                                                       VlanId vlanId, MacAddress nh) {
+        DhcpRecord dr = getDhcpRelayRecordFor(clientAddress);
+        if (dr != null) {
+            dr.nextHopTemp(nh);
+            log.debug("LQ6 potential NH mac " + nh.toString() + " UPDATED in RelayRecord client " + clientAddress);
+        } else {
+            log.warn("LQ6 potential NH mac" + nh.toString() +
+                             " NOT FOUND in RelayRecord for client - LQ rejected" + clientAddress);
+        }
+    }
+
+    public void handleLeaseQuery6ReplyMsg(PacketContext context, DHCP6 dhcp6Payload) {
+        ConnectPoint inPort = context.inPacket().receivedFrom();
+        log.info("Got LQV6-REPLY on port {}", inPort);
+        List<Dhcp6Option> lopt = dhcp6Payload.getOptions();
+        log.info("Options list: {}", lopt);
+        // find out if this lease is known is
+        Dhcp6ClientDataOption clientDataOption = dhcp6Payload.getOptions()
+                .stream()
+                .filter(opt -> opt instanceof Dhcp6ClientDataOption)
+                .map(pld -> (Dhcp6ClientDataOption) pld)
+                .findFirst()
+                .orElse(null);
+
+        if (clientDataOption == null) {
+            log.warn("clientDataOption option is not present, " +
+                             "lease is UNKNOWN - not adding any new route...");
+        } else {
+            Dhcp6IaAddressOption aiAddressOption = clientDataOption.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6IaAddressOption)
+                    .map(pld -> (Dhcp6IaAddressOption) pld)
+                    .findFirst()
+                    .orElse(null);
+
+            Dhcp6ClientIdOption clientIdOption = clientDataOption.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
+                    .map(pld -> (Dhcp6ClientIdOption) pld)
+                    .findFirst()
+                    .orElse(null);
+
+            if (aiAddressOption == null) {
+                log.warn("clientDataOption from DHCP server does not " +
+                                 "contains Dhcp6IaAddressOption for the client - giving up...");
+            } else {
+                Ip6Address clientAddress = aiAddressOption.getIp6Address();
+                MacAddress clientMacAddress = MacAddress.valueOf(clientIdOption.getDuid().getLinkLayerAddress());
+                Ethernet packet = context.inPacket().parsed();
+                VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+                MacAddress potentialNextHopMac =
+                        findNextHopMacForIp6FromRelayStore(clientAddress, clientMacAddress, vlanId);
+
+                if (potentialNextHopMac == null) {
+                    log.warn("Can't find next hop host mac for client {} mac:{}/{}",
+                             clientAddress, clientMacAddress, vlanId);
+                    return;
+                } else {
+                    log.info("Next hop mac for {}/{}/{} is {}", clientAddress,
+                             clientMacAddress, vlanId, potentialNextHopMac.toString());
+                }
+                // search the next hop in the hosts store
+                HostId gwHostId = HostId.hostId(potentialNextHopMac, vlanId);
+                Host gwHost = hostService.getHost(gwHostId);
+                if (gwHost == null) {
+                    log.warn("Can't find next hop host ID {}", gwHostId);
+                    return;
+                }
+                Ip6Address nextHopIp = gwHost.ipAddresses()
+                        .stream()
+                        .filter(IpAddress::isIp6)
+                        .filter(IpAddress::isLinkLocal)
+                        .map(IpAddress::getIp6Address)
+                        .findFirst()
+                        .orElse(null);
+                if (nextHopIp == null) {
+                    log.warn("Can't find IP6 address of next hop {}", gwHost);
+                    return;
+                }
+                log.info("client " + clientAddress + " is known !");
+                Route routeForIP6 = new Route(Route.Source.STATIC, clientAddress.toIpPrefix(), nextHopIp);
+                log.debug("updating route of Client for indirectly connected.");
+                log.debug("client ip: " + clientAddress + ", next hop ip6: " + nextHopIp);
+                routeStore.updateRoute(routeForIP6);
+            }
+        }
+    }
+
     @Override
     public void processDhcpPacket(PacketContext context, BasePacket payload) {
         checkNotNull(payload, "DHCP6 payload can't be null");
@@ -295,7 +458,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         Ethernet receivedPacket = context.inPacket().parsed();
 
         if (!configured()) {
-            log.warn("Missing DHCP6 relay server config. Abort packet processing dhcp6 payload {}", dhcp6Payload);
+            log.warn("Missing DHCP6 relay server config. " +
+                             "Abort packet processing dhcp6 payload {}", dhcp6Payload);
             return;
         }
         byte msgTypeVal = dhcp6Payload.getMsgType();
@@ -314,22 +478,47 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             return;
         }
 
-        if (MSG_TYPE_FROM_CLIENT.contains(msgTypeVal)) {
-
+        if (msgTypeVal == DHCP6.MsgType.LEASEQUERY.value()) {
             List<InternalPacket> ethernetClientPacket =
-                    processDhcp6PacketFromClient(context, receivedPacket, receivingInterfaces);
+                    processLQ6PacketFromClient(context, receivedPacket, receivingInterfaces, dhcp6Payload);
             for (InternalPacket internalPacket : ethernetClientPacket) {
                 forwardPacket(internalPacket);
             }
-        } else if (MSG_TYPE_FROM_SERVER.contains(msgTypeVal)) {
-            log.debug("calling processDhcp6PacketFromServer with RELAY_REPL {}", msgTypeVal);
+        } else if (msgTypeVal == DHCP6.MsgType.LEASEQUERY_REPLY.value()) {
+
+            IPv6 clientIpv6 = (IPv6) receivedPacket.getPayload();
+            UDP clientUdp = (UDP) clientIpv6.getPayload();
+            DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
+            Interface serverInterface = dhcp6HandlerUtil.directlyConnected(clientDhcp6) ?
+                    getServerInterface() : getIndirectServerInterface();
             InternalPacket ethernetPacketReply =
-                    processDhcp6PacketFromServer(context, receivedPacket, receivingInterfaces);
+                    dhcp6HandlerUtil.processLQ6PacketFromServer(
+                            defaultServerInfoList, indirectServerInfoList,
+                            serverInterface, interfaceService,
+                            hostService,
+                            context, receivedPacket, receivingInterfaces);
             if (ethernetPacketReply != null) {
                 forwardPacket(ethernetPacketReply);
             }
+            handleLeaseQuery6ReplyMsg(context, dhcp6Payload);
         } else {
-            log.warn("Not so fast, packet type {} not supported yet", msgTypeVal);
+            if (MSG_TYPE_FROM_CLIENT.contains(msgTypeVal)) {
+
+                List<InternalPacket> ethernetClientPacket =
+                        processDhcp6PacketFromClient(context, receivedPacket, receivingInterfaces);
+                for (InternalPacket internalPacket : ethernetClientPacket) {
+                    forwardPacket(internalPacket);
+                }
+            } else if (MSG_TYPE_FROM_SERVER.contains(msgTypeVal)) {
+                log.debug("calling processDhcp6PacketFromServer with RELAY_REPL {}", msgTypeVal);
+                InternalPacket ethernetPacketReply =
+                        processDhcp6PacketFromServer(context, receivedPacket, receivingInterfaces);
+                if (ethernetPacketReply != null) {
+                    forwardPacket(ethernetPacketReply);
+                }
+            } else {
+                log.warn("Not so fast, packet type {} not supported yet", msgTypeVal);
+            }
         }
     }
 
@@ -352,8 +541,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         // Do nothing here
     }
 
-
-
     //forward the packet to ConnectPoint where the DHCP server is attached.
     private void forwardPacket(InternalPacket packet) {
         //send Packetout to dhcp server connectpoint.
@@ -368,9 +555,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             packetService.emit(o);
         } // if
     }
-
-
-
 
     /**
      * extract from dhcp6 packet client ipv6 address of given by dhcp server.
@@ -422,6 +606,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         }
         return ipInfo;
     }
+
     /**
      * extract from dhcp6 packet Prefix prefix provided by dhcp server.
      *
@@ -500,6 +685,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         return clientIdOption;
     }
+
     /**
      * remove host or route and update dhcp relay record attributes.
      *
@@ -661,6 +847,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param embeddedDhcp6 the dhcp6 payload within relay
      * @param srcMac client gw/host macAddress
      * @param clientInterface client interface
+     * @param dhcpServerIp6Address DHCP server IP
      */
     private void addHostOrRoute(boolean directConnFlag, ConnectPoint location, DHCP6 dhcp6Relay,
                                 DHCP6 embeddedDhcp6, MacAddress srcMac, Interface clientInterface) {
@@ -774,11 +961,11 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         if (leafMsgType == DHCP6.MsgType.REPLY.value()) {
             if (ipInfo != null) {
                 log.debug("IP6 address is being stored into dhcp-relay store.");
-                log.debug("IP6 address {}", HexString.toHexString(ipInfo.ip6Address.toOctets(), ":"));
+                log.debug("Client IP6 address {}", HexString.toHexString(ipInfo.ip6Address.toOctets(), ":"));
                 record.ip6Address(ipInfo.ip6Address);
                 record.updateAddrPrefTime(ipInfo.prefTime);
                 record.updateLastIp6Update();
-            } else {
+             } else {
                 log.debug("IP6 address is not returned from server. Maybe only PD is returned.");
             }
             if (pdInfo != null) {
@@ -809,6 +996,103 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private List<InternalPacket> processLQ6PacketFromClient(PacketContext context,
+                                                              Ethernet clientPacket,
+                                                              Set<Interface> clientInterfaces,
+                                                              DHCP6 dhcp6Payload) {
+        ConnectPoint inPort = context.inPacket().receivedFrom();
+        log.info("Got LQ-REQUEST V6 on port {}", inPort);
+        List<Dhcp6Option> lopt = dhcp6Payload.getOptions();
+        log.info("Options list: {}", lopt);
+        Dhcp6LeaseQueryOption lqoption = dhcp6Payload.getOptions()
+                .stream()
+                .filter(opt -> opt instanceof Dhcp6LeaseQueryOption)
+                .map(pld -> (Dhcp6LeaseQueryOption) pld)
+                .findFirst()
+                .orElse(null);
+
+        if (lqoption == null) {
+            // Can't find dhcp payload
+            log.warn("Can't find dhcp6 lease query message - aborting");
+            return null;
+        } else {
+            log.info("dhcp6 lqv6 options found: {}", lqoption);
+        }
+        log.warn("LQv6 for " + lqoption.linkAddress.toString() + " comes from " + inPort.toString());
+        Ethernet packet = context.inPacket().parsed();
+        Ip6Address clientAddress = lqoption.linkAddress;
+        IPv6 ipv6Packet = (IPv6) packet.getPayload();
+        Ip6Address nextHopIp = findNextHopIp6FromRelayStore(clientAddress);
+
+        // 1. only if there is a route to remove - remove it
+        if (nextHopIp != null) {
+            Route routeForIP6 = new Route(Route.Source.STATIC, clientAddress.toIpPrefix(), nextHopIp);
+            log.debug("Removing route of Client " + clientAddress +
+                              " for indirectly connected - next hop ip6 " + nextHopIp);
+            routeStore.removeRoute(routeForIP6);
+        }
+
+        // 2. note the potential NH this packet came from in case it's a known lease
+        //    this NH will then be used to build the route
+        MacAddress potentialNH = packet.getSourceMAC();
+        VlanId vlanId = VlanId.vlanId(packet.getVlanID());
+        setPotentialNextHopForIp6InRelayStore(clientAddress, vlanId, potentialNH);
+
+        // 3. route this LQ6 to all relevant servers
+        IPv6 clientIpv6 = (IPv6) clientPacket.getPayload();
+        UDP clientUdp = (UDP) clientIpv6.getPayload();
+        DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
+
+        boolean directConnFlag = dhcp6HandlerUtil.directlyConnected(clientDhcp6);
+
+        ConnectPoint clientConnectionPoint = context.inPacket().receivedFrom();
+        VlanId vlanIdInUse = VlanId.vlanId(clientPacket.getVlanID());
+        Interface clientInterface = interfaceService.getInterfacesByPort(clientConnectionPoint)
+                .stream().filter(iface -> dhcp6HandlerUtil.interfaceContainsVlan(iface, vlanIdInUse))
+                .findFirst()
+                .orElse(null);
+
+        List<InternalPacket> internalPackets = new ArrayList<>();
+        List<DhcpServerInfo> serverInfoList = findValidServerInfo(directConnFlag);
+        List<DhcpServerInfo> copyServerInfoList = new ArrayList<DhcpServerInfo>(serverInfoList);
+
+        for (DhcpServerInfo serverInfo : copyServerInfoList) {
+            if (!dhcp6HandlerUtil.checkDhcpServerConnPt(directConnFlag, serverInfo)) {
+                log.warn("Can't get server connect point, ignore");
+                continue;
+            }
+            DhcpServerInfo newServerInfo = getHostInfoForServerInfo(serverInfo, serverInfoList);
+            if (newServerInfo == null) {
+                log.warn("Can't get server interface with host info resolved, ignore");
+                continue;
+            }
+
+            Interface serverInterface = getServerInterface(newServerInfo);
+            if (serverInterface == null) {
+                log.warn("Can't get server interface, ignore");
+                continue;
+            }
+
+
+            Ethernet etherRouted = (Ethernet) clientPacket.clone();
+            MacAddress macFacingServer = serverInterface.mac();
+            if (macFacingServer == null) {
+                log.warn("No MAC address for server Interface {}", serverInterface);
+                return null;
+            }
+            etherRouted.setSourceMACAddress(macFacingServer);
+            etherRouted.setDestinationMACAddress(newServerInfo.getDhcpConnectMac().get());
+            InternalPacket internalPacket =
+                    new Dhcp6HandlerUtil().new InternalPacket(etherRouted,
+                              serverInfo.getDhcpServerConnectPoint().get());
+            internalPackets.add(internalPacket);
+            log.debug("Sending LQ to DHCP server {}", newServerInfo.getDhcpServerIp6());
+        }
+        log.debug("num of client packets to send is{}", internalPackets.size());
+
+        return internalPackets;
     }
 
     /**
@@ -980,7 +1264,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             udpPacket.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
         }
         // add host or route
-        addHostOrRoute(directConnFlag, clientConnectionPoint, dhcp6Relay, embeddedDhcp6, clientMac, clientInterface);
+        addHostOrRoute(directConnFlag, clientConnectionPoint, dhcp6Relay, embeddedDhcp6,
+                       clientMac, clientInterface);
+
 
         udpPacket.setPayload(embeddedDhcp6);
         udpPacket.resetChecksum();
@@ -989,6 +1275,19 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         return new Dhcp6HandlerUtil().new InternalPacket(etherReply, clientConnectionPoint);
     }
 
+    // Returns the first v6 interface ip out of a set of interfaces or null.
+    // Checks all interfaces, and ignores v6 interface ips
+    private Ip6Address getRelayAgentIPv6Address(Set<Interface> intfs) {
+        for (Interface intf : intfs) {
+            for (InterfaceIpAddress ip : intf.ipAddressesList()) {
+                Ip6Address relayAgentIp = ip.ipAddress().getIp6Address();
+                if (relayAgentIp != null) {
+                    return relayAgentIp;
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public void setDhcpFpmEnabled(Boolean enabled) {
@@ -1131,7 +1430,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
         }
     }
-
     /**
      * Handle host removed.
      * If the host is DHCP server or gateway, unset connect mac and vlan.
@@ -1181,6 +1479,65 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 .findFirst()
                 .orElse(null);
     }
+
+   /**
+     * Gets Interface facing to the server for default host.
+     *
+     * @return the Interface facing to the server; null if not found
+     */
+    private Interface getServerInterface() {
+        DhcpServerInfo serverInfo;
+        ConnectPoint dhcpServerConnectPoint;
+        VlanId dhcpConnectVlan;
+
+        if (!defaultServerInfoList.isEmpty()) {
+            serverInfo = defaultServerInfoList.get(0);
+            dhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            dhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        } else {
+            return null;
+        }
+        if (dhcpServerConnectPoint == null || dhcpConnectVlan == null) {
+            log.info("Default DHCP server {} not resolve yet", serverInfo.getDhcpGatewayIp6());
+            return null;
+        }
+        return interfaceService.getInterfacesByPort(dhcpServerConnectPoint)
+                .stream()
+                .filter(iface -> dhcp6HandlerUtil.interfaceContainsVlan(iface, dhcpConnectVlan))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Gets Interface facing to the server for indirect hosts.
+     * Use default server Interface if indirect server not configured.
+     *
+     * @return the Interface facing to the server; null if not found
+     */
+    private Interface getIndirectServerInterface() {
+        DhcpServerInfo serverInfo;
+
+        ConnectPoint indirectDhcpServerConnectPoint;
+        VlanId indirectDhcpConnectVlan;
+
+        if (!indirectServerInfoList.isEmpty()) {
+            serverInfo = indirectServerInfoList.get(0);
+            indirectDhcpServerConnectPoint = serverInfo.getDhcpServerConnectPoint().orElse(null);
+            indirectDhcpConnectVlan = serverInfo.getDhcpConnectVlan().orElse(null);
+        } else {
+            return getServerInterface();
+        }
+        if (indirectDhcpServerConnectPoint == null || indirectDhcpConnectVlan == null) {
+            log.info("Indirect DHCP server {} not resolve yet", serverInfo.getDhcpGatewayIp6());
+            return null;
+        }
+        return interfaceService.getInterfacesByPort(indirectDhcpServerConnectPoint)
+                .stream()
+                .filter(iface -> dhcp6HandlerUtil.interfaceContainsVlan(iface, indirectDhcpConnectVlan))
+                .findFirst()
+                .orElse(null);
+    }
+
     /**
      * Checks if serverInfo's host info (mac and vlan) is filled in; if not, fills in.
      *
@@ -1256,15 +1613,16 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         return serverInterface;
     }
 
-
     private void requestDhcpPacket(Ip6Address serverIp) {
         requestServerDhcpPacket(serverIp);
         requestClientDhcpPacket(serverIp);
+        requestServerLQPacket(serverIp);
     }
 
     private void cancelDhcpPacket(Ip6Address serverIp) {
         cancelServerDhcpPacket(serverIp);
         cancelClientDhcpPacket(serverIp);
+        cancelServerLQPacket(serverIp);
     }
 
     private void cancelServerDhcpPacket(Ip6Address serverIp) {
@@ -1277,9 +1635,29 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                                     appId);
     }
 
+    private void cancelServerLQPacket(Ip6Address serverIp) {
+        TrafficSelector serverSelector =
+                DefaultTrafficSelector.builder(LEASE_QUERY_RESPONSE_SELECTOR)
+                        .matchIPv6Src(serverIp.toIpPrefix())
+                        .build();
+        packetService.cancelPackets(serverSelector,
+                                    PacketPriority.CONTROL,
+                                    appId);
+    }
+
     private void requestServerDhcpPacket(Ip6Address serverIp) {
         TrafficSelector serverSelector =
                 DefaultTrafficSelector.builder(SERVER_RELAY_SELECTOR)
+                        .matchIPv6Src(serverIp.toIpPrefix())
+                        .build();
+        packetService.requestPackets(serverSelector,
+                                     PacketPriority.CONTROL,
+                                     appId);
+    }
+
+    private void requestServerLQPacket(Ip6Address serverIp) {
+        TrafficSelector serverSelector =
+                DefaultTrafficSelector.builder(LEASE_QUERY_RESPONSE_SELECTOR)
                         .matchIPv6Src(serverIp.toIpPrefix())
                         .build();
         packetService.requestPackets(serverSelector,
@@ -1419,6 +1797,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             flowObjectiveService.apply(deviceId, fwd);
         });
     }
+
     /**
      * Find first ipaddress for a given Host info i.e.  mac and vlan.
      *
@@ -1481,6 +1860,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         }
         return foundServerInfo;
     }
+
     /**
      * Set the dhcp6 lease expiry poll interval value.
      *

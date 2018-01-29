@@ -53,7 +53,6 @@ public class DhcpRecord {
     private IpPrefix pdPrefix;
     private DHCP6.MsgType ip6Status;
 
-
     private long lastSeen;
     private long lastIp6Update;
     private long lastPdUpdate;
@@ -418,7 +417,6 @@ public class DhcpRecord {
         newRecord.addrPrefTime = addrPrefTime;
         newRecord.pdPrefTime = pdPrefTime;
         newRecord.v6Counters = v6Counters;
-
         return newRecord;
     }
 

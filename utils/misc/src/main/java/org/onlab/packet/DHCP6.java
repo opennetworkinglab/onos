@@ -19,11 +19,13 @@ package org.onlab.packet;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.onlab.packet.dhcp.Dhcp6ClientDataOption;
 import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
 import org.onlab.packet.dhcp.Dhcp6IaAddressOption;
 import org.onlab.packet.dhcp.Dhcp6IaNaOption;
 import org.onlab.packet.dhcp.Dhcp6IaTaOption;
 import org.onlab.packet.dhcp.Dhcp6IaPdOption;
+import org.onlab.packet.dhcp.Dhcp6LeaseQueryOption;
 import org.onlab.packet.dhcp.Dhcp6Option;
 import org.onlab.packet.dhcp.Dhcp6RelayOption;
 import org.onlab.packet.dhcp.Dhcp6InterfaceIdOption;
@@ -60,7 +62,12 @@ public class DHCP6 extends BasePacket {
     // Relay message types
     public static final Set<Byte> RELAY_MSG_TYPES =
             ImmutableSet.of(MsgType.RELAY_FORW.value,
-                            MsgType.RELAY_REPL.value);
+                            MsgType.RELAY_REPL.value
+            );
+    public static final Set<Byte> LEASEQUERY_MSG_TYPES =
+            ImmutableSet.of(MsgType.LEASEQUERY.value,
+                            MsgType.LEASEQUERY_REPLY.value
+            );
 
     /**
      * DHCPv6 message type.
@@ -70,7 +77,8 @@ public class DHCP6 extends BasePacket {
         CONFIRM((byte) 4), RENEW((byte) 5), REBIND((byte) 6),
         REPLY((byte) 7), RELEASE((byte) 8), DECLINE((byte) 9),
         RECONFIGURE((byte) 10), INFORMATION_REQUEST((byte) 11),
-        RELAY_FORW((byte) 12), RELAY_REPL((byte) 13);
+        RELAY_FORW((byte) 12), RELAY_REPL((byte) 13), LEASEQUERY((byte) 14),
+        LEASEQUERY_REPLY((byte) 15);
 
         protected byte value;
         MsgType(final byte value) {
@@ -107,6 +115,10 @@ public class DHCP6 extends BasePacket {
                     return RELAY_FORW;
                 case 13:
                     return RELAY_REPL;
+                case 14:
+                    return LEASEQUERY;
+                case 15:
+                    return LEASEQUERY_REPLY;
                 default:
                     return null;
             }
@@ -155,7 +167,8 @@ public class DHCP6 extends BasePacket {
         STATUS_CODE((short) 13), RAPID_COMMIT((short) 14), USER_CLASS((short) 15),
         VENDOR_CLASS((short) 16), VENDOR_OPTS((short) 17), INTERFACE_ID((short) 18),
         RECONF_MSG((short) 19), RECONF_ACCEPT((short) 20), IA_PD((short) 25), IAPREFIX((short) 26),
-        SUBSCRIBER_ID((short) 38);
+        SUBSCRIBER_ID((short) 38), OPTION_ERO((short) 43), LEASE_QUERY((short) 44),
+        CLIENT_DATA((short) 45),  CLIENT_LT((short) 48);
 
         protected short value;
         OptionCode(final short value) {
@@ -175,6 +188,8 @@ public class DHCP6 extends BasePacket {
                             .put(OptionCode.CLIENTID.value, Dhcp6ClientIdOption.deserializer())
                             .put(OptionCode.IA_PD.value, Dhcp6IaPdOption.deserializer())
                             .put(OptionCode.INTERFACE_ID.value, Dhcp6InterfaceIdOption.deserializer())
+                            .put(OptionCode.LEASE_QUERY.value, Dhcp6LeaseQueryOption.deserializer())
+                            .put(OptionCode.CLIENT_DATA.value, Dhcp6ClientDataOption.deserializer())
                     .build();
 
     // general field
