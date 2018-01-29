@@ -47,6 +47,9 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.AsyncDistributedLock;
+import org.onosproject.store.service.DistributedLock;
+import org.onosproject.store.service.DistributedLockBuilder;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WorkQueue;
 
@@ -104,6 +107,18 @@ public class RouteManagerTest {
         routeManager.clusterService = createNiceMock(ClusterService.class);
         replay(routeManager.clusterService);
         routeManager.storageService = createNiceMock(StorageService.class);
+
+        AsyncDistributedLock adl = createNiceMock(AsyncDistributedLock.class);
+        expect(adl.asLock()).andReturn(createNiceMock(DistributedLock.class));
+        replay(adl);
+
+        DistributedLockBuilder dlb = createNiceMock(DistributedLockBuilder.class);
+        expect(dlb.withName(anyString())).andReturn(dlb);
+        expect(dlb.build()).andReturn(adl);
+        replay(dlb);
+
+        expect(routeManager.storageService.lockBuilder())
+                .andReturn(dlb);
         expect(routeManager.storageService.getWorkQueue(anyString(), anyObject()))
                 .andReturn(createNiceMock(WorkQueue.class));
         replay(routeManager.storageService);
