@@ -792,9 +792,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
         }
 
-        // Remove broadcast flag
-        dhcpPacket.setFlags((short) 0);
-
         udpPacket.setPayload(dhcpPacket);
         // As a DHCP relay, the source port should be server port( instead
         // of client port.
@@ -1017,14 +1014,18 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             // if client is indirectly connected, try use next hop mac address
             MacAddress macAddress = MacAddress.valueOf(dhcpPayload.getClientHardwareAddress());
             HostId hostId = HostId.hostId(macAddress, vlanId);
-            DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
-            if (record != null) {
-                // if next hop can be found, use mac address of next hop
-                record.nextHop().ifPresent(etherReply::setDestinationMACAddress);
+            if (((int) dhcpPayload.getFlags() & 0x8000) == 0x0000) {
+                DhcpRecord record = dhcpRelayStore.getDhcpRecord(hostId).orElse(null);
+                if (record != null) {
+                    // if next hop can be found, use mac address of next hop
+                    record.nextHop().ifPresent(etherReply::setDestinationMACAddress);
+                } else {
+                    // otherwise, discard the packet
+                    log.warn("Can't find record for host id {}, discard packet", hostId);
+                    return null;
+                }
             } else {
-                // otherwise, discard the packet
-                log.warn("Can't find record for host id {}, discard packet", hostId);
-                return null;
+                etherReply.setDestinationMACAddress(MacAddress.BROADCAST);
             }
         } else {
             etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
@@ -1043,7 +1044,11 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         // SRC_IP: relay agent IP
         // DST_IP: offered IP
         ipv4Packet.setSourceAddress(ipFacingClient.toInt());
-        ipv4Packet.setDestinationAddress(dhcpPayload.getYourIPAddress());
+        if (((int) dhcpPayload.getFlags() & 0x8000) == 0x0000) {
+            ipv4Packet.setDestinationAddress(dhcpPayload.getYourIPAddress());
+        } else {
+            ipv4Packet.setDestinationAddress(BROADCAST_IP);
+        }
         udpPacket.setSourcePort(UDP.DHCP_SERVER_PORT);
         if (directlyConnected(dhcpPayload)) {
             udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
