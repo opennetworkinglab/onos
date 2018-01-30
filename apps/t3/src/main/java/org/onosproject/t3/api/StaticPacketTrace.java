@@ -16,6 +16,7 @@
 
 package org.onosproject.t3.api;
 
+import com.google.common.collect.ImmutableList;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
@@ -151,7 +152,7 @@ public class StaticPacketTrace {
      * @return the flows matched
      */
     public List<FlowEntry> getFlowsForDevice(DeviceId deviceId) {
-        return flowsForDevice.get(deviceId);
+        return flowsForDevice.getOrDefault(deviceId, ImmutableList.of());
     }
 
     @Override
