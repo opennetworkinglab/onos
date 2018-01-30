@@ -17,4 +17,4 @@ rm -rf ~/p4tools/sysrepo/build
 
 cat /dev/null > ~/.bash_history
 
-poweroff
+sudo poweroff

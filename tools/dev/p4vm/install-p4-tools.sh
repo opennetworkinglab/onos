@@ -22,6 +22,7 @@ PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
 SYSREPO_COMMIT="v0.7.2"
+P4RT_TEST_COMMIT="master"
 
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 
@@ -259,6 +260,18 @@ function do_p4c {
     sudo ldconfig
 }
 
+function do_p4rt_test {
+    cd ${BUILD_DIR}
+    if [ ! -d p4rt-test ]; then
+        git clone https://github.com/TakeshiTseng/P4-runtime-test-tool.git p4rt-test
+    fi
+    cd p4rt-test
+    git pull origin master
+
+    sudo rm -f /usr/local/bin/p4rt-test
+    sudo ln -s ${BUILD_DIR}/p4rt-test/main.py /usr/local/bin/p4rt-test
+}
+
 function check_commit {
     if [ ! -e $2 ]; then
         return 0 # true
@@ -287,6 +300,7 @@ function check_and_do {
     func_name="$3"
     simple_name="$4"
     if ${MUST_DO_ALL} = true \
+        || ${commit_id} = "master" \
         || check_commit ${commit_id} ${proj_dir}/.last_built_commit; then
         echo "#"
         echo "# Building ${simple_name} (${commit_id})"
@@ -330,5 +344,6 @@ check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} p4runtime do_p4runtime p4runtime
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
 check_and_do ${P4C_COMMIT} p4c do_p4c p4c
+check_and_do ${P4RT_TEST_COMMIT} p4rt-test do_p4rt_test p4rt-test
 
 echo "Done!"
