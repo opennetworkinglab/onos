@@ -2,8 +2,9 @@
 # -----------------------------------------------------------------------------
 # Forms ONOS cluster using REST API of each separate instance.
 # -----------------------------------------------------------------------------
-
-[ $# -lt 2 ] && echo "usage: $(basename $0) ip1 ip2..." && exit 1
+function usage() {
+    echo "usage: $(basename $0)[-x] [-u user] [-p password] [-s partitionSize] ip1 ip2..." && exit 1
+}
 
 # Scan arguments for user/password or other options...
 while getopts u:p:s: o; do
@@ -11,6 +12,7 @@ while getopts u:p:s: o; do
         u) user=$OPTARG;;
         p) password=$OPTARG;;
         s) partitionsize=$OPTARG;;
+        *) usage;;
     esac
 done
 ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
@@ -19,6 +21,8 @@ user=${user:-$ONOS_WEB_USER}
 password=${password:-$ONOS_WEB_PASS}
 let OPC=$OPTIND-1
 shift $OPC
+
+[ $# -lt 2 ] && usage
 
 ip=$1
 shift

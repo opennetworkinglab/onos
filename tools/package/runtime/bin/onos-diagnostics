@@ -1,0 +1,137 @@
+#!/bin/bash
+
+#
+# Copyright 2015-present Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# -----------------------------------------------------------------------------
+# Tool to collect cluster-wide diagnostics into a single tar stream.
+# -----------------------------------------------------------------------------
+function usage() {
+    echo "usage: $(basename $0) [-x] [-n name] [-u user] [-p password] [ip1 ip2...]"
+    echo ""
+    echo "Environment Variables:"
+    echo "    ONOS_INSTANCES    IPs or hostnames of ONOS cluster machines"
+    echo "    ONOS_WEB_USER     username for REST API"
+    echo "    ONOS_WEB_PASS     password for REST API"
+    echo ""
+    echo "Example Usages:"
+    echo "    # Collect compressed diagnostics for the cluster."
+    echo "    # REST API user and password are drawn from environment variables."
+    echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
+    echo "    # The cluster node IPs will be drawn from ONOS_INSTANCES variable."
+    echo "    > $(basename $0) "
+    echo ""
+    echo "    # Collect diagnostics for the cluster and leave them extracted. "
+    echo "    # Collection directory will be named /tmp/prague-diags/"
+    echo "    # Collection archive will be named /tmp/prague-diags.tar.gz."
+    echo "    # REST API user name is 'onos' and password is 'rules'."
+    echo "    # The cluster node IPs will be drawn from ONOS_INSTANCES variable."
+    echo "    > $(basename $0) -x -n prague -u onos -p rules"
+    echo ""
+    echo "    # Collect compressed diagnostics for a cluster."
+    echo "    # REST API user name is 'onos' and password is 'rules'."
+    echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
+    echo "    # The cluster node IPs are listed explicitly."
+    echo "    > $(basename $0) -u onos -p rules 172.17.0.11 172.17.0.12 172.17.0.13"
+
+    exit 1
+}
+
+CLI_COMMANDS=(
+    "feature:list"
+    "bundle:list"
+    "scr:list"
+
+    "summary"
+    "nodes"
+    "apps -s"
+    "netcfg"
+    "cfg get"
+
+    "devices"
+    "links"
+    "hosts"
+
+    "ports -e"
+    "portstats -nz"
+
+    "intents"
+    "flows -s"
+    "groups"
+
+    "roles"
+    "masters"
+
+    "routes"
+    "obj-next-ids"
+    "obj-pending-nexts"
+
+    "log:display -l WARN"
+)
+
+# Scan arguments for user/password or other options...
+while getopts n:u:p:x?h o; do
+    case "$o" in
+        n) name=$OPTARG;;
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+        x) extract=true;;
+        *) usage;;
+    esac
+done
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+user=${user:-$ONOS_WEB_USER}
+password=${password:-$ONOS_WEB_PASS}
+let OPC=$OPTIND-1
+shift $OPC
+
+[ $# -lt 1 -a -z "$ONOS_INSTANCES" ] && usage;
+
+diags=/tmp/${name:-onos}-diags
+rm -fr $diags $diags.tar.gz; mkdir -p $diags
+
+[ -z $1 ] && nodes=$ONOS_INSTANCES || nodes=$*
+
+# Collect diagnostics from each cluster node
+for node in $nodes; do
+    printf "Collecting diagnostics on $node..."
+
+    # Prepare a clean place for collecting the node diagnostic data
+    cd $diags; rm -fr $node; mkdir -p $node; cd $node;
+
+    # Acquire locally obtained diagnostics via REST API and extract them
+    printf "logs "
+    curl -sS --fail --user $user:$password  \
+        http://$node:8181/onos/v1/diagnostics > ../$node.tar.gz
+    tar zxf ../$node.tar.gz
+
+    # Acquire remotely obtained diagnostics via ssh CLI
+    for cmd in "${CLI_COMMANDS[@]}"; do
+        cmdLog="$(echo $cmd | cut -d\  -f1 | sed 's/:/-/g').txt"
+        printf "$cmdLog "
+        onos $node $cmd 2>/dev/null >$cmdLog
+    done
+
+    # Tar-up local and remote diagnostics together
+    printf " Done.\n"
+    tar zcf ../$node.tar.gz *
+done
+
+# Tar-up diagnostics from all the nodes
+cd $diags
+tar zcf $diags.tar.gz *
+[ -z $extract ] && rm -fr $diags
