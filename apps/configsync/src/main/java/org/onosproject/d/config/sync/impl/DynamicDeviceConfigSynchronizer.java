@@ -22,6 +22,7 @@ import static org.onosproject.d.config.DeviceResourceIds.toResourceId;
 import static org.onosproject.d.config.sync.operation.SetResponse.response;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +89,10 @@ public class DynamicDeviceConfigSynchronizer
     protected NetworkConfigService netcfgService;
 
     private DynamicConfigListener listener = new InnerDyConListener();
+
+    // FIXME hack for unconsolidated event bug
+    private Duration quietPeriod = Duration.ofSeconds(2);
+    private long quietUntil = 0;
 
     @Activate
     public void activate() {
@@ -163,6 +168,12 @@ public class DynamicDeviceConfigSynchronizer
     }
 
     void processEventNonBatch(DynamicConfigEvent event) {
+        if (System.currentTimeMillis() < quietUntil) {
+            log.trace("Ignoring {}. Quiet period until {}",
+                      event, Tools.defaultOffsetDataTime(quietUntil));
+            return;
+        }
+
         ResourceId path = event.subject();
         if (isUnderDeviceRootNode(path)) {
             log.trace("processing event:{}", event);
@@ -209,6 +220,9 @@ public class DynamicDeviceConfigSynchronizer
                     log.error("Request to {} failed {}", deviceId, response, e);
                 }
             });
+
+            // FIXME hack for unconsolidated event bug
+            quietUntil = System.currentTimeMillis() + quietPeriod.toMillis();
         } else {
             log.warn("Ignored event's ResourceId: {}", event.subject());
         }
