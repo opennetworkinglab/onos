@@ -327,7 +327,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
         this.agent.transitionToMasterSwitch(dpid);
         synchronized (messagesPendingMastership) {
             List<OFMessage> messages = messagesPendingMastership.get();
-            if (messages != null) {
+            if (messages != null && !messages.isEmpty()) {
                 // Cannot use sendMsg here. It will only append to pending list.
                 sendMsgsOnChannel(messages);
                 log.debug("Sending {} pending messages to switch {}",
