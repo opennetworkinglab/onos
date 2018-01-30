@@ -52,7 +52,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                 VirtualNetworkWebResource.class,
                 MastershipWebResource.class,
                 InvalidConfigExceptionMapper.class,
-                DpisWebResource.class
+                DpisWebResource.class,
+                DiagnosticsWebResource.class
         );
     }
 }
