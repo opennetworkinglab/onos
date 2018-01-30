@@ -444,14 +444,17 @@ public class RoutingRulePopulator {
                 .withPriority(getPriorityFromPrefix(ipPrefix))
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
-        ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for router {} revoked", ipPrefix),
-                (objective, error) ->
-                        log.warn("Failed to revoke IP rule for router {}: {}", ipPrefix, error));
-
-        srManager.deviceService.getAvailableDevices().forEach(device ->
-            srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context))
-        );
+        srManager.deviceService.getAvailableDevices().forEach(device -> {
+            if (srManager.mastershipService.isLocalMaster(device.id())) {
+                ObjectiveContext context = new DefaultObjectiveContext(
+                        (objective) -> log.debug("IP rule for router {} revoked from {}", ipPrefix, device.id()),
+                        (objective, error) -> log.warn("Failed to revoke IP rule for router {} from {}: {}",
+                                ipPrefix, device.id(), error));
+                srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context));
+            } else {
+                log.debug("Not the master of {}. Abort route {} removal", device.id(), ipPrefix);
+            }
+        });
 
         return true;
     }
