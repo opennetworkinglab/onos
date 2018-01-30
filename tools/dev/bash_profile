@@ -195,7 +195,11 @@ function setMinorityMajority {
 
 # ON.Lab shared test cell warden address
 export CELL_WARDEN="10.192.19.72"
-export CELL_SLAVES="$CELL_WARDEN 10.192.19.71 10.192.19.70"
+export CELL_SLAVE_1=$CELL_WARDEN
+export CELL_SLAVE_2="10.192.19.71"
+export CELL_SLAVE_3="10.192.19.70"
+export CELL_SLAVE_4="10.192.19.77"
+export CELL_SLAVES="$CELL_SLAVE_1 $CELL_SLAVE_2 $CELL_SLAVE_3 $CELL_SLAVE_4"
 
 # Clears cell environment
 function clearCell {
