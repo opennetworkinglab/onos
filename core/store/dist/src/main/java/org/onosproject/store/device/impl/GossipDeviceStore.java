@@ -867,7 +867,7 @@ public class GossipDeviceStore
                                                        DeviceId deviceId) {
         Map<ProviderId, DeviceDescriptions> descs = this.deviceDescs.get(deviceId);
         if (descs == null) {
-            return null;
+            return Stream.empty();
         }
         // inner-Map(=descs) is HashMap, thus requires synchronization even for reads
         final Optional<DeviceDescriptions> devDescs;
