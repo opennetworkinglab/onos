@@ -19,6 +19,7 @@ package org.onosproject.drivers.barefoot;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.onosproject.drivers.p4runtime.AbstractP4RuntimePipelineProgrammable;
+import org.onosproject.net.behaviour.PiPipelineProgrammable;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf.ExtensionType;
 
@@ -36,7 +37,9 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.TOFINO_CONTE
 /**
  * Implementation of the PiPipelineProgrammable behaviour for a Tofino-based switch.
  */
-public class TofinoPipelineProgrammable extends AbstractP4RuntimePipelineProgrammable {
+public class TofinoPipelineProgrammable
+        extends AbstractP4RuntimePipelineProgrammable
+        implements PiPipelineProgrammable {
 
     @Override
     public Optional<PiPipeconf> getDefaultPipeconf() {
