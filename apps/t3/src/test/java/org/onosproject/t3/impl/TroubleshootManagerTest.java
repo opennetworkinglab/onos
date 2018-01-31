@@ -272,6 +272,21 @@ public class TroubleshootManagerTest {
 
     }
 
+    /**
+     * Test proper clear deferred behaviour.
+     */
+    @Test
+    public void clearDeferred() throws Exception {
+
+        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, DEFERRED_CP_1_IN,
+                DEFERRED_1, DEFERRED_CP_2_OUT, 1, 1);
+
+        assertNull("MPLS should have been not applied due to clear deferred", traceSuccess
+                .getGroupOuputs(DEFERRED_1).get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_LABEL));
+
+    }
+
+
     private StaticPacketTrace testSuccess(TrafficSelector packet, ConnectPoint in, DeviceId deviceId, ConnectPoint out,
                                           int paths, int outputs) {
         StaticPacketTrace traceSuccess = mngr.trace(packet, in);
@@ -329,6 +344,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(DUAL_LINK_1_GROUP_FLOW_ENTRY, DUAL_LINK_2_GROUP_FLOW_ENTRY);
             } else if (deviceId.equals(DUAL_LINK_3)) {
                 return ImmutableList.of(DUAL_LINK_3_FLOW_ENTRY, DUAL_LINK_3_FLOW_ENTRY_2);
+            } else if (deviceId.equals(DEFERRED_1)) {
+                return ImmutableList.of(DEFERRED_FLOW_ENTRY, DEFERRED_CLEAR_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }

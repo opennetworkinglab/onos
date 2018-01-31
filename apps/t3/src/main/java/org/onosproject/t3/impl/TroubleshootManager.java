@@ -70,6 +70,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onlab.packet.EthType.EtherType;
+import static org.onosproject.net.flow.TrafficSelector.*;
 import static org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -168,23 +169,13 @@ public class TroubleshootManager implements TroubleshootService {
                 computePath(completePath, trace, outputPath.getOutput());
                 break;
             } else if (cp.port().equals(PortNumber.CONTROLLER)) {
+
                 //Getting the master when the packet gets sent as packet in
                 NodeId master = mastershipService.getMasterFor(cp.deviceId());
                 trace.addResultMessage("Packet goes to the controller " + master.id());
                 computePath(completePath, trace, outputPath.getOutput());
 
-            } else if (outputPath.getFinalPacket().getCriterion(Criterion.Type.ETH_TYPE) != null &&
-                    ((EthTypeCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.ETH_TYPE)).ethType()
-                            .equals(EtherType.ARP.ethType()) && deviceService.getPort(cp).isEnabled() &&
-                    linkService.getEgressLinks(cp).isEmpty()) {
-                if (hostsList.isEmpty()) {
-                    trace.addResultMessage("Packet is ARP and reached " + cp + " with no hosts connected ");
-                } else {
-                    trace.addResultMessage("Packet is ARP and reached " + cp + " with hosts " + hostsList);
-                }
-                computePath(completePath, trace, outputPath.getOutput());
-
-            } else {
+            } else if (linkService.getEgressLinks(cp).size() > 0) {
 
                 //TODO this can be optimized if we use a Tree structure for paths.
                 //if we already have outputs let's check if the one we are considering starts from one of the devices
@@ -214,17 +205,11 @@ public class TroubleshootManager implements TroubleshootService {
                 //let's compute the links for the given output
                 Set<Link> links = linkService.getEgressLinks(cp);
                 log.debug("Egress Links {}", links);
-                //No links means that the packet gets dropped.
-                if (links.size() == 0) {
-                    log.warn("No links out of {}", cp);
-                    computePath(completePath, trace, cp);
-                    trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
-                }
                 //For each link we trace the corresponding device
                 for (Link link : links) {
                     ConnectPoint dst = link.dst();
                     //change in-port to the dst link in port
-                    TrafficSelector.Builder updatedPacket = DefaultTrafficSelector.builder();
+                    Builder updatedPacket = DefaultTrafficSelector.builder();
                     outputPath.getFinalPacket().criteria().forEach(updatedPacket::add);
                     updatedPacket.add(Criteria.matchInPort(dst.port()));
                     log.debug("DST Connect Point {}", dst);
@@ -234,6 +219,23 @@ public class TroubleshootManager implements TroubleshootService {
                     getTrace(completePath, dst, trace);
                 }
 
+            } else if (deviceService.getPort(cp).isEnabled()) {
+                if (hostsList.isEmpty()) {
+                    trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                            cp + " with no hosts connected ");
+                } else {
+                    trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                            cp + " with hosts " + hostsList);
+                }
+                computePath(completePath, trace, outputPath.getOutput());
+
+            } else {
+                //No links means that the packet gets dropped.
+                log.warn("No links out of {}", cp);
+                computePath(completePath, trace, cp);
+                trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
             }
         }
         return trace;
@@ -327,6 +329,8 @@ public class TroubleshootManager implements TroubleshootService {
         List<FlowEntry> flows = new ArrayList<>();
         List<FlowEntry> outputFlows = new ArrayList<>();
 
+        List<Instruction> deferredInstructions = new ArrayList<>();
+
         FlowEntry nextTableIdEntry = findNextTableIdEntry(in.deviceId(), -1);
         if (nextTableIdEntry == null) {
             trace.addResultMessage("No flow rules for device " + in.deviceId() + ". Aborting");
@@ -396,14 +400,24 @@ public class TroubleshootManager implements TroubleshootService {
                     outputFlows.add(flowEntry);
                     output = true;
                 }
-                //update the packet according to the actions of this flow rule.
-                packet = updatePacket(packet, flowEntry.treatment().allInstructions()).build();
+                //update the packet according to the immediate actions of this flow rule.
+                packet = updatePacket(packet, flowEntry.treatment().immediate()).build();
+
+                //save the deferred rules for later
+                deferredInstructions.addAll(flowEntry.treatment().deferred());
+
+                //If the flow requires to clear deferred actions we do so for all the ones we encountered.
+                if (flowEntry.treatment().clearedDeferred()) {
+                    deferredInstructions.clear();
+                }
+
             }
         }
 
         //Creating a modifiable builder for the output packet
-        TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
+        Builder builder = DefaultTrafficSelector.builder();
         packet.criteria().forEach(builder::add);
+
         //Adding all the flows to the trace
         trace.addFlowsForDevice(in.deviceId(), ImmutableList.copyOf(flows));
 
@@ -449,9 +463,16 @@ public class TroubleshootManager implements TroubleshootService {
         Collection<FlowEntry> nonOutputFlows = flows;
         nonOutputFlows.removeAll(outputFlowEntries);
 
+        //Handling groups pointed at by immediate instructions
         for (FlowEntry entry : flows) {
-            getGroupsFromInstructions(trace, groups, entry.treatment().allInstructions(),
+            getGroupsFromInstructions(trace, groups, entry.treatment().immediate(),
                     entry.deviceId(), builder, outputPorts, in);
+        }
+
+        //If we have deferred instructions at this point we handle them.
+        if (deferredInstructions.size() > 0) {
+            builder = handleDeferredActions(trace, packet, in, deferredInstructions, outputPorts, groups);
+
         }
         packet = builder.build();
         log.debug("Groups hit by packet {}", packet);
@@ -463,9 +484,10 @@ public class TroubleshootManager implements TroubleshootService {
         outputPorts.forEach(port -> {
             log.debug("Port {}", port);
         });
-        log.debug("Output Packet {}", packet);
+        log.info("Output Packet {}", packet);
         return trace;
     }
+
 
     /**
      * Handles table 27 in Ofpda which is a fixed table not visible to any controller that handles Mpls Labels.
@@ -507,6 +529,36 @@ public class TroubleshootManager implements TroubleshootService {
                 .stream().filter(f -> ((IndexTableId) f.table()).id() > currentId).min(comparator).orElse(null);
     }
 
+    private Builder handleDeferredActions(StaticPacketTrace trace, TrafficSelector packet,
+                                          ConnectPoint in, List<Instruction> deferredInstructions,
+                                          List<PortNumber> outputPorts, List<Group> groups) {
+
+        //Update the packet with the deferred instructions
+        Builder builder = updatePacket(packet, deferredInstructions);
+
+        //Gather any output instructions from the deferred instruction
+        List<Instruction> outputFlowInstruction = deferredInstructions.stream().filter(instruction -> {
+            return instruction.type().equals(Instruction.Type.OUTPUT);
+        }).collect(Collectors.toList());
+
+        //We are considering deferred instructions from flows, there can only be one output.
+        if (outputFlowInstruction.size() > 1) {
+            trace.addResultMessage("More than one flow rule with OUTPUT instruction");
+            log.warn("There cannot be more than one flow entry with OUTPUT instruction for {}", packet);
+        }
+        //If there is one output let's go through that
+        if (outputFlowInstruction.size() == 1) {
+            buildOutputFromDevice(trace, in, builder, outputPorts, (OutputInstruction) outputFlowInstruction.get(0),
+                    ImmutableList.of());
+        }
+        //If there is no output let's see if there any deferred instruction point to groups.
+        if (outputFlowInstruction.size() == 0) {
+            getGroupsFromInstructions(trace, groups, deferredInstructions,
+                    in.deviceId(), builder, outputPorts, in);
+        }
+        return builder;
+    }
+
     /**
      * Gets group information from instructions.
      *
@@ -519,7 +571,7 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private void getGroupsFromInstructions(StaticPacketTrace trace, List<Group> groupsForDevice,
                                            List<Instruction> instructions, DeviceId deviceId,
-                                           TrafficSelector.Builder builder, List<PortNumber> outputPorts,
+                                           Builder builder, List<PortNumber> outputPorts,
                                            ConnectPoint in) {
         List<Instruction> groupInstructionlist = new ArrayList<>();
         for (Instruction instruction : instructions) {
@@ -569,9 +621,9 @@ public class TroubleshootManager implements TroubleshootService {
      * @param builder           the packet builder
      * @param outputPorts       the list of output ports for this device
      * @param outputInstruction the output instruction
-     * @param groupsForDevice
+     * @param groupsForDevice   the groups we output from
      */
-    private void buildOutputFromDevice(StaticPacketTrace trace, ConnectPoint in, TrafficSelector.Builder builder,
+    private void buildOutputFromDevice(StaticPacketTrace trace, ConnectPoint in, Builder builder,
                                        List<PortNumber> outputPorts, OutputInstruction outputInstruction,
                                        List<Group> groupsForDevice) {
         ConnectPoint output = new ConnectPoint(in.deviceId(), outputInstruction.port());
@@ -592,8 +644,8 @@ public class TroubleshootManager implements TroubleshootService {
      * @param instructions the set of instructions
      * @return the packet with the applied instructions
      */
-    private TrafficSelector.Builder updatePacket(TrafficSelector packet, List<Instruction> instructions) {
-        TrafficSelector.Builder newSelector = DefaultTrafficSelector.builder();
+    private Builder updatePacket(TrafficSelector packet, List<Instruction> instructions) {
+        Builder newSelector = DefaultTrafficSelector.builder();
         packet.criteria().forEach(newSelector::add);
         //FIXME optimize
         for (Instruction instruction : instructions) {
@@ -609,7 +661,7 @@ public class TroubleshootManager implements TroubleshootService {
      * @param instruction the instruction to be translated
      * @return the new selector with the applied instruction
      */
-    private TrafficSelector.Builder translateInstruction(TrafficSelector.Builder newSelector, Instruction instruction) {
+    private Builder translateInstruction(Builder newSelector, Instruction instruction) {
         log.debug("Translating instruction {}", instruction);
         log.debug("New Selector {}", newSelector.build());
         //TODO add as required
@@ -640,7 +692,7 @@ public class TroubleshootManager implements TroubleshootService {
                         //When popping MPLS we remove label and BOS
                         TrafficSelector temporaryPacket = newSelector.build();
                         if (temporaryPacket.getCriterion(Criterion.Type.MPLS_LABEL) != null) {
-                            TrafficSelector.Builder noMplsSelector = DefaultTrafficSelector.builder();
+                            Builder noMplsSelector = DefaultTrafficSelector.builder();
                             temporaryPacket.criteria().stream().filter(c -> {
                                 return !c.type().equals(Criterion.Type.MPLS_LABEL) &&
                                         !c.type().equals(Criterion.Type.MPLS_BOS);
