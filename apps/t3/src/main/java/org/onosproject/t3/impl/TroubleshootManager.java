@@ -668,14 +668,14 @@ public class TroubleshootManager implements TroubleshootService {
         //TODO handle MAC matching
         return flowEntry.selector().criteria().stream().allMatch(criterion -> {
             Criterion.Type type = criterion.type();
-            //If the critrion has IP we need to do LPM to establish matching.
+            //If the criterion has IP we need to do LPM to establish matching.
             if (type.equals(Criterion.Type.IPV4_SRC) || type.equals(Criterion.Type.IPV4_DST) ||
                     type.equals(Criterion.Type.IPV6_SRC) || type.equals(Criterion.Type.IPV6_DST)) {
                 IPCriterion ipCriterion = (IPCriterion) criterion;
                 IPCriterion matchCriterion = (IPCriterion) packet.getCriterion(ipCriterion.type());
-                //if the packet does not have an IPv4 or IPv6 criterion we return true
+                //if the packet does not have an IPv4 or IPv6 criterion we return false
                 if (matchCriterion == null) {
-                    return true;
+                    return false;
                 }
                 try {
                     Subnet subnet = Subnet.createInstance(ipCriterion.ip().toString());
