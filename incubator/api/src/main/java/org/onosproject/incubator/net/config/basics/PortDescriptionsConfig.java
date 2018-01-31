@@ -117,7 +117,7 @@ public class PortDescriptionsConfig extends Config<DeviceId> {
                 if (portNode.has(ANNOTATIONS)) {
                     DefaultAnnotations.Builder annotationsBuilder = DefaultAnnotations.builder();
                     Iterator<Map.Entry<String, JsonNode>> annotationsIt = portNode.get(ANNOTATIONS).fields();
-                    while (it.hasNext()) {
+                    while (annotationsIt.hasNext()) {
                         Map.Entry<String, JsonNode> entry = annotationsIt.next();
                         annotationsBuilder.set(entry.getKey(), entry.getValue().asText());
                     }
