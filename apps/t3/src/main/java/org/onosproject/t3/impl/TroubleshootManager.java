@@ -131,6 +131,8 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private StaticPacketTrace getTrace(List<ConnectPoint> completePath, ConnectPoint in, StaticPacketTrace trace) {
 
+        log.debug("------------------------------------------------------------");
+
         //if the trace already contains the input connect point there is a loop
         if (pathContainsDevice(completePath, in.deviceId())) {
             trace.addResultMessage("Loop encountered in device " + in.deviceId());
@@ -151,6 +153,7 @@ public class TroubleshootManager implements TroubleshootService {
         for (GroupsInDevice outputPath : trace.getGroupOuputs(in.deviceId())) {
 
             ConnectPoint cp = outputPath.getOutput();
+            log.debug("Connect point in {}", in);
             log.debug("Output path {}", cp);
 
             //Hosts for the the given output
@@ -160,7 +163,7 @@ public class TroubleshootManager implements TroubleshootService {
 
             //If the two host collections contain the same item it means we reached the proper output
             if (!Collections.disjoint(hostsList, hosts)) {
-                log.debug("Stopping here because host is expected destination");
+                log.debug("Stopping here because host is expected destination {}, reached through", completePath);
                 trace.addResultMessage("Reached required destination Host " + cp);
                 computePath(completePath, trace, outputPath.getOutput());
                 break;
@@ -182,10 +185,32 @@ public class TroubleshootManager implements TroubleshootService {
                 computePath(completePath, trace, outputPath.getOutput());
 
             } else {
+
+                //TODO this can be optimized if we use a Tree structure for paths.
+                //if we already have outputs let's check if the one we are considering starts from one of the devices
+                // in any of the ones we have.
+                if (trace.getCompletePaths().size() > 0) {
+                    ConnectPoint inputForOutput = null;
+                    List<ConnectPoint> previousPath = new ArrayList<>();
+                    for (List<ConnectPoint> path : trace.getCompletePaths()) {
+                        for (ConnectPoint connect : path) {
+                            //if the path already contains the input for the output we've found we use it
+                            if (connect.equals(in)) {
+                                inputForOutput = connect;
+                                previousPath = path;
+                                break;
+                            }
+                        }
+                    }
+                    //we use the pre-existing path up to the point we fork to a new output
+                    if (inputForOutput != null && completePath.contains(inputForOutput)) {
+                        List<ConnectPoint> temp = new ArrayList<>(previousPath);
+                        completePath = temp.subList(0, previousPath.indexOf(inputForOutput) + 1);
+                    }
+                }
+
                 //let's add the ouput for the input
                 completePath.add(cp);
-                log.debug("------------------------------------------------------------");
-                log.debug("Connect Point out {}", cp);
                 //let's compute the links for the given output
                 Set<Link> links = linkService.getEgressLinks(cp);
                 log.debug("Egress Links {}", links);
@@ -274,7 +299,6 @@ public class TroubleshootManager implements TroubleshootService {
             traverseList.add(output);
         }
         trace.addCompletePath(traverseList);
-        completePath.clear();
     }
 
     /**
@@ -286,6 +310,12 @@ public class TroubleshootManager implements TroubleshootService {
      * @return updated trace
      */
     private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in) {
+
+        //we already traversed this device.
+        if (trace.getGroupOuputs(in.deviceId()) != null) {
+            log.debug("Trace already contains device and given outputs");
+            return trace;
+        }
         log.debug("Packet {} coming in from {}", packet, in);
 
         //if device is not available exit here.

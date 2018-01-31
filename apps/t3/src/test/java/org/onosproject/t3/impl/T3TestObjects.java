@@ -344,6 +344,101 @@ final class T3TestObjects {
 
     static final FlowEntry HARDWARE_ETH_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_ETH_FLOW);
 
+    //Dual Links
+    // - (1) Device 1 (2-3) - (1-4) Device 2 (2-3) - (1-2) Device 3 (3) -
+    static final DeviceId DUAL_LINK_1 = DeviceId.deviceId("DualLink1");
+    static final DeviceId DUAL_LINK_2 = DeviceId.deviceId("DualLink2");
+    static final DeviceId DUAL_LINK_3 = DeviceId.deviceId("DualLink3");
+
+    static final ConnectPoint DUAL_LINK_1_CP_1_IN = ConnectPoint.deviceConnectPoint(DUAL_LINK_1 + "/" + 1);
+    static final ConnectPoint DUAL_LINK_1_CP_2_OUT = ConnectPoint.deviceConnectPoint(DUAL_LINK_1 + "/" + 2);
+    static final ConnectPoint DUAL_LINK_1_CP_3_OUT = ConnectPoint.deviceConnectPoint(DUAL_LINK_1 + "/" + 3);
+    static final ConnectPoint DUAL_LINK_2_CP_1_IN = ConnectPoint.deviceConnectPoint(DUAL_LINK_2 + "/" + 1);
+    static final ConnectPoint DUAL_LINK_2_CP_4_IN = ConnectPoint.deviceConnectPoint(DUAL_LINK_2 + "/" + 4);
+    static final ConnectPoint DUAL_LINK_2_CP_2_OUT = ConnectPoint.deviceConnectPoint(DUAL_LINK_2 + "/" + 2);
+    static final ConnectPoint DUAL_LINK_2_CP_3_OUT = ConnectPoint.deviceConnectPoint(DUAL_LINK_2 + "/" + 3);
+    static final ConnectPoint DUAL_LINK_3_CP_1_IN = ConnectPoint.deviceConnectPoint(DUAL_LINK_3 + "/" + 1);
+    static final ConnectPoint DUAL_LINK_3_CP_2_IN = ConnectPoint.deviceConnectPoint(DUAL_LINK_3 + "/" + 2);
+    static final ConnectPoint DUAL_LINK_3_CP_3_OUT = ConnectPoint.deviceConnectPoint(DUAL_LINK_3 + "/" + 3);
+
+    //match on port 1 and point to group for device 1 and 2
+    private static final TrafficTreatment DUAL_LINK_1_GROUP_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .pushMpls()
+            .setMpls(MplsLabel.mplsLabel(100))
+            .group(GROUP_ID)
+            .build();
+    private static final FlowRule DUAL_LINK_1_GROUP_FLOW = DefaultFlowEntry.builder().forDevice(DUAL_LINK_1)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(DUAL_LINK_1_GROUP_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DUAL_LINK_1_GROUP_FLOW_ENTRY = new DefaultFlowEntry(DUAL_LINK_1_GROUP_FLOW);
+
+    //Match on port 4 and point to group for device 2
+    private static final TrafficSelector DUAL_LINK_2_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(4))
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .build();
+
+    private static final FlowRule DUAL_LINK_2_GROUP_FLOW = DefaultFlowEntry.builder().forDevice(DUAL_LINK_2)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(DUAL_LINK_2_FLOW_SELECTOR)
+            .withTreatment(DUAL_LINK_1_GROUP_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DUAL_LINK_2_GROUP_FLOW_ENTRY = new DefaultFlowEntry(DUAL_LINK_2_GROUP_FLOW);
+
+    //Flows for device 3 to ouput on port 3
+    private static final TrafficTreatment DUAL_LINK_1_OUTPUT_TREATMENT = DefaultTrafficTreatment.builder()
+            .popMpls(EthType.EtherType.IPV4.ethType())
+            .setOutput(PortNumber.portNumber(3)).build();
+
+    private static final TrafficSelector DUAL_LINK_3_FLOW_SELECTOR_1 = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .build();
+    private static final FlowRule DUAL_LINK_3_FLOW_1 = DefaultFlowEntry.builder().forDevice(DUAL_LINK_3)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(DUAL_LINK_3_FLOW_SELECTOR_1)
+            .withTreatment(DUAL_LINK_1_OUTPUT_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+
+    static final FlowEntry DUAL_LINK_3_FLOW_ENTRY = new DefaultFlowEntry(DUAL_LINK_3_FLOW_1);
+
+    private static final TrafficSelector DUAL_LINK_3_FLOW_SELECTOR_2 = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(2))
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .build();
+    private static final FlowRule DUAL_LINK_3_FLOW_2 = DefaultFlowEntry.builder().forDevice(DUAL_LINK_3)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(DUAL_LINK_3_FLOW_SELECTOR_2)
+            .withTreatment(DUAL_LINK_1_OUTPUT_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+
+    static final FlowEntry DUAL_LINK_3_FLOW_ENTRY_2 = new DefaultFlowEntry(DUAL_LINK_3_FLOW_2);
+
+    //Group with two buckets to output on port 2 and 3 of device 1 and 2
+
+    private static final GroupBucket BUCKET_2_DUAL =
+            DefaultGroupBucket.createSelectGroupBucket(DUAL_LINK_1_OUTPUT_TREATMENT);
+
+    private static final GroupBuckets BUCKETS_DUAL = new GroupBuckets(ImmutableList.of(BUCKET, BUCKET_2_DUAL));
+
+    static final Group DUAL_LINK_GROUP = new DefaultGroup(GROUP_ID, DUAL_LINK_1, Group.Type.SELECT, BUCKETS_DUAL);
 
     //helper elements
 

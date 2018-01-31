@@ -158,9 +158,9 @@ public class TroubleshootManagerTest {
     @Test
     public void testSingleFlowRule() {
 
-        testSuccess(PACKET_OK, SINGLE_FLOW_IN_CP, SINGLE_FLOW_DEVICE, SINGLE_FLOW_OUT_CP, 1);
+        testSuccess(PACKET_OK, SINGLE_FLOW_IN_CP, SINGLE_FLOW_DEVICE, SINGLE_FLOW_OUT_CP, 1, 1);
 
-        testFaliure(PACKET_FAIL, SINGLE_FLOW_IN_CP, SINGLE_FLOW_DEVICE);
+        testFailure(PACKET_FAIL, SINGLE_FLOW_IN_CP, SINGLE_FLOW_DEVICE);
     }
 
     /**
@@ -172,7 +172,7 @@ public class TroubleshootManagerTest {
         //Test Success
 
         StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, DUAL_FLOW_IN_CP, DUAL_FLOW_DEVICE,
-                DUAL_FLOW_OUT_CP, 1);
+                DUAL_FLOW_OUT_CP, 1, 1);
 
         //Testing Vlan
         Criterion criterion = traceSuccess.getGroupOuputs(DUAL_FLOW_DEVICE).get(0).
@@ -184,7 +184,7 @@ public class TroubleshootManagerTest {
         assertEquals("Vlan should be 100", VlanId.vlanId((short) 100), vlanIdCriterion.vlanId());
 
         //Test Faliure
-        testFaliure(PACKET_FAIL, DUAL_FLOW_IN_CP, DUAL_FLOW_DEVICE);
+        testFailure(PACKET_FAIL, DUAL_FLOW_IN_CP, DUAL_FLOW_DEVICE);
 
     }
 
@@ -195,7 +195,7 @@ public class TroubleshootManagerTest {
     public void flowAndGroup() throws Exception {
 
         StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, GROUP_FLOW_IN_CP, GROUP_FLOW_DEVICE,
-                GROUP_FLOW_OUT_CP, 1);
+                GROUP_FLOW_OUT_CP, 1, 1);
 
         assertTrue("Wrong Output Group", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
                 .get(0).getGroups().contains(GROUP));
@@ -216,7 +216,7 @@ public class TroubleshootManagerTest {
     public void singlePathTopology() throws Exception {
 
         StaticPacketTrace traceSuccess = testSuccess(PACKET_OK_TOPO, TOPO_FLOW_1_IN_CP,
-                TOPO_FLOW_3_DEVICE, TOPO_FLOW_3_OUT_CP, 1);
+                TOPO_FLOW_3_DEVICE, TOPO_FLOW_3_OUT_CP, 1, 1);
 
         assertTrue("Incorrect path",
                 traceSuccess.getCompletePaths().get(0).contains(TOPO_FLOW_2_IN_CP));
@@ -234,7 +234,9 @@ public class TroubleshootManagerTest {
     public void testGroupTopo() throws Exception {
 
         StaticPacketTrace traceSuccess = testSuccess(PACKET_OK_TOPO, TOPO_FLOW_IN_CP,
-                TOPO_FLOW_3_DEVICE, TOPO_FLOW_3_OUT_CP, 2);
+                TOPO_FLOW_3_DEVICE, TOPO_FLOW_3_OUT_CP, 2, 1);
+
+        log.info("{}", traceSuccess);
 
         assertTrue("Incorrect groups",
                 traceSuccess.getGroupOuputs(TOPO_GROUP_FLOW_DEVICE).get(0).getGroups().contains(TOPO_GROUP));
@@ -249,7 +251,7 @@ public class TroubleshootManagerTest {
     public void hardwareTest() throws Exception {
 
         StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, HARDWARE_DEVICE_IN_CP,
-                HARDWARE_DEVICE, HARDWARE_DEVICE_OUT_CP, 1);
+                HARDWARE_DEVICE, HARDWARE_DEVICE_OUT_CP, 1, 1);
 
         assertEquals("wrong ETH type", EthType.EtherType.IPV4.ethType(),
                 ((EthTypeCriterion) traceSuccess.getGroupOuputs(HARDWARE_DEVICE).get(0).getFinalPacket()
@@ -257,8 +259,21 @@ public class TroubleshootManagerTest {
 
     }
 
+    /**
+     * Test dual links between 3 topology elements.
+     */
+    @Test
+    public void dualLinks() throws Exception {
+
+        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, DUAL_LINK_1_CP_1_IN,
+                DUAL_LINK_3, DUAL_LINK_3_CP_3_OUT, 4, 1);
+
+        //TODO tests
+
+    }
+
     private StaticPacketTrace testSuccess(TrafficSelector packet, ConnectPoint in, DeviceId deviceId, ConnectPoint out,
-                                          int paths) {
+                                          int paths, int outputs) {
         StaticPacketTrace traceSuccess = mngr.trace(packet, in);
 
         log.info("trace {}", traceSuccess);
@@ -266,7 +281,8 @@ public class TroubleshootManagerTest {
         log.info("trace {}", traceSuccess.resultMessage());
 
         assertNotNull("trace should not be null", traceSuccess);
-        assertEquals("Trace should have " + paths + " output", paths, traceSuccess.getGroupOuputs(deviceId).size());
+        assertEquals("Trace should have " + outputs + " output", outputs,
+                traceSuccess.getGroupOuputs(deviceId).size());
         assertEquals("Trace should only have " + paths + "output", paths, traceSuccess.getCompletePaths().size());
         assertTrue("Trace should be successful",
                 traceSuccess.resultMessage().contains("Reached required destination Host"));
@@ -276,7 +292,7 @@ public class TroubleshootManagerTest {
         return traceSuccess;
     }
 
-    private void testFaliure(TrafficSelector packet, ConnectPoint in, DeviceId deviceId) {
+    private void testFailure(TrafficSelector packet, ConnectPoint in, DeviceId deviceId) {
         StaticPacketTrace traceFail = mngr.trace(packet, in);
 
         log.info("trace {}", traceFail.resultMessage());
@@ -307,6 +323,12 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(SAME_OUTPUT_FLOW_ENTRY);
             } else if (deviceId.equals(ARP_FLOW_DEVICE)) {
                 return ImmutableList.of(ARP_FLOW_ENTRY);
+            } else if (deviceId.equals(DUAL_LINK_1)) {
+                return ImmutableList.of(DUAL_LINK_1_GROUP_FLOW_ENTRY);
+            } else if (deviceId.equals(DUAL_LINK_2)) {
+                return ImmutableList.of(DUAL_LINK_1_GROUP_FLOW_ENTRY, DUAL_LINK_2_GROUP_FLOW_ENTRY);
+            } else if (deviceId.equals(DUAL_LINK_3)) {
+                return ImmutableList.of(DUAL_LINK_3_FLOW_ENTRY, DUAL_LINK_3_FLOW_ENTRY_2);
             }
             return ImmutableList.of();
         }
@@ -331,6 +353,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(GROUP);
             } else if (deviceId.equals(TOPO_GROUP_FLOW_DEVICE)) {
                 return ImmutableList.of(TOPO_GROUP);
+            } else if (deviceId.equals(DUAL_LINK_1) || deviceId.equals(DUAL_LINK_2)) {
+                return ImmutableList.of(DUAL_LINK_GROUP);
             }
             return ImmutableList.of();
         }
@@ -341,6 +365,9 @@ public class TroubleshootManagerTest {
         public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
             if (connectPoint.equals(TOPO_FLOW_3_OUT_CP)) {
                 return ImmutableSet.of(H2);
+            } else if (connectPoint.equals(DUAL_LINK_1_CP_2_OUT) || connectPoint.equals(DUAL_LINK_1_CP_3_OUT) ||
+                    connectPoint.equals(DUAL_LINK_2_CP_2_OUT) || connectPoint.equals(DUAL_LINK_2_CP_3_OUT)) {
+                return ImmutableSet.of();
             }
             return ImmutableSet.of(H1);
         }
@@ -397,6 +424,34 @@ public class TroubleshootManagerTest {
                         .type(Link.Type.DIRECT)
                         .src(TOPO_FLOW_4_OUT_CP)
                         .dst(TOPO_FLOW_3_IN_2_CP)
+                        .build());
+            } else if (connectPoint.equals(DUAL_LINK_1_CP_2_OUT)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_LINK_1_CP_2_OUT)
+                        .dst(DUAL_LINK_2_CP_1_IN)
+                        .build());
+            } else if (connectPoint.equals(DUAL_LINK_1_CP_3_OUT)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_LINK_1_CP_3_OUT)
+                        .dst(DUAL_LINK_2_CP_4_IN)
+                        .build());
+            } else if (connectPoint.equals(DUAL_LINK_2_CP_2_OUT)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_LINK_2_CP_2_OUT)
+                        .dst(DUAL_LINK_3_CP_1_IN)
+                        .build());
+            } else if (connectPoint.equals(DUAL_LINK_2_CP_3_OUT)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_LINK_2_CP_3_OUT)
+                        .dst(DUAL_LINK_3_CP_2_IN)
                         .build());
             }
             return ImmutableSet.of();
