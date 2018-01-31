@@ -21,6 +21,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.ospf.controller.OspfMessage;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.ospfpacket.OspfMessageReader;
 import org.onosproject.ospf.protocol.util.OspfUtil;
 import org.slf4j.Logger;
@@ -37,7 +38,8 @@ public class OspfMessageDecoder extends FrameDecoder {
     private static final Logger log = LoggerFactory.getLogger(OspfMessageDecoder.class);
 
     @Override
-    protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
+    protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer)
+              throws OspfParseException {
         log.debug("OspfMessageDecoder::Message received <:> length {}", buffer.readableBytes());
         if (!channel.isConnected()) {
             log.info("Channel is not connected.");

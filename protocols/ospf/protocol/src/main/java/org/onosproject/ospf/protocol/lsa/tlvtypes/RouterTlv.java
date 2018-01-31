@@ -71,9 +71,9 @@ public class RouterTlv extends TlvHeader implements TopLevelTlv {
      * Reads bytes from channel buffer .
      *
      * @param channelBuffer channel buffer instance
-     * @throws Exception might throws exception while parsing buffer
+     * @throws OspfParseException might throws exception while parsing buffer
      */
-    public void readFrom(ChannelBuffer channelBuffer) throws Exception {
+    public void readFrom(ChannelBuffer channelBuffer) throws OspfParseException {
         try {
             byte[] tempByteArray = new byte[OspfUtil.FOUR_BYTES];
             channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);

@@ -38,6 +38,7 @@ import org.onosproject.ospf.controller.area.OspfAreaImpl;
 import org.onosproject.ospf.controller.area.OspfInterfaceImpl;
 import org.onosproject.ospf.controller.lsdb.LsaWrapperImpl;
 import org.onosproject.ospf.controller.util.OspfInterfaceType;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
 import org.onosproject.ospf.protocol.lsa.types.OpaqueLsa10;
@@ -144,23 +145,23 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * The list of LSAs that have to be flooded.
      */
-    private Map<String, OspfLsa> reTxList = new LinkedHashMap();
+    private Map<String, OspfLsa> reTxList = new LinkedHashMap<>();
 
     /**
      * The list of LSAs that have been flooded but not yet acknowledged on this adjacency.
      */
-    private Map<String, OspfLsa> pendingReTxList = new LinkedHashMap();
+    private Map<String, OspfLsa> pendingReTxList = new LinkedHashMap<>();
 
     /**
      * List of LSAs which are failed to received ACK.
      */
-    private Map failedTxList = new HashMap();
+    private Map failedTxList = new HashMap<>();
 
     /**
      * The complete list of LSAs that make up the area link-state database, at the moment the.
      * neighbor goes into Database Exchange state (EXCHANGE).
      */
-    private List<LsaHeader> ddSummaryList = new CopyOnWriteArrayList();
+    private List<LsaHeader> ddSummaryList = new CopyOnWriteArrayList<>();
 
     /**
      * LSA Request List from Neighbor.
@@ -283,9 +284,8 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param ospfMessage ospf message instance
      * @param channel     netty channel instance
-     * @throws Exception might throws exception
      */
-    public void twoWayReceived(OspfMessage ospfMessage, Channel channel) throws Exception {
+    public void twoWayReceived(OspfMessage ospfMessage, Channel channel) {
         log.debug("OSPFNbr::twoWayReceived...!!!");
         stopInactivityTimeCheck();
         startInactivityTimeCheck();
@@ -367,10 +367,9 @@ public class OspfNbrImpl implements OspfNbr {
      * @param neighborIsMaster neighbor is master or slave
      * @param payload          contains the LSAs to add in Dd Packet
      * @param ch               netty channel instance
-     * @throws Exception might throws exception
      */
     public void negotiationDone(OspfMessage ospfMessage,
-                                boolean neighborIsMaster, List payload, Channel ch) throws Exception {
+                                boolean neighborIsMaster, List payload, Channel ch) {
         stopRxMtDdTimer();
         OspfPacketHeader packet = (OspfPacketHeader) ospfMessage;
         DdPacket ddPacketForCheck = (DdPacket) packet;
@@ -461,9 +460,8 @@ public class OspfNbrImpl implements OspfNbr {
      * Process the LSA Headers received in the last received Database Description OSPFMessage.
      *
      * @param ddPayload LSA headers to process
-     * @throws Exception might throws exception
      */
-    public void processLsas(List ddPayload) throws Exception {
+    public void processLsas(List ddPayload) {
         log.debug("OSPFNbr::processLsas...!!!");
         OspfLsa nextLsa;
         Iterator lsas = ddPayload.iterator();
@@ -503,9 +501,8 @@ public class OspfNbrImpl implements OspfNbr {
      *
      * @param reason a string represents the mismatch reason
      * @return OSPF message instance
-     * @throws Exception might throws exception
      */
-    public OspfMessage seqNumMismatch(String reason) throws Exception {
+    public OspfMessage seqNumMismatch(String reason) {
         log.debug("OSPFNbr::seqNumMismatch...{} ", reason);
         stopRxMtDdTimer();
 
@@ -560,10 +557,9 @@ public class OspfNbrImpl implements OspfNbr {
      * In addition, stop the possibly activated re transmission timer.
      *
      * @param ch netty channel instance
-     * @throws Exception on error
      */
     @Override
-    public void badLSReq(Channel ch) throws Exception {
+    public void badLSReq(Channel ch) {
         log.debug("OSPFNbr::badLSReq...!!!");
 
         if (state.getValue() >= OspfNeighborState.EXCHANGE.getValue()) {
@@ -622,10 +618,9 @@ public class OspfNbrImpl implements OspfNbr {
      * @param neighborIsMaster true if neighbor is master else false
      * @param dataDescPkt      DdPacket instance
      * @param ch               netty channel instance
-     * @throws Exception might throws exception
      */
     public void processDdPacket(boolean neighborIsMaster, DdPacket dataDescPkt,
-                                Channel ch) throws Exception {
+                                Channel ch) {
         log.debug("OSPFNbr::neighborIsMaster.{}", neighborIsMaster);
 
         if (!neighborIsMaster) {
@@ -902,9 +897,9 @@ public class OspfNbrImpl implements OspfNbr {
      * @param lsUpdPkt LS Update Packet received while Neighbor state was EXCHANGE or
      *                 LOADING
      * @param ch       netty channel instance
-     * @throws Exception might throws exception
+     * @throws OspfParseException on parsing error
      */
-    public void processLsUpdate(LsUpdate lsUpdPkt, Channel ch) throws Exception {
+    public void processLsUpdate(LsUpdate lsUpdPkt, Channel ch) throws OspfParseException {
         stopRxMtLsrTimer();
         log.debug("OSPFNbr::processLsUpdate...!!!");
 
@@ -946,10 +941,8 @@ public class OspfNbrImpl implements OspfNbr {
 
     /***
      * Method gets called when no more ls request list and moving to FULL State.
-     *
-     * @throws Exception might throws exception
      */
-    public void loadingDone() throws Exception {
+    public void loadingDone() {
         stopRxMtLsrTimer();
         stopRxMtDdTimer();
         log.debug("OSPFNbr::loadingDone...!!!");
@@ -1051,12 +1044,12 @@ public class OspfNbrImpl implements OspfNbr {
      * @param receivedViaFlooding received via flooding or not
      * @param ch                  channel instance
      * @param sourceIp            source of this Lsa
+     * @throws OspfParseException on parsing error
      * @return true to remove it from lsReqList else false
-     * @throws Exception might throws exception
      */
     public boolean processReceivedLsa(LsaHeader recLsa,
                                       boolean receivedViaFlooding, Channel ch, Ip4Address sourceIp)
-            throws Exception {
+                    throws OspfParseException {
         log.debug("OSPFNbr::processReceivedLsa(recLsa, receivedViaFlooding, ch)...!!!");
 
         //Validate the lsa checksum RFC 2328 13 (1)
@@ -1282,10 +1275,8 @@ public class OspfNbrImpl implements OspfNbr {
     /**
      * RFC 2328 section 13.4
      * Processing self-originated LSAs.
-     *
-     * @throws Exception might throws exception
      */
-    public void processSelfOriginatedLsa() throws Exception {
+    public void processSelfOriginatedLsa() {
         ospfArea.refreshArea(ospfInterface);
     }
 
@@ -1349,10 +1340,8 @@ public class OspfNbrImpl implements OspfNbr {
 
     /**
      * Called when neighbor is down.
-     *
-     * @throws Exception might throws exception
      */
-    public void neighborDown() throws Exception {
+    public void neighborDown() {
         log.debug("Neighbor Down {} and NeighborId {}", neighborIpAddr,
                   neighborId);
         stopInactivityTimeCheck();

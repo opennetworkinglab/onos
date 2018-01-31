@@ -32,7 +32,7 @@ public class OspfMessageEncoder extends OneToOneEncoder {
     private static final Logger log = LoggerFactory.getLogger(OspfMessageEncoder.class);
 
     @Override
-    protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
+    protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) {
 
         byte[] byteMsg = (byte[]) msg;
         log.debug("Encoding ospfMessage of length {}", byteMsg.length);

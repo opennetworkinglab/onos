@@ -158,9 +158,8 @@ public interface OspfNbr {
      * retransmission timer.
      *
      * @param ch netty channel instance
-     * @throws Exception might throw exception
      */
-    void badLSReq(Channel ch) throws Exception;
+    void badLSReq(Channel ch);
 
     /**
      * Gets the LS request list.

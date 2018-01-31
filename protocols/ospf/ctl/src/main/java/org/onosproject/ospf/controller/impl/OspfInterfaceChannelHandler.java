@@ -69,10 +69,8 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
 
     /**
      * Initializes the interface map with interface details.
-     *
-     * @throws Exception might throws exception
      */
-    public void initializeInterfaceMap() throws Exception {
+    public void initializeInterfaceMap()  {
         for (OspfProcess process : processes) {
             for (OspfArea area : process.areas()) {
                 for (OspfInterface ospfInterface : area.ospfInterfaceList()) {
@@ -99,9 +97,8 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
      * Updates the interface map with interface details.
      *
      * @param ospfProcesses updated process instances
-     * @throws Exception might throws exception
      */
-    public void updateInterfaceMap(List<OspfProcess> ospfProcesses) throws Exception {
+    public void updateInterfaceMap(List<OspfProcess> ospfProcesses) {
         for (OspfProcess ospfUpdatedProcess : ospfProcesses) {
             for (OspfArea updatedArea : ospfUpdatedProcess.areas()) {
                 for (OspfInterface ospfUpdatedInterface : updatedArea.ospfInterfaceList()) {
@@ -152,7 +149,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
     /**
      * Initialize channel, start hello sender and initialize LSDB.
      */
-    private void initialize() throws Exception {
+    private void initialize() {
         log.debug("OspfChannelHandler initialize..!!!");
         if (configPacket != null) {
             log.debug("OspfChannelHandler initialize -> sentConfig packet of length ::"
@@ -163,7 +160,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent evt) throws Exception {
+    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent evt) {
         log.info("OSPF channelConnected from {}", evt.getChannel().getRemoteAddress());
         this.channel = evt.getChannel();
         initialize();
@@ -187,8 +184,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent
-            e) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
         log.debug("[exceptionCaught]: " + e.toString());
         if (e.getCause() instanceof ReadTimeoutException) {
             log.debug("Disconnecting device {} due to read timeout", e.getChannel().getRemoteAddress());
@@ -213,8 +209,7 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent
-            e) throws Exception {
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         log.debug("OspfChannelHandler::messageReceived...!!!");
         Object message = e.getMessage();
         if (message instanceof List) {
@@ -239,10 +234,9 @@ public class OspfInterfaceChannelHandler extends IdleStateAwareChannelHandler {
      *
      * @param ospfMessage received OSPF message
      * @param ctx         channel handler context instance.
-     * @throws Exception might throws exception
      */
-    public void processOspfMessage(OspfMessage
-                                           ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    private void processOspfMessage(OspfMessage
+                                           ospfMessage, ChannelHandlerContext ctx) {
         log.debug("OspfChannelHandler::processOspfMessage...!!!");
         int interfaceIndex = ospfMessage.interfaceIndex();
         OspfInterface ospfInterface = ospfInterfaceMap.get(interfaceIndex);

@@ -22,6 +22,7 @@ import org.onosproject.ospf.controller.OspfInterface;
 import org.onosproject.ospf.controller.OspfLsaType;
 import org.onosproject.ospf.controller.area.OspfAreaImpl;
 import org.onosproject.ospf.controller.area.OspfInterfaceImpl;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.types.NetworkLsa;
 import org.onosproject.ospf.protocol.lsa.types.RouterLsa;
@@ -97,7 +98,7 @@ public class LsaQueueConsumer implements Runnable {
      *
      * @param wrapper LSA wrapper instance
      */
-    private void processVerifyChecksum(LsaWrapper wrapper) throws Exception {
+    private void processVerifyChecksum(LsaWrapper wrapper) throws OspfParseException {
         ChecksumCalculator checkSum = new ChecksumCalculator();
         if (!checkSum.isValidLsaCheckSum(wrapper.ospfLsa(), ((LsaWrapperImpl) wrapper).lsaHeader().lsType(),
                                          OspfUtil.LSAPACKET_CHECKSUM_POS1,
@@ -116,7 +117,7 @@ public class LsaQueueConsumer implements Runnable {
      *
      * @param wrapper LSA wrapper instance
      */
-    private void processRefreshLsa(LsaWrapper wrapper) throws Exception {
+    private void processRefreshLsa(LsaWrapper wrapper) throws OspfParseException {
         if (wrapper.isSelfOriginated()) { //self originated
             //set the destination
             OspfInterface ospfInterface = wrapper.ospfInterface();

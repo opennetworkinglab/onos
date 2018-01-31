@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Representation of link id value of link tlv of Traffic Engineering.
@@ -58,14 +59,14 @@ public class LinkId extends TlvHeader implements LinkSubType {
      * Reads bytes from channel buffer.
      *
      * @param channelBuffer channel buffer instance
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public void readFrom(ChannelBuffer channelBuffer) throws Exception {
+    public void readFrom(ChannelBuffer channelBuffer) throws OspfParseException {
         try {
             byte[] tempByteArray = new byte[OspfUtil.FOUR_BYTES];
             channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);
             this.setLinkId(InetAddress.getByAddress(tempByteArray).getHostName());
-        } catch (Exception e) {
+        } catch (UnknownHostException e) {
             log.debug("Error::LinkId:: {}", e.getMessage());
             throw new OspfParseException(OspfErrorType.OSPF_MESSAGE_ERROR,
                                          OspfErrorType.BAD_MESSAGE);
@@ -76,9 +77,9 @@ public class LinkId extends TlvHeader implements LinkSubType {
      * Returns instance as byte array.
      *
      * @return instance as bytes
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] asBytes() throws Exception {
+    public byte[] asBytes() throws OspfParseException {
         byte[] linkSubType = null;
 
         byte[] linkSubTlvHeader = getTlvHeaderAsByteArray();
@@ -92,9 +93,9 @@ public class LinkId extends TlvHeader implements LinkSubType {
      * Gets byte array of link id sub tlv body.
      *
      * @return gets the body as byte array
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] getLinkSubTypeTlvBodyAsByteArray() throws Exception {
+    public byte[] getLinkSubTypeTlvBodyAsByteArray() throws OspfParseException {
         byte[] linkSubTypeBody = null;
         try {
             linkSubTypeBody = InetAddress.getByName(this.linkId).getAddress();

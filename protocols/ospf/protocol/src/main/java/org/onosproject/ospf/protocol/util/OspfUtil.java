@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,10 +94,8 @@ public final class OspfUtil {
      * @param ip2  IP address
      * @param mask network mask
      * @return true if both are in same network else false
-     * @throws Exception might throws exception while parsing ip address
      */
-    public static boolean sameNetwork(Ip4Address ip1, Ip4Address ip2, Ip4Address mask)
-            throws Exception {
+    public static boolean sameNetwork(Ip4Address ip1, Ip4Address ip2, Ip4Address mask) {
 
         byte[] a1 = ip1.toOctets();
         byte[] a2 = ip2.toOctets();
@@ -195,9 +194,8 @@ public final class OspfUtil {
      *
      * @param channelBuffer channel buffer instance
      * @return LSA header instance.
-     * @throws Exception might throws exception while parsing buffer
      */
-    public static LsaHeader readLsaHeader(ChannelBuffer channelBuffer) throws Exception {
+    public static LsaHeader readLsaHeader(ChannelBuffer channelBuffer) {
         //add all the LSA Headers - one header is of 20 bytes
         LsaHeader lsaHeader = null;
         if (channelBuffer.readableBytes() >= OspfUtil.LSA_HEADER_LENGTH) {
@@ -230,7 +228,11 @@ public final class OspfUtil {
                 header.setLsType(tempBuffer.readByte());
                 byte[] tempByteArray = new byte[OspfUtil.FOUR_BYTES];
                 channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);
-                header.setLinkStateId(InetAddress.getByAddress(tempByteArray).getHostName());
+                try {
+                    header.setLinkStateId(InetAddress.getByAddress(tempByteArray).getHostName());
+                } catch (UnknownHostException uhe) {
+                    log.warn("Can't look up host", uhe);
+                }
                 tempByteArray = new byte[OspfUtil.FOUR_BYTES];
                 channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);
                 header.setAdvertisingRouter(Ip4Address.valueOf(tempByteArray));

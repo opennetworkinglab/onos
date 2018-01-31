@@ -18,6 +18,7 @@ package org.onosproject.ospf.protocol.lsa.tlvtypes;
 import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.TlvHeader;
 import org.onosproject.ospf.protocol.lsa.linksubtype.AdministrativeGroup;
 import org.onosproject.ospf.protocol.lsa.linksubtype.LinkId;
@@ -66,9 +67,9 @@ public class LinkTlv extends TlvHeader implements TopLevelTlv {
      * Reads bytes from channel buffer .
      *
      * @param channelBuffer channel buffer instance
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public void readFrom(ChannelBuffer channelBuffer) throws Exception {
+    public void readFrom(ChannelBuffer channelBuffer) throws OspfParseException {
         while (channelBuffer.readableBytes() > 0) {
             TlvHeader tlvHeader = new TlvHeader();
             tlvHeader.setTlvType(channelBuffer.readUnsignedShort());
@@ -126,9 +127,9 @@ public class LinkTlv extends TlvHeader implements TopLevelTlv {
      * Gets link tlv as byte array.
      *
      * @return link tlv as byte array
-     * @throws Exception might throws exception while parsing buffer
+     * @throws OspfParseException if the packet can't be parsed
      */
-    public byte[] asBytes() throws Exception {
+    public byte[] asBytes() throws OspfParseException {
         byte[] lsaMessage = null;
 
         byte[] tlvHeader = getTlvHeaderAsByteArray();
@@ -142,9 +143,9 @@ public class LinkTlv extends TlvHeader implements TopLevelTlv {
      * Gets tlv body as byte array.
      *
      * @return tlv body as byte array
-     * @throws Exception might throws exception while parsing buffer
+     * @throws OspfParseException might throws exception while parsing buffer
      */
-    public byte[] getTlvBodyAsByteArray() throws Exception {
+    public byte[] getTlvBodyAsByteArray() throws OspfParseException {
 
         List<Byte> bodyLst = new ArrayList<>();
         for (LinkSubType tlv : subTlv) {

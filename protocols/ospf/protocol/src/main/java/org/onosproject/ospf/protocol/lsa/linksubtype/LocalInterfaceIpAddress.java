@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,15 +70,15 @@ public class LocalInterfaceIpAddress extends TlvHeader implements LinkSubType {
      * Reads bytes from channel buffer.
      *
      * @param channelBuffer channel buffer instance
-     * @throws Exception might throws exception while parsing buffer
+     * @throws OspfParseException might throws exception while parsing buffer
      */
-    public void readFrom(ChannelBuffer channelBuffer) throws Exception {
+    public void readFrom(ChannelBuffer channelBuffer) throws OspfParseException {
         while (channelBuffer.readableBytes() >= OspfUtil.FOUR_BYTES) {
             try {
                 byte[] tempByteArray = new byte[OspfUtil.FOUR_BYTES];
                 channelBuffer.readBytes(tempByteArray, 0, OspfUtil.FOUR_BYTES);
                 this.addLocalInterfaceIPAddress(InetAddress.getByAddress(tempByteArray).getHostName());
-            } catch (Exception e) {
+            } catch (UnknownHostException e) {
                 log.debug("Error::readFrom:: {}", e.getMessage());
                 throw new OspfParseException(OspfErrorType.OSPF_MESSAGE_ERROR,
                                              OspfErrorType.BAD_MESSAGE);
@@ -89,9 +90,9 @@ public class LocalInterfaceIpAddress extends TlvHeader implements LinkSubType {
      * Gets local interface ip address as byte array.
      *
      * @return local interface ip address as byte array
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] asBytes() throws Exception {
+    public byte[] asBytes() throws OspfParseException {
         byte[] linkSubType = null;
 
         byte[] linkSubTlvHeader = getTlvHeaderAsByteArray();
@@ -105,9 +106,9 @@ public class LocalInterfaceIpAddress extends TlvHeader implements LinkSubType {
      * Gets byte array of local interface ip address.
      *
      * @return byte array of local interface ip address
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] getLinkSubTypeTlvBodyAsByteArray() throws Exception {
+    public byte[] getLinkSubTypeTlvBodyAsByteArray() throws OspfParseException {
 
         List<Byte> linkSubTypeBody = new ArrayList<>();
 

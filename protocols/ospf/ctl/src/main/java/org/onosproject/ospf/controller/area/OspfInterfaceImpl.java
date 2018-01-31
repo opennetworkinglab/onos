@@ -40,6 +40,7 @@ import org.onosproject.ospf.controller.lsdb.LsaWrapperImpl;
 import org.onosproject.ospf.controller.lsdb.OspfLsdbImpl;
 import org.onosproject.ospf.controller.util.OspfEligibleRouter;
 import org.onosproject.ospf.controller.util.OspfInterfaceType;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.OpaqueLsaHeader;
 import org.onosproject.ospf.protocol.ospfpacket.OspfMessageWriter;
@@ -517,11 +518,9 @@ public class OspfInterfaceImpl implements OspfInterface {
 
     /**
      * Represents an interface is up and connected.
-     *
-     * @throws Exception might throws exception
      */
     @Override
-    public void interfaceUp() throws Exception {
+    public void interfaceUp() {
         log.debug("OSPFInterfaceChannelHandler::interfaceUp...!!!");
         if (interfaceType() == OspfInterfaceType.POINT_TO_POINT.value()) {
             setState(OspfInterfaceState.POINT2POINT);
@@ -552,9 +551,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      * Gets called when a BDR was detected before the wait timer expired.
      *
      * @param ch channel instance
-     * @throws Exception might throws exception
      */
-    public void backupSeen(Channel ch) throws Exception {
+    public void backupSeen(Channel ch) {
         log.debug("OSPFInterfaceChannelHandler::backupSeen ");
         if (state() == OspfInterfaceState.WAITING) {
             electRouter(ch);
@@ -565,9 +563,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      * Gets called when no hello message received for particular period.
      *
      * @param ch channel instance
-     * @throws Exception might throws exception
      */
-    public void waitTimer(Channel ch) throws Exception {
+    public void waitTimer(Channel ch) {
         log.debug("OSPFInterfaceChannelHandler::waitTimer ");
         //According to RFC-2328 section 9.4
         if (state() == OspfInterfaceState.WAITING) {
@@ -579,9 +576,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      * Initiates DR election process.
      *
      * @param ch netty channel instance
-     * @throws Exception might throws exception
      */
-    public void callDrElection(Channel ch) throws Exception {
+    public void callDrElection(Channel ch) {
         log.debug("OSPFInterfaceChannelHandler::callDrElection ");
         //call when timer expired
         //no hello message received for particular interval
@@ -592,10 +588,8 @@ public class OspfInterfaceImpl implements OspfInterface {
 
     /**
      * Neighbor change event is triggered when the router priority gets changed.
-     *
-     * @throws Exception might throws exception
      */
-    public void neighborChange() throws Exception {
+    public void neighborChange() {
         log.debug("OSPFInterfaceChannelHandler::neighborChange ");
         if (state() == OspfInterfaceState.DR || state() == OspfInterfaceState.BDR ||
                 state() == OspfInterfaceState.DROTHER) {
@@ -623,35 +617,38 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage received OSPF message
      * @param ctx         channel handler context instance.
-     * @throws Exception might throws exception
      */
     @Override
-    public void processOspfMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    public void processOspfMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) {
         log.debug("OspfChannelHandler::processOspfMessage...!!!");
 
         if (!validateMessage(ospfMessage)) {
             return;
         }
 
-        switch (ospfMessage.ospfMessageType().value()) {
-            case OspfParameters.HELLO:
-                processHelloMessage(ospfMessage, ctx);
-                break;
-            case OspfParameters.DD:
-                processDdMessage(ospfMessage, ctx);
-                break;
-            case OspfParameters.LSREQUEST:
-                processLsRequestMessage(ospfMessage, ctx);
-                break;
-            case OspfParameters.LSUPDATE:
-                processLsUpdateMessage(ospfMessage, ctx);
-                break;
-            case OspfParameters.LSACK:
-                processLsAckMessage(ospfMessage, ctx);
-                break;
-            default:
-                log.debug("Unknown packet to process...!!!");
-                break;
+        try {
+            switch (ospfMessage.ospfMessageType().value()) {
+                case OspfParameters.HELLO:
+                    processHelloMessage(ospfMessage, ctx);
+                    break;
+                case OspfParameters.DD:
+                    processDdMessage(ospfMessage, ctx);
+                    break;
+                case OspfParameters.LSREQUEST:
+                    processLsRequestMessage(ospfMessage, ctx);
+                    break;
+                case OspfParameters.LSUPDATE:
+                    processLsUpdateMessage(ospfMessage, ctx);
+                    break;
+                case OspfParameters.LSACK:
+                    processLsAckMessage(ospfMessage, ctx);
+                    break;
+                default:
+                    log.debug("Unknown packet to process...!!!");
+                    break;
+            }
+        } catch (OspfParseException ope) {
+            log.debug("Error parsing packet", ope);
         }
     }
 
@@ -660,9 +657,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message.
      * @return true if it is a valid else false.
-     * @throws Exception might throws exception
      */
-    private boolean validateMessage(OspfMessage ospfMessage) throws Exception {
+    private boolean validateMessage(OspfMessage ospfMessage) {
         boolean isValid = true;
         OspfPacketHeader header = (OspfPacketHeader) ospfMessage;
 
@@ -688,7 +684,7 @@ public class OspfInterfaceImpl implements OspfInterface {
             }
 
             //According to RFC-2328 (8.2)
-            /**
+            /*
              * ABR should receive packets from backbone 0.0.0.0 as we are not acting as ABR
              * we are rejecting the packet.
              */
@@ -715,9 +711,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message instance.
      * @param ctx         context instance.
-     * @throws Exception might throws exception
      */
-    void processHelloMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    void processHelloMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) {
         Channel channel = ctx.getChannel();
         log.debug("OspfChannelHandler::processHelloMessage...!!!");
         HelloPacket helloPacket = (HelloPacket) ospfMessage;
@@ -902,9 +897,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message instance.
      * @param ctx         channel handler context instance
-     * @throws Exception might throws exception
      */
-    void processDdMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    void processDdMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) {
         log.debug("OspfChannelHandler::processDdMessage...!!!");
         Channel channel = ctx.getChannel();
         DdPacket ddPacket = (DdPacket) ospfMessage;
@@ -1075,9 +1069,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message instance.
      * @param ctx         channel handler context instance.
-     * @throws Exception might throws exception
      */
-    void processLsRequestMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    void processLsRequestMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) {
         log.debug("OspfChannelHandler::processLsRequestMessage...!!!");
         Channel channel = ctx.getChannel();
         LsRequest lsrPacket = (LsRequest) ospfMessage;
@@ -1114,18 +1107,20 @@ public class OspfInterfaceImpl implements OspfInterface {
                         // to verify length of the LSA
                         LsaWrapper wrapper = ospfArea.getLsa(lsRequest.lsType(), lsRequest.linkStateId(),
                                                              lsRequest.ownRouterId());
-                        OspfLsa ospflsa = wrapper.ospfLsa();
-                        if ((currentLength + ((LsaWrapperImpl) wrapper).lsaHeader().lsPacketLen()) >= maxSize) {
-                            listItr.previous();
-                            break;
-                        }
-                        if (ospflsa != null) {
-                            lsupdate.addLsa(ospflsa);
-                            noLsa++;
+                        if (wrapper != null) {
+                            OspfLsa ospflsa = wrapper.ospfLsa();
+                            if ((currentLength + ((LsaWrapperImpl) wrapper).lsaHeader().lsPacketLen()) >= maxSize) {
+                                listItr.previous();
+                                break;
+                            }
+                            if (ospflsa != null) {
+                                lsupdate.addLsa(ospflsa);
+                                noLsa++;
 
-                            currentLength = currentLength + ((LsaWrapperImpl) wrapper).lsaHeader().lsPacketLen();
-                        } else {
-                            nbr.badLSReq(channel);
+                                currentLength = currentLength + ((LsaWrapperImpl) wrapper).lsaHeader().lsPacketLen();
+                            } else {
+                                nbr.badLSReq(channel);
+                            }
                         }
                     }
                     lsupdate.setNumberOfLsa(noLsa);
@@ -1149,9 +1144,9 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message instance.
      * @param ctx         channel handler context instance.
-     * @throws Exception might throws exception
+     * @throws OspfParseException on parsing error
      */
-    void processLsUpdateMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    void processLsUpdateMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws OspfParseException {
         log.debug("OspfChannelHandler::processLsUpdateMessage");
         LsUpdate lsUpdate = (LsUpdate) ospfMessage;
         String neighbourId = lsUpdate.routerId().toString();
@@ -1182,9 +1177,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      *
      * @param ospfMessage OSPF message instance.
      * @param ctx         channel handler context instance.
-     * @throws Exception might throws exception
      */
-    void processLsAckMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) throws Exception {
+    void processLsAckMessage(OspfMessage ospfMessage, ChannelHandlerContext ctx) {
         log.debug("OspfChannelHandler::processLsAckMessage");
         LsAcknowledge lsAckPacket = (LsAcknowledge) ospfMessage;
         //check it is present in listOfNeighbors
@@ -1307,9 +1301,8 @@ public class OspfInterfaceImpl implements OspfInterface {
      * Performs DR election.
      *
      * @param ch Netty Channel instance.
-     * @throws Exception might throws exception
      */
-    public void electRouter(Channel ch) throws Exception {
+    public void electRouter(Channel ch) {
 
         Ip4Address currentDr = dr();
         Ip4Address currentBdr = bdr();

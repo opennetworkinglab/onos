@@ -131,9 +131,9 @@ public class OpaqueLsa10 extends OpaqueLsaHeader {
      * Returns instance as bytes.
      *
      * @return instance as bytes
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] asBytes() throws Exception {
+    public byte[] asBytes() throws OspfParseException {
 
         byte[] lsaMessage = null;
         byte[] lsaHeader = getOpaqueLsaHeaderAsByteArray();
@@ -147,9 +147,9 @@ public class OpaqueLsa10 extends OpaqueLsaHeader {
      * Gets the LSA body as byte array.
      *
      * @return the lsa body as byte array
-     * @throws Exception might throws exception while parsing packet
+     * @throws OspfParseException might throws exception while parsing packet
      */
-    public byte[] getLsaBodyAsByteArray() throws Exception {
+    public byte[] getLsaBodyAsByteArray() throws OspfParseException {
         List<Byte> bodyLst = new ArrayList<>();
         if (this.opaqueId() == 1) {
             for (TopLevelTlv tlv : this.topLevelValues) {

@@ -78,9 +78,8 @@ public class Controller {
      * Updates the processes configuration.
      *
      * @param ospfProcesses list of OSPF process instances
-     * @throws Exception might throws parse exception
      */
-    public void updateConfig(List<OspfProcess> ospfProcesses) throws Exception {
+    public void updateConfig(List<OspfProcess> ospfProcesses) {
         log.debug("Controller::UpdateConfig called");
         configPacket = new byte[OspfUtil.CONFIG_LENGTH];
         byte numberOfInterface = 0; // number of interfaces to configure
@@ -343,7 +342,7 @@ public class Controller {
             try {
                 peerBootstrap.connect(connectToSocket).addListener(new ChannelFutureListener() {
                     @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
+                    public void operationComplete(ChannelFuture future) {
                         if (!future.isSuccess()) {
                             connectRetryCounter++;
                             log.error("Connection failed, ConnectRetryCounter {} remote host {}", connectRetryCounter,

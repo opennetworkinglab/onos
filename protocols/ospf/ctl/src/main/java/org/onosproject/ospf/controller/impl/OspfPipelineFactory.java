@@ -35,7 +35,7 @@ public class OspfPipelineFactory implements ChannelPipelineFactory {
     }
 
     @Override
-    public ChannelPipeline getPipeline() throws Exception {
+    public ChannelPipeline getPipeline() {
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("encoder", new OspfMessageDecoder());
         pipeline.addLast("decoder", new OspfMessageEncoder());

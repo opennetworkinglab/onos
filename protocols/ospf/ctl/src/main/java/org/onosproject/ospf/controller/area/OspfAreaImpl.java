@@ -29,6 +29,7 @@ import org.onosproject.ospf.controller.OspfNbr;
 import org.onosproject.ospf.controller.OspfNeighborState;
 import org.onosproject.ospf.controller.impl.OspfNbrImpl;
 import org.onosproject.ospf.controller.lsdb.OspfLsdbImpl;
+import org.onosproject.ospf.exceptions.OspfParseException;
 import org.onosproject.ospf.protocol.lsa.LsaHeader;
 import org.onosproject.ospf.protocol.lsa.subtypes.OspfLsaLink;
 import org.onosproject.ospf.protocol.lsa.types.NetworkLsa;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -203,9 +205,9 @@ public class OspfAreaImpl implements OspfArea {
      * @param interfaceIp interface IP address
      * @param mask        interface network mask
      * @return NetworkLsa instance
-     * @throws Exception might throws exception
+     * @throws OspfParseException might throws exception
      */
-    public NetworkLsa buildNetworkLsa(Ip4Address interfaceIp, Ip4Address mask) throws Exception {
+    public NetworkLsa buildNetworkLsa(Ip4Address interfaceIp, Ip4Address mask) throws OspfParseException {
         // generate the Router-LSA for this Area.
         NetworkLsa networkLsa = new NetworkLsa();
         networkLsa.setAdvertisingRouter(routerId);
@@ -254,9 +256,9 @@ public class OspfAreaImpl implements OspfArea {
      *
      * @param ospfInterface Interface instance
      * @return routerLsa Router LSA instance
-     * @throws Exception might throws exception
+     * @throws OspfParseException might throws exception
      */
-    public RouterLsa buildRouterLsa(OspfInterface ospfInterface) throws Exception {
+    public RouterLsa buildRouterLsa(OspfInterface ospfInterface) throws OspfParseException {
         // generate the Router-LSA for this Area.
         RouterLsa routerLsa = new RouterLsa();
         routerLsa.setAdvertisingRouter(routerId);
@@ -480,17 +482,22 @@ public class OspfAreaImpl implements OspfArea {
      * @param linkStateID       link state id to form the key
      * @param advertisingRouter advertising router to form the key
      * @return lsa wrapper instance which contains the Lsa
-     * @throws Exception might throws exception
      */
-    public LsaWrapper getLsa(int lsType, String linkStateID, String advertisingRouter) throws Exception {
+    public LsaWrapper getLsa(int lsType, String linkStateID, String advertisingRouter) {
         String lsaKey = lsType + "-" + linkStateID + "-" + advertisingRouter;
         if (lsType == OspfParameters.LINK_LOCAL_OPAQUE_LSA || lsType == OspfParameters.AREA_LOCAL_OPAQUE_LSA ||
                 lsType == OspfParameters.AS_OPAQUE_LSA) {
-            byte[] linkStateAsBytes = InetAddress.getByName(linkStateID).getAddress();
-            int opaqueType = linkStateAsBytes[0];
-            int opaqueId = OspfUtil.byteToInteger(Arrays.copyOfRange(linkStateAsBytes, 1,
+            try {
+                byte[] linkStateAsBytes = InetAddress.getByName(linkStateID).getAddress();
+
+                int opaqueType = linkStateAsBytes[0];
+                int opaqueId = OspfUtil.byteToInteger(Arrays.copyOfRange(linkStateAsBytes, 1,
                                                                      linkStateAsBytes.length));
-            lsaKey = lsType + "-" + opaqueType + opaqueId + "-" + advertisingRouter;
+                lsaKey = lsType + "-" + opaqueType + opaqueId + "-" + advertisingRouter;
+            } catch (UnknownHostException uhe) {
+                log.warn("Can't resolve host in Lsa wrapper", uhe);
+                return null;
+            }
         }
         return database.findLsa(lsType, lsaKey);
     }
@@ -524,9 +531,8 @@ public class OspfAreaImpl implements OspfArea {
      *
      * @param ospfLsa       OSPF LSA instance
      * @param ospfInterface OSPF interface instance
-     * @throws Exception on error
      */
-    public void addLsa(OspfLsa ospfLsa, OspfInterface ospfInterface) throws Exception {
+    public void addLsa(OspfLsa ospfLsa, OspfInterface ospfInterface) {
         //second param is false as lsa from network
         database.addLsa((LsaHeader) ospfLsa, false, ospfInterface);
     }
@@ -537,10 +543,8 @@ public class OspfAreaImpl implements OspfArea {
      * @param ospfLsa          OSPF LSA instance
      * @param isSelfOriginated true if the LSA is self originated. Else false
      * @param ospfInterface    OSPF interface instance
-     * @throws Exception on error
      */
-    public void addLsa(OspfLsa ospfLsa, boolean isSelfOriginated, OspfInterface ospfInterface)
-            throws Exception {
+    public void addLsa(OspfLsa ospfLsa, boolean isSelfOriginated, OspfInterface ospfInterface) {
         database.addLsa((LsaHeader) ospfLsa, isSelfOriginated, ospfInterface);
     }
 

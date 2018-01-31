@@ -42,10 +42,10 @@ public class OspfMessageReader {
      *
      * @param channelBuffer channel buffer instance.
      * @return OSPF message instance.
-     * @throws Exception might throws exception while parsing buffer
+     * @throws OspfParseException might throws exception while parsing buffer
      */
     public OspfMessage readFromBuffer(ChannelBuffer channelBuffer)
-            throws Exception {
+            throws OspfParseException {
 
         try {
             OspfPacketHeader ospfHeader = getOspfHeader(channelBuffer);
@@ -97,7 +97,7 @@ public class OspfMessageReader {
      * @param channelBuffer channel buffer instance.
      * @return Ospf Header instance.
      */
-    private OspfPacketHeader getOspfHeader(ChannelBuffer channelBuffer) throws Exception {
+    private OspfPacketHeader getOspfHeader(ChannelBuffer channelBuffer) {
         OspfPacketHeader ospfPacketHeader = new OspfPacketHeader();
 
         // Determine OSPF version & Packet Type
