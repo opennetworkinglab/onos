@@ -208,7 +208,7 @@ public final class AnnotationKeys {
     /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
-     * If parsing fails, the returned value will be {@value DEFAULT_VALUE}.
+     * If parsing fails, the returned value will be {@value #DEFAULT_VALUE}.
      *
      * @param annotated annotated object whose annotated value is obtained
      * @param key       key of annotation
