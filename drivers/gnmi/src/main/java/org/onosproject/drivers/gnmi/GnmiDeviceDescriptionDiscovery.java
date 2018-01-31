@@ -83,8 +83,17 @@ public class GnmiDeviceDescriptionDiscovery
     public List<PortDescription> discoverPortDetails() {
         log.info("Discovering port details on device {}", handler().data().deviceId());
 
+        String serverAddr = this.data().value(GNMI_SERVER_ADDR_KEY);
+        String serverPortString = this.data().value(GNMI_SERVER_PORT_KEY);
+
+        if (serverAddr == null || serverPortString == null ||
+                serverAddr.isEmpty() || serverPortString.isEmpty()) {
+            log.warn("gNMI server information not provided, can't discover ports");
+            return ImmutableList.of();
+        }
+
         // Get the channel
-        ManagedChannel channel = getChannel();
+        ManagedChannel channel = getChannel(serverAddr, serverPortString);
 
         if (channel == null) {
             return ImmutableList.of();
@@ -112,7 +121,7 @@ public class GnmiDeviceDescriptionDiscovery
         } catch (InterruptedException | ExecutionException | TimeoutException
                 | StatusRuntimeException e) {
             log.warn("Unable to discover ports from {}: {}",
-                     data().deviceId(), e.getMessage());
+                    data().deviceId(), e.getMessage());
             log.debug("{}", e);
             return ImmutableList.of();
         } finally {
@@ -127,11 +136,9 @@ public class GnmiDeviceDescriptionDiscovery
      *
      * @return the managed channel
      */
-    private ManagedChannel getChannel() {
+    private ManagedChannel getChannel(String serverAddr, String serverPortString) {
 
         DeviceId deviceId = handler().data().deviceId();
-        String serverAddr = this.data().value(GNMI_SERVER_ADDR_KEY);
-        String serverPortString = this.data().value(GNMI_SERVER_PORT_KEY);
 
         GrpcController controller = handler().get(GrpcController.class);
         ManagedChannel channel = null;
@@ -162,7 +169,7 @@ public class GnmiDeviceDescriptionDiscovery
                 channel = controller.connectChannel(newChannelId, channelBuilder);
             } catch (IOException e) {
                 log.warn("Unable to connect to gRPC server of {}: {}",
-                         deviceId, e.getMessage());
+                        deviceId, e.getMessage());
             }
         }
         return channel;
@@ -221,7 +228,7 @@ public class GnmiDeviceDescriptionDiscovery
         @Override
         public void onError(Throwable throwable) {
             log.warn("Error on stream channel for {}: {}",
-                     data().deviceId(), Status.fromThrowable(throwable));
+                    data().deviceId(), Status.fromThrowable(throwable));
             log.debug("{}", throwable);
         }
 
