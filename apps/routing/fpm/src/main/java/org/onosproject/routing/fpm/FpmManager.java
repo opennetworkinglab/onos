@@ -16,6 +16,7 @@
 
 package org.onosproject.routing.fpm;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,6 +42,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
@@ -54,6 +57,7 @@ import org.onosproject.routing.fpm.protocol.RouteAttributeGateway;
 import org.onosproject.routing.fpm.protocol.RtNetlink;
 import org.onosproject.routing.fpm.protocol.RtProtocol;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
@@ -62,6 +66,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -87,6 +92,7 @@ public class FpmManager implements FpmInfoService {
     private static final int FPM_PORT = 2620;
     private static final String APP_NAME = "org.onosproject.fpm";
     private static final int IDLE_TIMEOUT_SECS = 5;
+    private static final String LOCK_NAME = "fpm-manager-lock";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -106,6 +112,8 @@ public class FpmManager implements FpmInfoService {
     private ServerBootstrap serverBootstrap;
     private Channel serverChannel;
     private ChannelGroup allChannels = new DefaultChannelGroup();
+    private final InternalClusterListener clusterListener = new InternalClusterListener();
+    private AsyncDistributedLock asyncLock;
 
     private ConsistentMap<FpmPeer, Set<FpmConnectionInfo>> peers;
 
@@ -138,6 +146,9 @@ public class FpmManager implements FpmInfoService {
 
         coreService.registerApplication(APP_NAME, peers::destroy);
 
+        clusterService.addListener(clusterListener);
+        asyncLock = storageService.lockBuilder().withName(LOCK_NAME).build();
+
         log.info("Started");
     }
 
@@ -150,6 +161,10 @@ public class FpmManager implements FpmInfoService {
         stopServer();
         fpmRoutes.clear();
         componentConfigService.unregisterProperties(getClass(), false);
+
+        clusterService.removeListener(clusterListener);
+        asyncLock.unlock();
+
         log.info("Stopped");
     }
 
@@ -292,8 +307,12 @@ public class FpmManager implements FpmInfoService {
             break;
         }
 
-        routeService.withdraw(withdraws);
-        routeService.update(updates);
+        updateRouteStore(updates, withdraws);
+    }
+
+    private synchronized void updateRouteStore(Collection<Route> routesToAdd, Collection<Route> routesToRemove) {
+        routeService.withdraw(routesToRemove);
+        routeService.update(routesToAdd);
     }
 
 
@@ -301,7 +320,7 @@ public class FpmManager implements FpmInfoService {
         log.info("Clearing all routes for peer {}", peer);
         Map<IpPrefix, Route> routes = fpmRoutes.remove(peer);
         if (routes != null) {
-            routeService.withdraw(routes.values());
+            updateRouteStore(Lists.newArrayList(), routes.values());
         }
     }
 
@@ -371,4 +390,45 @@ public class FpmManager implements FpmInfoService {
         }
     }
 
+    private class InternalClusterListener implements ClusterEventListener {
+        @Override
+        public void event(ClusterEvent event) {
+            log.debug("Receives ClusterEvent {} for {}", event.type(), event.subject().id());
+            switch (event.type()) {
+                case INSTANCE_READY:
+                    // When current node is healing from a network partition,
+                    // seeing INSTANCE_READY means current node has the ability to read from the cluster,
+                    // but it is possible that current node still can't write to the cluster at this moment.
+                    // The AsyncDistributedLock is introduced to ensure we attempt to push FPM routes
+                    // after current node can write.
+                    // Adding 15 seconds retry for the current node to be able to write.
+                    asyncLock.tryLock(Duration.ofSeconds(15)).whenComplete((result, error) -> {
+                        if (result != null && result.isPresent()) {
+                            log.debug("Lock obtained. Push local FPM routes to route store");
+                            // All FPM routes on current node will be pushed again even when current node is not
+                            // the one that becomes READY. A better way is to do this only on the minority nodes.
+                            pushFpmRoutes();
+                            asyncLock.unlock();
+                        } else {
+                            log.debug("Fail to obtain lock. Abort.");
+                        }
+                    });
+                    break;
+                case INSTANCE_DEACTIVATED:
+                case INSTANCE_ADDED:
+                case INSTANCE_REMOVED:
+                case INSTANCE_ACTIVATED:
+                default:
+                    break;
+            }
+        }
+    }
+
+    public void pushFpmRoutes() {
+        Set<Route> routes = fpmRoutes.values().stream()
+                .map(Map::entrySet).flatMap(Set::stream).map(Map.Entry::getValue)
+                .collect(Collectors.toSet());
+        updateRouteStore(routes, Lists.newArrayList());
+        log.info("{} FPM routes have been updated to route store", routes.size());
+    }
 }
