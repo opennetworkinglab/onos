@@ -88,8 +88,17 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Option(name = "-ml", aliases = "--mplsLabel", description = "Mpls label of incoming packet")
     String mplsLabel = null;
 
-    @Option(name = "-mb", aliases = "--mplsBos", description = "MPLS BOS", valueToShowInHelp = "True")
+    @Option(name = "-mb", aliases = "--mplsBos", description = "MPLS BOS")
     String mplsBos = null;
+
+    @Option(name = "-ipp", aliases = "--ipProto", description = "IP Proto")
+    String ipProto = null;
+
+    @Option(name = "-udps", aliases = "--udpSrc", description = "UDP Source")
+    String udpSrc = null;
+
+    @Option(name = "-udpd", aliases = "--udpDst", description = "UDP Destination")
+    String udpDst = null;
 
     @Override
     protected void execute() {
@@ -145,6 +154,19 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
         if (mplsBos != null) {
             selectorBuilder.matchMplsBos(Boolean.valueOf(mplsBos));
         }
+
+        if (ipProto != null) {
+            selectorBuilder.matchIPProtocol(Byte.valueOf(ipProto));
+        }
+
+        if (udpSrc != null) {
+            selectorBuilder.matchUdpSrc(TpPort.tpPort(Integer.parseInt(udpSrc)));
+        }
+
+        if (udpDst != null) {
+            selectorBuilder.matchUdpDst(TpPort.tpPort(Integer.parseInt(udpDst)));
+        }
+
 
         TrafficSelector packet = selectorBuilder.build();
 

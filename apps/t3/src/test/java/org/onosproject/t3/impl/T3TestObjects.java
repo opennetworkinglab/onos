@@ -440,6 +440,44 @@ final class T3TestObjects {
 
     static final Group DUAL_LINK_GROUP = new DefaultGroup(GROUP_ID, DUAL_LINK_1, Group.Type.SELECT, BUCKETS_DUAL);
 
+    //Clear Deferred
+    static final DeviceId DEFERRED_1 = DeviceId.deviceId("Deferred");
+
+    static final ConnectPoint DEFERRED_CP_1_IN = ConnectPoint.deviceConnectPoint(DEFERRED_1 + "/" + 1);
+    static final ConnectPoint DEFERRED_CP_2_OUT = ConnectPoint.deviceConnectPoint(DEFERRED_1 + "/" + 2);
+
+    //match on port 1 and apply deferred actions
+    private static final TrafficTreatment DEFERRED_1_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .transition(10)
+            .deferred()
+            .pushMpls()
+            .setMpls(MplsLabel.mplsLabel(100))
+            .build();
+    private static final FlowRule DEFERRED_FLOW = DefaultFlowEntry.builder().forDevice(DEFERRED_1)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(DEFERRED_1_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DEFERRED_FLOW_ENTRY = new DefaultFlowEntry(DEFERRED_FLOW);
+
+    //match on port 1, clear deferred actions and output
+    private static final TrafficTreatment DEFERRED_CLEAR_1_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .wipeDeferred()
+            .setOutput(PortNumber.portNumber(2))
+            .build();
+    private static final FlowRule DEFERRED_CLEAR_FLOW = DefaultFlowEntry.builder().forDevice(DEFERRED_1)
+            .forTable(10)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(DEFERRED_CLEAR_1_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DEFERRED_CLEAR_FLOW_ENTRY = new DefaultFlowEntry(DEFERRED_CLEAR_FLOW);
+
     //helper elements
 
     static final String MASTER_1 = "Master1";
