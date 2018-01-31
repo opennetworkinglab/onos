@@ -46,12 +46,13 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT
 @Component(immediate = true)
 public class PipeconfLoader {
 
-    private static final PiPipeconfId FABRIC_PIPECONF_ID =
+    public static final PiPipeconfId FABRIC_PIPECONF_ID =
             new PiPipeconfId("org.onosproject.pipelines.fabric");
+
     private static final String FABRIC_JSON_PATH = "/p4c-out/bmv2/fabric.json";
     private static final String FABRIC_P4INFO_PATH = "/p4c-out/bmv2/fabric.p4info";
 
-    public static final PiPipeconf FABRIC_PIPECONF = buildFabricPipeconf();
+    private static final PiPipeconf FABRIC_PIPECONF = buildFabricPipeconf();
 
     // XXX: Use a collection to hold only one pipeconf because we might separate
     // fabric pipeconf to leaf/spine pipeconf in the future.
@@ -84,8 +85,6 @@ public class PipeconfLoader {
                 .addBehaviour(PortStatisticsDiscovery.class, FabricPortStatisticsDiscovery.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
-                // Put here other target-specific extensions,
-                // e.g. Tofino's bin and context.json.
                 .build();
     }
 

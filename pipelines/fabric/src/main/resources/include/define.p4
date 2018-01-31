@@ -46,8 +46,8 @@ const bit<8> PROTO_ICMPV6 = 58;
 
 const bit<4> IPV4_MIN_IHL = 5;
 
-#ifndef CPU_PORT
-const port_num_t CPU_PORT = 255;
+#ifndef _PKT_OUT_HDR_ANNOT_
+#define _PKT_OUT_HDR_ANNOT_
 #endif
 
 const fwd_type_t FWD_BRIDGING = 0;

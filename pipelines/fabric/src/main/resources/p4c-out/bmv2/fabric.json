@@ -71,22 +71,8 @@
       ]
     },
     {
-      "name" : "ipv6_t",
-      "id" : 5,
-      "fields" : [
-        ["version", 4, false],
-        ["traffic_class", 8, false],
-        ["flow_label", 20, false],
-        ["payload_len", 16, false],
-        ["next_hdr", 8, false],
-        ["hop_limit", 8, false],
-        ["src_addr", 128, false],
-        ["dst_addr", 128, false]
-      ]
-    },
-    {
       "name" : "arp_t",
-      "id" : 6,
+      "id" : 5,
       "fields" : [
         ["hw_type", 16, false],
         ["proto_type", 16, false],
@@ -97,7 +83,7 @@
     },
     {
       "name" : "tcp_t",
-      "id" : 7,
+      "id" : 6,
       "fields" : [
         ["src_port", 16, false],
         ["dst_port", 16, false],
@@ -114,7 +100,7 @@
     },
     {
       "name" : "udp_t",
-      "id" : 8,
+      "id" : 7,
       "fields" : [
         ["src_port", 16, false],
         ["dst_port", 16, false],
@@ -124,7 +110,7 @@
     },
     {
       "name" : "icmp_t",
-      "id" : 9,
+      "id" : 8,
       "fields" : [
         ["icmp_type", 8, false],
         ["icmp_code", 8, false],
@@ -136,7 +122,7 @@
     },
     {
       "name" : "packet_out_header_t",
-      "id" : 10,
+      "id" : 9,
       "fields" : [
         ["egress_port", 9, false],
         ["_pad", 7, false]
@@ -144,7 +130,7 @@
     },
     {
       "name" : "packet_in_header_t",
-      "id" : 11,
+      "id" : 10,
       "fields" : [
         ["ingress_port", 9, false],
         ["_pad", 7, false]
@@ -152,7 +138,7 @@
     },
     {
       "name" : "standard_metadata",
-      "id" : 12,
+      "id" : 11,
       "fields" : [
         ["ingress_port", 9, false],
         ["egress_spec", 9, false],
@@ -220,50 +206,43 @@
       "pi_omit" : true
     },
     {
-      "name" : "ipv6",
-      "id" : 6,
-      "header_type" : "ipv6_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
       "name" : "arp",
-      "id" : 7,
+      "id" : 6,
       "header_type" : "arp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "tcp",
-      "id" : 8,
+      "id" : 7,
       "header_type" : "tcp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "udp",
-      "id" : 9,
+      "id" : 8,
       "header_type" : "udp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "icmp",
-      "id" : 10,
+      "id" : 9,
       "header_type" : "icmp_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_out",
-      "id" : 11,
+      "id" : 10,
       "header_type" : "packet_out_header_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "packet_in",
-      "id" : 12,
+      "id" : 11,
       "header_type" : "packet_in_header_t",
       "metadata" : false,
       "pi_omit" : true
@@ -694,7 +673,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 166,
+        "line" : 164,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1396,10 +1375,10 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "include/control/forwarding.p4",
             "line" : 50,
-            "column" : 28,
-            "source_fragment" : "255; ..."
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = 255"
           }
         }
       ]
@@ -3635,7 +3614,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 60,
+        "line" : 62,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -3674,7 +3653,7 @@
             "filename" : "include/control/packetio.p4",
             "line" : 38,
             "column" : 12,
-            "source_fragment" : "standard_metadata.egress_port == CPU_PORT"
+            "source_fragment" : "standard_metadata.egress_port == 255"
           },
           "expression" : {
             "type" : "expression",

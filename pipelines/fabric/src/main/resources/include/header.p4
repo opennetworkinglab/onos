@@ -25,6 +25,7 @@ header packet_in_header_t {
     bit<7> _pad;
 }
 
+_PKT_OUT_HDR_ANNOT_
 @controller_header("packet_out")
 header packet_out_header_t {
     port_num_t egress_port;

@@ -1856,10 +1856,10 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "include/control/forwarding.p4",
             "line" : 50,
-            "column" : 28,
-            "source_fragment" : "255; ..."
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = 255"
           }
         }
       ]
@@ -6062,7 +6062,7 @@
             "filename" : "include/control/packetio.p4",
             "line" : 38,
             "column" : 12,
-            "source_fragment" : "standard_metadata.egress_port == CPU_PORT"
+            "source_fragment" : "standard_metadata.egress_port == 255"
           },
           "expression" : {
             "type" : "expression",

@@ -1,8 +1,8 @@
 BMV2_CPU_PORT=255
 
-BMV2_OPTIONS=-DTARGET_BMV2
+BMV2_OPTIONS=-DTARGET_BMV2 -DCPU_PORT=$(BMV2_CPU_PORT)
 
-all: bmv2
+all: bmv2 bmv2-spgw
 
 bmv2:
 	p4c -v -x p4-16 -b bmv2-ss-p4org \
@@ -17,12 +17,6 @@ bmv2-spgw:
 	        $(BMV2_OPTIONS) -DWITH_SPGW \
     		--p4runtime-file p4c-out/bmv2/fabric-spgw.p4info \
     		--p4runtime-format text fabric.p4
-
-custom:
-	p4c -v -x p4-16 -b $(BACKEND) \
-		$(BACKEND_OPTIONS) -o p4c-out/$(BACKEND) \
-		--p4runtime-file p4c-out/$(BACKEND)/fabric.p4info \
-		--p4runtime-format text fabric.p4
 
 clean:
 	rm -rf p4c-out/*
