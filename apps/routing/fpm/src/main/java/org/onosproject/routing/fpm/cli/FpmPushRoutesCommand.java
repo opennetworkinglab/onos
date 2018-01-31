@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package org.onosproject.routing.fpm;
+package org.onosproject.routing.fpm.cli;
 
-import java.util.Map;
+import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.routing.fpm.FpmInfoService;
+
 
 /**
- * Provides information about the FPM route receiver module.
+ * Displays the current FPM connections.
  */
-public interface FpmInfoService {
-
-    /**
-     * Returns the FPM peers that are currently connected.
-     *
-     * @return a map of FPM peer with related information
-     */
-    Map<FpmPeer, FpmPeerInfo> peers();
-
-    /**
-     * Returns true if pushing routes to Quagga is emabled.
-     *
-     * @return true or false
-     */
-    boolean isPdPushEnabled();
-
-    /**
-     * Pushes all local FPM routes to route store.
-     */
-    void pushFpmRoutes();
+@Command(scope = "onos", name = "fpm-push-routes",
+        description = "Pushes all local FPM routes to route store")
+public class FpmPushRoutesCommand extends AbstractShellCommand {
+    @Override
+    protected void execute() {
+        FpmInfoService fpmInfo = get(FpmInfoService.class);
+        fpmInfo.pushFpmRoutes();
+    }
 }

@@ -19,5 +19,8 @@
     <command>
       <action class="org.onosproject.routing.fpm.cli.FpmConnectionsList"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.fpm.cli.FpmPushRoutesCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
