@@ -608,7 +608,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             for (OspfLsaLink link : ospfLsaLinkList) {
                 if (link.linkType() == 1 || link.linkType() == 2) {
                     if ((routerLsa.advertisingRouter().equals(ospfArea.routerId())) ||
-                            (link.equals(ospfArea.routerId()))) {
+                            (link.linkId().equals(ospfArea.routerId().toString()))) {
                         log.debug("OspfInterface information will not display in web ");
                     } else {
                         String key = routerLsa.advertisingRouter() + "-" + link.linkData();
@@ -643,7 +643,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             for (OspfLsaLink link : ospfLsaLinkList) {
                 if (link.linkType() == 1 || link.linkType() == 2) {
                     if ((routerLsa.advertisingRouter().equals(ospfArea.routerId())) ||
-                            (link.equals(ospfArea.routerId()))) {
+                            (link.linkId().equals(ospfArea.routerId().toString()))) {
                         log.debug("OspfInterface information will not display in web ");
                     } else {
                         String key = routerLsa.advertisingRouter() + "-" + link.linkData();
