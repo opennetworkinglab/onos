@@ -77,6 +77,7 @@ public class PipeconfLoader {
         final URL jsonUrl = PipeconfLoader.class.getResource(FABRIC_JSON_PATH);
         final URL p4InfoUrl = PipeconfLoader.class.getResource(FABRIC_P4INFO_PATH);
         final PiPipelineModel model = parseP4Info(p4InfoUrl);
+        // TODO: add properties to pipeconf instead of adding it to driver
         return DefaultPiPipeconf.builder()
                 .withId(FABRIC_PIPECONF_ID)
                 .withPipelineModel(model)

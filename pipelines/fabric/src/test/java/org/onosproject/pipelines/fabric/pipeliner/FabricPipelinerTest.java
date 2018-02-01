@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import org.junit.Before;
+import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -27,6 +28,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PipelinerContext;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.pipelines.fabric.FabricConstants;
 import org.onosproject.pipelines.fabric.FabricInterpreter;
@@ -81,8 +84,14 @@ public abstract class FabricPipelinerTest {
 
         ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
         PipelinerContext pipelinerContext = createNiceMock(PipelinerContext.class);
+        DriverHandler driverHandler = createNiceMock(DriverHandler.class);
+        Driver mockDriver = createNiceMock(Driver.class);
+        expect(mockDriver.getProperty("supportTableCounters")).andReturn("true").anyTimes();
+        expect(mockDriver.getProperty("noHashedTable")).andReturn("false").anyTimes();
+        expect(driverHandler.driver()).andReturn(mockDriver).anyTimes();
         expect(pipelinerContext.directory()).andReturn(serviceDirectory).anyTimes();
-        replay(serviceDirectory, pipelinerContext);
+        replay(serviceDirectory, pipelinerContext, driverHandler, mockDriver);
+        TestUtils.setField(pipeliner, "handler", driverHandler);
 
         pipeliner.init(DEVICE_ID, pipelinerContext);
         interpreter = new FabricInterpreter();

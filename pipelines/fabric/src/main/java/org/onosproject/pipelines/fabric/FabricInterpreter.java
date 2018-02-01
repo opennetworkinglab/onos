@@ -29,6 +29,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -94,9 +95,6 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                                                                          FabricConstants.TBL_HASHED_ID,
                                                                          FabricConstants.TBL_BROADCAST_ID);
 
-    private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP =
-            ImmutableBiMap.<PiTableId, PiCounterId>builder()
-                    .build();
     private static final ImmutableMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()
                     .put(Criterion.Type.IN_PORT, FabricConstants.HF_STANDARD_METADATA_INGRESS_PORT_ID)
@@ -136,6 +134,18 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     .put(FabricConstants.HF_ICMP_ICMP_CODE_ID, Criterion.Type.ICMPV6_CODE)
                     .build();
 
+    private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP =
+            ImmutableBiMap.<PiTableId, PiCounterId>builder()
+                    .put(FabricConstants.TBL_FWD_CLASSIFIER_ID, FabricConstants.CNT_FWD_CLASSIFIER_COUNTER_ID)
+                    .put(FabricConstants.TBL_HASHED_ID, FabricConstants.CNT_HASHED_COUNTER_ID)
+                    .put(FabricConstants.TBL_INGRESS_PORT_VLAN_ID, FabricConstants.CNT_INGRESS_PORT_VLAN_COUNTER_ID)
+                    .put(FabricConstants.TBL_SIMPLE_ID, FabricConstants.CNT_SIMPLE_COUNTER_ID)
+                    .put(FabricConstants.TBL_BRIDGING_ID, FabricConstants.CNT_BRIDGING_COUNTER_ID)
+                    .put(FabricConstants.TBL_UNICAST_V4_ID, FabricConstants.CNT_UNICAST_V4_COUNTER_ID)
+                    .put(FabricConstants.TBL_MPLS_ID, FabricConstants.CNT_MPLS_COUNTER_ID)
+                    .build();
+    private static final String SUPPORT_TABLE_COUNTERS_PROP = "supportTableCounters";
+
     @Override
     public Optional<PiMatchFieldId> mapCriterionType(Criterion.Type type) {
         return Optional.ofNullable(CRITERION_MAP.get(type));
@@ -173,7 +183,14 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
 
     @Override
     public Optional<PiCounterId> mapTableCounter(PiTableId piTableId) {
-        return Optional.ofNullable(TABLE_COUNTER_MAP.get(piTableId));
+        Driver driver = handler().driver();
+        boolean supportTableCounters = Boolean.parseBoolean(driver.getProperty(SUPPORT_TABLE_COUNTERS_PROP));
+
+        if (supportTableCounters) {
+            return Optional.ofNullable(TABLE_COUNTER_MAP.get(piTableId));
+        } else {
+            return Optional.empty();
+        }
     }
 
     private PiPacketOperation createPiPacketOperation(DeviceId deviceId, ByteBuffer data, long portNumber)

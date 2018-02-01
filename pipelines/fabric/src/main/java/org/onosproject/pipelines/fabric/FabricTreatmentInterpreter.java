@@ -190,6 +190,8 @@ final class FabricTreatmentInterpreter {
                         case MPLS_LABEL:
                             modMplsInst = (ModMplsLabelInstruction) l2Inst;
                             break;
+                        case VLAN_PUSH:
+                            break;
                         default:
                             log.warn("Unsupported l2 instruction sub type: {}", l2Inst.subtype());
                             break;

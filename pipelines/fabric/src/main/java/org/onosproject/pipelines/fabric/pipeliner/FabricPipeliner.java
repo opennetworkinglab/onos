@@ -26,6 +26,7 @@ import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -91,13 +92,14 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
+        Driver driver = handler().driver();
         this.deviceId = deviceId;
         this.flowRuleService = context.directory().get(FlowRuleService.class);
         this.groupService = context.directory().get(GroupService.class);
         this.flowObjectiveStore = context.directory().get(FlowObjectiveStore.class);
         this.pipelinerFilter = new FabricFilteringPipeliner(deviceId);
         this.pipelinerForward = new FabricForwardingPipeliner(deviceId);
-        this.pipelinerNext = new FabricNextPipeliner(deviceId);
+        this.pipelinerNext = new FabricNextPipeliner(deviceId, driver);
     }
 
     @Override

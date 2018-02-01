@@ -115,6 +115,14 @@ public final class FabricConstants {
             PiCounterId.of("port_counters_control.ingress_port_counter");
 
     // Direct Counter IDs
+    public static final PiCounterId CNT_UNICAST_V4_COUNTER_ID = PiCounterId.of("forwarding.unicast_v4_counter");
+    public static final PiCounterId CNT_INGRESS_PORT_VLAN_COUNTER_ID =
+            PiCounterId.of("filtering.ingress_port_vlan_counter");
+    public static final PiCounterId CNT_FWD_CLASSIFIER_COUNTER_ID = PiCounterId.of("filtering.fwd_classifier_counter");
+    public static final PiCounterId CNT_BRIDGING_COUNTER_ID = PiCounterId.of("forwarding.bridging_counter");
+    public static final PiCounterId CNT_SIMPLE_COUNTER_ID = PiCounterId.of("next.simple_counter");
+    public static final PiCounterId CNT_HASHED_COUNTER_ID = PiCounterId.of("next.hashed_counter");
+    public static final PiCounterId CNT_MPLS_COUNTER_ID = PiCounterId.of("forwarding.mpls_counter");
 
     // Action IDs
     public static final PiActionId ACT_NEXT_SET_MCAST_GROUP_ID =

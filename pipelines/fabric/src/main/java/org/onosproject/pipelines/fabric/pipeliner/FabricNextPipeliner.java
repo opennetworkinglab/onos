@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -25,6 +26,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -50,11 +52,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class FabricNextPipeliner {
     private static final Logger log = getLogger(FabricNextPipeliner.class);
+    private static final String NO_HASHED_TABLE = "noHashedTable";
 
     protected DeviceId deviceId;
+    protected Driver driver;
 
-    public FabricNextPipeliner(DeviceId deviceId) {
+    public FabricNextPipeliner(DeviceId deviceId, Driver driver) {
         this.deviceId = deviceId;
+        this.driver = driver;
     }
 
     public PipelinerTranslationResult next(NextObjective nextObjective) {
@@ -111,6 +116,32 @@ public class FabricNextPipeliner {
     }
 
     private void processHashedNext(NextObjective nextObjective, PipelinerTranslationResult.Builder resultBuilder) {
+        boolean noHashedTable = Boolean.parseBoolean(driver.getProperty(NO_HASHED_TABLE));
+
+        if (noHashedTable) {
+            if (nextObjective.next().isEmpty()) {
+                return;
+            }
+            // use first action if not support hashed group
+            TrafficTreatment treatment = nextObjective.next().iterator().next();
+
+            NextObjective.Builder simpleNext = DefaultNextObjective.builder()
+                    .addTreatment(treatment)
+                    .withId(nextObjective.id())
+                    .fromApp(nextObjective.appId())
+                    .makePermanent()
+                    .withMeta(nextObjective.meta())
+                    .withPriority(nextObjective.priority())
+                    .withType(NextObjective.Type.SIMPLE);
+
+            if (nextObjective.context().isPresent()) {
+                processSimpleNext(simpleNext.add(nextObjective.context().get()), resultBuilder);
+            } else {
+                processSimpleNext(simpleNext.add(), resultBuilder);
+            }
+            return;
+        }
+
         // create hash groups
         int groupId = nextObjective.id();
         List<GroupBucket> bucketList = nextObjective.next().stream()
