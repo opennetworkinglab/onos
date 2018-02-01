@@ -366,7 +366,11 @@ public class UiExtensionManager
 
     @Override
     public void setPreference(String username, String key, ObjectNode value) {
-        prefs.put(key(username, key), value);
+        if (value != null) {
+            prefs.put(key(username, key), value);
+        } else {
+            prefs.remove(key(username, key));
+        }
     }
 
     // =====================================================================

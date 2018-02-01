@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli;
+package org.onosproject.ui.impl.cli;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 

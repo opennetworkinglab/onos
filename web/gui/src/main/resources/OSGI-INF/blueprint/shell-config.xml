@@ -18,6 +18,14 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
+            <action class="org.onosproject.ui.impl.cli.UiViewListCommand"/>
+        </command>
+
+        <command>
+            <action class="org.onosproject.ui.impl.cli.UiPreferencesListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.ui.impl.topo.cli.UiCacheMembersCommand"/>
         </command>
         <command>
