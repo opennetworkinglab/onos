@@ -706,7 +706,7 @@ counters {
     alias: "egress_port_counter"
   }
   spec {
-    unit: PACKETS
+    unit: BOTH
   }
   size: 511
 }
@@ -717,7 +717,7 @@ counters {
     alias: "ingress_port_counter"
   }
   spec {
-    unit: PACKETS
+    unit: BOTH
   }
   size: 511
 }

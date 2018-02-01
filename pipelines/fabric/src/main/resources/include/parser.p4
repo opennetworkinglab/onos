@@ -70,7 +70,7 @@ inout standard_metadata_t standard_metadata) {
         // There is only one MPLS label for this fabric.
         // Assume header after MPLS header is IP/IPv6
         // Lookup first 4 bits for version
-        transition select(packet.lookahead<bit<4>>()) {
+        transition select(packet.lookahead<bit<IP_VER_LENGTH>>()) {
             //The packet should be either IPv4 or IPv6.
             IP_VERSION_4: parse_ipv4;
 #ifdef WITH_IPV6
@@ -162,7 +162,7 @@ inout standard_metadata_t standard_metadata) {
 }
 
 control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
-    apply{
+    apply {
         packet.emit(hdr.packet_in);
         packet.emit(hdr.ethernet);
         packet.emit(hdr.vlan_tag);

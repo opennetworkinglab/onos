@@ -36,8 +36,15 @@ const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<16> ETHERTYPE_IPV6 = 0x86dd;
 const bit<16> ETHERTYPE_ARP  = 0x0806;
 
-const bit<4> IP_VERSION_4 = 4;
-const bit<4> IP_VERSION_6 = 6;
+#ifndef IP_VER_LENGTH
+#define IP_VER_LENGTH 4
+#endif
+#ifndef IP_VERSION_4
+#define IP_VERSION_4 4
+#endif
+#ifndef IP_VERSION_6
+#define IP_VERSION_6 6
+#endif
 
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;

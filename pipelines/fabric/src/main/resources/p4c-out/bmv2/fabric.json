@@ -254,12 +254,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5]
   ],
   "enums" : [],
   "parsers" : [
@@ -672,7 +672,7 @@
       "name" : "deparser",
       "id" : 0,
       "source_info" : {
-        "filename" : "include/parser.p4",
+        "filename" : "./include/parser.p4",
         "line" : 164,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
@@ -746,9 +746,9 @@
       "name" : "port_counters_control.egress_port_counter",
       "id" : 10,
       "source_info" : {
-        "filename" : "include/control/port_counter.p4",
+        "filename" : "./include/control/port_counter.p4",
         "line" : 23,
-        "column" : 38,
+        "column" : 48,
         "source_fragment" : "egress_port_counter"
       },
       "size" : 511,
@@ -758,9 +758,9 @@
       "name" : "port_counters_control.ingress_port_counter",
       "id" : 11,
       "source_info" : {
-        "filename" : "include/control/port_counter.p4",
+        "filename" : "./include/control/port_counter.p4",
         "line" : 24,
-        "column" : 38,
+        "column" : 48,
         "source_fragment" : "ingress_port_counter"
       },
       "size" : 511,
@@ -773,7 +773,7 @@
       "name" : "calc",
       "id" : 0,
       "source_info" : {
-        "filename" : "include/checksum.p4",
+        "filename" : "./include/checksum.p4",
         "line" : 56,
         "column" : 8,
         "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
@@ -830,7 +830,7 @@
       "name" : "calc_0",
       "id" : 1,
       "source_info" : {
-        "filename" : "include/checksum.p4",
+        "filename" : "./include/checksum.p4",
         "line" : 28,
         "column" : 8,
         "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
@@ -949,7 +949,7 @@
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 31,
             "column" : 8,
             "source_fragment" : "mark_to_drop()"
@@ -980,7 +980,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 35,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
@@ -1007,7 +1007,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setValid()"
@@ -1026,7 +1026,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.cfi = 0"
@@ -1045,7 +1045,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 43,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.pri = 0"
@@ -1064,7 +1064,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 44,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.ether_type = hdr.ethernet.ether_type"
@@ -1083,7 +1083,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 32,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
@@ -1102,7 +1102,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 35,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id; ..."
@@ -1131,7 +1131,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = true"
@@ -1162,7 +1162,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 53,
             "column" : 8,
             "source_fragment" : "fabric_metadata.fwd_type = fwd_type"
@@ -1179,7 +1179,7 @@
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 37,
             "column" : 8,
             "source_fragment" : "mark_to_drop()"
@@ -1210,7 +1210,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
@@ -1241,7 +1241,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
@@ -1272,7 +1272,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
@@ -1303,7 +1303,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
@@ -1330,7 +1330,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setInvalid()"
@@ -1349,7 +1349,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 46,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
@@ -1375,7 +1375,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 50,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = 255"
@@ -1406,7 +1406,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num"
@@ -1441,7 +1441,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 37,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
@@ -1470,7 +1470,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 40,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = false"
@@ -1489,7 +1489,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -1528,7 +1528,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -1547,7 +1547,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
@@ -1566,7 +1566,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -1605,7 +1605,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -1624,7 +1624,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
@@ -1643,7 +1643,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -1678,7 +1678,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 59,
             "column" : 8,
             "source_fragment" : "standard_metadata.mcast_grp = gid"
@@ -1697,7 +1697,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -1740,7 +1740,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -1759,7 +1759,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
@@ -1778,7 +1778,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -1793,7 +1793,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 65,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
@@ -1812,7 +1812,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 33,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
@@ -1831,7 +1831,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 67,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
@@ -1850,7 +1850,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 68,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
@@ -1869,7 +1869,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 69,
             "column" : 8,
             "source_fragment" : "hdr.mpls.bos = 1w1"
@@ -1888,8 +1888,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
-            "line" : 60,
+            "filename" : "./include/control/../define.p4",
+            "line" : 67,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -1931,7 +1931,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -1950,7 +1950,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
@@ -1969,7 +1969,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -1984,7 +1984,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 65,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
@@ -2003,7 +2003,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 33,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
@@ -2022,7 +2022,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 67,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
@@ -2041,7 +2041,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 68,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
@@ -2060,7 +2060,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 69,
             "column" : 8,
             "source_fragment" : "hdr.mpls.bos = 1w1"
@@ -2079,8 +2079,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
-            "line" : 60,
+            "filename" : "./include/control/../define.p4",
+            "line" : 67,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2122,7 +2122,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 45,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
@@ -2141,7 +2141,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
@@ -2160,7 +2160,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
@@ -2175,7 +2175,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 65,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
@@ -2194,7 +2194,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 33,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
@@ -2213,7 +2213,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 67,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
@@ -2232,7 +2232,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 68,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
@@ -2251,7 +2251,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 69,
             "column" : 8,
             "source_fragment" : "hdr.mpls.bos = 1w1"
@@ -2270,8 +2270,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
-            "line" : 60,
+            "filename" : "./include/control/../define.p4",
+            "line" : 67,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2296,7 +2296,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 26,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec = hdr.packet_out.egress_port"
@@ -2311,7 +2311,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 27,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.setInvalid()"
@@ -2337,7 +2337,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 35,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
@@ -2356,7 +2356,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/../define.p4",
+            "filename" : "./include/control/../define.p4",
             "line" : 35,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
@@ -2465,7 +2465,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 140,
             "column" : 20,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
@@ -2517,7 +2517,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/port_counter.p4",
+            "filename" : "./include/control/port_counter.p4",
             "line" : 28,
             "column" : 12,
             "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
@@ -2569,7 +2569,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/port_counter.p4",
+            "filename" : "./include/control/port_counter.p4",
             "line" : 31,
             "column" : 12,
             "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
@@ -2595,7 +2595,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 162,
             "column" : 12,
             "source_fragment" : "hdr.ethernet.ether_type = hdr.vlan_tag.ether_type"
@@ -2610,7 +2610,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 163,
             "column" : 12,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
@@ -2632,7 +2632,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 39,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
@@ -2651,7 +2651,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 40,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
@@ -2699,7 +2699,7 @@
           "name" : "filtering.ingress_port_vlan",
           "id" : 1,
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 57,
             "column" : 10,
             "source_fragment" : "ingress_port_vlan"
@@ -2747,7 +2747,7 @@
           "name" : "filtering.fwd_classifier",
           "id" : 2,
           "source_info" : {
-            "filename" : "include/control/filtering.p4",
+            "filename" : "./include/control/filtering.p4",
             "line" : 76,
             "column" : 10,
             "source_fragment" : "fwd_classifier"
@@ -2792,7 +2792,7 @@
           "name" : "forwarding.bridging",
           "id" : 3,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 53,
             "column" : 10,
             "source_fragment" : "bridging"
@@ -2833,7 +2833,7 @@
           "name" : "forwarding.mpls",
           "id" : 4,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 65,
             "column" : 10,
             "source_fragment" : "mpls"
@@ -2892,7 +2892,7 @@
           "name" : "forwarding.unicast_v4",
           "id" : 6,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 76,
             "column" : 10,
             "source_fragment" : "unicast_v4"
@@ -2928,7 +2928,7 @@
           "name" : "forwarding.multicast_v4",
           "id" : 7,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 87,
             "column" : 10,
             "source_fragment" : "multicast_v4"
@@ -2969,9 +2969,9 @@
           "name" : "forwarding.acl",
           "id" : 8,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 127,
-            "column" : 10,
+            "column" : 7,
             "source_fragment" : "acl"
           },
           "key" : [
@@ -3062,7 +3062,7 @@
           "name" : "next.simple",
           "id" : 9,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 89,
             "column" : 10,
             "source_fragment" : "simple"
@@ -3167,7 +3167,7 @@
           "name" : "next.hashed",
           "id" : 13,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 103,
             "column" : 10,
             "source_fragment" : "hashed"
@@ -3200,7 +3200,7 @@
           "name" : "next.broadcast",
           "id" : 14,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 126,
             "column" : 10,
             "source_fragment" : "broadcast"
@@ -3312,11 +3312,11 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["ethernet", "dst_addr"]
+                "value" : ["ipv4", "dst_addr"]
               },
               {
                 "type" : "field",
-                "value" : ["ethernet", "src_addr"]
+                "value" : ["ipv4", "src_addr"]
               },
               {
                 "type" : "field",
@@ -3339,7 +3339,7 @@
           "name" : "node_2",
           "id" : 0,
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 25,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.isValid()"
@@ -3362,7 +3362,7 @@
           "name" : "node_6",
           "id" : 1,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 157,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
@@ -3388,7 +3388,7 @@
           "name" : "node_8",
           "id" : 2,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 158,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
@@ -3414,7 +3414,7 @@
           "name" : "node_11",
           "id" : 3,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 165,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
@@ -3440,7 +3440,7 @@
           "name" : "node_13",
           "id" : 4,
           "source_info" : {
-            "filename" : "include/control/forwarding.p4",
+            "filename" : "./include/control/forwarding.p4",
             "line" : 166,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_MULTICAST"
@@ -3483,7 +3483,7 @@
           "name" : "node_20",
           "id" : 6,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 138,
             "column" : 16,
             "source_fragment" : "!hdr.mpls.isValid()"
@@ -3513,7 +3513,7 @@
           "name" : "node_21",
           "id" : 7,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 139,
             "column" : 19,
             "source_fragment" : "hdr.ipv4.isValid()"
@@ -3536,7 +3536,7 @@
           "name" : "node_25",
           "id" : 8,
           "source_info" : {
-            "filename" : "include/control/port_counter.p4",
+            "filename" : "./include/control/port_counter.p4",
             "line" : 27,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec < 511"
@@ -3562,7 +3562,7 @@
           "name" : "node_27",
           "id" : 9,
           "source_info" : {
-            "filename" : "include/control/port_counter.p4",
+            "filename" : "./include/control/port_counter.p4",
             "line" : 30,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port < 511"
@@ -3588,7 +3588,7 @@
           "name" : "node_29",
           "id" : 10,
           "source_info" : {
-            "filename" : "include/control/next.p4",
+            "filename" : "./include/control/next.p4",
             "line" : 161,
             "column" : 12,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress"
@@ -3650,7 +3650,7 @@
           "name" : "node_33",
           "id" : 11,
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
+            "filename" : "./include/control/packetio.p4",
             "line" : 38,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_port == 255"

@@ -20,8 +20,8 @@
 #include "../header.p4"
 
 control PortCountersControl(inout parsed_headers_t hdr, inout fabric_metadata_t fabric_metadata, inout standard_metadata_t standard_metadata) {
-    counter(MAX_PORTS, CounterType.packets) egress_port_counter;
-    counter(MAX_PORTS, CounterType.packets) ingress_port_counter;
+    counter(MAX_PORTS, CounterType.packets_and_bytes) egress_port_counter;
+    counter(MAX_PORTS, CounterType.packets_and_bytes) ingress_port_counter;
 
     apply {
         if (standard_metadata.egress_spec < MAX_PORTS) {

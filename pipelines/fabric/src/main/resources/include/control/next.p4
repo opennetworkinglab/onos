@@ -103,8 +103,8 @@ control Next (
     table hashed {
         key = {
             fabric_metadata.next_id: exact;
-            hdr.ethernet.dst_addr: selector;
-            hdr.ethernet.src_addr: selector;
+            hdr.ipv4.dst_addr: selector;
+            hdr.ipv4.src_addr: selector;
             fabric_metadata.ip_proto: selector;
             fabric_metadata.l4_src_port: selector;
             fabric_metadata.l4_dst_port: selector;
