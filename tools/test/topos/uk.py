@@ -7,6 +7,11 @@ from mininet.topo import Topo
 class UkTopo( Topo ):
     """Switches projected onto the UK map"""
 
+    def addSwitch( self, name, **opts ):
+        kwargs = { 'protocols' : 'OpenFlow13' }
+        kwargs.update( opts )
+        return super(UkTopo, self).addSwitch( name, **kwargs )
+
     def __init__( self ):
         """Create a topology."""
 
@@ -56,29 +61,29 @@ class UkTopo( Topo ):
         self.addLink( ABYSTW, ABYSTW_host )
 
         # add edges between switches
-        self.addLink( BIRMHM, LIVRPL, bw=10, delay='1.0ms')
-        self.addLink( BIRMHM, YORK,   bw=10, delay='1.0ms')
-        self.addLink( BRISTL, ABYSTW, bw=10, delay='1.0ms')
-        self.addLink( BRISTL, BIRMHM, bw=10, delay='1.0ms')
-        self.addLink( BRISTL, PLYMTH, bw=10, delay='1.0ms')
-        self.addLink( DOVER,  BRGHTN, bw=10, delay='1.0ms')
-        self.addLink( DOVER,  NRWICH, bw=10, delay='1.0ms')
-        self.addLink( LIVRPL, ABYSTW, bw=10, delay='1.0ms')
-        self.addLink( LIVRPL, EDBUGH, bw=10, delay='1.0ms')
-        self.addLink( LONDON, BIRMHM, bw=10, delay='1.0ms')
-        self.addLink( LONDON, BRGHTN, bw=10, delay='1.0ms')
-        self.addLink( LONDON, BRISTL, bw=10, delay='1.0ms')
-        self.addLink( LONDON, BRISTL, bw=10, delay='1.0ms')
-        self.addLink( LONDON, DOVER,  bw=10, delay='1.0ms')
-        self.addLink( LONDON, NRWICH, bw=10, delay='1.0ms')
-        self.addLink( LONDON, PLYMTH, bw=10, delay='1.0ms')
-        self.addLink( LONDON, YORK,   bw=10, delay='1.0ms')
-        self.addLink( LONDON, YORK,   bw=10, delay='1.0ms')
-        self.addLink( NWCSTL, EDBUGH, bw=10, delay='1.0ms')
-        self.addLink( NWCSTL, LIVRPL, bw=10, delay='1.0ms')
-        self.addLink( NWCSTL, YORK,   bw=10, delay='1.0ms')
-        self.addLink( YORK,   LIVRPL, bw=10, delay='1.0ms')
-        self.addLink( YORK,   NRWICH, bw=10, delay='1.0ms')
+        self.addLink( BIRMHM, LIVRPL )
+        self.addLink( BIRMHM, YORK )
+        self.addLink( BRISTL, ABYSTW )
+        self.addLink( BRISTL, BIRMHM )
+        self.addLink( BRISTL, PLYMTH )
+        self.addLink( DOVER,  BRGHTN )
+        self.addLink( DOVER,  NRWICH )
+        self.addLink( LIVRPL, ABYSTW )
+        self.addLink( LIVRPL, EDBUGH )
+        self.addLink( LONDON, BIRMHM )
+        self.addLink( LONDON, BRGHTN )
+        self.addLink( LONDON, BRISTL )
+        self.addLink( LONDON, BRISTL )
+        self.addLink( LONDON, DOVER )
+        self.addLink( LONDON, NRWICH )
+        self.addLink( LONDON, PLYMTH )
+        self.addLink( LONDON, YORK )
+        self.addLink( LONDON, YORK )
+        self.addLink( NWCSTL, EDBUGH )
+        self.addLink( NWCSTL, LIVRPL )
+        self.addLink( NWCSTL, YORK )
+        self.addLink( YORK,   LIVRPL )
+        self.addLink( YORK,   NRWICH )
 
 topos = { 'uk': ( lambda: UkTopo() ) }
 
