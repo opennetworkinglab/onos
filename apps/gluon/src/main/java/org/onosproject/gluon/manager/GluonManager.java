@@ -57,7 +57,7 @@ public class GluonManager {
                 }
             };
 
-    public static Map<String, GluonServer> serverMap = new LinkedHashMap<>();
+    private static Map<String, GluonServer> serverMap = new LinkedHashMap<>();
 
     @Activate
     public void activate() {

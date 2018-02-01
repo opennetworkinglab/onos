@@ -28,7 +28,7 @@ import java.util.Collections;
  */
 public class SimpleFabricCommandCompleter extends AbstractChoicesCompleter {
 
-    public static final List<String> COMMAND_LIST =
+    private static final List<String> COMMAND_LIST =
         Arrays.asList("show", "intents", "reactive-intents", "refresh", "flush");
 
     @Override
