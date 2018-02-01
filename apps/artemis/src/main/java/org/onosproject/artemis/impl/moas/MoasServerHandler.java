@@ -22,7 +22,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.artemis.impl.objects.ArtemisMessage;
 import org.slf4j.Logger;
@@ -77,8 +76,7 @@ public class MoasServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error(ExceptionUtils.getFullStackTrace(cause));
-        cause.printStackTrace();
+        log.error("exceptionCaught()", cause);
         ctx.close();
     }
 

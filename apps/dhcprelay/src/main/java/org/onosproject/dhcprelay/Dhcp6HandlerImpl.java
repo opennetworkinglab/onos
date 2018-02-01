@@ -648,7 +648,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 recordSemaphore.release();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -807,7 +807,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 recordSemaphore.release();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 

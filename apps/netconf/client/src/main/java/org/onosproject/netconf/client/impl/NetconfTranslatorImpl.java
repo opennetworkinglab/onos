@@ -93,8 +93,8 @@ import static org.onosproject.yang.runtime.SerializerHelper.addDataNode;
 @Component(immediate = true)
 public class NetconfTranslatorImpl implements NetconfTranslator {
 
-    private final Logger log = LoggerFactory
-            .getLogger(getClass());
+    private static final Logger log = LoggerFactory
+            .getLogger(NetconfTranslator.class);
 
     private NodeId localNodeId;
 
@@ -354,7 +354,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
             try {
                 rIdBldr = rid.copyBuilder();
             } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
+                log.debug("clone not supported", e);
             }
         } else {
             rIdBldr.addBranchPointSchema("/", null);

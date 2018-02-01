@@ -77,9 +77,9 @@ public class KafkaStorageManager implements KafkaEventStorageService {
         try {
             task = future.get();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            log.warn("consumeEvent()", e);
         }
 
         if (task != null) {

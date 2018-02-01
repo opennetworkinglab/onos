@@ -243,7 +243,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             try {
                 bufferReader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                throw new IllegalStateException(e);
             }
         }
 

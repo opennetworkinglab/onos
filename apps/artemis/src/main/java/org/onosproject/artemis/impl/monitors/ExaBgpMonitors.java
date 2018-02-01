@@ -54,7 +54,7 @@ public class ExaBgpMonitors implements Monitors {
 
             socket.emit("exa_subscribe", parameters);
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.warn("onConenct()", e);
         }
     }
 
@@ -88,7 +88,7 @@ public class ExaBgpMonitors implements Monitors {
                 packetProcessor.processMonitorPacket(message);
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.warn("onExaMessage()", e);
         }
     }
 
@@ -112,7 +112,7 @@ public class ExaBgpMonitors implements Monitors {
                 this.socket.on(Socket.EVENT_PING, args -> socket.emit("pong"));
                 this.socket.on("exa_message", this::onExaMessage);
             } catch (URISyntaxException e) {
-                e.printStackTrace();
+                log.warn("startMonitor()", e);
             }
             this.socket.connect();
         }

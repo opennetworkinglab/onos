@@ -194,7 +194,7 @@ public class NetconfActiveComponent implements DynamicConfigListener {
             return netconfTranslator.editDeviceConfig(
                     deviceId, builder.build(), operationType);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.debug("parseAndEdit()", e);
             return false;
         }
     }

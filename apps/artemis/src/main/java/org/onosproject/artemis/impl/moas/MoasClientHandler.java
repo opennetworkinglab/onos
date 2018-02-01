@@ -24,7 +24,6 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.artemis.ArtemisPacketProcessor;
@@ -69,8 +68,7 @@ public class MoasClientHandler extends ChannelInboundHandlerAdapter {
             ByteBuf buffer = Unpooled.copiedBuffer(jsonInString, CharsetUtil.UTF_8);
             ctx.writeAndFlush(buffer);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            log.warn(ExceptionUtils.getFullStackTrace(e));
+            log.warn("channelActive()", e);
         }
     }
 
@@ -87,8 +85,7 @@ public class MoasClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error(ExceptionUtils.getFullStackTrace(cause));
-        cause.printStackTrace();
+        log.error("exceptionCaught()", cause);
         ctx.close();
     }
 

@@ -109,9 +109,7 @@ public class Ea1000DeviceDescription extends AbstractHandlerBehaviour implements
                 latitudeStr = augmentedSystem.latitude().toPlainString();
             }
         } catch (NetconfException e) {
-            log.error("Unable to retrieve init data from device: " + handler().data().deviceId().toString()
-                    + " Error: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Unable to retrieve init data from device: " + handler().data().deviceId().toString(), e);
         }
 
         DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));

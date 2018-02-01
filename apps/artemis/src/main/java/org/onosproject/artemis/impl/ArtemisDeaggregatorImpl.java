@@ -23,7 +23,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -395,8 +394,7 @@ public class ArtemisDeaggregatorImpl implements ArtemisDeaggregator {
                             ByteBuf buffer = Unpooled.copiedBuffer(jsonInString, CharsetUtil.UTF_8);
                             ctx.writeAndFlush(buffer);
                         } catch (JsonProcessingException e) {
-                            e.printStackTrace();
-                            log.warn(ExceptionUtils.getFullStackTrace(e));
+                            log.warn("processMoasPacket()", e);
                         }
 
                         remoteTunnelIp = IpAddress.valueOf(msg.getLocalIp());

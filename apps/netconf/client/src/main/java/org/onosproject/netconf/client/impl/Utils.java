@@ -108,7 +108,7 @@ public final class Utils {
         try {
             transformer = transformerFactory.newTransformer();
         } catch (TransformerConfigurationException e) {
-            e.printStackTrace();
+            return "";
         }
 
         // Need to omit the xml header and set indent to 4
@@ -122,7 +122,7 @@ public final class Utils {
             try {
                 transformer.transform(xmlInput, xmlOutput);
             } catch (TransformerException e) {
-                e.printStackTrace();
+                return "";
             }
         }
         return xmlOutput.getWriter().toString();

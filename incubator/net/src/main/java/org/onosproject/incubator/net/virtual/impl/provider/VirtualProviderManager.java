@@ -25,6 +25,8 @@ import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistrySer
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +49,7 @@ public class VirtualProviderManager
     private final Map<ProviderId, VirtualProviderService> servicesWithProvider = new HashMap<>();
     private final Map<String, VirtualProvider> providersByScheme = new HashMap<>();
     private final Map<NetworkId, Set<VirtualProviderService>> servicesByNetwork = new HashMap<>();
+    private static Logger log = LoggerFactory.getLogger(VirtualProviderManager.class);
 
     @Override
     public synchronized void registerProvider(VirtualProvider virtualProvider) {
@@ -160,7 +163,7 @@ public class VirtualProviderManager
         try {
             return Class.forName(pramType);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            log.warn("getProviderClass()", e);
         }
 
         return null;

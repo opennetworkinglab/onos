@@ -399,7 +399,7 @@ public class ArtemisConfig extends Config<ApplicationId> {
                 try {
                     asnPath.add(path.getInt(i));
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    log.warn("checkPath", e);
                 }
             }
             // reverse the list to get path starting from origin

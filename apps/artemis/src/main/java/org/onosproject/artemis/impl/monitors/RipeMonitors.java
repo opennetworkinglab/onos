@@ -17,7 +17,6 @@ package org.onosproject.artemis.impl.monitors;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.packet.IpPrefix;
@@ -63,7 +62,7 @@ public class RipeMonitors implements Monitors {
 
             socket.emit("ris_subscribe", parameters);
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.warn("onConnect()", e);
         }
     }
 
@@ -110,8 +109,7 @@ public class RipeMonitors implements Monitors {
                 packetProcessor.processMonitorPacket(message);
             }
         } catch (JSONException e) {
-            log.error(ExceptionUtils.getFullStackTrace(e));
-            e.printStackTrace();
+            log.error("onRisMessage()", e);
         }
         socket.emit("ping");
     }
@@ -129,8 +127,7 @@ public class RipeMonitors implements Monitors {
                 this.socket.on(Socket.EVENT_PONG, args -> socket.emit("ping"));
                 this.socket.on("ris_message", this::onRisMessage);
             } catch (URISyntaxException e) {
-                log.error(ExceptionUtils.getFullStackTrace(e));
-                e.printStackTrace();
+                log.error("startMonitor()", e);
             }
 
             this.socket.connect();

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onosproject.rest.AbstractWebResource;
 
+import java.io.IOException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -88,8 +89,7 @@ public class CastorWebResource  extends AbstractWebResource {
                 get(ArpService.class).createArp(peer);
                 arpResult = ", ARP packet sent, MAC was not known";
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             String result = "Unable to process due to some reason, Try again";
             ObjectNode node = mapper().createObjectNode().put("response", result);
             return ok(node).build();
@@ -117,8 +117,7 @@ public class CastorWebResource  extends AbstractWebResource {
             ObjectMapper mapper = new ObjectMapper();
             Peer peer = mapper.readValue(incomingData, Peer.class);
             get(ConnectivityManagerService.class).deletePeer(peer);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             return Response.status(500).entity("Unable to delete the peer").build();
         }
         String result = "Peer Deleted";
@@ -143,8 +142,7 @@ public class CastorWebResource  extends AbstractWebResource {
             ObjectMapper mapper = new ObjectMapper();
             Peer peer = mapper.readValue(incomingData, Peer.class);
             get(ConnectivityManagerService.class).start(peer);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             return Response.status(500).entity("Unable to add the route server").build();
         }
         String result = "Server Entered";

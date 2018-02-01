@@ -377,7 +377,7 @@ public class HttpSBControllerImpl implements HttpSBController {
                 }
             } }, new java.security.SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
 
         return ClientBuilder.newBuilder().sslContext(sslcontext).hostnameVerifier((s1, s2) -> true).build();
