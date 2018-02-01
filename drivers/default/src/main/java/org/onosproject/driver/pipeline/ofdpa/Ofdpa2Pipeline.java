@@ -100,9 +100,9 @@ import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
+import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
-import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
 
 /**
  * Driver for Broadcom's OF-DPA v2.0 TTP.
@@ -1262,7 +1262,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
                 // we only need the top level group's key to point the flow to it
                 Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
-                if (isNotMplsBos(selector) && group.type().equals(HASHED)) {
+                if (isNotMplsBos(selector) && group.type().equals(SELECT)) {
                     log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
                                      + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
                                      + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
