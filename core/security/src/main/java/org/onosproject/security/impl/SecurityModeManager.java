@@ -186,7 +186,7 @@ public class SecurityModeManager implements SecurityAdminService {
                         appId -> store.isSecured(appId) &&
                                 appAdminService.getState(appId) == ApplicationState.ACTIVE).forEach(appId -> {
                     store.requestPermission(appId, permission);
-                    print("[POLICY VIOLATION] APP: %s / Bundle: %s / Permission: %s ",
+                    log.debug("[POLICY VIOLATION] APP: %s / Bundle: %s / Permission: %s ",
                             appId.name(), location, permission.toString());
                 });
             }
@@ -264,7 +264,7 @@ public class SecurityModeManager implements SecurityAdminService {
     private List<Permission> getMaximumPermissions(ApplicationId appId) {
         Application app = appAdminService.getApplication(appId);
         if (app == null) {
-            print("Unknown application.");
+            log.debug("Unknown application.");
             return null;
         }
         List<Permission> appPerms;
@@ -282,12 +282,6 @@ public class SecurityModeManager implements SecurityAdminService {
         }
 
         return appPerms;
-    }
-
-
-    private void print(String format, Object... args) {
-        System.out.println(String.format("SM-ONOS: " + format, args));
-        log.warn(String.format(format, args));
     }
 
     private PermissionAdmin getPermissionAdmin() {

@@ -213,7 +213,7 @@ public class DpisListCommand extends AbstractShellCommand {
     }
 
     private void printDpiStatisticsJson(int number, DpiStatistics ds) {
-        String index = number < 0 ? String.format("  -  ") : String.format("%5d", number);
+        String index = number < 0 ? "  -  " : String.format("%5d", number);
         if ("".equals(ds.receivedTime())) {
             print("ReceivedTime is null, No valid DPI Statistics!");
             return;
@@ -226,7 +226,7 @@ public class DpisListCommand extends AbstractShellCommand {
 
     private void printDpiStatisticsClass(int number, DpiStatistics ds) {
         String printLine = "";
-        String index = number < 0 ? String.format("  -  ") : String.format("%5d", number);
+        String index = number < 0 ? "  -  " : String.format("%5d", number);
 
         DpiStatInfo dsi = ds.dpiStatInfo();
         if (dsi == null) {

@@ -119,7 +119,7 @@ public class IntentsListCommand extends AbstractShellCommand {
      */
     private static final String SUMMARY_TITLES =
             BOLD + format(
-            "\n%1s%21s%14s%14s%14s%14s%14s%14s%14s%14s%14s%14s",
+            "%n%1s%21s%14s%14s%14s%14s%14s%14s%14s%14s%14s%14s",
             "Intent type",
             "Total",
             "Installed",
@@ -355,7 +355,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             StringBuilder builder = new StringBuilder();
 
             builder.append(format(
-                    "\n%1s%s%14d%14d%14d%14d%14d%14d%14d%14d%14d%14d",
+                    "%n%1s%s%14d%14d%14d%14d%14d%14d%14d%14d%14d%14d",
                     BOLD + intentType + RESET,
                     Strings.padStart(String.valueOf(total),
                                      (32 - intentType.length()),
