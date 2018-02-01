@@ -199,6 +199,7 @@ control spgw_ingress(
 
 
 control spgw_egress(
+        in ipv4_t               ipv4,
         out ipv4_t              gtpu_ipv4,
         out udp_t               gtpu_udp,
         out gtpu_t              gtpu,
@@ -211,8 +212,8 @@ control spgw_egress(
         gtpu_ipv4.version = IP_VERSION_4;
         gtpu_ipv4.ihl = IPV4_MIN_IHL;
         gtpu_ipv4.diffserv = 0;
-        gtpu_ipv4.total_len = ((bit<16>)std_meta.packet_length
-            - ETH_HDR_SIZE + IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
+        gtpu_ipv4.total_len = ipv4.total_len
+                + (IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_ipv4.identification = 0x1513; /* From NGIC */
         gtpu_ipv4.flags = 0;
         gtpu_ipv4.frag_offset = 0;
@@ -225,8 +226,8 @@ control spgw_egress(
         gtpu_udp.setValid();
         gtpu_udp.src_port = UDP_PORT_GTPU;
         gtpu_udp.dst_port = UDP_PORT_GTPU;
-        gtpu_udp.len = ((bit<16>)std_meta.packet_length
-            - ETH_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
+        gtpu_udp.len = ipv4.total_len
+                + (UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_udp.checksum = 0; // Updated later
 
         gtpu.setValid();
@@ -237,7 +238,7 @@ control spgw_egress(
         gtpu.seq_flag = 0;
         gtpu.npdu_flag = 0;
         gtpu.msgtype = GTP_GPDU;
-        gtpu.msglen = ((bit<16>)std_meta.packet_length - ETH_HDR_SIZE);
+        gtpu.msglen = ipv4.total_len;
         gtpu.teid = spgw_meta.teid;
     }
 
@@ -307,6 +308,7 @@ control update_gtpu_checksum(
             HashAlgorithm.csum16
         );
 
+#ifdef WITH_SPGW_UDP_CSUM_UPDATE
         // Compute outer UDP checksum.
         update_checksum_with_payload(gtpu_udp.isValid(),
             {
@@ -327,6 +329,7 @@ control update_gtpu_checksum(
             gtpu_udp.checksum,
             HashAlgorithm.csum16
         );
+#endif // WITH_SPGW_UDP_CSUM_UPDATE
     }
 }
 

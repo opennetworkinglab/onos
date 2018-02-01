@@ -66,7 +66,7 @@ control FabricEgress (inout parsed_headers_t hdr,
     apply {
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
-        spgw_egress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
+        spgw_egress.apply(hdr.ipv4, hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
                           fabric_metadata.spgw, standard_metadata);
 #endif // WITH_SPGW
     }
