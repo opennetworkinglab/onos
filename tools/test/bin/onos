@@ -5,32 +5,28 @@
 
 function _usage () {
 cat << _EOF_
-usage:
- $(basename $0) [-w] [-f] [node]
+usage: $(basename $0) [node [command]]
 
-flags:
-- -w : Waits for ONOS instance to reach run-level 100, i.e. to be fully started.
-- -f : Deprecated - use bash's IFS expansion of positional parameters
+ONOS remote command-line client.
 
-options:
-- [node] : the node to attach to
+Parameters:
+  - node          ip or hostname of cluster node to attach to
+  - command       command to be executed
 
-summary:
- ONOS remote command-line client.
-
- The -w flag depends on 'onos-wait-for-start'. If [node] is unspecified, \$OCI
- is used.
-
+If node is unspecified, the value of \$OCI environment variable is used.
 _EOF_
 }
-[ "$1" = "-h" ] && _usage && exit 0
 
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-. $ONOS_ROOT/tools/build/envDefaults
-. $ONOS_ROOT/tools/test/bin/find-node.sh
+[ "$1" = "-h" -o "$1" = '-?' ] && _usage && exit 0
+[ "$1" = "-w" ] && echo "-w option is deprecated" && shift   # Deprecated
+[ "$1" = "-f" ] && echo "-f option is deprecated" && shift   # Deprecated
 
-[ "$1" = "-w" ] && shift && onos-wait-for-start $1
-[ "$1" = "-f" ] && shift   # Deprecated
+# If ONOS_HOME is set, respect its value.
+# If ONOS_HOME is not set (e.g. in the init or service environment),
+# set it based on this script's path.
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+[ $(dirname $0)/find-node.sh ] && . $(dirname $0)/find-node.sh
+[ -x ${ONOS_HOME}/bin/_find-node ] && . ${ONOS_HOME}/bin/_find-node
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
 
