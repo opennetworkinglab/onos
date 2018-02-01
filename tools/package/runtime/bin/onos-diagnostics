@@ -51,6 +51,7 @@ function usage() {
 }
 
 CLI_COMMANDS=(
+    "feature:repo-list"
     "feature:list"
     "bundle:list"
     "scr:list"
