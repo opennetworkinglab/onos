@@ -53,7 +53,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                 MastershipWebResource.class,
                 InvalidConfigExceptionMapper.class,
                 DpisWebResource.class,
-                DiagnosticsWebResource.class
+                DiagnosticsWebResource.class,
+                UiPreferencesWebResource.class
         );
     }
 }

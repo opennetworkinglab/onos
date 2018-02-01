@@ -52,11 +52,11 @@ public interface UiPreferencesService {
     ObjectNode getPreference(String username, String key);
 
     /**
-     * Sets the named preference for the specified user.
+     * Sets or clears the named preference for the specified user.
      *
      * @param username user name
      * @param key      preference key
-     * @param value    preference value
+     * @param value    preference value; if null it will be cleared
      */
     void setPreference(String username, String key, ObjectNode value);
 
