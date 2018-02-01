@@ -52,7 +52,7 @@ class BgpNotificationMsgVer4 implements BgpNotificationMsg {
     static final int PACKET_MINIMUM_LENGTH = 2;
     static final BgpType MSG_TYPE = BgpType.NOTIFICATION;
     static final byte DEFAULT_ERRORSUBCODE = 0;
-    static final byte[] MARKER = {(byte) 0xff, (byte) 0xff, (byte) 0xff,
+    private static final byte[] MARKER = {(byte) 0xff, (byte) 0xff, (byte) 0xff,
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
             (byte) 0xff, (byte) 0xff, (byte) 0xff };

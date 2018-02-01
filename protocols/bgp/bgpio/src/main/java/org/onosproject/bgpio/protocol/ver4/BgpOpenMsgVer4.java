@@ -77,7 +77,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
     public static final byte SAFI = 71;
     public static final byte RES = 0;
     public static final int FOUR_OCTET_AS_NUM_CAPA_TYPE = 65;
-    public static final byte[] MARKER = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+    private static final byte[] MARKER = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
     public static final BgpHeader DEFAULT_OPEN_HEADER = new BgpHeader(MARKER,

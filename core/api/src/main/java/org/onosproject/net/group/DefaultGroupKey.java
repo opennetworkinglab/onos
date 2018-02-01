@@ -24,7 +24,7 @@ import java.util.Arrays;
  */
 public class DefaultGroupKey implements GroupKey {
     private final byte[] key;
-    protected static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
 
     public DefaultGroupKey(byte[] key) {
         this.key = checkNotNull(key);
