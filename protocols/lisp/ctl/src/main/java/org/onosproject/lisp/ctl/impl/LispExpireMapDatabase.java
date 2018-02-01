@@ -39,7 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public final class LispExpireMapDatabase implements LispMappingDatabase {
 
-    private static final long MINUTE_TO_MS_UNIT = 60 * 1000;
+    private static final long MINUTE_TO_MS_UNIT = 60L * 1000L;
 
     private static final Logger log = getLogger(LispExpireMapDatabase.class);
 

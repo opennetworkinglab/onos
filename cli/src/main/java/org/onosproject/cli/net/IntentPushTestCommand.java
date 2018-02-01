@@ -134,7 +134,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         List<Intent> intents = Lists.newArrayList();
-        for (int i = 0; i < count; i++) {
+        for (long i = 0; i < count; i++) {
             TrafficSelector selector = selectorBldr
                     .matchEthSrc(MacAddress.valueOf(i + keyOffset))
                     .build();
@@ -167,7 +167,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
         try {
             // In this way with the tests in place the timeout will be
             // 61 seconds.
-            if (latch.await(1000 + count * 60, TimeUnit.MILLISECONDS)) {
+            if (latch.await(1000L + count * 60L, TimeUnit.MILLISECONDS)) {
                 printResults(count);
             } else {
                 print("Failure: %d intents not installed", latch.getCount());

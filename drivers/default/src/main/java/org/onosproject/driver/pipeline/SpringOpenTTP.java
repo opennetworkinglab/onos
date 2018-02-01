@@ -144,7 +144,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         // ONOS-3579 workaround, let core threads die out on idle
         if (GROUP_CHECKER instanceof ScheduledThreadPoolExecutor) {
             ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) GROUP_CHECKER;
-            executor.setKeepAliveTime(CHECK_DELAY * 2, TimeUnit.MILLISECONDS);
+            executor.setKeepAliveTime(CHECK_DELAY * 2L, TimeUnit.MILLISECONDS);
             executor.allowCoreThreadTimeOut(true);
         }
     }

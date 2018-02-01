@@ -49,7 +49,7 @@ public class BgpKeepAliveTimer {
     public BgpKeepAliveTimer(BgpChannelHandler h, int seconds) {
         this.handler = h;
         this.keepAliveTimer = new Timer();
-        this.keepAliveTimer.schedule(new SendKeepAlive(), 0, seconds * 1000);
+        this.keepAliveTimer.schedule(new SendKeepAlive(), 0, seconds * 1000L);
     }
 
     /**

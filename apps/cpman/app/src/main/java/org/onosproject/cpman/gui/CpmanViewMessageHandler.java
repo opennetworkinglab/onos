@@ -179,7 +179,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                     local.put(StringUtils.lowerCase(cmt.name()), data.get(cmt)[i]);
                 }
 
-                String calculated = time.minusMinutes(numOfDp - i).format(TIME_FORMAT);
+                String calculated = time.minusMinutes((long) numOfDp - i).format(TIME_FORMAT);
 
                 local.put(LABEL, calculated);
                 populateMetric(cm.addDataPoint(calculated), local);

@@ -419,7 +419,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     //TODO consider renaming KBPS and MBPS (as they are used to convert by division)
     private static final long KBPS = 1_000;
-    private static final long MBPS = 1_000 * 1_000;
+    private static final long MBPS = 1_000L * 1_000L;
     private static final Frequency FREQ50 = Frequency.ofGHz(50);
     private static final Frequency FREQ191_7 = Frequency.ofGHz(191_700);
     private static final Frequency FREQ4_4 = Frequency.ofGHz(4_400);

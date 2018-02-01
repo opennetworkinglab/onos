@@ -288,7 +288,7 @@ public class IntentPerfInstaller {
         }
 
         try {
-            workers.awaitTermination(5 * cyclePeriod, TimeUnit.MILLISECONDS);
+            workers.awaitTermination(5L * cyclePeriod, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             log.warn("Failed to stop worker", e);
         }

@@ -143,7 +143,7 @@ public final class DefaultTokenBucket implements TokenBucket, TokenBucketEntry {
 
         private long rate;
         // Default to 2 * MTU
-        private long burstSize = 2 * 1500;
+        private long burstSize = 2L * 1500L;
         private Action action;
         private short dscp;
         private Type type;

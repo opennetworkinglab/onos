@@ -121,7 +121,7 @@ public class IntentCycleCommand extends AbstractShellCommand
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         List<Intent> intents = Lists.newArrayList();
-        for (int i = 0; i < count; i++) {
+        for (long i = 0; i < count; i++) {
             TrafficSelector selector = selectorBldr
                     .matchEthSrc(MacAddress.valueOf(i + keyOffset))
                     .build();

@@ -48,7 +48,7 @@ public class TransactionManager {
     private final PartitionService partitionService;
     private final List<PartitionId> sortedPartitions;
     private final AsyncConsistentMap<TransactionId, Transaction.State> transactions;
-    private final int cacheSize;
+    private final long cacheSize;
     private final int buckets;
     private final Map<PartitionId, Cache<String, CachedMap>> partitionCache = Maps.newConcurrentMap();
 

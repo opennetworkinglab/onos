@@ -160,8 +160,8 @@ public class IntentCleanup implements Runnable, IntentListener {
                 }
             };
             // Convert to ms
-            periodMs = period * 1_000;
-            periodMsForStuck = INSTALLING_WITHDRAWING_PERIOD * 1000;
+            periodMs = period * 1_000L;
+            periodMsForStuck = INSTALLING_WITHDRAWING_PERIOD * 1000L;
             // Schedule the executions
             timer.scheduleAtFixedRate(timerTask, periodMs, periodMs);
         }

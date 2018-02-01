@@ -254,7 +254,7 @@ public class TeTunnelCtl {
 
     private TeTunnelKey getNextTeTunnelKey(TeTopologyKey key) {
         //FIXME need a better way to get a te tunnel id
-        long teTunnelId = teTunnelService.getTeTunnels(key).size() + 1;
+        long teTunnelId = teTunnelService.getTeTunnels(key).size() + 1L;
         return new TeTunnelKey(key, teTunnelId);
     }
 

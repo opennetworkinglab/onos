@@ -36,7 +36,7 @@ public class PortStatsCollector {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int SECONDS = 1000;
+    private static final long SECONDS = 1000L;
 
     private OpenFlowSwitch sw;
     private Timer timer;

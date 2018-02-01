@@ -167,7 +167,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
                 return publicIpAddress;
             }
 
-            int prefixLen = prefix.getKey().prefixLength();
+            double prefixLen = prefix.getKey().prefixLength();
             int availableIpNum = (int) Math.pow(2,
                     IpPrefix.MAX_INET_MASK_LENGTH - prefixLen) - 1;
             for (int i = 1; i <= availableIpNum; i++) {

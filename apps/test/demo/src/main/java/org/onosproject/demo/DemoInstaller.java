@@ -588,7 +588,7 @@ public class DemoInstaller implements DemoApi {
             FlowRuleOperations.Builder remove = FlowRuleOperations.builder();
 
             for (Device d : devices) {
-                for (int i = 0; i < this.flowPerDevice; i++) {
+                for (long i = 0; i < this.flowPerDevice; i++) {
                     sbuilder = DefaultTrafficSelector.builder();
 
                     sbuilder.matchEthSrc(MacAddress.valueOf(RandomUtils.nextInt() * i))
@@ -771,7 +771,7 @@ public class DemoInstaller implements DemoApi {
                 TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
                 tbuilder.add(Instructions.createOutput(PortNumber.portNumber(2)));
                 TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-                sbuilder.matchInPort(PortNumber.portNumber(i + 3));
+                sbuilder.matchInPort(PortNumber.portNumber(i + 3L));
                 sbuilder.matchEthDst(MacAddress.valueOf("12:00:00:00:00:10"));
 
                 FilteringObjective.Builder fobBuilder = DefaultFilteringObjective.builder();

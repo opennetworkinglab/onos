@@ -426,7 +426,7 @@ public final class JuniperUtils {
         Matcher matcher = SPEED_PATTERN.matcher(s);
         if (matcher.matches()) {
             // numeric
-            int n = Integer.parseInt(matcher.group(1));
+            long n = Long.parseLong(matcher.group(1));
             String unit = matcher.group(2);
             if ("m".equalsIgnoreCase(unit)) {
                 // Mbps

@@ -474,7 +474,7 @@ public class FlowRuleManager
                 return true;
             }
 
-            final long timeout = storedRule.timeout() * 1000;
+            final long timeout = storedRule.timeout() * 1000L;
             final long currentTime = System.currentTimeMillis();
 
             // Checking flow with hardTimeout
@@ -484,7 +484,7 @@ public class FlowRuleManager
                     firstSeen.put(storedRule, currentTime);
                 } else {
                     Long first = firstSeen.get(storedRule);
-                    final long hardTimeout = storedRule.hardTimeout() * 1000;
+                    final long hardTimeout = storedRule.hardTimeout() * 1000L;
                     if ((currentTime - first) > hardTimeout) {
                         return false;
                     }

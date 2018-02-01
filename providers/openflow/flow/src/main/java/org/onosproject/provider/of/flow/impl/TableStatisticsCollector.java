@@ -33,7 +33,7 @@ class TableStatisticsCollector implements SwitchDataCollector {
 
     private final Logger log = getLogger(getClass());
 
-    public static final int SECONDS = 1000;
+    public static final long SECONDS = 1000L;
 
     private final OpenFlowSwitch sw;
     private Timer timer;

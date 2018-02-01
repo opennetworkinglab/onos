@@ -245,7 +245,7 @@ public class DefaultTl1Controller implements Tl1Controller {
                     // ctag is just in front of it
                     int ctag = Integer.parseInt(words[i - 1]);
                     // We return everything that follows to the caller (this will lose line breaks and such)
-                    String result = Arrays.stream(words).skip(i + 1).collect(Collectors.joining());
+                    String result = Arrays.stream(words).skip(i + 1L).collect(Collectors.joining());
                     // Set future when command is executed, good or bad
                     Map<Integer, CompletableFuture<String>> msg = msgMap.get(ctx.channel());
                     if (msg != null) {

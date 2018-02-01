@@ -182,7 +182,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     }
 
     private Versioned<ClusterMetadata> blockForMetadata(String metadataUrl) {
-        int iterations = 0;
+        long iterations = 0;
         for (;;) {
             try {
                 Versioned<ClusterMetadata> metadata = fetchMetadata(metadataUrl);

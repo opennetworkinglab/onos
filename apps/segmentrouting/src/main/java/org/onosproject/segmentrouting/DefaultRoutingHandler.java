@@ -64,7 +64,7 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 public class DefaultRoutingHandler {
     private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 5;
-    private static final int RETRY_INTERVAL_MS = 250;
+    private static final long RETRY_INTERVAL_MS = 250L;
     private static final int RETRY_INTERVAL_SCALE = 1;
     private static final long STABLITY_THRESHOLD = 10; //secs
     private static final int UPDATE_INTERVAL = 5; //secs

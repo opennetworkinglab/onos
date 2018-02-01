@@ -96,7 +96,7 @@ public class WipeOutCommand extends AbstractShellCommand {
         intentsToWithdrawn.forEach(intentService::withdraw);
         try {
             // Wait 1.5 seconds for each Intent
-            completableFuture.get(intentsToWithdrawn.size() * 1500, TimeUnit.MILLISECONDS);
+            completableFuture.get(intentsToWithdrawn.size() * 1500L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             print("Got interrupted exception while withdrawn Intents " + e.toString());
         } catch (ExecutionException e) {

@@ -99,7 +99,7 @@ public class LumentumRoadmDiscovery extends AbstractHandlerBehaviour implements 
                                     .set(AnnotationKeys.PORT_NAME, portDirection + "-" + portNumber)
                                     .build();
                             PortDescription p = omsPortDescription(
-                                    PortNumber.portNumber(ports.size() + 1),
+                                    PortNumber.portNumber(ports.size() + 1L),
                                     true,
                                     LumentumSnmpDevice.START_CENTER_FREQ,
                                     LumentumSnmpDevice.END_CENTER_FREQ,
@@ -117,7 +117,7 @@ public class LumentumRoadmDiscovery extends AbstractHandlerBehaviour implements 
                 .set(AnnotationKeys.PORT_NAME, "LINE IN")
                 .build();
         ports.add(omsPortDescription(
-                PortNumber.portNumber(ports.size() + 1),
+                PortNumber.portNumber(ports.size() + 1L),
                 true,
                 LumentumSnmpDevice.START_CENTER_FREQ,
                 LumentumSnmpDevice.END_CENTER_FREQ,
@@ -129,7 +129,7 @@ public class LumentumRoadmDiscovery extends AbstractHandlerBehaviour implements 
                 .set(AnnotationKeys.PORT_NAME, "LINE OUT")
                 .build();
         ports.add(omsPortDescription(
-                PortNumber.portNumber(ports.size() + 1),
+                PortNumber.portNumber(ports.size() + 1L),
                 true,
                 LumentumSnmpDevice.START_CENTER_FREQ,
                 LumentumSnmpDevice.END_CENTER_FREQ,

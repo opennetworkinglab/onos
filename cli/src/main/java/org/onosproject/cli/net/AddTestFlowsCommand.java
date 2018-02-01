@@ -87,7 +87,7 @@ public class AddTestFlowsCommand extends AbstractShellCommand {
         FlowRuleOperations.Builder remove = FlowRuleOperations.builder();
 
         for (Device d : devices) {
-            for (int i = 0; i < flowsPerDevice; i++) {
+            for (long i = 0; i < flowsPerDevice; i++) {
                 sbuilder = DefaultTrafficSelector.builder();
 
                 sbuilder.matchEthSrc(MacAddress.valueOf(RandomUtils.nextInt() * i))

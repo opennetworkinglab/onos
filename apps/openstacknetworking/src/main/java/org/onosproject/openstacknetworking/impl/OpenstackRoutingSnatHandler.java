@@ -86,7 +86,7 @@ public class OpenstackRoutingSnatHandler {
 
     private static final String ERR_PACKETIN = "Failed to handle packet in: ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
-    private static final long TIME_OUT_SNAT_PORT_MS = 120 * 1000;
+    private static final long TIME_OUT_SNAT_PORT_MS = 120L * 1000L;
     private static final int TP_PORT_MINIMUM_NUM = 65000;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
 
