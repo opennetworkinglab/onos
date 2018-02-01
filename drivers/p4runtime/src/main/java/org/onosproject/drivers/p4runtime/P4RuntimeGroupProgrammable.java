@@ -18,6 +18,7 @@ package org.onosproject.drivers.p4runtime;
 
 import com.google.common.collect.Maps;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeGroupMirror;
+import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.Group;
@@ -71,6 +72,10 @@ public class P4RuntimeGroupProgrammable
     // device mirror.
     private boolean checkMirrorBeforeUpdate = true;
 
+    // If true, we avoid querying the device and return what's already known by
+    // the ONOS store.
+    private boolean ignoreDeviceWhenGet = true;
+
     private GroupStore groupStore;
     private P4RuntimeGroupMirror groupMirror;
     private PiGroupTranslator translator;
@@ -104,10 +109,17 @@ public class P4RuntimeGroupProgrammable
         if (!setupBehaviour()) {
             return Collections.emptyList();
         }
-        return pipeconf.pipelineModel().actionProfiles().stream()
-                .map(PiActionProfileModel::id)
-                .flatMap(this::streamGroupsFromDevice)
-                .collect(Collectors.toList());
+        if (!ignoreDeviceWhenGet) {
+            return pipeconf.pipelineModel().actionProfiles().stream()
+                    .map(PiActionProfileModel::id)
+                    .flatMap(this::streamGroupsFromDevice)
+                    .collect(Collectors.toList());
+        } else {
+            return groupMirror.getAll(deviceId).stream()
+                    .map(TimedEntry::entry)
+                    .map(this::forgeGroupEntry)
+                    .collect(Collectors.toList());
+        }
     }
 
     private void processGroupOp(DeviceId deviceId, GroupOperation groupOp) {
