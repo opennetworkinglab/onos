@@ -197,37 +197,36 @@ public class DistributedApplicationStore extends ApplicationArchive
      * Upgrades application versions for existing applications that are stored on disk after an upgrade.
      */
     private void upgradeExistingApplications() {
-        if (upgradeService.isUpgrading() && (upgradeService.isLocalActive() || upgradeService.isLocalUpgraded())) {
-            getApplicationNames().forEach(appName -> {
-                // Only update the application version if the application has already been installed.
-                ApplicationId appId = getId(appName);
-                if (appId != null) {
-                    Application application = getApplication(appId);
-                    if (application != null) {
-                        InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.get(application.id()));
+        getApplicationNames().forEach(appName -> {
+            // Only update the application version if the application has already been installed.
+            ApplicationId appId = getId(appName);
+            if (appId != null) {
+                Application application = getApplication(appId);
+                if (application != null) {
+                    InternalApplicationHolder appHolder = Versioned.valueOrNull(apps.get(application.id()));
 
-                        // Load the application description from disk. If the version doesn't match the persisted
-                        // version, update the stored application with the new version.
-                        ApplicationDescription appDesc = getApplicationDescription(appName);
-                        if (!appDesc.version().equals(application.version())) {
-                            Application newApplication = DefaultApplication.builder(application)
-                                    .withVersion(appDesc.version())
-                                    .build();
-                            InternalApplicationHolder newHolder = new InternalApplicationHolder(
-                                    newApplication, appHolder.state, appHolder.permissions);
-                            apps.put(newApplication.id(), newHolder);
-                        }
+                    // Load the application description from disk. If the version doesn't match the persisted
+                    // version, update the stored application with the new version.
+                    ApplicationDescription appDesc = getApplicationDescription(appName);
+                    if (!appDesc.version().equals(application.version())) {
+                        Application newApplication = DefaultApplication.builder(application)
+                                .withVersion(appDesc.version())
+                                .build();
+                        InternalApplicationHolder newHolder = new InternalApplicationHolder(
+                                newApplication, appHolder.state, appHolder.permissions);
+                        apps.put(newApplication.id(), newHolder);
+                    }
 
-                        // If the application was activated in the previous version, set the local state to active.
-                        if (appHolder.state == ACTIVATED) {
-                            setActive(appName);
-                            updateTime(appName);
-                        }
+                    // If the application was activated in the previous version, set the local state to active.
+                    if (appHolder.state == ACTIVATED) {
+                        setActive(appName);
+                        updateTime(appName);
                     }
                 }
-            });
-        }
+            }
+        });
     }
+
 
     /**
      * Processes existing applications from the distributed map. This is done to
