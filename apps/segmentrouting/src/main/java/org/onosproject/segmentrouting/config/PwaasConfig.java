@@ -215,8 +215,8 @@ public class PwaasConfig extends Config<ApplicationId> {
         if ((!ingressInner.equals(VlanId.NONE) &&
                 ingressOuter.equals(VlanId.NONE) &&
                 !egressOuter.equals(VlanId.NONE))
-           || (!ingressOuter.equals(VlanId.NONE) &&
-                egressOuter.equals(VlanId.NONE) &&
+           || (egressOuter.equals(VlanId.NONE) &&
+                !egressInner.equals(VlanId.NONE) &&
                 !ingressOuter.equals(VlanId.NONE))) {
                 throw new IllegalArgumentException(String.valueOf(String.format("Support for double-tag<->" +
                                                                                 "single-tag is not supported" +

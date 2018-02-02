@@ -108,7 +108,6 @@ public class RIPngEntry extends BasePacket {
 
         return super.equals(that) &&
                 Objects.equals(metric, that.metric) &&
-                Objects.equals(routeTag, that.routeTag) &&
                 Objects.equals(prefixLen, that.prefixLen) &&
                 Arrays.equals(prefix, that.prefix) &&
                 Objects.equals(routeTag, that.routeTag);
