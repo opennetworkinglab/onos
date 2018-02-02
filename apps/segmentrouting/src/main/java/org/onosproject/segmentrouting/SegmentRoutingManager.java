@@ -1478,8 +1478,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case SINK_REMOVED:
                     mcastHandler.processSinkRemoved(event);
                     break;
-                case ROUTE_ADDED:
                 case ROUTE_REMOVED:
+                    mcastHandler.processRouteRemoved(event);
+                    break;
+                case ROUTE_ADDED:
                 default:
                     break;
             }
