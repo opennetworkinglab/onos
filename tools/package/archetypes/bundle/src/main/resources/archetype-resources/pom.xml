@@ -118,7 +118,7 @@
             <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
                 <executions>
                     <execution>
                         <id>cfg</id>
