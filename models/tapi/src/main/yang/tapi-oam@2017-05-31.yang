@@ -80,19 +80,13 @@ module tapi-oam {
             description "none";
         }
         grouping on-demand-measurement-job {
-            container state {
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
             uses tapi-common:local-class;
+            uses tapi-common:admin-state-pac;
             description "none";
         }
         grouping pro-active-measurement-job {
-            container state {
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
             uses tapi-common:local-class;
+            uses tapi-common:admin-state-pac;
             description "none";
         }
         grouping meg {

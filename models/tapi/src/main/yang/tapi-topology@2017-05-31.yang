@@ -31,54 +31,6 @@ module tapi-topology {
                 min-elements 2;
                 description "none";
             }
-            leaf-list node {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
-                }
-                config false;
-                min-elements 2;
-                description "none";
-            }
-            container state {
-                config false;
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
-            container transfer-capacity {
-                config false;
-                uses tapi-common:capacity-pac;
-                description "none";
-            }
-            container transfer-cost {
-                config false;
-                uses transfer-cost-pac;
-                description "none";
-            }
-            container transfer-integrity {
-                config false;
-                uses transfer-integrity-pac;
-                description "none";
-            }
-            container transfer-timing {
-                config false;
-                uses transfer-timing-pac;
-                description "none";
-            }
-            container risk-parameter {
-                config false;
-                uses risk-parameter-pac;
-                description "none";
-            }
-            container validation {
-                config false;
-                uses validation-pac;
-                description "none";
-            }
-            container lp-transition {
-                config false;
-                uses layer-protocol-transition-pac;
-                description "none";
-            }
             leaf-list layer-protocol-name {
                 type tapi-common:layer-protocol-name;
                 config false;
@@ -97,6 +49,14 @@ module tapi-topology {
                 description "none";
             }
             uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:capacity-pac;
+            uses tapi-topology:transfer-cost-pac;
+            uses tapi-topology:transfer-integrity-pac;
+            uses tapi-topology:transfer-timing-pac;
+            uses tapi-topology:risk-parameter-pac;
+            uses tapi-topology:validation-pac;
+            uses tapi-topology:layer-protocol-transition-pac;
             description "The Link object class models effective adjacency between two or more ForwardingDomains (FD). ";
         }
         grouping node {
@@ -125,31 +85,6 @@ module tapi-topology {
                 config false;
                 description "none";
             }
-            container state {
-                config false;
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
-            container transfer-capacity {
-                config false;
-                uses tapi-common:capacity-pac;
-                description "none";
-            }
-            container transfer-cost {
-                config false;
-                uses transfer-cost-pac;
-                description "none";
-            }
-            container transfer-integrity {
-                config false;
-                uses transfer-integrity-pac;
-                description "none";
-            }
-            container transfer-timing {
-                config false;
-                uses transfer-timing-pac;
-                description "none";
-            }
             leaf-list layer-protocol-name {
                 type tapi-common:layer-protocol-name;
                 config false;
@@ -157,6 +92,11 @@ module tapi-topology {
                 description "none";
             }
             uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:capacity-pac;
+            uses tapi-topology:transfer-cost-pac;
+            uses tapi-topology:transfer-integrity-pac;
+            uses tapi-topology:transfer-timing-pac;
             description "The ForwardingDomain (FD) object class models the “ForwardingDomain” topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding. 
                 At the lowest level of recursion, an FD (within a network element (NE)) represents a switch matrix (i.e., a fabric). Note that an NE can encompass multiple switch matrices (FDs). ";
         }
@@ -196,11 +136,9 @@ module tapi-topology {
                 Links that included details in this Pac are often referred to as Transitional Links.";
         }
         grouping node-edge-point {
-            list layer-protocol {
-                key 'local-id';
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
                 config false;
-                min-elements 1;
-                uses tapi-common:layer-protocol;
                 description "none";
             }
             leaf-list aggregated-node-edge-point {
@@ -216,11 +154,6 @@ module tapi-topology {
                 }
                 description "NodeEdgePoint mapped to more than ServiceInterfacePoint (slicing/virtualizing) or a ServiceInterfacePoint mapped to more than one NodeEdgePoint (load balancing/Resilience) should be considered experimental";
             }
-            container state {
-                config false;
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
             leaf link-port-direction {
                 type tapi-common:port-direction;
                 config false;
@@ -232,6 +165,8 @@ module tapi-topology {
                 description "Each LinkEnd of the Link has a role (e.g., symmetric, hub, spoke, leaf, root)  in the context of the Link with respect to the Link function. ";
             }
             uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:termination-pac;
             description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
                 The structure of LTP supports all transport protocols including circuit and packet forms.";
         }
@@ -367,23 +302,11 @@ module tapi-topology {
                 min-elements 2;
                 description "none";
             }
-            container transfer-capacity {
-                uses tapi-common:capacity-pac;
-                description "none";
-            }
-            container transfer-cost {
-                uses transfer-cost-pac;
-                description "none";
-            }
-            container transfer-timing {
-                uses transfer-timing-pac;
-                description "none";
-            }
-            container risk-parameter {
-                uses risk-parameter-pac;
-                description "none";
-            }
             uses tapi-common:resource-spec;
+            uses tapi-common:capacity-pac;
+            uses tapi-topology:transfer-cost-pac;
+            uses tapi-topology:transfer-timing-pac;
+            uses tapi-topology:risk-parameter-pac;
             description "none";
         }
         grouping node-rule-group {
@@ -411,23 +334,11 @@ module tapi-topology {
                 uses inter-rule-group;
                 description "none";
             }
-            container transfer-capacity {
-                uses tapi-common:capacity-pac;
-                description "none";
-            }
-            container transfer-cost {
-                uses transfer-cost-pac;
-                description "none";
-            }
-            container transfer-timing {
-                uses transfer-timing-pac;
-                description "none";
-            }
-            container risk-parameter {
-                uses risk-parameter-pac;
-                description "none";
-            }
             uses tapi-common:resource-spec;
+            uses tapi-common:capacity-pac;
+            uses tapi-topology:transfer-cost-pac;
+            uses tapi-topology:transfer-timing-pac;
+            uses tapi-topology:risk-parameter-pac;
             description "none";
         }
         grouping rule {
@@ -524,16 +435,16 @@ module tapi-topology {
         }
         typedef forwarding-rule {
             type enumeration {
-                enum may-forward-across-group {
+                enum MAY_FORWARD_ACROSS_GROUP {
                     description "none";
                 }
-                enum must-forward-across-group {
+                enum MUST_FORWARD_ACROSS_GROUP {
                     description "none";
                 }
-                enum cannot-forward-across-group {
+                enum CANNOT_FORWARD_ACROSS_GROUP {
                     description "none";
                 }
-                enum no-statement-on-forwarding {
+                enum NO_STATEMENT_ON_FORWARDING {
                     description "none";
                 }
             }
@@ -541,22 +452,22 @@ module tapi-topology {
         }
         typedef rule-type {
             type enumeration {
-                enum forwarding {
+                enum FORWARDING {
                     description "none";
                 }
-                enum capacity {
+                enum CAPACITY {
                     description "none";
                 }
-                enum cost {
+                enum COST {
                     description "none";
                 }
-                enum timing {
+                enum TIMING {
                     description "none";
                 }
-                enum risk {
+                enum RISK {
                     description "none";
                 }
-                enum grouping {
+                enum GROUPING {
                     description "none";
                 }
             }
@@ -575,13 +486,13 @@ module tapi-topology {
         }
         typedef restoration-policy {
             type enumeration {
-                enum per-domain-restoration {
+                enum PER_DOMAIN_RESTORATION {
                     description "none";
                 }
-                enum end-to-end-restoration {
+                enum END_TO_END_RESTORATION {
                     description "none";
                 }
-                enum na {
+                enum NA {
                     description "none";
                 }
             }
@@ -589,25 +500,25 @@ module tapi-topology {
         }
         typedef protection-type {
             type enumeration {
-                enum no-protecton {
+                enum NO_PROTECTON {
                     description "none";
                 }
-                enum one-plus-one-protection {
+                enum ONE_PLUS_ONE_PROTECTION {
                     description "none";
                 }
-                enum one-plus-one-protection-with-dynamic-restoration {
+                enum ONE_PLUS_ONE_PROTECTION_WITH_DYNAMIC_RESTORATION {
                     description "none";
                 }
-                enum permanent-one-plus-one-protection {
+                enum PERMANENT_ONE_PLUS_ONE_PROTECTION {
                     description "none";
                 }
-                enum one-for-one-protection {
+                enum ONE_FOR_ONE_PROTECTION {
                     description "none";
                 }
-                enum dynamic-restoration {
+                enum DYNAMIC_RESTORATION {
                     description "none";
                 }
-                enum pre-computed-restoration {
+                enum PRE_COMPUTED_RESTORATION {
                     description "none";
                 }
             }

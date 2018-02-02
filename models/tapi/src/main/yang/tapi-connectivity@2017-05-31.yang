@@ -50,19 +50,6 @@ module tapi-connectivity {
                     Connection aggregation reflects Node/Topology aggregation. 
                     The FC represents a Cross-Connection in an NE. The Cross-Connection in an NE is not necessarily the lowest level of FC partitioning.";
             }
-            leaf-list supported-link {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
-                }
-                description "An Connection that spans between CEPs that terminate the LayerProtocol usually supports one or more links in the client layer.";
-            }
-            leaf container-node {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
-                }
-                config false;
-                description "none";
-            }
             list route {
                 key 'local-id';
                 config false;
@@ -73,11 +60,6 @@ module tapi-connectivity {
                 key 'local-id';
                 config false;
                 uses switch-control;
-                description "none";
-            }
-            container state {
-                config false;
-                uses tapi-common:operational-state-pac;
                 description "none";
             }
             leaf direction {
@@ -91,15 +73,28 @@ module tapi-connectivity {
                 description "none";
             }
             uses tapi-common:resource-spec;
+            uses tapi-common:operational-state-pac;
             description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
                 At the lowest level of recursion, a FC represents a cross-connection within an NE.";
         }
         grouping connection-end-point {
-            list layer-protocol {
-                key 'local-id';
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf connectivity-service-end-point {
+                type leafref {
+                    path '/tapi-common:context/tapi-connectivity:connectivity-service/tapi-connectivity:end-point/tapi-connectivity:local-id';
+                }
+                description "none";
+            }
+            leaf-list parent-node-edge-point {
+                type leafref {
+                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
+                }
                 config false;
                 min-elements 1;
-                uses tapi-common:layer-protocol;
                 description "none";
             }
             leaf-list client-node-edge-point {
@@ -107,31 +102,6 @@ module tapi-connectivity {
                     path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
                 }
                 config false;
-                description "none";
-            }
-            leaf server-node-edge-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
-                }
-                config false;
-                description "none";
-            }
-            leaf peer-connection-end-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point/tapi-connectivity:uuid';
-                }
-                config false;
-                description "none";
-            }
-            leaf-list associated-route {
-                type leafref {
-                    path '/tapi-common:context/tapi-connectivity:connection/tapi-connectivity:route/tapi-connectivity:local-id';
-                }
-                description "none";
-            }
-            container state {
-                config false;
-                uses tapi-common:operational-state-pac;
                 description "none";
             }
             leaf connection-port-direction {
@@ -145,6 +115,8 @@ module tapi-connectivity {
                 description "Each EP of the FC has a role (e.g., working, protection, protected, symmetric, hub, spoke, leaf, root)  in the context of the FC with respect to the FC function. ";
             }
             uses tapi-common:resource-spec;
+            uses tapi-common:operational-state-pac;
+            uses tapi-common:termination-pac;
             description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
                 The structure of LTP supports all transport protocols including circuit and packet forms.";
         }
@@ -185,10 +157,6 @@ module tapi-connectivity {
                 uses tapi-topology:latency-characteristic;
                 description "The effect on the latency of a queuing process. This only has significant effect for packet based systems and has a complex characteristic.";
             }
-            container route-compute-policy {
-                uses route-compute-policy;
-                description "none";
-            }
             leaf coroute-inclusion {
                 type leafref {
                     path '/tapi-common:context/tapi-connectivity:connectivity-service/tapi-connectivity:uuid';
@@ -203,7 +171,7 @@ module tapi-connectivity {
                 config false;
                 description "none";
             }
-            uses tapi-common:local-class;
+            uses tapi-connectivity:route-compute-policy;
             description "none";
         }
         grouping connectivity-service {
@@ -220,18 +188,6 @@ module tapi-connectivity {
                 config false;
                 description "none";
             }
-            container conn-constraint {
-                uses connectivity-constraint;
-                description "none";
-            }
-            container topo-constraint {
-                uses topology-constraint;
-                description "none";
-            }
-            container state {
-                uses tapi-common:admin-state-pac;
-                description "none";
-            }
             leaf direction {
                 type tapi-common:forwarding-direction;
                 description "none";
@@ -240,37 +196,23 @@ module tapi-connectivity {
                 type tapi-common:layer-protocol-name;
                 description "none";
             }
-            list resilience-constraint {
-                key 'local-id';
-                uses resilience-constraint;
-                description "none";
-            }
             uses tapi-common:service-spec;
+            uses tapi-connectivity:connectivity-constraint;
+            uses tapi-connectivity:topology-constraint;
+            uses tapi-common:admin-state-pac;
+            uses tapi-connectivity:resilience-constraint;
             description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
                 At the lowest level of recursion, a FC represents a cross-connection within an NE.";
         }
         grouping connectivity-service-end-point {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
             leaf service-interface-point {
                 type leafref {
                     path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
                 }
-                description "none";
-            }
-            leaf-list connection-end-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point/tapi-connectivity:uuid';
-                }
-                config false;
-                description "none";
-            }
-            list layer-protocol {
-                key 'local-id';
-                min-elements 1;
-                uses tapi-common:layer-protocol;
-                description "none";
-            }
-            container state {
-                uses tapi-common:admin-state-pac;
                 description "none";
             }
             container capacity {
@@ -290,6 +232,7 @@ module tapi-connectivity {
                 description "To specify the protection role of this Port when create or update ConnectivityService.";
             }
             uses tapi-common:local-class;
+            uses tapi-common:admin-state-pac;
             description "The association of the FC to LTPs is made via EndPoints.
                 The EndPoint (EP) object class models the access to the FC function. 
                 The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.  
@@ -380,11 +323,8 @@ module tapi-connectivity {
                 uses switch;
                 description "none";
             }
-            container control-parameters {
-                uses resilience-constraint;
-                description "none";
-            }
             uses tapi-common:local-class;
+            uses tapi-connectivity:resilience-constraint;
             description "Represents the capability to control and coordinate switches, to add/delete/modify FCs and to add/delete/modify LTPs/LPs so as to realize a protection scheme.";
         }
         grouping resilience-constraint {
@@ -438,7 +378,6 @@ module tapi-connectivity {
                 type tapi-common:layer-protocol-name;
                 description "Indicate which layer this resilience parameters package configured for.";
             }
-            uses tapi-common:local-class;
             description "A list of control parameters to apply to a switch.";
         }
         grouping topology-constraint {
@@ -503,7 +442,6 @@ module tapi-connectivity {
                 config false;
                 description "soft constraint requested by client to indicate the layer(s) of transport connection that it prefers to carry the service. This could be same as the service layer or one of the supported server layers";
             }
-            uses tapi-common:local-class;
             description "none";
         }
         grouping cep-list {
@@ -531,16 +469,16 @@ module tapi-connectivity {
     **********************/ 
         typedef service-type {
             type enumeration {
-                enum point-to-point-connectivity {
+                enum POINT_TO_POINT_CONNECTIVITY {
                     description "none";
                 }
-                enum point-to-multipoint-connectivity {
+                enum POINT_TO_MULTIPOINT_CONNECTIVITY {
                     description "none";
                 }
-                enum multipoint-connectivity {
+                enum MULTIPOINT_CONNECTIVITY {
                     description "none";
                 }
-                enum rooted-multipoint-connectivity {
+                enum ROOTED_MULTIPOINT_CONNECTIVITY {
                     description "none";
                 }
             }
@@ -548,10 +486,10 @@ module tapi-connectivity {
         }
         typedef reversion-mode {
             type enumeration {
-                enum revertive {
+                enum REVERTIVE {
                     description "An FC switched to a lower priority (non-preferred) resource will revert to a higher priority (preferred) resource when that recovers (potentially after some hold-off time).";
                 }
-                enum non-revertive {
+                enum NON-REVERTIVE {
                     description "An FC switched to a lower priority (non-preferred) resource will not revert to a higher priority (preferred) resource when that recovers.";
                 }
             }
@@ -559,19 +497,19 @@ module tapi-connectivity {
         }
         typedef selection-control {
             type enumeration {
-                enum lock-out {
+                enum LOCK_OUT {
                     description "The resource is configured to temporarily not be available for use in the protection scheme(s) it is part of.
                         This overrides all other protection control states including forced.
                         If the item is locked out then it cannot be used under any circumstances.
                         Note: Only relevant when part of a protection scheme.";
                 }
-                enum normal {
+                enum NORMAL {
                     description "none";
                 }
-                enum manual {
+                enum MANUAL {
                     description "none";
                 }
-                enum forced {
+                enum FORCED {
                     description "none";
                 }
             }
@@ -579,25 +517,25 @@ module tapi-connectivity {
         }
         typedef selection-reason {
             type enumeration {
-                enum lockout {
+                enum LOCKOUT {
                     description "none";
                 }
-                enum normal {
+                enum NORMAL {
                     description "none";
                 }
-                enum manual {
+                enum MANUAL {
                     description "none";
                 }
-                enum forced {
+                enum FORCED {
                     description "none";
                 }
-                enum wait-to-revert {
+                enum WAIT_TO_REVERT {
                     description "none";
                 }
-                enum signal-degrade {
+                enum SIGNAL_DEGRADE {
                     description "none";
                 }
-                enum signal-fail {
+                enum SIGNAL_FAIL {
                     description "none";
                 }
             }
@@ -605,13 +543,13 @@ module tapi-connectivity {
         }
         typedef coordinate-type {
             type enumeration {
-                enum no-coordinate {
+                enum NO_COORDINATE {
                     description "none";
                 }
-                enum hold-off-time {
+                enum HOLD_OFF_TIME {
                     description "none";
                 }
-                enum wait-for-notification {
+                enum WAIT_FOR_NOTIFICATION {
                     description "none";
                 }
             }
@@ -619,25 +557,25 @@ module tapi-connectivity {
         }
         typedef route-objective-function {
             type enumeration {
-                enum min-work-route-hop {
+                enum MIN_WORK_ROUTE_HOP {
                     description "none";
                 }
-                enum min-work-route-cost {
+                enum MIN_WORK_ROUTE_COST {
                     description "none";
                 }
-                enum min-work-route-latency {
+                enum MIN_WORK_ROUTE_LATENCY {
                     description "none";
                 }
-                enum min-sum-of-work-and-protection-route-hop {
+                enum MIN_SUM_OF_WORK_AND_PROTECTION_ROUTE_HOP {
                     description "none";
                 }
-                enum min-sum-of-work-and-protection-route-cost {
+                enum MIN_SUM_OF_WORK_AND_PROTECTION_ROUTE_COST {
                     description "none";
                 }
-                enum min-sum-of-work-and-protection-route-latency {
+                enum MIN_SUM_OF_WORK_AND_PROTECTION_ROUTE_LATENCY {
                     description "none";
                 }
-                enum load-balance-max-unused-capacity {
+                enum LOAD_BALANCE_MAX_UNUSED_CAPACITY {
                     description "none";
                 }
             }
@@ -645,19 +583,19 @@ module tapi-connectivity {
         }
         typedef diversity-policy {
             type enumeration {
-                enum srlg {
+                enum SRLG {
                     description "none";
                 }
-                enum srng {
+                enum SRNG {
                     description "none";
                 }
-                enum sng {
+                enum SNG {
                     description "none";
                 }
-                enum node {
+                enum NODE {
                     description "none";
                 }
-                enum link {
+                enum LINK {
                     description "none";
                 }
             }
@@ -665,22 +603,22 @@ module tapi-connectivity {
         }
         typedef protection-role {
             type enumeration {
-                enum work {
+                enum WORK {
                     description "none";
                 }
-                enum protect {
+                enum PROTECT {
                     description "none";
                 }
-                enum protected {
+                enum PROTECTED {
                     description "none";
                 }
-                enum na {
+                enum NA {
                     description "none";
                 }
-                enum work-restore {
+                enum WORK_RESTORE {
                     description "none";
                 }
-                enum protect-restore {
+                enum PROTECT_RESTORE {
                     description "none";
                 }
             }

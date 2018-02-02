@@ -21,18 +21,18 @@ module tapi-eth {
         description "TAPI SDK 2.0-alpha";
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
     }
-    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point/tapi-connectivity:layer-protocol" {
-        uses connection-end-point-lp-spec;
-        description "Augments the base LayerProtocol information in ConnectionEndPoint with ETH-specific information";
+    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
+        uses eth-node-edge-point-spec;
+        description "Augments the base LayerProtocol information in NodeEndPoint with ETH-specific information";
     }
-    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:layer-protocol" {
-        uses node-edge-point-lp-spec;
-        description "Augments the base LayerProtocol information in NodeEdgePoint with ETH-specific information";
+    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point" {
+        uses eth-connection-end-point-spec;
+        description "Augments the base LayerProtocol information in ConnectionEndPoint with ETH-specific information";
     }
     /***********************
     * package object-classes
     **********************/ 
-        grouping connection-point-and-adapter-pac {
+        grouping eth-ctp-pac {
             leaf-list auxiliary-function-position-sequence {
                 type uint64;
                 description "This attribute indicates the positions (i.e., the relative order) of all the MEP, MIP, and TCS objects which are associated with the CTP.";
@@ -143,25 +143,13 @@ module tapi-eth {
                 description "This attribute models the combination of all CSF related MI signals (MI_CSF_Enable, MI_CSFrdifdi_Enable, MI_CSFdci_Enable) as defined in G.8021.
                     range of type : true, false";
             }
-            container traffic-shaping {
-                uses traffic-shaping-pac;
-                description "none";
-            }
-            container traffic-conditioning {
-                uses traffic-conditioning-pac;
-                description "none";
-            }
+            uses tapi-eth:traffic-shaping-pac;
+            uses tapi-eth:traffic-conditioning-pac;
             description "none";
         }
-        grouping connection-end-point-lp-spec {
-            container termination-spec {
-                uses eth-termination-pac;
-                description "none";
-            }
-            container adapter-spec {
-                uses connection-point-and-adapter-pac;
-                description "none";
-            }
+        grouping eth-connection-end-point-spec {
+            uses tapi-eth:eth-termination-pac;
+            uses tapi-eth:eth-ctp-pac;
             description "none";
         }
         grouping eth-termination-pac {
@@ -173,7 +161,7 @@ module tapi-eth {
                 type vlan-type;
                 description "This attribute models the ETHx/ETH-m _A_Sk_MI_Etype information defined in G.8021.";
             }
-            leaf-list filter-config {
+            leaf-list filter-config-1 {
                 type mac-address;
                 description "This attribute models the ETHx/ETH-m_A_Sk_MI_Filter_Config information defined in G.8021.
                     It indicates the configured filter action for each of the 33 group MAC addresses for control frames.
@@ -232,7 +220,7 @@ module tapi-eth {
             description "none";
         }
         grouping traffic-conditioning-pac {
-            list prio-config-list {
+            list prio-config-list-1 {
                 config false;
                 uses priority-configuration;
                 description "This attribute indicates the Priority Splitter function for the mapping of the Ethernet frame priority (ETH_CI_P) values to the output queue.";
@@ -249,7 +237,7 @@ module tapi-eth {
                     - Coupling flag (CF): 0 or 1
                     - Color mode (CM): color-blind and color-aware.";
             }
-            leaf codirectional {
+            leaf codirectional-1 {
                 type boolean;
                 config false;
                 description "This attribute indicates the direction of the conditioner. The value of true means that the conditioner (modeled as a TCS Sink according to G.8021) is associated with the sink part of the containing CTP. The value of false means that the conditioner (modeled as a TCS Sink according to G.8021) is associated with the source part of the containing CTP.";
@@ -283,11 +271,8 @@ module tapi-eth {
             description "This object class models the ETH traffic shaping function as defined in G.8021.
                 Basic attribute: codirectional, prioConfigList, queueConfigList, schedConfig";
         }
-        grouping node-edge-point-lp-spec {
-            container termination-spec {
-                uses ety-termination-pac;
-                description "none";
-            }
+        grouping eth-node-edge-point-spec {
+            uses tapi-eth:ety-termination-pac;
             description "none";
         }
 
@@ -600,10 +585,10 @@ module tapi-eth {
         }
         typedef admin-state {
             type enumeration {
-                enum lock {
+                enum LOCK {
                     description "none";
                 }
-                enum normal {
+                enum NORMAL {
                     description "none";
                 }
             }
@@ -611,10 +596,10 @@ module tapi-eth {
         }
         typedef colour-mode {
             type enumeration {
-                enum colour-blind {
+                enum COLOUR_BLIND {
                     description "none";
                 }
-                enum colour-aware {
+                enum COLOUR_AWARE {
                     description "none";
                 }
             }
@@ -622,31 +607,31 @@ module tapi-eth {
         }
         typedef csf-config {
             type enumeration {
-                enum disabled {
+                enum DISABLED {
                     description "This literal covers the following states of the CSF related MI informations:
                         - MI_CSF_Enable is false
                         - MI_CSFrdifdi_Enable is false
                         - MI_CSFdci_Enable is false.";
                 }
-                enum enabled {
+                enum ENABLED {
                     description "This literal covers the following states of the CSF related MI informations:
                         - MI_CSF_Enable is true
                         - MI_CSFrdifdi_Enable is false
                         - MI_CSFdci_Enable is false.";
                 }
-                enum enabled-with-rdi-fdi {
+                enum ENABLED_WITH_RDI_FDI {
                     description "This literal covers the following states of the CSF related MI informations:
                         - MI_CSF_Enable is true
                         - MI_CSFrdifdi_Enable is true
                         - MI_CSFdci_Enable is false.";
                 }
-                enum enabled-with-rdi-fdi-dci {
+                enum ENABLED_WITH_RDI_FDI_DCI {
                     description "This literal covers the following states of the CSF related MI informations:
                         - MI_CSF_Enable is true
                         - MI_CSFrdifdi_Enable is true
                         - MI_CSFdci_Enable is true.";
                 }
-                enum enabled-with-dci {
+                enum ENABLED_WITH_DCI {
                     description "This literal covers the following states of the CSF related MI informations:
                         - MI_CSF_Enable is true
                         - MI_CSFrdifdi_Enable is false
@@ -657,46 +642,46 @@ module tapi-eth {
         }
         typedef ety-phy-type {
             type enumeration {
-                enum other {
+                enum OTHER {
                     description "none";
                 }
-                enum unknown {
+                enum UNKNOWN {
                     description "none";
                 }
-                enum none {
+                enum NONE {
                     description "none";
                 }
-                enum 2-base-tl {
+                enum 2BASE_TL {
                     description "none";
                 }
-                enum 10-mbit-s {
+                enum 10MBIT_S {
                     description "none";
                 }
-                enum 10-pass-ts {
+                enum 10PASS_TS {
                     description "none";
                 }
-                enum 100-base-t-4 {
+                enum 100BASE_T4 {
                     description "none";
                 }
-                enum 100-base-x {
+                enum 100BASE_X {
                     description "none";
                 }
-                enum 100-base-t-2 {
+                enum 100BASE_T2 {
                     description "none";
                 }
-                enum 1000-base-x {
+                enum 1000BASE_X {
                     description "none";
                 }
-                enum 1000-base-t {
+                enum 1000BASE_T {
                     description "none";
                 }
-                enum 10-gbase-x {
+                enum 10GBASE-X {
                     description "none";
                 }
-                enum 10-gbase-r {
+                enum 10GBASE_R {
                     description "none";
                 }
-                enum 10-gbase-w {
+                enum 10GBASE_W {
                     description "none";
                 }
             }
@@ -704,13 +689,13 @@ module tapi-eth {
         }
         typedef frame-type {
             type enumeration {
-                enum admit-only-vlan-tagged-frames {
+                enum ADMIT_ONLY_VLAN_TAGGED_FRAMES {
                     description "none";
                 }
-                enum admit-only-untagged-and-priority-tagged-frames {
+                enum ADMIT_ONLY_UNTAGGED_AND_PRIORITY_TAGGED_FRAMES {
                     description "none";
                 }
-                enum admit-all-frames {
+                enum ADMIT_ALL_FRAMES {
                     description "none";
                 }
             }
@@ -718,25 +703,25 @@ module tapi-eth {
         }
         typedef oam-period {
             type enumeration {
-                enum 3-33-ms {
+                enum 3_33MS {
                     description "Default for protection.";
                 }
-                enum 10-ms {
+                enum 10MS {
                     description "none";
                 }
-                enum 100-ms {
+                enum 100MS {
                     description "none";
                 }
-                enum 1-s {
+                enum 1S {
                     description "none";
                 }
-                enum 10-s {
+                enum 10S {
                     description "none";
                 }
-                enum 1-min {
+                enum 1MIN {
                     description "none";
                 }
-                enum 10-min {
+                enum 10MIN {
                     description "none";
                 }
             }
@@ -744,19 +729,19 @@ module tapi-eth {
         }
         typedef pcp-coding {
             type enumeration {
-                enum 8-p-0-d {
+                enum 8P0D {
                     description "none";
                 }
-                enum 7-p-1-d {
+                enum 7P1D {
                     description "none";
                 }
-                enum 6-p-2-d {
+                enum 6P2D {
                     description "none";
                 }
-                enum 5-p-3-d {
+                enum 5P3D {
                     description "none";
                 }
-                enum dei {
+                enum DEI {
                     description "This enumeration value means that all priorities should be drop eligible.
                         DEI = Drop Eligibility Indicator";
                 }
@@ -765,13 +750,13 @@ module tapi-eth {
         }
         typedef vlan-type {
             type enumeration {
-                enum c-tag {
+                enum C_Tag {
                     description "0x8100";
                 }
-                enum s-tag {
+                enum S_Tag {
                     description "0x88a8";
                 }
-                enum i-tag {
+                enum I_Tag {
                     description "88-e7";
                 }
             }

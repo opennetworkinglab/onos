@@ -245,71 +245,71 @@ module tapi-notification {
         }
         typedef notification-type {
             type enumeration {
-                enum object-creation {
+                enum OBJECT_CREATION {
                     description "Not a normal state. The system is unable to determine the correct value.";
                 }
-                enum object-deletion {
+                enum OBJECT_DELETION {
                     description "none";
                 }
-                enum attribute-value-change {
+                enum ATTRIBUTE_VALUE_CHANGE {
                     description "none";
                 }
-                enum alarm-event {
+                enum ALARM_EVENT {
                     description "none";
                 }
-                enum threshold-crossing-alert {
+                enum THRESHOLD_CROSSING_ALERT {
                     description "none";
                 }
             }
-            description "The orientation of flow at the Port of a Forwarding entity";
+            description "List of supported Notifications types.";
         }
         typedef object-type {
             type enumeration {
-                enum topology {
+                enum TOPOLOGY {
                     description "none";
                 }
-                enum node {
+                enum NODE {
                     description "none";
                 }
-                enum link {
+                enum LINK {
                     description "none";
                 }
-                enum connection {
+                enum CONNECTION {
                     description "none";
                 }
-                enum path {
+                enum PATH {
                     description "none";
                 }
-                enum connectivity-service {
+                enum CONNECTIVITY_SERVICE {
                     description "none";
                 }
-                enum virtual-network-service {
+                enum VIRTUAL_NETWORK_SERVICE {
                     description "none";
                 }
-                enum path-computation-service {
+                enum PATH_COMPUTATION_SERVICE {
                     description "none";
                 }
-                enum node-edge-point {
+                enum NODE_EDGE_POINT {
                     description "none";
                 }
-                enum service-interface-point {
+                enum SERVICE_INTERFACE_POINT {
                     description "none";
                 }
-                enum connection-end-point {
+                enum CONNECTION_END_POINT {
                     description "none";
                 }
             }
-            description "The orientation of flow at the Port of a Forwarding entity";
+            description "The list of TAPI Global Object Class types on which Notifications can be raised.";
         }
         typedef source-indicator {
             type enumeration {
-                enum resource-operation {
+                enum RESOURCE_OPERATION {
                     description "none";
                 }
-                enum management-operation {
+                enum MANAGEMENT_OPERATION {
                     description "none";
                 }
-                enum unknown {
+                enum UNKNOWN {
                     description "none";
                 }
             }
@@ -317,10 +317,10 @@ module tapi-notification {
         }
         typedef subscription-state {
             type enumeration {
-                enum suspended {
+                enum SUSPENDED {
                     description "none";
                 }
-                enum active {
+                enum ACTIVE {
                     description "none";
                 }
             }
@@ -328,19 +328,19 @@ module tapi-notification {
         }
         typedef perceived-serverity-type {
             type enumeration {
-                enum critical {
+                enum CRITICAL {
                     description "none";
                 }
-                enum major {
+                enum MAJOR {
                     description "none";
                 }
-                enum minor {
+                enum MINOR {
                     description "none";
                 }
-                enum warning {
+                enum WARNING {
                     description "none";
                 }
-                enum cleared {
+                enum CLEARED {
                     description "none";
                 }
             }
@@ -348,13 +348,13 @@ module tapi-notification {
         }
         typedef threshold-crossing-type {
             type enumeration {
-                enum threshold-above {
+                enum THRESHOLD_ABOVE {
                     description "none";
                 }
-                enum threshold-below {
+                enum THRESHOLD_BELOW {
                     description "none";
                 }
-                enum cleared {
+                enum CLEARED {
                     description "none";
                 }
             }
@@ -362,13 +362,13 @@ module tapi-notification {
         }
         typedef service-affecting {
             type enumeration {
-                enum service-affecting {
+                enum SERVICE_AFFECTING {
                     description "none";
                 }
-                enum not-service-affecting {
+                enum NOT_SERVICE_AFFECTING {
                     description "none";
                 }
-                enum unknown {
+                enum UNKNOWN {
                     description "none";
                 }
             }
