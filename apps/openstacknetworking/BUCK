@@ -1,14 +1,20 @@
 COMPILE_DEPS = [
-  '//lib:CORE_DEPS',
-  '//lib:JACKSON',
-  '//lib:KRYO',
-  '//core/store/serializers:onos-core-serializers',
-  '//lib:org.apache.karaf.shell.console',
-  '//lib:javax.ws.rs-api',
-  '//utils/rest:onlab-rest',
-  '//cli:onos-cli',
-  '//apps/openstacknode/api:onos-apps-openstacknode-api',
-  '//lib:openstack4j-core',
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:org.apache.karaf.shell.console',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//cli:onos-cli',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api',
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
+    '//lib:json-patch',
+    '//lib:jackson-coreutils',
+    '//lib:btf',
+    '//lib:msg-simple',
 ]
 
 TEST_DEPS = [
@@ -17,23 +23,43 @@ TEST_DEPS = [
     '//core/common:onos-core-common-tests',
 ]
 
+BUNDLES = [
+    '//apps/openstacknetworking:onos-apps-openstacknetworking',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
+    '//lib:json-patch',
+    '//lib:jackson-coreutils',
+    '//lib:btf',
+    '//lib:msg-simple',
+    '//lib:spifly-bundle',
+    '//lib:spifly-weaver',
+    '//lib:spifly-core',
+    '//lib:aries-util',
+]
+
 osgi_jar_with_tests (
-  deps = COMPILE_DEPS,
-  test_deps = TEST_DEPS,
-  web_context = '/onos/openstacknetworking',
-  api_title = 'OpenStack Networking API',
-  api_version = '1.0',
-  api_description = 'REST API for OpenStack Networking',
-  api_package = 'org.onosproject.openstacknetworking.web',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/openstacknetworking',
+    api_title = 'OpenStack Networking API',
+    api_version = '1.0',
+    api_description = 'REST API for OpenStack Networking',
+    api_package = 'org.onosproject.openstacknetworking.web',
 )
 
 onos_app (
-  app_name = 'org.onosproject.openstacknetworking',
-  title = 'OpenStack Networking',
-  category = 'Utility',
-  url = 'http://onosproject.org',
-  description = 'OpenStack Networking application.',
-  required_apps = [
-    'org.onosproject.openstacknode'
-  ]
+    app_name = 'org.onosproject.openstacknetworking',
+    title = 'OpenStack Networking',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
+    description = 'OpenStack Networking application.',
+    required_apps = [
+        'org.onosproject.openstacknode'
+    ]
 )

@@ -150,17 +150,37 @@
         <dependency>
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j-core</artifactId>
-            <version>2.11</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.pacesys.openstack4j.connectors</groupId>
             <artifactId>openstack4j-http-connector</artifactId>
-            <version>2.11</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.pacesys.openstack4j.connectors</groupId>
             <artifactId>openstack4j-httpclient</artifactId>
-            <version>2.11</version>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>json-patch</artifactId>
+            <version>1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>jackson-coreutils</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>btf</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>msg-simple</artifactId>
+            <version>1.1</version>
         </dependency>
     </dependencies>
 
@@ -212,7 +232,11 @@
                         <Embed-Dependency>
                             openstack4j-core,
                             openstack4j-http-connector,
-                            openstack4j-httpclient
+                            openstack4j-httpclient,
+                            json-patch,
+                            jackson-coreutils,
+                            btf,
+                            msg-simple
                         </Embed-Dependency>
                     </instructions>
                 </configuration>

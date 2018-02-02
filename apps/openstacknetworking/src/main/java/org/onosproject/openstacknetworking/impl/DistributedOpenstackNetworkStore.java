@@ -38,6 +38,8 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.openstack4j.model.network.IPVersionType;
+import org.openstack4j.model.network.Ipv6AddressMode;
+import org.openstack4j.model.network.Ipv6RaMode;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
@@ -95,6 +97,8 @@ public class DistributedOpenstackNetworkStore
             .register(NeutronPool.class)
             .register(NeutronHostRoute.class)
             .register(IPVersionType.class)
+            .register(Ipv6AddressMode.class)
+            .register(Ipv6RaMode.class)
             .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

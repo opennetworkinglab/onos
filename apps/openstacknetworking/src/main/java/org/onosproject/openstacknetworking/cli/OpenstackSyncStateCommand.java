@@ -28,7 +28,7 @@ import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminServic
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
-import org.openstack4j.model.identity.Access;
+import org.openstack4j.model.identity.v2.Access;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
@@ -90,7 +90,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
         Access osAccess;
         try {
-            osAccess = OSFactory.builder()
+            osAccess = OSFactory.builderV2()
                     .endpoint(this.endpoint)
                     .tenantName(this.tenant)
                     .credentials(this.user, this.password)
