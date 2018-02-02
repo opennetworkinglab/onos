@@ -1471,6 +1471,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                         if (((OFErrorMsg) msg).getErrType() == OFErrorType.PORT_MOD_FAILED) {
                             LOG.error("port mod failed");
                         }
+                        break;
                     default:
                         break;
                 }

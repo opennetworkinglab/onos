@@ -465,6 +465,7 @@ public class ArtemisDeaggregatorImpl implements ArtemisDeaggregator {
 
                         installRules();
                     }
+                    break;
                 }
                 default:
             }

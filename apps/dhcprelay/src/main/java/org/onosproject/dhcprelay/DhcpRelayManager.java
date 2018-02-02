@@ -625,6 +625,7 @@ public class DhcpRelayManager implements DhcpRelayService {
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
                     deviceAvailabilityChanged(device);
+                    break;
                 default:
                     break;
             }

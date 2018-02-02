@@ -163,6 +163,7 @@ public class CfmMdListMdCommand extends AbstractShellCommand {
                 break;
             case TWOOCTET:
                 maId = MaId2Octet.asMaId(nameParts[0]);
+                break;
             case CHARACTERSTRING:
             default:
                 maId = MaIdCharStr.asMaId(nameParts[0]);

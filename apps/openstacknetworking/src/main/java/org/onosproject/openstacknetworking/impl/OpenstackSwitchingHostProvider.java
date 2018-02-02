@@ -248,6 +248,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                                 event.subject().id());
                         processPortRemoved(event.port());
                     });
+                    break;
                 default:
                     break;
             }

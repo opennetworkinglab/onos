@@ -251,6 +251,7 @@ public class VplsConfigManager {
                     case CONFIG_REMOVED:
                     case CONFIG_UNREGISTERED:
                         vpls.removeAllVpls();
+                        break;
                     default:
                         break;
                 }

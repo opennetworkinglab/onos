@@ -194,8 +194,10 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(sessionEstablishmentFailureMap.get(sessionFailureKey));
                                 }
                             }
+                            break;
                         case CAPABALITYNOTSUPPORTED:
                             System.out.print("Capability not supported");
+                            break;
                         case UNKNOWNOBJECT:
                             unknownObjectMap =  pcepErrorDetail.unknownObject();
                             Set<Integer> unknownObjectKeySet = unknownObjectMap.keySet();
@@ -204,6 +206,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(unknownObjectMap.get(unknownObjectKey));
                                 }
                             }
+                            break;
                         case NOTSUPPORTEDOBJECT:
                             notSupportedObjectMap =  pcepErrorDetail.notSupportedObject();
                             Set<Integer> notSupportedObjectKeySet = notSupportedObjectMap.keySet();
@@ -212,6 +215,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(notSupportedObjectMap.get(notSupportedObjectKey));
                                 }
                             }
+                            break;
                         case POLICYVIOLATION:
                             policyViolationMap =  pcepErrorDetail.policyViolation();
                             Set<Integer> policyViolationKeySet = policyViolationMap.keySet();
@@ -220,6 +224,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(policyViolationMap.get(policyViolationKey));
                                 }
                             }
+                            break;
                         case MANDATORYOBJECTMISSING:
                             mandatoryObjectMissingMap =  pcepErrorDetail.mandatoryObjectMissing();
                             Set<Integer> mandatoryObjectMissingKeySet = mandatoryObjectMissingMap.keySet();
@@ -228,12 +233,16 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(mandatoryObjectMissingMap.get(mandatoryObjectMissingKey));
                                 }
                             }
+                            break;
                         case SYNCHRONIZEDPATHCOMPUTATIONREQUESTMISSING:
                             System.out.print("Synchronized path computation request missing");
+                            break;
                         case UNKNOWNREQUESTREFERENCE:
                             System.out.print("Unknown request reference");
+                            break;
                         case ESTABLISHINGSECONDPCEPSESSION:
                             System.out.print("Attempt to establish a second PCEP session");
+                            break;
                         case RECEPTIONOFINVALIDOBJECT:
                             receptionOfInvalidObjectMap =  pcepErrorDetail.receptionOfInvalidObject();
                             Set<Integer> receptionOfInvalidObjectKeySet = receptionOfInvalidObjectMap.keySet();
@@ -242,6 +251,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(receptionOfInvalidObjectMap.get(receptionOfInvalidObjectKey));
                                 }
                             }
+                            break;
                         case INVALIDOPERATION:
                             invalidOperationMap =  pcepErrorDetail.invalidOperation();
                             Set<Integer> invalidOperationKeySet = invalidOperationMap.keySet();
@@ -250,10 +260,13 @@ public class PcepSessionCommand extends AbstractShellCommand {
                                     System.out.print(invalidOperationMap.get(invalidOperationKey));
                                 }
                             }
+                            break;
                         case VIRTUALNETWORKTLVMISSING:
                             System.out.print("VIRTUAL-NETWORK TLV missing");
+                            break;
                         default:
                             System.out.print("Unknown error message");
+                            break;
                     }
                 }
             }

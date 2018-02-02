@@ -1094,6 +1094,7 @@ public class NetL3VpnManager {
                                          .leaderNodeId());
                         leaderChanged(false);
                     }
+                    break;
                 default:
                     break;
             }

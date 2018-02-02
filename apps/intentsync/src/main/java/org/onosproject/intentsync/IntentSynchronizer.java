@@ -305,6 +305,7 @@ public class IntentSynchronizer implements IntentSynchronizationService,
                     log.info("IntentSynchronizer leader changed. New leader is {}", event.subject().leaderNodeId());
                     leaderChanged(false);
                 }
+                break;
             default:
                 break;
             }

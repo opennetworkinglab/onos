@@ -271,6 +271,7 @@ public class CorsaPipelineV39 extends CorsaPipelineV3 {
                     break;
                 case OUTPUT:
                     isPresentOutpuPort = true;
+                    break;
                 default:
             }
         }

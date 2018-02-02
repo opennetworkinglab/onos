@@ -472,25 +472,25 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                             case SRC_ARP_SPA:
                                 return NiciraMoveTreatmentFactory
                                         .createNiciraMovArpSpaToTpa();
-                    case NSH_C1:
-                        return NiciraMoveTreatmentFactory.createNiciraMovNshC1ToC1();
-                    case NSH_C2:
-                        if (Long.valueOf(moveAction.getDst()).intValue() == TUN_ID) {
-                            return NiciraMoveTreatmentFactory.createNiciraMovNshC2ToTunId();
-                        }
-                        return NiciraMoveTreatmentFactory.createNiciraMovNshC2ToC2();
-                    case NSH_C3:
-                        return NiciraMoveTreatmentFactory.createNiciraMovNshC3ToC3();
-                    case NSH_C4:
-                        return NiciraMoveTreatmentFactory.createNiciraMovNshC4ToC4();
-                    case TUN_IPV4_DST:
-                        return NiciraMoveTreatmentFactory.createNiciraMovTunDstToTunDst();
-                    case TUN_ID:
-                        return NiciraMoveTreatmentFactory.createNiciraMovTunIdToTunId();
+                            case NSH_C1:
+                                return NiciraMoveTreatmentFactory.createNiciraMovNshC1ToC1();
+                            case NSH_C2:
+                                if (Long.valueOf(moveAction.getDst()).intValue() == TUN_ID) {
+                                    return NiciraMoveTreatmentFactory.createNiciraMovNshC2ToTunId();
+                                }
+                                return NiciraMoveTreatmentFactory.createNiciraMovNshC2ToC2();
+                            case NSH_C3:
+                                return NiciraMoveTreatmentFactory.createNiciraMovNshC3ToC3();
+                            case NSH_C4:
+                                return NiciraMoveTreatmentFactory.createNiciraMovNshC4ToC4();
+                            case TUN_IPV4_DST:
+                                return NiciraMoveTreatmentFactory.createNiciraMovTunDstToTunDst();
+                            case TUN_ID:
+                                return NiciraMoveTreatmentFactory.createNiciraMovTunIdToTunId();
                             default:
                                 throw new UnsupportedOperationException("Driver does not support move from "
-                                + moveAction.getSrc() + " to " + moveAction.getDst() + "of length "
-                                + moveAction.getNBits());
+                                        + moveAction.getSrc() + " to " + moveAction.getDst() + "of length "
+                                        + moveAction.getNBits());
                         }
                     case SUB_TYPE_RESUBMIT:
                         OFActionNiciraResubmit resubmitAction = (OFActionNiciraResubmit) nicira;
