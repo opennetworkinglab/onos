@@ -23,8 +23,8 @@ import org.onosproject.store.serializers.KryoNamespaces;
  * Raft value events.
  */
 public enum AtomixDistributedLockEvents implements EventType {
-    LOCK("lock"),
-    FAIL("fail");
+    LOCKED("lock"),
+    FAILED("fail");
 
     private final String id;
 
