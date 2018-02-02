@@ -41,6 +41,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -156,8 +157,15 @@ public class DistributedMcastStore
                     }
                     break;
                 case REMOVE:
+                    // Verify old data is not null
+                    checkNotNull(oldData);
+                    // Create a route removed event with just the route
+                    // and the source connect point
                     notifyDelegate(new McastEvent(McastEvent.Type.ROUTE_REMOVED,
-                                                      mcastRouteInfo(route)));
+                                                      mcastRouteInfo(route,
+                                                                     Collections.emptySet(),
+                                                                     oldData.source()
+                                                                     )));
                     break;
                 default:
                     log.warn("Unknown mcast operation type: {}", event.type());

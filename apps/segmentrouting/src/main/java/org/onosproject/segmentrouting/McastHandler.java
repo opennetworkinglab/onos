@@ -264,6 +264,69 @@ public class McastHandler {
     }
 
     /**
+     * Processes the ROUTE_REMOVED event.
+     *
+     * @param event McastEvent with ROUTE_REMOVED type
+     */
+    protected void processRouteRemoved(McastEvent event) {
+        log.info("processRouteRemoved {}", event);
+        McastRouteInfo mcastRouteInfo = event.subject();
+        if (!mcastRouteInfo.source().isPresent()) {
+            log.info("Incompleted McastRouteInfo. Abort.");
+            return;
+        }
+        // Get group ip and ingress connect point
+        IpAddress mcastIp = mcastRouteInfo.route().group();
+        ConnectPoint source = mcastRouteInfo.source().get();
+
+        processRouteRemovedInternal(source, mcastIp);
+    }
+
+    /**
+     * Removes the entire mcast tree related to this group.
+     *
+     * @param mcastIp multicast group IP address
+     */
+    private void processRouteRemovedInternal(ConnectPoint source, IpAddress mcastIp) {
+        lastMcastChange = Instant.now();
+        mcastLock();
+        try {
+            log.debug("Processing route down for group {}", mcastIp);
+
+            // Find out the ingress, transit and egress device of the affected group
+            DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+                    .stream().findAny().orElse(null);
+            DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
+                    .stream().findAny().orElse(null);
+            Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+
+            // Verify leadership on the operation
+            if (!isLeader(source)) {
+                log.debug("Skip {} due to lack of leadership", mcastIp);
+                return;
+            }
+
+            // If there are egress devices, sinks could be only on the ingress
+            if (!egressDevices.isEmpty()) {
+                egressDevices.forEach(
+                        deviceId -> removeGroupFromDevice(deviceId, mcastIp, assignedVlan(null))
+                );
+            }
+            // Transit could be null
+            if (transitDevice != null) {
+                removeGroupFromDevice(transitDevice, mcastIp, assignedVlan(null));
+            }
+            // Ingress device should be not null
+            if (ingressDevice != null) {
+                removeGroupFromDevice(ingressDevice, mcastIp, assignedVlan(source));
+            }
+
+        } finally {
+            mcastUnlock();
+        }
+    }
+
+    /**
      * Removes a path from source to sink for given multicast group.
      *
      * @param source connect point of the multicast source
@@ -275,10 +338,9 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            // Continue only when this instance is the master of source device
-            if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
-                log.debug("Skip {} due to lack of mastership of the source device {}",
-                         mcastIp, source.deviceId());
+            // Verify leadership on the operation
+            if (!isLeader(source)) {
+                log.debug("Skip {} due to lack of leadership", mcastIp);
                 return;
             }
 
@@ -486,24 +548,10 @@ public class McastHandler {
                     return;
                 }
 
-                // Continue only when we have the mastership on the operation
-                if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
-                    // When the source is available we just check the mastership
-                    if (srManager.deviceService.isAvailable(source.deviceId())) {
-                        log.debug("Skip {} due to lack of mastership of the source device {}",
-                                 mcastIp, source.deviceId());
-                        return;
-                    }
-                    // Fallback with Leadership service
-                    // source id is used a topic
-                    NodeId leader = srManager.leadershipService.runForLeadership(
-                            source.deviceId().toString()).leaderNodeId();
-                    // Verify if this node is the leader
-                    if (!srManager.clusterService.getLocalNode().id().equals(leader)) {
-                        log.debug("Skip {} due to lack of leadership on the topic {}",
-                                 mcastIp, source.deviceId());
-                        return;
-                    }
+                // Verify leadership on the operation
+                if (!isLeader(source)) {
+                    log.debug("Skip {} due to lack of leadership", mcastIp);
+                    return;
                 }
 
                 // If it exists, we have to remove it in any case
@@ -1187,6 +1235,26 @@ public class McastHandler {
         } finally {
             mcastUnlock();
         }
+    }
+
+    private boolean isLeader(ConnectPoint source) {
+        // Continue only when we have the mastership on the operation
+        if (!srManager.mastershipService.isLocalMaster(source.deviceId())) {
+            // When the source is available we just check the mastership
+            if (srManager.deviceService.isAvailable(source.deviceId())) {
+                return false;
+            }
+            // Fallback with Leadership service
+            // source id is used a topic
+            NodeId leader = srManager.leadershipService.runForLeadership(
+                    source.deviceId().toString()).leaderNodeId();
+            // Verify if this node is the leader
+            if (!srManager.clusterService.getLocalNode().id().equals(leader)) {
+                return false;
+            }
+        }
+        // Done
+        return true;
     }
 
     /**
