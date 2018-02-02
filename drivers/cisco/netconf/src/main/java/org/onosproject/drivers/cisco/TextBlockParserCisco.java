@@ -94,7 +94,7 @@ final class TextBlockParserCisco {
         String processor = SPACE;
         int i;
         for (i = 0; i < textStr.length; i++) {
-            if (textStr[i].indexOf(PHRASE) > 0) {
+            if (textStr[i].contains(PHRASE)) {
                 String[] lineStr = textStr[i].trim().split(SPACE);
                 processor = lineStr[1];
                 break;
@@ -114,7 +114,7 @@ final class TextBlockParserCisco {
         String[] textStr = version.split(NEWLINE_SPLITTER);
         int i;
         for (i = 0; i < textStr.length; i++) {
-            if (textStr[i].indexOf(VERSION) > 0) {
+            if (textStr[i].contains(VERSION)) {
                 break;
             }
         }
@@ -141,7 +141,7 @@ final class TextBlockParserCisco {
         String[] textStr = version.split(NEWLINE_SPLITTER);
         int i;
         for (i = 0; i < textStr.length; i++) {
-            if (textStr[i].indexOf(PROCESSOR_BOARD) > 0) {
+            if (textStr[i].contains(PROCESSOR_BOARD)) {
                 break;
             }
         }
@@ -264,7 +264,7 @@ final class TextBlockParserCisco {
     private static String getPort(String[] textStr) {
         String port;
         try {
-            if (textStr[0].indexOf(PORT_DELIMITER) > 0) {
+            if (textStr[0].contains(PORT_DELIMITER)) {
                 port = textStr[0].substring(textStr[0].lastIndexOf(PORT_DELIMITER) + 1,
                                             textStr[0].indexOf(SPACE));
             } else {
@@ -286,7 +286,7 @@ final class TextBlockParserCisco {
         String result;
         int lastLine = textStr.length - 1;
         for (int i = 0; i < lastLine; i++) {
-            if ((textStr[i].indexOf(BANDWIDTH) > 0) && (textStr[i].indexOf(SPEED) > 0)) {
+            if (textStr[i].contains(BANDWIDTH) && textStr[i].contains(SPEED)) {
                 result = textStr[i].substring(textStr[i].indexOf(BANDWIDTH) + 3, textStr[i].indexOf(SPEED));
                 portSpeed = Long.valueOf(result);
                 break;

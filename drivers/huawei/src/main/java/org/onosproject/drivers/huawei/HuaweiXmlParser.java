@@ -201,7 +201,7 @@ public final class HuaweiXmlParser {
         if (!portName.contains(DELIMITER)) {
             portInc++;
             port = String.valueOf(portInc) + portName;
-        } else if (portName.indexOf(DELIMITER) > 0) {
+        } else if (portName.contains(DELIMITER)) {
             try {
                 port = portName.substring(
                         portName.lastIndexOf(DELIMITER) + 1);
