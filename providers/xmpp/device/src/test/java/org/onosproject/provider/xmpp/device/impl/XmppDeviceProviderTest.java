@@ -232,12 +232,12 @@ public class XmppDeviceProviderTest {
         }
 
         @java.lang.Override
-        public void addXmppIqListener(XmppIqListener iqListener) {
+        public void addXmppIqListener(XmppIqListener iqListener, String namespace) {
 
         }
 
         @java.lang.Override
-        public void removeXmppIqListener(XmppIqListener iqListener) {
+        public void removeXmppIqListener(XmppIqListener iqListener, String namespace) {
 
         }
 

@@ -22,6 +22,9 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import com.google.common.collect.ImmutableSet;
+import org.dom4j.Element;
+import org.dom4j.Namespace;
+import org.dom4j.tree.DefaultElement;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -68,6 +71,8 @@ public class XmppControllerImplTest {
     XmppDeviceId jid2;
     XmppDevice device3;
     XmppDeviceId jid3;
+
+    final String testNamespace = "testns";
 
     /**
      * Test harness for a device listener.
@@ -133,7 +138,7 @@ public class XmppControllerImplTest {
         testXmppDeviceListener = new TestXmppDeviceListener();
         controller.addXmppDeviceListener(testXmppDeviceListener);
         testXmppIqListener = new TestXmppIqListener();
-        controller.addXmppIqListener(testXmppIqListener);
+        controller.addXmppIqListener(testXmppIqListener, testNamespace);
         testXmppMessageListener = new TestXmppMessageListener();
         controller.addXmppMessageListener(testXmppMessageListener);
         testXmppPresenceListener = new TestXmppPresenceListener();
@@ -166,7 +171,7 @@ public class XmppControllerImplTest {
     @After
     public void tearDown() {
         controller.removeXmppDeviceListener(testXmppDeviceListener);
-        controller.removeXmppIqListener(testXmppIqListener);
+        controller.removeXmppIqListener(testXmppIqListener, testNamespace);
         controller.removeXmppMessageListener(testXmppMessageListener);
         controller.removeXmppPresenceListener(testXmppPresenceListener);
         controller.deactivate();
@@ -215,7 +220,9 @@ public class XmppControllerImplTest {
     @Test
     public void handlePackets() {
         // IQ packets
-        Packet iq = new IQ();
+        IQ iq = new IQ();
+        Element element = new DefaultElement("pubsub", Namespace.get(testNamespace));
+        iq.setChildElement(element);
         agent.processUpstreamEvent(jid1, iq);
         assertThat(testXmppIqListener.handledIqs, hasSize(1));
         agent.processUpstreamEvent(jid2, iq);

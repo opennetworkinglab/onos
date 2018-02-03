@@ -46,18 +46,20 @@ public interface XmppController {
     void removeXmppDeviceListener(XmppDeviceListener deviceListener);
 
     /**
-     * Register a listener for IQ stanza of XMPP protocol.
+     * Register a listener for IQ stanzas containing specific XML namespace.
      *
      * @param iqListener the listener to notify
+     * @param namespace the XML namespace to observe
      */
-    void addXmppIqListener(XmppIqListener iqListener);
+    void addXmppIqListener(XmppIqListener iqListener, String namespace);
 
     /**
-     * Unregister a listener for IQ stanza of XMPP protocol.
+     * Unregister a listener for IQ stanzas containing specific XML namespace.
      *
      * @param iqListener the listener to unregister
+     * @param namespace the XML namespace to observe
      */
-    void removeXmppIqListener(XmppIqListener iqListener);
+    void removeXmppIqListener(XmppIqListener iqListener, String namespace);
 
     /**
      * Register a listener for Message stanza of XMPP protocol.
