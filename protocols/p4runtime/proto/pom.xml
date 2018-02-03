@@ -72,7 +72,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.1.1</version>
+                <version>1.6.0</version>
                 <executions>
                     <execution>
                         <id>clone pi</id>
@@ -88,6 +88,8 @@
                                 <!--<argument>&#45;&#45;quiet</argument>-->
                                 <argument>${piBaseUrl}</argument>
                             </arguments>
+                            <!-- 128: if it was already there, treat as ok -->
+                            <successCodes>0,128</successCodes>
                         </configuration>
                     </execution>
                     <execution>
@@ -102,7 +104,7 @@
                             <arguments>
                                 <argument>checkout</argument>
                                 <!--<argument>&#45;&#45;quiet</argument>-->
-                                <argument>-b</argument>
+                                <argument>-B</argument>
                                 <argument>buck-build</argument>
                                 <argument>${piCommit}</argument>
                             </arguments>
