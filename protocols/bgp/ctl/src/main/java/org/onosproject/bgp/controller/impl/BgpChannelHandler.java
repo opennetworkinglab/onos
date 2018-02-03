@@ -352,7 +352,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         // set handshake completion status
-        public void setHandshakeComplete(boolean handshakeComplete) {
+        private void setHandshakeComplete(boolean handshakeComplete) {
             this.handshakeComplete = handshakeComplete;
         }
 

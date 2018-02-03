@@ -709,7 +709,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
          *
          * @param handshakeComplete status of handshake
          */
-        public void setHandshakeComplete(boolean handshakeComplete) {
+        private void setHandshakeComplete(boolean handshakeComplete) {
             this.handshakeComplete = handshakeComplete;
         }
 
