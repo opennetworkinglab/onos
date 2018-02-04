@@ -313,12 +313,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -842,7 +842,7 @@
       "name" : "deparser",
       "id" : 0,
       "source_info" : {
-        "filename" : "./include/parser.p4",
+        "filename" : "include/parser.p4",
         "line" : 164,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
@@ -889,40 +889,28 @@
       "binding" : "forwarding.unicast_v4"
     },
     {
-      "name" : "forwarding.multicast_v4_counter",
-      "id" : 6,
-      "is_direct" : true,
-      "binding" : "forwarding.multicast_v4"
-    },
-    {
       "name" : "forwarding.acl_counter",
-      "id" : 7,
+      "id" : 6,
       "is_direct" : true,
       "binding" : "forwarding.acl"
     },
     {
       "name" : "next.simple_counter",
-      "id" : 8,
+      "id" : 7,
       "is_direct" : true,
       "binding" : "next.simple"
     },
     {
       "name" : "next.hashed_counter",
-      "id" : 9,
+      "id" : 8,
       "is_direct" : true,
       "binding" : "next.hashed"
     },
     {
-      "name" : "next.broadcast_counter",
-      "id" : 10,
-      "is_direct" : true,
-      "binding" : "next.broadcast"
-    },
-    {
       "name" : "port_counters_control.egress_port_counter",
-      "id" : 11,
+      "id" : 9,
       "source_info" : {
-        "filename" : "./include/control/port_counter.p4",
+        "filename" : "include/control/port_counter.p4",
         "line" : 23,
         "column" : 48,
         "source_fragment" : "egress_port_counter"
@@ -932,9 +920,9 @@
     },
     {
       "name" : "port_counters_control.ingress_port_counter",
-      "id" : 12,
+      "id" : 10,
       "source_info" : {
-        "filename" : "./include/control/port_counter.p4",
+        "filename" : "include/control/port_counter.p4",
         "line" : 24,
         "column" : 48,
         "source_fragment" : "ingress_port_counter"
@@ -949,7 +937,7 @@
       "name" : "calc",
       "id" : 0,
       "source_info" : {
-        "filename" : "./include/checksum.p4",
+        "filename" : "include/checksum.p4",
         "line" : 56,
         "column" : 8,
         "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
@@ -1006,7 +994,7 @@
       "name" : "calc_0",
       "id" : 1,
       "source_info" : {
-        "filename" : "./include/checksum.p4",
+        "filename" : "include/checksum.p4",
         "line" : 28,
         "column" : 8,
         "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
@@ -1063,8 +1051,8 @@
       "name" : "calc_1",
       "id" : 2,
       "source_info" : {
-        "filename" : "./include/control/../spgw.p4",
-        "line" : 292,
+        "filename" : "include/spgw.p4",
+        "line" : 293,
         "column" : 8,
         "source_fragment" : "update_checksum(gtpu_ipv4.isValid(), ..."
       },
@@ -1113,68 +1101,6 @@
         {
           "type" : "field",
           "value" : ["gtpu_ipv4", "dst_addr"]
-        }
-      ]
-    },
-    {
-      "name" : "calc_2",
-      "id" : 3,
-      "source_info" : {
-        "filename" : "./include/control/../spgw.p4",
-        "line" : 311,
-        "column" : 8,
-        "source_fragment" : "update_checksum_with_payload(gtpu_udp.isValid(), ..."
-      },
-      "algo" : "csum16",
-      "input" : [
-        {
-          "type" : "field",
-          "value" : ["gtpu_ipv4", "src_addr"]
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_ipv4", "dst_addr"]
-        },
-        {
-          "type" : "hexstr",
-          "value" : "0x00",
-          "bitwidth" : 8
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_ipv4", "protocol"]
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_udp", "len"]
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_udp", "src_port"]
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_udp", "dst_port"]
-        },
-        {
-          "type" : "field",
-          "value" : ["gtpu_udp", "len"]
-        },
-        {
-          "type" : "header",
-          "value" : "gtpu"
-        },
-        {
-          "type" : "header",
-          "value" : "ipv4"
-        },
-        {
-          "type" : "header",
-          "value" : "udp"
-        },
-        {
-          "type" : "payload",
-          "value" : null
         }
       ]
     }
@@ -1236,39 +1162,27 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "nop",
       "id" : 9,
       "runtime_data" : [],
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "nop",
       "id" : 10,
       "runtime_data" : [],
       "primitives" : []
     },
     {
-      "name" : "nop",
-      "id" : 11,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
-      "name" : "nop",
-      "id" : 12,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "spgw_ingress.drop_now",
-      "id" : 13,
+      "id" : 11,
       "runtime_data" : [],
       "primitives" : [
         {
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 33,
             "column" : 8,
             "source_fragment" : "mark_to_drop()"
@@ -1278,7 +1192,7 @@
           "op" : "exit",
           "parameters" : [],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 34,
             "column" : 8,
             "source_fragment" : "exit"
@@ -1288,7 +1202,7 @@
     },
     {
       "name" : "spgw_ingress.gtpu_decap",
-      "id" : 14,
+      "id" : 12,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1300,7 +1214,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 38,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.setInvalid()"
@@ -1315,7 +1229,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 39,
             "column" : 8,
             "source_fragment" : "gtpu_udp.setInvalid()"
@@ -1330,7 +1244,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 40,
             "column" : 8,
             "source_fragment" : "gtpu.setInvalid()"
@@ -1340,7 +1254,7 @@
     },
     {
       "name" : "spgw_ingress.set_dl_sess_info",
-      "id" : 15,
+      "id" : 13,
       "runtime_data" : [
         {
           "name" : "teid",
@@ -1369,7 +1283,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 46,
             "column" : 8,
             "source_fragment" : "spgw_meta.teid = teid"
@@ -1388,7 +1302,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 47,
             "column" : 8,
             "source_fragment" : "spgw_meta.s1u_enb_addr = s1u_enb_addr"
@@ -1407,7 +1321,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 48,
             "column" : 8,
             "source_fragment" : "spgw_meta.s1u_sgw_addr = s1u_sgw_addr"
@@ -1417,20 +1331,20 @@
     },
     {
       "name" : "spgw_ingress.update_ue_cdr",
-      "id" : 16,
+      "id" : 14,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "filtering.drop",
-      "id" : 17,
+      "id" : 15,
       "runtime_data" : [],
       "primitives" : [
         {
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 31,
             "column" : 8,
             "source_fragment" : "mark_to_drop()"
@@ -1440,7 +1354,7 @@
     },
     {
       "name" : "filtering.set_vlan",
-      "id" : 18,
+      "id" : 16,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1461,7 +1375,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 35,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
@@ -1471,7 +1385,7 @@
     },
     {
       "name" : "filtering.push_internal_vlan",
-      "id" : 19,
+      "id" : 17,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1488,7 +1402,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 41,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setValid()"
@@ -1507,7 +1421,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 42,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.cfi = 0"
@@ -1526,7 +1440,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 43,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.pri = 0"
@@ -1545,7 +1459,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 44,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.ether_type = hdr.ethernet.ether_type"
@@ -1564,7 +1478,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 32,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
@@ -1583,7 +1497,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 35,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id; ..."
@@ -1612,7 +1526,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 49,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = true"
@@ -1622,7 +1536,7 @@
     },
     {
       "name" : "filtering.set_forwarding_type",
-      "id" : 20,
+      "id" : 18,
       "runtime_data" : [
         {
           "name" : "fwd_type",
@@ -1643,7 +1557,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 53,
             "column" : 8,
             "source_fragment" : "fabric_metadata.fwd_type = fwd_type"
@@ -1653,17 +1567,79 @@
     },
     {
       "name" : "forwarding.drop",
-      "id" : 21,
+      "id" : 19,
       "runtime_data" : [],
       "primitives" : [
         {
           "op" : "drop",
           "parameters" : [],
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 37,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 36,
             "column" : 8,
             "source_fragment" : "mark_to_drop()"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "forwarding.set_next_id",
+      "id" : 20,
+      "runtime_data" : [
+        {
+          "name" : "next_id",
+          "bitwidth" : 32
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.next_id"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/forwarding.p4",
+            "line" : 40,
+            "column" : 8,
+            "source_fragment" : "fabric_metadata.next_id = next_id"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "forwarding.set_next_id",
+      "id" : 21,
+      "runtime_data" : [
+        {
+          "name" : "next_id",
+          "bitwidth" : 32
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.next_id"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/forwarding.p4",
+            "line" : 40,
+            "column" : 8,
+            "source_fragment" : "fabric_metadata.next_id = next_id"
           }
         }
       ]
@@ -1691,101 +1667,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 41,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id"
-          }
-        }
-      ]
-    },
-    {
-      "name" : "forwarding.set_next_id",
-      "id" : 23,
-      "runtime_data" : [
-        {
-          "name" : "next_id",
-          "bitwidth" : 32
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 41,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id"
-          }
-        }
-      ]
-    },
-    {
-      "name" : "forwarding.set_next_id",
-      "id" : 24,
-      "runtime_data" : [
-        {
-          "name" : "next_id",
-          "bitwidth" : 32
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 41,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id"
-          }
-        }
-      ]
-    },
-    {
-      "name" : "forwarding.set_next_id",
-      "id" : 25,
-      "runtime_data" : [
-        {
-          "name" : "next_id",
-          "bitwidth" : 32
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 41,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 40,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -1794,7 +1677,7 @@
     },
     {
       "name" : "forwarding.pop_mpls_and_next",
-      "id" : 26,
+      "id" : 23,
       "runtime_data" : [
         {
           "name" : "next_id",
@@ -1811,8 +1694,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 45,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 44,
             "column" : 8,
             "source_fragment" : "hdr.mpls.setInvalid()"
           }
@@ -1830,8 +1713,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 46,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 45,
             "column" : 8,
             "source_fragment" : "fabric_metadata.next_id = next_id"
           }
@@ -1840,7 +1723,7 @@
     },
     {
       "name" : "forwarding.duplicate_to_controller",
-      "id" : 27,
+      "id" : 24,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1856,8 +1739,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 50,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 49,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = 255"
           }
@@ -1866,7 +1749,7 @@
     },
     {
       "name" : "next.output",
-      "id" : 28,
+      "id" : 25,
       "runtime_data" : [
         {
           "name" : "port_num",
@@ -1887,8 +1770,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "filename" : "include/control/next.p4",
+            "line" : 32,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num"
           }
@@ -1897,7 +1780,7 @@
     },
     {
       "name" : "next.set_vlan_output",
-      "id" : 29,
+      "id" : 26,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1922,8 +1805,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 37,
+            "filename" : "include/control/next.p4",
+            "line" : 36,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.vlan_id = new_vlan_id"
           }
@@ -1951,8 +1834,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 40,
+            "filename" : "include/control/next.p4",
+            "line" : 39,
             "column" : 8,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress = false"
           }
@@ -1970,8 +1853,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "filename" : "include/control/next.p4",
+            "line" : 32,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
           }
@@ -1980,6 +1863,351 @@
     },
     {
       "name" : "next.l3_routing",
+      "id" : 27,
+      "runtime_data" : [
+        {
+          "name" : "port_num",
+          "bitwidth" : 9
+        },
+        {
+          "name" : "smac",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "dmac",
+          "bitwidth" : 48
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "src_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 44,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dst_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 2
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 48,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 32,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "next.l3_routing",
+      "id" : 28,
+      "runtime_data" : [
+        {
+          "name" : "port_num",
+          "bitwidth" : 9
+        },
+        {
+          "name" : "smac",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "dmac",
+          "bitwidth" : 48
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "src_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 44,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dst_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 2
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 48,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 32,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "next.mpls_routing_v4",
+      "id" : 29,
+      "runtime_data" : [
+        {
+          "name" : "port_num",
+          "bitwidth" : 9
+        },
+        {
+          "name" : "smac",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "dmac",
+          "bitwidth" : 48
+        },
+        {
+          "name" : "label",
+          "bitwidth" : 20
+        }
+      ],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "src_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 1
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 44,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "dst_addr"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 2
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 48,
+            "column" : 8,
+            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["standard_metadata", "egress_spec"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 0
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 32,
+            "column" : 8,
+            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mpls"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 59,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.setValid()"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["vlan_tag", "ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x8847"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/../define.p4",
+            "line" : 33,
+            "column" : 31,
+            "source_fragment" : "0x8847; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "label"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 3
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 61,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.label = label; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "tc"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 62,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.tc = tc; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 63,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.bos = 1w1"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "ttl"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x40"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/../define.p4",
+            "line" : 67,
+            "column" : 32,
+            "source_fragment" : "64; ..."
+          }
+        }
+      ]
+    },
+    {
+      "name" : "next.mpls_routing_v4",
       "id" : 30,
       "runtime_data" : [
         {
@@ -1993,6 +2221,10 @@
         {
           "name" : "dmac",
           "bitwidth" : 48
+        },
+        {
+          "name" : "label",
+          "bitwidth" : 20
         }
       ],
       "primitives" : [
@@ -2009,8 +2241,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
+            "filename" : "include/control/next.p4",
+            "line" : 44,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -2028,8 +2260,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 49,
+            "filename" : "include/control/next.p4",
+            "line" : 48,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -2047,16 +2279,126 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "filename" : "include/control/next.p4",
+            "line" : 32,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
+          }
+        },
+        {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "mpls"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 59,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.setValid()"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["vlan_tag", "ether_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x8847"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/../define.p4",
+            "line" : 33,
+            "column" : 31,
+            "source_fragment" : "0x8847; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "label"]
+            },
+            {
+              "type" : "runtime_data",
+              "value" : 3
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 61,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.label = label; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "tc"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 62,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.tc = tc; ..."
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "bos"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x01"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 63,
+            "column" : 8,
+            "source_fragment" : "hdr.mpls.bos = 1w1"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["mpls", "ttl"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x40"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/../define.p4",
+            "line" : 67,
+            "column" : 32,
+            "source_fragment" : "64; ..."
           }
         }
       ]
     },
     {
-      "name" : "next.l3_routing",
+      "name" : "next.mpls_routing_v6",
       "id" : 31,
       "runtime_data" : [
         {
@@ -2070,6 +2412,10 @@
         {
           "name" : "dmac",
           "bitwidth" : 48
+        },
+        {
+          "name" : "label",
+          "bitwidth" : 20
         }
       ],
       "primitives" : [
@@ -2086,8 +2432,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
+            "filename" : "include/control/next.p4",
+            "line" : 44,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
           }
@@ -2105,8 +2451,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 49,
+            "filename" : "include/control/next.p4",
+            "line" : 48,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
           }
@@ -2124,159 +2470,24 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
+            "filename" : "include/control/next.p4",
+            "line" : 32,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
           }
-        }
-      ]
-    },
-    {
-      "name" : "next.set_mcast_group",
-      "id" : 32,
-      "runtime_data" : [
-        {
-          "name" : "gid",
-          "bitwidth" : 16
         },
         {
-          "name" : "smac",
-          "bitwidth" : 48
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
+          "op" : "add_header",
           "parameters" : [
             {
-              "type" : "field",
-              "value" : ["standard_metadata", "mcast_grp"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
+              "type" : "header",
+              "value" : "mpls"
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
+            "filename" : "include/control/next.p4",
             "line" : 59,
             "column" : 8,
-            "source_fragment" : "standard_metadata.mcast_grp = gid"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "src_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 1
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
-          }
-        }
-      ]
-    },
-    {
-      "name" : "next.mpls_routing_v4",
-      "id" : 33,
-      "runtime_data" : [
-        {
-          "name" : "port_num",
-          "bitwidth" : 9
-        },
-        {
-          "name" : "smac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "dmac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "label",
-          "bitwidth" : 20
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "src_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 1
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "dst_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 2
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 49,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["standard_metadata", "egress_spec"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
-            "column" : 8,
-            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "add_header",
-          "parameters" : [
-            {
-              "type" : "header",
-              "value" : "mpls"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 65,
-            "column" : 8,
             "source_fragment" : "hdr.mpls.setValid()"
           }
         },
@@ -2293,7 +2504,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 33,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
@@ -2312,8 +2523,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 67,
+            "filename" : "include/control/next.p4",
+            "line" : 61,
             "column" : 8,
             "source_fragment" : "hdr.mpls.label = label; ..."
           }
@@ -2331,8 +2542,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 68,
+            "filename" : "include/control/next.p4",
+            "line" : 62,
             "column" : 8,
             "source_fragment" : "hdr.mpls.tc = tc; ..."
           }
@@ -2350,8 +2561,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 69,
+            "filename" : "include/control/next.p4",
+            "line" : 63,
             "column" : 8,
             "source_fragment" : "hdr.mpls.bos = 1w1"
           }
@@ -2369,389 +2580,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
-            "line" : 67,
-            "column" : 32,
-            "source_fragment" : "64; ..."
-          }
-        }
-      ]
-    },
-    {
-      "name" : "next.mpls_routing_v4",
-      "id" : 34,
-      "runtime_data" : [
-        {
-          "name" : "port_num",
-          "bitwidth" : 9
-        },
-        {
-          "name" : "smac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "dmac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "label",
-          "bitwidth" : 20
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "src_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 1
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "dst_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 2
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 49,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["standard_metadata", "egress_spec"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
-            "column" : 8,
-            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "add_header",
-          "parameters" : [
-            {
-              "type" : "header",
-              "value" : "mpls"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 65,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.setValid()"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["vlan_tag", "ether_type"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x8847"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/../define.p4",
-            "line" : 33,
-            "column" : 31,
-            "source_fragment" : "0x8847; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "label"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 3
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 67,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.label = label; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "tc"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x00"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 68,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.tc = tc; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "bos"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x01"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 69,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.bos = 1w1"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "ttl"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x40"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/../define.p4",
-            "line" : 67,
-            "column" : 32,
-            "source_fragment" : "64; ..."
-          }
-        }
-      ]
-    },
-    {
-      "name" : "next.mpls_routing_v6",
-      "id" : 35,
-      "runtime_data" : [
-        {
-          "name" : "port_num",
-          "bitwidth" : 9
-        },
-        {
-          "name" : "smac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "dmac",
-          "bitwidth" : 48
-        },
-        {
-          "name" : "label",
-          "bitwidth" : 20
-        }
-      ],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "src_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 1
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 45,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.src_addr = smac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["ethernet", "dst_addr"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 2
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 49,
-            "column" : 8,
-            "source_fragment" : "hdr.ethernet.dst_addr = dmac; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["standard_metadata", "egress_spec"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 0
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 33,
-            "column" : 8,
-            "source_fragment" : "standard_metadata.egress_spec = port_num; ..."
-          }
-        },
-        {
-          "op" : "add_header",
-          "parameters" : [
-            {
-              "type" : "header",
-              "value" : "mpls"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 65,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.setValid()"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["vlan_tag", "ether_type"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x8847"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/../define.p4",
-            "line" : 33,
-            "column" : 31,
-            "source_fragment" : "0x8847; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "label"]
-            },
-            {
-              "type" : "runtime_data",
-              "value" : 3
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 67,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.label = label; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "tc"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x00"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 68,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.tc = tc; ..."
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "bos"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x01"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 69,
-            "column" : 8,
-            "source_fragment" : "hdr.mpls.bos = 1w1"
-          }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["mpls", "ttl"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x40"
-            }
-          ],
-          "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 67,
             "column" : 32,
             "source_fragment" : "64; ..."
@@ -2761,7 +2590,7 @@
     },
     {
       "name" : "act",
-      "id" : 36,
+      "id" : 32,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2777,7 +2606,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 26,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec = hdr.packet_out.egress_port"
@@ -2792,7 +2621,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 27,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.setInvalid()"
@@ -2802,7 +2631,7 @@
     },
     {
       "name" : "act_0",
-      "id" : 37,
+      "id" : 33,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2832,7 +2661,7 @@
     },
     {
       "name" : "act_1",
-      "id" : 38,
+      "id" : 34,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2862,7 +2691,7 @@
     },
     {
       "name" : "act_2",
-      "id" : 39,
+      "id" : 35,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2878,7 +2707,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 152,
             "column" : 12,
             "source_fragment" : "spgw_meta.s1u_enb_addr = ipv4.src_addr"
@@ -2897,7 +2726,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 153,
             "column" : 12,
             "source_fragment" : "spgw_meta.s1u_sgw_addr = ipv4.dst_addr"
@@ -2916,7 +2745,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 154,
             "column" : 17,
             "source_fragment" : "= gtpu_ipv4; ..."
@@ -2935,7 +2764,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 155,
             "column" : 16,
             "source_fragment" : "= gtpu_udp; ..."
@@ -2945,7 +2774,7 @@
     },
     {
       "name" : "act_3",
-      "id" : 40,
+      "id" : 36,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2971,7 +2800,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 159,
             "column" : 16,
             "source_fragment" : "spgw_meta.do_spgw = true"
@@ -2990,7 +2819,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 88,
             "column" : 31,
             "source_fragment" : "1w0; ..."
@@ -3000,7 +2829,7 @@
     },
     {
       "name" : "act_4",
-      "id" : 41,
+      "id" : 37,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3030,7 +2859,7 @@
     },
     {
       "name" : "act_5",
-      "id" : 42,
+      "id" : 38,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3060,7 +2889,7 @@
     },
     {
       "name" : "act_6",
-      "id" : 43,
+      "id" : 39,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3086,7 +2915,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 163,
             "column" : 12,
             "source_fragment" : "spgw_meta.do_spgw = true"
@@ -3105,7 +2934,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 89,
             "column" : 33,
             "source_fragment" : "1w1; ..."
@@ -3115,7 +2944,7 @@
     },
     {
       "name" : "act_7",
-      "id" : 44,
+      "id" : 40,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3164,7 +2993,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 146,
             "column" : 8,
             "source_fragment" : "spgw_meta.do_spgw = false"
@@ -3174,7 +3003,7 @@
     },
     {
       "name" : "act_8",
-      "id" : 45,
+      "id" : 41,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3200,7 +3029,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 169,
             "column" : 12,
             "source_fragment" : "return"
@@ -3210,7 +3039,7 @@
     },
     {
       "name" : "act_9",
-      "id" : 46,
+      "id" : 42,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3240,7 +3069,7 @@
     },
     {
       "name" : "act_10",
-      "id" : 47,
+      "id" : 43,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3270,7 +3099,7 @@
     },
     {
       "name" : "act_11",
-      "id" : 48,
+      "id" : 44,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3286,7 +3115,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 35,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
@@ -3305,7 +3134,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 35,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
@@ -3315,7 +3144,7 @@
     },
     {
       "name" : "act_12",
-      "id" : 49,
+      "id" : 45,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3345,7 +3174,7 @@
     },
     {
       "name" : "act_13",
-      "id" : 50,
+      "id" : 46,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3375,7 +3204,7 @@
     },
     {
       "name" : "act_14",
-      "id" : 51,
+      "id" : 47,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3414,8 +3243,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 140,
+            "filename" : "include/control/next.p4",
+            "line" : 143,
             "column" : 20,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -3424,7 +3253,7 @@
     },
     {
       "name" : "act_15",
-      "id" : 52,
+      "id" : 48,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3466,7 +3295,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/port_counter.p4",
+            "filename" : "include/control/port_counter.p4",
             "line" : 28,
             "column" : 12,
             "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
@@ -3476,7 +3305,7 @@
     },
     {
       "name" : "act_16",
-      "id" : 53,
+      "id" : 49,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3518,7 +3347,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/port_counter.p4",
+            "filename" : "include/control/port_counter.p4",
             "line" : 31,
             "column" : 12,
             "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
@@ -3528,7 +3357,7 @@
     },
     {
       "name" : "act_17",
-      "id" : 54,
+      "id" : 50,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3544,8 +3373,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 162,
+            "filename" : "include/control/next.p4",
+            "line" : 167,
             "column" : 12,
             "source_fragment" : "hdr.ethernet.ether_type = hdr.vlan_tag.ether_type"
           }
@@ -3559,8 +3388,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 163,
+            "filename" : "include/control/next.p4",
+            "line" : 168,
             "column" : 12,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
           }
@@ -3569,7 +3398,7 @@
     },
     {
       "name" : "spgw_egress.gtpu_encap",
-      "id" : 55,
+      "id" : 51,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3581,8 +3410,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 210,
+            "filename" : "include/spgw.p4",
+            "line" : 211,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.setValid()"
           }
@@ -3600,8 +3429,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 211,
+            "filename" : "include/spgw.p4",
+            "line" : 212,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.version = 4"
           }
@@ -3619,7 +3448,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 54,
             "column" : 28,
             "source_fragment" : "5; ..."
@@ -3638,8 +3467,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 213,
+            "filename" : "include/spgw.p4",
+            "line" : 214,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.diffserv = 0"
           }
@@ -3662,82 +3491,12 @@
                     "value" : {
                       "op" : "+",
                       "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "+",
-                              "left" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "&",
-                                  "left" : {
-                                    "type" : "expression",
-                                    "value" : {
-                                      "op" : "+",
-                                      "left" : {
-                                        "type" : "expression",
-                                        "value" : {
-                                          "op" : "&",
-                                          "left" : {
-                                            "type" : "expression",
-                                            "value" : {
-                                              "op" : "+",
-                                              "left" : {
-                                                "type" : "expression",
-                                                "value" : {
-                                                  "op" : "&",
-                                                  "left" : {
-                                                    "type" : "field",
-                                                    "value" : ["standard_metadata", "packet_length"]
-                                                  },
-                                                  "right" : {
-                                                    "type" : "hexstr",
-                                                    "value" : "0xffff"
-                                                  }
-                                                }
-                                              },
-                                              "right" : {
-                                                "type" : "hexstr",
-                                                "value" : "0xfff2"
-                                              }
-                                            }
-                                          },
-                                          "right" : {
-                                            "type" : "hexstr",
-                                            "value" : "0xffff"
-                                          }
-                                        }
-                                      },
-                                      "right" : {
-                                        "type" : "hexstr",
-                                        "value" : "0x0014"
-                                      }
-                                    }
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0xffff"
-                                  }
-                                }
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x0008"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xffff"
-                          }
-                        }
+                        "type" : "field",
+                        "value" : ["ipv4", "total_len"]
                       },
                       "right" : {
                         "type" : "hexstr",
-                        "value" : "0x0008"
+                        "value" : "0x0024"
                       }
                     }
                   },
@@ -3750,10 +3509,10 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 214,
+            "filename" : "include/spgw.p4",
+            "line" : 215,
             "column" : 8,
-            "source_fragment" : "gtpu_ipv4.total_len = ((bit<16>)std_meta.packet_length ..."
+            "source_fragment" : "gtpu_ipv4.total_len = ipv4.total_len ..."
           }
         },
         {
@@ -3769,8 +3528,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 216,
+            "filename" : "include/spgw.p4",
+            "line" : 217,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.identification = 0x1513"
           }
@@ -3788,8 +3547,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 217,
+            "filename" : "include/spgw.p4",
+            "line" : 218,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.flags = 0"
           }
@@ -3807,8 +3566,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 218,
+            "filename" : "include/spgw.p4",
+            "line" : 219,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.frag_offset = 0"
           }
@@ -3826,7 +3585,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 78,
             "column" : 32,
             "source_fragment" : "64; ..."
@@ -3845,7 +3604,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../define.p4",
+            "filename" : "include/control/../define.p4",
             "line" : 51,
             "column" : 25,
             "source_fragment" : "17; ..."
@@ -3864,8 +3623,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 221,
+            "filename" : "include/spgw.p4",
+            "line" : 222,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.dst_addr = spgw_meta.s1u_enb_addr"
           }
@@ -3883,8 +3642,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 222,
+            "filename" : "include/spgw.p4",
+            "line" : 223,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.src_addr = spgw_meta.s1u_sgw_addr"
           }
@@ -3902,8 +3661,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 223,
+            "filename" : "include/spgw.p4",
+            "line" : 224,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.hdr_checksum = 0"
           }
@@ -3917,8 +3676,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 225,
+            "filename" : "include/spgw.p4",
+            "line" : 226,
             "column" : 8,
             "source_fragment" : "gtpu_udp.setValid()"
           }
@@ -3936,8 +3695,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 226,
+            "filename" : "include/spgw.p4",
+            "line" : 227,
             "column" : 8,
             "source_fragment" : "gtpu_udp.src_port = 2152"
           }
@@ -3955,8 +3714,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 227,
+            "filename" : "include/spgw.p4",
+            "line" : 228,
             "column" : 8,
             "source_fragment" : "gtpu_udp.dst_port = 2152"
           }
@@ -3979,62 +3738,12 @@
                     "value" : {
                       "op" : "+",
                       "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "expression",
-                            "value" : {
-                              "op" : "+",
-                              "left" : {
-                                "type" : "expression",
-                                "value" : {
-                                  "op" : "&",
-                                  "left" : {
-                                    "type" : "expression",
-                                    "value" : {
-                                      "op" : "+",
-                                      "left" : {
-                                        "type" : "expression",
-                                        "value" : {
-                                          "op" : "&",
-                                          "left" : {
-                                            "type" : "field",
-                                            "value" : ["standard_metadata", "packet_length"]
-                                          },
-                                          "right" : {
-                                            "type" : "hexstr",
-                                            "value" : "0xffff"
-                                          }
-                                        }
-                                      },
-                                      "right" : {
-                                        "type" : "hexstr",
-                                        "value" : "0xfff2"
-                                      }
-                                    }
-                                  },
-                                  "right" : {
-                                    "type" : "hexstr",
-                                    "value" : "0xffff"
-                                  }
-                                }
-                              },
-                              "right" : {
-                                "type" : "hexstr",
-                                "value" : "0x0008"
-                              }
-                            }
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xffff"
-                          }
-                        }
+                        "type" : "field",
+                        "value" : ["ipv4", "total_len"]
                       },
                       "right" : {
                         "type" : "hexstr",
-                        "value" : "0x0008"
+                        "value" : "0x0010"
                       }
                     }
                   },
@@ -4047,10 +3756,10 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 228,
+            "filename" : "include/spgw.p4",
+            "line" : 229,
             "column" : 8,
-            "source_fragment" : "gtpu_udp.len = ((bit<16>)std_meta.packet_length ..."
+            "source_fragment" : "gtpu_udp.len = ipv4.total_len ..."
           }
         },
         {
@@ -4066,8 +3775,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 230,
+            "filename" : "include/spgw.p4",
+            "line" : 231,
             "column" : 8,
             "source_fragment" : "gtpu_udp.checksum = 0"
           }
@@ -4081,8 +3790,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 232,
+            "filename" : "include/spgw.p4",
+            "line" : 233,
             "column" : 8,
             "source_fragment" : "gtpu.setValid()"
           }
@@ -4100,8 +3809,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 233,
+            "filename" : "include/spgw.p4",
+            "line" : 234,
             "column" : 8,
             "source_fragment" : "gtpu.version = 0x01"
           }
@@ -4119,8 +3828,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 234,
+            "filename" : "include/spgw.p4",
+            "line" : 235,
             "column" : 8,
             "source_fragment" : "gtpu.pt = 0x01"
           }
@@ -4138,8 +3847,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 235,
+            "filename" : "include/spgw.p4",
+            "line" : 236,
             "column" : 8,
             "source_fragment" : "gtpu.spare = 0"
           }
@@ -4157,8 +3866,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 236,
+            "filename" : "include/spgw.p4",
+            "line" : 237,
             "column" : 8,
             "source_fragment" : "gtpu.ex_flag = 0"
           }
@@ -4176,8 +3885,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 237,
+            "filename" : "include/spgw.p4",
+            "line" : 238,
             "column" : 8,
             "source_fragment" : "gtpu.seq_flag = 0"
           }
@@ -4195,8 +3904,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 238,
+            "filename" : "include/spgw.p4",
+            "line" : 239,
             "column" : 8,
             "source_fragment" : "gtpu.npdu_flag = 0"
           }
@@ -4214,8 +3923,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 239,
+            "filename" : "include/spgw.p4",
+            "line" : 240,
             "column" : 8,
             "source_fragment" : "gtpu.msgtype = 0xff"
           }
@@ -4228,48 +3937,15 @@
               "value" : ["gtpu", "msglen"]
             },
             {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "&",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "+",
-                      "left" : {
-                        "type" : "expression",
-                        "value" : {
-                          "op" : "&",
-                          "left" : {
-                            "type" : "field",
-                            "value" : ["standard_metadata", "packet_length"]
-                          },
-                          "right" : {
-                            "type" : "hexstr",
-                            "value" : "0xffff"
-                          }
-                        }
-                      },
-                      "right" : {
-                        "type" : "hexstr",
-                        "value" : "0xfff2"
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "hexstr",
-                    "value" : "0xffff"
-                  }
-                }
-              }
+              "type" : "field",
+              "value" : ["ipv4", "total_len"]
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 240,
+            "filename" : "include/spgw.p4",
+            "line" : 241,
             "column" : 8,
-            "source_fragment" : "gtpu.msglen = ((bit<16>)std_meta.packet_length - 14"
+            "source_fragment" : "gtpu.msglen = ipv4.total_len"
           }
         },
         {
@@ -4285,8 +3961,8 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 241,
+            "filename" : "include/spgw.p4",
+            "line" : 242,
             "column" : 8,
             "source_fragment" : "gtpu.teid = spgw_meta.teid"
           }
@@ -4295,7 +3971,7 @@
     },
     {
       "name" : "act_18",
-      "id" : 56,
+      "id" : 52,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4307,7 +3983,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 39,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
@@ -4326,7 +4002,7 @@
             }
           ],
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 40,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
@@ -4336,7 +4012,7 @@
     },
     {
       "name" : "act_19",
-      "id" : 57,
+      "id" : 53,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -4350,7 +4026,7 @@
           "source_info" : {
             "filename" : "fabric.p4",
             "line" : 69,
-            "column" : 26,
+            "column" : 36,
             "source_fragment" : "hdr.gtpu_ipv4"
           }
         },
@@ -4365,7 +4041,7 @@
           "source_info" : {
             "filename" : "fabric.p4",
             "line" : 69,
-            "column" : 41,
+            "column" : 51,
             "source_fragment" : "hdr.gtpu_udp"
           }
         },
@@ -4380,7 +4056,7 @@
           "source_info" : {
             "filename" : "fabric.p4",
             "line" : 69,
-            "column" : 55,
+            "column" : 65,
             "source_fragment" : "hdr.gtpu"
           }
         }
@@ -4409,14 +4085,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [36],
+          "action_ids" : [32],
           "actions" : ["act"],
           "base_default_next" : null,
           "next_tables" : {
             "act" : null
           },
           "default_entry" : {
-            "action_id" : 36,
+            "action_id" : 32,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4432,14 +4108,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [44],
+          "action_ids" : [40],
           "actions" : ["act_7"],
           "base_default_next" : "node_5",
           "next_tables" : {
             "act_7" : "node_5"
           },
           "default_entry" : {
-            "action_id" : 44,
+            "action_id" : 40,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4455,14 +4131,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [39],
+          "action_ids" : [35],
           "actions" : ["act_2"],
           "base_default_next" : "spgw_ingress.s1u_filter_table",
           "next_tables" : {
             "act_2" : "spgw_ingress.s1u_filter_table"
           },
           "default_entry" : {
-            "action_id" : 39,
+            "action_id" : 35,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4472,7 +4148,7 @@
           "name" : "spgw_ingress.s1u_filter_table",
           "id" : 3,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 65,
             "column" : 10,
             "source_fragment" : "s1u_filter_table"
@@ -4514,14 +4190,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [37],
+          "action_ids" : [33],
           "actions" : ["act_0"],
           "base_default_next" : "node_10",
           "next_tables" : {
             "act_0" : "node_10"
           },
           "default_entry" : {
-            "action_id" : 37,
+            "action_id" : 33,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4537,14 +4213,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [38],
+          "action_ids" : [34],
           "actions" : ["act_1"],
           "base_default_next" : "node_10",
           "next_tables" : {
             "act_1" : "node_10"
           },
           "default_entry" : {
-            "action_id" : 38,
+            "action_id" : 34,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4560,14 +4236,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [40],
+          "action_ids" : [36],
           "actions" : ["act_3"],
           "base_default_next" : "node_17",
           "next_tables" : {
             "act_3" : "node_17"
           },
           "default_entry" : {
-            "action_id" : 40,
+            "action_id" : 36,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4577,7 +4253,7 @@
           "name" : "spgw_ingress.ue_filter_table",
           "id" : 7,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 55,
             "column" : 10,
             "source_fragment" : "ue_filter_table"
@@ -4619,14 +4295,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [41],
+          "action_ids" : [37],
           "actions" : ["act_4"],
           "base_default_next" : "node_15",
           "next_tables" : {
             "act_4" : "node_15"
           },
           "default_entry" : {
-            "action_id" : 41,
+            "action_id" : 37,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4642,14 +4318,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [42],
+          "action_ids" : [38],
           "actions" : ["act_5"],
           "base_default_next" : "node_15",
           "next_tables" : {
             "act_5" : "node_15"
           },
           "default_entry" : {
-            "action_id" : 42,
+            "action_id" : 38,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4665,14 +4341,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [43],
+          "action_ids" : [39],
           "actions" : ["act_6"],
           "base_default_next" : "node_17",
           "next_tables" : {
             "act_6" : "node_17"
           },
           "default_entry" : {
-            "action_id" : 43,
+            "action_id" : 39,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4688,14 +4364,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [45],
+          "action_ids" : [41],
           "actions" : ["act_8"],
           "base_default_next" : "node_19",
           "next_tables" : {
             "act_8" : "node_19"
           },
           "default_entry" : {
-            "action_id" : 45,
+            "action_id" : 41,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4711,14 +4387,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [14],
+          "action_ids" : [12],
           "actions" : ["spgw_ingress.gtpu_decap"],
           "base_default_next" : "node_22",
           "next_tables" : {
             "spgw_ingress.gtpu_decap" : "node_22"
           },
           "default_entry" : {
-            "action_id" : 14,
+            "action_id" : 12,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4728,7 +4404,7 @@
           "name" : "spgw_ingress.dl_sess_lookup",
           "id" : 13,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 124,
             "column" : 10,
             "source_fragment" : "dl_sess_lookup"
@@ -4746,7 +4422,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [15, 2],
+          "action_ids" : [13, 2],
           "actions" : ["spgw_ingress.set_dl_sess_info", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -4770,14 +4446,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [46],
+          "action_ids" : [42],
           "actions" : ["act_9"],
           "base_default_next" : "node_26",
           "next_tables" : {
             "act_9" : "node_26"
           },
           "default_entry" : {
-            "action_id" : 46,
+            "action_id" : 42,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4793,14 +4469,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [47],
+          "action_ids" : [43],
           "actions" : ["act_10"],
           "base_default_next" : "node_26",
           "next_tables" : {
             "act_10" : "node_26"
           },
           "default_entry" : {
-            "action_id" : 47,
+            "action_id" : 43,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4816,14 +4492,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [13],
+          "action_ids" : [11],
           "actions" : ["spgw_ingress.drop_now"],
           "base_default_next" : "spgw_ingress.ue_cdr_table",
           "next_tables" : {
             "spgw_ingress.drop_now" : "spgw_ingress.ue_cdr_table"
           },
           "default_entry" : {
-            "action_id" : 13,
+            "action_id" : 11,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4833,7 +4509,7 @@
           "name" : "spgw_ingress.ue_cdr_table",
           "id" : 17,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 134,
             "column" : 10,
             "source_fragment" : "ue_cdr_table"
@@ -4851,7 +4527,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [16, 3],
+          "action_ids" : [14, 3],
           "actions" : ["spgw_ingress.update_ue_cdr", "NoAction"],
           "base_default_next" : "filtering.ingress_port_vlan",
           "next_tables" : {
@@ -4869,7 +4545,7 @@
           "name" : "filtering.ingress_port_vlan",
           "id" : 18,
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 57,
             "column" : 10,
             "source_fragment" : "ingress_port_vlan"
@@ -4897,7 +4573,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [19, 18, 11, 17],
+          "action_ids" : [17, 16, 9, 15],
           "actions" : ["filtering.push_internal_vlan", "filtering.set_vlan", "nop", "filtering.drop"],
           "base_default_next" : "filtering.fwd_classifier",
           "next_tables" : {
@@ -4907,7 +4583,7 @@
             "filtering.drop" : "filtering.fwd_classifier"
           },
           "default_entry" : {
-            "action_id" : 11,
+            "action_id" : 9,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -4917,7 +4593,7 @@
           "name" : "filtering.fwd_classifier",
           "id" : 19,
           "source_info" : {
-            "filename" : "./include/control/filtering.p4",
+            "filename" : "include/control/filtering.p4",
             "line" : 76,
             "column" : 10,
             "source_fragment" : "fwd_classifier"
@@ -4945,14 +4621,14 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [20],
+          "action_ids" : [18],
           "actions" : ["filtering.set_forwarding_type"],
           "base_default_next" : "node_31",
           "next_tables" : {
             "filtering.set_forwarding_type" : "node_31"
           },
           "default_entry" : {
-            "action_id" : 20,
+            "action_id" : 18,
             "action_const" : true,
             "action_data" : ["0x0"],
             "action_entry_const" : true
@@ -4962,8 +4638,8 @@
           "name" : "forwarding.bridging",
           "id" : 20,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 53,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 52,
             "column" : 10,
             "source_fragment" : "bridging"
           },
@@ -4985,7 +4661,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [22, 4],
+          "action_ids" : [20, 4],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -5003,8 +4679,8 @@
           "name" : "forwarding.mpls",
           "id" : 21,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 65,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 64,
             "column" : 10,
             "source_fragment" : "mpls"
           },
@@ -5021,7 +4697,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [26, 5],
+          "action_ids" : [23, 5],
           "actions" : ["forwarding.pop_mpls_and_next", "NoAction"],
           "base_default_next" : "tbl_act_11",
           "next_tables" : {
@@ -5045,14 +4721,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [48],
+          "action_ids" : [44],
           "actions" : ["act_11"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
             "act_11" : "forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 48,
+            "action_id" : 44,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5062,8 +4738,8 @@
           "name" : "forwarding.unicast_v4",
           "id" : 23,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 76,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 75,
             "column" : 10,
             "source_fragment" : "unicast_v4"
           },
@@ -5080,7 +4756,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [23, 6],
+          "action_ids" : [21, 6],
           "actions" : ["forwarding.set_next_id", "NoAction"],
           "base_default_next" : "forwarding.acl",
           "next_tables" : {
@@ -5095,52 +4771,11 @@
           }
         },
         {
-          "name" : "forwarding.multicast_v4",
+          "name" : "forwarding.acl",
           "id" : 24,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 87,
-            "column" : 10,
-            "source_fragment" : "multicast_v4"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "target" : ["vlan_tag", "vlan_id"],
-              "mask" : null
-            },
-            {
-              "match_type" : "lpm",
-              "target" : ["ipv4", "dst_addr"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "lpm",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : true,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [24, 7],
-          "actions" : ["forwarding.set_next_id", "NoAction"],
-          "base_default_next" : "forwarding.acl",
-          "next_tables" : {
-            "forwarding.set_next_id" : "forwarding.acl",
-            "NoAction" : "forwarding.acl"
-          },
-          "default_entry" : {
-            "action_id" : 7,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "forwarding.acl",
-          "id" : 25,
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 127,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 133,
             "column" : 10,
             "source_fragment" : "acl"
           },
@@ -5212,7 +4847,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [25, 27, 21, 12],
+          "action_ids" : [22, 24, 19, 10],
           "actions" : ["forwarding.set_next_id", "forwarding.duplicate_to_controller", "forwarding.drop", "nop"],
           "base_default_next" : "next.simple",
           "next_tables" : {
@@ -5222,7 +4857,7 @@
             "nop" : "next.simple"
           },
           "default_entry" : {
-            "action_id" : 12,
+            "action_id" : 10,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5230,10 +4865,10 @@
         },
         {
           "name" : "next.simple",
-          "id" : 26,
+          "id" : 25,
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 89,
+            "filename" : "include/control/next.p4",
+            "line" : 83,
             "column" : 10,
             "source_fragment" : "simple"
           },
@@ -5250,7 +4885,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [28, 29, 30, 33, 8],
+          "action_ids" : [25, 26, 27, 29, 7],
           "actions" : ["next.output", "next.set_vlan_output", "next.l3_routing", "next.mpls_routing_v4", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -5258,7 +4893,7 @@
             "__MISS__" : "tbl_act_13"
           },
           "default_entry" : {
-            "action_id" : 8,
+            "action_id" : 7,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -5266,6 +4901,29 @@
         },
         {
           "name" : "tbl_act_12",
+          "id" : 26,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [45],
+          "actions" : ["act_12"],
+          "base_default_next" : "node_42",
+          "next_tables" : {
+            "act_12" : "node_42"
+          },
+          "default_entry" : {
+            "action_id" : 45,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_13",
           "id" : 27,
           "key" : [],
           "match_type" : "exact",
@@ -5274,21 +4932,21 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [49],
-          "actions" : ["act_12"],
-          "base_default_next" : "node_44",
+          "action_ids" : [46],
+          "actions" : ["act_13"],
+          "base_default_next" : "node_42",
           "next_tables" : {
-            "act_12" : "node_44"
+            "act_13" : "node_42"
           },
           "default_entry" : {
-            "action_id" : 49,
+            "action_id" : 46,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_13",
+          "name" : "tbl_act_14",
           "id" : 28,
           "key" : [],
           "match_type" : "exact",
@@ -5297,37 +4955,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [50],
-          "actions" : ["act_13"],
-          "base_default_next" : "node_44",
-          "next_tables" : {
-            "act_13" : "node_44"
-          },
-          "default_entry" : {
-            "action_id" : 50,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_14",
-          "id" : 29,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [51],
+          "action_ids" : [47],
           "actions" : ["act_14"],
           "base_default_next" : "next.hashed",
           "next_tables" : {
             "act_14" : "next.hashed"
           },
           "default_entry" : {
-            "action_id" : 51,
+            "action_id" : 47,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5335,10 +4970,10 @@
         },
         {
           "name" : "next.hashed",
-          "id" : 30,
+          "id" : 29,
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 103,
+            "filename" : "include/control/next.p4",
+            "line" : 97,
             "column" : 10,
             "source_fragment" : "hashed"
           },
@@ -5356,54 +4991,64 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [31, 34, 35, 9],
+          "action_ids" : [28, 30, 31, 8],
           "actions" : ["next.l3_routing", "next.mpls_routing_v4", "next.mpls_routing_v6", "NoAction"],
-          "base_default_next" : "next.broadcast",
+          "base_default_next" : "node_47",
           "next_tables" : {
-            "next.l3_routing" : "next.broadcast",
-            "next.mpls_routing_v4" : "next.broadcast",
-            "next.mpls_routing_v6" : "next.broadcast",
-            "NoAction" : "next.broadcast"
-          }
-        },
-        {
-          "name" : "next.broadcast",
-          "id" : 31,
-          "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 126,
-            "column" : 10,
-            "source_fragment" : "broadcast"
-          },
-          "key" : [
-            {
-              "match_type" : "exact",
-              "target" : ["scalars", "fabric_metadata_t.next_id"],
-              "mask" : null
-            }
-          ],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : true,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [32, 10],
-          "actions" : ["next.set_mcast_group", "NoAction"],
-          "base_default_next" : "node_50",
-          "next_tables" : {
-            "next.set_mcast_group" : "node_50",
-            "NoAction" : "node_50"
-          },
-          "default_entry" : {
-            "action_id" : 10,
-            "action_const" : false,
-            "action_data" : [],
-            "action_entry_const" : false
+            "next.l3_routing" : "node_47",
+            "next.mpls_routing_v4" : "node_47",
+            "next.mpls_routing_v6" : "node_47",
+            "NoAction" : "node_47"
           }
         },
         {
           "name" : "tbl_act_15",
+          "id" : 30,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [48],
+          "actions" : ["act_15"],
+          "base_default_next" : "node_49",
+          "next_tables" : {
+            "act_15" : "node_49"
+          },
+          "default_entry" : {
+            "action_id" : 48,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_16",
+          "id" : 31,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [49],
+          "actions" : ["act_16"],
+          "base_default_next" : "node_51",
+          "next_tables" : {
+            "act_16" : "node_51"
+          },
+          "default_entry" : {
+            "action_id" : 49,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_17",
           "id" : 32,
           "key" : [],
           "match_type" : "exact",
@@ -5412,60 +5057,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [52],
-          "actions" : ["act_15"],
-          "base_default_next" : "node_52",
-          "next_tables" : {
-            "act_15" : "node_52"
-          },
-          "default_entry" : {
-            "action_id" : 52,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_16",
-          "id" : 33,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [53],
-          "actions" : ["act_16"],
-          "base_default_next" : "node_54",
-          "next_tables" : {
-            "act_16" : "node_54"
-          },
-          "default_entry" : {
-            "action_id" : 53,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_17",
-          "id" : 34,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [54],
+          "action_ids" : [50],
           "actions" : ["act_17"],
           "base_default_next" : null,
           "next_tables" : {
             "act_17" : null
           },
           "default_entry" : {
-            "action_id" : 54,
+            "action_id" : 50,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -5509,7 +5108,7 @@
           "name" : "node_2",
           "id" : 0,
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 25,
             "column" : 12,
             "source_fragment" : "hdr.packet_out.isValid()"
@@ -5532,7 +5131,7 @@
           "name" : "node_5",
           "id" : 1,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 147,
             "column" : 12,
             "source_fragment" : "gtpu.isValid()"
@@ -5589,7 +5188,7 @@
           "name" : "node_17",
           "id" : 4,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 167,
             "column" : 12,
             "source_fragment" : "!spgw_meta.do_spgw"
@@ -5643,7 +5242,7 @@
           "name" : "node_20",
           "id" : 6,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 172,
             "column" : 12,
             "source_fragment" : "spgw_meta.direction == DIR_UPLINK"
@@ -5669,7 +5268,7 @@
           "name" : "node_22",
           "id" : 7,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 189,
             "column" : 12,
             "source_fragment" : "spgw_meta.direction == DIR_DOWNLINK"
@@ -5695,7 +5294,7 @@
           "name" : "node_26",
           "id" : 8,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
+            "filename" : "include/spgw.p4",
             "line" : 190,
             "column" : 16,
             "source_fragment" : "!dl_sess_lookup.apply().hit"
@@ -5725,8 +5324,8 @@
           "name" : "node_31",
           "id" : 9,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 157,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 163,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
           },
@@ -5751,8 +5350,8 @@
           "name" : "node_33",
           "id" : 10,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 158,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 164,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
           },
@@ -5777,8 +5376,8 @@
           "name" : "node_36",
           "id" : 11,
           "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 165,
+            "filename" : "include/control/forwarding.p4",
+            "line" : 179,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },
@@ -5797,37 +5396,11 @@
             }
           },
           "true_next" : "forwarding.unicast_v4",
-          "false_next" : "node_38"
-        },
-        {
-          "name" : "node_38",
-          "id" : 12,
-          "source_info" : {
-            "filename" : "./include/control/forwarding.p4",
-            "line" : 166,
-            "column" : 17,
-            "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_MULTICAST"
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "==",
-              "left" : {
-                "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.fwd_type"]
-              },
-              "right" : {
-                "type" : "hexstr",
-                "value" : "0x03"
-              }
-            }
-          },
-          "true_next" : "forwarding.multicast_v4",
           "false_next" : "forwarding.acl"
         },
         {
-          "name" : "node_44",
-          "id" : 13,
+          "name" : "node_42",
+          "id" : 12,
           "expression" : {
             "type" : "expression",
             "value" : {
@@ -5839,15 +5412,15 @@
               }
             }
           },
-          "true_next" : "node_45",
+          "true_next" : "node_43",
           "false_next" : "next.hashed"
         },
         {
-          "name" : "node_45",
-          "id" : 14,
+          "name" : "node_43",
+          "id" : 13,
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 138,
+            "filename" : "include/control/next.p4",
+            "line" : 141,
             "column" : 16,
             "source_fragment" : "!hdr.mpls.isValid()"
           },
@@ -5869,15 +5442,15 @@
               }
             }
           },
-          "true_next" : "node_46",
+          "true_next" : "node_44",
           "false_next" : "next.hashed"
         },
         {
-          "name" : "node_46",
-          "id" : 15,
+          "name" : "node_44",
+          "id" : 14,
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 139,
+            "filename" : "include/control/next.p4",
+            "line" : 142,
             "column" : 19,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -5896,10 +5469,10 @@
           "false_next" : "next.hashed"
         },
         {
-          "name" : "node_50",
-          "id" : 16,
+          "name" : "node_47",
+          "id" : 15,
           "source_info" : {
-            "filename" : "./include/control/port_counter.p4",
+            "filename" : "include/control/port_counter.p4",
             "line" : 27,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_spec < 511"
@@ -5919,13 +5492,13 @@
             }
           },
           "true_next" : "tbl_act_15",
-          "false_next" : "node_52"
+          "false_next" : "node_49"
         },
         {
-          "name" : "node_52",
-          "id" : 17,
+          "name" : "node_49",
+          "id" : 16,
           "source_info" : {
-            "filename" : "./include/control/port_counter.p4",
+            "filename" : "include/control/port_counter.p4",
             "line" : 30,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port < 511"
@@ -5945,14 +5518,14 @@
             }
           },
           "true_next" : "tbl_act_16",
-          "false_next" : "node_54"
+          "false_next" : "node_51"
         },
         {
-          "name" : "node_54",
-          "id" : 18,
+          "name" : "node_51",
+          "id" : 17,
           "source_info" : {
-            "filename" : "./include/control/next.p4",
-            "line" : 161,
+            "filename" : "include/control/next.p4",
+            "line" : 166,
             "column" : 12,
             "source_fragment" : "fabric_metadata.pop_vlan_at_egress"
           },
@@ -5981,10 +5554,56 @@
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
-      "init_table" : "node_58",
+      "init_table" : "node_55",
       "tables" : [
         {
           "name" : "tbl_act_18",
+          "id" : 33,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [52],
+          "actions" : ["act_18"],
+          "base_default_next" : "tbl_act_19",
+          "next_tables" : {
+            "act_18" : "tbl_act_19"
+          },
+          "default_entry" : {
+            "action_id" : 52,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_19",
+          "id" : 34,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [53],
+          "actions" : ["act_19"],
+          "base_default_next" : "node_58",
+          "next_tables" : {
+            "act_19" : "node_58"
+          },
+          "default_entry" : {
+            "action_id" : 53,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_spgw_egress_gtpu_encap",
           "id" : 35,
           "key" : [],
           "match_type" : "exact",
@@ -5993,60 +5612,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [56],
-          "actions" : ["act_18"],
-          "base_default_next" : "tbl_act_19",
-          "next_tables" : {
-            "act_18" : "tbl_act_19"
-          },
-          "default_entry" : {
-            "action_id" : 56,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_19",
-          "id" : 36,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [57],
-          "actions" : ["act_19"],
-          "base_default_next" : "node_61",
-          "next_tables" : {
-            "act_19" : "node_61"
-          },
-          "default_entry" : {
-            "action_id" : 57,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_spgw_egress_gtpu_encap",
-          "id" : 37,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [55],
+          "action_ids" : [51],
           "actions" : ["spgw_egress.gtpu_encap"],
           "base_default_next" : null,
           "next_tables" : {
             "spgw_egress.gtpu_encap" : null
           },
           "default_entry" : {
-            "action_id" : 55,
+            "action_id" : 51,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -6056,10 +5629,10 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_58",
-          "id" : 19,
+          "name" : "node_55",
+          "id" : 18,
           "source_info" : {
-            "filename" : "./include/control/packetio.p4",
+            "filename" : "include/control/packetio.p4",
             "line" : 38,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_port == 255"
@@ -6082,11 +5655,11 @@
           "false_next" : "tbl_act_19"
         },
         {
-          "name" : "node_61",
-          "id" : 20,
+          "name" : "node_58",
+          "id" : 19,
           "source_info" : {
-            "filename" : "./include/control/../spgw.p4",
-            "line" : 245,
+            "filename" : "include/spgw.p4",
+            "line" : 246,
             "column" : 12,
             "source_fragment" : "spgw_meta.do_spgw && spgw_meta.direction == DIR_DOWNLINK"
           },
@@ -6178,24 +5751,6 @@
           "right" : {
             "type" : "field",
             "value" : ["gtpu_ipv4", "$valid$"]
-          }
-        }
-      }
-    },
-    {
-      "name" : "cksum_2",
-      "id" : 3,
-      "target" : ["gtpu_udp", "checksum"],
-      "type" : "generic",
-      "calculation" : "calc_2",
-      "if_cond" : {
-        "type" : "expression",
-        "value" : {
-          "op" : "d2b",
-          "left" : null,
-          "right" : {
-            "type" : "field",
-            "value" : ["gtpu_udp", "$valid$"]
           }
         }
       }
