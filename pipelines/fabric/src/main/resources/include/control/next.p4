@@ -27,7 +27,6 @@ control Next (
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
     direct_counter(CounterType.packets_and_bytes) simple_counter;
     direct_counter(CounterType.packets_and_bytes) hashed_counter;
-    direct_counter(CounterType.packets_and_bytes) broadcast_counter;
 
     action output(port_num_t port_num) {
         standard_metadata.egress_spec = port_num;
@@ -53,11 +52,6 @@ control Next (
         rewrite_smac(smac);
         rewrite_dmac(dmac);
         output(port_num);
-    }
-
-    action set_mcast_group(group_id_t gid, mac_addr_t smac) {
-        standard_metadata.mcast_grp = gid;
-        rewrite_smac(smac);
     }
 
     action push_mpls (mpls_label_t label, bit<3> tc) {
@@ -120,18 +114,27 @@ control Next (
         counters = hashed_counter;
     }
 
+#ifdef WITH_MULTICAST
     /*
      * Work in progress
      */
-    table broadcast {
+    action set_mcast_group(group_id_t gid, mac_addr_t smac) {
+        standard_metadata.mcast_grp = gid;
+        rewrite_smac(smac);
+    }
+
+    direct_counter(CounterType.packets_and_bytes) multicast_counter;
+
+    table multicast {
         key = {
             fabric_metadata.next_id: exact;
         }
         actions = {
             set_mcast_group;
         }
-        counters = broadcast_counter;
+        counters = multicast_counter;
     }
+#endif // WITH_MULTICAST
 
     apply {
         if (simple.apply().hit) {
@@ -147,7 +150,9 @@ control Next (
             }
         }
         hashed.apply();
-        broadcast.apply();
+#ifdef WITH_MULTICAST
+        multicast.apply();
+#endif // WITH_MULTICAST
     }
 }
 

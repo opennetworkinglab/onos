@@ -30,7 +30,6 @@ control Forwarding (
     direct_counter(CounterType.packets_and_bytes) bridging_counter;
     direct_counter(CounterType.packets_and_bytes) mpls_counter;
     direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
-    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
     direct_counter(CounterType.packets_and_bytes) acl_counter;
 
     action drop() {
@@ -84,6 +83,9 @@ control Forwarding (
         counters = unicast_v4_counter;
     }
 
+#ifdef WITH_MULTICAST
+    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
+
     table multicast_v4 {
         key = {
             hdr.vlan_tag.vlan_id: exact;
@@ -95,10 +97,10 @@ control Forwarding (
         }
         counters = multicast_v4_counter;
     }
+#endif // WITH_MULTICAST
 
 #ifdef WITH_IPV6
     direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
-    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
 
     table unicast_v6 {
         key = {
@@ -111,6 +113,9 @@ control Forwarding (
         counters = unicast_v6_counter;
     }
 
+#ifdef WITH_MULTICAST
+    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
+
     table multicast_v6 {
         key = {
             hdr.vlan_tag.vlan_id: exact;
@@ -122,6 +127,7 @@ control Forwarding (
         }
         counters = multicast_v6_counter;
     }
+#endif // WITH_MULTICAST
 #endif // WITH_IPV6
 
     table acl {
@@ -163,10 +169,14 @@ control Forwarding (
             fabric_metadata.original_ether_type = ETHERTYPE_IPV4;
         }
         else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
+#ifdef WITH_MULTICAST
         else if (fabric_metadata.fwd_type == FWD_IPV4_MULTICAST) multicast_v4.apply();
+#endif // WITH_MULTICAST
 #ifdef WITH_IPV6
         else if (fabric_metadata.fwd_type == FWD_IPV6_UNICAST) unicast_v6.apply();
+#ifdef WITH_MULTICAST
         else if (fabric_metadata.fwd_type == FWD_IPV6_MULTICAST) multicast_v6.apply();
+#endif // WITH_MULTICAST
 #endif // WITH_IPV6
         acl.apply();
     }
