@@ -410,6 +410,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -446,6 +447,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -487,6 +489,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -528,6 +531,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -568,6 +572,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -608,6 +613,7 @@ public class DistributedTeTopologyStore
                     mapEventQueue.put(mapEvent);
                 } catch (InterruptedException e) {
                     log.warn("Unable to queue event {} ", mapEvent, e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }

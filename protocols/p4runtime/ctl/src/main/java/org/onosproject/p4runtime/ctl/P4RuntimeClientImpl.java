@@ -774,6 +774,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 executorService.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.warn("Executor service didn't shutdown in time.");
+                Thread.currentThread().interrupt();
             }
         } finally {
             writeLock.unlock();

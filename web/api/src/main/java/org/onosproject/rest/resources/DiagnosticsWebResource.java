@@ -69,6 +69,7 @@ public class DiagnosticsWebResource extends AbstractWebResource {
             }
         } catch (InterruptedException e) {
             log.error("Interrupted executing command {}", command, e);
+            Thread.currentThread().interrupt();
         }
     }
 }

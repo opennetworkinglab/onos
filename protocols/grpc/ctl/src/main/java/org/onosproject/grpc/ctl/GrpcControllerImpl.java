@@ -171,6 +171,7 @@ public class GrpcControllerImpl implements GrpcController {
             } catch (InterruptedException e) {
                 log.warn("Channel {} didn't shut down in time.");
                 channel.shutdownNow();
+                Thread.currentThread().interrupt();
             }
 
             channels.remove(channelId);

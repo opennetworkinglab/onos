@@ -182,6 +182,7 @@ public class ClusterIpManager {
             log.error("Unable to execute command {}", command, e);
         } catch (InterruptedException e) {
             log.error("Interrupted executing command {}", command, e);
+            Thread.currentThread().interrupt();
         }
     }
 

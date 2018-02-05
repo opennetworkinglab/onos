@@ -151,6 +151,7 @@ public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
         } catch (InterruptedException e) {
             log.error("Awaiting server termination failed with error {}",
                       e.getMessage());
+            Thread.currentThread().interrupt();
         }
         if (!server.isTerminated()) {
             server.shutdownNow();
@@ -159,6 +160,7 @@ public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
             } catch (InterruptedException e) {
                 log.error("Server failed to terminate as expected with error" +
                                   " {}", e.getMessage());
+                Thread.currentThread().interrupt();
             }
         }
         return server.isTerminated();

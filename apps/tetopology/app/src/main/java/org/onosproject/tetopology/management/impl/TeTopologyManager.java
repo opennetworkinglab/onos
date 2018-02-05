@@ -437,6 +437,7 @@ public class TeTopologyManager
                 }
             } catch (InterruptedException e) {
                 log.warn("TopologyMergerTask is interrupted");
+                Thread.currentThread().interrupt();
             } catch (Exception e) {
                 log.warn("Unable to merge topology", e);
             }

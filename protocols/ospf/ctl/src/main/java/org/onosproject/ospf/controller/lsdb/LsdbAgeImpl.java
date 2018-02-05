@@ -197,6 +197,7 @@ public class LsdbAgeImpl implements LsdbAge {
                     //remove from bin
                     lsaBin.removeOspfLsa((String) key, lsa);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     log.debug("Error::LSDBAge::maxAgeLsa::{}", e.getMessage());
                 }
             }
@@ -215,6 +216,7 @@ public class LsdbAgeImpl implements LsdbAge {
                 //remove from bin
                 maxAgeBin.removeOspfLsa((String) key, lsa);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 log.debug("Error::LSDBAge::maxAgeLsa::{}", e.getMessage());
             }
         }
@@ -249,6 +251,7 @@ public class LsdbAgeImpl implements LsdbAge {
                     lsaBin.removeOspfLsa((String) key, lsa);
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 log.debug("Error::LSDBAge::refreshLsa::{}", e.getMessage());
             }
         }
@@ -272,6 +275,7 @@ public class LsdbAgeImpl implements LsdbAge {
                 try {
                     lsaQueue.put(lsa);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     log.debug("Error::LSDBAge::checkAges::{}", e.getMessage());
                 }
             }

@@ -289,6 +289,7 @@ public abstract class TopologySimulator {
             deviceLatch.await(maxWaitSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             log.warn("Device events did not arrive in time");
+            Thread.currentThread().interrupt();
         }
         deviceService.removeListener(deviceEventCounter);
     }

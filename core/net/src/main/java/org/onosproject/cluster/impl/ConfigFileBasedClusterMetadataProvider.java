@@ -196,6 +196,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
             try {
                 Thread.sleep((int) Math.pow(2, iterations < 7 ? ++iterations : iterations) * 10L);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw Throwables.propagate(e);
             }
         }

@@ -156,6 +156,7 @@ public class SnmpDeviceProvider extends AbstractProvider
             });
             deviceBuilderExecutor.awaitTermination(1000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error("Device builder did not terminate");
         }
         deviceBuilderExecutor.shutdownNow();

@@ -256,6 +256,7 @@ public class PrimitivePerfApp {
                 workers.awaitTermination(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 log.warn("Failed to stop worker", e);
+                Thread.currentThread().interrupt();
             }
         }
 

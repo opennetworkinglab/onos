@@ -207,6 +207,7 @@ public abstract class AbstractUpgradableFabricApp {
         } catch (InterruptedException e) {
             List<Runnable> runningTasks = executorService.shutdownNow();
             log.warn("Unable to stop the following tasks: {}", runningTasks);
+            Thread.currentThread().interrupt();
         }
         scheduledExecutorService.shutdown();
         deviceService.removeListener(deviceListener);
@@ -297,7 +298,7 @@ public abstract class AbstractUpgradableFabricApp {
                 Thread.sleep(CLEANUP_SLEEP);
             } catch (InterruptedException e) {
                 log.warn("Cleanup sleep interrupted!");
-                Thread.interrupted();
+                Thread.currentThread().interrupt();
             }
         }
 

@@ -214,6 +214,7 @@ public class EA1000MeterProvider extends AbstractProvider implements MeterProvid
                                 session, DatastoreId.RUNNING);
                         return; //If it did not throw an exception
                     } catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
                         log.debug("Error when deleting BWP profile on EA1000" +
                                 " - trying again in 1 sec", e1);
                     } catch (NetconfException e1) {

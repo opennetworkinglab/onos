@@ -226,6 +226,7 @@ public class EvpnRouteManager implements EvpnRouteService,
                     listener.event(queue.take());
                 } catch (InterruptedException e) {
                     log.info("Route listener event thread shutting down: {}", e.getMessage());
+                    Thread.currentThread().interrupt();
                     break;
                 } catch (Exception e) {
                     log.warn("Exception during route event handler", e);

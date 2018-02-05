@@ -306,6 +306,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
                               sw.getStringId());
                     // for exiting while loop gracefully
                     interrupted = true;
+                    Thread.currentThread().interrupt();
                 }
             } else {
                 log.debug("ofFlowStatsRequestFlowSend: previous FlowStatsRequestAll (xid={})" +

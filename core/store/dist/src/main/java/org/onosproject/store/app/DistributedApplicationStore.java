@@ -610,6 +610,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while fetching bits for application {}", app.id().name());
+            Thread.currentThread().interrupt();
         }
     }
 

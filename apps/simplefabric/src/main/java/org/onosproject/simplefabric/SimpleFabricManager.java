@@ -529,6 +529,8 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
                         try {
                             refreshMonitor.wait(IDLE_INTERVAL_MSEC);
                         } catch (InterruptedException e) {
+                            log.warn("run thread interrupted", e);
+                            Thread.currentThread().interrupt();
                         }
                     }
                     doRefreshMarked = doRefresh;

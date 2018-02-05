@@ -388,6 +388,7 @@ public abstract class Tools {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted", e);
         }
     }
@@ -460,6 +461,7 @@ public abstract class Tools {
         try {
             Thread.sleep(random.nextInt(ms));
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted", e);
         }
     }
@@ -474,6 +476,7 @@ public abstract class Tools {
         try {
             Thread.sleep(ms, nanos);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted", e);
         }
     }

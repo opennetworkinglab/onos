@@ -355,6 +355,7 @@ public class IntentsWebResource extends AbstractWebResource {
                 latch.await(WITHDRAW_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.info("REST Delete operation timed out waiting for intent {}", k);
+                Thread.currentThread().interrupt();
             }
             // double check the state
             IntentState state = service.getIntentState(k);

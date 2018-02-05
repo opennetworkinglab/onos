@@ -453,6 +453,7 @@ public class RestDeviceProvider extends AbstractProvider
                 return false;
             } catch (InterruptedException ex) {
                 log.warn("Connection to device {} interrupted", dev.deviceId());
+                Thread.currentThread().interrupt();
                 return false;
             } catch (ExecutionException ex) {
                 log.warn("Connection to device {} had a execution exception", dev.deviceId());

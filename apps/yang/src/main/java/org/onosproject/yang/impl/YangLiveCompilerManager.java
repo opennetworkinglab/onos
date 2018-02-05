@@ -227,6 +227,7 @@ public class YangLiveCompilerManager implements YangLiveCompilerService {
             }
         } catch (InterruptedException e) {
             log.error("Interrupted executing command {}", command, e);
+            Thread.currentThread().interrupt();
         }
     }
 }

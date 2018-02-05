@@ -221,6 +221,7 @@ public class OvsdbDeviceProvider extends AbstractProvider
             executor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             log.error("Timeout while waiting for child threads to finish because: " + e.getMessage());
+            Thread.currentThread().interrupt();
         }
     }
 }

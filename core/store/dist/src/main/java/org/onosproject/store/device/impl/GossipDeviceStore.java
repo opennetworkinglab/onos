@@ -255,6 +255,7 @@ public class GossipDeviceStore
             }
         } catch (InterruptedException e) {
             log.error("Error during executor shutdown", e);
+            Thread.currentThread().interrupt();
         }
 
         deviceDescs.clear();

@@ -165,6 +165,7 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
             Thread.sleep(100);
         } catch (InterruptedException e) {
             log.error("Exception occurred while getting the bandwidth.");
+            Thread.currentThread().interrupt();
         }
         Set<Resource> resources = resService.getRegisteredResources(devResource.id());
         for (Resource res : resources) {

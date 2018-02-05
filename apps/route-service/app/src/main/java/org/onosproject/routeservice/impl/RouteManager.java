@@ -343,6 +343,7 @@ public class RouteManager implements RouteService, RouteAdminService {
                     listener.event(queue.take());
                 } catch (InterruptedException e) {
                     log.info("Route listener event thread shutting down: {}", e.getMessage());
+                    Thread.currentThread().interrupt();
                     break;
                 } catch (Exception e) {
                     log.warn("Exception during route event handler", e);

@@ -1969,6 +1969,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     executor.awaitTermination(WAIT_TIME, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     log.error("updating delegation failed");
+                    Thread.currentThread().interrupt();
                 }
             }
         }
