@@ -361,7 +361,7 @@ public class TroubleshootManager implements TroubleshootService {
                 //FIXME find better solution that enable granularity greater than 0 or all rules
                 //(another possibility is max tableId)
                 if (nextTableIdEntry == null && flows.size() == 0) {
-                    trace.addResultMessage("No flow rules for device" + in.deviceId() + ". Aborting");
+                    trace.addResultMessage("No matching flow rules for device " + in.deviceId() + ". Aborting");
                     return trace;
 
                 } else if (nextTableIdEntry == null) {

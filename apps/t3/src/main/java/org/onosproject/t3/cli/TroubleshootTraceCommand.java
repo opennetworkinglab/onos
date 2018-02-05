@@ -185,6 +185,7 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
                 }
                 previous = connectPoint;
             }
+            print("---------------------------------------------------------------\n");
         });
     }
 
@@ -197,7 +198,7 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
                         f.table(), f.priority(), f.selector().criteria(),
                         printTreatment(f.treatment()));
             } else {
-                print("   flowId=%s, selector=%s ", f.id(), f.selector().criteria());
+                print("   flowId=%s, table=%s, selector=%s", f.id(), f.table(), f.selector().criteria());
             }
         });
     }
