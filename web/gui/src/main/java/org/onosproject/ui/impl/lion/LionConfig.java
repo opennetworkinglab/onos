@@ -17,6 +17,7 @@
 
 package org.onosproject.ui.impl.lion;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.io.CharStreams;
@@ -337,6 +338,24 @@ public class LionConfig {
         public int compareTo(CmdAlias o) {
             return alias.compareTo(o.alias);
         }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final CmdAlias that = (CmdAlias) obj;
+            return Objects.equal(this.alias, that.alias);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.alias);
+        }
     }
 
     /**
@@ -390,6 +409,24 @@ public class LionConfig {
         @Override
         public int compareTo(CmdFrom o) {
             return rawRes.compareTo(o.rawRes);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final CmdFrom that = (CmdFrom) obj;
+            return Objects.equal(this.rawRes, that.rawRes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.rawRes);
         }
 
         /**

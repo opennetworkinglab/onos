@@ -17,6 +17,7 @@
 
 package org.onosproject.ui.lion;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 
@@ -204,6 +205,24 @@ public final class LionBundle {
         @Override
         public int compareTo(LionItem o) {
             return key.compareTo(o.key);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final LionBundle.LionItem that = (LionBundle.LionItem) obj;
+            return Objects.equal(this.key, that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.key);
         }
 
         /**

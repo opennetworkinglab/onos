@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting;
 
 
+import com.google.common.base.Objects;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -332,6 +333,25 @@ public class PortAuthTracker {
             // NOTE: only compare against "deviceid/port"
             int result = Comparators.ELEMENT_ID_COMPARATOR.compare(d, o.d);
             return (result != 0) ? result : Long.signum(p.toLong() - o.p.toLong());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final PortAuthTracker.PortAuthState that = (PortAuthTracker.PortAuthState) obj;
+
+            return Comparators.ELEMENT_ID_COMPARATOR.compare(this.d, that.d) == 0 &&
+                    p.toLong() == that.p.toLong();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.d, this.p);
         }
     }
 }
