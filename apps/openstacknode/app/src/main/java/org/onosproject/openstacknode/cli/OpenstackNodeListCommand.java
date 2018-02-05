@@ -46,17 +46,17 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(osNodes));
         } else {
-            print(FORMAT, "Hostname", "Type", "Integration Bridge", "Router Bridge",
-                    "Management IP", "Data IP", "VLAN Intf", "State");
+            print(FORMAT, "Hostname", "Type", "Integration Bridge",
+                    "Management IP", "Data IP", "VLAN Intf", "Uplink Port", "State");
             for (OpenstackNode osNode : osNodes) {
                 print(FORMAT,
                         osNode.hostname(),
                         osNode.type(),
                         osNode.intgBridge(),
-                        osNode.routerBridge() != null ? osNode.routerBridge() : "",
                         osNode.managementIp(),
                         osNode.dataIp() != null ? osNode.dataIp() : "",
                         osNode.vlanIntf() != null ? osNode.vlanIntf() : "",
+                        osNode.uplinkPort() != null ? osNode.uplinkPort() : "",
                         osNode.state());
             }
             print("Total %s nodes", osNodeService.nodes().size());
@@ -71,12 +71,12 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
                     .put("hostname", osNode.hostname())
                     .put("type", osNode.type().name())
                     .put("integrationBridge", osNode.intgBridge().toString())
-                    .put("routerBridge", osNode.routerBridge().toString())
                     .put("managementIp", osNode.managementIp().toString())
                     .put("dataIp", osNode.dataIp().toString())
                     .put("vlanIntf", osNode.vlanIntf())
                     .put("tunnelPortNum", osNode.tunnelPortNum().toString())
                     .put("vlanPortNum", osNode.vlanPortNum().toString())
+                    .put("uplinkPort", osNode.uplinkPort())
                     .put("state", osNode.state().name()));
         }
         return result;

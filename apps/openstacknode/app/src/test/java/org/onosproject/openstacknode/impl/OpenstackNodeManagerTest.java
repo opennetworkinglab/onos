@@ -64,11 +64,12 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
     private static final String COMPUTE_3_HOSTNAME = "compute_3";
     private static final String GATEWAY_1_HOSTNAME = "gateway_1";
 
+    private static final String GATEWAY_1_UPLINKPORT = "eth0";
+
     private static final Device COMPUTE_1_INTG_DEVICE = createDevice(1);
     private static final Device COMPUTE_2_INTG_DEVICE = createDevice(2);
     private static final Device COMPUTE_3_INTG_DEVICE = createDevice(3);
     private static final Device GATEWAY_1_INTG_DEVICE = createDevice(4);
-    private static final Device GATEWAY_1_ROUT_DEVICE = createDevice(5);
 
     private static final OpenstackNode COMPUTE_1 = createNode(
             COMPUTE_1_HOSTNAME,
@@ -95,8 +96,8 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
             GATEWAY_1_HOSTNAME,
             OpenstackNode.NodeType.GATEWAY,
             GATEWAY_1_INTG_DEVICE,
-            GATEWAY_1_ROUT_DEVICE,
             IpAddress.valueOf("10.100.0.4"),
+            GATEWAY_1_UPLINKPORT,
             NodeState.COMPLETE
     );
 
@@ -288,8 +289,6 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
                 target.node(GATEWAY_1_INTG_DEVICE.id()), GATEWAY_1));
         assertTrue(ERR_NOT_FOUND, Objects.equals(
                 target.node(GATEWAY_1.ovsdb()), GATEWAY_1));
-        assertTrue(ERR_NOT_FOUND, Objects.equals(
-                target.node(GATEWAY_1.routerBridge()), GATEWAY_1));
     }
 
     private void validateEvents(Enum... types) {

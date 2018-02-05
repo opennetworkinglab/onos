@@ -46,27 +46,28 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final String hostname;
     private final NodeType type;
     private final DeviceId intgBridge;
-    private final DeviceId routerBridge;
     private final IpAddress managementIp;
     private final IpAddress dataIp;
     private final String vlanIntf;
+    private final String uplinkPort;
     private final NodeState state;
 
-    protected DefaultOpenstackNode(String hostname,
-                                 NodeType type,
-                                 DeviceId intgBridge,
-                                 DeviceId routerBridge,
-                                 IpAddress managementIp,
-                                 IpAddress dataIp,
-                                 String vlanIntf,
-                                 NodeState state) {
+    private static final String OVSDB = "ovsdb:";
+
+    protected DefaultOpenstackNode(String hostname, NodeType type,
+                                   DeviceId intgBridge,
+                                   IpAddress managementIp,
+                                   IpAddress dataIp,
+                                   String vlanIntf,
+                                   String uplinkPort,
+                                   NodeState state) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
-        this.routerBridge = routerBridge;
         this.managementIp = managementIp;
         this.dataIp = dataIp;
         this.vlanIntf = vlanIntf;
+        this.uplinkPort = uplinkPort;
         this.state = state;
     }
 
@@ -82,17 +83,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
 
     @Override
     public DeviceId ovsdb() {
-        return DeviceId.deviceId("ovsdb:" + managementIp().toString());
+        return DeviceId.deviceId(OVSDB + managementIp().toString());
     }
 
     @Override
     public DeviceId intgBridge() {
         return intgBridge;
-    }
-
-    @Override
-    public DeviceId routerBridge() {
-        return routerBridge;
     }
 
     @Override
@@ -108,6 +104,11 @@ public class DefaultOpenstackNode implements OpenstackNode {
     @Override
     public String vlanIntf() {
         return vlanIntf;
+    }
+
+    @Override
+    public String uplinkPort() {
+        return uplinkPort;
     }
 
     @Override
@@ -187,9 +188,9 @@ public class DefaultOpenstackNode implements OpenstackNode {
             if (Objects.equals(hostname, that.hostname) &&
                     Objects.equals(type, that.type) &&
                     Objects.equals(intgBridge, that.intgBridge) &&
-                    Objects.equals(routerBridge, that.routerBridge) &&
                     Objects.equals(managementIp, that.managementIp) &&
                     Objects.equals(dataIp, that.dataIp) &&
+                    Objects.equals(uplinkPort, that.uplinkPort) &&
                     Objects.equals(vlanIntf, that.vlanIntf)) {
                 return true;
             }
@@ -202,10 +203,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
         return Objects.hash(hostname,
                 type,
                 intgBridge,
-                routerBridge,
                 managementIp,
                 dataIp,
-                vlanIntf);
+                vlanIntf,
+                uplinkPort);
     }
 
     @Override
@@ -214,10 +215,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("hostname", hostname)
                 .add("type", type)
                 .add("integrationBridge", intgBridge)
-                .add("routerBridge", routerBridge)
                 .add("managementIp", managementIp)
                 .add("dataIp", dataIp)
                 .add("vlanIntf", vlanIntf)
+                .add("uplinkPort", uplinkPort)
                 .add("state", state)
                 .toString();
     }
@@ -228,10 +229,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .type(type)
                 .hostname(hostname)
                 .intgBridge(intgBridge)
-                .routerBridge(routerBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .vlanIntf(vlanIntf)
+                .uplinkPort(uplinkPort)
                 .state(newState)
                 .build();
     }
@@ -256,10 +257,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .hostname(osNode.hostname())
                 .type(osNode.type())
                 .intgBridge(osNode.intgBridge())
-                .routerBridge(osNode.routerBridge())
                 .managementIp(osNode.managementIp())
                 .dataIp(osNode.dataIp())
                 .vlanIntf(osNode.vlanIntf())
+                .uplinkPort(osNode.uplinkPort())
                 .state(osNode.state());
     }
 
@@ -268,10 +269,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private String hostname;
         private NodeType type;
         private DeviceId intgBridge;
-        private DeviceId routerBridge;
         private IpAddress managementIp;
         private IpAddress dataIp;
         private String vlanIntf;
+        private String uplinkPort;
         private NodeState state;
 
         private Builder() {
@@ -285,8 +286,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
             checkArgument(managementIp != null, "Node management IP cannot be null");
             checkArgument(state != null, "Node state cannot be null");
 
-            if (type == NodeType.GATEWAY && routerBridge == null) {
-                throw new IllegalArgumentException("Router bridge is required for gateway node");
+            if (type == NodeType.GATEWAY && uplinkPort == null) {
+                throw new IllegalArgumentException("Uplink port is required for gateway node");
             }
             if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {
                 throw new IllegalArgumentException("Either data IP or VLAN interface is required");
@@ -295,10 +296,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
             return new DefaultOpenstackNode(hostname,
                     type,
                     intgBridge,
-                    routerBridge,
                     managementIp,
                     dataIp,
                     vlanIntf,
+                    uplinkPort,
                     state);
         }
 
@@ -323,12 +324,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
         }
 
         @Override
-        public Builder routerBridge(DeviceId routerBridge) {
-            this.routerBridge = routerBridge;
-            return this;
-        }
-
-        @Override
         public Builder managementIp(IpAddress managementIp) {
             this.managementIp = managementIp;
             return this;
@@ -343,6 +338,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder vlanIntf(String vlanIntf) {
             this.vlanIntf = vlanIntf;
+            return this;
+        }
+
+        @Override
+        public Builder uplinkPort(String uplinkPort) {
+            this.uplinkPort = uplinkPort;
             return this;
         }
 

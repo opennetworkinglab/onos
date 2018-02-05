@@ -28,4 +28,11 @@ public final class Constants {
     public static final String DEFAULT_TUNNEL = "vxlan";
     public static final String PATCH_INTG_BRIDGE = "patch-intg";
     public static final String PATCH_ROUT_BRIDGE = "patch-rout";
+    public static final String GATEWAY = "GATEWAY";
+    public static final String HOST_NAME = "hostname";
+    public static final String TYPE = "type";
+    public static final String MANAGEMENT_IP = "managementIp";
+    public static final String DATA_IP = "dataIp";
+    public static final String VLAN_INTF_NAME = "vlanPort";
+    public static final String UPLINK_PORT = "uplinkPort";
 }

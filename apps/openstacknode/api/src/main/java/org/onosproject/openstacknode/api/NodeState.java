@@ -45,20 +45,6 @@ public enum NodeState {
 
         @Override
         public NodeState nextState() {
-            return PORT_CREATED;
-        }
-    },
-    /**
-     * Indicates required ports are added.
-     */
-    PORT_CREATED {
-        @Override
-        public void process(OpenstackNodeHandler handler, OpenstackNode osNode) {
-            handler.processPortCreatedState(osNode);
-        }
-
-        @Override
-        public NodeState nextState() {
             return COMPLETE;
         }
     },

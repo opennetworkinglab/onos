@@ -27,6 +27,13 @@ import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
 import org.onosproject.rest.AbstractWebResource;
+import static org.onosproject.openstacknode.api.Constants.GATEWAY;
+import static org.onosproject.openstacknode.api.Constants.HOST_NAME;
+import static org.onosproject.openstacknode.api.Constants.MANAGEMENT_IP;
+import static org.onosproject.openstacknode.api.Constants.DATA_IP;
+import static org.onosproject.openstacknode.api.Constants.VLAN_INTF_NAME;
+import static org.onosproject.openstacknode.api.Constants.UPLINK_PORT;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,16 +64,8 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
     private static final String DELETE = "DELETE";
-
-    private static final String HOST_NAME = "hostname";
     private static final String TYPE = "type";
-    private static final String MANAGEMENT_IP = "managementIp";
-    private static final String DATA_IP = "dataIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
-    private static final String VLAN_INTF_NAME = "vlanPort";
-
-    // GATEWAY node specific fields
-    private static final String ROUTER_BRIDGE = "routerBridge";
 
 
     private final OpenstackNodeAdminService osNodeAdminService =
@@ -148,10 +147,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
                      String type = node.get(TYPE).asText();
                      String mIp = node.get(MANAGEMENT_IP).asText();
                      String iBridge = node.get(INTEGRATION_BRIDGE).asText();
-                     String rBridge = null;
-                     if (node.get(ROUTER_BRIDGE) != null) {
-                         rBridge = node.get(ROUTER_BRIDGE).asText();
-                     }
+
                      DefaultOpenstackNode.Builder nodeBuilder = DefaultOpenstackNode.builder()
                              .hostname(hostname)
                              .type(OpenstackNode.NodeType.valueOf(type))
@@ -159,14 +155,14 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
                              .intgBridge(DeviceId.deviceId(iBridge))
                              .state(NodeState.INIT);
 
+                     if (type.equals(GATEWAY)) {
+                         nodeBuilder.uplinkPort(node.get(UPLINK_PORT).asText());
+                     }
                      if (node.get(VLAN_INTF_NAME) != null) {
                          nodeBuilder.vlanIntf(node.get(VLAN_INTF_NAME).asText());
                      }
                      if (node.get(DATA_IP) != null) {
                          nodeBuilder.dataIp(IpAddress.valueOf(node.get(DATA_IP).asText()));
-                     }
-                     if (rBridge != null) {
-                         nodeBuilder.routerBridge(DeviceId.deviceId(rBridge));
                      }
 
                      log.trace("node is {}", nodeBuilder.build().toString());

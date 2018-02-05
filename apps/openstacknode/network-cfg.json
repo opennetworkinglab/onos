@@ -26,9 +26,7 @@
                                 "dataIp" : "172.16.130.7",
                                 "vlanPort" : "eth2",
                                 "integrationBridge" : "of:00000000000000a3",
-                                "routerBridge" : "of:00000000000000b1",
-                                "uplinkPort" : "quagga-router",
-                                "routerController" : "172.17.0.2"
+                                "uplinkPort" : "ens6"
 
                         }
                 ]

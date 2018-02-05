@@ -23,17 +23,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.*;
-import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VLAN;
-import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VXLAN;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
  * Checks detailed node init state.
@@ -48,14 +42,11 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
     private static final String MSG_OK = "OK";
     private static final String MSG_NO = "NO";
-    private static final String BUCKET_FORMAT =
-            "   bucket=%s, bytes=%s, packets=%s, actions=%s";
 
     @Override
     protected void execute() {
         OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
-        GroupService groupService = AbstractShellCommand.get(GroupService.class);
 
         OpenstackNode osNode = osNodeService.node(hostname);
         if (osNode == null) {
@@ -78,7 +69,9 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
             if (osNode.vlanIntf() != null) {
                 printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
             }
-            printGatewayGroupState(osNodeService, groupService, osNode);
+            if (osNode.type() == OpenstackNode.NodeType.GATEWAY) {
+                printPortState(deviceService, osNode.intgBridge(), osNode.uplinkPort());
+            }
         } else {
             print("%s %s=%s is not available",
                     MSG_NO,
@@ -102,45 +95,6 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                     port.annotations());
         } else {
             print("%s %s does not exist", MSG_NO, portName);
-        }
-    }
-
-    private void printGatewayGroupState(OpenstackNodeService osNodeService,
-                                        GroupService groupService, OpenstackNode osNode) {
-        if (osNode.type() == GATEWAY) {
-            return;
-        }
-        if (osNodeService.completeNodes(GATEWAY).isEmpty()) {
-            print("N/A No complete state gateway nodes exist");
-            return;
-        }
-        if (osNode.dataIp() != null) {
-            Group osGroup = groupService.getGroup(osNode.intgBridge(),
-                    osNode.gatewayGroupKey(VXLAN));
-            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED) {
-                print("%s VXLAN gateway group does not exist", MSG_NO);
-            } else {
-                print("%s VXLAN group 0x%s added", MSG_OK, Integer.toHexString(osGroup.id().id()));
-                int i = 0;
-                for (GroupBucket bucket : osGroup.buckets().buckets()) {
-                    print(BUCKET_FORMAT, ++i, bucket.bytes(), bucket.packets(),
-                            bucket.treatment().allInstructions());
-                }
-            }
-        }
-        if (osNode.vlanIntf() != null) {
-            Group osGroup = groupService.getGroup(osNode.intgBridge(),
-                    osNode.gatewayGroupKey(VLAN));
-            if (osGroup == null || osGroup.state() != Group.GroupState.ADDED) {
-                print("\n%s VLAN gateway group does not exist", MSG_NO);
-            } else {
-                print("\n%s VLAN group 0x%s added", MSG_OK, Integer.toHexString(osGroup.id().id()));
-                int i = 0;
-                for (GroupBucket bucket : osGroup.buckets().buckets()) {
-                    print(BUCKET_FORMAT, ++i, bucket.bytes(), bucket.packets(),
-                            bucket.treatment().allInstructions());
-                }
-            }
         }
     }
 }

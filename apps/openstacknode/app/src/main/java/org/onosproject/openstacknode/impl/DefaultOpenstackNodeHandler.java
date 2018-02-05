@@ -15,9 +15,6 @@
  */
 package org.onosproject.openstacknode.impl;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,11 +39,9 @@ import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
-import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.behaviour.InterfaceConfig;
-import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoints;
 import org.onosproject.net.behaviour.TunnelKeys;
@@ -54,21 +49,11 @@ import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
-import org.onosproject.net.group.DefaultGroupDescription;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupListener;
-import org.onosproject.net.group.GroupService;
+
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
-import org.onosproject.openstacknode.api.OpenstackNode.NetworkMode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeHandler;
@@ -87,19 +72,13 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
-import static org.onosproject.net.group.DefaultGroupBucket.createSelectGroupBucket;
 import static org.onosproject.openstacknode.api.Constants.*;
-import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.*;
-import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VLAN;
-import static org.onosproject.openstacknode.api.OpenstackNode.NetworkMode.VXLAN;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -137,9 +116,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     protected OvsdbController ovsdbController;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected GroupService groupService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -157,7 +133,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     private final DeviceListener ovsdbListener = new InternalOvsdbListener();
     private final DeviceListener bridgeListener = new InternalBridgeListener();
-    private final GroupListener groupListener = new InternalGroupListener();
     private final OpenstackNodeListener osNodeListener = new InternalOpenstackNodeListener();
 
     private ApplicationId appId;
@@ -170,7 +145,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         componentConfigService.registerProperties(getClass());
         leadershipService.runForLeadership(appId.name());
-        groupService.addListener(groupListener);
         deviceService.addListener(ovsdbListener);
         deviceService.addListener(bridgeListener);
         osNodeService.addListener(osNodeListener);
@@ -183,7 +157,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         osNodeService.removeListener(osNodeListener);
         deviceService.removeListener(bridgeListener);
         deviceService.removeListener(ovsdbListener);
-        groupService.removeListener(groupListener);
         componentConfigService.unregisterProperties(getClass(), false);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
@@ -211,64 +184,31 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         if (!deviceService.isAvailable(osNode.intgBridge())) {
             createBridge(osNode, INTEGRATION_BRIDGE, osNode.intgBridge());
         }
-        if (osNode.type() == GATEWAY &&
-                !isBridgeCreated(osNode.ovsdb(), ROUTER_BRIDGE)) {
-            createBridge(osNode, ROUTER_BRIDGE, osNode.routerBridge());
-        }
     }
 
     @Override
     public void processDeviceCreatedState(OpenstackNode osNode) {
-        if (!isOvsdbConnected(osNode)) {
-            ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
-            return;
-        }
-        if (osNode.type() == GATEWAY && (
-                !isIntfEnabled(osNode, PATCH_INTG_BRIDGE) ||
-                        !isIntfCreated(osNode, PATCH_ROUT_BRIDGE)
-        )) {
-            createPatchInterface(osNode);
-        }
-        if (osNode.dataIp() != null &&
-                !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
-            createTunnelInterface(osNode);
-        }
-        if (osNode.vlanIntf() != null &&
-                !isIntfEnabled(osNode, osNode.vlanIntf())) {
-            addSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.vlanIntf());
-        }
-    }
+        try {
+            if (!isOvsdbConnected(osNode)) {
+                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+                return;
+            }
 
-    @Override
-    public void processPortCreatedState(OpenstackNode osNode) {
-        switch (osNode.type()) {
-            case COMPUTE:
-                if (osNode.dataIp() != null) {
-                    addOrUpdateGatewayGroup(osNode,
-                            osNodeService.completeNodes(GATEWAY),
-                            VXLAN);
-                }
-                if (osNode.vlanIntf() != null) {
-                    addOrUpdateGatewayGroup(osNode,
-                            osNodeService.completeNodes(GATEWAY),
-                            VLAN);
-                }
-                break;
-            case GATEWAY:
-                Set<OpenstackNode> gateways =
-                        Sets.newHashSet(osNodeService.completeNodes(GATEWAY));
-                gateways.add(osNode);
-                osNodeService.completeNodes(COMPUTE).forEach(n -> {
-                    if (n.dataIp() != null) {
-                        addOrUpdateGatewayGroup(n, gateways, VXLAN);
-                    }
-                    if (n.vlanIntf() != null) {
-                        addOrUpdateGatewayGroup(n, gateways, VLAN);
-                    }
-                });
-                break;
-            default:
-                break;
+            if (osNode.type() == GATEWAY) {
+                addSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.uplinkPort());
+            }
+
+            if (osNode.dataIp() != null &&
+                    !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
+                createTunnelInterface(osNode);
+            }
+
+            if (osNode.vlanIntf() != null &&
+                    !isIntfEnabled(osNode, osNode.vlanIntf())) {
+                addSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.vlanIntf());
+            }
+        } catch (Exception e) {
+            log.error("Exception occured because of {}", e.toString());
         }
     }
 
@@ -283,28 +223,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     @Override
     public void processIncompleteState(OpenstackNode osNode) {
-        if (osNode.type() == COMPUTE) {
-            if (osNode.dataIp() != null) {
-                groupService.removeGroup(osNode.intgBridge(), osNode.gatewayGroupKey(VXLAN), appId);
-            }
-            if (osNode.vlanIntf() != null) {
-                groupService.removeGroup(osNode.intgBridge(), osNode.gatewayGroupKey(VLAN), appId);
-            }
-        }
-        if (osNode.type() == GATEWAY) {
-            osNodeService.completeNodes(COMPUTE).forEach(n -> {
-                if (n.dataIp() != null) {
-                    addOrUpdateGatewayGroup(n,
-                            osNodeService.completeNodes(GATEWAY),
-                            VXLAN);
-                }
-                if (n.vlanIntf() != null) {
-                    addOrUpdateGatewayGroup(n,
-                            osNodeService.completeNodes(GATEWAY),
-                            VLAN);
-                }
-            });
-        }
+        //TODO
     }
 
     private boolean isOvsdbConnected(OpenstackNode osNode) {
@@ -322,22 +241,16 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return;
         }
 
-        // TODO fix this when we use single ONOS cluster for both openstackNode and vRouter
-        Set<IpAddress> controllerIps;
-        if (bridgeName.equals(ROUTER_BRIDGE)) {
-            // TODO checks if empty controller does not break anything
-            controllerIps = ImmutableSet.of();
-        } else {
-            controllerIps = clusterService.getNodes().stream()
+        Set<IpAddress> controllerIps = clusterService.getNodes().stream()
                     .map(ControllerNode::ip)
                     .collect(Collectors.toSet());
-        }
 
         List<ControllerInfo> controllers = controllerIps.stream()
                 .map(ip -> new ControllerInfo(ip, DEFAULT_OFPORT, DEFAULT_OF_PROTO))
                 .collect(Collectors.toList());
 
         String dpid = deviceId.toString().substring(DPID_BEGIN);
+
         BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
                 .name(bridgeName)
                 .failMode(BridgeDescription.FailMode.SECURE)
@@ -382,91 +295,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         ifaceConfig.addTunnelMode(DEFAULT_TUNNEL, tunnelDesc);
     }
 
-    private void createPatchInterface(OpenstackNode osNode) {
-        checkArgument(osNode.type().equals(OpenstackNode.NodeType.GATEWAY));
-        if (isIntfEnabled(osNode, PATCH_INTG_BRIDGE) &&
-                isIntfCreated(osNode, PATCH_ROUT_BRIDGE)) {
-            return;
-        }
-
-        Device device = deviceService.getDevice(osNode.ovsdb());
-        if (device == null || !device.is(InterfaceConfig.class)) {
-            log.error("Failed to create patch interfaces on {}", osNode.hostname());
-            return;
-        }
-
-        PatchDescription patchIntg = DefaultPatchDescription.builder()
-                .deviceId(INTEGRATION_BRIDGE)
-                .ifaceName(PATCH_INTG_BRIDGE)
-                .peer(PATCH_ROUT_BRIDGE)
-                .build();
-
-        PatchDescription patchRout = DefaultPatchDescription.builder()
-                .deviceId(ROUTER_BRIDGE)
-                .ifaceName(PATCH_ROUT_BRIDGE)
-                .peer(PATCH_INTG_BRIDGE)
-                .build();
-
-        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
-        ifaceConfig.addPatchMode(PATCH_INTG_BRIDGE, patchIntg);
-        ifaceConfig.addPatchMode(PATCH_ROUT_BRIDGE, patchRout);
-    }
-
-    private void addOrUpdateGatewayGroup(OpenstackNode osNode,
-                                         Set<OpenstackNode> gatewayNodes,
-                                         NetworkMode mode) {
-        GroupBuckets buckets = gatewayGroupBuckets(osNode, gatewayNodes, mode);
-        if (groupService.getGroup(osNode.intgBridge(), osNode.gatewayGroupKey(mode)) == null) {
-            GroupDescription groupDescription = new DefaultGroupDescription(
-                    osNode.intgBridge(),
-                    GroupDescription.Type.SELECT,
-                    buckets,
-                    osNode.gatewayGroupKey(mode),
-                    osNode.gatewayGroupId(mode).id(),
-                    appId);
-            groupService.addGroup(groupDescription);
-            log.debug("Created gateway group for {}", osNode.hostname());
-        } else {
-            groupService.setBucketsForGroup(
-                    osNode.intgBridge(),
-                    osNode.gatewayGroupKey(mode),
-                    buckets,
-                    osNode.gatewayGroupKey(mode),
-                    appId);
-            log.debug("Updated gateway group for {}", osNode.hostname());
-        }
-    }
-
-    private GroupBuckets gatewayGroupBuckets(OpenstackNode osNode,
-                                             Set<OpenstackNode> gatewayNodes,
-                                             NetworkMode mode) {
-        List<GroupBucket> bucketList = Lists.newArrayList();
-        switch (mode) {
-            case VXLAN:
-                gatewayNodes.stream().filter(n -> n.dataIp() != null).forEach(n -> {
-                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                            .extension(tunnelDstTreatment(osNode.intgBridge(),
-                                    n.dataIp()),
-                                    osNode.intgBridge())
-                            .setOutput(osNode.tunnelPortNum())
-                            .build();
-                    bucketList.add(createSelectGroupBucket(treatment));
-                });
-                return new GroupBuckets(bucketList);
-            case VLAN:
-                gatewayNodes.stream().filter(n -> n.vlanIntf() != null).forEach(n -> {
-                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                            .setEthDst(n.vlanPortMac())
-                            .setOutput(osNode.vlanPortNum())
-                            .build();
-                    bucketList.add(createSelectGroupBucket(treatment));
-                });
-                return new GroupBuckets(bucketList);
-            default:
-                return null;
-        }
-    }
-
     private ExtensionTreatment tunnelDstTreatment(DeviceId deviceId, IpAddress remoteIp) {
         Device device = deviceService.getDevice(deviceId);
         if (device != null && !device.is(ExtensionTreatmentResolver.class)) {
@@ -489,17 +317,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
-    private boolean isBridgeCreated(DeviceId ovsdbId, String bridgeName) {
-        Device device = deviceService.getDevice(ovsdbId);
-        if (device == null || !deviceService.isAvailable(device.id()) ||
-                !device.is(BridgeConfig.class)) {
-            return false;
-        }
-        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
-        return bridgeConfig.getBridges().stream()
-                .anyMatch(bridge -> bridge.name().equals(bridgeName));
-    }
-
     private boolean isIntfEnabled(OpenstackNode osNode, String intf) {
         if (!deviceService.isAvailable(osNode.intgBridge())) {
             return false;
@@ -510,65 +327,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         port.isEnabled());
     }
 
-    private boolean isIntfCreated(OpenstackNode osNode, String intf) {
-        Device device = deviceService.getDevice(osNode.ovsdb());
-        if (device == null || !deviceService.isAvailable(osNode.ovsdb()) ||
-                !device.is(BridgeConfig.class)) {
-            return false;
-        }
-
-        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
-        return bridgeConfig.getPorts().stream()
-                .anyMatch(port -> port.annotations().value(PORT_NAME).equals(intf));
-    }
-
-    private boolean isGroupCreated(OpenstackNode osNode) {
-        for (OpenstackNode gNode : osNodeService.completeNodes(GATEWAY)) {
-            if (!isGatewayBucketAdded(osNode, gNode)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isGatewayBucketAdded(OpenstackNode cNode, OpenstackNode gNode) {
-        if (cNode.dataIp() != null) {
-            Group osGroup = groupService.getGroup(cNode.intgBridge(),
-                    cNode.gatewayGroupKey(VXLAN));
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .extension(tunnelDstTreatment(gNode.intgBridge(),
-                            gNode.dataIp()),
-                            cNode.intgBridge())
-                    .setOutput(cNode.tunnelPortNum())
-                    .build();
-            GroupBucket bucket = createSelectGroupBucket(treatment);
-            if (osGroup == null || !osGroup.buckets().buckets().contains(bucket)) {
-                return false;
-            }
-        }
-        if (cNode.vlanIntf() != null) {
-            Group osGroup = groupService.getGroup(cNode.intgBridge(),
-                    cNode.gatewayGroupKey(VLAN));
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setEthDst(gNode.vlanPortMac())
-                    .setOutput(cNode.vlanPortNum())
-                    .build();
-            GroupBucket bucket = createSelectGroupBucket(treatment);
-            if (osGroup == null || !osGroup.buckets().buckets().contains(bucket)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
                 if (!deviceService.isAvailable(osNode.intgBridge())) {
-                    return false;
-                }
-                if (osNode.type() == GATEWAY &&
-                        !isBridgeCreated(osNode.ovsdb(), ROUTER_BRIDGE)) {
                     return false;
                 }
                 return true;
@@ -581,23 +343,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         !isIntfEnabled(osNode, osNode.vlanIntf())) {
                     return false;
                 }
-                if (osNode.type() == GATEWAY && (
-                        !isIntfEnabled(osNode, PATCH_INTG_BRIDGE) ||
-                        !isIntfCreated(osNode, PATCH_ROUT_BRIDGE))) {
+                if (osNode.type() == GATEWAY &&
+                        !isIntfEnabled(osNode, osNode.uplinkPort())) {
                     return false;
                 }
                 return true;
-            case PORT_CREATED:
-                if (osNode.type() == COMPUTE) {
-                    return isGroupCreated(osNode);
-                } else {
-                    for (OpenstackNode cNode : osNodeService.completeNodes(COMPUTE)) {
-                        if (!isGatewayBucketAdded(cNode, osNode)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
             case COMPLETE:
                 return false;
             case INCOMPLETE:
@@ -700,9 +450,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == DEVICE_CREATED && (
                                 Objects.equals(portName, DEFAULT_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
-                                Objects.equals(portName, PATCH_INTG_BRIDGE) ||
-                                Objects.equals(portName, PATCH_ROUT_BRIDGE))) {
-                            // FIXME we never gets PATCH_ROUTE_BRIDGE port added events as of now
+                                Objects.equals(portName, osNode.uplinkPort()))) {
                             log.debug("Interface {} added to {}", portName, event.subject().id());
                             bootstrapNode(osNode);
                         }
@@ -715,8 +463,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == COMPLETE && (
                                 Objects.equals(portName, DEFAULT_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
-                                Objects.equals(portName, PATCH_INTG_BRIDGE) ||
-                                Objects.equals(portName, PATCH_ROUT_BRIDGE))) {
+                                        Objects.equals(portName, osNode.uplinkPort()))) {
                             log.warn("Interface {} removed from {}", portName, event.subject().id());
                             setState(osNode, INCOMPLETE);
                         }
@@ -728,54 +475,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     // do nothing
                     break;
             }
-        }
-    }
-
-    private class InternalGroupListener implements GroupListener {
-
-        @Override
-        public boolean isRelevant(GroupEvent event) {
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNode, leader);
-        }
-
-        @Override
-        public void event(GroupEvent event) {
-            switch (event.type()) {
-                case GROUP_ADDED:
-                    eventExecutor.execute(() -> {
-                        log.trace("Group added, ID:{} state:{}", event.subject().id(),
-                                event.subject().state());
-                        processGroup(event.subject());
-                    });
-                    break;
-                case GROUP_UPDATED:
-                    eventExecutor.execute(() -> {
-                        log.trace("Group updated, ID:{} state:{}", event.subject().id(),
-                                event.subject().state());
-                        processGroup(event.subject());
-                    });
-                    break;
-                case GROUP_REMOVED:
-                    // TODO handle group removed
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void processGroup(Group group) {
-            OpenstackNode osNode = osNodeService.nodes(COMPUTE).stream()
-                    .filter(n -> n.state() == PORT_CREATED &&
-                            (n.gatewayGroupId(VXLAN).equals(group.id()) ||
-                            n.gatewayGroupId(VLAN).equals(group.id())))
-                    .findAny().orElse(null);
-            if (osNode != null) {
-                bootstrapNode(osNode);
-            }
-            osNodeService.nodes(GATEWAY).stream()
-                    .filter(gNode -> gNode.state() == PORT_CREATED)
-                    .forEach(DefaultOpenstackNodeHandler.this::bootstrapNode);
         }
     }
 

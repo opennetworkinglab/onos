@@ -37,14 +37,6 @@ public interface OpenstackNodeHandler {
     void processDeviceCreatedState(OpenstackNode osNode);
 
     /**
-     * Processes the given node for port created state.
-     * It creates gateway groups on compute node.
-     *
-     * @param osNode openstack node
-     */
-    void processPortCreatedState(OpenstackNode osNode);
-
-    /**
      * Processes the given node for complete state.
      * It performs post-init jobs for the complete node.
      *

@@ -171,8 +171,7 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     public OpenstackNode node(DeviceId deviceId) {
         OpenstackNode result = osNodeStore.nodes().stream()
                 .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
-                        Objects.equals(osNode.ovsdb(), deviceId) ||
-                        Objects.equals(osNode.routerBridge(), deviceId))
+                        Objects.equals(osNode.ovsdb(), deviceId))
                 .findFirst().orElse(null);
         return result;
     }

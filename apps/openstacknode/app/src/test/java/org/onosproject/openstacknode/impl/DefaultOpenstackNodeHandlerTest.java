@@ -40,7 +40,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -70,14 +69,6 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
-import org.onosproject.net.group.DefaultGroup;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
-import org.onosproject.net.group.GroupEvent;
-import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupListener;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -113,7 +104,6 @@ import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.INIT;
-import static org.onosproject.openstacknode.api.NodeState.PORT_CREATED;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -145,38 +135,28 @@ public class DefaultOpenstackNodeHandlerTest {
     private static final String COMPUTE_1_HOSTNAME = "compute_1";
     private static final String COMPUTE_2_HOSTNAME = "compute_2";
     private static final String COMPUTE_3_HOSTNAME = "compute_3";
-    private static final String COMPUTE_4_HOSTNAME = "compute_4";
     private static final String GATEWAY_1_HOSTNAME = "gateway_1";
     private static final String GATEWAY_2_HOSTNAME = "gateway_2";
     private static final String GATEWAY_3_HOSTNAME = "gateway_3";
-    private static final String GATEWAY_4_HOSTNAME = "gateway_4";
 
     private static final IpAddress COMPUTE_1_IP = IpAddress.valueOf("10.100.0.1");
     private static final IpAddress COMPUTE_2_IP = IpAddress.valueOf("10.100.0.2");
     private static final IpAddress COMPUTE_3_IP = IpAddress.valueOf("10.100.0.3");
-    private static final IpAddress COMPUTE_4_IP = IpAddress.valueOf("10.100.0.4");
     private static final IpAddress GATEWAY_1_IP = IpAddress.valueOf("10.100.0.5");
     private static final IpAddress GATEWAY_2_IP = IpAddress.valueOf("10.100.0.6");
     private static final IpAddress GATEWAY_3_IP = IpAddress.valueOf("10.100.0.7");
-    private static final IpAddress GATEWAY_4_IP = IpAddress.valueOf("10.100.0.8");
+
+    private static final String GATEWAY_UPLINK_PORT = "eth0";
 
     private static final Device COMPUTE_1_INTG_DEVICE = createOpenFlowDevice(1, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_2_INTG_DEVICE = createOpenFlowDevice(2, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_3_INTG_DEVICE = createOpenFlowDevice(3, INTEGRATION_BRIDGE);
-    private static final Device COMPUTE_4_INTG_DEVICE = createOpenFlowDevice(4, INTEGRATION_BRIDGE);
-    private static final Device GATEWAY_1_INTG_DEVICE = createOpenFlowDevice(5, INTEGRATION_BRIDGE);
-    private static final Device GATEWAY_1_ROUT_DEVICE = createOpenFlowDevice(6, ROUTER_BRIDGE);
-    private static final Device GATEWAY_2_INTG_DEVICE = createOpenFlowDevice(7, INTEGRATION_BRIDGE);
-    private static final Device GATEWAY_2_ROUT_DEVICE = createOpenFlowDevice(8, ROUTER_BRIDGE);
-    private static final Device GATEWAY_3_INTG_DEVICE = createOpenFlowDevice(9, INTEGRATION_BRIDGE);
-    private static final Device GATEWAY_3_ROUT_DEVICE = createOpenFlowDevice(10, ROUTER_BRIDGE);
-    private static final Device GATEWAY_4_INTG_DEVICE = createOpenFlowDevice(11, INTEGRATION_BRIDGE);
-    private static final Device GATEWAY_4_ROUT_DEVICE = createOpenFlowDevice(12, ROUTER_BRIDGE);
+    private static final Device GATEWAY_1_INTG_DEVICE = createOpenFlowDevice(4, INTEGRATION_BRIDGE);
+    private static final Device GATEWAY_2_INTG_DEVICE = createOpenFlowDevice(5, INTEGRATION_BRIDGE);
+    private static final Device GATEWAY_3_INTG_DEVICE = createOpenFlowDevice(6, INTEGRATION_BRIDGE);
 
     private static final Device COMPUTE_1_OVSDB_DEVICE = createOvsdbDevice(COMPUTE_1_IP);
     private static final Device COMPUTE_2_OVSDB_DEVICE = createOvsdbDevice(COMPUTE_2_IP);
-    private static final Device COMPUTE_3_OVSDB_DEVICE = createOvsdbDevice(COMPUTE_3_IP);
-    private static final Device COMPUTE_4_OVSDB_DEVICE = createOvsdbDevice(COMPUTE_4_IP);
     private static final Device GATEWAY_1_OVSDB_DEVICE = createOvsdbDevice(GATEWAY_1_IP);
     private static final Device GATEWAY_2_OVSDB_DEVICE = createOvsdbDevice(GATEWAY_2_IP);
 
@@ -201,14 +181,6 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE,
             COMPUTE_3_INTG_DEVICE,
             COMPUTE_3_IP,
-            PORT_CREATED
-    );
-
-    private static final OpenstackNode COMPUTE_4 = createNode(
-            COMPUTE_4_HOSTNAME,
-            COMPUTE,
-            COMPUTE_4_INTG_DEVICE,
-            COMPUTE_4_IP,
             COMPLETE
     );
 
@@ -216,8 +188,8 @@ public class DefaultOpenstackNodeHandlerTest {
             GATEWAY_1_HOSTNAME,
             GATEWAY,
             GATEWAY_1_INTG_DEVICE,
-            GATEWAY_1_ROUT_DEVICE,
             GATEWAY_1_IP,
+            GATEWAY_UPLINK_PORT,
             INIT
     );
 
@@ -225,8 +197,8 @@ public class DefaultOpenstackNodeHandlerTest {
             GATEWAY_2_HOSTNAME,
             GATEWAY,
             GATEWAY_2_INTG_DEVICE,
-            GATEWAY_2_ROUT_DEVICE,
             GATEWAY_2_IP,
+            GATEWAY_UPLINK_PORT,
             DEVICE_CREATED
     );
 
@@ -234,17 +206,8 @@ public class DefaultOpenstackNodeHandlerTest {
             GATEWAY_3_HOSTNAME,
             GATEWAY,
             GATEWAY_3_INTG_DEVICE,
-            GATEWAY_3_ROUT_DEVICE,
             GATEWAY_3_IP,
-            PORT_CREATED
-    );
-
-    private static final OpenstackNode GATEWAY_4 = createNode(
-            GATEWAY_4_HOSTNAME,
-            GATEWAY,
-            GATEWAY_4_INTG_DEVICE,
-            GATEWAY_4_ROUT_DEVICE,
-            GATEWAY_4_IP,
+            GATEWAY_UPLINK_PORT,
             COMPLETE
     );
 
@@ -280,7 +243,6 @@ public class DefaultOpenstackNodeHandlerTest {
         target.deviceService = TEST_DEVICE_SERVICE;
         target.deviceAdminService = mockDeviceAdminService;
         target.ovsdbController = mockOvsdbController;
-        target.groupService = new TestGroupService();
         target.osNodeService = testNodeManager;
         target.osNodeAdminService = testNodeManager;
         target.componentConfigService = new TestComponentConfigService();
@@ -341,7 +303,7 @@ public class DefaultOpenstackNodeHandlerTest {
         assertEquals(ERR_STATE_NOT_MATCH, DEVICE_CREATED,
                 testNodeManager.node(COMPUTE_2_HOSTNAME).state());
         target.processDeviceCreatedState(COMPUTE_2);
-        assertEquals(ERR_STATE_NOT_MATCH, PORT_CREATED,
+        assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
                 testNodeManager.node(COMPUTE_2_HOSTNAME).state());
     }
 
@@ -354,54 +316,13 @@ public class DefaultOpenstackNodeHandlerTest {
         testNodeManager.createNode(GATEWAY_2);
         TEST_DEVICE_SERVICE.devMap.put(GATEWAY_2_OVSDB_DEVICE.id(), GATEWAY_2_OVSDB_DEVICE);
         TEST_DEVICE_SERVICE.devMap.put(GATEWAY_2_INTG_DEVICE.id(), GATEWAY_2_INTG_DEVICE);
+        TEST_DEVICE_SERVICE.portList.add(createPort(GATEWAY_2_INTG_DEVICE, GATEWAY_UPLINK_PORT));
 
         assertEquals(ERR_STATE_NOT_MATCH, DEVICE_CREATED,
                 testNodeManager.node(GATEWAY_2_HOSTNAME).state());
         target.processDeviceCreatedState(GATEWAY_2);
-        assertEquals(ERR_STATE_NOT_MATCH, PORT_CREATED,
+        assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
                 testNodeManager.node(GATEWAY_2_HOSTNAME).state());
-    }
-
-    /**
-     * Checks if the compute node state changes from PORT_CREATED to
-     * COMPLETE after processing PORT_CREATED state.
-     */
-    @Test
-    public void testComputeNodeProcessPortCreatedState() {
-        testNodeManager.createNode(COMPUTE_3);
-        TEST_DEVICE_SERVICE.devMap.put(COMPUTE_3_OVSDB_DEVICE.id(), COMPUTE_3_OVSDB_DEVICE);
-        TEST_DEVICE_SERVICE.devMap.put(COMPUTE_3_INTG_DEVICE.id(), COMPUTE_3_INTG_DEVICE);
-        TEST_DEVICE_SERVICE.portList.add(createPort(COMPUTE_3_INTG_DEVICE, DEFAULT_TUNNEL));
-
-        testNodeManager.createNode(GATEWAY_4);
-        TEST_DEVICE_SERVICE.devMap.put(GATEWAY_4_INTG_DEVICE.id(), GATEWAY_4_INTG_DEVICE);
-
-        assertEquals(ERR_STATE_NOT_MATCH, PORT_CREATED,
-                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
-        target.processPortCreatedState(COMPUTE_3);
-        assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
-                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
-    }
-
-    /**
-     * Checks if the gateway node state changes from PORT_CREATED to
-     * COMPLETE after processing PORT_CREATED state.
-     */
-    @Test
-    public void testGatewayNodeProcessPortCreatedState() {
-        testNodeManager.createNode(COMPUTE_4);
-        TEST_DEVICE_SERVICE.devMap.put(COMPUTE_4_OVSDB_DEVICE.id(), COMPUTE_4_OVSDB_DEVICE);
-        TEST_DEVICE_SERVICE.devMap.put(COMPUTE_4_INTG_DEVICE.id(), COMPUTE_4_INTG_DEVICE);
-        TEST_DEVICE_SERVICE.portList.add(createPort(COMPUTE_4_INTG_DEVICE, DEFAULT_TUNNEL));
-
-        testNodeManager.createNode(GATEWAY_3);
-        TEST_DEVICE_SERVICE.devMap.put(GATEWAY_3_INTG_DEVICE.id(), GATEWAY_4_INTG_DEVICE);
-
-        assertEquals(ERR_STATE_NOT_MATCH, PORT_CREATED,
-                testNodeManager.node(GATEWAY_3_HOSTNAME).state());
-        target.processPortCreatedState(GATEWAY_3);
-        assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
-                testNodeManager.node(GATEWAY_3_HOSTNAME).state());
     }
 
     /**
@@ -410,13 +331,13 @@ public class DefaultOpenstackNodeHandlerTest {
      */
     @Test
     public void testBackToIncompleteWhenBrIntDisconnected() {
-        testNodeManager.createNode(COMPUTE_4);
+        testNodeManager.createNode(COMPUTE_3);
 
         assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
-                testNodeManager.node(COMPUTE_4_HOSTNAME).state());
-        TEST_DEVICE_SERVICE.removeDevice(COMPUTE_4_INTG_DEVICE);
+                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
+        TEST_DEVICE_SERVICE.removeDevice(COMPUTE_3_INTG_DEVICE);
         assertEquals(ERR_STATE_NOT_MATCH, INCOMPLETE,
-                testNodeManager.node(COMPUTE_4_HOSTNAME).state());
+                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
     }
 
     /**
@@ -425,14 +346,14 @@ public class DefaultOpenstackNodeHandlerTest {
      */
     @Test
     public void testBackToIncompleteWhenVxlanRemoved() {
-        testNodeManager.createNode(COMPUTE_4);
+        testNodeManager.createNode(COMPUTE_3);
 
         assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
-                testNodeManager.node(COMPUTE_4_HOSTNAME).state());
-        TEST_DEVICE_SERVICE.removePort(COMPUTE_4_INTG_DEVICE, createPort(
-                COMPUTE_4_INTG_DEVICE, DEFAULT_TUNNEL));
+                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
+        TEST_DEVICE_SERVICE.removePort(COMPUTE_3_INTG_DEVICE, createPort(
+                COMPUTE_3_INTG_DEVICE, DEFAULT_TUNNEL));
         assertEquals(ERR_STATE_NOT_MATCH, INCOMPLETE,
-                testNodeManager.node(COMPUTE_4_HOSTNAME).state());
+                testNodeManager.node(COMPUTE_3_HOSTNAME).state());
 
     }
 
@@ -474,26 +395,24 @@ public class DefaultOpenstackNodeHandlerTest {
                 hostname,
                 type,
                 intgBridge.id(),
-                null,
                 ipAddr,
                 ipAddr,
-                null, state);
+                null, null, state);
     }
 
     private static OpenstackNode createNode(String hostname,
                                             OpenstackNode.NodeType type,
                                             Device intgBridge,
-                                            Device routerBridge,
                                             IpAddress ipAddr,
+                                            String uplinkPort,
                                             NodeState state) {
         return new TestOpenstackNode(
                 hostname,
                 type,
                 intgBridge.id(),
-                routerBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, state);
+                null, uplinkPort, state);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -546,18 +465,18 @@ public class DefaultOpenstackNodeHandlerTest {
         private TestOpenstackNode(String hostname,
                                   NodeType type,
                                   DeviceId intgBridge,
-                                  DeviceId routerBridge,
                                   IpAddress managementIp,
                                   IpAddress dataIp,
                                   String vlanIntf,
+                                  String uplinkPort,
                                   NodeState state) {
             super(hostname,
                     type,
                     intgBridge,
-                    routerBridge,
                     managementIp,
                     dataIp,
                     vlanIntf,
+                    uplinkPort,
                     state);
         }
 
@@ -568,11 +487,6 @@ public class DefaultOpenstackNodeHandlerTest {
 
         @Override
         public PortNumber vlanPortNum() {
-            return PortNumber.portNumber(1);
-        }
-
-        @Override
-        public PortNumber patchPortNum() {
             return PortNumber.portNumber(1);
         }
 
@@ -621,8 +535,7 @@ public class DefaultOpenstackNodeHandlerTest {
         public OpenstackNode node(DeviceId deviceId) {
             return osNodeMap.values().stream()
                     .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
-                            Objects.equals(osNode.ovsdb(), deviceId) ||
-                            Objects.equals(osNode.routerBridge(), deviceId))
+                            Objects.equals(osNode.ovsdb(), deviceId))
                     .findFirst().orElse(null);
         }
 
@@ -883,81 +796,6 @@ public class DefaultOpenstackNodeHandlerTest {
         public List<DeviceInterfaceDescription> getInterfaces() {
             return null;
         }
-    }
-
-    private static class TestGroupService implements GroupService {
-        Map<GroupKey, Group> groupMap = Maps.newHashMap();
-        Map<GroupKey, GroupBuckets> groupBucketsMap = Maps.newHashMap();
-        List<GroupListener> listeners = Lists.newArrayList();
-
-        @Override
-        public void addListener(GroupListener listener) {
-            listeners.add(listener);
-        }
-
-        @Override
-        public void removeListener(GroupListener listener) {
-            listeners.remove(listener);
-        }
-
-        @Override
-        public void addGroup(GroupDescription groupDesc) {
-            DefaultGroup group = new DefaultGroup(GroupId.valueOf(groupDesc.givenGroupId()), groupDesc);
-            group.setState(Group.GroupState.ADDED);
-            groupMap.put(groupDesc.appCookie(), group);
-            groupBucketsMap.put(groupDesc.appCookie(), groupDesc.buckets());
-
-            GroupEvent event = new GroupEvent(GroupEvent.Type.GROUP_ADDED, group);
-            listeners.stream().filter(listener -> listener.isRelevant(event))
-                    .forEach(listener -> listener.event(event));
-        }
-
-        @Override
-        public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
-            return groupMap.get(appCookie);
-        }
-
-        @Override
-        public void addBucketsToGroup(DeviceId deviceId, GroupKey oldCookie, GroupBuckets buckets,
-                                      GroupKey newCookie, ApplicationId appId) {
-
-        }
-
-        @Override
-        public void removeBucketsFromGroup(DeviceId deviceId, GroupKey oldCookie, GroupBuckets buckets,
-                                           GroupKey newCookie, ApplicationId appId) {
-
-        }
-
-        @Override
-        public void purgeGroupEntries(DeviceId deviceId) {
-
-        }
-
-        @Override
-        public void removeGroup(DeviceId deviceId, GroupKey appCookie, ApplicationId appId) {
-
-        }
-
-        @Override
-        public Iterable<Group> getGroups(DeviceId deviceId, ApplicationId appId) {
-            return null;
-        }
-
-        @Override
-        public Iterable<Group> getGroups(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public void setBucketsForGroup(DeviceId deviceId, GroupKey oldCookie, GroupBuckets buckets,
-                                       GroupKey newCookie, ApplicationId appId) {
-            groupBucketsMap.put(newCookie, buckets);
-            GroupEvent event = new GroupEvent(GroupEvent.Type.GROUP_UPDATED, groupMap.get(newCookie));
-            listeners.stream().filter(listener -> listener.isRelevant(event))
-                    .forEach(listener -> listener.event(event));
-        }
-
     }
 
     private static class TestExtensionTreatment implements ExtensionTreatment {

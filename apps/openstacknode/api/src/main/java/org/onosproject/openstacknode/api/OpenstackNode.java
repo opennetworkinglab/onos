@@ -72,13 +72,6 @@ public interface OpenstackNode {
     DeviceId intgBridge();
 
     /**
-     * Returns the router bridge device ID.
-     *
-     * @return device id; null if the node type is compute
-     */
-    DeviceId routerBridge();
-
-    /**
      * Returns the management network IP address of the node.
      *
      * @return ip address
@@ -151,6 +144,13 @@ public interface OpenstackNode {
     MacAddress vlanPortMac();
 
     /**
+     * Returns the uplink port name.
+     *
+     * @return uplink port name; null if the node type is compute
+     */
+    String uplinkPort();
+
+    /**
      * Returns new openstack node instance with given state.
      *
      * @param newState updated state
@@ -195,14 +195,6 @@ public interface OpenstackNode {
         Builder intgBridge(DeviceId intgBridge);
 
         /**
-         * Returns openstack node builder with supplied router bridge ID.
-         *
-         * @param routerBridge router bridge id
-         * @return openstack node builder
-         */
-        Builder routerBridge(DeviceId routerBridge);
-
-        /**
          * Returns openstack node builder with supplied management IP address.
          *
          * @param managementIp management ip address
@@ -225,6 +217,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder vlanIntf(String vlanIntf);
+
+        /**
+         * Returns openstack node builder with supplied uplink port.
+         *
+         * @param uplinkPort uplink port name
+         * @return openstack node builder
+         */
+        Builder uplinkPort(String uplinkPort);
 
         /**
          * Returns openstack node builder with supplied node state.

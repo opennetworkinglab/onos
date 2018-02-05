@@ -133,20 +133,4 @@ public class DefaultOpenstackNodeTest extends OpenstackNodeTest {
                 .state(NodeState.INIT)
                 .build();
     }
-
-    /**
-     * Checks building a gateway type node without router bridge ID
-     * fails with proper exception.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testGatewayWithoutRouterBridgeId() {
-        DefaultOpenstackNode.builder()
-                .hostname(HOSTNAME_1)
-                .type(OpenstackNode.NodeType.GATEWAY)
-                .intgBridge(DEVICE_1.id())
-                .managementIp(TEST_IP)
-                .dataIp(TEST_IP)
-                .state(NodeState.INIT)
-                .build();
-    }
 }

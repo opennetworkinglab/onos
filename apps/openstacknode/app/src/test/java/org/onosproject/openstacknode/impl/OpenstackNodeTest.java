@@ -57,15 +57,15 @@ abstract class OpenstackNodeTest {
     }
 
     protected static OpenstackNode createNode(String hostname, NodeType type,
-                                              Device intgBridge, Device routerBridge,
-                                              IpAddress ipAddr, NodeState state) {
+                                              Device intgBridge, IpAddress ipAddr,
+                                              String uplinkPort, NodeState state) {
         return org.onosproject.openstacknode.impl.DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
-                .routerBridge(routerBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
+                .uplinkPort(uplinkPort)
                 .state(state)
                 .build();
     }
