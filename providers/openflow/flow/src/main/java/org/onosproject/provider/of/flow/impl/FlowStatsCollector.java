@@ -65,7 +65,7 @@ class FlowStatsCollector implements SwitchDataCollector {
         this.pollInterval = pollInterval;
         task.cancel();
         task = new InternalTimerTask();
-        timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000);
+        timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000L);
     }
 
     private class InternalTimerTask extends TimerTask {

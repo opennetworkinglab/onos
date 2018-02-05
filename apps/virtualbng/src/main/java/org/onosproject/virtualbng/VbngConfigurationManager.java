@@ -263,7 +263,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
 
                 // Judge whether the prefix of this public IP address is used
                 // up, if so, update the IP prefix status.
-                int prefixLen = prefix.getKey().prefixLength();
+                double prefixLen = prefix.getKey().prefixLength();
                 int availableIpNum = (int) Math.pow(2,
                         IpPrefix.MAX_INET_MASK_LENGTH - prefixLen) - 1;
                 int usedIpNum = 0;
