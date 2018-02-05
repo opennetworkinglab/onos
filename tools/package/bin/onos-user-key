@@ -28,4 +28,4 @@ mkdir -p $HOME/.ssh/
 (umask 077; touch "$HOME/.ssh/known_hosts")
 
 # Also, remove any previous known keys for the localhost.
-ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
+which ssh-keygen >/dev/null && ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
