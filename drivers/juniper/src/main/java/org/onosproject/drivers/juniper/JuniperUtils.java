@@ -348,7 +348,7 @@ public final class JuniperUtils {
         long portSpeed = toMbps(phyIntf.getString(SPEED));
 
         portDescriptions.add(new DefaultPortDescription(portNumber,
-                                                        admUp & opUp,
+                                                        admUp && opUp,
                                                         Type.COPPER,
                                                         portSpeed,
                                                         annotations.build()));
@@ -395,7 +395,7 @@ public final class JuniperUtils {
             boolean lEnabled = logIntf.getString("if-config-flags.iff-up") != null;
 
             portDescriptions.add(new DefaultPortDescription(lPortNumber,
-                                                            admUp & opUp & lEnabled,
+                                                            admUp && opUp && lEnabled,
                                                             Type.COPPER,
                                                             portSpeed,
                                                             lannotations.build()));
