@@ -41,7 +41,7 @@ public class CalientLambdaQuery extends AbstractHandlerBehaviour implements Lamb
         // Wavelength range: 1260 - 1630 nm
         long startSpacingMultiplier = Spectrum.U_BAND_MIN.subtract(Spectrum.CENTER_FREQUENCY).asHz() /
                 ChannelSpacing.CHL_12P5GHZ.frequency().asHz();
-        long stopSpacingMultiplier = Spectrum.O_BAND_MAX.subtract(Spectrum.CENTER_FREQUENCY).asHz() /
+        long stopSpacingMultiplier = Spectrum.O_BAND_MIN.subtract(Spectrum.CENTER_FREQUENCY).asHz() /
                 ChannelSpacing.CHL_12P5GHZ.frequency().asHz();
 
         // Only consider odd values for the multiplier (for easy mapping to fixed grid)
