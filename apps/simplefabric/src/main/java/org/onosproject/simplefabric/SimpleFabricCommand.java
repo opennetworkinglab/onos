@@ -26,8 +26,6 @@ import org.onosproject.cli.AbstractShellCommand;
          description = "Manages the SimpleFabric application")
 public class SimpleFabricCommand extends AbstractShellCommand {
 
-    protected static SimpleFabricService simpleFabric;
-
     @Argument(index = 0, name = "command",
               description = "Command: show|intents|reactive-intents|refresh|flush",
               required = true, multiValued = false)
@@ -35,9 +33,9 @@ public class SimpleFabricCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        if (simpleFabric == null) {
-            simpleFabric = get(SimpleFabricService.class);
-        }
+
+        SimpleFabricService simpleFabric = get(SimpleFabricService.class);
+
         if (command == null) {
             print("command not found", command);
             return;

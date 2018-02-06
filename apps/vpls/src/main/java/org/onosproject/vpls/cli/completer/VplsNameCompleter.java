@@ -30,7 +30,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
  */
 public class VplsNameCompleter extends AbstractChoicesCompleter {
 
-    protected static Vpls vpls;
+    protected Vpls vpls;
 
     @Override
     public List<String> choices() {
