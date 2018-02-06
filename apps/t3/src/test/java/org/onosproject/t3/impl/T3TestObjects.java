@@ -344,6 +344,67 @@ final class T3TestObjects {
 
     static final FlowEntry HARDWARE_ETH_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_ETH_FLOW);
 
+    //HW Double Rule on 10
+
+    static final DeviceId HARDWARE_DEVICE_10 = DeviceId.deviceId("HardwareDevice10");
+
+    static final ConnectPoint HARDWARE_DEVICE_10_IN_CP = ConnectPoint.deviceConnectPoint(HARDWARE_DEVICE_10 + "/" + 1);
+
+    static final ConnectPoint HARDWARE_DEVICE_10_OUT_CP = ConnectPoint.deviceConnectPoint(HARDWARE_DEVICE_10 + "/" + 2);
+
+    private static final TrafficSelector HARDWARE_10_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .matchVlanId(VlanId.NONE)
+            .build();
+
+    private static final TrafficTreatment HARDWARE_10_TRANSITION_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setVlanId(VlanId.vlanId("10"))
+            .transition(20)
+            .build();
+
+    private static final FlowRule HARDWARE_DEVICE_10_FLOW = DefaultFlowEntry.builder().forDevice(HARDWARE_DEVICE_10)
+            .forTable(10)
+            .withPriority(100)
+            .withSelector(HARDWARE_10_FLOW_SELECTOR)
+            .withTreatment(HARDWARE_10_TRANSITION_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+
+    static final FlowEntry HARDWARE_10_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_DEVICE_10_FLOW);
+
+    private static final TrafficSelector HARDWARE_10_SECOND_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchVlanId(VlanId.vlanId("10"))
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+            .build();
+
+    private static final FlowRule HARDWARE_10_SECOND_FLOW = DefaultFlowEntry.builder().forDevice(HARDWARE_DEVICE_10)
+            .forTable(10)
+            .withPriority(100)
+            .withSelector(HARDWARE_10_SECOND_SELECTOR)
+            .withTreatment(HARDWARE_10_TRANSITION_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+
+    static final FlowEntry HARDWARE_10_SECOND_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_10_SECOND_FLOW);
+
+    private static final FlowRule HARDWARE_10_OUTPUT_FLOW = DefaultFlowEntry.builder().forDevice(HARDWARE_DEVICE_10)
+            .forTable(20)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(OUTPUT_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+
+    static final FlowEntry HARDWARE_10_OUTPUT_FLOW_ENTRY = new DefaultFlowEntry(HARDWARE_10_OUTPUT_FLOW);
+
     //Dual Links
     // - (1) Device 1 (2-3) - (1-4) Device 2 (2-3) - (1-2) Device 3 (3) -
     static final DeviceId DUAL_LINK_1 = DeviceId.deviceId("DualLink1");
@@ -495,6 +556,7 @@ final class T3TestObjects {
             .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
             .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
             .matchIPDst(IpPrefix.valueOf("127.0.0.2/32"))
+            .matchVlanId(VlanId.NONE)
             .build();
 
     static final TrafficSelector PACKET_OK_TOPO = DefaultTrafficSelector.builder()

@@ -73,6 +73,10 @@ import java.util.stream.Collectors;
 import static org.onlab.packet.EthType.EtherType;
 import static org.onosproject.net.flow.TrafficSelector.Builder;
 import static org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -380,7 +384,6 @@ public class TroubleshootManager implements TroubleshootService {
             if (flowEntry == null && isOfdpaHardware) {
                 log.debug("Ofdpa Hw setup, no flow rule means table miss");
 
-                //Handling Hardware Specifics
                 if (((IndexTableId) tableId).id() == 27) {
                     //Apparently a miss but Table 27 on OFDPA is a fixed table
                     packet = handleOfdpa27FixedTable(trace, packet);
@@ -409,12 +412,12 @@ public class TroubleshootManager implements TroubleshootService {
                     tableId = nextTableIdEntry.table();
                 }
 
-
             } else if (flowEntry == null) {
                 trace.addResultMessage("Packet has no match on table " + tableId + " in device " +
                         in.deviceId() + ". Dropping");
                 return trace;
             } else {
+
                 //IF the table has a transition
                 if (flowEntry.treatment().tableTransition() != null) {
                     //update the next table we transitions to
@@ -439,6 +442,37 @@ public class TroubleshootManager implements TroubleshootService {
                     deferredInstructions.clear();
                 }
 
+                //On table 10 OFDPA needs two rules to apply the vlan if none and then to transition to the next table.
+                if (needsSecondTable10Flow(flowEntry, isOfdpaHardware)) {
+
+                    //Let's get the packet vlanId instruction
+                    VlanIdCriterion packetVlanIdCriterion =
+                            (VlanIdCriterion) packet.getCriterion(Criterion.Type.VLAN_VID);
+
+                    //Let's get the flow entry vlan mod instructions
+                    ModVlanIdInstruction entryModVlanIdInstruction = (ModVlanIdInstruction) flowEntry.treatment()
+                            .immediate().stream()
+                            .filter(instruction -> instruction instanceof ModVlanIdInstruction)
+                            .findFirst().orElse(null);
+
+                    //If the entry modVlan is not null we need to make sure that the packet has been updated and there
+                    // is a flow rule that matches on same criteria and with updated vlanId
+                    if (entryModVlanIdInstruction != null) {
+
+                        FlowEntry secondVlanFlow = getSecondFlowEntryOnTable10(packet, in,
+                                packetVlanIdCriterion, entryModVlanIdInstruction);
+
+                        //We found the flow that we expected
+                        if (secondVlanFlow != null) {
+                            flows.add(secondVlanFlow);
+                        } else {
+                            trace.addResultMessage("Missing forwarding rule for tagged packet on " + in);
+                            return trace;
+                        }
+                    }
+
+                }
+
             }
         }
 
@@ -449,19 +483,9 @@ public class TroubleshootManager implements TroubleshootService {
         //Adding all the flows to the trace
         trace.addFlowsForDevice(in.deviceId(), ImmutableList.copyOf(flows));
 
-        log.debug("Flows traversed by {}", packet);
-        flows.forEach(entry -> {
-            log.debug("Flow {}", entry);
-        });
-
-        log.debug("Output Flows for {}", packet);
-        outputFlows.forEach(entry -> {
-            log.debug("Output Flow {}", entry);
-        });
         List<PortNumber> outputPorts = new ArrayList<>();
 
         //TODO optimization
-
         //outputFlows contains also last rule of device, so we need filtering for OUTPUT instructions.
         List<FlowEntry> outputFlowEntries = outputFlows.stream().filter(flow -> flow.treatment()
                 .allInstructions().stream().filter(instruction -> instruction.type()
@@ -503,17 +527,51 @@ public class TroubleshootManager implements TroubleshootService {
 
         }
         packet = builder.build();
-        log.debug("Groups hit by packet {}", packet);
-        groups.forEach(group -> {
-            log.debug("Group {}", group);
-        });
 
-        log.debug("Output ports for packet {}", packet);
-        outputPorts.forEach(port -> {
-            log.debug("Port {}", port);
-        });
-        log.info("Output Packet {}", packet);
+        log.debug("Output Packet {}", packet);
         return trace;
+    }
+
+    private boolean needsSecondTable10Flow(FlowEntry flowEntry, boolean isOfdpaHardware) {
+        return isOfdpaHardware && flowEntry.table().equals(IndexTableId.of(10))
+                && flowEntry.selector().getCriterion(Criterion.Type.VLAN_VID) != null
+                && ((VlanIdCriterion) flowEntry.selector().getCriterion(Criterion.Type.VLAN_VID))
+                .vlanId().equals(VlanId.NONE);
+    }
+
+    /**
+     * Method that finds a flow rule on table 10 that matches the packet and the VLAN of the already
+     * found rule on table 10. This is because OFDPA needs two rules on table 10, first to apply the rule,
+     * second to transition to following table
+     *
+     * @param packet                    the incoming packet
+     * @param in                        the input connect point
+     * @param packetVlanIdCriterion     the vlan criterion from the packet
+     * @param entryModVlanIdInstruction the entry vlan instruction
+     * @return the second flow entry that matched
+     */
+    private FlowEntry getSecondFlowEntryOnTable10(TrafficSelector packet, ConnectPoint in,
+                                                  VlanIdCriterion packetVlanIdCriterion,
+                                                  ModVlanIdInstruction entryModVlanIdInstruction) {
+        FlowEntry secondVlanFlow = null;
+        //Check the packet has been update from the first rule.
+        if (packetVlanIdCriterion.vlanId().equals(entryModVlanIdInstruction.vlanId())) {
+            //find a rule on the same table that matches the vlan and
+            // also all the other elements of the flow such as input port
+            secondVlanFlow = Lists.newArrayList(flowRuleService.getFlowEntries(in.deviceId()).iterator())
+                    .stream()
+                    .filter(entry -> {
+                        return entry.table().equals(IndexTableId.of(10));
+                    })
+                    .filter(entry -> {
+                        VlanIdCriterion criterion = (VlanIdCriterion) entry.selector()
+                                .getCriterion(Criterion.Type.VLAN_VID);
+                        return criterion != null && match(packet, entry)
+                                && criterion.vlanId().equals(entryModVlanIdInstruction.vlanId());
+                    }).findFirst().orElse(null);
+
+        }
+        return secondVlanFlow;
     }
 
 
@@ -699,8 +757,8 @@ public class TroubleshootManager implements TroubleshootService {
                 L2ModificationInstruction l2Instruction = (L2ModificationInstruction) instruction;
                 switch (l2Instruction.subtype()) {
                     case VLAN_ID:
-                        L2ModificationInstruction.ModVlanIdInstruction vlanIdInstruction =
-                                (L2ModificationInstruction.ModVlanIdInstruction) instruction;
+                        ModVlanIdInstruction vlanIdInstruction =
+                                (ModVlanIdInstruction) instruction;
                         VlanId id = vlanIdInstruction.vlanId();
                         criterion = Criteria.matchVlanId(id);
                         break;
@@ -708,13 +766,13 @@ public class TroubleshootManager implements TroubleshootService {
                         criterion = Criteria.matchVlanId(VlanId.NONE);
                         break;
                     case MPLS_PUSH:
-                        L2ModificationInstruction.ModMplsHeaderInstruction mplsEthInstruction =
-                                (L2ModificationInstruction.ModMplsHeaderInstruction) instruction;
+                        ModMplsHeaderInstruction mplsEthInstruction =
+                                (ModMplsHeaderInstruction) instruction;
                         criterion = Criteria.matchEthType(mplsEthInstruction.ethernetType().toShort());
                         break;
                     case MPLS_POP:
-                        L2ModificationInstruction.ModMplsHeaderInstruction mplsPopInstruction =
-                                (L2ModificationInstruction.ModMplsHeaderInstruction) instruction;
+                        ModMplsHeaderInstruction mplsPopInstruction =
+                                (ModMplsHeaderInstruction) instruction;
                         criterion = Criteria.matchEthType(mplsPopInstruction.ethernetType().toShort());
 
                         //When popping MPLS we remove label and BOS
@@ -730,19 +788,19 @@ public class TroubleshootManager implements TroubleshootService {
 
                         break;
                     case MPLS_LABEL:
-                        L2ModificationInstruction.ModMplsLabelInstruction mplsLabelInstruction =
-                                (L2ModificationInstruction.ModMplsLabelInstruction) instruction;
+                        ModMplsLabelInstruction mplsLabelInstruction =
+                                (ModMplsLabelInstruction) instruction;
                         criterion = Criteria.matchMplsLabel(mplsLabelInstruction.label());
                         newSelector.matchMplsBos(true);
                         break;
                     case ETH_DST:
-                        L2ModificationInstruction.ModEtherInstruction modEtherDstInstruction =
-                                (L2ModificationInstruction.ModEtherInstruction) instruction;
+                        ModEtherInstruction modEtherDstInstruction =
+                                (ModEtherInstruction) instruction;
                         criterion = Criteria.matchEthDst(modEtherDstInstruction.mac());
                         break;
                     case ETH_SRC:
-                        L2ModificationInstruction.ModEtherInstruction modEtherSrcInstruction =
-                                (L2ModificationInstruction.ModEtherInstruction) instruction;
+                        ModEtherInstruction modEtherSrcInstruction =
+                                (ModEtherInstruction) instruction;
                         criterion = Criteria.matchEthSrc(modEtherSrcInstruction.mac());
                         break;
                     default:
