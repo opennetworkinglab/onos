@@ -1,0 +1,14 @@
+# Default US MPLS topology recipe
+export OTD=6
+export OTL=16
+export OTH=20
+
+
+# Variables for the pingall scenario.
+export OPALL=380
+
+# Variables for link-up-down-up scenario.
+export OPS=h11
+export OPD=h21
+export OPL1="s1 s12"
+export OPL2="s2 s12"
