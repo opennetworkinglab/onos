@@ -161,25 +161,20 @@ public class RouteHandler {
         log.debug("RouteUpdated. populateSubnet {}, {}", allLocations, allPrefixes);
         srManager.defaultRoutingHandler.populateSubnet(allLocations, allPrefixes);
 
-
         Set<ResolvedRoute> toBeRemoved = Sets.difference(oldRoutes, routes).immutableCopy();
         Set<ResolvedRoute> toBeAdded = Sets.difference(routes, oldRoutes).immutableCopy();
 
         toBeRemoved.forEach(route -> {
             srManager.nextHopLocations(route).forEach(oldLocation -> {
-               if (toBeAdded.stream().map(srManager::nextHopLocations)
-                       .flatMap(Set::stream).map(ConnectPoint::deviceId)
-                       .noneMatch(deviceId -> deviceId.equals(oldLocation.deviceId()))) {
-                   IpPrefix prefix = route.prefix();
-                   MacAddress nextHopMac = route.nextHopMac();
-                   VlanId nextHopVlan = route.nextHopVlan();
-
-                   log.debug("RouteUpdated. removeSubnet {}, {}", oldLocation, prefix);
-                   srManager.deviceConfiguration.removeSubnet(oldLocation, prefix);
-                   log.debug("RouteUpdated. revokeRoute {}, {}, {}, {}", oldLocation, prefix, nextHopMac, nextHopVlan);
-                   srManager.defaultRoutingHandler.revokeRoute(oldLocation.deviceId(), prefix,
-                           nextHopMac, nextHopVlan, oldLocation.port());
-               }
+                if (toBeAdded.stream().map(srManager::nextHopLocations)
+                        .flatMap(Set::stream).map(ConnectPoint::deviceId)
+                        .noneMatch(deviceId -> deviceId.equals(oldLocation.deviceId()))) {
+                    IpPrefix prefix = route.prefix();
+                    log.debug("RouteUpdated. removeSubnet {}, {}", oldLocation, prefix);
+                    srManager.deviceConfiguration.removeSubnet(oldLocation, prefix);
+                    // We don't remove the flow on the old location in occasion of two next hops becoming one
+                    // since the populateSubnet will point the old location to the new location via spine.
+                }
             });
         });
 
@@ -197,7 +192,6 @@ public class RouteHandler {
                         nextHopMac, nextHopVlan, location.port());
             });
         });
-
     }
 
     void processRouteRemoved(RouteEvent event) {
