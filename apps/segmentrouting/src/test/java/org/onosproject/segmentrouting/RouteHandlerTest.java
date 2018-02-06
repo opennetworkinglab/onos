@@ -49,12 +49,18 @@ import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 /**
  * Unit test for {@link RouteHandler}.
  */
 public class RouteHandlerTest {
+    private SegmentRoutingManager srManager;
     private RouteHandler routeHandler;
     private HostService hostService;
 
@@ -134,9 +140,9 @@ public class RouteHandlerTest {
         mockNetworkConfigRegistry.applyConfig(dev2Config);
 
         // Initialize Segment Routing Manager
-        SegmentRoutingManager srManager = new MockSegmentRoutingManager(NEXT_TABLE);
+        srManager = new MockSegmentRoutingManager(NEXT_TABLE);
         srManager.cfgService = new NetworkConfigRegistryAdapter();
-        srManager.deviceConfiguration = new DeviceConfiguration(srManager);
+        srManager.deviceConfiguration = createMock(DeviceConfiguration.class);
         srManager.flowObjectiveService = new MockFlowObjectiveService(BRIDGING_TABLE, NEXT_TABLE);
         srManager.routingRulePopulator = new MockRoutingRulePopulator(srManager, ROUTING_TABLE);
         srManager.defaultRoutingHandler = new MockDefaultRoutingHandler(srManager, SUBNET_TABLE);
@@ -180,6 +186,11 @@ public class RouteHandlerTest {
 
     @Test
     public void processRouteAdded() throws Exception {
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP1, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_ADDED, RR1, Sets.newHashSet(RR1));
         routeHandler.processRouteAdded(re);
 
@@ -191,17 +202,28 @@ public class RouteHandlerTest {
 
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void processRouteUpdated() throws Exception {
         processRouteAdded();
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, RR2, RR1, Sets.newHashSet(RR2),
                 Sets.newHashSet(RR1));
         routeHandler.processRouteUpdated(re);
 
-        assertEquals(1, ROUTING_TABLE.size());
+        // Note: We shouldn't remove the old nexthop during the occasion of route update
+        //       since the populate subnet will take care of it and point it to an ECMP group
+        assertEquals(2, ROUTING_TABLE.size());
         MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
         assertEquals(M2, rtv2.macAddress);
         assertEquals(V2, rtv2.vlanId);
@@ -209,21 +231,37 @@ public class RouteHandlerTest {
 
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void processRouteRemoved() throws Exception {
         processRouteAdded();
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP1, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, RR1, Sets.newHashSet(RR1));
         routeHandler.processRouteRemoved(re);
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void testTwoSingleHomedAdded() throws Exception {
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_ADDED, RR1, Sets.newHashSet(RR1, RR2));
         routeHandler.processRouteAdded(re);
 
@@ -240,10 +278,19 @@ public class RouteHandlerTest {
         assertEquals(2, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
         assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void testOneDualHomedAdded() throws Exception {
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_ADDED, RR3, Sets.newHashSet(RR3));
         routeHandler.processRouteAdded(re);
 
@@ -260,11 +307,18 @@ public class RouteHandlerTest {
         assertEquals(2, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
         assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void testOneSingleHomedToTwoSingleHomed() throws Exception {
         processRouteAdded();
+
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
 
         RouteEvent re = new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED, RR1, null,
                 Sets.newHashSet(RR1, RR2), Sets.newHashSet(RR1));
@@ -283,17 +337,26 @@ public class RouteHandlerTest {
         assertEquals(2, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
         assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void testTwoSingleHomedToOneSingleHomed() throws Exception {
         testTwoSingleHomedAdded();
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED, RR1, null,
                 Sets.newHashSet(RR1), Sets.newHashSet(RR1, RR2));
         routeHandler.processAlternativeRoutesChanged(re);
 
-        assertEquals(1, ROUTING_TABLE.size());
+        // Note: We shouldn't remove the old nexthop during the occasion of route update
+        //       since the populate subnet will take care of it and point it to an ECMP group
+        assertEquals(2, ROUTING_TABLE.size());
         MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
         assertEquals(M1, rtv1.macAddress);
         assertEquals(V1, rtv1.vlanId);
@@ -301,7 +364,11 @@ public class RouteHandlerTest {
 
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
+
+    // TODO Add test cases for two single homed next hop at same location
 
     @Test
     public void testDualHomedSingleLocationFail() throws Exception {
@@ -332,11 +399,20 @@ public class RouteHandlerTest {
 
         hostService = new MockHostService(HOSTS_ONE_FAIL);
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.removeSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, RR3, Sets.newHashSet(RR3));
         routeHandler.processRouteRemoved(re);
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
@@ -345,21 +421,39 @@ public class RouteHandlerTest {
 
         hostService = new MockHostService(HOSTS_BOTH_FAIL);
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.removeSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, RR1, Sets.newHashSet(RR1, RR2));
         routeHandler.processRouteRemoved(re);
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
     public void testOneDualHomeRemoved() throws Exception {
         testOneDualHomedAdded();
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP1, P1);
+        expectLastCall().once();
+        srManager.deviceConfiguration.removeSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, RR3, Sets.newHashSet(RR3));
         routeHandler.processRouteRemoved(re);
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
     }
 }
