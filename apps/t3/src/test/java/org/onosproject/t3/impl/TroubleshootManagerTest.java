@@ -262,6 +262,20 @@ public class TroubleshootManagerTest {
     }
 
     /**
+     * Test that HW has two rules on table 10 for untagged packets.
+     */
+    @Test
+    public void hardwareTable10Test() throws Exception {
+
+        StaticPacketTrace traceSuccess = testSuccess(PACKET_OK, HARDWARE_DEVICE_10_IN_CP,
+                HARDWARE_DEVICE_10, HARDWARE_DEVICE_10_OUT_CP, 1, 1);
+
+        assertTrue("Second flow rule is absent", traceSuccess.getFlowsForDevice(HARDWARE_DEVICE_10)
+                .contains(HARDWARE_10_SECOND_FLOW_ENTRY));
+
+    }
+
+    /**
      * Test dual links between 3 topology elements.
      */
     @Test
@@ -348,6 +362,9 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(DUAL_LINK_3_FLOW_ENTRY, DUAL_LINK_3_FLOW_ENTRY_2);
             } else if (deviceId.equals(DEFERRED_1)) {
                 return ImmutableList.of(DEFERRED_FLOW_ENTRY, DEFERRED_CLEAR_FLOW_ENTRY);
+            } else if (deviceId.equals(HARDWARE_DEVICE_10)) {
+                return ImmutableList.of(HARDWARE_10_FLOW_ENTRY, HARDWARE_10_SECOND_FLOW_ENTRY,
+                        HARDWARE_10_OUTPUT_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -356,7 +373,7 @@ public class TroubleshootManagerTest {
     private class TestDriverService extends DriverServiceAdapter {
         @Override
         public Driver getDriver(DeviceId deviceId) {
-            if (deviceId.equals(HARDWARE_DEVICE)) {
+            if (deviceId.equals(HARDWARE_DEVICE) || deviceId.equals(HARDWARE_DEVICE_10)) {
                 return new DefaultDriver("ofdpa", ImmutableList.of(),
                         "test", "test", "test", new HashMap<>(), new HashMap<>());
             }

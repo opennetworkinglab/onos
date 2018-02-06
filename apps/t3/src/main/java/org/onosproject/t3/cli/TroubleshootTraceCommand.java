@@ -29,6 +29,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.GroupBucket;
+import org.onosproject.t3.api.GroupsInDevice;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 
@@ -227,26 +228,29 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
 
     //Prints the groups for a given trace and a specified level of verbosity
     private void printGroups(StaticPacketTrace trace, boolean verbose, ConnectPoint connectPoint) {
-        print("Groups");
-        trace.getGroupOuputs(connectPoint.deviceId()).forEach(output -> {
-            if (output.getOutput().equals(connectPoint)) {
-                output.getGroups().forEach(group -> {
-                    if (verbose) {
-                        print(GROUP_FORMAT, Integer.toHexString(group.id().id()), group.state(), group.type(),
-                                group.bytes(), group.packets(), group.appId().name(), group.referenceCount());
-                        int i = 0;
-                        for (GroupBucket bucket : group.buckets().buckets()) {
-                            print(GROUP_BUCKET_FORMAT, Integer.toHexString(group.id().id()), ++i,
-                                    bucket.bytes(), bucket.packets(),
-                                    bucket.treatment().allInstructions());
+        List<GroupsInDevice> groupsInDevice = trace.getGroupOuputs(connectPoint.deviceId());
+        if (groupsInDevice != null) {
+            print("Groups");
+            groupsInDevice.forEach(output -> {
+                if (output.getOutput().equals(connectPoint)) {
+                    output.getGroups().forEach(group -> {
+                        if (verbose) {
+                            print(GROUP_FORMAT, Integer.toHexString(group.id().id()), group.state(), group.type(),
+                                    group.bytes(), group.packets(), group.appId().name(), group.referenceCount());
+                            int i = 0;
+                            for (GroupBucket bucket : group.buckets().buckets()) {
+                                print(GROUP_BUCKET_FORMAT, Integer.toHexString(group.id().id()), ++i,
+                                        bucket.bytes(), bucket.packets(),
+                                        bucket.treatment().allInstructions());
+                            }
+                        } else {
+                            print("   groupId=%s", group.id());
                         }
-                    } else {
-                        print("   groupId=%s", group.id());
-                    }
-                });
-                print("Outgoing Packet %s", output.getFinalPacket());
-            }
-        });
+                    });
+                    print("Outgoing Packet %s", output.getFinalPacket());
+                }
+            });
+        }
     }
 
     private String printTreatment(TrafficTreatment treatment) {
