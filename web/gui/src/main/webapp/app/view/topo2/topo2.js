@@ -186,7 +186,7 @@
             t2es.bindHandlers();
 
             t2bcs.init();
-            t2kcs.init(t2fs, t2tbs);
+            t2kcs.init(t2fs, t2tbs, svg);
             t2is.initInst({ showMastership: t2fs.showMastership });
             t2fs.init(svg, forceG, uplink, dim, zoomer);
 

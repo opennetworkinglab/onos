@@ -18,7 +18,7 @@
 
     // Injected Services
     var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs,
-        t2fs, t2tbs, t2dp;
+        t2fs, t2tbs, t2dp, svg, sus;
 
     // Commmands
     function actionMap() {
@@ -38,6 +38,9 @@
             dot: [toggleToolbar, 'Toggle Toolbar'],
             'shift-L': [cycleHostLabels, 'Cycle host labels'],
 
+            // -- instance color palette debug
+            9: function () { sus.cat7().testCard(svg); },
+
             esc: handleEscape,
 
             _keyListener: t2tbs.keyListener.bind(t2tbs),
@@ -50,9 +53,10 @@
         };
     }
 
-    function init(_t2fs_, _t2tbs_) {
+    function init(_t2fs_, _t2tbs_, _svg_) {
         t2fs = _t2fs_;
         t2tbs = _t2tbs_;
+        svg = _svg_;
         bindCommands();
     }
 
@@ -234,10 +238,10 @@
         '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService',
         'Topo2PrefsService', 'Topo2BackgroundService', 'PrefsService',
         'Topo2InstanceService', 'Topo2SummaryPanelService', 'Topo2ViewService',
-        'Topo2RegionService', 'Topo2DetailsPanelService',
+        'Topo2RegionService', 'Topo2DetailsPanelService', 'SvgUtilService',
 
         function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_,
-                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2dp_) {
+                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2dp_, _sus_) {
 
             $log = _$log_;
             fs = _fs_;
@@ -252,6 +256,7 @@
             t2vs = _t2vs_;
             t2rs = _t2rs_;
             t2dp = _t2dp_;
+            sus = _sus_;
 
             return {
                 init: init,
