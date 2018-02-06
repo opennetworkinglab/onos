@@ -75,7 +75,7 @@ public final class ConnectPointProtoTranslator {
             return ConnectPointProto.newBuilder().setHostId(connectPoint.hostId().toString())
                     .setPortNumber(connectPoint.port().toString())
                     .build();
-        } else if (connectPoint.ipElementId() instanceof IpElementId) {
+        } else if (connectPoint.ipElementId() != null) {
             return ConnectPointProto.newBuilder().setIpElementId(connectPoint.ipElementId().toString())
                     .setPortNumber(connectPoint.port().toString())
                     .build();

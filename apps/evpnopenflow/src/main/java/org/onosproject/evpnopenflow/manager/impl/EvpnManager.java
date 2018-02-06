@@ -807,14 +807,15 @@ public class EvpnManager implements EvpnService {
 
         @Override
         public void event(EvpnRouteEvent event) {
-            if (!(event.subject() instanceof EvpnRoute)) {
+            if (event.subject() != null) {
+                EvpnRoute route = (EvpnRoute) event.subject();
+                if (EvpnRouteEvent.Type.ROUTE_ADDED == event.type()) {
+                    onBgpEvpnRouteUpdate(route);
+                } else if (EvpnRouteEvent.Type.ROUTE_REMOVED == event.type()) {
+                    onBgpEvpnRouteDelete(route);
+                }
+            } else {
                 return;
-            }
-            EvpnRoute route = (EvpnRoute) event.subject();
-            if (EvpnRouteEvent.Type.ROUTE_ADDED == event.type()) {
-                onBgpEvpnRouteUpdate(route);
-            } else if (EvpnRouteEvent.Type.ROUTE_REMOVED == event.type()) {
-                onBgpEvpnRouteDelete(route);
             }
         }
     }

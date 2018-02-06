@@ -295,7 +295,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         // Get the pcc client
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with ip addresss {}"
                               + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
@@ -352,7 +352,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with this device {}"
                     + srcElement.toString());
             return;
@@ -382,7 +382,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with ip addresss {}"
                     + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
@@ -415,7 +415,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpElementId) srcElement).ipAddress()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with ip addresss {}"
                     + ((IpElementId) srcElement).ipAddress().toString());
             return;
@@ -459,7 +459,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpTunnelEndPoint) tunnel.src()).ip()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with ip addresss {}"
                     + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
@@ -514,7 +514,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         PcepClient pc = pcepClientController.getClient(PccId.pccId(((IpElementId) srcElement).ipAddress()));
 
-        if (!(pc instanceof PcepClient)) {
+        if (pc == null) {
             log.error("There is no PCC connected with ip addresss {}"
                     + ((IpElementId) srcElement).ipAddress().toString());
             return;
@@ -1316,7 +1316,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                         srpObj = stateRpt.getSrpObject();
                         lspObj = stateRpt.getLspObject();
 
-                        if (srpObj instanceof PcepSrpObject) {
+                        if (srpObj != null) {
                             srpId = srpObj.getSrpID();
                         }
 

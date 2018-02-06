@@ -80,12 +80,7 @@ public final class ResourceIdParser {
 
     public static NodeKey getInstanceKey(ResourceId path) {
         int last = path.nodeKeys().size();
-        NodeKey ret = path.nodeKeys().get(last - 1);
-        if (ret instanceof NodeKey) {
-            return ret;
-        } else {
-            return null;
-        }
+        return path.nodeKeys().get(last - 1);
     }
 
     public static NodeKey getMultiInstanceKey(ResourceId path) {
