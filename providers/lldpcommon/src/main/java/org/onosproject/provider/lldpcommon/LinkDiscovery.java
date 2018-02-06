@@ -15,7 +15,7 @@
  */
 package org.onosproject.provider.lldpcommon;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
@@ -40,10 +40,11 @@ import org.onosproject.net.link.ProbedLinkProvider;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Set;
+import java.util.HashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -68,7 +69,7 @@ public class LinkDiscovery implements TimerTask {
     private Timeout timeout;
     private volatile boolean isStopped;
     // Set of ports to be probed
-    private final Set<Long> ports = Sets.newConcurrentHashSet();
+    private final HashMap<Long, String> portMap = Maps.newHashMap();
 
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
@@ -127,11 +128,16 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port
      */
     public void addPort(Port port) {
-        boolean newPort = ports.add(port.number().toLong());
+        Long portNum = port.number().toLong();
+        String portName = port.annotations().value(PORT_NAME);
+
+        boolean newPort = containsPort(portNum);
+        portMap.put(portNum, portName);
+
         boolean isMaster = context.mastershipService().isLocalMaster(device.id());
         if (newPort && isMaster) {
             log.debug("Sending initial probe to port {}@{}", port.number().toLong(), device.id());
-            sendProbes(port.number().toLong());
+            sendProbes(portNum, portName);
         }
     }
 
@@ -140,7 +146,7 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port number
      */
     public void removePort(PortNumber port) {
-        ports.remove(port.toLong());
+        portMap.remove(port.toLong());
     }
 
     /**
@@ -215,7 +221,9 @@ public class LinkDiscovery implements TimerTask {
 
         if (context.mastershipService().isLocalMaster(device.id())) {
             log.trace("Sending probes from {}", device.id());
-            ports.forEach(this::sendProbes);
+            portMap.entrySet().forEach(
+                e -> sendProbes(e.getKey(), e.getValue())
+            );
         }
 
         if (!isStopped()) {
@@ -226,55 +234,57 @@ public class LinkDiscovery implements TimerTask {
     /**
      * Creates packet_out LLDP for specified output port.
      *
-     * @param port the port
+     * @param portNumber the port
+     * @param portDesc the port description
      * @return Packet_out message with LLDP data
      */
-    private OutboundPacket createOutBoundLldp(Long port) {
-        if (port == null) {
+    private OutboundPacket createOutBoundLldp(Long portNumber, String portDesc) {
+        if (portNumber == null) {
             return null;
         }
-        ONOSLLDP lldp = getLinkProbe(port);
+        ONOSLLDP lldp = getLinkProbe(portNumber, portDesc);
         ethPacket.setSourceMACAddress(context.fingerprint()).setPayload(lldp);
         return new DefaultOutboundPacket(device.id(),
-                                         builder().setOutput(portNumber(port)).build(),
+                                         builder().setOutput(portNumber(portNumber)).build(),
                                          ByteBuffer.wrap(ethPacket.serialize()));
     }
 
     /**
      * Creates packet_out BDDP for specified output port.
      *
-     * @param port the port
+     * @param portNumber the port
+     * @param portDesc the port description
      * @return Packet_out message with LLDP data
      */
-    private OutboundPacket createOutBoundBddp(Long port) {
-        if (port == null) {
+    private OutboundPacket createOutBoundBddp(Long portNumber, String portDesc) {
+        if (portNumber == null) {
             return null;
         }
-        ONOSLLDP lldp = getLinkProbe(port);
+        ONOSLLDP lldp = getLinkProbe(portNumber, portDesc);
         bddpEth.setSourceMACAddress(context.fingerprint()).setPayload(lldp);
         return new DefaultOutboundPacket(device.id(),
-                                         builder().setOutput(portNumber(port)).build(),
+                                         builder().setOutput(portNumber(portNumber)).build(),
                                          ByteBuffer.wrap(bddpEth.serialize()));
     }
 
-    private ONOSLLDP getLinkProbe(Long port) {
-        return ONOSLLDP.onosLLDP(device.id().toString(), device.chassisId(), port.intValue());
+    private ONOSLLDP getLinkProbe(Long portNumber, String portDesc) {
+        return ONOSLLDP.onosLLDP(device.id().toString(), device.chassisId(), portNumber.intValue(), portDesc);
     }
 
-    private void sendProbes(Long portNumber) {
+    private void sendProbes(Long portNumber, String portDesc) {
         if (context.packetService() == null) {
             return;
         }
         log.trace("Sending probes out of {}@{}", portNumber, device.id());
-        OutboundPacket pkt = createOutBoundLldp(portNumber);
+        OutboundPacket pkt = createOutBoundLldp(portNumber, portDesc);
         context.packetService().emit(pkt);
         if (context.useBddp()) {
-            OutboundPacket bpkt = createOutBoundBddp(portNumber);
+            OutboundPacket bpkt = createOutBoundBddp(portNumber, portDesc);
             context.packetService().emit(bpkt);
         }
     }
 
     public boolean containsPort(long portNumber) {
-        return ports.contains(portNumber);
+        return portMap.containsKey(portNumber);
     }
 }
