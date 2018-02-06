@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Class to represent the groups in a device for a given output and packet.
  */
-//FIXME consider removing.
+//FIXME consider name change.
 public class GroupsInDevice {
 
     private ConnectPoint output;
@@ -34,8 +34,9 @@ public class GroupsInDevice {
 
     /**
      * Saves the given groups for the output connect point and the selector.
-     * @param output the output connect point
-     * @param groups the groups
+     *
+     * @param output   the output connect point
+     * @param groups   the groups
      * @param selector the selector representing the final packet
      */
     public GroupsInDevice(ConnectPoint output, List<Group> groups, TrafficSelector selector) {
@@ -47,6 +48,7 @@ public class GroupsInDevice {
 
     /**
      * Returns the output connect point.
+     *
      * @return the connect point
      */
     public ConnectPoint getOutput() {
@@ -55,6 +57,7 @@ public class GroupsInDevice {
 
     /**
      * Returns the groups.
+     *
      * @return groups.
      */
     public List<Group> getGroups() {
@@ -63,10 +66,20 @@ public class GroupsInDevice {
 
     /**
      * Returns the final packet after traversing the network.
+     *
      * @return the selector with packet info
      */
     public TrafficSelector getFinalPacket() {
         return selector;
+    }
+
+    /**
+     * Updates the final packet.
+     *
+     * @param updatedPacket the updated final packet
+     */
+    public void setFinalPacket(TrafficSelector updatedPacket) {
+        selector = updatedPacket;
     }
 
     @Override
