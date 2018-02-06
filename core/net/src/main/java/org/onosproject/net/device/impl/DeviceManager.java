@@ -873,7 +873,7 @@ public class DeviceManager
     }
 
     private void handleMastershipEvent(MastershipEvent event) {
-        if (event.type() == MastershipEvent.Type.BACKUPS_CHANGED) {
+        if (event.type() == MastershipEvent.Type.BACKUPS_CHANGED || event.type() == MastershipEvent.Type.SUSPENDED) {
             // Don't care if backup list changed.
             return;
         }
