@@ -236,7 +236,8 @@ public class DistributedClusterStore
 
     @Override
     public void markFullyStarted(boolean started) {
-        updateNode(localNode.id(), started ? State.READY : State.ACTIVE, null);
+        ControllerNode.State state = started ? State.READY : State.ACTIVE;
+        updateNode(localNode.id(), state, null);
     }
 
     @Override
@@ -269,6 +270,10 @@ public class DistributedClusterStore
         Version currentVersion = nodeVersions.get(nodeId);
         if (!Objects.equals(currentState, newState)
                 || (newVersion != null && !Objects.equals(currentVersion, newVersion))) {
+            if (localNode.id().equals(nodeId)) {
+                log.info("Local node state changed: {}", newState);
+            }
+            log.debug("Node {} state changed: {}", nodeId, newState);
             nodeStates.put(nodeId, newState);
             if (newVersion != null) {
                 nodeVersions.put(nodeId, newVersion);
