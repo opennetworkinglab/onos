@@ -577,6 +577,7 @@ public class Topo2Jsonifier {
             addIps(node, h);
             addProps(node, h);
             addGeoGridLocation(node, h);
+            node.put("configured", h.configured());
         }
         addMetaUi(node, ridStr, host.idAsString());
 

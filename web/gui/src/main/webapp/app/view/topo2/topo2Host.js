@@ -78,6 +78,10 @@
                     var type = this.get('type');
                     return remappedDeviceTypes[type] || type || 'm_endstation';
                 },
+                title: function () {
+                    var props = this.get('props');
+                    return props.name || this.get('ips')[0] || 'unknown';
+                },
                 labelIndex: function () {
                     return t2ps.get('hlbls');
                 },

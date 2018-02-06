@@ -35,13 +35,20 @@
 
     function formatHostData(data) {
         var format = {
-            title: data.get('id'),
-            propOrder: ['MAC', 'IP', 'VLAN'],
-            props: {
+            title: data.title(),
+            propOrder: ['MAC', 'IP', 'VLAN', 'Configured'],
+            propLabels: {
+                'MAC': 'MAC',
+                'Configured': 'Configured',
+                'IP': 'IP',
+                'VLAN': 'VLAN',
+            },
+            propValues: {
                 '-': '',
                 'MAC': data.get('id'),
                 'IP': data.get('ips')[0],
                 'VLAN': 'None', // TODO: VLAN is not currently in the data received from backend
+                'Configured': data.get('configured'),
             },
         };
 
@@ -58,6 +65,7 @@
         init();
 
         hostData = formatHostData(data);
+        console.log(data);
         render();
     }
 
@@ -80,6 +88,7 @@
 
         title.text(hostData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        console.log()
         ls.listProps(tbody, hostData);
     }
 
