@@ -45,6 +45,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
@@ -70,7 +71,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onlab.packet.EthType.EtherType;
-import static org.onosproject.net.flow.TrafficSelector.*;
+import static org.onosproject.net.flow.TrafficSelector.Builder;
 import static org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -174,6 +175,7 @@ public class TroubleshootManager implements TroubleshootService {
                 NodeId master = mastershipService.getMasterFor(cp.deviceId());
                 trace.addResultMessage("Packet goes to the controller " + master.id());
                 computePath(completePath, trace, outputPath.getOutput());
+                handleVlanToController(outputPath, trace);
 
             } else if (linkService.getEgressLinks(cp).size() > 0) {
 
@@ -239,6 +241,32 @@ public class TroubleshootManager implements TroubleshootService {
             }
         }
         return trace;
+    }
+
+    /**
+     * If the initial packet comes tagged with a Vlan we output it with that to ONOS.
+     * If ONOS applied a vlan we remove it.
+     *
+     * @param outputPath the output
+     * @param trace      the trace we are building
+     */
+    private void handleVlanToController(GroupsInDevice outputPath, StaticPacketTrace trace) {
+
+        VlanIdCriterion initialVid = (VlanIdCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID);
+        VlanIdCriterion finalVid = (VlanIdCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.VLAN_VID);
+
+        if (initialVid != null && !initialVid.equals(finalVid) && initialVid.vlanId().equals(VlanId.NONE)) {
+
+            Set<Criterion> finalCriteria = new HashSet<>(outputPath.getFinalPacket().criteria());
+            //removing the final vlanId
+            finalCriteria.remove(finalVid);
+            Builder packetUpdated = DefaultTrafficSelector.builder();
+            finalCriteria.forEach(packetUpdated::add);
+            //Initial was none so we set it to that
+            packetUpdated.add(Criteria.matchVlanId(VlanId.NONE));
+            //Update final packet
+            outputPath.setFinalPacket(packetUpdated.build());
+        }
     }
 
     /**

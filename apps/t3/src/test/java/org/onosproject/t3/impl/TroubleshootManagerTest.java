@@ -137,6 +137,8 @@ public class TroubleshootManagerTest {
                 traceSuccess.resultMessage().contains(MASTER_1));
         ConnectPoint connectPoint = traceSuccess.getGroupOuputs(ARP_FLOW_DEVICE).get(0).getOutput();
         assertEquals("Packet Should go to CONTROLLER", PortNumber.CONTROLLER, connectPoint.port());
+        assertNull("VlanId should be null", traceSuccess.getGroupOuputs(ARP_FLOW_DEVICE).get(0)
+                .getFinalPacket().getCriterion(Criterion.Type.VLAN_VID));
         log.info("trace {}", traceSuccess.resultMessage());
     }
 
