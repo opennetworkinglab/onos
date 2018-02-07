@@ -109,21 +109,6 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      * @param topology topology descriptor
      * @param src      source device
      * @param dst      destination device
-     * @param weight   link weight function
-     * @return set of shortest paths
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                       LinkWeight weight);
-
-    /**
-     * Computes and returns the set of shortest paths between src and dest.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
      * @param weigher  link weight function
      * @return set of shortest paths
      */
@@ -176,22 +161,6 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      * @param topology topology descriptor
      * @param src      source device
      * @param dst      destination device
-     * @param weight   link weight function
-     * @return set of shortest paths
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                       LinkWeight weight);
-
-    /**
-     * Computes and returns the set of disjoint shortest path pairs
-     * between src and dst.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
      * @param weigher  link weight function
      * @return set of shortest paths
      */
@@ -208,24 +177,6 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      * @return set of shortest paths
      */
     Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst);
-
-    /**
-     * Computes and returns the set of SRLG disjoint shortest path pairs between source
-     * and dst, given a mapping of edges to SRLG risk groups.
-     *
-     * @param topology    topology descriptor
-     * @param src         source device
-     * @param dst         destination device
-     * @param weight      link weight function
-     * @param riskProfile map of edges to objects. Edges that map to the same object will
-     * be treated as if they were in the same risk group.
-     * @return set of shortest paths
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                       LinkWeight weight, Map<Link, Object> riskProfile);
 
     /**
      * Computes and returns the set of SRLG disjoint shortest path pairs between source

@@ -27,7 +27,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.AbstractPathService;
@@ -80,12 +79,6 @@ public class PathManager extends AbstractPathService implements PathService {
     }
 
     @Override
-    public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
-        checkPermission(TOPOLOGY_READ);
-        return super.getPaths(src, dst, weight);
-    }
-
-    @Override
     public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
         checkPermission(TOPOLOGY_READ);
         return super.getPaths(src, dst, weigher);
@@ -105,12 +98,6 @@ public class PathManager extends AbstractPathService implements PathService {
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
-        checkPermission(TOPOLOGY_READ);
-        return super.getDisjointPaths(src, dst, weight);
-    }
-
-    @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
         checkPermission(TOPOLOGY_READ);
         return super.getDisjointPaths(src, dst, weigher);
@@ -121,13 +108,6 @@ public class PathManager extends AbstractPathService implements PathService {
                                               Map<Link, Object> riskProfile) {
         checkPermission(TOPOLOGY_READ);
         return getDisjointPaths(src, dst, (LinkWeigher) null, riskProfile);
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
-                                              Map<Link, Object> riskProfile) {
-        checkPermission(TOPOLOGY_READ);
-        return super.getDisjointPaths(src, dst, weight, riskProfile);
     }
 
     @Override

@@ -62,7 +62,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
@@ -337,14 +336,6 @@ public class DefaultVirtualFlowRuleProviderTest {
         Weight oneHundred = ScalarWeight.toWeight(100);
         @Override
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
-            DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
-                                               oneHundred, ANNOTATIONS);
-            return ImmutableSet.of(path);
-        }
-
-        @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src,
-                                  DeviceId dst, LinkWeight weight) {
             DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
                                                oneHundred, ANNOTATIONS);
             return ImmutableSet.of(path);

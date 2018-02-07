@@ -72,12 +72,6 @@ public class TopologyServiceAdapter implements TopologyService {
 
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                              LinkWeight weight) {
-        return null;
-    }
-
-    @Override
-    public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                               LinkWeigher weigher) {
         return null;
     }
@@ -111,13 +105,6 @@ public class TopologyServiceAdapter implements TopologyService {
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
                                               DeviceId dst,
-                                              LinkWeight weight) {
-        return null;
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
-                                              DeviceId dst,
                                               LinkWeigher weigher) {
         return null;
     }
@@ -125,13 +112,6 @@ public class TopologyServiceAdapter implements TopologyService {
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
                                               DeviceId dst,
-                                              Map<Link, Object> riskProfile) {
-        return null;
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
-                                              DeviceId dst, LinkWeight weight,
                                               Map<Link, Object> riskProfile) {
         return null;
     }

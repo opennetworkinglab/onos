@@ -30,7 +30,6 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyEvent;
@@ -44,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -112,12 +110,6 @@ public class SimpleTopologyStore
     }
 
     @Override
-    public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                              LinkWeight weight) {
-        return getPaths(topology, src, dst, adapt(weight));
-    }
-
-    @Override
     public Set<Path> getPaths(Topology topology, DeviceId src,
                               DeviceId dst, LinkWeigher weigher) {
         return defaultTopology(topology).getPaths(src, dst, weigher);
@@ -126,12 +118,6 @@ public class SimpleTopologyStore
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
         return defaultTopology(topology).getDisjointPaths(src, dst);
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                              LinkWeight weight) {
-        return getDisjointPaths(topology, src, dst, adapt(weight));
     }
 
     @Override
@@ -144,12 +130,6 @@ public class SimpleTopologyStore
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                                   Map<Link, Object> riskProfile) {
         return defaultTopology(topology).getDisjointPaths(src, dst, riskProfile);
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                                  LinkWeight weight, Map<Link, Object> riskProfile) {
-        return getDisjointPaths(topology, src, dst, adapt(weight), riskProfile);
     }
 
     @Override

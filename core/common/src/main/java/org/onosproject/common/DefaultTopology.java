@@ -49,7 +49,7 @@ import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.DefaultTopologyCluster;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.GraphDescription;
-import org.onosproject.net.topology.HopCountLinkWeight;
+import org.onosproject.net.topology.HopCountLinkWeigher;
 import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -73,7 +73,6 @@ import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.INDIRECT;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 
 /**
  * Default implementation of the topology descriptor. This carries the backing
@@ -160,7 +159,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         this.clusterIndexes = Suppliers.memoize(this::buildIndexes);
 
-        this.hopCountWeigher = adapt(new HopCountLinkWeight(graph.getVertexes().size()));
+        this.hopCountWeigher = new HopCountLinkWeigher(graph.getVertexes().size());
         this.broadcastSets = Suppliers.memoize(this::buildBroadcastSets);
         this.infrastructurePoints = Suppliers.memoize(this::findInfrastructurePoints);
         this.computeCost = Math.max(0, System.nanoTime() - time);

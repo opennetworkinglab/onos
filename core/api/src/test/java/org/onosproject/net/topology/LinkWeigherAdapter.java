@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,17 @@ package org.onosproject.net.topology;
 
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
-import org.onosproject.net.AnnotationKeys;
 
-/**
- * Link weight for measuring link cost using the link metric annotation.
- */
-public class MetricLinkWeight implements LinkWeigher {
+public class LinkWeigherAdapter implements LinkWeigher {
+    final double weight;
+
+    public LinkWeigherAdapter(Double weight) {
+        this.weight = weight;
+    }
+    @Override
+    public Weight weight(TopologyEdge edge) {
+        return ScalarWeight.toWeight(weight);
+    }
 
     @Override
     public Weight getInitialWeight() {
@@ -32,17 +37,6 @@ public class MetricLinkWeight implements LinkWeigher {
 
     @Override
     public Weight getNonViableWeight() {
-        return ScalarWeight.NON_VIABLE_WEIGHT;
-    }
-
-    @Override
-    public Weight weight(TopologyEdge edge) {
-        String v = edge.link().annotations().value(AnnotationKeys.METRIC);
-        try {
-            return ScalarWeight.toWeight(v != null ? Double.parseDouble(v) : 1);
-        } catch (NumberFormatException e) {
-            return ScalarWeight.toWeight(1.0);
-        }
+        return ScalarWeight.toWeight(0.0);
     }
 }
-

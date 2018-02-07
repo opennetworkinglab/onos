@@ -28,7 +28,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.topology.GeoDistanceLinkWeight;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
@@ -78,7 +78,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
     private Set<Link> allPathLinks;
     private boolean listenersRemoved;
-    private LinkWeight linkData;
+    private LinkWeigher linkData;
     private int highlightDelay;
 
     private enum Mode {

@@ -21,6 +21,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -54,8 +56,9 @@ import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resources;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,25 +259,41 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         // Route in OTU topology
         Topology topology = topologyService.currentTopology();
 
-        LinkWeight weight = edge -> {
-            // Disregard inactive or non-optical links
-            if (edge.link().state() == Link.State.INACTIVE) {
-                return -1;
+
+        class Weigher implements LinkWeigher {
+            @Override
+            public Weight weight(TopologyEdge edge) {
+                if (edge.link().state() == Link.State.INACTIVE) {
+                    return ScalarWeight.toWeight(-1);
+                }
+                if (edge.link().type() != Link.Type.OPTICAL) {
+                    return ScalarWeight.toWeight(-1);
+                }
+                // Find path with available TributarySlots resources
+                if (!isAvailableTributarySlots(intent, edge.link())) {
+                    return ScalarWeight.toWeight(-1);
+                }
+                return ScalarWeight.toWeight(1);
             }
-            if (edge.link().type() != Link.Type.OPTICAL) {
-                return -1;
+
+            @Override
+            public Weight getInitialWeight() {
+                return null;
             }
-            // Find path with available TributarySlots resources
-            if (!isAvailableTributarySlots(intent, edge.link())) {
-                return -1;
+
+            @Override
+            public Weight getNonViableWeight() {
+                return null;
             }
-            return 1;
-        };
+        }
+
+
+        LinkWeigher weigher = new Weigher();
 
         ConnectPoint start = intent.getSrc();
         ConnectPoint end = intent.getDst();
 
-        return topologyService.getPaths(topology, start.deviceId(), end.deviceId(), weight);
+        return topologyService.getPaths(topology, start.deviceId(), end.deviceId(), weigher);
     }
 
     private boolean isAvailableTributarySlots(OpticalOduIntent intent, Link link) {

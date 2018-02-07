@@ -41,7 +41,6 @@ import org.onosproject.net.topology.DefaultGraphDescription;
 import org.onosproject.net.topology.GeoDistanceLinkWeight;
 import org.onosproject.net.topology.GraphDescription;
 import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.MetricLinkWeight;
 import org.onosproject.net.topology.PathAdminService;
 import org.onosproject.net.topology.Topology;
@@ -74,7 +73,6 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.isNullOrEmpty;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -165,11 +163,11 @@ public class DistributedTopologyStore
         if (newLinkWeightFunction != null &&
                 !Objects.equals(newLinkWeightFunction, linkWeightFunction)) {
             linkWeightFunction = newLinkWeightFunction;
-            LinkWeight weight = linkWeightFunction.equals(LINK_METRIC) ?
+            LinkWeigher weight = linkWeightFunction.equals(LINK_METRIC) ?
                     new MetricLinkWeight() :
                     linkWeightFunction.equals(GEO_DISTANCE) ?
                             new GeoDistanceLinkWeight(deviceService) : null;
-            setDefaultLinkWeight(weight);
+            setDefaultLinkWeigher(weight);
         }
         log.info(FORMAT, linkWeightFunction);
     }
@@ -215,11 +213,6 @@ public class DistributedTopologyStore
         return defaultTopology(topology).getPaths(src, dst);
     }
 
-    @Override
-    public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                              LinkWeight weight) {
-        return getPaths(topology, src, dst, adapt(weight));
-    }
 
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src,
@@ -249,12 +242,6 @@ public class DistributedTopologyStore
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                              LinkWeight weight) {
-        return getDisjointPaths(topology, src, dst, adapt(weight));
-    }
-
-    @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
                                               DeviceId dst, LinkWeigher weigher) {
         return defaultTopology(topology).getDisjointPaths(src, dst, weigher);
@@ -264,12 +251,6 @@ public class DistributedTopologyStore
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                               Map<Link, Object> riskProfile) {
         return defaultTopology(topology).getDisjointPaths(src, dst, riskProfile);
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                              LinkWeight weight, Map<Link, Object> riskProfile) {
-        return getDisjointPaths(topology, src, dst, adapt(weight), riskProfile);
     }
 
     @Override
@@ -349,11 +330,6 @@ public class DistributedTopologyStore
         checkArgument(topology instanceof DefaultTopology,
                       "Topology class %s not supported", topology.getClass());
         return (DefaultTopology) topology;
-    }
-
-    @Override
-    public void setDefaultLinkWeight(LinkWeight linkWeight) {
-        DefaultTopology.setDefaultLinkWeigher(adapt(linkWeight));
     }
 
     @Override

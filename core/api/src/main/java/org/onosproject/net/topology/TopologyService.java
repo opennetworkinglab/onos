@@ -111,22 +111,6 @@ public interface TopologyService
      * @param topology topology descriptor
      * @param src      source device
      * @param dst      destination device
-     * @param weight   edge-weight entity
-     * @return set of all shortest paths between the two devices
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                       LinkWeight weight);
-
-    /**
-     * Returns the set of all shortest paths, computed using the supplied
-     * edge-weight entity, between the specified source and destination devices.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
      * @param weigher  edge-weight entity
      * @return set of all shortest paths between the two devices
      */
@@ -204,22 +188,6 @@ public interface TopologyService
      * @param topology topology descriptor
      * @param src      source device
      * @param dst      destination device
-     * @param weight   edge-weight entity
-     * @return set of all shortest paths between the two devices
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                       LinkWeight weight);
-
-    /**
-     * Returns the set of all disjoint shortest path pairs, computed using the supplied
-     * edge-weight entity, between the specified source and destination devices.
-     *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
      * @param weigher  edge-weight entity
      * @return set of all shortest paths between the two devices
      */
@@ -238,23 +206,6 @@ public interface TopologyService
      */
     Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
                                        Map<Link, Object> riskProfile);
-
-    /**
-     * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
-     * between the specified source and destination devices.
-     *
-     * @param topology    topology descriptor
-     * @param src         source device
-     * @param dst         destination device
-     * @param weight      edge-weight entity
-     * @param riskProfile map of edges to risk profiles
-     * @return set of all shortest paths between the two devices
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                       LinkWeight weight, Map<Link, Object> riskProfile);
 
     /**
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,

@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 
 /**
  * Helper class for path service.
@@ -60,16 +59,11 @@ public abstract class AbstractPathService
     private static final PortNumber P0 = PortNumber.portNumber(0);
 
     protected static final LinkWeigher DEFAULT_WEIGHER =
-            adapt(new HopCountLinkWeight());
+            new HopCountLinkWeigher();
 
     protected TopologyService topologyService;
 
     protected HostService hostService;
-
-    @Override
-    public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
-        return getPaths(src, dst, adapt(weight));
-    }
 
     @Override
     public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
@@ -140,11 +134,6 @@ public abstract class AbstractPathService
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
-        return getDisjointPaths(src, dst, adapt(weight));
-    }
-
-    @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
@@ -176,12 +165,6 @@ public abstract class AbstractPathService
                 srcDevice, dstDevice, internalWeigher);
 
         return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths, internalWeigher);
-    }
-
-    @Override
-    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
-                                              Map<Link, Object> riskProfile) {
-        return getDisjointPaths(src, dst, adapt(weight), riskProfile);
     }
 
     @Override

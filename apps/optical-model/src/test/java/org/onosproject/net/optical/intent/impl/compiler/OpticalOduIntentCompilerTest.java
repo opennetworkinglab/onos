@@ -66,7 +66,7 @@ import org.onosproject.net.optical.impl.DefaultOduCltPort;
 import org.onosproject.net.optical.impl.DefaultOtuPort;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.MockResourceService;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
@@ -173,13 +173,13 @@ public class OpticalOduIntentCompilerTest extends AbstractIntentTest {
         Set<Path> paths = Sets.newHashSet(path);
 
         @Override
-        public Topology currentTopology() {
-            return null;
+        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeigher weight) {
+            return paths;
         }
 
         @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
-            return paths;
+        public Topology currentTopology() {
+            return null;
         }
     }
 

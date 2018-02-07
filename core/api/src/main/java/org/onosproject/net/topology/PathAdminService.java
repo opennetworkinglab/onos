@@ -28,18 +28,6 @@ public interface PathAdminService {
      * If null is specified, the builtin default hop-count link-weight will be
      * used.
      *
-     * @param linkWeight default link-weight function
-     *
-     * @deprecated in Junco (1.9.0), use setDefaultLinkWeigher() instead
-     */
-    @Deprecated
-    void setDefaultLinkWeight(LinkWeight linkWeight);
-
-    /**
-     * Sets the specified link-weight function to be used as a default.
-     * If null is specified, the builtin default hop-count link-weight will be
-     * used.
-     *
      * @param linkWeigher link-weight function to be used as default
      */
     void setDefaultLinkWeigher(LinkWeigher linkWeigher);

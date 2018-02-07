@@ -42,7 +42,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigherAdapter;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyService;
@@ -414,7 +414,7 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
         assertEquals("The paths size did not match.", 1, paths.size());
 
         // test the getPaths() by weight method.
-        LinkWeight weight = edge -> 1.0;
+        LinkWeigher weight = new LinkWeigherAdapter(1.0);
         Set<Path> paths1 = topologyService.getPaths(topology, srcVirtualDevice.id(), dstVirtualDevice.id(), weight);
         assertNotNull("The paths should not be null.", paths1);
         assertEquals("The paths size did not match.", 1, paths1.size());
@@ -472,7 +472,7 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
 
         // test the getDisjointPaths() method using a null weight.
         Set<DisjointPath> paths = topologyService.getDisjointPaths(topology, srcVirtualDevice.id(),
-                                                                   dstVirtualDevice.id(), (LinkWeight) null);
+                                                                   dstVirtualDevice.id(), (LinkWeigher) null);
     }
 
     /**
@@ -513,7 +513,7 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
         assertEquals("The paths size did not match.", 1, paths.size());
 
         // test the getDisjointPaths() method using a weight.
-        LinkWeight weight = edge -> 1.0;
+        LinkWeigher weight = new LinkWeigherAdapter(1.0);
         Set<DisjointPath> paths1 = topologyService.getDisjointPaths(topology, srcVirtualDevice.id(),
                                                                     dstVirtualDevice.id(), weight);
         assertNotNull("The paths should not be null.", paths1);

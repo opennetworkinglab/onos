@@ -28,7 +28,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultGraphDescription;
 import org.onosproject.net.topology.GraphDescription;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
+import org.onosproject.net.topology.LinkWeigherAdapter;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyEvent;
@@ -174,7 +175,7 @@ public class TopologyManagerTest {
     public void onDemandPath() {
         submitTopologyGraph();
         Topology topology = service.currentTopology();
-        LinkWeight weight = edge -> 3.3;
+        LinkWeigher weight = new LinkWeigherAdapter(3.3);
 
         Set<Path> paths = service.getPaths(topology, did("a"), did("c"), weight);
         assertEquals("wrong path count", 2, paths.size());

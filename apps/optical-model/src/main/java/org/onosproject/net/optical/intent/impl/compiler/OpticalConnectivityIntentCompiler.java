@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -51,8 +53,7 @@ import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
-import org.onosproject.net.topology.AdapterLinkWeigher;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
@@ -337,34 +338,44 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // Route in WDM topology
         Topology topology = topologyService.currentTopology();
         //TODO: refactor with LinkWeigher class Implementation
-        LinkWeight weight = new LinkWeight() {
+        LinkWeigher weight = new LinkWeigher() {
 
             @Override
-            public double weight(TopologyEdge edge) {
+            public Weight getInitialWeight() {
+                return ScalarWeight.toWeight(0.0);
+            }
+
+            @Override
+            public Weight getNonViableWeight() {
+                return ScalarWeight.NON_VIABLE_WEIGHT;
+            }
+
+            @Override
+            public Weight weight(TopologyEdge edge) {
                 // Disregard inactive or non-optical links
                 if (edge.link().state() == Link.State.INACTIVE) {
-                    return -1;
+                    return ScalarWeight.toWeight(-1);
                 }
                 if (edge.link().type() != Link.Type.OPTICAL) {
-                    return -1;
+                    return ScalarWeight.toWeight(-1);
                 }
                 // Adhere to static port mappings
                 DeviceId srcDeviceId = edge.link().src().deviceId();
                 if (srcDeviceId.equals(intent.getSrc().deviceId())) {
                     ConnectPoint srcStaticPort = staticPort(intent.getSrc());
                     if (srcStaticPort != null) {
-                        return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
+                        return ScalarWeight.toWeight(srcStaticPort.equals(edge.link().src()) ? 1 : -1);
                     }
                 }
                 DeviceId dstDeviceId = edge.link().dst().deviceId();
                 if (dstDeviceId.equals(intent.getDst().deviceId())) {
                     ConnectPoint dstStaticPort = staticPort(intent.getDst());
                     if (dstStaticPort != null) {
-                        return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
+                        return ScalarWeight.toWeight(dstStaticPort.equals(edge.link().dst()) ? 1 : -1);
                     }
                 }
 
-                return 1;
+                return ScalarWeight.toWeight(1);
             }
         };
 
@@ -393,7 +404,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Stream<Path> paths = topologyService.getKShortestPaths(topology,
                 start.deviceId(),
                 end.deviceId(),
-                AdapterLinkWeigher.adapt(weight))
+                weight)
                 .filter(p -> p.links().get(0).src().port().equals(start.port()) &&
                         p.links().get(p.links().size() - 1).dst().port().equals(end.port()));
         if (log.isDebugEnabled()) {

@@ -48,21 +48,6 @@ public interface PathService {
      * destination network elements.  The path is computed using the supplied
      * edge-weight function.
      *
-     * @param src    source element
-     * @param dst    destination element
-     * @param weight edge-weight entity
-     * @return set of all shortest paths between the two element
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight);
-
-    /**
-     * Returns the set of all shortest paths between the specified source and
-     * destination network elements.  The path is computed using the supplied
-     * edge-weight function.
-     *
      * @param src     source element
      * @param dst     destination element
      * @param weigher edge-weight entity
@@ -113,22 +98,6 @@ public interface PathService {
      * specified source and destination elements. The path is computed using
      * the supplied edge-weight function.
      *
-     * @param src    source device
-     * @param dst    destination device
-     * @param weight edge-weight entity
-     * @return set of all shortest paths between the two devices
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
-                                       LinkWeight weight);
-
-    /**
-     * Returns the set of all disjoint shortest path pairs between the
-     * specified source and destination elements. The path is computed using
-     * the supplied edge-weight function.
-     *
      * @param src     source device
      * @param dst     destination device
      * @param weigher edge-weight entity
@@ -149,25 +118,6 @@ public interface PathService {
      * @return set of all shortest paths between the two devices
      */
     Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
-                                       Map<Link, Object> riskProfile);
-
-    /**
-     * Returns the set of all disjoint shortest path pairs between the
-     * specified source and destination elements and taking into consideration
-     * the provided risk profile. The path is computed using the supplied
-     * edge-weight function.
-     *
-     * @param src         source device
-     * @param dst         destination device
-     * @param weight      edge-weight entity
-     * @param riskProfile map of edges to risk profiles
-     * @return set of all shortest paths between the two devices
-     *
-     * @deprecated in Junco (1.9.0), use version with LinkWeigher instead
-     */
-    @Deprecated
-    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
-                                       LinkWeight weight,
                                        Map<Link, Object> riskProfile);
 
     /**

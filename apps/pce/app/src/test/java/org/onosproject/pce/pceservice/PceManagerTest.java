@@ -56,7 +56,7 @@ import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
@@ -92,7 +92,6 @@ import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
 import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
@@ -1476,7 +1475,7 @@ public class PceManagerTest {
         }
 
         @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeigher weight) {
             DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
             DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
             Set<TopologyVertex> vertices = graph.getVertexes();
@@ -1486,7 +1485,7 @@ public class PceManagerTest {
             }
 
             GraphPathSearch.Result<TopologyVertex, TopologyEdge> result = PathComputationTest.graphSearch()
-                    .search(graph, srcV, dstV, adapt(weight), ALL_PATHS);
+                    .search(graph, srcV, dstV, weight, ALL_PATHS);
             ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
             for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
                 builder.add(PathComputationTest.networkPath(path));
@@ -1521,7 +1520,7 @@ public class PceManagerTest {
     private class MockPathService extends PathServiceAdapter {
         Set<Path> computedPaths;
         @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weight) {
             // If either edge is null, bail with no paths.
             if (src == null || dst == null) {
                 return ImmutableSet.of();

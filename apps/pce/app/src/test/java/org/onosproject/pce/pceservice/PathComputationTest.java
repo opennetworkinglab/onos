@@ -29,6 +29,8 @@ import org.onlab.graph.AdjacencyListsGraph;
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.Graph;
 import org.onlab.graph.GraphPathSearch;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.AnnotationKeys;
@@ -53,7 +55,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
-import org.onosproject.net.topology.LinkWeight;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
@@ -82,7 +84,6 @@ import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
 import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
 import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
 
@@ -168,7 +169,7 @@ public class PathComputationTest {
      * @param constraints path constraints
      * @return edge-weight function
      */
-    private LinkWeight weight(List<Constraint> constraints) {
+    private LinkWeigher weight(List<Constraint> constraints) {
         return new MockTeConstraintBasedLinkWeight(constraints);
     }
 
@@ -180,7 +181,7 @@ public class PathComputationTest {
                    new DefaultTopologyEdge(D3, D4, link4)));
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                graphSearch().search(graph, D1, D4, adapt(weight(constraints)), ALL_PATHS);
+                graphSearch().search(graph, D1, D4, weight(constraints), ALL_PATHS);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));
@@ -211,7 +212,7 @@ public class PathComputationTest {
         }
     }
 
-    private class MockTeConstraintBasedLinkWeight implements LinkWeight {
+    private class MockTeConstraintBasedLinkWeight implements LinkWeigher {
 
         private final List<Constraint> constraints;
 
@@ -230,10 +231,20 @@ public class PathComputationTest {
         }
 
         @Override
-        public double weight(TopologyEdge edge) {
+        public Weight getInitialWeight() {
+            return ScalarWeight.toWeight(0.0);
+        }
+
+        @Override
+        public Weight getNonViableWeight() {
+            return ScalarWeight.NON_VIABLE_WEIGHT;
+        }
+
+        @Override
+        public Weight weight(TopologyEdge edge) {
             if (!constraints.iterator().hasNext()) {
                 //Takes default cost/hopcount as 1 if no constraints specified
-                return 1.0;
+                return ScalarWeight.toWeight(1.0);
             }
 
             Iterator<Constraint> it = constraints.iterator();
@@ -259,7 +270,7 @@ public class PathComputationTest {
                     cost = constraint.cost(edge.link(), null);
                 }
             }
-            return cost;
+            return ScalarWeight.toWeight(cost);
         }
     }
 
@@ -1274,7 +1285,7 @@ public class PathComputationTest {
                    new DefaultTopologyEdge(D4, D5, link5)));
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                graphSearch().search(graph, D1, D5, adapt(weight(constraints)), ALL_PATHS);
+                graphSearch().search(graph, D1, D5, weight(constraints), ALL_PATHS);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));

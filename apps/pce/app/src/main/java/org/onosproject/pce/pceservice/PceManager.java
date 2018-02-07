@@ -18,6 +18,7 @@ package org.onosproject.pce.pceservice;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.net.DisjointPath;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,6 +69,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
@@ -75,7 +77,6 @@ import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.pce.pceservice.constraint.SharedBandwidthConstraint;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyEvent;
@@ -225,7 +226,7 @@ public class PceManager implements PceService {
      * @param constraints path constraints
      * @return edge-weight function
      */
-    private LinkWeight weight(List<Constraint> constraints) {
+    private LinkWeigher weight(List<Constraint> constraints) {
         return new TeConstraintBasedLinkWeight(constraints);
     }
 
@@ -957,7 +958,7 @@ public class PceManager implements PceService {
         return value;
     }
 
-    protected class TeConstraintBasedLinkWeight implements LinkWeight {
+    protected class TeConstraintBasedLinkWeight implements LinkWeigher {
 
         private final List<Constraint> constraints;
 
@@ -976,10 +977,20 @@ public class PceManager implements PceService {
         }
 
         @Override
-        public double weight(TopologyEdge edge) {
+        public Weight getInitialWeight() {
+            return ScalarWeight.toWeight(0.0);
+        }
+
+        @Override
+        public Weight getNonViableWeight() {
+            return ScalarWeight.toWeight(0.0);
+        }
+
+        @Override
+        public Weight weight(TopologyEdge edge) {
             if (!constraints.iterator().hasNext()) {
                 //Takes default cost/hopcount as 1 if no constraints specified
-                return 1.0;
+                return ScalarWeight.toWeight(1.0);
             }
 
             Iterator<Constraint> it = constraints.iterator();
@@ -1003,7 +1014,7 @@ public class PceManager implements PceService {
                     cost = constraint.cost(edge.link(), null);
                 }
             }
-            return cost;
+            return ScalarWeight.toWeight(cost);
         }
     }
 

@@ -16,6 +16,8 @@
 
 package org.onosproject.net.topology;
 
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onlab.util.GeoLocation;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
@@ -29,7 +31,7 @@ import static java.lang.Double.MAX_VALUE;
  * Link weight for measuring link cost using the geo distance between link
  * vertices as determined by the element longitude/latitude annotation.
  */
-public class GeoDistanceLinkWeight implements LinkWeight {
+public class GeoDistanceLinkWeight implements LinkWeigher {
 
     private static final double MAX_KM = 40_075 / 2.0;
 
@@ -45,10 +47,20 @@ public class GeoDistanceLinkWeight implements LinkWeight {
     }
 
     @Override
-    public double weight(TopologyEdge edge) {
+    public Weight getInitialWeight() {
+        return ScalarWeight.toWeight(0.0);
+    }
+
+    @Override
+    public Weight getNonViableWeight() {
+        return ScalarWeight.NON_VIABLE_WEIGHT;
+    }
+
+    @Override
+    public Weight weight(TopologyEdge edge) {
         GeoLocation src = getLocation(edge.link().src().deviceId());
         GeoLocation dst = getLocation(edge.link().dst().deviceId());
-        return src != null && dst != null ? src.kilometersTo(dst) : MAX_KM;
+        return ScalarWeight.toWeight(src != null && dst != null ? src.kilometersTo(dst) : MAX_KM);
     }
 
     private GeoLocation getLocation(DeviceId deviceId) {
