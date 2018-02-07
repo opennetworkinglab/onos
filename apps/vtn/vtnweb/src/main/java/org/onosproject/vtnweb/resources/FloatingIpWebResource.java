@@ -170,8 +170,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
         }
     }
 
-    private Collection<FloatingIp> createOrUpdateByInputStream(JsonNode subnode)
-            throws Exception {
+    private Collection<FloatingIp> createOrUpdateByInputStream(JsonNode subnode) {
         checkNotNull(subnode, JSON_NOT_NULL);
         Collection<FloatingIp> floatingIps = null;
         JsonNode floatingIpNodes = subnode.get("floatingips");

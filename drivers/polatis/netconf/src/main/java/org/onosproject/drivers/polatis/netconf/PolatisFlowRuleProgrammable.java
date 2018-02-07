@@ -143,7 +143,7 @@ public class PolatisFlowRuleProgrammable
     private String parseKeyPairCompat() {
         String rev = opticalRevision(handler());
         if (rev == null) {
-            throw new RuntimeException(new NetconfException("Failed to obtain the revision."));
+            throw new IllegalStateException(new NetconfException("Failed to obtain the revision."));
         }
         String keyPairCompat;
         try {
@@ -156,7 +156,7 @@ public class PolatisFlowRuleProgrammable
                 keyPairCompat = KEY_PAIR;
             }
         } catch (ParseException e) {
-            throw new RuntimeException(new NetconfException(String.format("Incorrect date format: %s", rev)));
+            throw new IllegalArgumentException(new NetconfException(String.format("Incorrect date format: %s", rev)));
         }
         return keyPairCompat;
     }

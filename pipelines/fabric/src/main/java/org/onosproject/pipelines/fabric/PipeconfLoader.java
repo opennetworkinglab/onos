@@ -93,7 +93,7 @@ public class PipeconfLoader {
         try {
             return P4InfoParser.parse(p4InfoUrl);
         } catch (P4InfoParserException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }

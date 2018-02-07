@@ -26,8 +26,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 public final class OFMessageEncoder extends MessageToByteEncoder<Iterable<OFMessage>> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Iterable<OFMessage> msgList, ByteBuf out)
-            throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Iterable<OFMessage> msgList, ByteBuf out) {
         if (!ctx.channel().isActive()) {
             return;
         }

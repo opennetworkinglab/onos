@@ -92,7 +92,7 @@ public class NetworkConfigCommand extends AbstractShellCommand {
         try {
             print("%s", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error writing JSON to string", e);
+            throw new IllegalStateException("Error writing JSON to string", e);
         }
     }
 

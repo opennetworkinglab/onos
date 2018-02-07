@@ -40,9 +40,9 @@ public class IsisMessageReader {
      *
      * @param channelBuffer buffer
      * @return ISIS message
-     * @throws Exception exception
+     * @throws IsisParseException exception
      */
-    public IsisMessage readFromBuffer(ChannelBuffer channelBuffer) throws Exception {
+    public IsisMessage readFromBuffer(ChannelBuffer channelBuffer) throws IsisParseException {
 
         int dataLength = channelBuffer.readableBytes();
         log.debug("IsisMessageReader::readFromBuffer Data length {}", dataLength);
@@ -103,7 +103,6 @@ public class IsisMessageReader {
      *
      * @param channelBuffer ISIS header
      * @return ISIS header
-     * @throws Exception
      */
     private IsisHeader getIsisHeader(ChannelBuffer channelBuffer) {
 

@@ -94,9 +94,8 @@ public class Controller {
      * Updates the processes configuration.
      *
      * @param jsonNode json node instance
-     * @throws Exception might throws parse exception
      */
-    public void updateConfig(JsonNode jsonNode) throws Exception {
+    public void updateConfig(JsonNode jsonNode) {
         log.debug("Controller::UpdateConfig called");
         configPacket = new byte[IsisConstants.CONFIG_LENGTH];
         byte numberOfInterface = 0; // number of interfaces to configure

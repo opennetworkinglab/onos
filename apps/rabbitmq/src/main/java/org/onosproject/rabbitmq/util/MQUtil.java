@@ -225,7 +225,7 @@ public final class MQUtil {
             properties.load(is);
         } catch (Exception e) {
             log.error(ExceptionUtils.getFullStackTrace(e));
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
         return properties;
     }
