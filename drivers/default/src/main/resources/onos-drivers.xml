@@ -117,15 +117,15 @@
 
     <!-- Driver for OFDPA Premium version -->
     <driver name="as7712-32x-premium" extends="ofdpa3"
-            manufacturer="Broadcom Ltd\." hwVersion="as7712-32x" swVersion="OF-DPA Premium.*">
+            manufacturer="^Broadcom Ltd\.$" hwVersion=".*[Aa][Ss]7712-32[Xx].*" swVersion="^OF-DPA Premium.*">
     </driver>
 
     <driver name="as5912-54x-premium" extends="qmx-ofdpa3"
-            manufacturer="Broadcom Ltd\." hwVersion="as5912-54x" swVersion="OF-DPA Premium.*">
+            manufacturer="^Broadcom Ltd\.$" hwVersion=".*[Aa][Ss]5912-54[Xx].*" swVersion="^OF-DPA Premium.*">
     </driver>
 
     <driver name="as5916-54x-premium" extends="qmx-ofdpa3"
-            manufacturer="Broadcom Ltd\." hwVersion="as5916-54x" swVersion="OF-DPA Premium.*">
+            manufacturer="^Broadcom Ltd\.$" hwVersion=".*[Aa][Ss]5916-54[Xx].*" swVersion="^OF-DPA Premium.*">
     </driver>
 
     <!-- OFDPA drivers from vendors -->
