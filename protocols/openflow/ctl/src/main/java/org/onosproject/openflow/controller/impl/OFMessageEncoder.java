@@ -47,7 +47,7 @@ public final class OFMessageEncoder extends ChannelOutboundHandlerAdapter {
 
     protected final void encode(ChannelHandlerContext ctx,
                           Iterable<OFMessage> msgs,
-                          ByteBuf out) throws Exception {
+                          ByteBuf out) {
 
         msgs.forEach(msg -> msg.writeTo(out));
     }
