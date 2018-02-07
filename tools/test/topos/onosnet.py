@@ -49,6 +49,7 @@ class ONOSMininet( Mininet ):
         Mininet.start( self )
         if self.gratArp:
             self.waitConnected( timeout=5 )
+            sleep(2)
             info ( '*** Sending a gratuitious ARP from each host\n' )
             self.gratuitousArp()
 
