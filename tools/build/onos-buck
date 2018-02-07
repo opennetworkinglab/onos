@@ -47,5 +47,10 @@ if [ "${ONOS_NO_BUCKD:-1}" == "1" ]; then
   export NO_BUCKD=1
 fi
 
+# HACK: Clean-up frequent problem-causers from buck-out
+rm -fr \
+    $ONOS_ROOT/buck-out/bin/lib/.netty \
+    $ONOS_ROOT/buck-out/bin/lib/.KRYO
+
 # Finally, run the Buck command...
 $BUCK "$@"
