@@ -30,6 +30,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
@@ -89,6 +90,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class TroubleshootManager implements TroubleshootService {
 
     private static final Logger log = getLogger(TroubleshootManager.class);
+
+    static final String PACKET_TO_CONTROLLER = "Packet goes to the controller";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
@@ -177,7 +180,7 @@ public class TroubleshootManager implements TroubleshootService {
 
                 //Getting the master when the packet gets sent as packet in
                 NodeId master = mastershipService.getMasterFor(cp.deviceId());
-                trace.addResultMessage("Packet goes to the controller " + master.id());
+                trace.addResultMessage(PACKET_TO_CONTROLLER + " " + master.id());
                 computePath(completePath, trace, outputPath.getOutput());
                 handleVlanToController(outputPath, trace);
 
@@ -226,16 +229,22 @@ public class TroubleshootManager implements TroubleshootService {
                 }
 
             } else if (deviceService.getPort(cp).isEnabled()) {
-                if (hostsList.isEmpty()) {
-                    trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
-                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                            cp + " with no hosts connected ");
-                } else {
-                    trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
-                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                            cp + " with hosts " + hostsList);
+                EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) trace.getInitialPacket()
+                        .getCriterion(Criterion.Type.ETH_TYPE);
+                //We treat as correct output only if it's not LLDP or BDDP
+                if (!(ethTypeCriterion.ethType().equals(EtherType.LLDP.ethType())
+                        || !ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
+                    if (hostsList.isEmpty()) {
+                        trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                                .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                cp + " with no hosts connected ");
+                    } else {
+                        trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                                .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                cp + " with hosts " + hostsList);
+                    }
+                    computePath(completePath, trace, outputPath.getOutput());
                 }
-                computePath(completePath, trace, outputPath.getOutput());
 
             } else {
                 //No links means that the packet gets dropped.
@@ -356,6 +365,17 @@ public class TroubleshootManager implements TroubleshootService {
         if (!deviceService.isAvailable(in.deviceId())) {
             trace.addResultMessage("Device is offline " + in.deviceId());
             return trace;
+        }
+
+        //handle when the input is the controller
+        //NOTE, we are using the input port as a convenience to carry the CONTROLLER port number even if
+        // a packet in from the controller will not actually traverse the pipeline and have no such notion
+        // as the input port.
+        if (in.port().equals(PortNumber.CONTROLLER)) {
+            StaticPacketTrace outputTrace = inputFromController(trace, in);
+            if (outputTrace != null) {
+                return trace;
+            }
         }
 
         List<FlowEntry> flows = new ArrayList<>();
@@ -530,6 +550,37 @@ public class TroubleshootManager implements TroubleshootService {
 
         log.debug("Output Packet {}", packet);
         return trace;
+    }
+
+    /**
+     * Handles the specific case where the Input is the controller.
+     * Note that the in port is used as a convenience to store the port of the controller even if the packet in
+     * from a controller should not have a physical input port. The in port from the Controller is used to make sure
+     * the flood to all active physical ports of the device.
+     *
+     * @param trace the trace
+     * @param in    the controller port
+     * @return the augmented trace.
+     */
+    private StaticPacketTrace inputFromController(StaticPacketTrace trace, ConnectPoint in) {
+        EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) trace.getInitialPacket()
+                .getCriterion(Criterion.Type.ETH_TYPE);
+        //If the packet is LLDP or BDDP we flood it on all active ports of the switch.
+        if (ethTypeCriterion != null && (ethTypeCriterion.ethType().equals(EtherType.LLDP.ethType())
+                || ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
+            //get the active ports
+            List<Port> enabledPorts = deviceService.getPorts(in.deviceId()).stream()
+                    .filter(Port::isEnabled)
+                    .collect(Collectors.toList());
+            //build an output from each one
+            enabledPorts.forEach(port -> {
+                GroupsInDevice output = new GroupsInDevice(new ConnectPoint(port.element().id(), port.number()),
+                        ImmutableList.of(), trace.getInitialPacket());
+                trace.addGroupOutputPath(in.deviceId(), output);
+            });
+            return trace;
+        }
+        return null;
     }
 
     private boolean needsSecondTable10Flow(FlowEntry flowEntry, boolean isOfdpaHardware) {
@@ -713,6 +764,8 @@ public class TroubleshootManager implements TroubleshootService {
                                        List<PortNumber> outputPorts, OutputInstruction outputInstruction,
                                        List<Group> groupsForDevice) {
         ConnectPoint output = new ConnectPoint(in.deviceId(), outputInstruction.port());
+
+        //if the output is the input same we drop, except if the output is the controller
         if (output.equals(in)) {
             trace.addResultMessage("Connect point out " + output + " is same as initial input " +
                     trace.getInitialConnectPoint());
