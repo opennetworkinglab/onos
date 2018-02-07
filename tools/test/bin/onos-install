@@ -77,7 +77,18 @@ ssh -tt $remote "
     [ -n $noupstart ] && sudo cp $ONOS_INSTALL_DIR/init/onos.conf /etc/init/onos.conf
     [ -n $noinitd ] && sudo cp $ONOS_INSTALL_DIR/init/onos.initd /etc/init.d/onos
     [ -n $nosysd ] && sudo cp $ONOS_INSTALL_DIR/init/onos.service /etc/systemd/system/onos.service
+
     echo 'export ONOS_OPTS=debug' > $ONOS_INSTALL_DIR/options
+
+    if [ ! -z "$ONOS_YOURKIT" ]; then
+        sudo apt-get install unzip
+        cd /tmp
+        wget -N https://www.yourkit.com/download/YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        unzip -o YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        rm YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
+        mv /tmp/YourKit-JavaProfiler-$(echo $ONOS_YOURKIT | sed 's/\(.*\)-.*/\1/')/bin/linux-x86-64/libyjpagent.so $ONOS_INSTALL_DIR/libyjpagent.so
+        echo -e 'export JAVA_OPTS="${JAVA_OPTS:--agentpath:$ONOS_INSTALL_DIR/libyjpagent.so}"' >> $ONOS_INSTALL_DIR/options
+    fi
 
     # Set up correct user to run onos-service
     echo 'export ONOS_USER=$ONOS_USER' >> $ONOS_INSTALL_DIR/options
