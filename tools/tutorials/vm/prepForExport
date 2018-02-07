@@ -1,0 +1,10 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Prepars the ONOS Tutorial VM for export; run from the VM.
+# -----------------------------------------------------------------------------
+sudo chattr +i ~/.config/xfce4/desktop/icons*
+destroyCluster
+sudo mn -c
+sudo dd if=/dev/zero of=zerofillfile bs=1M
+rm -f zerofillfile /tmp/*
+sudo shutdown now

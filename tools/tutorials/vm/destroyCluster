@@ -1,0 +1,15 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Destroys the ONOS cluster by stopping the 3 docker containers.
+# -----------------------------------------------------------------------------
+
+# Creates ONOS cluster using ONOS docker images
+ONOS_IMAGE=onosproject/onos:1.12.0
+SSH_KEY=$(cut -d\  -f2 ~/.ssh/id_rsa.pub)
+
+for i in {1..3}; do
+    echo "Destroying onos-$i..."
+    docker stop onos-$i
+done
+
+docker container prune --force
