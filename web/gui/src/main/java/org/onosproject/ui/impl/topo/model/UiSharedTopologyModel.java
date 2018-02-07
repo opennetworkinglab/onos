@@ -224,6 +224,14 @@ public final class UiSharedTopologyModel
     //  Methods for topo session (or CLI) to use to get information from us
 
     /**
+     * Reloads the cache's internal state.
+     */
+    public void reload() {
+        cache.clear();
+        cache.load();
+    }
+
+    /**
      * Refreshes the cache's internal state.
      */
     public void refresh() {

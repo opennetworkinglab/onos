@@ -45,4 +45,8 @@ public class UiExtensionServiceAdapter implements UiExtensionService {
     public LionBundle getNavLionBundle() {
         return null;
     }
+
+    @Override
+    public void refreshModel() {
+    }
 }

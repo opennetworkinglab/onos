@@ -23,6 +23,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
@@ -34,7 +35,9 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.region.RegionAdminService;
+import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiTopoLayoutService;
+
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -68,9 +71,11 @@ public class WipeOutCommand extends AbstractShellCommand {
         wipeOutGroups();
         wipeOutDevices();
         wipeOutLinks();
+        wipeOutNetworkConfig();
 
         wipeOutLayouts();
         wipeOutRegions();
+        wipeOutUiCache();
     }
 
     private void wipeOutIntents() {
@@ -95,14 +100,12 @@ public class WipeOutCommand extends AbstractShellCommand {
         intentService.addListener(listener);
         intentsToWithdrawn.forEach(intentService::withdraw);
         try {
-            // Wait 1.5 seconds for each Intent
-            completableFuture.get(intentsToWithdrawn.size() * 1500L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            print("Got interrupted exception while withdrawn Intents " + e.toString());
-        } catch (ExecutionException e) {
-            print("Got execution exception while withdrawn Intents " + e.toString());
-        } catch (TimeoutException e) {
-            print("Got timeout exception while withdrawn Intents " + e.toString());
+            if (!intentsToWithdrawn.isEmpty()) {
+                // Wait 1.5 seconds for each Intent
+                completableFuture.get(intentsToWithdrawn.size() * 1500L, TimeUnit.MILLISECONDS);
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            print("Encountered exception while withdrawing intents: " + e.toString());
         } finally {
             intentService.removeListener(listener);
         }
@@ -186,4 +189,15 @@ public class WipeOutCommand extends AbstractShellCommand {
         RegionAdminService service = get(RegionAdminService.class);
         service.getRegions().forEach(r -> service.removeRegion(r.id()));
     }
+
+    private void wipeOutNetworkConfig() {
+        print("Wiping network configs");
+        get(NetworkConfigService.class).removeConfig();
+    }
+
+    private void wipeOutUiCache() {
+        print("Wiping ui model cache");
+        get(UiExtensionService.class).refreshModel();
+    }
+
 }

@@ -59,4 +59,9 @@ public interface UiExtensionService {
      * @return the navigation localization bundle
      */
     LionBundle getNavLionBundle();
+
+    /**
+     * Refreshes the backing model.
+     */
+    void refreshModel();
 }

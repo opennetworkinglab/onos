@@ -61,6 +61,7 @@ import org.onosproject.ui.UiViewHidden;
 import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.Traffic2Overlay;
+import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.lion.LionUtils;
 import org.slf4j.Logger;
@@ -143,6 +144,9 @@ public class UiExtensionManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private UiSharedTopologyModel sharedModel;
 
     // User preferences
     private ConsistentMap<String, ObjectNode> prefsConsistentMap;
@@ -341,6 +345,11 @@ public class UiExtensionManager
     @Override
     public synchronized LionBundle getNavLionBundle() {
         return navLion;
+    }
+
+    @Override
+    public void refreshModel() {
+        sharedModel.reload();
     }
 
     @Override
