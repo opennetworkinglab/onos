@@ -539,6 +539,29 @@ final class T3TestObjects {
             .build();
     static final FlowEntry DEFERRED_CLEAR_FLOW_ENTRY = new DefaultFlowEntry(DEFERRED_CLEAR_FLOW);
 
+    //LLDP
+
+    static final DeviceId LLDP_FLOW_DEVICE = DeviceId.deviceId("LldpDevice");
+
+    private static final TrafficSelector LLDP_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.LLDP.ethType().toShort())
+            .build();
+
+    private static final TrafficTreatment LLDP_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.CONTROLLER).build();
+    private static final FlowRule LLDP_FLOW = DefaultFlowEntry.builder().forDevice(LLDP_FLOW_DEVICE)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(LLDP_FLOW_SELECTOR)
+            .withTreatment(LLDP_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry LLDP_FLOW_ENTRY = new DefaultFlowEntry(LLDP_FLOW);
+
+    static final ConnectPoint LLDP_FLOW_CP = ConnectPoint.deviceConnectPoint(LLDP_FLOW_DEVICE + "/" + 1);
+
     //helper elements
 
     static final String MASTER_1 = "Master1";
@@ -569,6 +592,11 @@ final class T3TestObjects {
             .matchInPort(PortNumber.portNumber(1))
             .matchIPDst(IpPrefix.valueOf("255.255.255.255/32"))
             .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+            .build();
+
+    static final TrafficSelector PACKET_LLDP = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.LLDP.ethType().toShort())
             .build();
 
     static final TrafficSelector PACKET_FAIL = DefaultTrafficSelector.builder()

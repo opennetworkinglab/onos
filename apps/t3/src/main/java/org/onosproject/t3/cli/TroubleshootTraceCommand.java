@@ -16,6 +16,7 @@
 
 package org.onosproject.t3.cli;
 
+import com.google.common.base.Preconditions;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
@@ -25,6 +26,8 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -53,6 +56,8 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     private static final String GROUP_BUCKET_FORMAT =
             "       id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
 
+    private static final String CONTROLLER = "CONTROLLER";
+
     @Option(name = "-v", aliases = "--verbose", description = "Outputs complete path")
     private boolean verbosity1 = false;
 
@@ -80,7 +85,7 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Option(name = "-dm", aliases = "--dstMac", description = "Destination MAC")
     String dstMac = null;
 
-    @Option(name = "-dtp", aliases = "dstTcpPort", description = "destination TCP Port")
+    @Option(name = "-dtp", aliases = "--dstTcpPort", description = "destination TCP Port")
     String dstTcpPort = null;
 
     @Option(name = "-vid", aliases = "--vlanId", description = "Vlan of incoming packet", valueToShowInHelp = "None")
@@ -104,7 +109,17 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
-        ConnectPoint cp = ConnectPoint.deviceConnectPoint(srcPort);
+        String[] cpInfo = srcPort.split("/");
+        Preconditions.checkArgument(cpInfo.length == 2, "wrong format of source port");
+        ConnectPoint cp;
+        //Uses input port as a convenience to carry the Controller port, proper flood behaviour is handled in the
+        // troubleshoot manager.
+        if (cpInfo[1].equalsIgnoreCase(CONTROLLER)) {
+            cp = new ConnectPoint(DeviceId.deviceId(cpInfo[0]), PortNumber.CONTROLLER);
+        } else {
+            cp = ConnectPoint.deviceConnectPoint(srcPort);
+        }
+
         EtherType type = EtherType.valueOf(ethType.toUpperCase());
 
         //Input Port must be specified
@@ -176,7 +191,6 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
 
         //Build the trace
         StaticPacketTrace trace = service.trace(packet, cp);
-
         //Print based on verbosity
         if (verbosity1) {
             printTrace(trace, false);
@@ -196,17 +210,27 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
         paths.forEach(path -> {
             print("Path %s", path);
             ConnectPoint previous = null;
-            for (ConnectPoint connectPoint : path) {
-                if (previous == null || !previous.deviceId().equals(connectPoint.deviceId())) {
-                    print("Device %s", connectPoint.deviceId());
-                    print("Input from %s", connectPoint);
-                    printFlows(trace, verbose, connectPoint);
-                } else {
-                    printGroups(trace, verbose, connectPoint);
-                    print("Output through %s", connectPoint);
-                    print("");
+            if (path.size() == 1) {
+                ConnectPoint connectPoint = path.get(0);
+                print("Device %s", connectPoint.deviceId());
+                print("Input from %s", connectPoint);
+                printFlows(trace, verbose, connectPoint);
+                printGroups(trace, verbose, connectPoint);
+                print("Output through %s", connectPoint);
+                print("");
+            } else {
+                for (ConnectPoint connectPoint : path) {
+                    if (previous == null || !previous.deviceId().equals(connectPoint.deviceId())) {
+                        print("Device %s", connectPoint.deviceId());
+                        print("Input from %s", connectPoint);
+                        printFlows(trace, verbose, connectPoint);
+                    } else {
+                        printGroups(trace, verbose, connectPoint);
+                        print("Output through %s", connectPoint);
+                        print("");
+                    }
+                    previous = connectPoint;
                 }
-                previous = connectPoint;
             }
             print("---------------------------------------------------------------\n");
         });

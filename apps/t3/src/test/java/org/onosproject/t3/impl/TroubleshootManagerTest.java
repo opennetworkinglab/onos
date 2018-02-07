@@ -62,6 +62,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.t3.impl.T3TestObjects.*;
+import static org.onosproject.t3.impl.TroubleshootManager.PACKET_TO_CONTROLLER;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -132,7 +133,7 @@ public class TroubleshootManagerTest {
         StaticPacketTrace traceSuccess = mngr.trace(PACKET_ARP, ARP_FLOW_CP);
         assertNotNull("Trace should not be null", traceSuccess);
         assertTrue("Trace should be successful",
-                traceSuccess.resultMessage().contains("Packet goes to the controller"));
+                traceSuccess.resultMessage().contains(PACKET_TO_CONTROLLER));
         assertTrue("Master should be Master1",
                 traceSuccess.resultMessage().contains(MASTER_1));
         ConnectPoint connectPoint = traceSuccess.getGroupOuputs(ARP_FLOW_DEVICE).get(0).getOutput();
@@ -303,6 +304,22 @@ public class TroubleshootManagerTest {
     }
 
 
+    /**
+     * Test LLDP output to controller.
+     */
+    @Test
+    public void lldpToController() {
+        StaticPacketTrace traceSuccess = mngr.trace(PACKET_LLDP, LLDP_FLOW_CP);
+        assertNotNull("Trace should not be null", traceSuccess);
+        assertTrue("Trace should be successful",
+                traceSuccess.resultMessage().contains("Packet goes to the controller"));
+        assertTrue("Master should be Master1",
+                traceSuccess.resultMessage().contains(MASTER_1));
+        ConnectPoint connectPoint = traceSuccess.getGroupOuputs(LLDP_FLOW_DEVICE).get(0).getOutput();
+        assertEquals("Packet Should go to CONTROLLER", PortNumber.CONTROLLER, connectPoint.port());
+        log.info("trace {}", traceSuccess.resultMessage());
+    }
+
     private StaticPacketTrace testSuccess(TrafficSelector packet, ConnectPoint in, DeviceId deviceId, ConnectPoint out,
                                           int paths, int outputs) {
         StaticPacketTrace traceSuccess = mngr.trace(packet, in);
@@ -365,6 +382,8 @@ public class TroubleshootManagerTest {
             } else if (deviceId.equals(HARDWARE_DEVICE_10)) {
                 return ImmutableList.of(HARDWARE_10_FLOW_ENTRY, HARDWARE_10_SECOND_FLOW_ENTRY,
                         HARDWARE_10_OUTPUT_FLOW_ENTRY);
+            } else if (deviceId.equals(LLDP_FLOW_DEVICE)) {
+                return ImmutableList.of(LLDP_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
