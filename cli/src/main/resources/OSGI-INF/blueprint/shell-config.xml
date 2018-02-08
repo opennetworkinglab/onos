@@ -180,13 +180,6 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.DevicePortGetterCommand"/>
-            <completers>
-                <ref component-id="deviceIdCompleter"/>
-                <null/>
-            </completers>
-        </command>
-        <command>
             <action class="org.onosproject.cli.net.DeviceRemoveCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>

@@ -44,7 +44,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -591,11 +590,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private void discoverPorts(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
         //TODO remove when PortDiscovery is removed from master
-        if (device.is(PortDiscovery.class)) {
-            PortDiscovery portConfig = device.as(PortDiscovery.class);
-            providerService.updatePorts(deviceId,
-                                        portConfig.getPorts());
-        } else if (device.is(DeviceDescriptionDiscovery.class)) {
+        if (device.is(DeviceDescriptionDiscovery.class)) {
             DeviceDescriptionDiscovery deviceDescriptionDiscovery =
                     device.as(DeviceDescriptionDiscovery.class);
             providerService.updatePorts(deviceId,

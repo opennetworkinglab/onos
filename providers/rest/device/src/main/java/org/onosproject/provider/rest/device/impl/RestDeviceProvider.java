@@ -38,7 +38,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.DevicesDiscovery;
 import org.onosproject.net.behaviour.PortAdmin;
-import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -422,15 +421,9 @@ public class RestDeviceProvider extends AbstractProvider
 
     private void discoverPorts(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
-        //TODO remove when PortDiscovery is removed from master
-        if (device.is(PortDiscovery.class)) {
-            PortDiscovery portConfig = device.as(PortDiscovery.class);
-            providerService.updatePorts(deviceId, portConfig.getPorts());
-        } else {
-            DeviceDescriptionDiscovery deviceDescriptionDiscovery =
-                    device.as(DeviceDescriptionDiscovery.class);
-            providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
-        }
+        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                device.as(DeviceDescriptionDiscovery.class);
+        providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
     }
 
     private boolean testDeviceConnection(RestSBDevice dev) {
