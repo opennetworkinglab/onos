@@ -16,7 +16,9 @@
 
 package org.onosproject.t3.api;
 
+import org.onlab.packet.EthType;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
 
 /**
@@ -25,13 +27,22 @@ import org.onosproject.net.flow.TrafficSelector;
  */
 public interface TroubleshootService {
 
+    /**
+     * Requests a static trace be performed between the two hosts in the network, given a type of traffic.
+     *
+     * @param sourceHost      source host
+     * @param destinationHost destination host
+     * @param type            the etherType of the traffic we want to trace.
+     * @return a trace result
+     */
+    StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EthType.EtherType type);
 
     /**
      * Requests a static trace be performed for the given traffic selector
      * starting at the given connect point.
      *
      * @param packet description of packet
-     * @param in point at which packet starts
+     * @param in     point at which packet starts
      * @return a trace result
      */
     StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in);

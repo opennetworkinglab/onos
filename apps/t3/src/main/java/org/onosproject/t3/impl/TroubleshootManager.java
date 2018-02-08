@@ -23,15 +23,20 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigException;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -55,7 +60,10 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.t3.api.GroupsInDevice;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
@@ -113,6 +121,158 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
+    @Override
+    public StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
+        Host source = hostService.getHost(sourceHost);
+        Host destination = hostService.getHost(destinationHost);
+
+        //Temporary trace to fail in case we don't have neough information or what is provided is incoherent
+        StaticPacketTrace failTrace = new StaticPacketTrace(null, null);
+
+        if (source == null) {
+            failTrace.addResultMessage("Source Host " + sourceHost + " does not exist");
+            return failTrace;
+        }
+
+        if (destination == null) {
+            failTrace.addResultMessage("Destination Host " + destinationHost + " does not exist");
+            return failTrace;
+        }
+
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
+                .matchInPort(source.location().port())
+                .matchEthType(etherType.ethType().toShort())
+                .matchEthDst(source.mac())
+                .matchVlanId(source.vlan());
+
+
+
+        try {
+            //if the location deviceId is the same, the two hosts are under same subnet and vlan on the interface
+            // we are under same leaf so it's L2 Unicast.
+            if (areBridged(source, destination)) {
+                selectorBuilder.matchEthDst(destination.mac());
+                return trace(selectorBuilder.build(), source.location());
+            }
+
+            //handle the IPs for src and dst in case of L3
+            if (etherType.equals(EtherType.IPV4) || etherType.equals(EtherType.IPV6)) {
+
+                //Match on the source IP
+                if (!matchIP(source, failTrace, selectorBuilder, etherType, true)) {
+                    return failTrace;
+                }
+
+                //Match on destination IP
+                if (!matchIP(destination, failTrace, selectorBuilder, etherType, false)) {
+                    return failTrace;
+                }
+
+            } else {
+                failTrace.addResultMessage("Host based trace supports only IPv4 or IPv6 as EtherType, " +
+                        "please use packet based");
+                return failTrace;
+            }
+
+            //l3 unicast, we get the dst mac of the leaf the source is connected to from netcfg
+            SegmentRoutingDeviceConfig segmentRoutingConfig = networkConfigService.getConfig(source.location()
+                    .deviceId(), SegmentRoutingDeviceConfig.class);
+            if (segmentRoutingConfig != null) {
+                selectorBuilder.matchEthDst(segmentRoutingConfig.routerMac());
+            } else {
+                failTrace.addResultMessage("Can't get " + source.location().deviceId() +
+                        " router MAC from segment routing config can't perform L3 tracing.");
+            }
+
+            return trace(selectorBuilder.build(), source.location());
+
+        } catch (ConfigException e) {
+            failTrace.addResultMessage("Can't get config " + e.getMessage());
+            return failTrace;
+        }
+    }
+
+    /**
+     * Matches src and dst IPs based on host information.
+     *
+     * @param host            the host
+     * @param failTrace       the trace to use in case of failure
+     * @param selectorBuilder the packet we are building to trace
+     * @param etherType       the traffic type
+     * @param src             is this src host or dst host
+     * @return true if properly matched
+     */
+    private boolean matchIP(Host host, StaticPacketTrace failTrace, Builder selectorBuilder,
+                            EtherType etherType, boolean src) {
+        List<IpAddress> ips = host.ipAddresses().stream().filter(ipAddress -> {
+            if (etherType.equals(EtherType.IPV4)) {
+                return ipAddress.isIp4() && !ipAddress.isLinkLocal();
+            } else if (etherType.equals(EtherType.IPV6)) {
+                return ipAddress.isIp6() && !ipAddress.isLinkLocal();
+            }
+            return false;
+        }).collect(Collectors.toList());
+
+        if (ips.size() > 0) {
+            if (src) {
+                selectorBuilder.matchIPSrc(ips.get(0).toIpPrefix());
+            } else {
+                selectorBuilder.matchIPDst(ips.get(0).toIpPrefix());
+            }
+        } else {
+            failTrace.addResultMessage("Host " + host + " has no " + etherType + " address");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Checks that two hosts are bridged (L2Unicast).
+     *
+     * @param source      the source host
+     * @param destination the destination host
+     * @return true if bridged.
+     * @throws ConfigException if config can't be properly retrieved
+     */
+    private boolean areBridged(Host source, Host destination) throws ConfigException {
+
+        //If the location is not the same we don't even check vlan or subnets
+        if (!source.location().deviceId().equals(destination.location().deviceId())) {
+            return false;
+        }
+
+        InterfaceConfig interfaceCfgH1 = networkConfigService.getConfig(source.location(), InterfaceConfig.class);
+        InterfaceConfig interfaceCfgH2 = networkConfigService.getConfig(destination.location(), InterfaceConfig.class);
+        if (interfaceCfgH1 != null && interfaceCfgH2 != null) {
+
+            //following can be optimized but for clarity is left as is
+            Interface intfH1 = interfaceCfgH1.getInterfaces().stream().findFirst().get();
+            Interface intfH2 = interfaceCfgH2.getInterfaces().stream().findFirst().get();
+
+            if (!intfH1.vlanNative().equals(intfH2.vlanNative())) {
+                return false;
+            }
+
+            if (!intfH1.vlanTagged().equals(intfH2.vlanTagged())) {
+                return false;
+            }
+
+            if (!intfH1.vlanUntagged().equals(intfH2.vlanUntagged())) {
+                return false;
+            }
+
+            List<InterfaceIpAddress> intersection = new ArrayList<>(intfH1.ipAddressesList());
+            intersection.retainAll(intfH2.ipAddressesList());
+            if (intersection.size() == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in) {
