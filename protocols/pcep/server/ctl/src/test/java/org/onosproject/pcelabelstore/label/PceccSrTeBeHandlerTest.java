@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
@@ -224,7 +225,7 @@ public class PceccSrTeBeHandlerTest {
         linkList.add(link4);
 
         // Path
-        path1 = new DefaultPath(providerId, linkList, 10);
+        path1 = new DefaultPath(providerId, linkList, ScalarWeight.toWeight(10));
     }
 
     @After

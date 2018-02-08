@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.compiler;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
@@ -172,7 +173,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .selector(selector)
                 .treatment(treatment)
                 .priority(PRIORITY)
-                .path(new DefaultPath(pid, links, hops))
+                .path(new DefaultPath(pid, links, ScalarWeight.toWeight(hops)))
                 .build();
 
         //Intent with VLAN encap without egress VLAN
@@ -182,7 +183,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, links, hops))
+                .path(new DefaultPath(pid, links, ScalarWeight.toWeight(hops)))
                 .build();
 
         //Intent with VLAN encap with ingress and egress VLAN
@@ -192,7 +193,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, links, hops))
+                .path(new DefaultPath(pid, links, ScalarWeight.toWeight(hops)))
                 .build();
 
         constraintMplsIntent = PathIntent.builder()
@@ -201,7 +202,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.MPLS)))
-                .path(new DefaultPath(pid, links, hops))
+                .path(new DefaultPath(pid, links, ScalarWeight.toWeight(hops)))
                 .build();
 
         edgeIntentNoVlan = PathIntent.builder()
@@ -210,7 +211,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .path(new DefaultPath(pid, edgeNet, ScalarWeight.toWeight(edgeHops)))
                 .build();
 
         edgeIntentIngressVlan = PathIntent.builder()
@@ -219,7 +220,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .path(new DefaultPath(pid, edgeNet, ScalarWeight.toWeight(edgeHops)))
                 .build();
 
         edgeIntentEgressVlan = PathIntent.builder()
@@ -228,7 +229,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .path(new DefaultPath(pid, edgeNet, ScalarWeight.toWeight(edgeHops)))
                 .build();
 
         edgeIntentVlan = PathIntent.builder()
@@ -237,7 +238,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, edgeNet, edgeHops))
+                .path(new DefaultPath(pid, edgeNet, ScalarWeight.toWeight(edgeHops)))
                 .build();
 
         singleHopIndirectIntentNoVlan = PathIntent.builder()
@@ -246,7 +247,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .path(new DefaultPath(pid, singleHopIndirect, ScalarWeight.toWeight(singleHopIndirectHops)))
                 .build();
 
         singleHopIndirectIntentIngressVlan = PathIntent.builder()
@@ -255,7 +256,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .path(new DefaultPath(pid, singleHopIndirect, ScalarWeight.toWeight(singleHopIndirectHops)))
                 .build();
 
         singleHopIndirectIntentEgressVlan = PathIntent.builder()
@@ -264,7 +265,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .path(new DefaultPath(pid, singleHopIndirect, ScalarWeight.toWeight(singleHopIndirectHops)))
                 .build();
 
         singleHopIndirectIntentVlan = PathIntent.builder()
@@ -273,7 +274,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopIndirect, singleHopIndirectHops))
+                .path(new DefaultPath(pid, singleHopIndirect, ScalarWeight.toWeight(singleHopIndirectHops)))
                 .build();
 
         singleHopDirectIntentNoVlan = PathIntent.builder()
@@ -282,7 +283,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .path(new DefaultPath(pid, singleHopDirect, ScalarWeight.toWeight(singleHopDirectHops)))
                 .build();
 
         singleHopDirectIntentIngressVlan = PathIntent.builder()
@@ -291,7 +292,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(treatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .path(new DefaultPath(pid, singleHopDirect, ScalarWeight.toWeight(singleHopDirectHops)))
                 .build();
 
         singleHopDirectIntentEgressVlan = PathIntent.builder()
@@ -300,7 +301,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .path(new DefaultPath(pid, singleHopDirect, ScalarWeight.toWeight(singleHopDirectHops)))
                 .build();
 
         singleHopDirectIntentVlan = PathIntent.builder()
@@ -309,7 +310,7 @@ public class PathIntentCompilerTest extends AbstractIntentTest {
                 .treatment(vlanTreatment)
                 .priority(PRIORITY)
                 .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
-                .path(new DefaultPath(pid, singleHopDirect, singleHopDirectHops))
+                .path(new DefaultPath(pid, singleHopDirect, ScalarWeight.toWeight(singleHopDirectHops)))
                 .build();
 
         intentExtensionService = createMock(IntentExtensionService.class);

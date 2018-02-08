@@ -17,6 +17,7 @@ package org.onosproject.net.optical.intent.impl.compiler;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -78,7 +79,7 @@ public class OpticalPathIntentCompilerTest extends AbstractIntentTest {
                 .appId(appId)
                 .src(d1p1)
                 .dst(d3p1)
-                .path(new DefaultPath(PID, links, hops))
+                .path(new DefaultPath(PID, links, ScalarWeight.toWeight(hops)))
                 .lambda(createLambda())
                 .signalType(OchSignalType.FIXED_GRID)
                 .build();

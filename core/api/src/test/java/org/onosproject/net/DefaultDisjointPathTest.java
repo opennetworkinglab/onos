@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
+import org.onlab.graph.ScalarWeight;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -53,15 +54,15 @@ public class DefaultDisjointPathTest {
 
     private static List<Link> links1 = ImmutableList.of(link1, link2);
     private static DefaultPath path1 =
-            new DefaultPath(PID, links1, 1.0);
+            new DefaultPath(PID, links1, ScalarWeight.toWeight(1.0));
 
     private static List<Link> links2 = ImmutableList.of(link2, link1);
     private static DefaultPath path2 =
-            new DefaultPath(PID, links2, 2.0);
+            new DefaultPath(PID, links2, ScalarWeight.toWeight(2.0));
 
     private static List<Link> links3 = ImmutableList.of(link1, link2, link3);
     private static DefaultPath path3 =
-            new DefaultPath(PID, links3, 3.0);
+            new DefaultPath(PID, links3, ScalarWeight.toWeight(3.0));
 
     private static DefaultDisjointPath disjointPath1 =
             new DefaultDisjointPath(PID, path1, path2);

@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
@@ -133,7 +134,7 @@ public class PathIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .path(new DefaultPath(provider1, Collections.singletonList(link1), cost))
+                .path(new DefaultPath(provider1, Collections.singletonList(link1), ScalarWeight.toWeight(cost)))
                 .build();
     }
 
@@ -147,7 +148,7 @@ public class PathIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .path(new DefaultPath(provider1, Arrays.asList(link1, link2), cost))
+                .path(new DefaultPath(provider1, Arrays.asList(link1, link2), ScalarWeight.toWeight(cost)))
                 .build();
     }
 

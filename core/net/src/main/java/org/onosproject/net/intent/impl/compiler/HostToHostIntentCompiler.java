@@ -102,7 +102,7 @@ public class HostToHostIntentCompiler
         for (Link link : path.links()) {
             reverseLinks.add(0, reverseLink(link));
         }
-        return new DefaultPath(path.providerId(), reverseLinks, path.cost());
+        return new DefaultPath(path.providerId(), reverseLinks, path.weight());
     }
 
     // Produces a reverse variant of the specified link.

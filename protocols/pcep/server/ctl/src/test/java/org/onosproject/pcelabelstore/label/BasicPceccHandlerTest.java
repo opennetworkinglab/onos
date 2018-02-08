@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -192,7 +193,7 @@ public class BasicPceccHandlerTest {
        linkList.add(l4);
 
        // Path
-       path = new DefaultPath(providerId, linkList, 10);
+       path = new DefaultPath(providerId, linkList, ScalarWeight.toWeight(10));
 
        // Tunnel
        tunnel = new DefaultTunnel(producerName, src, dst, Tunnel.Type.VXLAN,

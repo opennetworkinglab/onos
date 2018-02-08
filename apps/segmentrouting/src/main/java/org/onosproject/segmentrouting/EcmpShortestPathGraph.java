@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Device;
@@ -131,7 +132,7 @@ public class EcmpShortestPathGraph {
                 sofarLinks.addAll(path.links());
             }
             sofarLinks.add(upstreamLink);
-            sofarPath = new DefaultPath(ProviderId.NONE, sofarLinks, 0);
+            sofarPath = new DefaultPath(ProviderId.NONE, sofarLinks, ScalarWeight.toWeight(0));
             if (upstreamLink.src().deviceId().equals(rootDeviceDeviceId)) {
                 paths.add(sofarPath);
                 return;

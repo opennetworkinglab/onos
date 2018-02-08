@@ -44,6 +44,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
@@ -165,7 +166,7 @@ public class PcePathResourceTest extends PceResourceTest {
        linkList.add(l4);
 
        // Path
-       path = new DefaultPath(providerId, linkList, 10);
+       path = new DefaultPath(providerId, linkList, ScalarWeight.toWeight(10));
 
        // Annotations
        DefaultAnnotations.Builder builderAnn = DefaultAnnotations.builder();

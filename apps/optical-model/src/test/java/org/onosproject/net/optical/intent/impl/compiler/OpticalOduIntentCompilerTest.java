@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.ChassisId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
@@ -161,7 +162,7 @@ public class OpticalOduIntentCompilerTest extends AbstractIntentTest {
             DefaultLink.builder().providerId(PID).src(d1p2).dst(d2p1).type(OPTICAL).build(),
             DefaultLink.builder().providerId(PID).src(d2p2).dst(d3p1).type(OPTICAL).build()
     );
-    private final Path path = new DefaultPath(PID, links, 3);
+    private final Path path = new DefaultPath(PID, links, ScalarWeight.toWeight(3));
 
     private OpticalOduIntent intent;
 

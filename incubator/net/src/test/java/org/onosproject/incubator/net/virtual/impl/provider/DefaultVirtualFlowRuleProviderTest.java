@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
@@ -332,10 +334,11 @@ public class DefaultVirtualFlowRuleProviderTest {
 
     private static class TestTopologyService extends TopologyServiceAdapter {
 
+        Weight oneHundred = ScalarWeight.toWeight(100);
         @Override
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
             DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
-                                               100, ANNOTATIONS);
+                                               oneHundred, ANNOTATIONS);
             return ImmutableSet.of(path);
         }
 
@@ -343,7 +346,7 @@ public class DefaultVirtualFlowRuleProviderTest {
         public Set<Path> getPaths(Topology topology, DeviceId src,
                                   DeviceId dst, LinkWeight weight) {
             DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
-                                               100, ANNOTATIONS);
+                                               oneHundred, ANNOTATIONS);
             return ImmutableSet.of(path);
         }
 
@@ -351,7 +354,7 @@ public class DefaultVirtualFlowRuleProviderTest {
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                                   LinkWeigher weigher) {
             DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
-                                               100, ANNOTATIONS);
+                                               oneHundred, ANNOTATIONS);
             return ImmutableSet.of(path);
         }
 

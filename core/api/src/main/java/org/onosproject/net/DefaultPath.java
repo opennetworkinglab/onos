@@ -43,26 +43,6 @@ public class DefaultPath extends DefaultLink implements Path {
      * @param links      contiguous links that comprise the path
      * @param cost       unit-less path cost
      * @param annotations optional key/value annotations
-     *
-     * @deprecated in Junco (1.9.0)
-     */
-    @Deprecated
-    public DefaultPath(ProviderId providerId, List<Link> links, double cost,
-                       Annotations... annotations) {
-        super(providerId, source(links), destination(links), Type.INDIRECT,
-                State.ACTIVE, annotations);
-        this.links = ImmutableList.copyOf(links);
-        this.cost = new ScalarWeight(cost);
-    }
-
-    /**
-     * Creates a path from the specified source and destination using the
-     * supplied list of links.
-     *
-     * @param providerId provider identity
-     * @param links      contiguous links that comprise the path
-     * @param cost       unit-less path cost
-     * @param annotations optional key/value annotations
      */
     public DefaultPath(ProviderId providerId, List<Link> links, Weight cost,
                        Annotations... annotations) {

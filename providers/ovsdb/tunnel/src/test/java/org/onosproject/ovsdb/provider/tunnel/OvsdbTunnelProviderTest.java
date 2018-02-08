@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
@@ -94,7 +95,8 @@ public class OvsdbTunnelProviderTest {
                                                                 new GroupId(0),
                                                                 this.provider.id(),
                                                                 TunnelName.tunnelName("tunnel12"),
-                                                                new DefaultPath(this.provider.id(), links, 0.3),
+                                                                new DefaultPath(this.provider.id(), links,
+                                                                        ScalarWeight.toWeight(0.3)),
                                                                 annotations);
         provider.tunnelAdded(tunnel);
         assertEquals(1, providerService.tunnelSet.size());
@@ -119,7 +121,8 @@ public class OvsdbTunnelProviderTest {
                                                                 new GroupId(0),
                                                                 this.provider.id(),
                                                                 TunnelName.tunnelName("tunnel1"),
-                                                                new DefaultPath(this.provider.id(), links, 0.3),
+                                                                new DefaultPath(this.provider.id(), links,
+                                                                        ScalarWeight.toWeight(0.3)),
                                                                 annotations);
         provider.tunnelRemoved(tunnel);
         assertEquals(0, providerService.tunnelSet.size());

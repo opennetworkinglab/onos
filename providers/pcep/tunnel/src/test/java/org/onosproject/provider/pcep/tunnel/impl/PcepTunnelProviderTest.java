@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
@@ -98,7 +99,7 @@ public class PcepTunnelProviderTest {
                 .type(Link.Type.DIRECT).build();
         links.add(link);
 
-        path = new DefaultPath(pid, links, 10, EMPTY);
+        path = new DefaultPath(pid, links, ScalarWeight.toWeight(10), EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())

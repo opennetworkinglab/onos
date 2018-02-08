@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DefaultAnnotations;
@@ -100,9 +101,9 @@ public class ObstacleConstraintTest {
         edgelink1 = createEdgeLink(host1, true);
         edgelink2 = createEdgeLink(host2, false);
 
-        path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
+        path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), ScalarWeight.toWeight(10));
         pathWithEdgeLink = new DefaultPath(PROVIDER_ID,
-                Arrays.asList(edgelink1, link1, link2, edgelink2), 10);
+                Arrays.asList(edgelink1, link1, link2, edgelink2), ScalarWeight.toWeight(10));
     }
 
     @Test

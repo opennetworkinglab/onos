@@ -17,6 +17,7 @@ package org.onosproject.pce.pceservice;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.net.DisjointPath;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -532,7 +533,8 @@ public class PceManager implements PceService {
                 links.addAll(path.links());
                 totalCost = totalCost + path.cost();
             }
-            computedPathSet.add(new DefaultPath(finalComputedPath.iterator().next().providerId(), links, totalCost));
+            computedPathSet.add(new DefaultPath(finalComputedPath.iterator().next().providerId(), links,
+                    ScalarWeight.toWeight(totalCost)));
         } else {
             computedPathSet = computePath(src, dst, constraints);
         }
@@ -804,7 +806,7 @@ public class PceManager implements PceService {
                 totalCost = totalCost + path.cost();
             }
             computedPathSet.add(new DefaultPath(finalComputedPath.iterator().next().providerId(),
-                    totalLinks, totalCost));
+                    totalLinks, ScalarWeight.toWeight(totalCost)));
         } else {
             computedPathSet = computePath(tunnel.path().src().deviceId(), tunnel.path().dst().deviceId(),
                     constraints);

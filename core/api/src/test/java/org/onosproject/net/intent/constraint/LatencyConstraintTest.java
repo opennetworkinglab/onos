@@ -18,6 +18,7 @@ package org.onosproject.net.intent.constraint;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
@@ -83,7 +84,7 @@ public class LatencyConstraintTest {
                 .type(DIRECT)
                 .annotations(annotations2)
                 .build();
-        path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
+        path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), ScalarWeight.toWeight(10));
     }
 
     /**

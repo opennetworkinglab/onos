@@ -299,7 +299,7 @@ public class ProtectedTransportIntentCompiler
         List<Link> revLinks = Lists.reverse(transform(path.links(), this::reverse));
         return new DefaultPath(path.providerId(),
                                revLinks,
-                               path.cost(),
+                               path.weight(),
                                path.annotations());
     }
 

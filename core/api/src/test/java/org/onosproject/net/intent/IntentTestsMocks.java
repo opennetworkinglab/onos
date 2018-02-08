@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultPath;
@@ -290,7 +291,7 @@ public class IntentTestsMocks {
             } else {
                 return result;
             }
-            path = new DefaultPath(providerId, links, 3);
+            path = new DefaultPath(providerId, links, ScalarWeight.toWeight(3));
             result.add(path);
 
             return result;

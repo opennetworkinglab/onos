@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
@@ -735,7 +736,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 .set("pathNum", String.valueOf(hopNum))
                 .set("pathState", String.valueOf(pathState))
                 .set("pathType", String.valueOf(pathtype)).build();
-        return new DefaultPath(id(), links, hopNum, extendAnnotations);
+        return new DefaultPath(id(), links, ScalarWeight.toWeight(hopNum), extendAnnotations);
     }
 
     // convert the path description to a string.
@@ -1531,7 +1532,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
             Path path = null;
             if (!links.isEmpty()) {
-                path = new DefaultPath(providerId, links, cost, EMPTY);
+                path = new DefaultPath(providerId, links, ScalarWeight.toWeight(cost), EMPTY);
             } else if (!lspObj.getRFlag()) {
                 return;
             }

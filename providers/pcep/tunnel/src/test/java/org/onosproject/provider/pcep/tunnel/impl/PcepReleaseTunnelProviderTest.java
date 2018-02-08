@@ -32,6 +32,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.GroupId;
@@ -115,7 +116,7 @@ public class PcepReleaseTunnelProviderTest {
                 .type(Link.Type.DIRECT).build();
         links.add(link);
 
-        path = new DefaultPath(pid, links, 20, EMPTY);
+        path = new DefaultPath(pid, links, ScalarWeight.toWeight(20), EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
@@ -171,7 +172,7 @@ public class PcepReleaseTunnelProviderTest {
                 .type(Link.Type.DIRECT).build();
         links.add(link);
 
-        path = new DefaultPath(pid, links, 20, EMPTY);
+        path = new DefaultPath(pid, links, ScalarWeight.toWeight(20), EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITH_SIGNALLING.name())
@@ -227,7 +228,7 @@ public class PcepReleaseTunnelProviderTest {
                 .type(Link.Type.DIRECT).build();
         links.add(link);
 
-        path = new DefaultPath(pid, links, 20, EMPTY);
+        path = new DefaultPath(pid, links, ScalarWeight.toWeight(20), EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, SR_WITHOUT_SIGNALLING.name())
@@ -283,7 +284,7 @@ public class PcepReleaseTunnelProviderTest {
                 .type(Link.Type.DIRECT).build();
         links.add(link);
 
-        path = new DefaultPath(pid, links, 20, EMPTY);
+        path = new DefaultPath(pid, links, ScalarWeight.toWeight(20), EMPTY);
 
         Annotations annotations = DefaultAnnotations.builder()
                 .set(LSP_SIG_TYPE, WITHOUT_SIGNALLING_AND_WITHOUT_SR.name())

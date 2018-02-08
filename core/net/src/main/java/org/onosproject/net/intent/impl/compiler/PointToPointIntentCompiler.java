@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
@@ -150,7 +151,7 @@ public class PointToPointIntentCompiler
                                              ConnectPoint egressPoint,
                                              PointToPointIntent intent) {
         List<Link> links = asList(createEdgeLink(ingressPoint, true), createEdgeLink(egressPoint, false));
-        return asList(createPathIntent(new DefaultPath(PID, links, DEFAULT_COST),
+        return asList(createPathIntent(new DefaultPath(PID, links, ScalarWeight.toWeight(DEFAULT_COST)),
                                        intent, PathIntent.ProtectionType.PRIMARY));
     }
 
@@ -179,7 +180,7 @@ public class PointToPointIntentCompiler
         links.addAll(path.links());
         links.add(createEdgeLink(egressPoint, false));
 
-        return asList(createPathIntent(new DefaultPath(PID, links, path.cost(),
+        return asList(createPathIntent(new DefaultPath(PID, links, path.weight(),
                                                        path.annotations()), intent,
                                        PathIntent.ProtectionType.PRIMARY));
     }
@@ -253,23 +254,24 @@ public class PointToPointIntentCompiler
             PortNumber primaryPort = getPrimaryPort(intent);
             if (primaryPort != null && !links.get(0).src().port().equals(primaryPort)) {
                 reusableIntents.add(createPathIntent(new DefaultPath(PID, links,
-                                                                     path.cost(), path.annotations()),
+                                                     path.weight(), path.annotations()),
                                                      intent, PathIntent.ProtectionType.BACKUP));
                 updateFailoverGroup(intent, links);
                 return reusableIntents;
 
             } else {
-                reusableIntents.add(createPathIntent(new DefaultPath(PID, backupLinks, path.backup().cost(),
-                                     path.backup().annotations()), intent, PathIntent.ProtectionType.BACKUP));
+                reusableIntents.add(createPathIntent(new DefaultPath(PID, backupLinks,
+                        path.backup().weight(),
+                        path.backup().annotations()), intent, PathIntent.ProtectionType.BACKUP));
                 updateFailoverGroup(intent, backupLinks);
                 return reusableIntents;
             }
         }
 
-        intentList.add(createPathIntent(new DefaultPath(PID, links, path.cost(),
+        intentList.add(createPathIntent(new DefaultPath(PID, links, path.weight(),
                                                         path.annotations()),
                                         intent, PathIntent.ProtectionType.PRIMARY));
-        intentList.add(createPathIntent(new DefaultPath(PID, backupLinks, path.backup().cost(),
+        intentList.add(createPathIntent(new DefaultPath(PID, backupLinks, path.backup().weight(),
                                                         path.backup().annotations()),
                                         intent, PathIntent.ProtectionType.BACKUP));
 
@@ -335,7 +337,7 @@ public class PointToPointIntentCompiler
             links.add(createEdgeLink(ingressPoint, true));
             links.addAll(onlyPath.links());
             links.add(createEdgeLink(egressPoint, false));
-            return asList(createPathIntent(new DefaultPath(PID, links, onlyPath.cost(),
+            return asList(createPathIntent(new DefaultPath(PID, links, onlyPath.weight(),
                                                            onlyPath.annotations()),
                                            intent, PathIntent.ProtectionType.PRIMARY));
         }
