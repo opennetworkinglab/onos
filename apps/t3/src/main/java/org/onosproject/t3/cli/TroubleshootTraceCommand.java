@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.t3.api.GroupsInDevice;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
-
-import java.util.List;
 
 import static org.onlab.packet.EthType.EtherType;
 
@@ -191,116 +186,8 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
 
         //Build the trace
         StaticPacketTrace trace = service.trace(packet, cp);
-        //Print based on verbosity
-        if (verbosity1) {
-            printTrace(trace, false);
-        } else if (verbosity2) {
-            printTrace(trace, true);
-        } else {
-            print("Paths");
-            List<List<ConnectPoint>> paths = trace.getCompletePaths();
-            paths.forEach(path -> print("%s", path));
-        }
-        print("Result: \n%s", trace.resultMessage());
-    }
 
-    //prints the trace
-    private void printTrace(StaticPacketTrace trace, boolean verbose) {
-        List<List<ConnectPoint>> paths = trace.getCompletePaths();
-        paths.forEach(path -> {
-            print("Path %s", path);
-            ConnectPoint previous = null;
-            if (path.size() == 1) {
-                ConnectPoint connectPoint = path.get(0);
-                print("Device %s", connectPoint.deviceId());
-                print("Input from %s", connectPoint);
-                printFlows(trace, verbose, connectPoint);
-                printGroups(trace, verbose, connectPoint);
-                print("Output through %s", connectPoint);
-                print("");
-            } else {
-                for (ConnectPoint connectPoint : path) {
-                    if (previous == null || !previous.deviceId().equals(connectPoint.deviceId())) {
-                        print("Device %s", connectPoint.deviceId());
-                        print("Input from %s", connectPoint);
-                        printFlows(trace, verbose, connectPoint);
-                    } else {
-                        printGroups(trace, verbose, connectPoint);
-                        print("Output through %s", connectPoint);
-                        print("");
-                    }
-                    previous = connectPoint;
-                }
-            }
-            print("---------------------------------------------------------------\n");
-        });
-    }
+        print("%s", T3CliUtils.printTrace(trace, verbosity1, verbosity2));
 
-    //Prints the flows for a given trace and a specified level of verbosity
-    private void printFlows(StaticPacketTrace trace, boolean verbose, ConnectPoint connectPoint) {
-        print("Flows");
-        trace.getFlowsForDevice(connectPoint.deviceId()).forEach(f -> {
-            if (verbose) {
-                print(FLOW_SHORT_FORMAT, f.state(), f.bytes(), f.packets(),
-                        f.table(), f.priority(), f.selector().criteria(),
-                        printTreatment(f.treatment()));
-            } else {
-                print("   flowId=%s, table=%s, selector=%s", f.id(), f.table(), f.selector().criteria());
-            }
-        });
-    }
-
-    //Prints the groups for a given trace and a specified level of verbosity
-    private void printGroups(StaticPacketTrace trace, boolean verbose, ConnectPoint connectPoint) {
-        List<GroupsInDevice> groupsInDevice = trace.getGroupOuputs(connectPoint.deviceId());
-        if (groupsInDevice != null) {
-            print("Groups");
-            groupsInDevice.forEach(output -> {
-                if (output.getOutput().equals(connectPoint)) {
-                    output.getGroups().forEach(group -> {
-                        if (verbose) {
-                            print(GROUP_FORMAT, Integer.toHexString(group.id().id()), group.state(), group.type(),
-                                    group.bytes(), group.packets(), group.appId().name(), group.referenceCount());
-                            int i = 0;
-                            for (GroupBucket bucket : group.buckets().buckets()) {
-                                print(GROUP_BUCKET_FORMAT, Integer.toHexString(group.id().id()), ++i,
-                                        bucket.bytes(), bucket.packets(),
-                                        bucket.treatment().allInstructions());
-                            }
-                        } else {
-                            print("   groupId=%s", group.id());
-                        }
-                    });
-                    print("Outgoing Packet %s", output.getFinalPacket());
-                }
-            });
-        }
-    }
-
-    private String printTreatment(TrafficTreatment treatment) {
-        final String delimiter = ", ";
-        StringBuilder builder = new StringBuilder("[");
-        if (!treatment.immediate().isEmpty()) {
-            builder.append("immediate=" + treatment.immediate() + delimiter);
-        }
-        if (!treatment.deferred().isEmpty()) {
-            builder.append("deferred=" + treatment.deferred() + delimiter);
-        }
-        if (treatment.clearedDeferred()) {
-            builder.append("clearDeferred" + delimiter);
-        }
-        if (treatment.tableTransition() != null) {
-            builder.append("transition=" + treatment.tableTransition() + delimiter);
-        }
-        if (treatment.metered() != null) {
-            builder.append("meter=" + treatment.metered() + delimiter);
-        }
-        if (treatment.writeMetadata() != null) {
-            builder.append("metadata=" + treatment.writeMetadata() + delimiter);
-        }
-        // Chop off last delimiter
-        builder.replace(builder.length() - delimiter.length(), builder.length(), "");
-        builder.append("]");
-        return builder.toString();
     }
 }

@@ -19,7 +19,19 @@
         <command>
             <action class="org.onosproject.t3.cli.TroubleshootTraceCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.t3.cli.TroubleshootSimpleTraceCommand"/>
+            <completers>
+                <ref component-id="hostIdCompleter"/>
+            </completers>
+            <optional-completers>
+                <entry key="-et" value-ref="ethTypeCompleter"/>
+            </optional-completers>
+        </command>
     </command-bundle>
+
+    <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
+    <bean id="ethTypeCompleter" class="org.onosproject.cli.net.EthTypeCompleter"/>
 
 </blueprint>
 
