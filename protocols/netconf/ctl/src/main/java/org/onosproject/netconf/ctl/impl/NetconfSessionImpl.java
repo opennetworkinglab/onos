@@ -184,13 +184,7 @@ public class NetconfSessionImpl implements NetconfSession {
             }
             boolean isAuthenticated;
             try {
-                if (deviceInfo.getKeyFile() != null && deviceInfo.getKeyFile().canRead()) {
-                    log.debug("Authenticating with key file to device {} with username {}",
-                            deviceInfo.getDeviceId(), deviceInfo.name());
-                    isAuthenticated = netconfConnection.authenticateWithPublicKey(
-                            deviceInfo.name(), deviceInfo.getKeyFile(),
-                            deviceInfo.password().equals("") ? null : deviceInfo.password());
-                } else if (deviceInfo.getKey() != null) {
+                if (deviceInfo.getKey() != null) {
                     log.debug("Authenticating with key to device {} with username {}",
                             deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPublicKey(
