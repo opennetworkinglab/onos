@@ -300,7 +300,7 @@ public class Ofdpa2GroupHandler {
 
         }
 
-        if (mplsSwap) {
+        if (mplsSwap && !isPw) {
             log.debug("Creating a MPLS Swap - MPLS Interface - L2 Interface group chain.");
 
             // break up simple next objective to GroupChain objects
