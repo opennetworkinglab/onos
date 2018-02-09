@@ -25,9 +25,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultOchSignalComparator;
+import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Link;
@@ -42,6 +46,7 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
@@ -63,8 +68,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
@@ -78,6 +83,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
     // By default, allocate 50 GHz lambdas (4 slots of 12.5 GHz) for each intent.
     private static final int SLOT_COUNT = 4;
+    private static final ProviderId PROVIDER_ID = new ProviderId("opticalConnectivityIntent",
+            "org.onosproject.net.optical.intent");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -137,7 +144,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 .map(path -> Maps.immutableEntry(path, findFirstAvailableLambda(intent, path)))
                 .filter(entry -> !entry.getValue().isEmpty())
                 .filter(entry -> convertToResources(entry.getKey(),
-                                                    entry.getValue()).stream().allMatch(resourceService::isAvailable))
+                        entry.getValue()).stream().allMatch(resourceService::isAvailable))
                 .findFirst();
 
         // Allocate resources and create optical path intent
@@ -157,8 +164,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * Only supports fixed grid for now.
      *
      * @param parentIntent this intent (used for resource tracking)
-     * @param path the path to use
-     * @param lambda the lambda to use
+     * @param path         the path to use
+     * @param lambda       the lambda to use
      * @return optical path intent
      */
     private Intent createIntent(OpticalConnectivityIntent parentIntent, Path path, OchSignal lambda) {
@@ -180,7 +187,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     /**
      * Convert given lambda as discrete resource of all path ports.
      *
-     * @param path the path
+     * @param path   the path
      * @param lambda the lambda
      * @return list of discrete resources
      */
@@ -197,7 +204,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     /**
      * Reserve all required resources for this intent.
      *
-     * @param intent the intent
+     * @param intent    the intent
      * @param resources list of resources to reserve
      */
     private void allocateResources(Intent intent, List<Resource> resources) {
@@ -252,7 +259,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     /**
      * Get the number of 12.5 GHz slots required for the path.
-     *
+     * <p>
      * For now this returns a constant value of 4 (i.e., fixed grid 50 GHz slot),
      * but in the future can depend on optical reach, line rate, transponder port capabilities, etc.
      *
@@ -284,7 +291,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * Returns list of consecutive resources in given set of lambdas.
      *
      * @param lambdas list of lambdas
-     * @param count number of consecutive lambdas to return
+     * @param count   number of consecutive lambdas to return
      * @return list of consecutive lambdas
      */
     private List<OchSignal> findFirstLambda(Set<OchSignal> lambdas, int count) {
@@ -363,6 +370,24 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         ConnectPoint start = intent.getSrc();
         ConnectPoint end = intent.getDst();
+
+        // 0 hop case
+        if (start.deviceId().equals(end.deviceId())) {
+            log.debug("install optical intent for 0 hop i.e srcDeviceId=dstDeviceId");
+            DefaultLink defaultLink = DefaultLink.builder()
+                    .providerId(PROVIDER_ID)
+                    .src(start)
+                    .dst(end)
+                    .state(Link.State.ACTIVE)
+                    .type(Link.Type.DIRECT)
+                    .isExpected(true)
+                    .build();
+            List<Link> links = ImmutableList.<Link>builder().add(defaultLink).build();
+            Annotations annotations = DefaultAnnotations.builder().build();
+            DefaultPath defaultPath = new DefaultPath(PROVIDER_ID, links, null, annotations);
+            return ImmutableList.<Path>builder().add(defaultPath).build().stream();
+        }
+
         //head link's src port should be same as intent src port and tail link dst port
         //should be same as intent dst port in the path.
         Stream<Path> paths = topologyService.getKShortestPaths(topology,
@@ -376,9 +401,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                     .map(path -> {
                         // no-op map stage to add debug logging
                         log.debug("Candidate path: {}",
-                                  path.links().stream()
-                                          .map(lk -> lk.src() + "-" + lk.dst())
-                                          .collect(Collectors.toList()));
+                                path.links().stream()
+                                        .map(lk -> lk.src() + "-" + lk.dst())
+                                        .collect(Collectors.toList()));
                         return path;
                     });
         }

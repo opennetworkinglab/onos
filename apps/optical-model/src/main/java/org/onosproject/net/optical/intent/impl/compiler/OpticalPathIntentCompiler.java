@@ -99,11 +99,11 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         return Collections.singletonList(
                 new FlowRuleIntent(appId,
-                                   intent.key(),
-                                   rules,
-                                   intent.resources(),
-                                   PathIntent.ProtectionType.PRIMARY,
-                                   intent.resourceGroup()
+                        intent.key(),
+                        rules,
+                        intent.resources(),
+                        PathIntent.ProtectionType.PRIMARY,
+                        intent.resourceGroup()
                 )
         );
     }
@@ -119,6 +119,32 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
         selectorBuilder.matchInPort(intent.src().port());
 
         List<FlowRule> rules = new LinkedList<>();
+
+        /*
+         * especial case for 0 hop when srcDeviceId = dstDeviceId
+         * and path contain only one fake default path.
+         */
+        if (intent.src().deviceId().equals(intent.dst().deviceId()) &&
+                intent.path().links().size() == 1) {
+            log.debug("handling 0 hop case for intent {}", intent);
+            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+            if (!isTransparent(intent.src().deviceId())) {
+                treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            }
+            treatmentBuilder.setOutput(intent.dst().port());
+
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(intent.src().deviceId())
+                    .withSelector(selectorBuilder.build())
+                    .withTreatment(treatmentBuilder.build())
+                    .withPriority(intent.priority())
+                    .fromApp(appId)
+                    .makePermanent()
+                    .build();
+            rules.add(rule);
+            return rules;
+        }
+
         ConnectPoint current = intent.src();
 
         for (Link link : intent.path().links()) {
@@ -181,6 +207,32 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
         selectorBuilder.matchInPort(intent.dst().port());
 
         List<FlowRule> rules = new LinkedList<>();
+
+        /*
+         * especial case for 0 hop when srcDeviceId = dstDeviceId
+         * and path contain only one fake default path.
+         */
+        if (intent.src().deviceId().equals(intent.dst().deviceId()) &&
+                intent.path().links().size() == 1) {
+            log.debug("handling 0 hop reverse path case for intent {}", intent);
+            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+            if (!isTransparent(intent.src().deviceId())) {
+                treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            }
+            treatmentBuilder.setOutput(intent.src().port());
+
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(intent.src().deviceId())
+                    .withSelector(selectorBuilder.build())
+                    .withTreatment(treatmentBuilder.build())
+                    .withPriority(intent.priority())
+                    .fromApp(appId)
+                    .makePermanent()
+                    .build();
+            rules.add(rule);
+            return rules;
+        }
+
         ConnectPoint current = intent.dst();
 
         for (Link link : Lists.reverse(intent.path().links())) {
@@ -254,7 +306,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     private boolean isTransparent(DeviceId deviceId) {
         return TRANSPARENT_DEVICES.contains(
                 Optional.ofNullable(deviceService.getDevice(deviceId))
-                .map(Device::type)
-                .orElse(Type.OTHER));
+                        .map(Device::type)
+                        .orElse(Type.OTHER));
     }
 }
