@@ -82,10 +82,10 @@ module tapi-common {
         }
         container context {
         	presence "TAPI";
-            uses context;
+            uses _context;
             description "none";
         }
-        grouping context {
+        grouping _context {
             list service-interface-point {
                 key 'uuid';
                 min-elements 2;
