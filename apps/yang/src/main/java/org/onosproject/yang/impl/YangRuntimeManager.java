@@ -26,6 +26,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.yang.YangClassLoaderRegistry;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObjectData;
+import org.onosproject.yang.model.ModelObjectId;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
@@ -163,7 +164,8 @@ public class YangRuntimeManager implements YangModelRegistry,
     }
 
     @Override
-    public void registerAnydataSchema(Class id, Class id1) {
+    public void registerAnydataSchema(ModelObjectId arg0, ModelObjectId arg1)
+            throws IllegalArgumentException {
         throw new UnsupportedOperationException("registerAnydataSchema() needs to be implemented");
     }
 

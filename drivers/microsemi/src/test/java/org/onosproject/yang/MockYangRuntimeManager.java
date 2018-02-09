@@ -23,6 +23,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.drivers.netconf.MockCoreService;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObjectData;
+import org.onosproject.yang.model.ModelObjectId;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
@@ -109,17 +110,17 @@ public class MockYangRuntimeManager implements YangModelRegistry,
             return modelRegistry.getModels();
         }
 
-    @Override
-    public YangModel getModel(String s) {
-        return modelRegistry.getModel(s);
-    }
+        @Override
+        public YangModel getModel(String s) {
+            return modelRegistry.getModel(s);
+        }
 
-    @Override
-    public YangModule getModule(YangModuleId yangModuleId) {
-        return modelRegistry.getModule(yangModuleId);
-    }
+        @Override
+        public YangModule getModule(YangModuleId yangModuleId) {
+            return modelRegistry.getModule(yangModuleId);
+        }
 
-    @Override
+        @Override
         public void registerSerializer(YangSerializer ys) {
             serializerRegistry.registerSerializer(ys);
         }
@@ -130,7 +131,7 @@ public class MockYangRuntimeManager implements YangModelRegistry,
         }
 
         @Override
-        public void registerAnydataSchema(Class id, Class id1) {
+        public void registerAnydataSchema(ModelObjectId arg0, ModelObjectId arg1) {
             throw new UnsupportedOperationException("registerAnydataSchema() needs to be implemented");
         }
 

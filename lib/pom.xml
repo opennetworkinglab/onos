@@ -40,7 +40,7 @@
         <netty4.version>4.1.8.Final</netty4.version>
         <openflowj.version>3.2.0.onos</openflowj.version>
         <onos-maven-plugin.version>1.11</onos-maven-plugin.version>
-        <onos-yang-tools.version>2.3.1</onos-yang-tools.version>
+        <onos-yang-tools.version>2.4</onos-yang-tools.version>
         <osgi.version>5.0.0</osgi.version>
         <karaf.version>3.0.8</karaf.version>
         <jersey.version>2.25.1</jersey.version>
