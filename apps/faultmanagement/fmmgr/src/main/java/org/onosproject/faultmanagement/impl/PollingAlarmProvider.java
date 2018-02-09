@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
@@ -70,6 +71,9 @@ public class PollingAlarmProvider extends AbstractProvider implements AlarmProvi
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected AlarmProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     protected AlarmProviderService providerService;
 
     protected ScheduledExecutorService alarmsExecutor;
@@ -101,6 +105,7 @@ public class PollingAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Activate
     public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         alarmsExecutor = newScheduledThreadPool(CORE_POOL_SIZE,
                                                 groupedThreads("onos/pollingalarmprovider",
                                                                "alarm-executor-%d", log));
@@ -127,6 +132,7 @@ public class PollingAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         mastershipService.removeListener(mastershipListener);
         deviceService.removeListener(deviceListener);

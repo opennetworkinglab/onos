@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
@@ -80,6 +82,8 @@ public class PollingAlarmProviderTest {
 
     private final AlarmProviderService alarmProviderService = new MockAlarmProviderService();
 
+    private final ComponentConfigService cfgService = new ComponentConfigAdapter();
+
     private final ComponentContext context = new MockComponentContext();
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("foo:1.1.1.1:1");
@@ -114,6 +118,7 @@ public class PollingAlarmProviderTest {
         provider.providerRegistry = providerRegistry;
         provider.deviceService = deviceService;
         provider.mastershipService = mastershipService;
+        provider.cfgService = cfgService;
         AbstractProjectableModel.setDriverService(null, new DriverServiceAdapter());
         provider.activate(context);
     }
