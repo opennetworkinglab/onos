@@ -263,6 +263,9 @@ public class DefaultRoutingHandler {
             // new ECMPspg calculation as it is not a topology event. As a
             // result, we use the current/existing ECMPspg in the updated map
             // used by the redoRouting method.
+            if (updatedEcmpSpgMap == null) {
+                updatedEcmpSpgMap = new HashMap<>();
+            }
             currentEcmpSpgMap.entrySet().forEach(entry -> {
                 updatedEcmpSpgMap.put(entry.getKey(), entry.getValue());
                 if (log.isDebugEnabled()) {
