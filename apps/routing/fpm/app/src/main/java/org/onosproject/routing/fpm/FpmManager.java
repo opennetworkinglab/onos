@@ -226,8 +226,8 @@ public class FpmManager implements FpmInfoService {
 
         appId = coreService.registerApplication(APP_NAME, peers::destroy);
 
-        clusterService.addListener(clusterListener);
         asyncLock = storageService.lockBuilder().withName(LOCK_NAME).build();
+        clusterService.addListener(clusterListener);
 
         log.info("Started");
     }
@@ -760,6 +760,7 @@ public class FpmManager implements FpmInfoService {
         }
     }
 
+    @Override
     public void pushFpmRoutes() {
         Set<Route> routes = fpmRoutes.values().stream()
                 .map(Map::entrySet).flatMap(Set::stream).map(Map.Entry::getValue)

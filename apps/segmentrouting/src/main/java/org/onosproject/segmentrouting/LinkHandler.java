@@ -71,6 +71,7 @@ public class LinkHandler {
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         log.trace("Current size {}", downedPortStore.size());
+        init();
     }
 
     /**
@@ -85,6 +86,15 @@ public class LinkHandler {
     }
 
     /**
+     * Initialize LinkHandler.
+     */
+    private void init() {
+        log.info("Loading stored links");
+        srManager.linkService.getActiveLinks()
+                .forEach(link -> processLinkAdded(link));
+    }
+
+    /**
      * Preprocessing of added link before being sent for route-path handling.
      * Also performs post processing of link.
      *
@@ -95,8 +105,8 @@ public class LinkHandler {
         if (!isLinkValid(link)) {
             return;
         }
-        if (!srManager.deviceConfiguration
-                .isConfigured(link.src().deviceId())) {
+        if (srManager.deviceConfiguration == null ||
+                !srManager.deviceConfiguration.isConfigured(link.src().deviceId())) {
             updateSeenLink(link, true);
             // XXX revisit - what about devicePortMap
             log.warn("Source device of this link is not configured.. "
@@ -262,6 +272,10 @@ public class LinkHandler {
             return false;
         }
         DeviceConfiguration devConfig = srManager.deviceConfiguration;
+        if (devConfig == null) {
+            log.warn("Cannot check validity of link without device config");
+            return true;
+        }
         try {
             if (!devConfig.isEdgeDevice(srcId)
                     && !devConfig.isEdgeDevice(dstId)) {
