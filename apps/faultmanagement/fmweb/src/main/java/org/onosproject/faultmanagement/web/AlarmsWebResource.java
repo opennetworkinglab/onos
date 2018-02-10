@@ -134,7 +134,7 @@ public class AlarmsWebResource extends AbstractWebResource {
 
             }
             Alarm updated = service.updateBookkeepingFields(
-                    alarm.id(), alarm.acknowledged(), alarm.assignedUser()
+                    alarm.id(), alarm.cleared(), alarm.acknowledged(), alarm.assignedUser()
             );
             ObjectNode encoded = new AlarmCodec().encode(updated, this);
             return ok(encoded.toString()).build();

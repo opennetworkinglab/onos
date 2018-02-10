@@ -107,21 +107,6 @@ public class AlarmManager
         return true;
     }
 
-    //TODO maybe map for field to update ?
-    @Override
-    public Alarm updateBookkeepingFields(AlarmId id, boolean isAcknowledged, String assignedUser) {
-        Alarm found = store.getAlarm(id);
-        if (found == null) {
-            throw new ItemNotFoundException("Alarm with id " + id + " found");
-        }
-        Alarm updated = new DefaultAlarm.Builder(found)
-                .withId(found.id())
-                .withAcknowledged(isAcknowledged)
-                .withAssignedUser(assignedUser).build();
-        store.createOrUpdateAlarm(updated);
-        return updated;
-    }
-
     @Override
     public Alarm updateBookkeepingFields(AlarmId id, boolean clear, boolean isAcknowledged,
                                          String assignedUser) {
