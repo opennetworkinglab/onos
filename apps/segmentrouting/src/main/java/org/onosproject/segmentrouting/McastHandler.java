@@ -523,7 +523,7 @@ public class McastHandler {
                 return;
             }
             // Let's add the port and reuse the previous one
-            portBuilder.addAll(existingPorts).add(port).build();
+            portBuilder.addAll(existingPorts).add(port);
             // Reuse previous nextObj
             newNextObj = nextObjBuilder(mcastIp, assignedVlan,
                                         portBuilder.build(), nextObj.id()).addToExisting();
