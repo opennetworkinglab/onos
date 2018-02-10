@@ -268,9 +268,9 @@ public class DefaultRoutingHandler {
             }
             currentEcmpSpgMap.entrySet().forEach(entry -> {
                 updatedEcmpSpgMap.put(entry.getKey(), entry.getValue());
-                if (log.isDebugEnabled()) {
-                    log.debug("Root switch: {}", entry.getKey());
-                    log.debug("  Current/Existing SPG: {}", entry.getValue());
+                if (log.isTraceEnabled()) {
+                    log.trace("Root switch: {}", entry.getKey());
+                    log.trace("  Current/Existing SPG: {}", entry.getValue());
                 }
             });
             Set<EdgePair> edgePairs = new HashSet<>();

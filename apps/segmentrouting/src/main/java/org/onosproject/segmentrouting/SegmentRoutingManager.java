@@ -136,6 +136,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REGISTERED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGISTERED;
 
 /**
  * Segment routing manager.
@@ -425,7 +427,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
         cfgService.registerConfigFactory(pwaasConfigFactory);
-
+        log.info("Configuring network before adding listeners");
         cfgListener.configureNetwork();
 
         hostService.addListener(hostListener);
@@ -1055,9 +1057,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     }
                     if (event.type() == LinkEvent.Type.LINK_ADDED ||
                             event.type() == LinkEvent.Type.LINK_UPDATED) {
-                        // Note: do not update seenLinks here, otherwise every
-                        // link, even one seen for the first time, will be appear
-                        // to be a previously seen link
                         linkHandler.processLinkAdded((Link) event.subject());
                     } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
                         linkHandler.processLinkRemoved((Link) event.subject());
@@ -1258,8 +1257,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void createOrUpdateDeviceConfiguration() {
         if (deviceConfiguration == null) {
+            log.info("Creating new DeviceConfiguration");
             deviceConfiguration = new DeviceConfiguration(this);
         } else {
+            log.info("Updating DeviceConfiguration");
             deviceConfiguration.updateConfig();
         }
     }
@@ -1295,6 +1296,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          * Reads network config and initializes related data structure accordingly.
          */
         void configureNetwork() {
+            log.info("Configuring network ...");
             createOrUpdateDeviceConfiguration();
 
             arpHandler = new ArpHandler(srManager);
@@ -1310,6 +1312,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                               tunnelHandler, policyStore);
             // add a small delay to absorb multiple network config added notifications
             if (!programmingScheduled.get()) {
+                log.info("Buffering config calls for {} secs", PROGRAM_DELAY);
                 programmingScheduled.set(true);
                 executorService.schedule(new ConfigChange(), PROGRAM_DELAY,
                                          TimeUnit.SECONDS);
@@ -1368,6 +1371,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     default:
                         break;
                 }
+                log.info("App config event .. configuring network");
                 configureNetwork();
             } else if (event.configClass().equals(XConnectConfig.class)) {
                 checkState(xConnectHandler != null, "XConnectHandler is not initialized");
@@ -1404,21 +1408,29 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            if (event.configClass().equals(SegmentRoutingDeviceConfig.class) ||
-                    event.configClass().equals(SegmentRoutingAppConfig.class) ||
-                    event.configClass().equals(InterfaceConfig.class) ||
-                    event.configClass().equals(XConnectConfig.class) ||
-                    event.configClass().equals(PwaasConfig.class)) {
-                return true;
+            if (event.type() == CONFIG_REGISTERED ||
+                    event.type() == CONFIG_UNREGISTERED) {
+                log.debug("Ignore event {} due to type mismatch", event);
+                return false;
             }
-            log.debug("Ignore irrelevant event class {}", event.configClass().getName());
-            return false;
+
+            if (!event.configClass().equals(SegmentRoutingDeviceConfig.class) &&
+                    !event.configClass().equals(SegmentRoutingAppConfig.class) &&
+                    !event.configClass().equals(InterfaceConfig.class) &&
+                    !event.configClass().equals(XConnectConfig.class) &&
+                    !event.configClass().equals(PwaasConfig.class)) {
+                log.debug("Ignore event {} due to class mismatch", event);
+                return false;
+            }
+
+            return true;
         }
 
         private final class ConfigChange implements Runnable {
             @Override
             public void run() {
                 programmingScheduled.set(false);
+                log.info("Reacting to config changes after buffer delay");
                 for (Device device : deviceService.getDevices()) {
                     processDeviceAdded(device);
                 }
