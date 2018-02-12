@@ -65,6 +65,7 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
      * @param input network JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated network already exists
+     * @onos.rsModel NeutronNetwork
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -89,6 +90,7 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
      * @param input network JSON input stream
      * @return 200 OK with the updated network, 400 BAD_REQUEST if the requested
      * network does not exist
+     * @onos.rsModel NeutronNetwork
      */
     @PUT
     @Path("{id}")

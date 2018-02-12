@@ -1,0 +1,86 @@
+
+{
+  "type": "object",
+  "required": [
+    "network"
+  ],
+  "properties": {
+    "network": {
+      "type": "object",
+      "description": "A network object.",
+      "required": [
+        "id",
+        "subnets",
+        "provider:physical_network",
+        "admin_state_up",
+        "tenant_id",
+        "provider:network_type",
+        "router:external",
+        "provider:segmentation_id",
+        "availability_zone_hints",
+        "availability_zones"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "396f12f8-521e-4b91-8e21-2e003500433a",
+          "description": "The ID of the network."
+        },
+        "subnets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "10.10.0.0/24",
+            "description": "The associated subnets."
+          }
+        },
+        "provider:physical_network": {
+          "type": "string",
+          "example": "physnet1",
+          "description": "The physical network where this network is implemented."
+        },
+        "admin_state_up": {
+          "type": "boolean",
+          "example": true,
+          "description": "The administrative state of the network, which is up (true) or down (false)."
+        },
+        "tenant_id": {
+          "type": "string",
+          "example": "20bd52ff3e1b40039c312395b04683cf",
+          "description": "The ID of the project."
+        },
+        "provider:network_type": {
+          "type": "string",
+          "example": "vlan",
+          "description": "The type of physical network that this network is mapped to."
+        },
+        "router:external": {
+          "type": "boolean",
+          "example": true,
+          "description": "Indicates whether the network has an external routing facility that’s not managed by the networking service."
+        },
+        "provider:segmentation_id": {
+          "type": "string",
+          "example": "1002",
+          "description": "The ID of the isolated segment on the physical network."
+        },
+        "availability_zone_hints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "1",
+            "description": "The availability zone candidate for the network."
+          }
+        },
+        "availability_zones": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "nova",
+            "description": "The availability zone for the network."
+          }
+        }
+      }
+    }
+  }
+}

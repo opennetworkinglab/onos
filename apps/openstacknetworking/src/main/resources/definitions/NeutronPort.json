@@ -1,0 +1,190 @@
+{
+  "type": "object",
+  "required": [
+    "port"
+  ],
+  "properties": {
+    "port": {
+      "type": "object",
+      "description": "A port object.",
+      "required": [
+        "id",
+        "admin_state_up",
+        "device_id",
+        "device_owner",
+        "fixed_ips",
+        "allowed_address_pairs",
+        "mac_address",
+        "network_id",
+        "state",
+        "tenant_id",
+        "security_groups",
+        "extra_dhcp_opts",
+        "port_security_enabled",
+        "binding:host_id",
+        "binding:vif_type",
+        "binding:vif_details",
+        "binding:vnic_type",
+        "binding:profile"
+
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "65c0ee9f-d634-4522-8954-51021b570b0d",
+          "description": "The ID of the resource."
+        },
+        "admin_state_up": {
+          "type": "boolean",
+          "example": true,
+          "description": "The administrative state of the resource, which is up (true) or down (false)."
+        },
+        "device_id": {
+          "type": "string",
+          "example": "1",
+          "description": "The ID of the device that uses this port. For example, a server instance or a logical router."
+        },
+        "device_owner": {
+          "type": "string",
+          "example": "compute:nova",
+          "description": "The entity type that uses this port. For example, compute:nova (server instance)."
+        },
+        "fixed_ips": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "fixed_ips",
+            "description": "The IP addresses for the port. If the port has multiple IP addresses, this field has multiple entries.",
+            "required": [
+              "ip_address",
+              "subnet_id"
+            ],
+            "properties": {
+              "ip_address": {
+                "type": "string",
+                "example": "10.0.0.2",
+                "description": "The IP address of the port."
+              },
+              "subnet_id": {
+                "type": "string",
+                "example": "a0304c3a-4f08-4c43-88af-d796509c97d2",
+                "description": "The ID of the subnet."
+              }
+            }
+          }
+        },
+        "allowed_address_pairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "allowed_address_pairs",
+            "description": "A set of zero or more allowed address pair objects each where address pair object contains an ip_address and mac_address.",
+            "required": [
+              "ip_address",
+              "mac_address"
+            ],
+            "properties": {
+              "ip_address": {
+                "type": "string",
+                "example": "12.12.11.12",
+                "description": "The IP address of the port."
+              },
+              "mac_address": {
+                "type": "string",
+                "example": "fa:14:2a:b3:cb:f0",
+                "description": "The MAC address of the port."
+              }
+            }
+          }
+        },
+        "mac_address": {
+          "type": "string",
+          "example": "fa:16:3e:c9:cb:f0",
+          "description": "The MAC address of the port."
+        },
+        "network_id": {
+          "type": "string",
+          "example": "a87cc70a-3e15-4acf-8205-9b711a3531b7",
+          "description": "The ID of the attached network."
+        },
+        "status": {
+          "type": "string",
+          "example": "ACTIVE",
+          "description": "The port status. Values are ACTIVE, DOWN, BUILD and ERROR."
+        },
+        "tenant_id": {
+          "type": "string",
+          "example": "d6700c0c9ffa4f1cb322cd4a1f3906fa",
+          "description": "The ID of the project."
+        },
+        "security_groups": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "f0ac4394-7e4a-4409-9701-ba8be283dbc3",
+            "description": "The IDs of security groups applied to the port."
+          }
+        },
+        "extra_dhcp_opts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "extra_dhcp_opts",
+            "description": "A set of zero or more extra DHCP option pairs. An option pair consists of an option value and name.",
+            "required": [
+              "opt_value",
+              "opt_name"
+            ],
+            "properties": {
+              "opt_value": {
+                "type": "string",
+                "example": "pxelinux.0",
+                "description": "A value of option pair."
+              },
+              "opt_name": {
+                "type": "string",
+                "example": "bootfile-name",
+                "description": "A name of option pair."
+              }
+            }
+          }
+        },
+        "port_security_enabled": {
+          "type": "boolean",
+          "example": true,
+          "description": "The port security status. A valid value is enabled (true) or disabled (false)."
+        },
+        "binding:host_id": {
+          "type": "string",
+          "example": "4df8d9ff-6f6f-438f-90a1-ef660d4586ad",
+          "description": "The ID of the host where the port resides."
+        },
+        "binding:vif_type": {
+          "type": "string",
+          "example": "unbound",
+          "description": "The type of which mechanism is used for the port."
+        },
+        "binding:vif_details": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "example": "",
+            "description": "A dictionary which contains additional information on the port."
+          }
+        },
+        "binding:vnic_type": {
+          "type": "string",
+          "example": "other",
+          "description": "The type of vNIC which this port should be attached to. This is used to determine which mechanism driver(s) to be used to bind the port."
+        },
+        "binding:profile": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "description": "A dictionary that enables the application running on the specific host to pass and receive vif port information specific to the networking back-end."
+          }
+        }
+      }
+    }
+  }
+}

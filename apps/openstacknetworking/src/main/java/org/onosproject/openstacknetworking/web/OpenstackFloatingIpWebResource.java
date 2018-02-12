@@ -66,6 +66,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
      * @param input floating ip JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated floating ip already exists
+     * @onos.rsModel NeutronFloatingIp
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -90,6 +91,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
      * @param input floating ip JSON input stream
      * @return 200 OK with the updated floating ip, 400 BAD_REQUEST if the requested
      * floating ip does not exist
+     * @onos.rsModel NeutronFloatingIp
      */
     @PUT
     @Path("{id}")
