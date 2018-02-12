@@ -166,20 +166,6 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.DeviceConfigGetterCommand"/>
-            <completers>
-                <ref component-id="deviceIdCompleter"/>
-                <null/>
-            </completers>
-        </command>
-        <command>
-            <action class="org.onosproject.cli.net.DeviceConfigSetterCommand"/>
-            <completers>
-                <ref component-id="deviceIdCompleter"/>
-                <null/>
-            </completers>
-        </command>
-        <command>
             <action class="org.onosproject.cli.net.DeviceRemoveCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
