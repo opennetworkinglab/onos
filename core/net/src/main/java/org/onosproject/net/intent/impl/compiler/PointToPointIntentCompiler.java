@@ -160,31 +160,6 @@ public class PointToPointIntentCompiler
                                        intent));
     }
 
-    /**
-     * Creates an unprotected intent.
-     * @param ingressPoint the ingress connect point
-     * @param egressPoint the egress connect point
-     * @param intent the original intent
-     * @return the compilation result
-     * @deprecated 1.10.0
-     */
-    @Deprecated
-    private List<Intent> createUnprotectedIntent(ConnectPoint ingressPoint,
-                                                 ConnectPoint egressPoint,
-                                                 PointToPointIntent intent) {
-        List<Link> links = new ArrayList<>();
-        Path path = getPathOrException(intent, ingressPoint.deviceId(),
-                                       egressPoint.deviceId());
-
-        links.add(createEdgeLink(ingressPoint, true));
-        links.addAll(path.links());
-        links.add(createEdgeLink(egressPoint, false));
-
-        return asList(createPathIntent(new DefaultPath(PID, links, path.weight(),
-                                                       path.annotations()), intent,
-                                       PathIntent.ProtectionType.PRIMARY));
-    }
-
     private List<Intent> createUnprotectedLinkCollectionIntent(PointToPointIntent intent) {
         Path path = getPathOrException(intent, intent.filteredIngressPoint().connectPoint().deviceId(),
                                        intent.filteredEgressPoint().connectPoint().deviceId());
