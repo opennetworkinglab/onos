@@ -16,5 +16,3 @@ rm -rf ~/p4tools/libyang/build
 rm -rf ~/p4tools/sysrepo/build
 
 cat /dev/null > ~/.bash_history
-
-sudo poweroff

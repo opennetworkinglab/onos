@@ -259,12 +259,15 @@ function do_p4runtime {
     git submodule update --init --recursive
 
     ./autogen.sh
-    ./configure --with-proto --with-sysrepo 'CXXFLAGS=-O0 -g'
+    # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
+    # ./configure --with-proto --with-sysrepo 'CXXFLAGS=-O0 -g'
+    ./configure --with-proto 'CXXFLAGS=-O0 -g'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
 
-    sudo proto/sysrepo/install_yangs.sh
+    # FIXME: re-enable when gNMI support becomes more stable
+    # sudo proto/sysrepo/install_yangs.sh
 }
 
 function do_bmv2 {
@@ -279,7 +282,10 @@ function do_bmv2 {
     # Simple_switch_grpc target
     cd targets/simple_switch_grpc
     ./autogen.sh
-    ./configure --with-sysrepo --with-thrift 'CXXFLAGS=-O0 -g'
+
+    # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
+    # ./configure --with-sysrepo --with-thrift 'CXXFLAGS=-O0 -g'
+    ./configure --with-thrift 'CXXFLAGS=-O0 -g'
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -381,8 +387,9 @@ cd ${BUILD_DIR}
 # In dependency order.
 check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf protobuf
 check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
-check_and_do ${LIBYANG_COMMIT} libyang do_libyang libyang
-check_and_do ${SYSREPO_COMMIT} sysrepo do_sysrepo sysrepo
+# FIXME: re-enable when gNMI support becomes more stable
+# check_and_do ${LIBYANG_COMMIT} libyang do_libyang libyang
+# check_and_do ${SYSREPO_COMMIT} sysrepo do_sysrepo sysrepo
 check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} p4runtime do_p4runtime p4runtime
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2

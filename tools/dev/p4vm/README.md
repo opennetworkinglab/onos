@@ -88,7 +88,7 @@ To generate the OVA file, in a terminal window type the following commands:
 
 ```bash
 cd $ONOS_ROOT/tools/dev/p4vm
-./build-ova.sh
+./export-ova.sh
 ```
 
 This script will:
