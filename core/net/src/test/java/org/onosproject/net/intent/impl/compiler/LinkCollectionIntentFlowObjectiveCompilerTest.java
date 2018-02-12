@@ -68,11 +68,11 @@ import static org.onosproject.net.flowobjective.NextObjective.Type.BROADCAST;
 import static org.onosproject.net.flowobjective.NextObjective.Type.SIMPLE;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 
-public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkCollectionTest {
+public class LinkCollectionIntentFlowObjectiveCompilerTest extends AbstractLinkCollectionTest {
     private static final VlanId VLAN_1 = VlanId.vlanId("1");
     private static final VlanId VLAN_100 = VlanId.vlanId("100");
 
-    private LinkCollectionIntentObjectiveCompiler compiler;
+    private LinkCollectionIntentFlowObjectiveCompiler compiler;
     private FlowObjectiveServiceAdapter flowObjectiveService;
 
     private NextObjective nextObjective;
@@ -83,7 +83,7 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
 
     @Before
     public void setUp() {
-        compiler = new LinkCollectionIntentObjectiveCompiler();
+        compiler = new LinkCollectionIntentFlowObjectiveCompiler();
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication("org.onosproject.net.intent"))
                 .andReturn(appId);
