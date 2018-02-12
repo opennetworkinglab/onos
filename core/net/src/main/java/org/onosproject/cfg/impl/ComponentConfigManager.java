@@ -38,11 +38,11 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -84,7 +84,7 @@ public class ComponentConfigManager implements ComponentConfigService {
     protected ConfigurationAdmin cfgAdmin;
 
     // Locally maintained catalog of definitions.
-    private final Map<String, Map<String, ConfigProperty>>  properties =
+    private final Map<String, Map<String, ConfigProperty>> properties =
             Maps.newConcurrentMap();
 
 
@@ -103,7 +103,6 @@ public class ComponentConfigManager implements ComponentConfigService {
     @Override
     public Set<String> getComponentNames() {
         checkPermission(CONFIG_READ);
-
         return ImmutableSet.copyOf(properties.keySet());
     }
 
@@ -125,7 +124,7 @@ public class ComponentConfigManager implements ComponentConfigService {
             defs.forEach(p -> map.put(p.name(), p));
 
             properties.put(componentName, map);
-            loadExistingValues(componentName);
+            loadExistingValues(componentName, map);
         } catch (IOException e) {
             log.error("Unable to read property definitions from resource " + resourceName, e);
         }
@@ -174,7 +173,6 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void preSetProperty(String componentName, String name, String value) {
-
         checkPermission(CONFIG_WRITE);
 
         checkNotNull(componentName, COMPONENT_NULL);
@@ -246,9 +244,6 @@ public class ComponentConfigManager implements ComponentConfigService {
                 return;
             }
         }
-
-        // If definition doesn't exist in local catalog, cache the property.
-        preSet(componentName, name, value);
     }
 
     // Locates the property in the component map and replaces it with an
@@ -264,21 +259,6 @@ public class ComponentConfigManager implements ComponentConfigService {
             }
             log.warn("Unable to reset non-existent property {} for component {}",
                      name, componentName);
-        }
-    }
-
-    // Stores non-existent property so that loadExistingValues() can load in future.
-    private void preSet(String componentName, String name, String value) {
-        try {
-            Configuration config = cfgAdmin.getConfiguration(componentName, null);
-            Dictionary<String, Object> property = config.getProperties();
-            if (property == null) {
-                property = new Hashtable<>();
-            }
-            property.put(name, value);
-            config.update(property);
-        } catch (IOException e) {
-            log.error("Failed to preset configuration for {}", componentName);
         }
     }
 
@@ -306,7 +286,7 @@ public class ComponentConfigManager implements ComponentConfigService {
                     break;
                 case BOOLEAN:
                     if (!((newValue != null) && (newValue.equalsIgnoreCase("true") ||
-                                newValue.equalsIgnoreCase("false")))) {
+                            newValue.equalsIgnoreCase("false")))) {
                         throw new IllegalArgumentException("Invalid " + type + " value");
                     }
                     break;
@@ -320,30 +300,39 @@ public class ComponentConfigManager implements ComponentConfigService {
 
             }
         } catch (NumberFormatException e) {
-                throw new NumberFormatException("Invalid " + type + " value");
+            throw new NumberFormatException("Invalid " + type + " value");
         }
     }
 
-    // Loads existing property values that may have been set.
-    private void loadExistingValues(String componentName) {
+    // Loads existing property values that may have been learned from other
+    // nodes in the cluster before the local property registration.
+    private void loadExistingValues(String componentName,
+                                    Map<String, ConfigProperty> map) {
         try {
             Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
-            Map<String, ConfigProperty> map = properties.get(componentName);
-            Dictionary<String, Object> props = cfg.getProperties();
-            if (props != null) {
-                Enumeration<String> it = props.keys();
-                while (it.hasMoreElements()) {
-                    String name = it.nextElement();
-                    ConfigProperty p = map.get(name);
-                    try {
-                        if (p != null) {
-                            checkValidity(componentName, name, (String) props.get(name));
-                            map.put(name, ConfigProperty.setProperty(p, (String) props.get(name)));
-                        }
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Default values will be applied " +
-                                "since presetted value is not a valid " + p.type());
+            Dictionary<String, Object> localProperties = cfg.getProperties();
+
+            // Iterate over all registered config properties...
+            for (ConfigProperty p : ImmutableSet.copyOf(map.values())) {
+                String name = p.name();
+                String globalValue = store.getProperty(componentName, name);
+                String localValue = localProperties != null ? (String) localProperties.get(name) : null;
+                try {
+                    // If the global value is the same as default, reset to
+                    // default locally.
+                    if (Objects.equals(globalValue, p.defaultValue())) {
+                        reset(componentName, name);
+
+                    } else if (!Objects.equals(globalValue, localValue)) {
+                        // If the local value is different from global value?
+                        // validate the global value and apply it locally.
+                        checkValidity(componentName, name, globalValue);
+                        set(componentName, name, globalValue);
                     }
+                } catch (IllegalArgumentException e) {
+                    log.warn("Value {} is not a valid {}; using default",
+                             globalValue, p.type());
+                    reset(componentName, name);
                 }
             }
         } catch (IOException e) {
@@ -360,7 +349,7 @@ public class ComponentConfigManager implements ComponentConfigService {
             Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
             Map<String, ConfigProperty> map = properties.get(componentName);
             Dictionary<String, Object> props = new Hashtable<>();
-            map.values().forEach(p -> props.put(p.name(), p.value()));
+            map.values().stream().filter(p -> p.value() != null).forEach(p -> props.put(p.name(), p.value()));
             cfg.update(props);
         } catch (IOException e) {
             log.warn("Unable to update configuration for " + componentName, e);
