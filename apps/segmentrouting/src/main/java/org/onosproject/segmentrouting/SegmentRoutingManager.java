@@ -1040,8 +1040,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalEventHandler implements Runnable {
         @Override
         public void run() {
-            try {
-                while (true) {
+            while (true) {
+                try {
                     @SuppressWarnings("rawtypes")
                     Event event;
                     synchronized (THREAD_SCHED_LOCK) {
@@ -1070,7 +1070,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             processDeviceAdded((Device) event.subject());
                         } else {
                             log.info("Processing device event {} for unavailable device {}",
-                                    event.type(), ((Device) event.subject()).id());
+                                     event.type(), ((Device) event.subject()).id());
                             processDeviceRemoved((Device) event.subject());
                         }
                     } else if (event.type() == DeviceEvent.Type.PORT_ADDED) {
@@ -1094,10 +1094,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else {
                         log.warn("Unhandled event type: {}", event.type());
                     }
+                } catch (Exception e) {
+                    log.error("SegmentRouting event handler thread thrown an exception: {}",
+                              e.getMessage(), e);
                 }
-            } catch (Exception e) {
-                log.error("SegmentRouting event handler "
-                        + "thread thrown an exception: {}", e);
             }
         }
     }
