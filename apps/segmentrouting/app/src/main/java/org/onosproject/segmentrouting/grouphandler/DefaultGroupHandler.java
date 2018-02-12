@@ -1277,12 +1277,56 @@ public class DefaultGroupHandler {
         bc.run();
     }
 
-    public void updateGroupFromVlanConfiguration(PortNumber portNumber, Collection<VlanId> vlanIds,
-                                                 int nextId, boolean install) {
-        vlanIds.forEach(vlanId -> updateGroupFromVlanInternal(vlanId, portNumber, nextId, install));
+    /**
+     * Modifies L2IG bucket when the interface configuration is updated, especially
+     * when the interface has same VLAN ID but the VLAN type is changed (e.g., from
+     * vlan-tagged [10] to vlan-untagged 10), which requires changes on
+     * TrafficTreatment in turn.
+     *
+     * @param portNumber the port on this device that needs to be updated
+     * @param vlanId the vlan id corresponding to this port
+     * @param pushVlan indicates if packets should be sent out untagged or not out
+     *                 from the port. If true, updated TrafficTreatment involves
+     *                 pop vlan tag action. If false, updated TrafficTreatment
+     *                 does not involve pop vlan tag action.
+     */
+    public void updateL2InterfaceGroupBucket(PortNumber portNumber, VlanId vlanId, boolean pushVlan) {
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        if (pushVlan) {
+            tBuilder.popVlan();
+        }
+        tBuilder.setOutput(portNumber);
+
+        TrafficSelector metadata =
+                DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
+
+        int nextId = getVlanNextObjectiveId(vlanId);
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.SIMPLE).fromApp(appId)
+                .addTreatment(tBuilder.build())
+                .withMeta(metadata);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("port {} successfully updated NextObj {} on {}",
+                                         portNumber, nextId, deviceId),
+                (objective, error) ->
+                        log.warn("port {} failed to updated NextObj {} on {}: {}",
+                                 portNumber, nextId, deviceId, error));
+
+        flowObjectiveService.next(deviceId, nextObjBuilder.modify(context));
     }
 
-    private void updateGroupFromVlanInternal(VlanId vlanId, PortNumber portNum, int nextId, boolean install) {
+    /**
+     * Adds a single port to the L2FG or removes it from the L2FG.
+     *
+     * @param vlanId the vlan id corresponding to this port
+     * @param portNum the port on this device to be updated
+     * @param nextId the next objective ID for the given vlan id
+     * @param install if true, adds the port to L2FG. If false, removes it from L2FG.
+     */
+    public void updateGroupFromVlanConfiguration(VlanId vlanId, PortNumber portNum, int nextId, boolean install) {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
         if (toPopVlan(portNum, vlanId)) {
             tBuilder.popVlan();

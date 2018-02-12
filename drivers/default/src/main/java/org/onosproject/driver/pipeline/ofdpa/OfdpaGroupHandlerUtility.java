@@ -394,6 +394,43 @@ public final class OfdpaGroupHandlerUtility {
         return ImmutableList.copyOf(newBuckets);
     }
 
+    static List<GroupBucket> createL3MulticastBucket(List<GroupInfo> groupInfos) {
+        List<GroupBucket> l3McastBuckets = new ArrayList<>();
+        // For each inner group
+        groupInfos.forEach(groupInfo -> {
+            // Points to L3 interface group if there is one.
+            // Otherwise points to L2 interface group directly.
+            GroupDescription nextGroupDesc = (groupInfo.nextGroupDesc() != null) ?
+                    groupInfo.nextGroupDesc() : groupInfo.innerMostGroupDesc();
+            TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
+            ttb.group(new GroupId(nextGroupDesc.givenGroupId()));
+            GroupBucket abucket = DefaultGroupBucket.createAllGroupBucket(ttb.build());
+            l3McastBuckets.add(abucket);
+        });
+        // Done return the new list of buckets
+        return l3McastBuckets;
+    }
+
+    static Group retrieveTopLevelGroup(List<Deque<GroupKey>> allActiveKeys,
+                                       DeviceId deviceId,
+                                       GroupService groupService,
+                                       int nextid) {
+        GroupKey topLevelGroupKey;
+        if (!allActiveKeys.isEmpty()) {
+            topLevelGroupKey = allActiveKeys.get(0).peekFirst();
+        } else {
+            log.warn("Could not determine top level group while processing"
+                             + "next:{} in dev:{}", nextid, deviceId);
+            return null;
+        }
+        Group topGroup = groupService.getGroup(deviceId, topLevelGroupKey);
+        if (topGroup == null) {
+            log.warn("Could not find top level group while processing "
+                             + "next:{} in dev:{}", nextid, deviceId);
+        }
+        return topGroup;
+    }
+
     /**
      * Extracts VlanId from given group ID.
      *

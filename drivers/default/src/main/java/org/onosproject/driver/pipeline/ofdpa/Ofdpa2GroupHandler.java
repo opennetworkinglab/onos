@@ -804,24 +804,6 @@ public class Ofdpa2GroupHandler {
         });
     }
 
-    private List<GroupBucket> createL3MulticastBucket(List<GroupInfo> groupInfos) {
-        List<GroupBucket> l3McastBuckets = new ArrayList<>();
-        // For each inner group
-        groupInfos.forEach(groupInfo -> {
-            // Points to L3 interface group if there is one.
-            // Otherwise points to L2 interface group directly.
-            GroupDescription nextGroupDesc = (groupInfo.nextGroupDesc() != null) ?
-                    groupInfo.nextGroupDesc() : groupInfo.innerMostGroupDesc();
-            TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
-            ttb.group(new GroupId(nextGroupDesc.givenGroupId()));
-            GroupBucket abucket = DefaultGroupBucket.createAllGroupBucket(ttb.build());
-            l3McastBuckets.add(abucket);
-        });
-        // Done return the new list of buckets
-        return l3McastBuckets;
-    }
-
-
     private void createL3MulticastGroup(NextObjective nextObj, VlanId vlanId,
                                         List<GroupInfo> groupInfos) {
         // Let's create a new list mcast buckets
@@ -1197,7 +1179,8 @@ public class Ofdpa2GroupHandler {
         newBuckets = generateNextGroupBuckets(unsentGroups, SELECT);
 
         // retrieve the original L3 ECMP group
-        Group l3ecmpGroup = retrieveTopLevelGroup(allActiveKeys, nextObjective.id());
+        Group l3ecmpGroup = retrieveTopLevelGroup(allActiveKeys, deviceId,
+                                                  groupService, nextObjective.id());
         if (l3ecmpGroup == null) {
             fail(nextObjective, ObjectiveError.GROUPMISSING);
             return;
@@ -1270,7 +1253,8 @@ public class Ofdpa2GroupHandler {
                                          List<Deque<GroupKey>> allActiveKeys,
                                          List<GroupInfo> groupInfos,
                                          VlanId assignedVlan) {
-        Group l2FloodGroup = retrieveTopLevelGroup(allActiveKeys, nextObj.id());
+        Group l2FloodGroup = retrieveTopLevelGroup(allActiveKeys, deviceId,
+                                                   groupService, nextObj.id());
 
         if (l2FloodGroup == null) {
             log.warn("Can't find L2 flood group while adding bucket to it. NextObj = {}",
@@ -1350,7 +1334,8 @@ public class Ofdpa2GroupHandler {
         List<GroupBucket> newBuckets = createL3MulticastBucket(groupInfos);
 
         // get the group being edited
-        Group l3mcastGroup = retrieveTopLevelGroup(allActiveKeys, nextObj.id());
+        Group l3mcastGroup = retrieveTopLevelGroup(allActiveKeys, deviceId,
+                                                   groupService, nextObj.id());
         if (l3mcastGroup == null) {
             fail(nextObj, ObjectiveError.GROUPMISSING);
             return;
@@ -1576,6 +1561,56 @@ public class Ofdpa2GroupHandler {
                 .forEach(groupChain -> groupChain.forEach(groupKey -> groupService
                         .removeGroup(deviceId, groupKey, nextObjective.appId())));
         flowObjectiveStore.removeNextGroup(nextObjective.id());
+    }
+
+    /**
+     * Modify buckets in the L2 interface group.
+     *
+     * @param nextObjective a next objective that contains information for the
+     *                      buckets to be modified in the group
+     * @param next the representation of the existing group-chains for this next
+     *             objective, from which the innermost group buckets to remove are determined
+     */
+    protected void modifyBucketFromGroup(NextObjective nextObjective, NextGroup next) {
+        if (nextObjective.type() != NextObjective.Type.SIMPLE) {
+            log.warn("ModifyBucketFromGroup cannot be applied to nextType:{} in dev:{} for next:{}",
+                     nextObjective.type(), deviceId, nextObjective.id());
+            fail(nextObjective, ObjectiveError.UNSUPPORTED);
+            return;
+        }
+
+        VlanId assignedVlan = readVlanFromSelector(nextObjective.meta());
+        if (assignedVlan == null) {
+            log.warn("VLAN ID required by simple next obj is missing. Abort.");
+            fail(nextObjective, ObjectiveError.BADPARAMS);
+            return;
+        }
+
+        List<GroupInfo> groupInfos = prepareL2InterfaceGroup(nextObjective, assignedVlan);
+
+        // There is only one L2 interface group in this case
+        GroupDescription l2InterfaceGroupDesc = groupInfos.get(0).innerMostGroupDesc();
+
+        // Replace group bucket for L2 interface group
+        groupService.setBucketsForGroup(deviceId,
+                                        l2InterfaceGroupDesc.appCookie(),
+                                        l2InterfaceGroupDesc.buckets(),
+                                        l2InterfaceGroupDesc.appCookie(),
+                                        l2InterfaceGroupDesc.appId());
+
+        // update store - synchronize access as there may be multiple threads
+        // trying to remove buckets from the same group, each with its own
+        // potentially stale copy of allActiveKeys
+        synchronized (flowObjectiveStore) {
+            List<Deque<GroupKey>> modifiedGroupKeys = Lists.newArrayList();
+            ArrayDeque<GroupKey> top = new ArrayDeque<>();
+            top.add(l2InterfaceGroupDesc.appCookie());
+            modifiedGroupKeys.add(top);
+
+            flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                            new OfdpaNextGroup(modifiedGroupKeys,
+                                                               nextObjective));
+        }
     }
 
     /**
@@ -1838,24 +1873,6 @@ public class Ofdpa2GroupHandler {
 
     protected int getNextAvailableIndex() {
         return (int) nextIndex.incrementAndGet();
-    }
-
-    protected Group retrieveTopLevelGroup(List<Deque<GroupKey>> allActiveKeys,
-                                          int nextid) {
-        GroupKey topLevelGroupKey;
-        if (!allActiveKeys.isEmpty()) {
-            topLevelGroupKey = allActiveKeys.get(0).peekFirst();
-        } else {
-            log.warn("Could not determine top level group while processing"
-                             + "next:{} in dev:{}", nextid, deviceId);
-            return null;
-        }
-        Group topGroup = groupService.getGroup(deviceId, topLevelGroupKey);
-        if (topGroup == null) {
-            log.warn("Could not find top level group while processing "
-                             + "next:{} in dev:{}", nextid, deviceId);
-        }
-        return topGroup;
     }
 
     protected void processPendingAddGroupsOrNextObjs(GroupKey key, boolean added) {

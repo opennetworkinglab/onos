@@ -63,6 +63,11 @@ public interface Objective {
         REMOVE_FROM_EXISTING,
 
         /**
+         * Modify an existing Next Objective. Can be used to modify group buckets.
+         */
+        MODIFY,
+
+        /**
          * Verifies that an existing Next Objective's collection of treatments
          * are correctly represented by the underlying implementation of the objective.
          * Corrective action is taken if discrepancies are found during verification.

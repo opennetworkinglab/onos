@@ -228,6 +228,23 @@ public interface NextObjective extends Objective {
         NextObjective removeFromExisting(ObjectiveContext context);
 
         /**
+         * Build the next objective that will be modified with {@link Operation}
+         * MODIFY.
+         *
+         * @return a next objective
+         */
+
+        NextObjective modify();
+        /**
+         * Build the next objective that will be modified, with {@link Operation}
+         * MODIFY. The context will be used to notify the calling application.
+         *
+         * @param context an objective context
+         * @return a next objective
+         */
+        NextObjective modify(ObjectiveContext context);
+
+        /**
          * Builds the next objective that needs to be verified.
          *
          * @return a next objective with {@link Operation} VERIFY
