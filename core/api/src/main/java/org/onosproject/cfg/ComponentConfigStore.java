@@ -15,7 +15,10 @@
  */
 package org.onosproject.cfg;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.store.Store;
+
+import java.util.Set;
 
 /**
  * Service for storing and distributing system-wide configurations for various
@@ -41,5 +44,27 @@ public interface ComponentConfigStore
      * @param name          property name
      */
     void unsetProperty(String componentName, String name);
+
+
+    /**
+     * Returns set of component configuration property names.
+     *
+     * @param component component name
+     * @return set of property names
+     */
+    default Set<String> getProperties(String component) {
+        return ImmutableSet.of();
+    }
+
+    /**
+     * Returns the string value of the given component configuration property.
+     *
+     * @param component component name
+     * @param name      property name; null if no property found
+     * @return set of property names
+     */
+    default String getProperty(String component, String name) {
+        return null;
+    }
 
 }
