@@ -66,6 +66,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
      * @param input subnet JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated subnet already exists
+     * @onos.rsModel NeutronSubnet
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -90,6 +91,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
      * @param input subnet JSON input stream
      * @return 200 OK with the updated subnet, 400 BAD_REQUEST if the requested
      * subnet does not exist
+     * @onos.rsModel NeutronSubnet
      */
     @PUT
     @Path("{id}")

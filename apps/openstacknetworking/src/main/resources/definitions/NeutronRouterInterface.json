@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "description": "A router interface object.",
+  "required": [
+    "id",
+    "tenant_id",
+    "subnet_id",
+    "port_id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "f49a1319-423a-4ee6-ba54-1d95a4f6cc68",
+      "description": "The ID of the router interface."
+    },
+    "tenant_id": {
+      "type": "string",
+      "example": "d6700c0c9ffa4f1cb322cd4a1f3906fa",
+      "description": "The ID of the project."
+    },
+    "subnet_id": {
+      "type": "string",
+      "example": "a0304c3a-4f08-4c43-88af-d796509c97d2",
+      "description": "The subnet ID on which you want to create the floating IP."
+    },
+    "port_id": {
+      "type": "string",
+      "example": "ce705c24-c1ef-408a-bda3-7bbd946164ab",
+      "description": "The ID of a port associated with the floating IP."
+    }
+  }
+}

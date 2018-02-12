@@ -1,0 +1,114 @@
+{
+  "type": "object",
+  "description": "A subnet object.",
+  "required": [
+    "subnets"
+  ],
+  "properties": {
+    "subnets": {
+      "type": "object",
+      "required": [
+        "enable_dhcp",
+        "network_id",
+        "tenant_id",
+        "dns_nameservers",
+        "allocation_pools",
+        "host_routes",
+        "ip_version",
+        "gateway_ip",
+        "ipv6_address_mode",
+        "ipv6_ra_mode"
+      ],
+      "properties": {
+        "enable_dhcp": {
+          "type": "boolean",
+          "example": true,
+          "description": "Indicates whether dhcp is enabled or disabled for the subnet."
+        },
+        "network_id": {
+          "type": "string",
+          "example": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+          "description": "The ID of the network to which the subnet belongs."
+        },
+        "tenant_id": {
+          "type": "string",
+          "example": "4fd44f30292945e481c7b8a0c8908869",
+          "description": "The ID of the project."
+        },
+        "dns_nameservers": {
+          "type": "array",
+          "description": "List of dns name servers associated with the subnet.",
+          "items": {
+            "type": "string",
+            "description": "A dns name server instance."
+          }
+        },
+        "allocation_pools": {
+          "type": "array",
+          "description": "Allocation pools with start and end IP addresses for this subnet.",
+          "items": {
+            "type": "object",
+            "description": "An allocation pool.",
+            "required": [
+              "start",
+              "end"
+            ],
+            "properties": {
+              "start": {
+                "type": "string",
+                "example": "192.168.199.2",
+                "description": "A start IP address for this subnet."
+              },
+              "end": {
+                "type": "string",
+                "example": "10.10.10.254",
+                "description": "An end IP address for this subnet."
+              }
+            }
+          }
+        },
+        "host_routes": {
+          "type": "array",
+          "description": "Additional routes for the subnet. A list of dictionaries with destination and nexthop parameters.",
+          "items": {
+            "type": "object",
+            "description": "A route for the subnet.",
+            "required": [
+              "destination",
+              "nexthop"
+            ],
+            "properties": {
+              "destination": {
+                "type": "string",
+                "description": "The destination CIDR."
+              },
+              "nexthop": {
+                "type": "string",
+                "description": "The IP address of the next hop for the corresponding destination."
+              }
+            }
+          }
+        },
+        "ip_version": {
+          "type": "integer",
+          "format": "int32",
+          "example": 4,
+          "description": "The IP protocol version. Value is 4 or 6."
+        },
+        "gateway_ip": {
+          "type": "string",
+          "example": "192.168.199.1",
+          "description": "Gateway IP of this subnet. If the value is null that implies no gateway is associated with the subnet."
+        },
+        "ipv6_address_mode": {
+          "type": "string",
+          "description": "The IPv6 address modes specifies mechanisms for assigning IP addresses."
+        },
+        "ipv6_ra_mode": {
+          "type": "string",
+          "description": "The IPv6 router advertisement specifies whether the networking service should transmit ICMPv6 packets, for a subnet."
+        }
+      }
+    }
+  }
+}

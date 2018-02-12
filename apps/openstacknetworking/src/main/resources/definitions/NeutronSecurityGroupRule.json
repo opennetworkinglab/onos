@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "description": "",
+  "required": [
+    "security_group_rule"
+  ],
+  "properties": {
+    "security_group_rule": {
+      "type": "object",
+      "required": [
+        "id",
+        "tenant_id",
+        "security_group_id",
+        "direction",
+        "ethertype",
+        "port_range_max",
+        "port_range_min",
+        "protocol",
+        "remote_ip_prefix",
+        "remote_group_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "2bc0accf-312e-429a-956e-e4407625eb62",
+          "description": "The ID of this security group rule."
+        },
+        "tenant_id": {
+          "type": "string",
+          "example": "e4f50856753b4dc6afee5fa6b9b6c550",
+          "description": "The ID of the project."
+        },
+        "security_group_id": {
+          "type": "string",
+          "example": "a7734e61-b545-452d-a3cd-0189cbd9747a",
+          "description": "The security group ID to associate with this security group rule."
+        },
+        "direction": {
+          "type": "string",
+          "example": "ingress",
+          "description": "Ingress or egress, which is the direction in which the metering rule is applied."
+        },
+        "ethertype": {
+          "type": "string",
+          "example": "IPv4",
+          "description": "Must be IPv4 or IPv6, and addresses represented in CIDR must match the ingress or egress rules."
+        },
+        "port_range_max": {
+          "type": "integer",
+          "format": "int32",
+          "example": 80,
+          "description": "The maximum port number in the range that is matched by the security group rule."
+        },
+        "port_range_min": {
+          "type": "integer",
+          "format": "int32",
+          "example": 80,
+          "description": "The minimum port number in the range that is matched by the security group rule."
+        },
+        "protocol": {
+          "type": "string",
+          "example": "tcp",
+          "description": "The IP protocol can be represented by a string, an integer, or null."
+        },
+        "remote_ip_prefix": {
+          "type": "string",
+          "example": "",
+          "description": "The remote IP prefix to associate with this metering rule packet."
+        },
+        "remote_group_id": {
+          "type": "string",
+          "example": "85cc3048-abc3-43cc-89b3-377341426ac5",
+          "description": "The remote group UUID to associate with this security group rule."
+        }
+      }
+    }
+  }
+}

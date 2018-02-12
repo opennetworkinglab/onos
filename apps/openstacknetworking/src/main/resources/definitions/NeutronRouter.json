@@ -1,0 +1,96 @@
+{
+  "type": "object",
+  "required": [
+    "router"
+  ],
+  "properties": {
+    "router": {
+      "type": "object",
+      "description": "A router object.",
+      "required": [
+        "id",
+        "name",
+        "status",
+        "external_gateway_info",
+        "admin_state_up",
+        "tenant_id",
+        "routes",
+        "distributed"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "f49a1319-423a-4ee6-ba54-1d95a4f6cc68",
+          "description": "The ID of the router."
+        },
+        "name": {
+          "type": "string",
+          "example": "router1",
+          "description": "Human-readable name of the resource."
+        },
+        "status": {
+          "type": "string",
+          "example": "ACTIVE",
+          "description": "The router status."
+        },
+        "external_gateway_info": {
+          "type": "object",
+          "description": "The external gateway information of the router.",
+          "required": [
+            "network_id",
+            "enable_snat"
+          ],
+          "properties": {
+            "network_id": {
+              "type": "string",
+              "example": "a87cc70a-3e15-4acf-8205-9b711a3531b7",
+              "description": "Network ID which the router gateway is connected to."
+            },
+            "enable_snat": {
+              "type": "boolean",
+              "example": false,
+              "description": "Enable Source NAT (SNAT) attribute. true means Network Address Translation (NAT) is enabled."
+            }
+          }
+        },
+        "admin_state_up": {
+          "type": "boolean",
+          "example": true,
+          "description": "The administrative state of the resource, which is up (true) or down (false)."
+        },
+        "tenant_id": {
+          "type": "string",
+          "example": "d6700c0c9ffa4f1cb322cd4a1f3906fa",
+          "description": "The ID of the project."
+        },
+        "routes": {
+          "type": "array",
+          "description": "The extra routes configuration for L3 router. A list of dictionaries with destination and nexthop parameters.",
+          "items": {
+            "type": "object",
+            "title": "route",
+            "required": [
+              "destination",
+              "nexthop"
+            ],
+            "properties": {
+              "destination": {
+                "type": "string",
+                "description": "The destination CIDR."
+              },
+              "nexthop": {
+                "type": "string",
+                "description": "The IP address of the next hop for the corresponding destination."
+              }
+            }
+          }
+        },
+        "distributed": {
+          "type": "boolean",
+          "example": false,
+          "description": "true indicates a distributed router. It is available when dvr extension is enabled."
+        }
+      }
+    }
+  }
+}

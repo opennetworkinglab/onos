@@ -68,6 +68,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated router already exists
+     * @onos.rsModel NeutronRouter
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -92,6 +93,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router JSON input stream
      * @return 200 OK with the updated router, 400 BAD_REQUEST if the requested
      * router does not exist
+     * @onos.rsModel NeutronRouter
      */
     @PUT
     @Path("{id}")
@@ -114,6 +116,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router interface JSON input stream
      * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
      * requested router does not exist
+     * @onos.rsModel NeutronRouterInterface
      */
     @PUT
     @Path("{id}/add_router_interface")
@@ -135,6 +138,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router interface JSON input stream
      * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
      * requested router does not exist
+     * @onos.rsModel NeutronRouterInterface
      */
     @PUT
     @Path("{id}/remove_router_interface")

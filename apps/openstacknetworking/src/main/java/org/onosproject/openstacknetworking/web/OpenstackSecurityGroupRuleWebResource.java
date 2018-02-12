@@ -63,6 +63,7 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
      * @param input security group JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated port already exists
+     * @onos.rsModel NeutronSecurityGroupRule
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
