@@ -381,6 +381,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                       nextObjective.id(), deviceId);
             groupHandler.removeBucketFromGroup(nextObjective, nextGroup);
             break;
+        case MODIFY:
+            if (nextGroup == null) {
+                log.warn("Cannot modify next {} that does not exist in device {}",
+                         nextObjective.id(), deviceId);
+                return;
+            }
+            log.debug("Processing NextObjective id {} in dev {} - modify bucket",
+                      nextObjective.id(), deviceId);
+            groupHandler.modifyBucketFromGroup(nextObjective, nextGroup);
+            break;
         case VERIFY:
             if (nextGroup == null) {
                 log.warn("Cannot verify next {} that does not exist in device {}",

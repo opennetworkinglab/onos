@@ -1568,44 +1568,97 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                Sets.difference(new HashSet<>(prevIntf.ipAddressesList()),
                                                new HashSet<>(intf.ipAddressesList())));
 
-            if (prevIntf.vlanNative() != VlanId.NONE && !intf.vlanNative().equals(prevIntf.vlanNative())) {
-                // RemoveVlanNative
-                updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanNative(), true, false);
+            if (!prevIntf.vlanNative().equals(VlanId.NONE)
+                    && !prevIntf.vlanNative().equals(intf.vlanUntagged())
+                    && !prevIntf.vlanNative().equals(intf.vlanNative())) {
+                if (intf.vlanTagged().contains(prevIntf.vlanNative())) {
+                    // Update filtering objective and L2IG group bucket
+                    updatePortVlanTreatment(deviceId, portNum, prevIntf.vlanNative(), false);
+                } else {
+                    // RemoveVlanNative
+                    updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanNative(), true, false);
+                }
+            }
+
+            if (!prevIntf.vlanUntagged().equals(VlanId.NONE)
+                    && !prevIntf.vlanUntagged().equals(intf.vlanUntagged())
+                    && !prevIntf.vlanUntagged().equals(intf.vlanNative())) {
+                if (intf.vlanTagged().contains(prevIntf.vlanUntagged())) {
+                    // Update filtering objective and L2IG group bucket
+                    updatePortVlanTreatment(deviceId, portNum, prevIntf.vlanUntagged(), false);
+                } else {
+                    // RemoveVlanUntagged
+                    updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanUntagged(), true, false);
+                }
             }
 
             if (!prevIntf.vlanTagged().isEmpty() && !intf.vlanTagged().equals(prevIntf.vlanTagged())) {
                 // RemoveVlanTagged
-                prevIntf.vlanTagged().stream().filter(i -> !intf.vlanTagged().contains(i)).forEach(
-                        vlanId -> updateVlanConfigInternal(deviceId, portNum, vlanId, false, false)
-                );
+                Sets.difference(prevIntf.vlanTagged(), intf.vlanTagged()).stream()
+                        .filter(i -> !intf.vlanUntagged().equals(i))
+                        .filter(i -> !intf.vlanNative().equals(i))
+                        .forEach(vlanId -> updateVlanConfigInternal(
+                                deviceId, portNum, vlanId, false, false));
             }
 
-            if (prevIntf.vlanUntagged() != VlanId.NONE && !intf.vlanUntagged().equals(prevIntf.vlanUntagged())) {
-                // RemoveVlanUntagged
-                updateVlanConfigInternal(deviceId, portNum, prevIntf.vlanUntagged(), true, false);
-            }
-
-            if (intf.vlanNative() != VlanId.NONE && !prevIntf.vlanNative().equals(intf.vlanNative())) {
-                // AddVlanNative
-                updateVlanConfigInternal(deviceId, portNum, intf.vlanNative(), true, true);
+            if (!intf.vlanNative().equals(VlanId.NONE)
+                    && !prevIntf.vlanNative().equals(intf.vlanNative())
+                    && !prevIntf.vlanUntagged().equals(intf.vlanNative())) {
+                if (prevIntf.vlanTagged().contains(intf.vlanNative())) {
+                    // Update filtering objective and L2IG group bucket
+                    updatePortVlanTreatment(deviceId, portNum, intf.vlanNative(), true);
+                } else {
+                    // AddVlanNative
+                    updateVlanConfigInternal(deviceId, portNum, intf.vlanNative(), true, true);
+                }
             }
 
             if (!intf.vlanTagged().isEmpty() && !intf.vlanTagged().equals(prevIntf.vlanTagged())) {
                 // AddVlanTagged
-                intf.vlanTagged().stream().filter(i -> !prevIntf.vlanTagged().contains(i)).forEach(
-                        vlanId -> updateVlanConfigInternal(deviceId, portNum, vlanId, false, true)
+                Sets.difference(intf.vlanTagged(), prevIntf.vlanTagged()).stream()
+                        .filter(i -> !prevIntf.vlanUntagged().equals(i))
+                        .filter(i -> !prevIntf.vlanNative().equals(i))
+                        .forEach(vlanId -> updateVlanConfigInternal(
+                                deviceId, portNum, vlanId, false, true)
                 );
             }
 
-            if (intf.vlanUntagged() != VlanId.NONE && !prevIntf.vlanUntagged().equals(intf.vlanUntagged())) {
-                // AddVlanUntagged
-                updateVlanConfigInternal(deviceId, portNum, intf.vlanUntagged(), true, true);
+            if (!intf.vlanUntagged().equals(VlanId.NONE)
+                    && !prevIntf.vlanUntagged().equals(intf.vlanUntagged())
+                    && !prevIntf.vlanNative().equals(intf.vlanUntagged())) {
+                if (prevIntf.vlanTagged().contains(intf.vlanUntagged())) {
+                    // Update filtering objective and L2IG group bucket
+                    updatePortVlanTreatment(deviceId, portNum, intf.vlanUntagged(), true);
+                } else {
+                    // AddVlanUntagged
+                    updateVlanConfigInternal(deviceId, portNum, intf.vlanUntagged(), true, true);
+                }
             }
             addSubnetConfig(prevIntf.connectPoint(),
                             Sets.difference(new HashSet<>(intf.ipAddressesList()),
                                             new HashSet<>(prevIntf.ipAddressesList())));
         } catch (ConfigException e) {
             log.error("Error in configuration");
+        }
+    }
+
+    private void updatePortVlanTreatment(DeviceId deviceId, PortNumber portNum,
+                                         VlanId vlanId, boolean pushVlan) {
+        DefaultGroupHandler grpHandler = getGroupHandler(deviceId);
+        if (grpHandler == null) {
+            log.warn("Failed to retrieve group handler for device {}", deviceId);
+            return;
+        }
+
+        // Update filtering objective for a single port
+        routingRulePopulator.updateSinglePortFilters(deviceId, portNum, !pushVlan, vlanId, false);
+        routingRulePopulator.updateSinglePortFilters(deviceId, portNum, pushVlan, vlanId, true);
+
+        if (getVlanNextObjectiveId(deviceId, vlanId) != -1) {
+            // Update L2IG bucket of the port
+            grpHandler.updateL2InterfaceGroupBucket(portNum, vlanId, pushVlan);
+        } else {
+            log.warn("Failed to retrieve next objective for vlan {} in device {}:{}", vlanId, deviceId, portNum);
         }
     }
 
@@ -1628,7 +1681,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (nextId != -1 && !install) {
             // Update next objective for a single port as an output port
             // Remove a single port from L2FG
-            grpHandler.updateGroupFromVlanConfiguration(portNum, Collections.singleton(vlanId), nextId, install);
+            grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
             // Remove L2 Bridging rule and L3 Unicast rule to the host
             hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum, vlanId, pushVlan, install);
             // Remove broadcast forwarding rule and corresponding L2FG for VLAN
@@ -1645,7 +1698,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         } else if (install) {
             if (nextId != -1) {
                 // Add a single port to L2FG
-                grpHandler.updateGroupFromVlanConfiguration(portNum, Collections.singleton(vlanId), nextId, install);
+                grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
             } else {
                 // Create L2FG for VLAN
                 grpHandler.createBcastGroupFromVlan(vlanId, Collections.singleton(portNum));

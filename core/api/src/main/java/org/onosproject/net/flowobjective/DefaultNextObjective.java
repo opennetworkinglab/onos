@@ -316,6 +316,24 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
+        public NextObjective modify() {
+            return modify(null);
+        }
+
+        @Override
+        public NextObjective modify(ObjectiveContext context) {
+            treatments = listBuilder.build();
+            op = Operation.MODIFY;
+            this.context = context;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(this);
+        }
+
+        @Override
         public NextObjective verify() {
             return verify(null);
         }
