@@ -16,9 +16,9 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import com.google.common.cache.LoadingCache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
@@ -45,8 +45,8 @@ import org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -75,22 +75,24 @@ public class P4RuntimeFlowRuleProgrammable
     // before inserting the new one, otherwise we issue a MODIFY operation. This
     // is useful fore devices that do not support MODIFY operations for table
     // entries.
-    // TODO: make this attribute configurable by child drivers (e.g. BMv2 or Tofino)
-    private boolean deleteEntryBeforeUpdate = true;
+    private static final String DELETE_BEFORE_UPDATE = "tableDeleteBeforeUpdate";
+    private static final boolean DEFAULT_DELETE_BEFORE_UPDATE = false;
 
-    // If true, we ignore re-installing rules that are already exists the
+    // If true, we ignore re-installing rules that already exist the
     // device, i.e. same match key and action.
-    // FIXME: can remove this check as soon as the multi-apply-per-same-flow rule bug is fixed.
-    private boolean checkStoreBeforeUpdate = true;
+    private static final String IGNORE_SAME_ENTRY_UPDATE = "tableIgnoreSameEntryUpdate";
+    private static final boolean DEFAULT_IGNORE_SAME_ENTRY_UPDATE = false;
 
     // If true, we avoid querying the device and return what's already known by
     // the ONOS store.
-    private boolean ignoreDeviceWhenGet = true;
+    private static final String READ_FROM_MIRROR = "tableReadFromMirror";
+    private static final boolean DEFAULT_READ_FROM_MIRROR = false;
 
-    /* If true, we read all direct counters of a table with one request.
-    Otherwise, we send as many requests as the number of table entries. */
+    // If true, we read all direct counters of a table with one request.
+    // Otherwise, we send as many requests as the number of table entries.
+    private static final String READ_ALL_DIRECT_COUNTERS = "tableReadAllDirectCounters";
     // FIXME: set to true as soon as the feature is implemented in P4Runtime.
-    private boolean readAllDirectCounters = false;
+    private static final boolean DEFAULT_READ_ALL_DIRECT_COUNTERS = false;
 
     private static final int TABLE_ENTRY_LOCK_EXPIRE_TIME_IN_MIN = 10;
 
@@ -134,7 +136,7 @@ public class P4RuntimeFlowRuleProgrammable
             return Collections.emptyList();
         }
 
-        if (ignoreDeviceWhenGet) {
+        if (driverBoolProperty(READ_FROM_MIRROR, DEFAULT_READ_FROM_MIRROR)) {
             return getFlowEntriesFromMirror();
         }
 
@@ -316,11 +318,13 @@ public class P4RuntimeFlowRuleProgrammable
                 // Entry is first-timer.
                 p4Operation = INSERT;
             } else {
-                if (checkStoreBeforeUpdate
+                if (driverBoolProperty(IGNORE_SAME_ENTRY_UPDATE,
+                                       DEFAULT_IGNORE_SAME_ENTRY_UPDATE)
                         && piEntryToApply.action().equals(piEntryOnDevice.entry().action())) {
                     log.debug("Ignoring re-apply of existing entry: {}", piEntryToApply);
                     p4Operation = null;
-                } else if (deleteEntryBeforeUpdate) {
+                } else if (driverBoolProperty(DELETE_BEFORE_UPDATE,
+                                              DEFAULT_DELETE_BEFORE_UPDATE)) {
                     // Some devices return error when updating existing
                     // entries. If requested, remove entry before
                     // re-inserting the modified one.
@@ -391,7 +395,8 @@ public class P4RuntimeFlowRuleProgrammable
             PiCounterId counterId, Collection<PiTableEntry> tableEntries) {
         Collection<PiCounterCellData> cellDatas;
         try {
-            if (readAllDirectCounters) {
+            if (driverBoolProperty(READ_ALL_DIRECT_COUNTERS,
+                                   DEFAULT_READ_ALL_DIRECT_COUNTERS)) {
                 cellDatas = client.readAllCounterCells(
                         singleton(counterId), pipeconf).get();
             } else {

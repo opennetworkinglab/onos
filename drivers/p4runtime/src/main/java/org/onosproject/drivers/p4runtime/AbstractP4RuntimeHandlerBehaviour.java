@@ -30,6 +30,8 @@ import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Abstract implementation of a behaviour handler for a P4Runtime device.
  */
@@ -51,9 +53,10 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     protected PiTranslationService piTranslationService;
 
     /**
-     * Initializes this behaviour attributes. Returns true if the operation was successful, false otherwise. This method
-     * assumes that the P4runtime controller already has a client for this device and that the device has been created
-     * in the core.
+     * Initializes this behaviour attributes. Returns true if the operation was
+     * successful, false otherwise. This method assumes that the P4runtime
+     * controller already has a client for this device and that the device has
+     * been created in the core.
      *
      * @return true if successful, false otherwise
      */
@@ -88,7 +91,8 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     }
 
     /**
-     * Create a P4Runtime client for this device. Returns true if the operation was successful, false otherwise.
+     * Create a P4Runtime client for this device. Returns true if the operation
+     * was successful, false otherwise.
      *
      * @return true if successful, false otherwise
      */
@@ -116,5 +120,22 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
         }
 
         return true;
+    }
+
+    /**
+     * Returns the value of the given driver property, if present,
+     * otherwise returns the given default value.
+     *
+     * @param propName property name
+     * @param defaultVal default value
+     * @return boolean
+     */
+    protected boolean driverBoolProperty(String propName, boolean defaultVal) {
+        checkNotNull(propName);
+        if (handler().driver().getProperty(propName) == null) {
+            return defaultVal;
+        } else {
+            return Boolean.parseBoolean(handler().driver().getProperty(propName));
+        }
     }
 }
