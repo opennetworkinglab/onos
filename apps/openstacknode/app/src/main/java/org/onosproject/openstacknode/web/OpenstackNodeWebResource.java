@@ -17,23 +17,13 @@ package org.onosproject.openstacknode.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import org.onlab.osgi.DefaultServiceDirectory;
-import org.onlab.packet.IpAddress;
-import org.onosproject.net.DeviceId;
-import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
 import org.onosproject.rest.AbstractWebResource;
-import static org.onosproject.openstacknode.api.Constants.GATEWAY;
-import static org.onosproject.openstacknode.api.Constants.HOST_NAME;
-import static org.onosproject.openstacknode.api.Constants.MANAGEMENT_IP;
-import static org.onosproject.openstacknode.api.Constants.DATA_IP;
-import static org.onosproject.openstacknode.api.Constants.VLAN_INTF_NAME;
-import static org.onosproject.openstacknode.api.Constants.UPLINK_PORT;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,9 +54,6 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
     private static final String DELETE = "DELETE";
-    private static final String TYPE = "type";
-    private static final String INTEGRATION_BRIDGE = "integrationBridge";
-
 
     private final OpenstackNodeAdminService osNodeAdminService =
             DefaultServiceDirectory.getService(OpenstackNodeAdminService.class);
@@ -143,33 +130,14 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
              ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
              nodes.forEach(node -> {
                  try {
-                     String hostname = node.get(HOST_NAME).asText();
-                     String type = node.get(TYPE).asText();
-                     String mIp = node.get(MANAGEMENT_IP).asText();
-                     String iBridge = node.get(INTEGRATION_BRIDGE).asText();
+                     ObjectNode objectNode = node.deepCopy();
+                     OpenstackNode openstackNode =
+                             codec(OpenstackNode.class).decode(objectNode, this);
 
-                     DefaultOpenstackNode.Builder nodeBuilder = DefaultOpenstackNode.builder()
-                             .hostname(hostname)
-                             .type(OpenstackNode.NodeType.valueOf(type))
-                             .managementIp(IpAddress.valueOf(mIp))
-                             .intgBridge(DeviceId.deviceId(iBridge))
-                             .state(NodeState.INIT);
-
-                     if (type.equals(GATEWAY)) {
-                         nodeBuilder.uplinkPort(node.get(UPLINK_PORT).asText());
-                     }
-                     if (node.get(VLAN_INTF_NAME) != null) {
-                         nodeBuilder.vlanIntf(node.get(VLAN_INTF_NAME).asText());
-                     }
-                     if (node.get(DATA_IP) != null) {
-                         nodeBuilder.dataIp(IpAddress.valueOf(node.get(DATA_IP).asText()));
-                     }
-
-                     log.trace("node is {}", nodeBuilder.build().toString());
-                     nodeSet.add(nodeBuilder.build());
+                     nodeSet.add(openstackNode);
                  } catch (Exception e) {
                      log.error(e.toString());
-                     throw  new IllegalArgumentException();
+                     throw new IllegalArgumentException();
                  }
              });
         } catch (Exception e) {
