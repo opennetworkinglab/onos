@@ -44,6 +44,10 @@ import java.util.Set;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 
+/**
+ * Handles REST API call of openstack node config.
+ */
+
 @Path("configure")
 public class OpenstackNodeWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -63,6 +67,14 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Context
     private UriInfo uriInfo;
 
+    /**
+     * Creates a set of openstack nodes' config from the JSON input stream.
+     *
+     * @param input openstack nodes JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is malformed
+     * @onos.rsModel OpenstackNode
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -83,6 +95,14 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         return created(locationBuilder.build()).build();
     }
 
+    /**
+     * Creates a set of openstack nodes' config from the JSON input stream.
+     *
+     * @param input openstack nodes JSON input stream
+     * @return 200 OK with the updated openstack node's config, 400 BAD_REQUEST
+     * if the JSON is malformed
+     * @onos.rsModel OpenstackNode
+     */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,6 +123,13 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         return Response.ok().build();
     }
 
+    /**
+     * Removes a set of openstack nodes' config from the JSON input stream.
+     *
+     * @param input openstack nodes JSON input stream
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed
+     * @onos.rsModel OpenstackNode
+     */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
