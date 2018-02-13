@@ -50,6 +50,7 @@ import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafListKey;
 import org.onosproject.yang.model.LeafNode;
+import org.onosproject.yang.model.LeafType;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
@@ -110,7 +111,8 @@ public class DistributedDynamicConfigStore
                 .register(KeyLeaf.class)
                 .register(BigInteger.class)
                 .register(BigDecimal.class)
-                .register(LinkedHashMap.class);
+                .register(LinkedHashMap.class)
+                .register(LeafType.class);
         keystore = storageService.<DataNode.Type>documentTreeBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-key-store")
