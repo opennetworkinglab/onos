@@ -15,7 +15,6 @@
  */
 package org.onosproject.provider.tl1.device.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,7 +23,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -59,11 +57,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -109,16 +105,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
     private Tl1Listener tl1Listener = new InnerTl1Listener();
     private DeviceProviderService providerService;
 
-    private final List<ConfigFactory> factories = ImmutableList.of(
-            new ConfigFactory<ApplicationId, Tl1ProviderConfig>(APP_SUBJECT_FACTORY,
-                                                                Tl1ProviderConfig.class,
-                                                                "tl1_devices",
-                                                                true) {
-                @Override
-                public Tl1ProviderConfig createConfig() {
-                    return new Tl1ProviderConfig();
-                }
-            },
+    private final ConfigFactory factory =
             new ConfigFactory<DeviceId, Tl1DeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
                                                          Tl1DeviceConfig.class,
                                                          Tl1DeviceConfig.TL1) {
@@ -126,7 +113,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
                 public Tl1DeviceConfig createConfig() {
                     return new Tl1DeviceConfig();
                 }
-            });
+            };
 
     @Activate
     public void activate() {
@@ -134,8 +121,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
         providerService = providerRegistry.register(this);
         cfgRegistry.addListener(cfgListener);
         controller.addListener(tl1Listener);
-        factories.forEach(cfgRegistry::registerConfigFactory);
-        registerDevices();
+        cfgRegistry.registerConfigFactory(factory);
         connectDevices();
         log.info("Started");
     }
@@ -149,7 +135,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
             deviceAdminService.removeDevice(deviceId);
         });
         providerRegistry.unregister(this);
-        factories.forEach(cfgRegistry::unregisterConfigFactory);
+        cfgRegistry.unregisterConfigFactory(factory);
         providerService = null;
         log.info("Stopped");
     }
@@ -208,21 +194,6 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
     @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
         // TODO
-    }
-
-    //Old method to register devices provided via net-cfg under apps/tl1/ tree
-    void registerDevices() {
-        Tl1ProviderConfig cfg = cfgRegistry.getConfig(appId, Tl1ProviderConfig.class);
-
-        if (cfg == null) {
-            return;
-        }
-
-        try {
-            cfg.readDevices().forEach(this::connectDevice);
-        } catch (ConfigException e) {
-            log.error("Cannot parse network configuration", e);
-        }
     }
 
     //Method to register devices provided via net-cfg under devices/ tree
@@ -302,7 +273,6 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
                 } else {
                     log.warn("Injecting device via this Json is deprecated, " +
                                      "please put configuration under devices/");
-                    registerDevices();
                 }
             } else if (event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) {
                 // TODO: calculate delta
@@ -311,7 +281,6 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
                 } else {
                     log.warn("Injecting device via this Json is deprecated, " +
                                      "please put configuration under devices/");
-                    registerDevices();
                 }
             } else if (event.type() == NetworkConfigEvent.Type.CONFIG_REMOVED) {
                 controller.getDeviceIds().forEach(deviceId -> {
@@ -323,8 +292,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.configClass().equals(Tl1DeviceConfig.class) ||
-                    event.configClass().equals(Tl1ProviderConfig.class)) &&
+            return (event.configClass().equals(Tl1DeviceConfig.class)) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_REMOVED);
