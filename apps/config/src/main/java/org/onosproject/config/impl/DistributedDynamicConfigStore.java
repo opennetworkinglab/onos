@@ -495,6 +495,7 @@ public class DistributedDynamicConfigStore
                     //log.info("UNKNOWN operation in store");
                     type = UNKNOWN_OPRN;
             }
+            // FIXME don't use ResourceIdParser
             path = ResourceIdParser.getResId(event.path().pathElements());
             notifyDelegate(new DynamicConfigEvent(type, path));
         }

@@ -276,7 +276,8 @@ public final class ResourceIdParser {
                     String key = keys[i];
                     String[] el = keys[i].split(NM_CHK);
                     if (el.length != 3) {
-                        throw new FailedException("Malformed event subject, cannot parse");
+                        throw new FailedException("Malformed event subject, cannot parse " +
+                                                  key + " in " + dpath);
                     }
                     try {
                     resBldr.addKeyLeaf(el[0], el[1], el[2]);
