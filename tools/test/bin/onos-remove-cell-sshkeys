@@ -1,0 +1,9 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Removes known_host entries about current ONOS cell.
+# -----------------------------------------------------------------------------
+
+for host in $OCT $OCN $(env | egrep "^OC[0-9]+" | cut -d '=' -f 2); do
+  ssh-keygen -F "$host" >/dev/null && ssh-keygen -R "$host"
+  ssh-keygen -F "[$host]:8101" >/dev/null && ssh-keygen -R "[$host]:8101"
+done
