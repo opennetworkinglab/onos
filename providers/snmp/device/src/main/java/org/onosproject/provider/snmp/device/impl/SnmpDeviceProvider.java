@@ -15,7 +15,6 @@
  */
 package org.onosproject.provider.snmp.device.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,7 +24,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -54,14 +52,12 @@ import org.onosproject.snmp.ctl.DefaultSnmpDevice;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -106,16 +102,7 @@ public class SnmpDeviceProvider extends AbstractProvider
     protected final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
 
 
-    protected final List<ConfigFactory> factories = ImmutableList.of(
-            new ConfigFactory<ApplicationId, SnmpProviderConfig>(APP_SUBJECT_FACTORY,
-                                                                 SnmpProviderConfig.class,
-                                                                 "snmp_devices",
-                                                                 true) {
-                @Override
-                public SnmpProviderConfig createConfig() {
-                    return new SnmpProviderConfig();
-                }
-            },
+    protected final ConfigFactory factory =
             new ConfigFactory<DeviceId, SnmpDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
                                                           SnmpDeviceConfig.class,
                                                           SCHEME) {
@@ -123,7 +110,7 @@ public class SnmpDeviceProvider extends AbstractProvider
                 public SnmpDeviceConfig createConfig() {
                     return new SnmpDeviceConfig();
                 }
-            });
+            };
 
 
     /**
@@ -139,10 +126,9 @@ public class SnmpDeviceProvider extends AbstractProvider
 
         providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(APP_NAME);
-        factories.forEach(netCfgService::registerConfigFactory);
+        netCfgService.registerConfigFactory(factory);
         netCfgService.addListener(cfgLister);
         connectDevices();
-        addOrRemoveDevicesConfig();
         modified(context);
         log.info("Started");
     }
@@ -160,7 +146,7 @@ public class SnmpDeviceProvider extends AbstractProvider
             log.error("Device builder did not terminate");
         }
         deviceBuilderExecutor.shutdownNow();
-        factories.forEach(netCfgService::unregisterConfigFactory);
+        netCfgService.unregisterConfigFactory(factory);
         netCfgService.removeListener(cfgLister);
         providerRegistry.unregister(this);
         providerService = null;
@@ -170,23 +156,6 @@ public class SnmpDeviceProvider extends AbstractProvider
     @Modified
     public void modified(ComponentContext context) {
         log.info("Modified");
-    }
-
-    //Old method to register devices provided via net-cfg under apps/snmp/ tree
-    private void addOrRemoveDevicesConfig() {
-        SnmpProviderConfig cfg = netCfgService.getConfig(appId, SnmpProviderConfig.class);
-        if (cfg != null) {
-            try {
-                cfg.getDevicesInfo().forEach(info -> {
-                    buildDevice(new DefaultSnmpDevice(info.ip().toString(),
-                                                      info.port(), info.username(),
-                                                      info.password()));
-
-                });
-            } catch (ConfigException e) {
-                log.error("Cannot read config error " + e);
-            }
-        }
     }
 
     //Method to register devices provided via net-cfg under devices/ tree
@@ -344,14 +313,12 @@ public class SnmpDeviceProvider extends AbstractProvider
             } else {
                 log.warn("Injecting device via this Json is deprecated, " +
                                  "please put configuration under devices/");
-                addOrRemoveDevicesConfig();
             }
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.configClass().equals(SnmpDeviceConfig.class) ||
-                    event.configClass().equals(SnmpProviderConfig.class)) &&
+            return (event.configClass().equals(SnmpDeviceConfig.class)) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
         }

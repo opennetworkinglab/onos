@@ -21,12 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -60,7 +58,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.onlab.junit.TestTools.assertAfter;
 
 /**
@@ -79,14 +81,10 @@ public class SnmpDeviceProviderTest {
     protected CoreService coreService = new MockCoreService();
     private final DeviceProviderService deviceProviderService = new MockDeviceProviderService();
     private final TestApplicationId applicationId = new TestApplicationId("TestAppId");
-    private final SnmpProviderConfig snmpProviderConfig = new MockSnmpProviderConfig();
     private final DeviceId deviceId = DeviceId.deviceId("snmp:1.1.1.1:1");
     private final DeviceId wrongDeviceId = DeviceId.deviceId("snmp:2.2.2.2:2");
     private final Set<ConfigFactory> cfgFactories = new HashSet<>();
     private final Set<NetworkConfigListener> netCfgListeners = new HashSet<>();
-    private final NetworkConfigEvent deviceAddedEvent =
-            new NetworkConfigEvent(NetworkConfigEvent.Type.CONFIG_ADDED,
-                                   null, SnmpProviderConfig.class);
     private final NetworkConfigEvent deviceAddedIrrelevantEvent =
             new NetworkConfigEvent(NetworkConfigEvent.Type.CONFIG_ADDED,
                                    null, BasicDeviceConfig.class);
@@ -119,7 +117,7 @@ public class SnmpDeviceProviderTest {
     public void testActivate() {
         assertEquals("Incorrect provider service", deviceProviderService, provider.providerService);
         assertEquals("Incorrect application id", applicationId, provider.appId);
-        assertTrue("Incorrect config factories", cfgFactories.containsAll(provider.factories));
+        assertTrue("Incorrect config factories", cfgFactories.contains(provider.factory));
         assertTrue("Incorrect network config listener", netCfgListeners.contains(provider.cfgLister));
 
 
@@ -145,8 +143,6 @@ public class SnmpDeviceProviderTest {
 
     @Test
     public void addDevice() {
-        assertTrue("Event should be relevant", provider.cfgLister.isRelevant(deviceAddedEvent));
-        provider.cfgLister.event(deviceAddedEvent);
         AbstractProjectableModel.setDriverService(null, new MockDriverService());
         //FIXME this needs sleep
         assertAfter(DELAY, TEST_DURATION, () ->
@@ -219,9 +215,7 @@ public class SnmpDeviceProviderTest {
 
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
-            if (configClass.equals(SnmpProviderConfig.class)) {
-                return (C) snmpProviderConfig;
-            } else if (configClass.equals(SnmpDeviceConfig.class)) {
+            if (configClass.equals(SnmpDeviceConfig.class)) {
                 return (C) config;
             } else {
                 return (C) new BasicDeviceConfig();
@@ -269,16 +263,6 @@ public class SnmpDeviceProviderTest {
         public void deviceConnected(DeviceId deviceId, DeviceDescription desc) {
             store.createOrUpdateDevice(ProviderId.NONE, deviceId, desc);
         }
-    }
-
-    private class MockSnmpProviderConfig extends SnmpProviderConfig {
-        protected SnmpDeviceInfo deviceInfo = new SnmpDeviceInfo(IpAddress.valueOf("1.1.1.1"), 1, "test", "test");
-
-        @Override
-        public Set<SnmpProviderConfig.SnmpDeviceInfo> getDevicesInfo() throws ConfigException {
-            return ImmutableSet.of(deviceInfo);
-        }
-
     }
 
     private class MockDriverService extends DriverServiceAdapter {
