@@ -26,13 +26,12 @@
     var k2b = {
         O: { id: 'topo2-summary-tog', gid: 'm_summary', isel: true },
         I: { id: 'topo2-instance-tog', gid: 'm_uiAttached', isel: true },
-        // D: { id: 'details-tog', gid: 'm_details', isel: true },
-        // H: { id: 'hosts-tog', gid: 'm_endstation', isel: false },
-        // M: { id: 'offline-tog', gid: 'm_switch', isel: true },
+        D: { id: 'details-tog', gid: 'm_details', isel: true },
+        H: { id: 'hosts-tog', gid: 'm_endstation', isel: false },
+        M: { id: 'offline-tog', gid: 'm_switch', isel: true },
         P: { id: 'topo2-ports-tog', gid: 'm_ports', isel: true },
         B: { id: 'topo2-bkgrnd-tog', gid: 'm_map', isel: true },
 
-        // Z: { id: 'oblique-tog', gid: 'm_oblique', isel: false },
         // N: { id: 'filters-btn', gid: 'm_filters' },
         L: { id: 'topo2-cycleLabels-btn', gid: 'm_cycleLabels' },
         R: { id: 'topo2-resetZoom-btn', gid: 'm_resetZoom' },
@@ -43,7 +42,8 @@
     angular.module('ovTopo2')
         .factory('Topo2ToolbarService', [
             'FnService', 'ToolbarService', 'Topo2KeyCommandService',
-            function (fs, tbs, t2kcs) {
+            'Topo2OverlayService',
+            function (fs, tbs, t2kcs, t2ov) {
 
                 var Toolbar = function () {
                     instance = this;
@@ -55,11 +55,14 @@
 
                     init: function () {
                         this.el = tbs.createToolbar(this.className);
+                        this.radioSet;
+                        this.ovIndex;
+
                         this.initKeyData();
                         this.addFirstRow();
                         this.el.addRow();
                         this.addSecondRow();
-
+                        this.addOverlays();
                         this.el.hide();
                     },
                     initKeyData: function () {
@@ -97,25 +100,61 @@
                         this.el.toggle();
                     },
 
+                    selectOverlay: function (ovid) {
+                        var index = this.ovIndex[defaultOverlay] || 0,
+                            pidx = (ovid === null) ? 0 : this.ovIndex[ovid] || -1;
+                        if (pidx >= 0 && pidx < this.radioSet.size()) {
+                            index = pidx;
+                        }
+
+                        this.radioSet.selectedIndex(index);
+                    },
+
+                    fnKey: function (index) {
+                        if (index < this.radioSet.size() && index !== this.radioSet.selectedIndex()) {
+                            this.radioSet.selectedIndex(index);
+                        }
+                    },
+
                     addFirstRow: function () {
                         this.addToggle('I');
                         this.addToggle('O');
-                        // this.addToggle('D');
+                        this.addToggle('D');
                         this.el.addSeparator();
 
-                        // this.addToggle('H');
-                        // this.addToggle('M');
+                        this.addToggle('H');
+                        this.addToggle('M');
                         this.addToggle('P', true);
                         this.addToggle('B');
                     },
                     addSecondRow: function () {
-                        // addToggle('X');
-                        // this.addToggle('Z');
                         // this.addButton('N');
                         this.addButton('L');
                         this.addButton('R');
                         this.el.addSeparator();
                         this.addButton('E');
+                    },
+
+                    switchOverlayActions: function () {
+                        // TODO: see TopoToolbar.js
+                        // NOTE: Should add overlay buttons on the third row
+                    },
+
+                    addOverlays: function () {
+                        var _this = this; // Keep context in callback
+                        this.el.addSeparator();
+
+                        // generate radio button set for overlays; start with 'none'
+                        var rset = [{
+                            gid: 'm_unknown',
+                            tooltip: 'ov_tt_none',
+                            cb: function () {
+                                t2ov.tbSelection(null, _this.switchOverlayActions);
+                            },
+                        }];
+
+                        t2ov.augmentRbset(rset, this.switchOverlayActions);
+                        this.radioSet = this.el.addRadioSet('topo-overlays', rset);
                     },
 
                     destroy: function () {

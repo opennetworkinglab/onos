@@ -65,7 +65,6 @@
         init();
 
         hostData = formatHostData(data);
-        console.log(data);
         render();
     }
 
@@ -88,7 +87,6 @@
 
         title.text(hostData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        console.log()
         ls.listProps(tbody, hostData);
     }
 

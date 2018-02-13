@@ -25,7 +25,7 @@
 
     // references to injected services
     var $scope, $log, fs, mast, ks, wss,
-        gs, sus, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2zs;
+        gs, sus, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2zs, t2ts;
 
     // DOM elements
     var ovtopo2, svg, defs, zoomLayer, forceG;
@@ -100,7 +100,7 @@
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
         'Topo2ZoomService', 'Topo2SpriteLayerService',
         'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ToolbarService',
-        'Topo2NoDevicesConnectedService', 'Topo2OverlayService',
+        'Topo2NoDevicesConnectedService', 'Topo2OverlayService', 'Topo2TrafficService',
 
         function (
             _$scope_, _$log_, _$loc_,
@@ -109,7 +109,8 @@
             _t2es_, _t2fs_, _t2is_,
             _t2bcs_, _t2kcs_, _t2ms_,
             _t2zs_, t2sls,
-            summaryPanel, detailsPanel, t2tbs, t2ndcs, t2os
+            summaryPanel, detailsPanel, t2tbs, t2ndcs, t2os,
+            _t2ts_
         ) {
             var params = _$loc_.search(),
                 dim,
@@ -136,6 +137,7 @@
             t2kcs = _t2kcs_;
             t2ms = _t2ms_;
             t2zs = _t2zs_;
+            t2ts = _t2ts_;
 
             // capture selected intent parameters (if they are set in the
             //  query string) so that the traffic overlay can highlight

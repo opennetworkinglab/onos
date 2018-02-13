@@ -26,7 +26,8 @@
 
     // internal state
     var overlays = {},
-        current = null;
+        current = null,
+        reset = true;
 
     function error(fn, msg) {
         $log.error(t2os + fn + '(): ' + msg);
@@ -34,6 +35,39 @@
 
     function warn(fn, msg) {
         $log.warn(t2os + fn + '(): ' + msg);
+    }
+
+    function mkGlyphId(oid, gid) {
+        return (gid[0] === '*') ? oid + '-' + gid.slice(1) : gid;
+    }
+
+    function handleGlyphs(o) {
+        var gdata = fs.isO(o.glyphs),
+            oid = o.overlayId,
+            gid = o.glyphId || 'unknown',
+            data = {},
+            note = [];
+
+        o._glyphId = mkGlyphId(oid, gid);
+
+        o.mkGid = function (g) {
+            return mkGlyphId(oid, g);
+        };
+        o.mkId = function (s) {
+            return oid + '-' + s;
+        };
+
+        // process glyphs if defined
+        if (gdata) {
+            angular.forEach(gdata, function (value, key) {
+                var fullkey = oid + '-' + key;
+                data['_' + fullkey] = value.vb;
+                data[fullkey] = value.d;
+                note.push('*' + key);
+            });
+            gs.registerGlyphs(data);
+            $log.debug('registered overlay glyphs:', oid, note);
+        }
     }
 
     function register(overlay) {
@@ -49,7 +83,7 @@
             return warn(r, 'already registered: "' + id + '"');
         }
         overlays[id] = overlay;
-        // TODO handleGlyphs(overlay) ... see topoOverlay.js
+        handleGlyphs(overlay);
 
         if (kb) {
             if (!fs.isA(kb._keyOrder)) {
@@ -64,6 +98,48 @@
         }
 
         $log.debug(t2os + 'registered overlay: ' + id, overlay);
+    }
+
+    // add a radio button for each registered overlay
+    // return an overlay id to index map
+    function augmentRbset(rset, switchFn) {
+        var map = {},
+            idx = 1;
+
+        angular.forEach(overlays, function (ov) {
+            rset.push({
+                gid: ov._glyphId,
+                tooltip: (ov.tooltip || ''),
+                cb: function () {
+                    tbSelection(ov.overlayId, switchFn);
+                },
+            });
+            map[ov.overlayId] = idx++;
+        });
+        return map;
+    }
+
+    // an overlay was selected via toolbar radio button press from user
+    function tbSelection(id, switchFn) {
+        var same = current && current.overlayId === id,
+            payload = {},
+            actions;
+
+        function doop(op) {
+            var oid = current.overlayId;
+            $log.debug('Overlay:', op, oid);
+            current[op]();
+            payload[op] = oid;
+        }
+
+        if (reset || !same) {
+            current && doop('deactivate');
+            current = overlays[id];
+            current && doop('activate');
+            actions = current && fs.isO(current.keyBindings);
+            switchFn(id, actions);
+            // TODO: Update Summary Panel
+        }
     }
 
     // TODO: check topoOverlay.js for more code
@@ -163,6 +239,9 @@
             return {
                 register: register,
                 setOverlay: setOverlay,
+                augmentRbset: augmentRbset,
+                tbSelection: tbSelection,
+                mkGlyphId: mkGlyphId,
 
                 hooks: {
                     escape: escapeHook,

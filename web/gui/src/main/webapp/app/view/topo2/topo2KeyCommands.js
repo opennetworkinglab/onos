@@ -43,6 +43,13 @@
 
             esc: handleEscape,
 
+            // topology overlay selections
+            F1: function () { t2tbs.fnKey(0); },
+            F2: function () { t2tbs.fnKey(1); },
+            F3: function () { t2tbs.fnKey(2); },
+            F4: function () { t2tbs.fnKey(3); },
+            F5: function () { t2tbs.fnKey(4); },
+
             _keyListener: t2tbs.keyListener.bind(t2tbs),
 
             _helpFormat: [
@@ -241,7 +248,7 @@
         'Topo2RegionService', 'Topo2DetailsPanelService', 'SvgUtilService',
 
         function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_,
-                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2dp_, _sus_) {
+                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2dp_, _t2tbs_, _sus_) {
 
             $log = _$log_;
             fs = _fs_;
