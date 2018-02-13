@@ -79,6 +79,24 @@ public class DefaultL2TunnelDescription {
         return l2TunnelPolicy;
     }
 
+    /**
+     * Sets the l2 tunnel.
+     *
+     * @param tunnel the l2 tunnel to set.
+     */
+    public void setL2Tunnel(DefaultL2Tunnel tunnel) {
+        l2Tunnel = tunnel;
+    }
+
+    /**
+     * Sets the l2 policy.
+     *
+     * @param policy the policy to set.
+     */
+    public void setL2TunnelPolicy(DefaultL2TunnelPolicy policy) {
+        l2TunnelPolicy = policy;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.l2Tunnel, this.l2TunnelPolicy);

@@ -17,7 +17,6 @@
 package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.Lists;
-import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.driver.extensions.Ofdpa3PushCw;
@@ -370,8 +369,6 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
                          ins.type(), ins);
             }
         }
-        // We add in a transparent way the set vlan to 4094.
-        l2L3Treatment.setVlanId(VlanId.vlanId((short) PW_INTERNAL_VLAN));
     }
     // TODO Introduce in the future an inner class to return two treatments
 }

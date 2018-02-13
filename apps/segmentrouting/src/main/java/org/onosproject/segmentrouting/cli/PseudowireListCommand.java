@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
@@ -36,11 +37,9 @@ public class PseudowireListCommand extends AbstractShellCommand {
             "Pseudowire id = %s \n" +
                     "   mode : %s, sdTag : %s, pwLabel : %s \n" +
                     "   cP1 : %s , cP1OuterTag : %s, cP1InnerTag : %s \n" +
-                    "   cP2 : %s , cP2OuterTag : %s, cP2InnerTag : %s \n" /* +
-                    "   Path used : (%s - %s) <-> (%s - %s) \n" */;
+                    "   cP2 : %s , cP2OuterTag : %s, cP2InnerTag : %s \n" +
+                    "   transportVlan : %s";
 
-                    // TODO:  uncomment string when path failures are fixed also for the links
-                    // TODO:  used in spine for pw traffic.
     @Override
     protected void execute() {
 
@@ -71,14 +70,14 @@ public class PseudowireListCommand extends AbstractShellCommand {
     private void printPseudowire(DefaultL2TunnelDescription pseudowire) {
 
 
+        VlanId vlan = pseudowire.l2Tunnel().transportVlan().equals(VlanId.vlanId((short) 4094)) ?
+                VlanId.NONE : pseudowire.l2Tunnel().transportVlan();
+
         print(FORMAT_PSEUDOWIRE, pseudowire.l2Tunnel().tunnelId(), pseudowire.l2Tunnel().pwMode(),
               pseudowire.l2Tunnel().sdTag(), pseudowire.l2Tunnel().pwLabel(),
               pseudowire.l2TunnelPolicy().cP1(), pseudowire.l2TunnelPolicy().cP1OuterTag(),
               pseudowire.l2TunnelPolicy().cP1InnerTag(), pseudowire.l2TunnelPolicy().cP2(),
-              pseudowire.l2TunnelPolicy().cP2OuterTag(), pseudowire.l2TunnelPolicy().cP2InnerTag()/*,
-              pseudowire.l2Tunnel().pathUsed().get(0).src(), pseudowire.l2Tunnel().pathUsed().get(0).dst(),
-              pseudowire.l2Tunnel().pathUsed().get(1).src(), pseudowire.l2Tunnel().pathUsed().get(1).dst()*/);
-
-        // TODO: uncomment arguments when path issue is fixed for spine switches
+              pseudowire.l2TunnelPolicy().cP2OuterTag(), pseudowire.l2TunnelPolicy().cP2InnerTag(),
+              vlan);
     }
 }

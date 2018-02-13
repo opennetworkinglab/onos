@@ -58,6 +58,12 @@ public class DefaultL2Tunnel {
     private List<Link> pathUsed;
 
     /**
+     * Vlan which will be used for the encapsualted
+     * vlan traffic.
+     */
+    private VlanId transportVlan;
+
+    /**
      * Creates a inter-co l2 tunnel using the
      * supplied parameters.
      *
@@ -93,6 +99,7 @@ public class DefaultL2Tunnel {
         this.pwLabel = l2Tunnel.pwLabel();
         this.interCoLabel = l2Tunnel.interCoLabel();
         this.pathUsed = l2Tunnel.pathUsed();
+        this.transportVlan = l2Tunnel.transportVlan;
     }
 
     /**
@@ -167,6 +174,15 @@ public class DefaultL2Tunnel {
     }
 
     /**
+     * Set the transport vlan for the pseudowire.
+     *
+     * @param vlan the vlan to use.
+     */
+    public void setTransportVlan(VlanId vlan) {
+        transportVlan = vlan;
+    }
+
+    /**
      * Returns the used path of the pseudowire.
      *
      * @return pathUsed
@@ -174,6 +190,11 @@ public class DefaultL2Tunnel {
     public List<Link> pathUsed() {
         return pathUsed;
     }
+
+    public VlanId transportVlan() {
+        return transportVlan;
+    }
+
 
     /**
      * Returns the inter-co label.
@@ -215,6 +236,7 @@ public class DefaultL2Tunnel {
                 .add("tunnelId", tunnelId())
                 .add("pwLabel", pwLabel())
                 .add("interCoLabel", interCoLabel())
+                .add("transportVlan", transportVlan())
                 .toString();
     }
 
