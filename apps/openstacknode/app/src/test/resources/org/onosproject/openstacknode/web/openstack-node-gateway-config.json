@@ -1,0 +1,14 @@
+{
+  "nodes" : [
+    {
+      "hostname" : "gateway-node",
+      "type" : "GATEWAY",
+      "managementIp" : "10.134.231.32",
+      "dataIp" : "10.134.34.224",
+      "integrationBridge" : "of:00000000000000a2",
+      "routerBridge" : "of:00000000000000b1",
+      "uplinkPort" : "eth2",
+      "routerController" : "172.17.0.2"
+    }
+  ]
+}

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -60,9 +59,9 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String DELETE = "DELETE";
 
     private final OpenstackNodeAdminService osNodeAdminService =
-            DefaultServiceDirectory.getService(OpenstackNodeAdminService.class);
+                                            get(OpenstackNodeAdminService.class);
     private final OpenstackNodeService osNodeService =
-            DefaultServiceDirectory.getService(OpenstackNodeService.class);
+                                            get(OpenstackNodeService.class);
 
     @Context
     private UriInfo uriInfo;
