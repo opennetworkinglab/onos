@@ -45,6 +45,12 @@ YANG_PLUGIN_SRC=$YANG_TOOLS_ROOT/compiler/plugin/buck/target/onos-yang-compiler-
 if [ ! -f "$YANG_PLUGIN_SRC" ]; then
     mvn -f $YANG_TOOLS_ROOT/pom.xml -am -pl :onos-yang-compiler-buck-plugin install -DskipTests -Dcheckstyle.skip
 fi
-# Patch the YANG BUCK plugin
-cp -p $YANG_PLUGIN_SRC \
-        $ONOS_ROOT/bin/plugins/yang.jar
+# populate buck plugin cache with SNAPSHOT version
+ARTIFACT="org.onosproject:onos-yang-compiler-buck-plugin:$SVER"
+mvn org.apache.maven.plugins:maven-dependency-plugin:3.0.2:copy \
+    -Dartifact=$ARTIFACT \
+    -Dtransitive=false -Dmdep.overWriteSnapshots=true \
+    -DoutputDirectory=$ONOS_ROOT/bin/cache > /dev/null
+
+# Patch the YANG BUCK plugin version specified
+sed -i.bak "s/YANG_VER=\"$BVER\"/YANG_VER=\"$SVER\"/" $ONOS_ROOT/tools/build/onos-buck

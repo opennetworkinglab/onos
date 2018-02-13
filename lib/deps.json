@@ -247,7 +247,7 @@
     "aries-util": "mvn:org.apache.aries:org.apache.aries.util:1.1.1",
     "guava20": "mvn:com.google.guava:guava:20.0",
 
-    // Note: update BVER in tools/dev/bin/patch-yang-libs
+    // Note update BVER in tools/dev/bin/patch-yang-libs and YANG_VER in tools/build/onos-buck
     "onos-yang-model":"mvn:org.onosproject:onos-yang-model:2.4",
     "onos-yang-compiler-api":"mvn:org.onosproject:onos-yang-compiler-api:2.4",
     "onos-yang-runtime":"mvn:org.onosproject:onos-yang-runtime:2.4",

@@ -8,6 +8,9 @@ set -e
 BUCK_URL="http://repo1.maven.org/maven2/org/onosproject/onos-buck/v2018.02.09.01/buck-v2018.02.09.01.zip"
 BUCK_SHA="45d8bd28f441991257babf89f7a317edb3a2b536"
 
+# onos-yang-tools buck plugin version
+YANG_VER="2.4"
+
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
 ROOT_DIR=${ONOS_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"}
@@ -39,6 +42,45 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$BUCK_SHA" != "$(cat .buck_sh
     rm -rf $ROOT_DIR/buck-out
     printf "Successfully updated Buck in $ROOT_DIR/bin/buck to $BUCK_FILE\n\n"
 fi
+
+# Fetch & install onos yang tools buck plugin
+YANG_PLUGIN_CACHE="cache/onos-yang-compiler-buck-plugin-$YANG_VER.jar"
+if hash mvn 2>/dev/null; then
+  if [[ $YANG_VER = *"-SNAPSHOT" ]] || [ ! -f "$YANG_PLUGIN_CACHE" ]; then
+    ARTIFACT="org.onosproject:onos-yang-compiler-buck-plugin:$YANG_VER"
+    mvn org.apache.maven.plugins:maven-dependency-plugin:3.0.2:copy \
+        -Dartifact=$ARTIFACT \
+        -Dtransitive=false -Dmdep.overWriteSnapshots=true \
+        -DoutputDirectory=cache > /dev/null
+  fi
+else
+  if [ ! -f "$YANG_PLUGIN_CACHE" ]; then
+    if [[ $YANG_VER = *"-SNAPSHOT" ]]; then
+      echo "mvn command must be installed to handle SNAPSHOT version"
+      exit 1
+    fi
+
+    curl -o "$YANG_PLUGIN_CACHE" \
+      -L https://repo1.maven.org/maven2/org/onosproject/onos-yang-compiler-buck-plugin/$YANG_VER/onos-yang-compiler-buck-plugin-$YANG_VER.jar
+  fi
+
+  if [[ $YANG_VER != *"-SNAPSHOT" ]] && hash shasum 2>/dev/null; then
+    SHA=$(shasum $YANG_PLUGIN_CACHE | cut -d' ' -f1)
+    if [ ! -f "$YANG_PLUGIN_CACHE".sha1 ]; then
+      curl -o "$YANG_PLUGIN_CACHE".sha1 \
+        -L https://repo1.maven.org/maven2/org/onosproject/onos-yang-compiler-buck-plugin/$YANG_VER/onos-yang-compiler-buck-plugin-$YANG_VER.jar.sha1
+    fi
+    YANG_PLUGIN_SHA=$(cat "$YANG_PLUGIN_CACHE".sha1)
+    if [ "$SHA" != "$YANG_PLUGIN_SHA" ]; then
+       echo "ERROR: Downloaded SHA ($SHA) did not match expected SHA ($YANG_PLUGIN_SHA)" &&
+       rm -f $YANG_PLUGIN_CACHE $YANG_PLUGIN_CACHE.sha1 && exit 1
+     fi
+  else
+    echo "SHA verification skipped"
+  fi
+fi
+install -Cv "$YANG_PLUGIN_CACHE" plugins/yang.jar
+
 popd > /dev/null
 
 BUCK=$ROOT_DIR/bin/buck
