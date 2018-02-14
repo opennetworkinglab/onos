@@ -64,6 +64,9 @@ alias obd='onos-build-docs'
 alias op='onos-package'
 alias ot='onos-test'
 
+alias obr='while ! ob; do echo "retrying"; done'
+alias opr='while ! op; do echo "retrying"; done'
+
 alias deprecatedAlias='echo "This alias has been deprecated."'
 alias obi=deprecatedAlias
 alias obs=deprecatedAlias
