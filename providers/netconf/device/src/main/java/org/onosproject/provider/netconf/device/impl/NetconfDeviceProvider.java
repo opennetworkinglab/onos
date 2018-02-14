@@ -16,11 +16,8 @@
 
 package org.onosproject.provider.netconf.device.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -33,17 +30,16 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.Port;
-import org.onosproject.net.behaviour.PortAdmin;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.behaviour.PortAdmin;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -81,7 +77,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -96,7 +91,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -169,7 +163,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private final Map<DeviceId, AtomicInteger> retriedPortDiscoveryMap = new ConcurrentHashMap<>();
     protected ScheduledFuture<?> scheduledTask;
 
-    protected final List<ConfigFactory> factories = ImmutableList.of(
+    protected final ConfigFactory factory =
             // TODO consider moving Config registration to NETCONF ctl bundle
             new ConfigFactory<DeviceId, NetconfDeviceConfig>(
                     SubjectFactories.DEVICE_SUBJECT_FACTORY,
@@ -178,16 +172,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 public NetconfDeviceConfig createConfig() {
                     return new NetconfDeviceConfig();
                 }
-            },
-            new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
-                                                                    NetconfProviderConfig.class,
-                                                                    "netconf_devices",
-                                                                    true) {
-                @Override
-                public NetconfProviderConfig createConfig() {
-                    return new NetconfProviderConfig();
-                }
-            });
+            };
 
     protected final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
     private ApplicationId appId;
@@ -200,11 +185,10 @@ public class NetconfDeviceProvider extends AbstractProvider
         componentConfigService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(APP_NAME);
-        factories.forEach(cfgService::registerConfigFactory);
+        cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgListener);
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
-        translateConfig();
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         modified(context);
         log.info("Started");
@@ -225,7 +209,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         retriedPortDiscoveryMap.clear();
-        factories.forEach(cfgService::unregisterConfigFactory);
+        cfgService.unregisterConfigFactory(factory);
         scheduledTask.cancel(true);
         executor.shutdown();
         log.info("Stopped");
@@ -619,38 +603,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
     }
 
-
-    protected void translateConfig() {
-        NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
-        if (cfg != null) {
-            try {
-                cfg.getDevicesAddresses().forEach(addr -> {
-                    DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
-                    log.info("Translating config for device {}", deviceId);
-                    if (cfgService.getConfig(deviceId, NetconfDeviceConfig.class) == null) {
-                        ObjectMapper mapper = new ObjectMapper();
-                        ObjectNode device = mapper.createObjectNode();
-                        device.put("ip", addr.ip().toString());
-                        device.put("port", addr.port());
-                        device.put("username", addr.name());
-                        device.put("password", addr.password());
-                        device.put("sshkey", addr.sshkey());
-                        cfgService.applyConfig(deviceId, NetconfDeviceConfig.class, device);
-                    } else {
-                        // This is a corner case where new updated config is
-                        // pushed with old /app tree after an initial with the
-                        // new device/ tree. Since old method will be deprecated
-                        // it's ok to ignore
-                        log.warn("Config for device {} already exists, ignoring", deviceId);
-                    }
-
-                });
-            } catch (ConfigException e) {
-                log.error("Cannot read config error " + e);
-            }
-        }
-    }
-
     /**
      * Listener for configuration events.
      */
@@ -664,15 +616,13 @@ public class NetconfDeviceProvider extends AbstractProvider
             } else {
                 log.warn("Injecting device via this Json is deprecated, " +
                                  "please put configuration under devices/ as shown in the wiki");
-                translateConfig();
             }
 
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.configClass().equals(NetconfDeviceConfig.class) ||
-                    event.configClass().equals(NetconfProviderConfig.class)) &&
+            return (event.configClass().equals(NetconfDeviceConfig.class)) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
         }
