@@ -122,6 +122,21 @@ public class DefaultOpenstackNode implements OpenstackNode {
     }
 
     @Override
+    public PortNumber uplinkPortNum() {
+        if (uplinkPort == null) {
+            return null;
+        }
+
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(intgBridge).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), uplinkPort))
+                .findAny().orElse(null);
+
+        return port != null ? port.number() : null;
+
+    }
+    @Override
     public PortNumber tunnelPortNum() {
         if (dataIp == null) {
             return null;

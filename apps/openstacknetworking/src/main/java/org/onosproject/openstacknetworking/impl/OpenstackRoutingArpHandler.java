@@ -26,6 +26,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -90,36 +91,50 @@ public class OpenstackRoutingArpHandler {
 
     private void processArpPacket(PacketContext context, Ethernet ethernet) {
         ARP arp = (ARP) ethernet.getPayload();
-        if (arp.getOpCode() != ARP.OP_REQUEST) {
-            return;
+        if (arp.getOpCode() == ARP.OP_REQUEST) {
+            if (log.isTraceEnabled()) {
+                log.trace("ARP request received from {} for {}",
+                        Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
+                        Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
+            }
+
+            IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
+            if (!isServiceIp(targetIp.getIp4Address())) {
+                log.trace("Unknown target ARP request for {}, ignore it", targetIp);
+                return;
+            }
+
+            MacAddress targetMac = Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
+            Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
+                    targetMac, ethernet);
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(context.inPacket().receivedFrom().port())
+                    .build();
+
+            packetService.emit(new DefaultOutboundPacket(
+                    context.inPacket().receivedFrom().deviceId(),
+                    treatment,
+                    ByteBuffer.wrap(ethReply.serialize())));
+
+            context.block();
+        } else if (arp.getOpCode() == ARP.OP_REPLY) {
+            PortNumber receivedPortNum = context.inPacket().receivedFrom().port();
+            log.debug("ARP reply ip: {}, mac: {}",
+                    Ip4Address.valueOf(arp.getSenderProtocolAddress()),
+                    MacAddress.valueOf(arp.getSenderHardwareAddress()));
+            try {
+                if (receivedPortNum.equals(
+                        osNodeService.node(context.inPacket().receivedFrom().deviceId()).uplinkPortNum())) {
+                    osNetworkService.updateExternalPeerRouterMac(
+                            Ip4Address.valueOf(arp.getSenderProtocolAddress()),
+                            MacAddress.valueOf(arp.getSenderHardwareAddress()));
+                }
+            } catch (Exception e) {
+                log.error("Exception occurred because of {}", e.toString());
+            }
         }
 
-        if (log.isTraceEnabled()) {
-            log.trace("ARP request received from {} for {}",
-                    Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
-                    Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
-        }
-
-        IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-        if (!isServiceIp(targetIp.getIp4Address())) {
-            log.trace("Unknown target ARP request for {}, ignore it", targetIp);
-            return;
-        }
-
-        MacAddress targetMac = Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
-        Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
-                targetMac, ethernet);
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(context.inPacket().receivedFrom().port())
-                .build();
-
-        packetService.emit(new DefaultOutboundPacket(
-                context.inPacket().receivedFrom().deviceId(),
-                treatment,
-                ByteBuffer.wrap(ethReply.serialize())));
-
-        context.block();
     }
 
     private class InternalPacketProcessor implements PacketProcessor {

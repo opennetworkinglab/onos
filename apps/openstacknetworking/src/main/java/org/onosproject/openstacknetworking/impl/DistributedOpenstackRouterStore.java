@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterStore;
 import org.onosproject.openstacknetworking.api.OpenstackRouterStoreDelegate;
@@ -93,6 +94,9 @@ public class DistributedOpenstackRouterStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNetworkService osNetworkService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -271,7 +275,7 @@ public class DistributedOpenstackRouterStore
         public void event(MapEvent<String, Router> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack router updated {}", event.newValue());
+                    log.debug("OpenStack router updated");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_UPDATED,
@@ -280,7 +284,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack router created {}", event.newValue());
+                    log.debug("OpenStack router created");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_CREATED,
@@ -288,7 +292,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack router removed {}", event.oldValue());
+                    log.debug("OpenStack router removed");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_REMOVED,
@@ -324,7 +328,7 @@ public class DistributedOpenstackRouterStore
         public void event(MapEvent<String, RouterInterface> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack router interface updated {}", event.newValue());
+                    log.debug("OpenStack router interface updated");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_UPDATED,
@@ -333,7 +337,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack router interface created {}", event.newValue());
+                    log.debug("OpenStack router interface created");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_ADDED,
@@ -342,7 +346,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack router interface removed {}", event.oldValue());
+                    log.debug("OpenStack router interface removed");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_REMOVED,
@@ -363,7 +367,7 @@ public class DistributedOpenstackRouterStore
         public void event(MapEvent<String, NetFloatingIP> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack floating IP updated {}", event.newValue());
+                    log.debug("OpenStack floating IP updated");
                     eventExecutor.execute(() -> {
                         Router osRouter = Strings.isNullOrEmpty(
                                 event.newValue().value().getRouterId()) ?
@@ -377,7 +381,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack floating IP created {}", event.newValue());
+                    log.debug("OpenStack floating IP created");
                     eventExecutor.execute(() -> {
                         Router osRouter = Strings.isNullOrEmpty(
                                 event.newValue().value().getRouterId()) ?
@@ -390,7 +394,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack floating IP removed {}", event.oldValue());
+                    log.debug("OpenStack floating IP removed");
                     eventExecutor.execute(() -> {
                         Router osRouter = Strings.isNullOrEmpty(
                                 event.oldValue().value().getRouterId()) ?

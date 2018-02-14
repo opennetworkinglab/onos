@@ -42,5 +42,23 @@
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncRulesCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.ExternalPeerRouterListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.UpdateExternalPeerRouterCommand"/>
+            <completers>
+                <ref component-id="ipAddressCompleter"/>
+                <ref component-id="macAddressCompleter"/>
+                <ref component-id="vlanIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.UpdateExternalPeerRouterVlanCommand"/>
+        </command>
     </command-bundle>
+
+    <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
+    <bean id="macAddressCompleter" class="org.onosproject.openstacknetworking.cli.MacAddressCompleter"/>
+    <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
 </blueprint>

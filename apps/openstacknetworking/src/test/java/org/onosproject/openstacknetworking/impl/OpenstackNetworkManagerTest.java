@@ -15,18 +15,28 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.store.service.TestStorageService;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
@@ -36,10 +46,23 @@ import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.*;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_UPDATED;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 
 /**
  * Unit tests for OpenStack network manager.
@@ -101,7 +124,12 @@ public class OpenstackNetworkManagerTest {
         osNetworkStore.activate();
 
         target = new OpenstackNetworkManager();
-        target.coreService = new TestCoreService();
+        TestUtils.setField(target, "coreService", new TestCoreService());
+        TestUtils.setField(target, "packetService", new PacketServiceAdapter());
+        TestUtils.setField(target, "deviceService", new DeviceServiceAdapter());
+        TestUtils.setField(target, "storageService", new TestStorageService());
+        TestUtils.setField(target, "clusterService", new ClusterServiceAdapter());
+        TestUtils.setField(target, "openstacknodeService", new TestOpenstackNodeManager());
         target.osNetworkStore = osNetworkStore;
         target.addListener(testListener);
         target.activate();
@@ -557,6 +585,75 @@ public class OpenstackNetworkManagerTest {
         @Override
         public ApplicationId registerApplication(String name) {
             return TEST_APP_ID;
+        }
+    }
+
+    private static class TestOpenstackNodeManager implements OpenstackNodeService, OpenstackNodeAdminService {
+        Map<String, OpenstackNode> osNodeMap = Maps.newHashMap();
+        List<OpenstackNodeListener> listeners = Lists.newArrayList();
+
+        @Override
+        public Set<OpenstackNode> nodes() {
+            return ImmutableSet.copyOf(osNodeMap.values());
+        }
+
+        @Override
+        public Set<OpenstackNode> nodes(OpenstackNode.NodeType type) {
+            return osNodeMap.values().stream()
+                    .filter(osNode -> osNode.type() == type)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Set<OpenstackNode> completeNodes() {
+            return osNodeMap.values().stream()
+                    .filter(osNode -> osNode.state() == COMPLETE)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Set<OpenstackNode> completeNodes(OpenstackNode.NodeType type) {
+            return osNodeMap.values().stream()
+                    .filter(osNode -> osNode.type() == type && osNode.state() == COMPLETE)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public OpenstackNode node(String hostname) {
+            return osNodeMap.get(hostname);
+        }
+
+        @Override
+        public OpenstackNode node(DeviceId deviceId) {
+            return osNodeMap.values().stream()
+                    .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
+                            Objects.equals(osNode.ovsdb(), deviceId))
+                    .findFirst().orElse(null);
+        }
+
+        @Override
+        public void addListener(OpenstackNodeListener listener) {
+            listeners.add(listener);
+        }
+
+        @Override
+        public void removeListener(OpenstackNodeListener listener) {
+            listeners.remove(listener);
+        }
+
+        @Override
+        public void createNode(OpenstackNode osNode) {
+            osNodeMap.put(osNode.hostname(), osNode);
+        }
+
+        @Override
+        public void updateNode(OpenstackNode osNode) {
+            osNodeMap.put(osNode.hostname(), osNode);
+        }
+
+        @Override
+        public OpenstackNode removeNode(String hostname) {
+            return null;
         }
     }
 

@@ -285,7 +285,7 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Network> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack network updated {}", event.newValue());
+                    log.debug("OpenStack network updated");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_UPDATED,
@@ -293,7 +293,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack network created {}", event.newValue());
+                    log.debug("OpenStack network created");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_CREATED,
@@ -301,7 +301,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack network removed {}", event.oldValue());
+                    log.debug("OpenStack network removed");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_REMOVED,
@@ -321,7 +321,7 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Subnet> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack subnet updated {}", event.newValue());
+                    log.debug("OpenStack subnet updated");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_UPDATED,
@@ -330,7 +330,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack subnet created {}", event.newValue());
+                    log.debug("OpenStack subnet created");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_CREATED,
@@ -339,7 +339,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack subnet removed {}", event.oldValue());
+                    log.debug("OpenStack subnet removed");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_REMOVED,
@@ -360,7 +360,7 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Port> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack port updated {}", event.newValue());
+                    log.debug("OpenStack port updated");
                     eventExecutor.execute(() -> {
                         Port oldPort = event.oldValue().value();
                         Port newPort = event.newValue().value();
@@ -371,7 +371,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case INSERT:
-                    log.debug("OpenStack port created {}", event.newValue());
+                    log.debug("OpenStack port created");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_CREATED,
@@ -380,7 +380,7 @@ public class DistributedOpenstackNetworkStore
                     });
                     break;
                 case REMOVE:
-                    log.debug("OpenStack port removed {}", event.oldValue());
+                    log.debug("OpenStack port removed");
                     eventExecutor.execute(() -> {
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_REMOVED,

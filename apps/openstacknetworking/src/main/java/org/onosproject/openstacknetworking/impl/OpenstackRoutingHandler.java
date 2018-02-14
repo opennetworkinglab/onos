@@ -38,7 +38,6 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -207,7 +206,6 @@ public class OpenstackRoutingHandler {
 
     private void routerUpdated(Router osRouter) {
         ExternalGateway exGateway = osRouter.getExternalGatewayInfo();
-
         osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
             Network network = osNetworkService.network(osNetworkService.subnet(iface.getSubnetId())
                     .getNetworkId());
@@ -215,10 +213,12 @@ public class OpenstackRoutingHandler {
         });
 
         if (exGateway == null) {
+            osNetworkService.deleteExternalPeerRouter(exGateway);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                 setSourceNat(osRouter, iface, false);
             });
         } else {
+            osNetworkService.deriveExternalPeerRouterMac(exGateway, osRouter);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                 setSourceNat(osRouter, iface, exGateway.isEnableSnat());
             });
@@ -384,6 +384,12 @@ public class OpenstackRoutingHandler {
     }
 
     private void setGatewayIcmp(Subnet osSubnet, boolean install) {
+        OpenstackNode sourceNatGateway = osNodeService.completeNodes(GATEWAY).stream().findFirst().orElse(null);
+
+        if (sourceNatGateway == null) {
+            return;
+        }
+
         if (Strings.isNullOrEmpty(osSubnet.getGateway())) {
             // do nothing if no gateway is set
             return;
@@ -397,7 +403,7 @@ public class OpenstackRoutingHandler {
                         .filter(cNode -> cNode.dataIp() != null)
                         .forEach(cNode -> setRulesToGatewayWithDstIp(
                                 cNode,
-                                cNode.gatewayGroupId(NetworkMode.VXLAN),
+                                sourceNatGateway,
                                 network.getProviderSegID(),
                                 IpAddress.valueOf(osSubnet.getGateway()),
                                 NetworkMode.VXLAN,
@@ -408,7 +414,7 @@ public class OpenstackRoutingHandler {
                         .filter(cNode -> cNode.vlanPortNum() != null)
                         .forEach(cNode -> setRulesToGatewayWithDstIp(
                                 cNode,
-                                cNode.gatewayGroupId(NetworkMode.VLAN),
+                                sourceNatGateway,
                                 network.getProviderSegID(),
                                 IpAddress.valueOf(osSubnet.getGateway()),
                                 NetworkMode.VLAN,
@@ -620,7 +626,11 @@ public class OpenstackRoutingHandler {
     private void setRulesToGateway(OpenstackNode osNode, String segmentId, IpPrefix srcSubnet,
                                    NetworkType networkType, boolean install) {
         TrafficTreatment treatment;
-        GroupId groupId;
+        OpenstackNode sourceNatGateway = osNodeService.completeNodes(GATEWAY).stream().findFirst().orElse(null);
+
+        if (sourceNatGateway == null) {
+            return;
+        }
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -630,11 +640,9 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
-                groupId = osNode.gatewayGroupId(NetworkMode.VXLAN);
                 break;
             case VLAN:
                 sBuilder.matchVlanId(VlanId.vlanId(segmentId));
-                groupId = osNode.gatewayGroupId(NetworkMode.VLAN);
                 break;
             default:
                 final String error = String.format(
@@ -644,7 +652,12 @@ public class OpenstackRoutingHandler {
         }
 
         treatment = DefaultTrafficTreatment.builder()
-                .group(groupId)
+                .extension(buildExtension(
+                        deviceService,
+                        osNode.intgBridge(),
+                        sourceNatGateway.dataIp().getIp4Address()),
+                        osNode.intgBridge())
+                .setOutput(osNode.tunnelPortNum())
                 .build();
 
         osFlowRuleService.setRule(
@@ -685,7 +698,7 @@ public class OpenstackRoutingHandler {
                 install);
     }
 
-    private void setRulesToGatewayWithDstIp(OpenstackNode osNode, GroupId groupId,
+    private void setRulesToGatewayWithDstIp(OpenstackNode osNode, OpenstackNode sourceNatGateway,
                                             String segmentId, IpAddress dstIp,
                                             NetworkMode networkMode, boolean install) {
         TrafficSelector selector;
@@ -704,7 +717,12 @@ public class OpenstackRoutingHandler {
         }
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .group(groupId)
+                .extension(buildExtension(
+                        deviceService,
+                        osNode.intgBridge(),
+                        sourceNatGateway.dataIp().getIp4Address()),
+                        osNode.intgBridge())
+                .setOutput(osNode.tunnelPortNum())
                 .build();
 
         osFlowRuleService.setRule(
@@ -929,7 +947,9 @@ public class OpenstackRoutingHandler {
                             event.routerIface()));
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
+                    log.debug("Router external gateway {} added", event.externalGateway().getNetworkId());
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
+                    log.debug("Router external gateway {} removed", event.externalGateway().getNetworkId());
                 case OPENSTACK_FLOATING_IP_CREATED:
                 case OPENSTACK_FLOATING_IP_UPDATED:
                 case OPENSTACK_FLOATING_IP_REMOVED:

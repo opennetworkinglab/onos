@@ -23,20 +23,45 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStore;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStoreDelegate;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
+import org.openstack4j.model.network.ExternalGateway;
+import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +76,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing OpenStack network,
  * subnet, and port.
  */
+
 @Service
 @Component(immediate = true)
 public class OpenstackNetworkManager
@@ -77,21 +103,57 @@ public class OpenstackNetworkManager
     private static final String ERR_NULL_PORT_ID = "OpenStack port ID cannot be null";
     private static final String ERR_NULL_PORT_NET_ID = "OpenStack port network ID cannot be null";
 
+    private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_IN_USE = " still in use";
+    private static final String ERR_DUPLICATE = " already exists";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkStore osNetworkStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeService osNodeService;
+
 
     private final OpenstackNetworkStoreDelegate delegate = new InternalNetworkStoreDelegate();
 
+    private ConsistentMap<String, ExternalPeerRouter> externalPeerRouterMap;
+
+    private static final KryoNamespace SERIALIZER_EXTERNAL_PEER_ROUTER_MAP = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(ExternalPeerRouter.class)
+            .register(DefaultExternalPeerRouter.class)
+            .register(MacAddress.class)
+            .register(IpAddress.class)
+            .register(VlanId.class)
+            .build();
+
+    private ApplicationId appId;
+
+
     @Activate
     protected void activate() {
-        coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
+        appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
+
         osNetworkStore.setDelegate(delegate);
         log.info("Started");
+
+        externalPeerRouterMap = storageService.<String, ExternalPeerRouter>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_EXTERNAL_PEER_ROUTER_MAP))
+                .withName("external-routermap")
+                .withApplicationId(appId)
+                .build();
     }
 
     @Deactivate
@@ -256,12 +318,12 @@ public class OpenstackNetworkManager
                 .stream()
                 .filter(p -> p.getId().contains(portName.substring(3)))
                 .findFirst();
-        return osPort.isPresent() ? osPort.get() : null;
+        return osPort.orElse(null);
     }
 
     @Override
     public Set<Port> ports() {
-        return osNetworkStore.ports();
+        return ImmutableSet.copyOf(osNetworkStore.ports());
     }
 
     @Override
@@ -270,6 +332,175 @@ public class OpenstackNetworkManager
                 .filter(port -> Objects.equals(port.getNetworkId(), netId))
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(osPorts);
+    }
+
+    @Override
+    public ExternalPeerRouter externalPeerRouter(IpAddress ipAddress) {
+        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
+            return externalPeerRouterMap.get(ipAddress.toString()).value();
+        }
+        return null;
+    }
+
+    @Override
+    public void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router) {
+        log.info("deriveExternalPeerRouterMac called");
+
+        IpAddress sourceIp = getExternalGatewaySourceIp(externalGateway, router);
+        IpAddress targetIp = getExternalPeerRouterIp(externalGateway);
+
+        if (sourceIp == null || targetIp == null) {
+            log.warn("Failed to derive external router mac address because source IP {} or target IP {} is null",
+                    sourceIp, targetIp);
+            return;
+        }
+
+        if (externalPeerRouterMap.containsKey(targetIp.toString()) &&
+                !externalPeerRouterMap.get(
+                        targetIp.toString()).value().externalPeerRouterMac().equals(MacAddress.NONE)) {
+            return;
+        }
+
+        MacAddress sourceMac = Constants.DEFAULT_GATEWAY_MAC;
+        Ethernet ethRequest = ARP.buildArpRequest(sourceMac.toBytes(),
+                sourceIp.toOctets(),
+                targetIp.toOctets(),
+                VlanId.NO_VID);
+
+        if (osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY).isEmpty()) {
+            log.warn("There's no complete gateway");
+            return;
+        }
+        OpenstackNode gatewayNode = osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY)
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        if (gatewayNode == null) {
+            return;
+        }
+
+        String upLinkPort = gatewayNode.uplinkPort();
+
+        org.onosproject.net.Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
+                .filter(p -> Objects.equals(p.annotations().value(PORT_NAME), upLinkPort))
+                .findAny().orElse(null);
+
+        if (port == null) {
+            log.warn("There's no uplink port for gateway node {}", gatewayNode.toString());
+            return;
+        }
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(port.number())
+                .build();
+
+        packetService.emit(new DefaultOutboundPacket(
+                gatewayNode.intgBridge(),
+                treatment,
+                ByteBuffer.wrap(ethRequest.serialize())));
+
+        externalPeerRouterMap.put(
+                targetIp.toString(), new DefaultExternalPeerRouter(targetIp, MacAddress.NONE, VlanId.NONE));
+
+        log.info("Initializes external peer router map with peer router IP {}", targetIp.toString());
+    }
+
+    @Override
+    public void deleteExternalPeerRouter(ExternalGateway externalGateway) {
+        IpAddress targetIp = getExternalPeerRouterIp(externalGateway);
+        if (targetIp == null) {
+            return;
+        }
+
+        if (externalPeerRouterMap.containsKey(targetIp.toString())) {
+            externalPeerRouterMap.remove(targetIp.toString());
+        }
+    }
+
+    private IpAddress getExternalGatewaySourceIp(ExternalGateway externalGateway, Router router) {
+        Port exGatewayPort = ports(externalGateway.getNetworkId())
+                .stream()
+                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
+                .findAny().orElse(null);
+        if (exGatewayPort == null) {
+            log.warn("no external gateway port for router({})", router.getName());
+            return null;
+        }
+
+        IP ipAddress = exGatewayPort.getFixedIps().stream().findFirst().orElse(null);
+
+        return ipAddress == null ? null : IpAddress.valueOf(ipAddress.getIpAddress());
+    }
+
+    private IpAddress getExternalPeerRouterIp(ExternalGateway externalGateway) {
+        Optional<Subnet> externalSubnet = subnets(externalGateway.getNetworkId())
+                .stream()
+                .findFirst();
+
+        if (externalSubnet.isPresent()) {
+            return IpAddress.valueOf(externalSubnet.get().getGateway());
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void updateExternalPeerRouterMac(IpAddress ipAddress, MacAddress macAddress) {
+        try {
+            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
+                new DefaultExternalPeerRouter(ipAddress, macAddress, existing.externalPeerRouterVlanId()));
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}", e.toString());
+        }
+
+        log.info("Updated external peer router map {}",
+                externalPeerRouterMap.get(ipAddress.toString()).value().toString());
+    }
+
+
+    @Override
+    public void updateExternalPeerRouter(IpAddress ipAddress, MacAddress macAddress, VlanId vlanId) {
+        try {
+            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
+                new DefaultExternalPeerRouter(ipAddress, macAddress, vlanId));
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}", e.toString());
+        }
+    }
+
+    @Override
+    public MacAddress externalPeerRouterMac(ExternalGateway externalGateway) {
+        IpAddress ipAddress = getExternalPeerRouterIp(externalGateway);
+
+        if (ipAddress == null) {
+            return null;
+        }
+        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
+            return externalPeerRouterMap.get(ipAddress.toString()).value().externalPeerRouterMac();
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
+    @Override
+    public void updateExternalPeerRouterVlan(IpAddress ipAddress, VlanId vlanId) {
+
+        try {
+            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) -> {
+                return new DefaultExternalPeerRouter(ipAddress, existing.externalPeerRouterMac(), vlanId);
+            });
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}", e.toString());
+        }
+    }
+
+    @Override
+    public Set<ExternalPeerRouter> externalPeerRouters() {
+        Set<ExternalPeerRouter> externalPeerRouters = externalPeerRouterMap.values().stream()
+                .map(Versioned::value)
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(externalPeerRouters);
     }
 
     private boolean isNetworkInUse(String netId) {

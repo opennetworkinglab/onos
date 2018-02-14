@@ -151,6 +151,13 @@ public interface OpenstackNode {
     String uplinkPort();
 
     /**
+     * Returns the uplink port number.
+     *
+     * @return uplink port number
+     */
+    PortNumber uplinkPortNum();
+
+    /**
      * Returns new openstack node instance with given state.
      *
      * @param newState updated state

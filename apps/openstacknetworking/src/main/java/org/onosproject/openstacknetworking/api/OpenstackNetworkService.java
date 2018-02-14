@@ -15,9 +15,14 @@
  */
 package org.onosproject.openstacknetworking.api;
 
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
+import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
 
 import java.util.Set;
@@ -89,9 +94,74 @@ public interface OpenstackNetworkService
     Set<Port> ports();
 
     /**
-     * Returns all OpenStack ports associated with the supplied network.
+     * Returns all OpenStack ports associated with supplied network.
+     *
      * @param networkId network id
      * @return set of ports
      */
     Set<Port> ports(String networkId);
+
+    /**
+     * Derives external router mac address with supplied external gateway.
+     *
+     * @param externalGateway external gateway information
+     * @param router router which owns externalGateway
+     */
+    void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router);
+
+    /**
+     * Deletes external router with supplied external gateway.
+     *
+     * @param externalGateway external gateway information
+     */
+    void deleteExternalPeerRouter(ExternalGateway externalGateway);
+
+    /**
+     * Updates external router mac address with supplied ip address.
+     *
+     * @param ipAddress ip address
+     * @param macAddress mac address
+     */
+    void updateExternalPeerRouterMac(IpAddress ipAddress, MacAddress macAddress);
+
+    /**
+     * Updates external router vlan id with supplied ip address.
+     *
+     * @param ipAddress ip address
+     * @param vlanId vlan id
+     */
+    void updateExternalPeerRouterVlan(IpAddress ipAddress, VlanId vlanId);
+
+    /**
+     * Updates external router ith supplied ip address, mac address, vlan id.
+     *
+     * @param ipAddress ip address
+     * @param macAddress mac address
+     * @param vlanId vlan id
+     */
+    void updateExternalPeerRouter(IpAddress ipAddress, MacAddress macAddress, VlanId vlanId);
+
+    /**
+     * Returns external router mac with supplied external gateway.
+     *
+     * @param externalGateway external gateway information
+     * @return mac address
+     */
+    MacAddress externalPeerRouterMac(ExternalGateway externalGateway);
+
+    /**
+     * Returns external peer router with supplied ip address.
+     *
+     * @param ipAddress ip address
+     * @return external peer router
+     */
+    ExternalPeerRouter externalPeerRouter(IpAddress ipAddress);
+
+    /**
+     * Returns external peer router list.
+     *
+     * @return external peer router list
+     */
+    Set<ExternalPeerRouter> externalPeerRouters();
+
 }
