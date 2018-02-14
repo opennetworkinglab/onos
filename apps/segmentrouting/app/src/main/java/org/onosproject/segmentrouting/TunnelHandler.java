@@ -222,7 +222,7 @@ public class TunnelHandler {
             deviceIds.add(config.getDeviceId(sid));
         }
         // For these NeighborSet isMpls is meaningless.
-        DestinationSet ns = new DestinationSet(false,
+        DestinationSet ns = new DestinationSet(false, false,
                                          tunnel.labelIds().get(2),
                                          DeviceId.NONE);
 

@@ -99,8 +99,9 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
                 portNum = ((Instructions.OutputInstruction) ins).port().toLong();
                 innerTtb.add(ins);
             } else {
-                log.warn("Driver does not handle this type of TrafficTreatment"
-                                 + " instruction in nextObjectives:  {}", ins.type());
+                log.debug("Driver does not handle this type of TrafficTreatment"
+                        + " instruction in l2l3chain:  {} - {}", ins.type(),
+                         ins);
             }
         }
 

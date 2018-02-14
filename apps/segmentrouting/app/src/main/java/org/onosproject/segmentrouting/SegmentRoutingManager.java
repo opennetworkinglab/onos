@@ -1263,6 +1263,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             .populateRoutingRulesForLinkStatusChange(null, null, device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
         xConnectHandler.removeDevice(device.id());
+
+        // Cleanup all internal groupHandler stores for this device. Should be
+        // done after all rerouting or rehashing has been completed
+        groupHandlerMap.entrySet()
+            .forEach(entry -> entry.getValue().cleanUpForNeighborDown(device.id()));
     }
 
     private void processPortUpdated(Device device, Port port) {

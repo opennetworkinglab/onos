@@ -105,34 +105,32 @@ public class LinkHandler {
         if (!isLinkValid(link)) {
             return;
         }
-        if (srManager.deviceConfiguration == null ||
-                !srManager.deviceConfiguration.isConfigured(link.src().deviceId())) {
-            updateSeenLink(link, true);
-            // XXX revisit - what about devicePortMap
-            log.warn("Source device of this link is not configured.. "
-                    + "not processing further");
-            return;
-        }
-
         // Irrespective of whether the local is a MASTER or not for this device,
         // create group handler instance and push default TTP flow rules if needed,
         // as in a multi-instance setup, instances can initiate groups for any
-        // device.
+        // device. Also update local groupHandler stores.
         DefaultGroupHandler groupHandler = srManager.groupHandlerMap
-                .get(link.src().deviceId());
+                                                .get(link.src().deviceId());
         if (groupHandler != null) {
             groupHandler.portUpForLink(link);
         } else {
-            // XXX revisit/cleanup
             Device device = srManager.deviceService.getDevice(link.src().deviceId());
             if (device != null) {
-                log.warn("processLinkAdded: Link Added "
-                        + "Notification without Device Added "
-                        + "event, still handling it");
+                log.warn("processLinkAdded: Link Added notification without "
+                        + "Device Added event, still handling it");
                 srManager.processDeviceAdded(device);
                 groupHandler = srManager.groupHandlerMap.get(link.src().deviceId());
-                groupHandler.portUpForLink(link);
+                if (groupHandler != null) {
+                    groupHandler.portUpForLink(link);
+                }
             }
+        }
+        if (srManager.deviceConfiguration == null ||
+                !srManager.deviceConfiguration.isConfigured(link.src().deviceId())) {
+            updateSeenLink(link, true);
+            log.warn("Source device of this link is not configured.. "
+                    + "not processing further");
+            return;
         }
 
         /*
@@ -221,7 +219,7 @@ public class LinkHandler {
         srManager.defaultRoutingHandler
                 .populateRoutingRulesForLinkStatusChange(link, null, null);
 
-        // update local groupHandler stores
+        // attempt rehashing for parallel links
         DefaultGroupHandler groupHandler = srManager.groupHandlerMap
                 .get(link.src().deviceId());
         if (groupHandler != null) {
@@ -236,8 +234,8 @@ public class LinkHandler {
                                   .deviceId())) ? "not parallel"
                                                 : "not master");
             }
-            // ensure local stores are updated
-            groupHandler.portDown(link.src().port());
+            // ensure local stores are updated after all rerouting or rehashing
+            groupHandler.portDownForLink(link);
         } else {
             log.warn("group handler not found for dev:{} when removing link: {}",
                      link.src().deviceId(), link);
@@ -273,14 +271,14 @@ public class LinkHandler {
             return true;
         }
         try {
-            if (!devConfig.isEdgeDevice(srcId)
+            /*if (!devConfig.isEdgeDevice(srcId)
                     && !devConfig.isEdgeDevice(dstId)) {
                 // ignore links between spines
                 // XXX revisit when handling multi-stage fabrics
                 log.warn("Links between spines not allowed...ignoring "
                         + "link {}", link);
                 return false;
-            }
+            }*/
             if (devConfig.isEdgeDevice(srcId)
                     && devConfig.isEdgeDevice(dstId)) {
                 // ignore links between leaves if they are not pair-links

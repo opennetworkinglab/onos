@@ -196,7 +196,6 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public int getIPv4SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
-        log.info("DEVICE MAP IS {}", deviceConfigMap);
         if (srinfo != null) {
             log.trace("getIPv4SegmentId for device{} is {}", deviceId, srinfo.ipv4NodeSid);
             return srinfo.ipv4NodeSid;

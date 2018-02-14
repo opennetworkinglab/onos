@@ -352,32 +352,25 @@ public class RoutingRulePopulator {
         DestinationSet ds;
         TrafficTreatment treatment;
 
-        // If the next hop is the same as the final destination, then MPLS label
-        // is not set.
-        /*if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
-            tbuilder.immediate().decNwTtl();
-            ds = new DestinationSet(false, destSw);
-            treatment = tbuilder.build();
-        } else {
-            ds = new DestinationSet(false, segmentId, destSw);
-            treatment = null;
-        }*/
         if (destSw2 == null) {
             // single dst - create destination set based on next-hop
+            // If the next hop is the same as the final destination, then MPLS
+            // label is not set.
             Set<DeviceId> nhd1 = nextHops.get(destSw1);
             if (nhd1.size() == 1 && nhd1.iterator().next().equals(destSw1)) {
                 tbuilder.immediate().decNwTtl();
-                ds = new DestinationSet(false, destSw1);
+                ds = new DestinationSet(false, false, destSw1);
                 treatment = tbuilder.build();
             } else {
-                ds = new DestinationSet(false, segmentId1, destSw1);
+                ds = new DestinationSet(false, false, segmentId1, destSw1);
                 treatment = null;
             }
         } else {
             // dst pair - IP rules for dst-pairs are always from other edge nodes
             // the destination set needs to have both destinations, even if there
             // are no next hops to one of them
-            ds = new DestinationSet(false, segmentId1, destSw1, segmentId2, destSw2);
+            ds = new DestinationSet(false, false, segmentId1, destSw1,
+                                    segmentId2, destSw2);
             treatment = null;
         }
 
@@ -394,7 +387,7 @@ public class RoutingRulePopulator {
         }
 
         int nextId = grpHandler.getNextObjectiveId(ds, nextHops,
-                                                   metabuilder.build(), true);
+                                                   metabuilder.build(), false);
         if (nextId <= 0) {
             log.warn("No next objective in {} for ds: {}", targetSw, ds);
             return false;
@@ -461,13 +454,75 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Deals with !MPLS Bos use case.
+     * Populates MPLS flow rules in the target device to point towards the
+     * destination device.
+     *
+     * @param targetSwId target device ID of the switch to set the rules
+     * @param destSwId destination switch device ID
+     * @param nextHops next hops switch ID list
+     * @param routerIp the router ip of the destination switch
+     * @return true if all rules are set successfully, false otherwise
+     */
+    boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
+                             Set<DeviceId> nextHops, IpAddress routerIp) {
+        int segmentId;
+        try {
+            if (routerIp.isIp4()) {
+                segmentId = config.getIPv4SegmentId(destSwId);
+            } else {
+                segmentId = config.getIPv6SegmentId(destSwId);
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateMplsRule.");
+            return false;
+        }
+
+        List<ForwardingObjective> fwdObjs = new ArrayList<>();
+        Collection<ForwardingObjective> fwdObjsMpls;
+        // Generates the transit rules used by the standard "routing".
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId,
+                                 routerIp, true);
+        if (fwdObjsMpls.isEmpty()) {
+            return false;
+        }
+        fwdObjs.addAll(fwdObjsMpls);
+
+        // Generates the transit rules used by the MPLS Pwaas.
+        int pwSrLabel;
+        try {
+            pwSrLabel = config.getPWRoutingLabel(destSwId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage()
+                    + " Aborting populateMplsRule. No label for PseudoWire traffic.");
+            return false;
+        }
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, pwSrLabel,
+                                 routerIp, false);
+        if (fwdObjsMpls.isEmpty()) {
+            return false;
+        }
+        fwdObjs.addAll(fwdObjsMpls);
+
+        for (ForwardingObjective fwdObj : fwdObjs) {
+            log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
+                      fwdObj.id(), segmentId, fwdObj.nextId(), targetSwId);
+            srManager.flowObjectiveService.forward(targetSwId, fwdObj);
+            rulePopulationCounter.incrementAndGet();
+        }
+
+        return true;
+    }
+
+    /**
+     * Differentiates between popping and swapping labels when building an MPLS
+     * forwarding objective.
      *
      * @param targetSwId the target sw
      * @param destSwId the destination sw
      * @param nextHops the set of next hops
-     * @param segmentId the segmentId to match
-     * @param routerIp the router ip
+     * @param segmentId the segmentId to match representing the destination
+     *            switch
+     * @param routerIp the router ip representing the destination switch
      * @return a collection of fwdobjective
      */
     private Collection<ForwardingObjective> handleMpls(
@@ -497,9 +552,6 @@ public class RoutingRulePopulator {
             log.debug("populateMplsRule: Installing MPLS forwarding objective for "
                     + "label {} in switch {} with pop to next-hops {}",
                     segmentId, targetSwId, nextHops);
-            // Not-bos pop case (php for the current label). If MPLS-ECMP
-            // has been configured, the application we will request the
-            // installation for an MPLS-ECMP group.
             ForwardingObjective.Builder fwdObjNoBosBuilder =
                     getMplsForwardingObjective(targetSwId,
                                                nextHops,
@@ -507,6 +559,7 @@ public class RoutingRulePopulator {
                                                isMplsBos,
                                                metabuilder.build(),
                                                routerIp,
+                                               segmentId,
                                                destSwId);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
@@ -515,13 +568,11 @@ public class RoutingRulePopulator {
             fwdObjBuilders.add(fwdObjNoBosBuilder);
 
         } else {
-            // next hop is not destination, SR CONTINUE case (swap with self)
+            // next hop is not destination, irrespective of the number of next
+            // hops (1 or more) -- SR CONTINUE case (swap with self)
             log.debug("Installing MPLS forwarding objective for "
                     + "label {} in switch {} without pop to next-hops {}",
                     segmentId, targetSwId, nextHops);
-            // Not-bos pop case. If MPLS-ECMP has been configured, the
-            // application we will request the installation for an MPLS-ECMP
-            // group.
             ForwardingObjective.Builder fwdObjNoBosBuilder =
                     getMplsForwardingObjective(targetSwId,
                                                nextHops,
@@ -529,6 +580,7 @@ public class RoutingRulePopulator {
                                                isMplsBos,
                                                metabuilder.build(),
                                                routerIp,
+                                               segmentId,
                                                destSwId);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
@@ -541,7 +593,6 @@ public class RoutingRulePopulator {
         List<ForwardingObjective> fwdObjs = Lists.newArrayList();
         // We add the final property to the fwdObjs.
         for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
-
             ((Builder) ((Builder) fwdObjBuilder
                     .fromApp(srManager.appId)
                     .makePermanent())
@@ -559,71 +610,25 @@ public class RoutingRulePopulator {
 
             ForwardingObjective fob = fwdObjBuilder.add(context);
             fwdObjs.add(fob);
-
         }
 
         return fwdObjs;
     }
 
     /**
-     * Populates MPLS flow rules in the target device to point towards the
-     * destination device.
+     * Returns a Forwarding Objective builder for the MPLS rule that references
+     * the desired Next Objective. Creates a DestinationSet that allows the
+     * groupHandler to create or find the required next objective.
      *
-     * @param targetSwId target device ID of the switch to set the rules
-     * @param destSwId destination switch device ID
-     * @param nextHops next hops switch ID list
-     * @param routerIp the router ip
-     * @return true if all rules are set successfully, false otherwise
+     * @param targetSw the target sw
+     * @param nextHops the set of next hops
+     * @param phpRequired true if penultimate-hop-popping is required
+     * @param isBos true if matched label is bottom-of-stack
+     * @param meta metadata for creating next objective
+     * @param routerIp the router ip representing the destination switch
+     * @param destSw the destination sw
+     * @return the mpls forwarding objective builder
      */
-    boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
-                                    Set<DeviceId> nextHops,
-                                    IpAddress routerIp) {
-
-        int segmentId;
-        try {
-            if (routerIp.isIp4()) {
-                segmentId = config.getIPv4SegmentId(destSwId);
-            } else {
-                segmentId = config.getIPv6SegmentId(destSwId);
-            }
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateMplsRule.");
-            return false;
-        }
-
-        List<ForwardingObjective> fwdObjs = new ArrayList<>();
-        Collection<ForwardingObjective> fwdObjsMpls;
-        // Generates the transit rules used by the standard "routing".
-        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, true);
-        if (fwdObjsMpls.isEmpty()) {
-            return false;
-        }
-        fwdObjs.addAll(fwdObjsMpls);
-
-        // Generates the transit rules used by the MPLS Pwaas.
-        int pwSrLabel;
-        try {
-            pwSrLabel = config.getPWRoutingLabel(destSwId);
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateMplsRule. No label for PseudoWire traffic.");
-            return false;
-        }
-        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, pwSrLabel, routerIp, false);
-        if (fwdObjsMpls.isEmpty()) {
-            return false;
-        }
-        fwdObjs.addAll(fwdObjsMpls);
-
-        for (ForwardingObjective fwdObj : fwdObjs) {
-            log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
-                      fwdObj.id(), segmentId, fwdObj.nextId(), targetSwId);
-            srManager.flowObjectiveService.forward(targetSwId, fwdObj);
-            rulePopulationCounter.incrementAndGet();
-        }
-
-        return true;
-    }
-
     private ForwardingObjective.Builder getMplsForwardingObjective(
                                              DeviceId targetSw,
                                              Set<DeviceId> nextHops,
@@ -631,13 +636,15 @@ public class RoutingRulePopulator {
                                              boolean isBos,
                                              TrafficSelector meta,
                                              IpAddress routerIp,
+                                             int segmentId,
                                              DeviceId destSw) {
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                 .builder().withFlag(ForwardingObjective.Flag.SPECIFIC);
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-
+        DestinationSet ds = null;
+        boolean simple = false;
         if (phpRequired) {
             // php case - pop should always be flow-action
             log.debug("getMplsForwardingObjective: php required");
@@ -649,49 +656,54 @@ public class RoutingRulePopulator {
                     tbuilder.deferred().popMpls(EthType.EtherType.IPV6.ethType());
                 }
                 tbuilder.decNwTtl();
+                // standard case -> BoS == True; pop results in IP packet and forwarding
+                // is via an ECMP group
+                ds = new DestinationSet(false, false, destSw);
             } else {
                 tbuilder.deferred().popMpls(EthType.EtherType.MPLS_UNICAST.ethType())
                     .decMplsTtl();
+                // double-label case -> BoS == False, pop results in MPLS packet
+                // depending on configuration we can ECMP this packet or choose one output
+                if (srManager.getMplsEcmp()) {
+                    ds = new DestinationSet(true, false, destSw);
+                } else {
+                    ds = new DestinationSet(true, false, destSw);
+                    simple = true;
+                }
             }
         } else {
             // swap with self case - SR CONTINUE
-            log.debug("getMplsForwardingObjective: php not required");
+            log.debug("getMplsForwardingObjective: swap with self");
             tbuilder.deferred().decMplsTtl();
+            // swap results in MPLS packet with same BoS bit regardless of bit value
+            // depending on configuration we can ECMP this packet or choose one output
+            if (srManager.getMplsEcmp()) {
+                ds = new DestinationSet(false, true, segmentId, destSw);
+            } else {
+                ds = new DestinationSet(false, true, segmentId, destSw);
+                simple = true;
+            }
         }
 
         fwdBuilder.withTreatment(tbuilder.build());
-        // if MPLS-ECMP == True we will build a standard NeighborSet.
-        // Otherwise a RandomNeighborSet.
-        DestinationSet ns = DestinationSet.destinationSet(false, false, destSw);
-        if (!isBos && this.srManager.getMplsEcmp()) {
-            ns = DestinationSet.destinationSet(false, true, destSw);
-        } else if (!isBos && !this.srManager.getMplsEcmp()) {
-            ns = DestinationSet.destinationSet(true, true, destSw);
-        }
-
-        log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
-                  targetSw, ns);
+        log.debug("Trying to get a nextObjId for mpls rule on device:{} to ds:{}",
+                  targetSw, ds);
         DefaultGroupHandler gh = srManager.getGroupHandler(targetSw);
         if (gh == null) {
             log.warn("getNextObjectiveId query - groupHandler for device {} "
                     + "not found", targetSw);
             return null;
         }
-        // If BoS == True, all forwarding is via L3 ECMP group.
-        // If Bos == False, the forwarding can be via MPLS-ECMP group or through
-        // MPLS-Interface group. This depends on the configuration of the option
-        // MPLS-ECMP.
-        // The metadata informs the driver that the next-Objective will be used
-        // by MPLS flows and if Bos == False the driver will use MPLS groups.
+
         Map<DeviceId, Set<DeviceId>> dstNextHops = new HashMap<>();
         dstNextHops.put(destSw, nextHops);
-        int nextId = gh.getNextObjectiveId(ns, dstNextHops, meta, isBos);
+        int nextId = gh.getNextObjectiveId(ds, dstNextHops, meta, simple);
         if (nextId <= 0) {
-            log.warn("No next objective in {} for ns: {}", targetSw, ns);
+            log.warn("No next objective in {} for ds: {}", targetSw, ds);
             return null;
         } else {
-            log.debug("nextObjId found:{} for mpls rule on device:{} to ns:{}",
-                      nextId, targetSw, ns);
+            log.debug("nextObjId found:{} for mpls rule on device:{} to ds:{}",
+                      nextId, targetSw, ds);
         }
 
         fwdBuilder.nextStep(nextId);
