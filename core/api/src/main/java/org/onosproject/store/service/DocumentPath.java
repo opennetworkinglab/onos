@@ -172,7 +172,8 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @return {@code true} is yes; {@code false} otherwise.
      */
     public boolean isAncestorOf(DocumentPath other) {
-        return this.pathElements.size() < other.pathElements.size() &&
+        return other != null &&
+               this.pathElements.size() < other.pathElements.size() &&
                this.pathElements.equals(other.pathElements.subList(0, this.pathElements.size()));
     }
 
@@ -186,7 +187,8 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @return {@code true} is yes; {@code false} otherwise.
      */
     public boolean isDescendentOf(DocumentPath other) {
-        return other.equals(this) || other.isAncestorOf(this);
+        return other != null &&
+               (other.equals(this) || other.isAncestorOf(this));
     }
 
     /**

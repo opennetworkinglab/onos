@@ -60,6 +60,9 @@ public class DocumentPathTest {
         assertTrue(path3.isDescendentOf(path3));
         assertTrue(path3.isDescendentOf(path1));
         assertFalse(path3.isDescendentOf(path2));
+
+        assertFalse(path.isDescendentOf(null));
+        assertFalse(path.isAncestorOf(null));
     }
 
     @Rule
