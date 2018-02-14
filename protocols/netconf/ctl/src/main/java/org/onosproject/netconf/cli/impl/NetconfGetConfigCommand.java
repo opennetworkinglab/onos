@@ -18,8 +18,13 @@ package org.onosproject.netconf.cli.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.netconf.DatastoreId.datastore;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
@@ -34,17 +39,21 @@ import org.onosproject.netconf.NetconfSession;
 @Command(scope = "onos", name = "netconf-get-config",
         description = "Gets the configuration of the specified type from the" +
                 "specified device.")
-public class NetconfConfigGetCommand extends AbstractShellCommand {
+public class NetconfGetConfigCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "uri", description = "Device ID",
+    @Argument(index = 0, name = "deviceId", description = "Device ID",
             required = true, multiValued = false)
     String uri = null;
 
-    @Argument(index = 1, name = "cfgType",
+    @Argument(index = 1, name = "datastore",
               description = "Configuration datastore name (running, etc.)",
-              required = true, multiValued = false)
-    String cfgType = null;
+              required = false, multiValued = false)
+    String datastore = "running";
 
+    @Option(name = "--timeout",
+            description = "Timeout in seconds",
+            required = false)
+    long timeoutSec = 30;
 
     private DeviceId deviceId;
 
@@ -68,9 +77,10 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
         }
 
         try {
-            String res = session.getConfig(datastore(cfgType.toLowerCase()));
+            CharSequence res = session.asyncGetConfig(datastore(datastore.toLowerCase()))
+                                .get(timeoutSec, TimeUnit.SECONDS);
             print("%s", res);
-        } catch (NetconfException e) {
+        } catch (NetconfException | InterruptedException | ExecutionException | TimeoutException e) {
             log.error("Configuration could not be retrieved", e);
             print("Error occurred retrieving configuration");
         }

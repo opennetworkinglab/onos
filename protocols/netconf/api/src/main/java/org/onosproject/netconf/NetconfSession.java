@@ -20,6 +20,8 @@ import com.google.common.annotations.Beta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,6 +59,70 @@ public interface NetconfSession {
      */
     default CompletableFuture<String> rpc(String request) throws NetconfException {
         return request(request);
+    }
+
+    /**
+     * Retrieves the specified configuration.
+     *
+     * @param datastore to retrieve configuration from
+     * @return specified configuration
+     *
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    default CompletableFuture<CharSequence> asyncGetConfig(DatastoreId datastore) throws NetconfException {
+        StringBuilder rpc = new StringBuilder();
+        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
+        rpc.append("<get-config>\n");
+        rpc.append("<source>\n");
+        rpc.append('<').append(checkNotNull(datastore)).append("/>");
+        rpc.append("</source>");
+        // filter here
+        rpc.append("</get-config>\n");
+        rpc.append("</rpc>");
+
+        return rpc(rpc.toString())
+                .thenApply(msg -> {
+                    // crude way of removing rpc-reply envelope
+                    int begin = msg.indexOf("<data>");
+                    int end = msg.lastIndexOf("</data>");
+                    if (begin != -1 && end != -1) {
+                        return msg.subSequence(begin + "<data>".length(), end);
+                    } else {
+                        // FIXME probably should exceptionally fail here.
+                        return msg;
+                    }
+                });
+    }
+
+    /**
+     * Retrieves running configuration and device state.
+     *
+     * @return running configuration and device state
+     *
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    default CompletableFuture<CharSequence> asyncGet() throws NetconfException {
+        StringBuilder rpc = new StringBuilder();
+        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
+        rpc.append("<get>\n");
+        // filter here
+        rpc.append("</get>\n");
+        rpc.append("</rpc>");
+        return rpc(rpc.toString())
+                .thenApply(msg -> {
+                    // crude way of removing rpc-reply envelope
+                    int begin = msg.indexOf("<data>");
+                    int end = msg.lastIndexOf("</data>");
+                    if (begin != -1 && end != -1) {
+                        return msg.subSequence(begin + "<data>".length(), end);
+                    } else {
+                        // FIXME probably should exceptionally fail here.
+                        return msg;
+                    }
+                });
+
     }
 
 
@@ -109,7 +175,10 @@ public interface NetconfSession {
      * @return specified configuration.
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
+     *
+     * @deprecated in 1.13.0 use async version instead.
      */
+    @Deprecated
     String getConfig(DatastoreId netconfTargetConfig) throws NetconfException;
 
     /**
