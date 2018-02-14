@@ -18,6 +18,7 @@ package org.onlab.util;
 import java.io.IOException;
 import java.io.StringWriter;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -34,6 +35,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.io.CharSource;
@@ -64,9 +68,33 @@ public class XmlString implements CharSequence {
 
     private String prettyPrintXml(CharSource inputXml) {
         try {
-            Document document = DocumentBuilderFactory.newInstance()
-                    .newDocumentBuilder()
-                    .parse(new InputSource(inputXml.openStream()));
+            Document document;
+            boolean wasFragment = false;
+
+            DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder();
+            // do not print error to stderr
+            docBuilder.setErrorHandler(new DefaultHandler());
+
+            try {
+                document = docBuilder
+                        .parse(new InputSource(inputXml.openStream()));
+            } catch (SAXException e) {
+                log.debug("will retry assuming input is XML fragment", e);
+                // attempt to parse XML fragments, adding virtual root
+                try {
+                    document = docBuilder
+                            .parse(new InputSource(CharSource.concat(CharSource.wrap("<vroot>"),
+                                                                     inputXml,
+                                                                     CharSource.wrap("</vroot>")
+                                                                     ).openStream()));
+                    wasFragment = true;
+                } catch (SAXException e1) {
+                    log.debug("SAXException after retry", e1);
+                    // Probably wasn't fragment issue, throwing original
+                    throw e;
+                }
+            }
 
             document.normalize();
 
@@ -89,7 +117,15 @@ public class XmlString implements CharSequence {
 
             // Return pretty print xml string
             StringWriter strWriter = new StringWriter();
-            t.transform(new DOMSource(document), new StreamResult(strWriter));
+            if (wasFragment) {
+                // print everything but virtual root node added
+                NodeList children = document.getDocumentElement().getChildNodes();
+                for (int i = 0; i < children.getLength(); ++i) {
+                    t.transform(new DOMSource(children.item(i)), new StreamResult(strWriter));
+                }
+            } else {
+                t.transform(new DOMSource(document), new StreamResult(strWriter));
+            }
             return strWriter.toString();
         } catch (Exception e) {
             log.warn("Pretty printing failed", e);

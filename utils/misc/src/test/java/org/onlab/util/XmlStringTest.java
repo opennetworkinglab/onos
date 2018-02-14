@@ -41,4 +41,12 @@ public class XmlStringTest {
         assertEquals(input, XmlString.prettifyXml(input).toString());
     }
 
+    @Test
+    public void fragments() {
+        String input = "<root/>   <a some='foo '/>";
+        String expected = "<root/>\n"
+                        + "<a some=\"foo \"/>\n";
+        assertEquals(expected, XmlString.prettifyXml(input).toString());
+    }
+
 }
