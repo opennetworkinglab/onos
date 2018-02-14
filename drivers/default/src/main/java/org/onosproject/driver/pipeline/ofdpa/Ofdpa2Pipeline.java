@@ -1164,7 +1164,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        boolean popMpls = false;
         boolean emptyGroup = false;
         int forTableId;
         TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
@@ -1233,7 +1232,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L2ModificationInstruction &&
                             ((L2ModificationInstruction) instr).subtype() == L2SubType.MPLS_POP) {
-                        popMpls = true;
                         // OF-DPA does not pop in MPLS table in some cases. For the L3 VPN, it requires
                         // setting the MPLS_TYPE so pop can happen down the pipeline
                         if (requireMplsPop()) {
@@ -1266,33 +1264,22 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (fwd.nextId() != null) {
-            if (forTableId == MPLS_TABLE_1 && !popMpls) {
-                log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
-                        + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
-                        + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
-                // XXX We could convert to forwarding to a single-port, via a MPLS interface,
-                // or a MPLS SWAP (with-same) but that would have to be handled in the next-objective.
-                // Also the pop-mpls logic used here won't work in non-BoS case.
-                fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
-                return Collections.emptySet();
-            }
-
             NextGroup next = getGroupForNextObjective(fwd.nextId());
             if (next != null) {
                 List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
                 // we only need the top level group's key to point the flow to it
                 Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
-                if (isNotMplsBos(selector) && group.type().equals(SELECT)) {
-                    log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
-                                     + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
-                                     + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
-                    fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
-                    return Collections.emptySet();
-                }
                 if (group == null) {
                     log.warn("Group with key:{} for next-id:{} not found in dev:{}",
                              gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
                     fail(fwd, ObjectiveError.GROUPMISSING);
+                    return Collections.emptySet();
+                }
+                if (isNotMplsBos(selector) && group.type().equals(SELECT)) {
+                    log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
+                            + "is not implemented in OF-DPA yet. Aborting flow {} -> next:{} "
+                            + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
+                    fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
                     return Collections.emptySet();
                 }
                 tb.deferred().group(group.id());
@@ -1639,14 +1626,51 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return mappings;
     }
 
+    /**
+     * Returns true iff the given selector matches on BOS==true, indicating that
+     * the selector is trying to match on a label that is bottom-of-stack.
+     *
+     * @param selector the given match
+     * @return true iff BoS==true; false if BOS==false, or BOS matching is not
+     *         expressed in the given selector
+     */
     static boolean isMplsBos(TrafficSelector selector) {
         MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
         return bosCriterion != null && bosCriterion.mplsBos();
     }
 
+    /**
+     * Returns true iff the given selector matches on BOS==false, indicating
+     * that the selector is trying to match on a label that is not the
+     * bottom-of-stack label.
+     *
+     * @param selector the given match
+     * @return true iff BoS==false;
+     *         false if BOS==true, or BOS matching is not expressed in the given selector
+     */
     static boolean isNotMplsBos(TrafficSelector selector) {
         MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
         return bosCriterion != null && !bosCriterion.mplsBos();
+    }
+
+    /**
+     * Returns true iff the forwarding objective includes a treatment to pop the
+     * MPLS label.
+     *
+     * @param fwd the given forwarding objective
+     * @return true iff mpls pop treatment exists
+     */
+    static boolean isMplsPop(ForwardingObjective fwd) {
+        if (fwd.treatment() != null) {
+            for (Instruction instr : fwd.treatment().allInstructions()) {
+                if (instr instanceof L2ModificationInstruction
+                        && ((L2ModificationInstruction) instr)
+                                .subtype() == L2SubType.MPLS_POP) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean isIpv6(TrafficSelector selector) {

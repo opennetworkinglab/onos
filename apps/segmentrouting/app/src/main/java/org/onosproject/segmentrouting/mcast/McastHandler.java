@@ -131,7 +131,7 @@ public class McastHandler {
     private boolean isMcastStable() {
         long last = (long) (lastMcastChange.toEpochMilli() / 1000.0);
         long now = (long) (Instant.now().toEpochMilli() / 1000.0);
-        log.debug("Mcast stable since {}s", now - last);
+        log.trace("Mcast stable since {}s", now - last);
         return (now - last) > MCAST_STABLITY_THRESHOLD;
     }
 

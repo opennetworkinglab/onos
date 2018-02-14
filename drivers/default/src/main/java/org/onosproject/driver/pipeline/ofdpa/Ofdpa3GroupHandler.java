@@ -342,9 +342,8 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
                         mplsTreatment.add(ins);
                         break;
                     default:
-                        log.warn("Driver does not handle this type of TrafficTreatment"
-                                         + " instruction in nextObjectives: {} - {}",
-                                 ins.type(), ins);
+                    log.warn("Driver does not handle TrafficTreatment"
+                            + " L2Mod {} for pw next-obj", l2ins.subtype());
                         break;
                 }
             } else if (ins.type() == Instruction.Type.OUTPUT) {
@@ -358,14 +357,13 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
                         mplsTreatment.add(ins);
                         break;
                     default:
-                        log.warn("Driver does not handle this type of TrafficTreatment"
-                                         + " instruction in nextObjectives: {} - {}",
-                                 ins.type(), ins);
+                    log.warn("Driver does not handle TrafficTreatment"
+                            + " L3Mod for pw next-obj", l3ins.subtype());
                 }
 
             } else {
                 log.warn("Driver does not handle this type of TrafficTreatment"
-                                 + " instruction in nextObjectives: {} - {}",
+                        + " instruction for pw next-obj: {} - {}",
                          ins.type(), ins);
             }
         }

@@ -188,7 +188,8 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Updates local stores for link-src device/port to neighbor (link-dst).
+     * Updates local stores for link-src-device/port to neighbor (link-dst) for
+     * link that has come up.
      *
      * @param link the infrastructure link
      */
@@ -207,11 +208,13 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Updates local stores for port that has gone down.
+     * Updates local stores for link-src-device/port to neighbor (link-dst) for
+     * link that has gone down.
      *
-     * @param port port number that has gone down
+     * @param link the infrastructure link
      */
-    public void portDown(PortNumber port) {
+    public void portDownForLink(Link link) {
+        PortNumber port = link.src().port();
         if (portDeviceMap.get(port) == null) {
             log.warn("portDown: unknown port");
             return;
@@ -221,6 +224,18 @@ public class DefaultGroupHandler {
                   portDeviceMap.get(port));
         devicePortMap.get(portDeviceMap.get(port)).remove(port);
         portDeviceMap.remove(port);
+    }
+
+    /**
+     * Cleans up local stores for removed neighbor device.
+     *
+     * @param neighborId the device identifier for the neighbor device
+     */
+    public void cleanUpForNeighborDown(DeviceId neighborId) {
+        Set<PortNumber> ports = devicePortMap.remove(neighborId);
+        if (ports != null) {
+            ports.forEach(p -> portDeviceMap.remove(p));
+        }
     }
 
     /**
@@ -248,8 +263,11 @@ public class DefaultGroupHandler {
                 .stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                 // Filter out PW transit groups or include them if MPLS ECMP is supported
-                .filter(entry -> !entry.getKey().destinationSet().mplsSet() ||
-                        (entry.getKey().destinationSet().mplsSet() && srManager.getMplsEcmp()))
+                .filter(entry -> !entry.getKey().destinationSet().notBos() ||
+                        (entry.getKey().destinationSet().notBos() && srManager.getMplsEcmp()))
+                // Filter out simple SWAP groups or include them if MPLS ECMP is supported
+                .filter(entry -> !entry.getKey().destinationSet().swap() ||
+                        (entry.getKey().destinationSet().swap() && srManager.getMplsEcmp()))
                 .filter(entry -> entry.getValue().containsNextHop(link.dst().deviceId()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
@@ -452,6 +470,21 @@ public class DefaultGroupHandler {
             int edgeLabel = dskey.destinationSet().getEdgeLabel(destSw);
             Integer nextId = nhops.nextId();
 
+            // some store elements may not be hashed next-objectives - ignore them
+            if (isSimpleNextObjective(dskey)) {
+                log.debug("Ignoring {} of SIMPLE nextObj for targetSw:{}"
+                        + " -> dstSw:{} with current nextHops:{} to new"
+                        + " nextHops: {} in nextId:{}",
+                          (revoke) ? "removal" : "addition", targetSw, destSw,
+                          currNeighbors, nextHops, nextId);
+                if ((revoke && !nextHops.isEmpty())
+                        || (!revoke && !nextHops.equals(currNeighbors))) {
+                    log.warn("Simple next objective cannot be edited to "
+                            + "move from {} to {}", currNeighbors, nextHops);
+                }
+                continue;
+            }
+
             if (currNeighbors == null || nextHops == null) {
                 log.warn("fixing hash groups but found currNeighbors:{} or nextHops:{}"
                         + " in targetSw:{} for dstSw:{}", currNeighbors, nextHops,
@@ -514,6 +547,7 @@ public class DefaultGroupHandler {
                                new NextNeighbors(currentNextHops.dstNextHops(),
                                                  currentNextHops.nextId()));
         }
+
         // even if one fails and others succeed, return false so ECMPspg not updated
         return success;
     }
@@ -615,6 +649,18 @@ public class DefaultGroupHandler {
     }
 
     /**
+     * Returns true if the destination set is meant for swap or multi-labeled
+     * packet transport, and MPLS ECMP is not supported.
+     *
+     * @param dskey the key representing the destination set
+     * @return true if destination set is meant for simple next objectives
+     */
+    boolean isSimpleNextObjective(DestinationSetNextObjectiveStoreKey dskey) {
+        return (dskey.destinationSet().notBos() || dskey.destinationSet().swap())
+                && !srManager.getMplsEcmp();
+    }
+
+    /**
      * Adds or removes a port that has been configured with a vlan to a broadcast group
      * for bridging. Should only be called by the master instance for this device.
      *
@@ -678,23 +724,26 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective of type hashed associated with the destination set.
-     * In addition, updates the existing next-objective if new route-route paths found
-     * have resulted in the addition of new next-hops to a particular destination.
-     * If there is no existing next objective for this destination set, this method
-     * would create a next objective and return the nextId. Optionally metadata can be
-     * passed in for the creation of the next objective.
+     * Returns the next objective of type hashed (or simple) associated with the
+     * destination set. In addition, updates the existing next-objective if new
+     * route-paths found have resulted in the addition of new next-hops to a
+     * particular destination. If there is no existing next objective for this
+     * destination set, this method would create a next objective and return the
+     * nextId. Optionally metadata can be passed in for the creation of the next
+     * objective. If the parameter simple is true then a simple next objective
+     * is created instead of a hashed one.
      *
      * @param ds destination set
      * @param nextHops a map of per destination next hops
      * @param meta metadata passed into the creation of a Next Objective
-     * @param isBos if Bos is set
+     * @param simple if true, a simple next objective will be created instead of
+     *            a hashed next objective
      * @return int if found or -1 if there are errors in the creation of the
-     *          neighbor set.
+     *         neighbor set.
      */
     public int getNextObjectiveId(DestinationSet ds,
                                   Map<DeviceId, Set<DeviceId>> nextHops,
-                                  TrafficSelector meta, boolean isBos) {
+                                  TrafficSelector meta, boolean simple) {
         NextNeighbors next = dsNextObjStore.
                 get(new DestinationSetNextObjectiveStoreKey(deviceId, ds));
         if (next == null) {
@@ -708,7 +757,7 @@ public class DefaultGroupHandler {
                       (nsStoreEntry.getKey().deviceId().equals(deviceId)))
                       .collect(Collectors.toList()));
 
-            createGroupFromDestinationSet(ds, nextHops, meta, isBos);
+            createGroupFromDestinationSet(ds, nextHops, meta, simple);
             next = dsNextObjStore.
                     get(new DestinationSetNextObjectiveStoreKey(deviceId, ds));
             if (next == null) {
@@ -833,38 +882,37 @@ public class DefaultGroupHandler {
         }
 
         // Update portToDevice database
-        DeviceId prev = portDeviceMap.putIfAbsent(portToNeighbor, neighborId);
+        // should always update as neighbor could have changed on this port
+        DeviceId prev = portDeviceMap.put(portToNeighbor, neighborId);
         if (prev != null) {
-            log.debug("Device: {} port: {} already has neighbor: {} ",
+            log.debug("Device/port: {}/{} previous neighbor: {}, current neighbor: {} ",
                       deviceId, portToNeighbor, prev, neighborId);
         }
     }
 
     /**
      * Creates a NextObjective for a hash group in this device from a given
-     * DestinationSet.
+     * DestinationSet. If the parameter simple is true, a simple next objective
+     * is created instead.
      *
      * @param ds the DestinationSet
      * @param neighbors a map for each destination and its next-hops
      * @param meta metadata passed into the creation of a Next Objective
-     * @param isBos if BoS is set
+     * @param simple if true, a simple next objective will be created instead of
+     *            a hashed next objective
      */
     public void createGroupFromDestinationSet(DestinationSet ds,
                                               Map<DeviceId, Set<DeviceId>> neighbors,
                                               TrafficSelector meta,
-                                              boolean isBos) {
+                                              boolean simple) {
         int nextId = flowObjectiveService.allocateNextId();
-        NextObjective.Type type = NextObjective.Type.HASHED;
+        NextObjective.Type type = (simple) ? NextObjective.Type.SIMPLE
+                                           : NextObjective.Type.HASHED;
         if (neighbors == null || neighbors.isEmpty()) {
             log.warn("createGroupsFromDestinationSet: needs at least one neighbor"
                     + "to create group in dev:{} for ds: {} with next-hops {}",
                     deviceId, ds, neighbors);
             return;
-        }
-        // If Bos == False and MPLS-ECMP == false, we have
-        // to use simple group and we will pick a single neighbor for a single dest.
-        if (!isBos && !srManager.getMplsEcmp()) {
-            type = NextObjective.Type.SIMPLE;
         }
 
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
@@ -878,7 +926,7 @@ public class DefaultGroupHandler {
 
         // create treatment buckets for each neighbor for each dst Device
         // except in the special case where we only want to pick a single
-        // neighbor for a simple group
+        // neighbor/port for a simple nextObj
         boolean foundSingleNeighbor = false;
         boolean treatmentAdded = false;
         Map<DeviceId, Set<DeviceId>> dstNextHops = new ConcurrentHashMap<>();
@@ -912,8 +960,8 @@ public class DefaultGroupHandler {
                 }
                 // For each port to the neighbor, we create a new treatment
                 Set<PortNumber> neighborPorts = devicePortMap.get(neighborId);
-                // In this case we are using a SIMPLE group. We randomly pick a port
-                if (!isBos && !srManager.getMplsEcmp()) {
+                // In this case we need a SIMPLE nextObj. We randomly pick a port
+                if (simple) {
                     int size = devicePortMap.get(neighborId).size();
                     int index = RandomUtils.nextInt(0, size);
                     neighborPorts = Collections.singleton(
@@ -928,9 +976,14 @@ public class DefaultGroupHandler {
                     tBuilder.setEthDst(neighborMac).setEthSrc(nodeMacAddr);
                     int edgeLabel = ds.getEdgeLabel(dst);
                     if (edgeLabel != DestinationSet.NO_EDGE_LABEL) {
-                        tBuilder.pushMpls()
-                        .copyTtlOut()
-                        .setMpls(MplsLabel.mplsLabel(edgeLabel));
+                        if (simple) {
+                            // swap label case
+                            tBuilder.setMpls(MplsLabel.mplsLabel(edgeLabel));
+                        } else {
+                            // ecmp with label push case
+                            tBuilder.pushMpls().copyTtlOut()
+                                    .setMpls(MplsLabel.mplsLabel(edgeLabel));
+                        }
                     }
                     tBuilder.setOutput(sp);
                     nextObjBuilder.addTreatment(tBuilder.build());
@@ -1395,8 +1448,11 @@ public class DefaultGroupHandler {
                         .stream()
                         .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                         // Filter out PW transit groups or include them if MPLS ECMP is supported
-                        .filter(entry -> !entry.getKey().destinationSet().mplsSet() ||
-                                (entry.getKey().destinationSet().mplsSet() && srManager.getMplsEcmp()))
+                        .filter(entry -> !entry.getKey().destinationSet().notBos() ||
+                                (entry.getKey().destinationSet().notBos() && srManager.getMplsEcmp()))
+                        // Filter out simple SWAP groups or include them if MPLS ECMP is supported
+                        .filter(entry -> !entry.getKey().destinationSet().swap() ||
+                                (entry.getKey().destinationSet().swap() && srManager.getMplsEcmp()))
                         .map(entry -> entry.getKey())
                         .collect(Collectors.toSet());
                 for (DestinationSetNextObjectiveStoreKey dsKey : dsKeySet) {
@@ -1434,8 +1490,11 @@ public class DefaultGroupHandler {
                                         + " port/label {}/{} to dst {} via {}",
                                         deviceId, nid, port, edgeLabel,
                                         dstDev, neighbor);
-                                nextObjBuilder.addTreatment(treatmentBuilder(port,
-                                                                neighborMac, edgeLabel));
+                                nextObjBuilder
+                                    .addTreatment(treatmentBuilder(port,
+                                                                   neighborMac,
+                                                                   dsKey.destinationSet().swap(),
+                                                                   edgeLabel));
                             });
                         });
                     });
@@ -1450,16 +1509,22 @@ public class DefaultGroupHandler {
         }
 
         TrafficTreatment treatmentBuilder(PortNumber outport, MacAddress dstMac,
-                                          int edgeLabel) {
+                                          boolean swap, int edgeLabel) {
             TrafficTreatment.Builder tBuilder =
                     DefaultTrafficTreatment.builder();
             tBuilder.setOutput(outport)
                 .setEthDst(dstMac)
                 .setEthSrc(nodeMacAddr);
             if (edgeLabel != DestinationSet.NO_EDGE_LABEL) {
-                tBuilder.pushMpls()
-                    .copyTtlOut()
-                    .setMpls(MplsLabel.mplsLabel(edgeLabel));
+                if (swap) {
+                    // swap label case
+                    tBuilder.setMpls(MplsLabel.mplsLabel(edgeLabel));
+                } else {
+                    // ecmp with label push case
+                    tBuilder.pushMpls()
+                        .copyTtlOut()
+                        .setMpls(MplsLabel.mplsLabel(edgeLabel));
+                }
             }
             return tBuilder.build();
         }

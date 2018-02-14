@@ -787,7 +787,7 @@ public class DefaultRoutingHandler {
      * @param destSw1 Device ID of final destination switch to which the rules will forward
      * @param destSw2 Device ID of paired destination switch to which the rules will forward
      *                A null deviceId indicates packets should only be sent to destSw1
-     * @param nextHops Map indication a list of next hops per destSw
+     * @param nextHops Map of a set of next hops per destSw
      * @param subnets Subnets to be populated. If empty, populate all configured subnets.
      * @return true if it succeeds in populating rules
      */ // refactor
@@ -822,7 +822,8 @@ public class DefaultRoutingHandler {
             subnets = (subnets != null && !subnets.isEmpty())
                             ? Sets.newHashSet(subnets)
                             : Sets.newHashSet(config.getSubnets(destSw1));
-            // XXX -  Rethink this
+            // XXX - Rethink this - ignoring routerIPs in all other switches
+            // even edge to edge switches
             /*subnets.add(dest1RouterIpv4.toIpPrefix());
             if (dest1RouterIpv6 != null) {
                 subnets.add(dest1RouterIpv6.toIpPrefix());
@@ -843,26 +844,6 @@ public class DefaultRoutingHandler {
             if (!result) {
                 return false;
             }
-            /* XXX rethink this
-            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
-                    + "for router IP {}", targetSw, destSw, routerIpPrefix);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
-                                                           destSw, nextHops);
-            if (!result) {
-                return false;
-            }
-            // If present we deal with IPv6 loopback.
-            if (destRouterIpv6 != null) {
-                routerIpPrefix = destRouterIpv6.toIpPrefix();
-                log.debug("* populateEcmpRoutingRulePartial in device {} towards {}"
-                        + " for v6 router IP {}", targetSw, destSw, routerIpPrefix);
-                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
-                                                               destSw, nextHops);
-                if (!result) {
-                    return false;
-                }
-            }*/
         }
 
         if (!targetIsEdge && dest1IsEdge) {
@@ -877,11 +858,20 @@ public class DefaultRoutingHandler {
                 return false;
             }
             if (dest1RouterIpv6 != null) {
-                result = rulePopulator.populateMplsRule(targetSw, destSw1,
-                                                        nextHops.get(destSw1),
-                                                        dest1RouterIpv6);
-                if (!result) {
-                    return false;
+                int v4sid = 0, v6sid = 0;
+                try {
+                    v4sid = config.getIPv4SegmentId(destSw1);
+                    v6sid = config.getIPv6SegmentId(destSw1);
+                } catch (DeviceConfigNotFoundException e) {
+                    log.warn(e.getMessage());
+                }
+                if (v4sid != v6sid) {
+                    result = rulePopulator.populateMplsRule(targetSw, destSw1,
+                                                            nextHops.get(destSw1),
+                                                            dest1RouterIpv6);
+                    if (!result) {
+                        return false;
+                    }
                 }
             }
         }
@@ -1435,11 +1425,26 @@ public class DefaultRoutingHandler {
                     continue;
                 }
                 if (!targetIsEdge && itrIdx > 1) {
-                    // optimization for spines to not use other leaves to get
-                    // to a leaf to avoid loops
-                    log.debug("Avoiding {} hop path for non-edge targetSw:{}"
-                            + " --> dstSw:{}", itrIdx, targetSw, dstSw);
-                    break;
+                    // optimization for spines to not use leaves to get
+                    // to a spine or other leaves
+                    boolean pathdevIsEdge = false;
+                    for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                        for (DeviceId pathdev : via) {
+                            try {
+                                pathdevIsEdge = srManager.deviceConfiguration
+                                        .isEdgeDevice(pathdev);
+                            } catch (DeviceConfigNotFoundException e) {
+                                log.warn(e.getMessage());
+                            }
+                            if (pathdevIsEdge) {
+                                log.debug("Avoiding {} hop path for non-edge targetSw:{}"
+                                        + " --> dstSw:{} which goes through an edge"
+                                        + " device {} in path {}", itrIdx,
+                                          targetSw, dstSw, pathdev, via);
+                                return ImmutableSet.of();
+                            }
+                        }
+                    }
                 }
                 Set<DeviceId> nextHops = new HashSet<>();
                 for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
