@@ -194,6 +194,9 @@ control spgw_ingress(
             }
             ue_cdr_table.apply();
         }
+
+        // Don't ask why... we'll need this later.
+        spgw_meta.ipv4_len = ipv4.total_len;
     }
 }
 
@@ -212,7 +215,7 @@ control spgw_egress(
         gtpu_ipv4.version = IP_VERSION_4;
         gtpu_ipv4.ihl = IPV4_MIN_IHL;
         gtpu_ipv4.diffserv = 0;
-        gtpu_ipv4.total_len = ipv4.total_len
+        gtpu_ipv4.total_len = spgw_meta.ipv4_len
                 + (IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_ipv4.identification = 0x1513; /* From NGIC */
         gtpu_ipv4.flags = 0;
@@ -226,7 +229,7 @@ control spgw_egress(
         gtpu_udp.setValid();
         gtpu_udp.src_port = UDP_PORT_GTPU;
         gtpu_udp.dst_port = UDP_PORT_GTPU;
-        gtpu_udp.len = ipv4.total_len
+        gtpu_udp.len = spgw_meta.ipv4_len
                 + (UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_udp.checksum = 0; // Updated later
 
@@ -238,7 +241,7 @@ control spgw_egress(
         gtpu.seq_flag = 0;
         gtpu.npdu_flag = 0;
         gtpu.msgtype = GTP_GPDU;
-        gtpu.msglen = ipv4.total_len;
+        gtpu.msglen = spgw_meta.ipv4_len;
         gtpu.teid = spgw_meta.teid;
     }
 

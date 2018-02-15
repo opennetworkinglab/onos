@@ -133,6 +133,7 @@ header gtpu_t {
 struct spgw_meta_t {
     bool              do_spgw;
     direction_t       direction;
+    bit<16>           ipv4_len;
     bit<32>           teid;
     bit<32>           s1u_enb_addr;
     bit<32>           s1u_sgw_addr;
