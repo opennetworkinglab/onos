@@ -169,6 +169,18 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
     }
 
     @Test
+    public void testIPv4UnicastWithNoNextId() {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(IPV4_UNICAST_ADDR)
+                .build();
+        TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
+                .matchIPDst(IPV4_UNICAST_ADDR)
+                .build();
+        testSpecificForward(FabricConstants.TBL_UNICAST_V4_ID, expectedSelector, selector, null);
+    }
+
+    @Test
     @Ignore
     public void testIPv4Multicast() {
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -234,15 +246,21 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
 
     private void testSpecificForward(PiTableId expectedTableId, TrafficSelector expectedSelector,
                                      TrafficSelector selector, Integer nextId) {
-        PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
-                                                      ImmutableByteSequence.copyFrom(nextId.byteValue()));
-        PiAction setNextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_FORWARDING_SET_NEXT_ID_ID)
-                .withParameter(nextIdParam)
-                .build();
-        TrafficTreatment setNextIdTreatment = DefaultTrafficTreatment.builder()
-                .piTableAction(setNextIdAction)
-                .build();
+        TrafficTreatment setNextIdTreatment;
+        if (nextId == null) {
+            // Ref: RoutingRulePopulator.java->revokeIpRuleForRouter
+            setNextIdTreatment = DefaultTrafficTreatment.builder().build();
+        } else {
+            PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+                                                          ImmutableByteSequence.copyFrom(nextId.byteValue()));
+            PiAction setNextIdAction = PiAction.builder()
+                    .withId(FabricConstants.ACT_FORWARDING_SET_NEXT_ID_ID)
+                    .withParameter(nextIdParam)
+                    .build();
+            setNextIdTreatment = DefaultTrafficTreatment.builder()
+                    .piTableAction(setNextIdAction)
+                    .build();
+        }
 
         testSpecificForward(expectedTableId, expectedSelector, selector, nextId, setNextIdTreatment);
 
@@ -250,16 +268,19 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
 
     private void testSpecificForward(PiTableId expectedTableId, TrafficSelector expectedSelector,
                                      TrafficSelector selector, Integer nextId, TrafficTreatment treatment) {
-        ForwardingObjective fwd = DefaultForwardingObjective.builder()
+        ForwardingObjective.Builder fwd = DefaultForwardingObjective.builder()
                 .withSelector(selector)
                 .withPriority(PRIORITY)
                 .fromApp(APP_ID)
                 .makePermanent()
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .nextStep(nextId)
-                .add();
+                .withTreatment(treatment)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
-        PipelinerTranslationResult result = pipeliner.pipelinerForward.forward(fwd);
+        if (nextId != null) {
+            fwd.nextStep(nextId);
+        }
+
+        PipelinerTranslationResult result = pipeliner.pipelinerForward.forward(fwd.add());
 
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();

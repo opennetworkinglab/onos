@@ -22,6 +22,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -126,6 +127,10 @@ final class FabricTreatmentInterpreter {
 
     public static PiAction mapForwardingTreatment(TrafficTreatment treatment)
             throws PiInterpreterException {
+        // Empty treatment, generate table entry with no action
+        if (treatment.equals(DefaultTrafficTreatment.emptyTreatment())) {
+            return null;
+        }
         List<Instruction> insts = treatment.allInstructions();
         OutputInstruction outInst = insts.stream()
                 .filter(inst -> inst.type() == OUTPUT)

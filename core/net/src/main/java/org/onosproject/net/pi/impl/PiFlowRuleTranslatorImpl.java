@@ -122,8 +122,7 @@ final class PiFlowRuleTranslatorImpl {
 
         tableEntryBuilder
                 .forTable(piTableId)
-                .withMatchKey(piMatchKey)
-                .withAction(piTableAction);
+                .withMatchKey(piMatchKey);
 
         if (piTableAction != null) {
             tableEntryBuilder.withAction(piTableAction);

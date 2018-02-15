@@ -30,6 +30,7 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test for fabric interpreter.
@@ -123,6 +124,17 @@ public class FabricInterpreterTest {
                 .build();
 
         assertEquals(expectedAction, mappedAction);
+    }
+
+    /**
+     * Map empty treatment for forwarding block to nop action.
+     */
+    @Test
+    public void testEmptyForwardingTreatment() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+        PiAction mappedAction = interpreter.mapTreatment(treatment,
+                                                         FabricConstants.TBL_UNICAST_V4_ID);
+        assertNull(mappedAction);
     }
 
     /* Next control block */
