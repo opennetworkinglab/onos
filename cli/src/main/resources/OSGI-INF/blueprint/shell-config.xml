@@ -248,6 +248,7 @@
             <action class="org.onosproject.cli.net.LinksListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/> <!-- no more arguments -->
             </completers>
         </command>
 
