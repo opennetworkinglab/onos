@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -106,53 +105,6 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
     public void removeDevice(DeviceId deviceId) {
         log.trace("RESTCONF SBI::removeDevice");
         super.removeDevice(deviceId);
-    }
-
-    @Override
-    public boolean post(DeviceId device, String request, InputStream payload,
-                        String mediaType) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.post(device, request, payload, mediaType);
-    }
-
-    @Override
-    public <T> T post(DeviceId device, String request, InputStream payload,
-                      String mediaType, Class<T> responseClass) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.post(device, request, payload, mediaType, responseClass);
-    }
-
-    @Override
-    public boolean put(DeviceId device, String request, InputStream payload,
-                       String mediaType) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.put(device, request, payload, mediaType);
-    }
-
-    @Override
-    public InputStream get(DeviceId device, String request, String mediaType) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.get(device, request, mediaType);
-    }
-
-    @Override
-    public boolean patch(DeviceId device, String request, InputStream payload,
-                         String mediaType) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.patch(device, request, payload, mediaType);
-    }
-
-    @Override
-    public boolean delete(DeviceId device, String request, InputStream payload,
-                          String mediaType) {
-        request = discoverRootResource(device) + RESOURCE_PATH_PREFIX
-                + request;
-        return super.delete(device, request, payload, mediaType);
     }
 
     @Override

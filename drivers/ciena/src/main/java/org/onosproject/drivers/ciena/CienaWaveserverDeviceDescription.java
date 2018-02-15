@@ -40,6 +40,7 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
+import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -119,7 +120,7 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
         DeviceId deviceId = handler().data().deviceId();
 
         HierarchicalConfiguration config = XmlConfigParser.
-                loadXml(controller.get(deviceId, PORT_REQUEST, XML));
+                loadXml(controller.get(deviceId, PORT_REQUEST, MediaType.APPLICATION_XML_TYPE));
         List<HierarchicalConfiguration> portsConfig =
                 parseWaveServerCienaPorts(config);
         portsConfig.forEach(sub -> {

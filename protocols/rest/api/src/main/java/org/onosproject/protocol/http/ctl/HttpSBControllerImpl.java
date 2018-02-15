@@ -123,22 +123,12 @@ public class HttpSBControllerImpl implements HttpSBController {
     }
 
     @Override
-    public boolean post(DeviceId device, String request, InputStream payload, String mediaType) {
-        return checkStatusCode(post(device, request, payload, typeOfMediaType(mediaType)));
-    }
-
-    @Override
     public int post(DeviceId device, String request, InputStream payload, MediaType mediaType) {
         Response response = getResponse(device, request, payload, mediaType);
         if (response == null) {
             return Status.NO_CONTENT.getStatusCode();
         }
         return response.getStatus();
-    }
-
-    @Override
-    public <T> T post(DeviceId device, String request, InputStream payload, String mediaType, Class<T> responseClass) {
-        return post(device, request, payload, typeOfMediaType(mediaType), responseClass);
     }
 
     @Override
@@ -173,11 +163,6 @@ public class HttpSBControllerImpl implements HttpSBController {
     }
 
     @Override
-    public boolean put(DeviceId device, String request, InputStream payload, String mediaType) {
-        return checkStatusCode(put(device, request, payload, typeOfMediaType(mediaType)));
-    }
-
-    @Override
     public int put(DeviceId device, String request, InputStream payload, MediaType mediaType) {
 
         WebTarget wt = getWebTarget(device, request);
@@ -201,11 +186,6 @@ public class HttpSBControllerImpl implements HttpSBController {
     }
 
     @Override
-    public InputStream get(DeviceId device, String request, String mediaType) {
-        return get(device, request, typeOfMediaType(mediaType));
-    }
-
-    @Override
     public InputStream get(DeviceId device, String request, MediaType mediaType) {
         WebTarget wt = getWebTarget(device, request);
 
@@ -215,11 +195,6 @@ public class HttpSBControllerImpl implements HttpSBController {
             return new ByteArrayInputStream(s.readEntity((String.class)).getBytes(StandardCharsets.UTF_8));
         }
         return null;
-    }
-
-    @Override
-    public boolean patch(DeviceId device, String request, InputStream payload, String mediaType) {
-        return checkStatusCode(patch(device, request, payload, typeOfMediaType(mediaType)));
     }
 
     @Override
@@ -254,11 +229,6 @@ public class HttpSBControllerImpl implements HttpSBController {
             log.error("Cannot do PATCH {} request on device {}", request, device, e);
         }
         return Status.BAD_REQUEST.getStatusCode();
-    }
-
-    @Override
-    public boolean delete(DeviceId device, String request, InputStream payload, String mediaType) {
-        return checkStatusCode(delete(device, request, payload, typeOfMediaType(mediaType)));
     }
 
     @Override
