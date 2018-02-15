@@ -19,7 +19,7 @@
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.lumentum.LumentumRoadmDiscovery"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.drivers.lumentum.LumentumSdnRoadmLambdaQuery"/>
+                   impl="org.onosproject.drivers.lumentum.LumentumRoadmLambdaQuery"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.lumentum.LumentumSdnRoadmFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
@@ -36,6 +36,19 @@
                    impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
+    </driver>
+
+    <driver name="lumentum-roadm20whitebox-netconf" manufacturer="Lumentum" hwVersion="SDN-ROADM-NETCONF" swVersion="R2.1.4">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.lumentum.LumentumNetconfRoadmDiscovery"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.drivers.lumentum.LumentumRoadmLambdaQuery"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.lumentum.LumentumNetconfRoadmFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.lumentum.LumentumPowerConfig"/>
     </driver>
 </drivers>
 

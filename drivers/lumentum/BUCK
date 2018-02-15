@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/snmp/api:onos-protocols-snmp-api',
     '//protocols/tl1/api:onos-protocols-tl1-api',
+    '//protocols/netconf/api:onos-protocols-netconf-api',
     '//incubator/api:onos-incubator-api',
     '//apps/optical-model:onos-apps-optical-model',
     '//drivers/optical:onos-drivers-optical',
@@ -12,6 +13,11 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
+]
+
+BUNDLES = [
+    ':onos-drivers-lumentum',
+    '//drivers/utilities:onos-drivers-utilities',
 ]
 
 osgi_jar_with_tests (
@@ -26,7 +32,10 @@ onos_app (
     title = 'Lumentum Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'Adds support for Lumentum devices.',
-    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.optical-model',
-     'org.onosproject.tl1', 'org.onosproject.drivers.optical'],
+
+    description = 'ONOS Lumentum Device Drivers application.',
+    included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model',
+     'org.onosproject.tl1', 'org.onosproject.netconf', 'org.onosproject.drivers.optical'],
+
 )

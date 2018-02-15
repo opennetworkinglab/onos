@@ -182,14 +182,14 @@ public class LumentumWaveReadyDiscovery extends AbstractHandlerBehaviour impleme
         Arrays.stream(s.split("\"\"")).forEach(p -> {
             if (p.contains(EIGHTFIFTY)) {
                 PortDescription cltPort = oduCltPortDescription(
-                        PortNumber.portNumber(ports.size() + 1L),
+                        PortNumber.portNumber(ports.size() + 1),
                         true,
                         CltSignalType.CLT_10GBE,
                         extractAnnotations(p));
                 ports.add(cltPort);
             } else {
                 PortDescription netPort = ochPortDescription(
-                        PortNumber.portNumber(ports.size() + 1L),
+                        PortNumber.portNumber(ports.size() + 1),
                         true,
                         OduSignalType.ODU2e,
                         true,
