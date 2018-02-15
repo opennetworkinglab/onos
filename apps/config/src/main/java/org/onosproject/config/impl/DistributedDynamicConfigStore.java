@@ -311,14 +311,19 @@ public class DistributedDynamicConfigStore
                 DataNode.Type type = v.value();
                 String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
                 if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
-                    superBldr.createChildBuilder(name, nmSpc, readLeaf(tempPath).value())
+                    LeafNode lfnode = readLeaf(tempPath);
+                    // FIXME there should be builder for copying
+                    superBldr.createChildBuilder(name, nmSpc, lfnode.value(), lfnode.valueNamespace())
                             .type(type)
+                            .leafType(lfnode.leafType())
                             .exitNode();
                 } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
                     String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
                     LeafNode lfnode = readLeaf(mlpath);
-                    superBldr.createChildBuilder(name, nmSpc, lfnode.value())
+                    // FIXME there should be builder for copying
+                    superBldr.createChildBuilder(name, nmSpc, lfnode.value(), lfnode.valueNamespace())
                             .type(type)
+                            .leafType(lfnode.leafType())
                             .addLeafListValue(lfnode.value())
                             .exitNode();
                     //TODO this alone should be sufficient and take the nm, nmspc too
