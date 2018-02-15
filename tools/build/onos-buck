@@ -9,7 +9,7 @@ BUCK_URL="http://repo1.maven.org/maven2/org/onosproject/onos-buck/v2018.02.09.01
 BUCK_SHA="45d8bd28f441991257babf89f7a317edb3a2b536"
 
 # onos-yang-tools buck plugin version
-YANG_VER="2.4"
+YANG_VER="2.4.1"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
