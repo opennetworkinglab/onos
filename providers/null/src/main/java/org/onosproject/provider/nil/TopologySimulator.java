@@ -177,9 +177,7 @@ public abstract class TopologySimulator {
      * @param i index of the device id in the list.
      */
     protected void createDevice(int i) {
-        DeviceId id = DeviceId.deviceId(SCHEME + ":" + toHex(i));
-        deviceIds.add(id);
-        createDevice(id, i);
+        createDevice(DeviceId.deviceId(SCHEME + ":" + toHex(i)), i);
     }
 
     /**
@@ -205,6 +203,7 @@ public abstract class TopologySimulator {
                 new DefaultDeviceDescription(id.uri(), type,
                                              "ON.Lab", "0.1", "0.1", "1234",
                                              new ChassisId(chassisId));
+        deviceIds.add(id);
         deviceProviderService.deviceConnected(id, desc);
         deviceProviderService.updatePorts(id, buildPorts(portCount));
     }
