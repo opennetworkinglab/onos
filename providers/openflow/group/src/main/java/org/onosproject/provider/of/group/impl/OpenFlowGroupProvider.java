@@ -65,6 +65,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBucketCounter;
+import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
@@ -237,33 +238,45 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     private void pushGroupMetrics(Dpid dpid, OFStatsReply statsReply) {
         DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        boolean containsGroupStats = false;
+        if (sw != null && sw.features() != null) {
+            containsGroupStats = sw.features()
+                                   .getCapabilities()
+                                   .contains(OFCapabilities.GROUP_STATS);
+        }
 
         OFGroupStatsReply groupStatsReply = null;
         OFGroupDescStatsReply groupDescStatsReply = null;
 
-        synchronized (groupStats) {
-            if (statsReply.getStatsType() == OFStatsType.GROUP) {
-                OFStatsReply reply = groupStats.get(statsReply.getXid() + 1);
-                if (reply != null) {
-                    groupStatsReply = (OFGroupStatsReply) statsReply;
-                    groupDescStatsReply = (OFGroupDescStatsReply) reply;
-                    groupStats.remove(statsReply.getXid() + 1);
-                } else {
-                    groupStats.put(statsReply.getXid(), statsReply);
-                }
-            } else if (statsReply.getStatsType() == OFStatsType.GROUP_DESC) {
-                OFStatsReply reply = groupStats.get(statsReply.getXid() - 1);
-                if (reply != null) {
-                    groupStatsReply = (OFGroupStatsReply) reply;
-                    groupDescStatsReply = (OFGroupDescStatsReply) statsReply;
-                    groupStats.remove(statsReply.getXid() - 1);
-                } else {
-                    groupStats.put(statsReply.getXid(), statsReply);
+        if (containsGroupStats) {
+            synchronized (groupStats) {
+                if (statsReply.getStatsType() == OFStatsType.GROUP) {
+                    OFStatsReply reply = groupStats.get(statsReply.getXid() + 1);
+                    if (reply != null) {
+                        groupStatsReply = (OFGroupStatsReply) statsReply;
+                        groupDescStatsReply = (OFGroupDescStatsReply) reply;
+                        groupStats.remove(statsReply.getXid() + 1);
+                    } else {
+                        groupStats.put(statsReply.getXid(), statsReply);
+                    }
+                } else if (statsReply.getStatsType() == OFStatsType.GROUP_DESC) {
+                    OFStatsReply reply = groupStats.get(statsReply.getXid() - 1);
+                    if (reply != null) {
+                        groupStatsReply = (OFGroupStatsReply) reply;
+                        groupDescStatsReply = (OFGroupDescStatsReply) statsReply;
+                        groupStats.remove(statsReply.getXid() - 1);
+                    } else {
+                        groupStats.put(statsReply.getXid(), statsReply);
+                    }
                 }
             }
+        } else if (statsReply.getStatsType() == OFStatsType.GROUP_DESC) {
+            // We are only requesting group desc stats; see GroupStatsCollector.java:sendGroupStatisticRequests()
+            groupDescStatsReply = (OFGroupDescStatsReply) statsReply;
         }
 
-        if (providerService != null && groupStatsReply != null) {
+        if (providerService != null && groupDescStatsReply != null) {
             Collection<Group> groups = buildGroupMetrics(deviceId,
                     groupStatsReply, groupDescStatsReply);
             providerService.pushGroupMetrics(deviceId, groups);
@@ -289,6 +302,10 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                     entry.getGroupType(), driverService).build();
             DefaultGroup group = new DefaultGroup(groupId, deviceId, type, buckets);
             groups.put(id, group);
+        }
+
+        if (groupStatsReply == null) {
+            return groups.values();
         }
 
         for (OFGroupStatsEntry entry: groupStatsReply.getEntries()) {
