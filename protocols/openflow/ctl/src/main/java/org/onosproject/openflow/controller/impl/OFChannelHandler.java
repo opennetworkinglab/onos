@@ -141,13 +141,6 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
     protected OFVersion ofVersion;
     protected OFFactory factory;
 
-    // deprecated in 1.10.0
-    @Deprecated
-    protected OFFactory factory13;
-    // deprecated in 1.10.0
-    @Deprecated
-    protected OFFactory factory10;
-
     /** transaction Ids to use during handshake. Since only one thread
      * calls into an OFChannelHandler instance, we don't need atomic.
      * We will count down
@@ -195,8 +188,6 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
         this.state = ChannelState.INIT;
         this.pendingPortStatusMsg = new CopyOnWriteArrayList<>();
         this.portDescReplies = new ArrayList<>();
-        factory13 = OFFactories.getFactory(OFVersion.OF_13);
-        factory10 = OFFactories.getFactory(OFVersion.OF_10);
         duplicateDpidFound = Boolean.FALSE;
     }
 
