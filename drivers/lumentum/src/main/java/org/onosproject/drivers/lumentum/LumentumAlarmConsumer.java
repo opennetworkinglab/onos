@@ -68,11 +68,11 @@ public class LumentumAlarmConsumer extends AbstractHandlerBehaviour implements A
         snmp.get(ALARMS_TABLE_OID)
                 .forEach(alarm -> snmp.get(ALARMS_ID_OID).forEach(alarmIdEvent -> {
                     int alarmId = getAlarmId(alarmIdEvent);
-                    alarms.add(new DefaultAlarm.Builder(deviceId, getMessage(alarmId),
+                    alarms.add(new DefaultAlarm.Builder(AlarmId.alarmId(deviceId, String.valueOf(alarmId)),
+                                                        deviceId, getMessage(alarmId),
                                                         getSeverity(alarmId),
                                                         System.currentTimeMillis())
-                                       .withId(AlarmId.alarmId(deviceId, String.valueOf(alarmId)))
-                                       .build());
+                                                    .build());
                 }));
         return ImmutableList.copyOf(alarms);
     }

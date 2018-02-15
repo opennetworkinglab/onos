@@ -23,6 +23,7 @@ import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 
 import java.io.IOException;
@@ -42,10 +43,12 @@ public class DefaultSnmpControllerTest {
 
     ISnmpSession snmpSession = new ISnmpSessionAdapter();
 
+    long time = System.currentTimeMillis();
     DefaultAlarm alarm = new DefaultAlarm.Builder(
+            AlarmId.alarmId(device.deviceId(), Long.toString(time)),
             device.deviceId(), "SNMP alarm retrieval failed",
             Alarm.SeverityLevel.CRITICAL,
-            System.currentTimeMillis()).build();
+            time).build();
 
     @Before
     public void setUp() {

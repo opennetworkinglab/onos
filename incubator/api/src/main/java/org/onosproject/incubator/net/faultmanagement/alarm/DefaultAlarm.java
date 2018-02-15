@@ -277,28 +277,6 @@ public final class DefaultAlarm implements Alarm {
         /**
          * Constructs a Builder to create a Default Alarm.
          *
-         * @param deviceId    the device ID
-         * @param description the Alarm description
-         * @param severity    the severity
-         * @param timeRaised  when the alarm was raised
-         * @deprecated 1.10.0 - Kingfisher
-         */
-        @Deprecated
-        public Builder(final DeviceId deviceId,
-                       final String description, final SeverityLevel severity, final long timeRaised) {
-            super();
-            this.deviceId = deviceId;
-            this.description = description;
-            this.severity = severity;
-            this.timeRaised = timeRaised;
-            // Unless specified time-updated is same as raised.
-            this.timeUpdated = timeRaised;
-            this.id = AlarmId.alarmId(deviceId, Long.toString(timeRaised));
-        }
-
-        /**
-         * Constructs a Builder to create a Default Alarm.
-         *
          * @param id          the AlarmId
          * @param deviceId    the device ID
          * @param description the Alarm description
@@ -347,19 +325,6 @@ public final class DefaultAlarm implements Alarm {
          */
         public Builder withTimeCleared(final Long timeCleared) {
             this.timeCleared = timeCleared;
-            return this;
-        }
-
-        /**
-         * Sets the new alarm Id.
-         *
-         * @param id the id
-         * @return self for chaining
-         * @deprecated 1.10.0- Kingfisher
-         */
-        @Deprecated
-        public Builder withId(final AlarmId id) {
-            this.id = id;
             return this;
         }
 

@@ -18,6 +18,7 @@ package org.onosproject.provider.netconf.alarm;
 
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmTranslator;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
@@ -71,7 +72,8 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
             while (descriptionNode != null) {
                 if (descriptionNode.getNodeType() == Node.ELEMENT_NODE) {
                     String description = nodeToString(descriptionNode);
-                    alarms.add(new DefaultAlarm.Builder(deviceId, description,
+                    alarms.add(new DefaultAlarm.Builder(AlarmId.alarmId(deviceId, Long.toString(timeStamp)),
+                                                        deviceId, description,
                                                         Alarm.SeverityLevel.WARNING,
                                                         timeStamp).build());
                     descriptionNode = null;

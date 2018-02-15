@@ -22,6 +22,7 @@ import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -190,6 +191,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
                         log.warn("Unknown severity: {}", severity);
                     }
                     DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
+                            AlarmId.alarmId(ncDeviceId, Long.toString(timeRaised)),
                             ncDeviceId, alertType.toUpperCase(), alarmLevel, timeRaised)
                             .forSource(AlarmEntityId.alarmEntityId(alarmSrc));
                     alarms.add(alarmBuilder.build());

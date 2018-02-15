@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.snmp.SnmpController;
@@ -122,9 +123,10 @@ public class DefaultSnmpController implements SnmpController {
 
     @Override
     public DefaultAlarm buildWalkFailedAlarm(DeviceId deviceId) {
+        long timeRaised = System.currentTimeMillis();
         return new DefaultAlarm.Builder(
+                AlarmId.alarmId(deviceId, Long.toString(timeRaised)),
                 deviceId, "SNMP alarm retrieval failed",
-                Alarm.SeverityLevel.CRITICAL,
-                System.currentTimeMillis()).build();
+                Alarm.SeverityLevel.CRITICAL, timeRaised).build();
     }
 }
