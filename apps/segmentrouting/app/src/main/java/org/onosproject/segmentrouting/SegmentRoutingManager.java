@@ -85,6 +85,8 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.RouteEvent;
@@ -237,11 +239,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     LinkHandler linkHandler = null;
     private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
     private DefaultL2TunnelHandler l2TunnelHandler = null;
+    private TopologyHandler topologyHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
     private final InternalMcastListener mcastListener = new InternalMcastListener();
     private final InternalRouteEventListener routeListener = new InternalRouteEventListener();
+    private final InternalTopologyListener topologyListener = new InternalTopologyListener();
 
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1, groupedThreads("SegmentRoutingManager", "event-%d", log));
@@ -416,6 +420,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         routeHandler = new RouteHandler(this);
         neighbourHandler = new SegmentRoutingNeighbourDispatcher(this);
         l2TunnelHandler = new DefaultL2TunnelHandler(this);
+        topologyHandler = new TopologyHandler(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
@@ -431,6 +436,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceService.addListener(deviceListener);
         multicastRouteService.addListener(mcastListener);
         routeService.addListener(routeListener);
+        topologyService.addListener(topologyListener);
 
         l2TunnelHandler.init();
 
@@ -473,6 +479,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceService.removeListener(deviceListener);
         multicastRouteService.removeListener(mcastListener);
         routeService.removeListener(routeListener);
+        topologyService.removeListener(topologyListener);
 
         neighbourResolutionService.unregisterNeighbourHandlers(appId);
 
@@ -1067,6 +1074,22 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    /**
+     * Internal listener for topology events.
+     */
+    private class InternalTopologyListener implements TopologyListener {
+        @Override
+        public void event(TopologyEvent event) {
+            switch (event.type()) {
+            case TOPOLOGY_CHANGED:
+                log.debug("Event {} received from TopologyService", event.type());
+                scheduleEventHandlerIfNotScheduled(event);
+                break;
+            default:
+            }
+        }
+    }
+
     @SuppressWarnings("rawtypes")
     private void scheduleEventHandlerIfNotScheduled(Event event) {
         synchronized (THREAD_SCHED_LOCK) {
@@ -1103,6 +1126,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             break;
                         }
                     }
+                    // TODO We should also change SR routing and PW to listen to TopologyEvents
                     if (event.type() == LinkEvent.Type.LINK_ADDED ||
                             event.type() == LinkEvent.Type.LINK_UPDATED) {
                         linkHandler.processLinkAdded((Link) event.subject());
@@ -1139,6 +1163,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                  event.type());
                         processPortUpdated(((Device) event.subject()),
                                            ((DeviceEvent) event).port());
+                    } else if (event.type() == TopologyEvent.Type.TOPOLOGY_CHANGED) {
+                        // Process topology event, needed for all modules relying on
+                        // topology service for path computation
+                        TopologyEvent topologyEvent = (TopologyEvent) event;
+                        log.info("Processing topology event {}, topology age {}, reasons {}",
+                                 event.type(), topologyEvent.subject().time(),
+                                 topologyEvent.reasons().size());
+                        topologyHandler.processTopologyChange(topologyEvent.reasons());
                     } else {
                         log.warn("Unhandled event type: {}", event.type());
                     }
@@ -1228,7 +1260,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler
             .populateRoutingRulesForLinkStatusChange(null, null, device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
-        mcastHandler.processDeviceDown(device.id());
         xConnectHandler.removeDevice(device.id());
     }
 

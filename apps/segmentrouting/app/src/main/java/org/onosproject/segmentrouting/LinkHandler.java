@@ -180,8 +180,6 @@ public class LinkHandler {
                 }
             }
         }
-
-        srManager.mcastHandler.init();
     }
 
     /**
@@ -244,8 +242,6 @@ public class LinkHandler {
             log.warn("group handler not found for dev:{} when removing link: {}",
                      link.src().deviceId(), link);
         }
-
-        srManager.mcastHandler.processLinkDown(link);
     }
 
     /**
@@ -255,7 +251,7 @@ public class LinkHandler {
      * @param link the link to be processed
      * @return true if valid link
      */
-    private boolean isLinkValid(Link link) {
+     boolean isLinkValid(Link link) {
         if (link.type() != Link.Type.DIRECT) {
             // NOTE: A DIRECT link might be transiently marked as INDIRECT
             // if BDDP is received before LLDP. We can safely ignore that

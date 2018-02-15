@@ -52,6 +52,7 @@ import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastRouteInfo;
+import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
@@ -949,8 +950,11 @@ public class McastHandler {
      * @return an optional path from src to dst
      */
     private Optional<Path> getPath(DeviceId src, DeviceId dst, IpAddress mcastIp) {
+        // Takes a snapshot of the topology
+        final Topology currentTopology = topologyService.currentTopology();
         List<Path> allPaths = Lists.newArrayList(
-                topologyService.getPaths(topologyService.currentTopology(), src, dst));
+                topologyService.getPaths(currentTopology, src, dst)
+        );
         log.debug("{} path(s) found from {} to {}", allPaths.size(), src, dst);
         if (allPaths.isEmpty()) {
             return Optional.empty();
@@ -1337,7 +1341,7 @@ public class McastHandler {
                                 // Send to the flowobjective service
                                 srManager.flowObjectiveService.next(deviceId, currentNext);
                             } else {
-                                log.warn("Unable to run buckets corrector." +
+                                log.warn("Unable to run buckets corrector. " +
                                                  "Missing next for {} and group {}",
                                          deviceId, mcastIp);
                             }
