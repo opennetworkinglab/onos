@@ -27,6 +27,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.DefaultHostDescription;
 
 import java.util.Map;
+import java.util.Set;
 
 import static org.onlab.util.Tools.toHex;
 import static org.onosproject.provider.nil.NullProviders.SCHEME;
@@ -93,6 +94,19 @@ public class CustomTopologySimulator extends TopologySimulator {
     public void createHost(HostId hostId, HostLocation location, IpAddress hostIp) {
         DefaultHostDescription description =
                 new DefaultHostDescription(hostId.mac(), hostId.vlanId(), location, hostIp);
+        hostProviderService.hostDetected(hostId, description, false);
+    }
+
+    /**
+     * Creates a simulated multi-homed host.
+     *
+     * @param hostId   host identifier
+     * @param locations host locations
+     * @param hostIps   host IP addresses
+     */
+    public void createHost(HostId hostId, Set<HostLocation> locations, Set<IpAddress> hostIps) {
+        DefaultHostDescription description =
+                new DefaultHostDescription(hostId.mac(), hostId.vlanId(), locations, hostIps, false);
         hostProviderService.hostDetected(hostId, description, false);
     }
 

@@ -439,8 +439,9 @@ public class NullProviders {
 
         @Override
         public boolean isReachable(DeviceId deviceId) {
-            return topoShape.equals("custom") ||
-                    (simulator != null && simulator.contains(deviceId) &&
+            return simulator != null &&
+                    (simulator.contains(deviceId) || !deviceService.getPorts(deviceId).isEmpty()) &&
+                    (simulator instanceof CustomTopologySimulator ||
                             topologyMutationDriver.isReachable(deviceId));
         }
 
