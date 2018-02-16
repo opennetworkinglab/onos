@@ -182,6 +182,11 @@
             <artifactId>msg-simple</artifactId>
             <version>1.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.15</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -236,7 +241,8 @@
                             json-patch,
                             jackson-coreutils,
                             btf,
-                            msg-simple
+                            msg-simple,
+                            snakeyaml
                         </Embed-Dependency>
                     </instructions>
                 </configuration>
