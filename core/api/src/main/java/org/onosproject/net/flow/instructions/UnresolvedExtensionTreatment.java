@@ -41,7 +41,7 @@ public class UnresolvedExtensionTreatment extends AbstractExtension implements E
 
     @Override
     public ExtensionTreatmentType type() {
-        return ExtensionTreatmentType.ExtensionTreatmentTypes.UNRESOLVED_TYPE.type();
+        return unresolvedTreatmentType;
     }
 
     @Override
