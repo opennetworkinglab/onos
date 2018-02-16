@@ -248,10 +248,25 @@ class ONOSNode( Controller ):
 
     # pylint: disable=arguments-differ
 
-    def start( self, env, nodes=() ):
+
+    def start( self, env=None, nodes=() ):
         """Start ONOS on node
            env: environment var dict
            nodes: all nodes in cluster"""
+        if env is not None:
+            self.genStartConfig(env, nodes)
+        self.cmd( 'cd', self.ONOS_HOME )
+        info( '(starting %s)' % self )
+        service = join( self.ONOS_HOME, 'bin/onos-service' )
+        self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
+                            ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
+        self.onosPid = int( self.cmd( 'cat onos.pid' ).strip() )
+        self.warningCount = 0
+
+    # pylint: disable=arguments-differ
+
+    def genStartConfig( self, env, nodes=() ):
+        """generate a start config"""
         env = dict( env )
         env.update( ONOS_HOME=self.ONOS_HOME )
         self.updateEnv( env )
@@ -262,14 +277,6 @@ class ONOSNode( Controller ):
         self.ucmd( 'mkdir -p config && '
                    'onos-gen-partitions config/cluster.json',
                    ' '.join( node.IP() for node in nodes ) )
-        info( '(starting %s)' % self )
-        service = join( self.ONOS_HOME, 'bin/onos-service' )
-        self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
-                   ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
-        self.onosPid = int( self.cmd( 'cat onos.pid' ).strip() )
-        self.warningCount = 0
-
-    # pylint: enable=arguments-differ
 
     def intfsDown( self ):
         """Bring all interfaces down"""
@@ -285,6 +292,10 @@ class ONOSNode( Controller ):
             cmdOutput = intf.ifconfig( 'up' )
             if cmdOutput:
                 error( "Error setting %s up: %s " % ( intf.name, cmdOutput ) )
+
+    def kill( self ):
+        """Kill ONOS process"""
+        self.cmd( 'kill %d && wait' % ( self.onosPid ) )
 
     def stop( self ):
         # XXX This will kill all karafs - too bad!
@@ -498,6 +509,17 @@ class ONOSCluster( Controller ):
                           'PREROUTING -t nat -p tcp --dport', inport,
                           '-j DNAT --to-destination %s:%s' % ( ip, port ) )
 
+    def getONOSNode( self, instance ):
+        """Return ONOS node which name is 'instance'
+           instance: ONOS instance name"""
+        try:
+            onos = self.net.getNodeByName( instance )
+            if isONOSNode( onos ):
+                return onos
+            else:
+                info( 'instance %s is not ONOS.\n' % instance )
+        except KeyError:
+            info( 'No such ONOS instance %s.\n' % instance )
 
 class ONOSSwitchMixin( object ):
     "Mixin for switches that connect to an ONOSCluster"
@@ -636,16 +658,13 @@ class ONOSCLI( OldCLI ):
             return
         c0 = self.mn.controllers[ 0 ]
         if isONOSCluster( c0 ):
-            try:
-                onos = self.mn.controllers[ 0 ].net.getNodeByName( instance )
-                if isONOSNode( onos ):
-                    info('Bringing %s %s...\n' % ( instance, cmd ) )
-                    if cmd == 'up':
-                        onos.intfsUp()
-                    else:
-                        onos.intfsDown()
-            except KeyError:
-                info( 'No such ONOS instance %s.\n' % instance )
+            onos = c0.getONOSNode( instance )
+            if onos:
+                info('Bringing %s %s...\n' % ( instance, cmd ) )
+                if cmd == 'up':
+                    onos.intfsUp()
+                else:
+                    onos.intfsDown()
 
     def do_onosdown( self, instance=None ):
         """Disconnects an ONOS instance from the network"""
@@ -655,6 +674,29 @@ class ONOSCLI( OldCLI ):
         """"Connects an ONOS instance to the network"""
         self.onosupdown( 'up', instance )
 
+    def do_start( self, instance=None ):
+        """Start ONOS instance"""
+        if not instance:
+            info( 'Provide the name of an ONOS instance.\n' )
+            return
+        c0 = self.mn.controllers[ 0 ]
+        if isONOSCluster( c0 ):
+            onos = c0.getONOSNode( instance )
+            if onos:
+                info('Starting %s...\n' % ( instance ) )
+                onos.start()
+
+    def do_kill( self, instance=None ):
+        """Kill ONOS instance"""
+        if not instance:
+            info( 'Provide the name of an ONOS instance.\n' )
+            return
+        c0 = self.mn.controllers[ 0 ]
+        if isONOSCluster( c0 ):
+            onos = c0.getONOSNode( instance )
+            if onos:
+                info('Killing %s...\n' % ( instance ) )
+                onos.kill()
 
 # For interactive use, exit on error
 exitOnError = dict( nodeOpts={ 'alertAction': 'exit' } )
