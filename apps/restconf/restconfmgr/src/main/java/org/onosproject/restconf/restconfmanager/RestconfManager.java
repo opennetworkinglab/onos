@@ -276,12 +276,12 @@ public class RestconfManager implements RestconfService {
         ResourceId resourceId = rpcInputNode.resourceId();
         List<DataNode> inputDataNodeList = rpcInputNode.dataNodes();
         DataNode inputDataNode = inputDataNodeList.get(0);
-        RpcInput rpcInput = new RpcInput(inputDataNode);
+        RpcInput rpcInput = new RpcInput(resourceId, inputDataNode);
 
         RestconfRpcOutput restconfOutput = null;
         try {
             CompletableFuture<RpcOutput> rpcFuture =
-                    dynamicConfigService.invokeRpc(resourceId, rpcInput);
+                    dynamicConfigService.invokeRpc(rpcInput);
             RpcOutput rpcOutput = rpcFuture.get();
             restconfOutput = RestconfUtils.convertRpcOutput(resourceId, rpcOutput);
         } catch (InterruptedException e) {

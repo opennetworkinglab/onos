@@ -120,5 +120,15 @@ public interface DynamicConfigService
      * @return future that will be completed with RpcOutput
      * @throws FailedException if the RPC could not be invoked
      */
+    @Deprecated
     CompletableFuture<RpcOutput> invokeRpc(ResourceId id, RpcInput input);
+
+    /**
+     * Invokes an RPC.
+     *
+     * @param input RPC input with ResourceId and DataNode
+     * @return future that will be completed with RpcOutput
+     * @throws FailedException if the RPC could not be invoked
+     */
+    CompletableFuture<RpcOutput> invokeRpc(RpcInput input);
 }

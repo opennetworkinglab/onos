@@ -51,6 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -204,6 +205,21 @@ public class DynamicConfigManager
         return CompletableFuture.supplyAsync(
                 new RpcExecutor(handler, getSvcId(handler, srvcIntf),
                                 context.rpcName(), RpcMessageId.generate(), input));
+    }
+
+    @Override
+    public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
+        checkNotNull(input);
+        checkNotNull(input.id());
+        RpcContext context = contextProvider.getRpcContext(input.id());
+        String srvcIntf = context.serviceIntf().getName();
+        RpcService handler = handlerRegistry.get(srvcIntf);
+        if (handler == null) {
+            throw new FailedException("No registered handler found, cannot invoke");
+        }
+        return CompletableFuture.supplyAsync(
+            new RpcExecutor(handler, getSvcId(handler, srvcIntf),
+                context.rpcName(), RpcMessageId.generate(), input));
     }
 
     /**

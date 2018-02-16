@@ -117,6 +117,11 @@ public class DynamicDeviceConfigServiceView
     }
 
     @Override
+    public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
+        return super.invokeRpc(new RpcInput(toAbsoluteId(input.id()), input.data()));
+    }
+
+    @Override
     public void addListener(DynamicConfigListener listener) {
         super.addListener(wrapped.computeIfAbsent(listener,
                                                   DynamicDeviceConfigListener::new));

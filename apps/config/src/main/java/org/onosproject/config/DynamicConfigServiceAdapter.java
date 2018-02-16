@@ -69,6 +69,12 @@ public class DynamicConfigServiceAdapter
     }
 
     @Override
+    public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
+        //TODO: implement me, not sure about purpose of this adapter.
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void addListener(DynamicConfigListener listener) {
         listenerRegistry.addListener(listener);
     }
