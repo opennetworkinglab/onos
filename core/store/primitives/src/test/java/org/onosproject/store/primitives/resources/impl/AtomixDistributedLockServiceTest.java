@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.cluster.MemberId;
 import io.atomix.protocols.raft.impl.RaftContext;
+import io.atomix.protocols.raft.impl.RaftServiceManager;
 import io.atomix.protocols.raft.operation.OperationType;
 import io.atomix.protocols.raft.protocol.RaftServerProtocol;
 import io.atomix.protocols.raft.service.ServiceId;
@@ -55,19 +56,21 @@ public class AtomixDistributedLockServiceTest {
             .withPrefix("test")
             .withStorageLevel(StorageLevel.MEMORY)
             .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(2, new WallClockTimestamp());
 
         AtomicLong index = new AtomicLong();
         DefaultServiceContext context = mock(DefaultServiceContext.class);
         expect(context.serviceType()).andReturn(ServiceType.from(LEADER_ELECTOR.name())).anyTimes();
         expect(context.serviceName()).andReturn("test").anyTimes();
         expect(context.serviceId()).andReturn(ServiceId.from(1)).anyTimes();
-        expect(context.executor()).andReturn(mock(ThreadContext.class)).anyTimes();
         expect(context.currentIndex()).andReturn(index.get()).anyTimes();
         expect(context.currentOperation()).andReturn(OperationType.COMMAND).anyTimes();
 
         RaftContext server = mock(RaftContext.class);
-        expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class));
+        expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class)).anyTimes();
+        RaftServiceManager manager = mock(RaftServiceManager.class);
+        expect(manager.executor()).andReturn(mock(ThreadContext.class)).anyTimes();
+        expect(server.getServiceManager()).andReturn(manager).anyTimes();
 
         replay(context, server);
 

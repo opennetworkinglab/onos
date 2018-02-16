@@ -37,7 +37,6 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.time.WallClockTimestamp;
 import io.atomix.utils.concurrent.AtomixThreadFactory;
 import io.atomix.utils.concurrent.SingleThreadContextFactory;
-import io.atomix.utils.concurrent.ThreadContext;
 import org.junit.Test;
 import org.onosproject.store.service.Task;
 
@@ -61,13 +60,12 @@ public class AtomixWorkQueueServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(2, new WallClockTimestamp());
 
         DefaultServiceContext context = mock(DefaultServiceContext.class);
         expect(context.serviceType()).andReturn(ServiceType.from(WORK_QUEUE.name())).anyTimes();
         expect(context.serviceName()).andReturn("test").anyTimes();
         expect(context.serviceId()).andReturn(ServiceId.from(1)).anyTimes();
-        expect(context.executor()).andReturn(mock(ThreadContext.class)).anyTimes();
 
         RaftContext server = mock(RaftContext.class);
         expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class));

@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import io.atomix.protocols.raft.service.ServiceId;
 import io.atomix.protocols.raft.service.impl.DefaultCommit;
 import io.atomix.protocols.raft.session.impl.RaftSessionContext;
 import io.atomix.protocols.raft.storage.RaftStorage;
@@ -42,7 +41,7 @@ public class AtomixAtomicCounterMapServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(2, new WallClockTimestamp());
 
         AtomixAtomicCounterMapService service = new AtomixAtomicCounterMapService();
         service.put(new DefaultCommit<>(
