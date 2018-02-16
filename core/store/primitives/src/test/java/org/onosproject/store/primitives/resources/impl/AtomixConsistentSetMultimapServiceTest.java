@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.resources.impl;
 import java.util.Collection;
 import java.util.Collections;
 
-import io.atomix.protocols.raft.service.ServiceId;
 import io.atomix.protocols.raft.service.impl.DefaultCommit;
 import io.atomix.protocols.raft.session.impl.RaftSessionContext;
 import io.atomix.protocols.raft.storage.RaftStorage;
@@ -50,7 +49,7 @@ public class AtomixConsistentSetMultimapServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(2, new WallClockTimestamp());
 
         AtomixConsistentSetMultimapService service = new AtomixConsistentSetMultimapService();
         service.put(new DefaultCommit<>(
