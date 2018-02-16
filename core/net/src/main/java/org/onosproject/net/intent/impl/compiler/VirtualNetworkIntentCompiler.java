@@ -31,6 +31,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.intent.Intent;
@@ -175,8 +176,8 @@ public class VirtualNetworkIntentCompiler
         PointToPointIntent physicalIntent = PointToPointIntent.builder()
                 .key(intentKey)
                 .appId(intent.appId())
-                .ingressPoint(ingressPoint)
-                .egressPoint(egressPoint)
+                .filteredIngressPoint(new FilteredConnectPoint(ingressPoint))
+                .filteredEgressPoint(new FilteredConnectPoint(egressPoint))
                 .constraints(intent.constraints())
                 .selector(intent.selector())
                 .treatment(intent.treatment())

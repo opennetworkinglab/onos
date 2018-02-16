@@ -261,7 +261,7 @@ public class IntentManager
         // remove associated group if there is one
         if (intent instanceof PointToPointIntent) {
             PointToPointIntent pointIntent = (PointToPointIntent) intent;
-            DeviceId deviceId = pointIntent.ingressPoint().deviceId();
+            DeviceId deviceId = pointIntent.filteredIngressPoint().connectPoint().deviceId();
             GroupKey groupKey = PointToPointIntentCompiler.makeGroupKey(intent.id());
             groupService.removeGroup(deviceId, groupKey,
                                      intent.appId());

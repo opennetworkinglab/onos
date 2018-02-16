@@ -30,6 +30,7 @@ import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -188,8 +189,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                 .key(key)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(portOne)
-                .egressPoint(portTwo)
+                .filteredIngressPoint(new FilteredConnectPoint(portOne))
+                .filteredEgressPoint(new FilteredConnectPoint(portTwo))
                 .priority(PRIORITY_OFFSET)
                 .build());
 
@@ -207,8 +208,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                 .key(key)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(portTwo)
-                .egressPoint(portOne)
+                .filteredIngressPoint(new FilteredConnectPoint(portTwo))
+                .filteredEgressPoint(new FilteredConnectPoint(portOne))
                 .priority(PRIORITY_OFFSET)
                 .build());
 
@@ -226,8 +227,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                 .key(key)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(portOne)
-                .egressPoint(portTwo)
+                .filteredIngressPoint(new FilteredConnectPoint(portOne))
+                .filteredEgressPoint(new FilteredConnectPoint(portTwo))
                 .priority(PRIORITY_OFFSET)
                 .build());
 
@@ -245,8 +246,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                 .key(key)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(portTwo)
-                .egressPoint(portOne)
+                .filteredIngressPoint(new FilteredConnectPoint(portTwo))
+                .filteredEgressPoint(new FilteredConnectPoint(portOne))
                 .priority(PRIORITY_OFFSET)
                 .build());
 

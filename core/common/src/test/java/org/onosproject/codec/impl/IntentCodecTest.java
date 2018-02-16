@@ -33,6 +33,7 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Lambda;
@@ -136,8 +137,9 @@ public class IntentCodecTest extends AbstractIntentTest {
                         .appId(appId)
                         .selector(emptySelector)
                         .treatment(emptyTreatment)
-                        .ingressPoint(ingress)
-                        .egressPoint(egress).build();
+                        .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                        .filteredEgressPoint(new FilteredConnectPoint(egress))
+                        .build();
 
         final JsonCodec<PointToPointIntent> intentCodec =
                 context.codec(PointToPointIntent.class);
@@ -187,8 +189,8 @@ public class IntentCodecTest extends AbstractIntentTest {
                         .appId(appId)
                         .selector(selector)
                         .treatment(treatment)
-                        .ingressPoint(ingress)
-                        .egressPoint(egress)
+                        .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                        .filteredEgressPoint(new FilteredConnectPoint(egress))
                         .constraints(constraints)
                         .build();
 
@@ -235,10 +237,10 @@ public class IntentCodecTest extends AbstractIntentTest {
 
         PointToPointIntent pointIntent = (PointToPointIntent) intent;
         assertThat(pointIntent.priority(), is(55));
-        assertThat(pointIntent.ingressPoint().deviceId(), is(did("0000000000000001")));
-        assertThat(pointIntent.ingressPoint().port(), is(PortNumber.portNumber(1)));
-        assertThat(pointIntent.egressPoint().deviceId(), is(did("0000000000000007")));
-        assertThat(pointIntent.egressPoint().port(), is(PortNumber.portNumber(2)));
+        assertThat(pointIntent.filteredIngressPoint().connectPoint().deviceId(), is(did("0000000000000001")));
+        assertThat(pointIntent.filteredIngressPoint().connectPoint().port(), is(PortNumber.portNumber(1)));
+        assertThat(pointIntent.filteredEgressPoint().connectPoint().deviceId(), is(did("0000000000000007")));
+        assertThat(pointIntent.filteredEgressPoint().connectPoint().port(), is(PortNumber.portNumber(2)));
 
         assertThat(pointIntent.constraints(), hasSize(1));
 

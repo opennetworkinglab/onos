@@ -260,8 +260,8 @@ public class TopoIntentFilter {
                                      Iterable<ConnectPoint> edgePoints) {
         for (ConnectPoint point : edgePoints) {
             // Bail if intent does not involve this edge point.
-            if (!point.equals(intent.egressPoint()) &&
-                    !point.equals(intent.ingressPoint())) {
+            if (!point.equals(intent.filteredEgressPoint().connectPoint()) &&
+                    !point.equals(intent.filteredIngressPoint().connectPoint())) {
                 return false;
             }
         }

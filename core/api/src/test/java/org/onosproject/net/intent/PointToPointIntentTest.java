@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 import org.junit.Test;
+import org.onosproject.net.FilteredConnectPoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutableBaseClass;
@@ -38,14 +39,14 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
         PointToPointIntent intent = createOne();
         assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect ingress", P1, intent.filteredIngressPoint().connectPoint());
+        assertEquals("incorrect egress", P2, intent.filteredEgressPoint().connectPoint());
 
         intent = createWithResourceGroup();
         assertEquals("incorrect id", APPID, intent.appId());
         assertEquals("incorrect match", MATCH, intent.selector());
-        assertEquals("incorrect ingress", P1, intent.ingressPoint());
-        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect ingress", P1, intent.filteredIngressPoint().connectPoint());
+        assertEquals("incorrect egress", P2, intent.filteredEgressPoint().connectPoint());
         assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
     }
 
@@ -64,8 +65,8 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P1)
-                .egressPoint(P2)
+                .filteredIngressPoint(new FilteredConnectPoint(P1))
+                .filteredEgressPoint(new FilteredConnectPoint(P2))
                 .build();
     }
 
@@ -74,8 +75,8 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P1)
-                .egressPoint(P2)
+                .filteredIngressPoint(new FilteredConnectPoint(P1))
+                .filteredEgressPoint(new FilteredConnectPoint(P2))
                 .resourceGroup(RESOURCE_GROUP)
                 .build();
     }
@@ -86,8 +87,8 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P2)
-                .egressPoint(P1)
+                .filteredIngressPoint(new FilteredConnectPoint(P2))
+                .filteredEgressPoint(new FilteredConnectPoint(P1))
                 .build();
     }
 

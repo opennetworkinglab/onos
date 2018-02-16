@@ -19,6 +19,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
@@ -92,8 +93,8 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
                 .key(key())
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(ingress)
-                .egressPoint(egress)
+                .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                .filteredEgressPoint(new FilteredConnectPoint(egress))
                 .constraints(constraints)
                 .priority(priority())
                 .resourceGroup(resourceGroup())

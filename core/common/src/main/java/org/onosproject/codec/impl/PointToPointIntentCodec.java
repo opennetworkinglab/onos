@@ -18,6 +18,7 @@ package org.onosproject.codec.impl;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 
@@ -45,9 +46,9 @@ public final class PointToPointIntentCodec extends JsonCodec<PointToPointIntent>
         final JsonCodec<ConnectPoint> connectPointCodec =
                 context.codec(ConnectPoint.class);
         final ObjectNode ingress =
-                connectPointCodec.encode(intent.ingressPoint(), context);
+                connectPointCodec.encode(intent.filteredIngressPoint().connectPoint(), context);
         final ObjectNode egress =
-                connectPointCodec.encode(intent.egressPoint(), context);
+                connectPointCodec.encode(intent.filteredEgressPoint().connectPoint(), context);
 
         result.set(INGRESS_POINT, ingress);
         result.set(EGRESS_POINT, egress);
@@ -67,13 +68,13 @@ public final class PointToPointIntentCodec extends JsonCodec<PointToPointIntent>
                 INGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
         ConnectPoint ingress = context.codec(ConnectPoint.class)
                 .decode(ingressJson, context);
-        builder.ingressPoint(ingress);
+        builder.filteredIngressPoint(new FilteredConnectPoint(ingress));
 
         ObjectNode egressJson = nullIsIllegal(get(json, EGRESS_POINT),
                 EGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
         ConnectPoint egress = context.codec(ConnectPoint.class)
                 .decode(egressJson, context);
-        builder.egressPoint(egress);
+        builder.filteredEgressPoint(new FilteredConnectPoint(egress));
 
         return builder.build();
     }

@@ -461,7 +461,7 @@ public class PointToPointIntentCompiler
     private List<FlowRule> createFailoverFlowRules(PointToPointIntent intent) {
         List<FlowRule> flowRules = new ArrayList<>();
 
-        ConnectPoint ingress = intent.ingressPoint();
+        ConnectPoint ingress = intent.filteredIngressPoint().connectPoint();
         DeviceId deviceId = ingress.deviceId();
 
         // flow rule with failover traffic treatment

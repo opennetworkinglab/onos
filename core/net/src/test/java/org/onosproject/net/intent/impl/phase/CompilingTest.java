@@ -24,6 +24,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -89,8 +90,8 @@ public class CompilingTest extends AbstractIntentTest {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(cp1)
-                .egressPoint(cp3)
+                .filteredIngressPoint(new FilteredConnectPoint(cp1))
+                .filteredEgressPoint(new FilteredConnectPoint(cp3))
                 .build();
         compiled = PathIntent.builder()
                 .appId(appId)

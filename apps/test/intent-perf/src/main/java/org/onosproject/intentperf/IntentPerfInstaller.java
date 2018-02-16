@@ -40,6 +40,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -333,8 +334,8 @@ public class IntentPerfInstaller {
                 .key(key)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(ingress)
-                .egressPoint(egress)
+                .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                .filteredEgressPoint(new FilteredConnectPoint(egress))
                 .build();
     }
 

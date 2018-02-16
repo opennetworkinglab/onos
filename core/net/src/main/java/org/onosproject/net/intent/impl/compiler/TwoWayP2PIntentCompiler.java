@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.TwoWayP2PIntent;
@@ -50,8 +51,8 @@ public class TwoWayP2PIntentCompiler
                         .key(intent.key())
                         .selector(intent.selector())
                         .treatment(intent.treatment())
-                        .ingressPoint(intent.one())
-                        .egressPoint(intent.two())
+                        .filteredIngressPoint(new FilteredConnectPoint(intent.one()))
+                        .filteredEgressPoint(new FilteredConnectPoint(intent.two()))
                         .constraints(intent.constraints())
                         .priority(intent.priority())
                         .resourceGroup(intent.resourceGroup())
@@ -61,8 +62,8 @@ public class TwoWayP2PIntentCompiler
                         .key(intent.key())
                         .selector(intent.selector())
                         .treatment(intent.treatment())
-                        .ingressPoint(intent.two())
-                        .egressPoint(intent.one())
+                        .filteredIngressPoint(new FilteredConnectPoint(intent.two()))
+                        .filteredEgressPoint(new FilteredConnectPoint(intent.one()))
                         .constraints(intent.constraints())
                         .priority(intent.priority())
                         .resourceGroup(intent.resourceGroup())

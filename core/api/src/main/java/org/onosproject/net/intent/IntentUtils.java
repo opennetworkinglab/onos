@@ -77,8 +77,10 @@ public final class IntentUtils {
             return Objects.equals(intent1.selector(), intent2.selector()) &&
                     Objects.equals(intent1.treatment(), intent2.treatment()) &&
                     Objects.equals(intent1.constraints(), intent2.constraints()) &&
-                    Objects.equals(intent1.ingressPoint(), intent2.ingressPoint()) &&
-                    Objects.equals(intent1.egressPoint(), intent2.egressPoint());
+                    Objects.equals(intent1.filteredIngressPoint().connectPoint(),
+                            intent2.filteredIngressPoint().connectPoint()) &&
+                    Objects.equals(intent1.filteredEgressPoint().connectPoint(),
+                            intent2.filteredEgressPoint().connectPoint());
         } else {
             log.error("Unimplemented intent type");
             return false;

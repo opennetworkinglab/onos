@@ -24,6 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -143,8 +144,8 @@ public class IntentPushTestCommand extends AbstractShellCommand
                     .key(Key.of(i + keyOffset, appId()))
                     .selector(selector)
                     .treatment(treatment)
-                    .ingressPoint(ingress)
-                    .egressPoint(egress)
+                    .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                    .filteredEgressPoint(new FilteredConnectPoint(egress))
                     .build());
             keysForInstall.add(Key.of(i + keyOffset, appId()));
             keysForWithdraw.add(Key.of(i + keyOffset, appId()));

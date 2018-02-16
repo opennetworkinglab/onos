@@ -15,18 +15,16 @@
  */
 package org.onosproject.net.intent;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -96,30 +94,6 @@ public final class PointToPointIntent extends ConnectivityIntent {
         @Override
         public Builder resourceGroup(ResourceGroup resourceGroup) {
             return (Builder) super.resourceGroup(resourceGroup);
-        }
-
-        /**
-         * Sets the ingress point of the point to point intent that will be built.
-         *
-         * @param ingressPoint ingress connect point
-         * @return this builder
-         */
-        @Deprecated
-        public Builder ingressPoint(ConnectPoint ingressPoint) {
-            this.ingressPoint = new FilteredConnectPoint(ingressPoint);
-            return this;
-        }
-
-        /**
-         * Sets the egress point of the point to point intent that will be built.
-         *
-         * @param egressPoint egress connect point
-         * @return this builder
-         */
-        @Deprecated
-        public Builder egressPoint(ConnectPoint egressPoint) {
-            this.egressPoint = new FilteredConnectPoint(egressPoint);
-            return this;
         }
 
         /**
@@ -210,27 +184,6 @@ public final class PointToPointIntent extends ConnectivityIntent {
         super();
         this.ingressPoint = null;
         this.egressPoint = null;
-    }
-
-    /**
-     * Returns the port on which the ingress traffic should be connected to
-     * the egress.
-     *
-     * @return ingress port
-     */
-    @Deprecated
-    public ConnectPoint ingressPoint() {
-        return ingressPoint.connectPoint();
-    }
-
-    /**
-     * Returns the port on which the traffic should egress.
-     *
-     * @return egress port
-     */
-    @Deprecated
-    public ConnectPoint egressPoint() {
-        return egressPoint.connectPoint();
     }
 
     /**

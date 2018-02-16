@@ -98,7 +98,7 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         final PointToPointIntent pointToPointIntent = (PointToPointIntent) intent;
 
         // check ingress connection
-        final ConnectPoint ingress = pointToPointIntent.ingressPoint();
+        final ConnectPoint ingress = pointToPointIntent.filteredIngressPoint().connectPoint();
         final ConnectPointJsonMatcher ingressMatcher =
                 ConnectPointJsonMatcher.matchesConnectPoint(ingress);
         final JsonNode jsonIngress = jsonIntent.get("ingressPoint");
@@ -111,7 +111,7 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         }
 
         // check egress connection
-        final ConnectPoint egress = pointToPointIntent.egressPoint();
+        final ConnectPoint egress = pointToPointIntent.filteredEgressPoint().connectPoint();
         final ConnectPointJsonMatcher egressMatcher =
                 ConnectPointJsonMatcher.matchesConnectPoint(egress);
         final JsonNode jsonEgress = jsonIntent.get("egressPoint");
