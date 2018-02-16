@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -62,8 +63,8 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
         }
         // Apply the valid rules on the device
         Collection<FlowRule> added = rules.stream()
-                .map(r -> createCrossConnectFlowRule(r))
-                .filter(xc -> installCrossConnect(xc))
+                .map(this::createCrossConnectFlowRule)
+                .filter(this::installCrossConnect)
                 .collect(Collectors.toList());
         restCiena.setCrossConnectCache(added);
         return added;
@@ -79,8 +80,8 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
             return Collections.emptyList();
         }
         Collection<FlowRule> removed = rules.stream()
-                .map(r -> createCrossConnectFlowRule(r))
-                .filter(xc -> xc != null)
+                .map(this::createCrossConnectFlowRule)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         restCiena.removeCrossConnectCache(removed);
         return removed;
@@ -88,7 +89,7 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
 
     private CrossConnectFlowRule createCrossConnectFlowRule(FlowRule r) {
         List<PortNumber> linePorts = CienaRestDevice.getLinesidePortId().stream()
-                .map(p -> PortNumber.portNumber(p))
+                .map(PortNumber::portNumber)
                 .collect(Collectors.toList());
         try {
             return new CrossConnectFlowRule(r, linePorts);
@@ -129,7 +130,7 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
         /*
          * rule is installed in three steps
          * 1- disable port
-         * 2- change channel
+         * 2- change frequency
          * 3- enable port
          */
         try {
@@ -143,8 +144,8 @@ public class CienaFlowRuleProgrammable extends AbstractHandlerBehaviour implemen
         if (!restCiena.disablePort(outPort)) {
             return false;
         }
-        //2- change channel
-        if (!restCiena.changeChannel(signal, outPort)) {
+        //2- change frequency
+        if (!restCiena.changeFrequency(signal, outPort)) {
             return false;
         }
         //3- enable port

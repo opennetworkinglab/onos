@@ -67,7 +67,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class CienaRestDevice {
-    private static final Frequency BASE_FREQUENCY = Frequency.ofGHz(193_950);
+    private static final Frequency CENTER_FREQUENCY = Frequency.ofGHz(195_950);
     private static final String ENABLED = "enabled";
     private static final String DISABLED = "disabled";
     private static final String VALUE = "value";
@@ -101,6 +101,7 @@ public class CienaRestDevice {
     private static final String CHANNEL_URI = TRANSMITTER_URI + "/" + LINE_SYSTEM_CHANNEL_NUMBER;
     private static final String ACTIVE_ALARMS_URL = ALARM_KEY + "/" + ACTIVE;
     private static final List<String> LINESIDE_PORT_ID = ImmutableList.of("4", "48");
+    private static final ChannelSpacing CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
 
     private final Logger log = getLogger(getClass());
 
@@ -166,10 +167,10 @@ public class CienaRestDevice {
 
     }
 
-    private String genFrequencyChangeRequest(long frequency) {
+    private String genFrequencyChangeRequest(double frequency) {
         String request = "{\n" +
                 "\"" + FREQUENCY_KEY + "\": {\n" +
-                "\"" + VALUE + "\": " + Long.toString(frequency) + "\n" +
+                "\"" + VALUE + "\": " + Double.toString(frequency) + "\n" +
                 "}\n" +
                 "}";
         log.debug("request:\n{}", request);
@@ -249,7 +250,7 @@ public class CienaRestDevice {
 
     public final boolean changeFrequency(OchSignal signal, PortNumber outPort) {
         String uri = genUri(FREQUENCY_URI, outPort);
-        long frequency = toFrequency(signal);
+        double frequency = signal.centralFrequency().asGHz();
         String request = genFrequencyChangeRequest(frequency);
         boolean response = putNoReply(uri, request);
         if (!response) {
@@ -271,13 +272,7 @@ public class CienaRestDevice {
         return response;
     }
 
-    private final long toFrequency(OchSignal signal) {
-        double frequency = BASE_FREQUENCY.asGHz() +
-                (signal.channelSpacing().frequency().asGHz() * (double) signal.slotGranularity());
-        return Double.valueOf(frequency).longValue();
-    }
-
-    private final int getChannel(PortNumber port) {
+    private int getChannel(PortNumber port) {
         try {
             String uri = genUri(CHANNEL_URI, port);
             JsonNode response = get(uri);
@@ -286,6 +281,25 @@ public class CienaRestDevice {
             // this is expected for client side ports as they don't contain channel data
             log.error("unable to get channel for port {} on device {}:\n{}", port, deviceId, e);
             return -1;
+        }
+
+    }
+
+    private int getChannelFromFrequency(Frequency frequency) {
+        return (int) CENTER_FREQUENCY.subtract(frequency)
+                .floorDivision(CHANNEL_SPACING.frequency().asHz()).asHz();
+
+    }
+
+    private Frequency getFrequency(PortNumber port) {
+        try {
+            String uri = genUri(FREQUENCY_URI, port);
+            JsonNode response = get(uri);
+            return Frequency.ofGHz(response.get(FREQUENCY_KEY).get(VALUE).asDouble());
+        } catch (IOException e) {
+            // this is expected for client side ports as they don't contain channel data
+            log.error("unable to get frequency for port {} on device {}:\n{}", port, deviceId, e);
+            return null;
         }
 
     }
@@ -346,8 +360,8 @@ public class CienaRestDevice {
         try {
             List<JsonNode> alarms = Lists.newArrayList(get(ACTIVE_ALARMS_URL).get(ACTIVE).elements());
             return alarms.stream()
-                    .map(a -> newAlarmFromJsonNode(a))
-                    .filter(a -> a != null)
+                    .map(this::newAlarmFromJsonNode)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         } catch (IOException e) {
             log.error("unable to get active alarms for device {}:\n", deviceId, e);
@@ -362,17 +376,17 @@ public class CienaRestDevice {
         return ports.stream()
                 .filter(p -> LINESIDE_PORT_ID.contains(p.number().name()))
                 .map(p -> fetchRule(p.number()))
-                .filter(p -> p != null)
+                .filter(Objects::nonNull)
                 .map(fr -> new DefaultFlowEntry(fr, FlowEntry.FlowEntryState.ADDED, 0, 0, 0))
                 .collect(Collectors.toList());
     }
 
     private FlowRule fetchRule(PortNumber port) {
-        int channel = getChannel(port);
-        if (channel == -1) {
+        Frequency frequency = getFrequency(port);
+        if (frequency == null) {
             return null;
         }
-
+        int channel = getChannelFromFrequency(frequency);
         /*
          * both inPort and outPort will be same as WaveServer only deal with same port ptp-indexes
          * channel and spaceMultiplier are same.
@@ -382,7 +396,7 @@ public class CienaRestDevice {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(port)
                 .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
-                .add(Criteria.matchLambda(OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, channel)))
+                .add(Criteria.matchLambda(OchSignal.newDwdmSlot(CHANNEL_SPACING, channel)))
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(port)
@@ -394,7 +408,7 @@ public class CienaRestDevice {
             return null;
         }
 
-        FlowRule fr = DefaultFlowRule.builder()
+        return DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .makePermanent()
                 .withSelector(selector)
@@ -402,8 +416,6 @@ public class CienaRestDevice {
                 .withPriority(lookup.getRight())
                 .withCookie(lookup.getLeft().value())
                 .build();
-
-        return fr;
     }
 
     public List<Alarm> getAlarms() {
