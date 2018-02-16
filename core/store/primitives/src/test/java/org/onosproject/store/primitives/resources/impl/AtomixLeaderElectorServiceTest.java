@@ -34,7 +34,6 @@ import io.atomix.storage.StorageLevel;
 import io.atomix.time.WallClockTimestamp;
 import io.atomix.utils.concurrent.AtomixThreadFactory;
 import io.atomix.utils.concurrent.SingleThreadContextFactory;
-import io.atomix.utils.concurrent.ThreadContext;
 import org.junit.Test;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.NodeId;
@@ -58,13 +57,12 @@ public class AtomixLeaderElectorServiceTest {
                 .withPrefix("test")
                 .withStorageLevel(StorageLevel.MEMORY)
                 .build());
-        Snapshot snapshot = store.newSnapshot(ServiceId.from(1), "test", 2, new WallClockTimestamp());
+        Snapshot snapshot = store.newSnapshot(2, new WallClockTimestamp());
 
         DefaultServiceContext context = mock(DefaultServiceContext.class);
         expect(context.serviceType()).andReturn(ServiceType.from(LEADER_ELECTOR.name())).anyTimes();
         expect(context.serviceName()).andReturn("test").anyTimes();
         expect(context.serviceId()).andReturn(ServiceId.from(1)).anyTimes();
-        expect(context.executor()).andReturn(mock(ThreadContext.class)).anyTimes();
 
         RaftContext server = mock(RaftContext.class);
         expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class));
