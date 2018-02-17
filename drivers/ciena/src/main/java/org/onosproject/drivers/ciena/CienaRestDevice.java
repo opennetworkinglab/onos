@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.Frequency;
+import org.onlab.util.Spectrum;
 import org.onosproject.driver.optical.flowrule.CrossConnectCache;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
@@ -286,7 +287,7 @@ public class CienaRestDevice {
     }
 
     private int getChannelFromFrequency(Frequency frequency) {
-        return (int) CENTER_FREQUENCY.subtract(frequency)
+        return (int) frequency.subtract(Spectrum.CENTER_FREQUENCY)
                 .floorDivision(CHANNEL_SPACING.frequency().asHz()).asHz();
 
     }
@@ -297,7 +298,7 @@ public class CienaRestDevice {
             JsonNode response = get(uri);
             return Frequency.ofGHz(response.get(FREQUENCY_KEY).get(VALUE).asDouble());
         } catch (IOException e) {
-            // this is expected for client side ports as they don't contain channel data
+            // this is expected for client side ports as they don't contain frequency data
             log.error("unable to get frequency for port {} on device {}:\n{}", port, deviceId, e);
             return null;
         }
