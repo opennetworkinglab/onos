@@ -338,9 +338,8 @@ public class DefaultRoutingHandler {
                     try {
                         isEdge = config.isEdgeDevice(targetSw.id());
                     } catch (DeviceConfigNotFoundException e) {
-                        log.warn(e.getMessage() + "aborting populateSubnet");
-                        populationStatus = Status.ABORTED;
-                        return;
+                        log.warn(e.getMessage() + "aborting populateSubnet on targetSw {}", targetSw.id());
+                        continue;
                     }
                     if (dstSw.equals(targetSw.id()) || !isEdge ||
                             (cpts.size() == 2 &&
