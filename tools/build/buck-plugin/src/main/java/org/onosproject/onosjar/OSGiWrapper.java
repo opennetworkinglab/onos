@@ -63,6 +63,9 @@ import static java.nio.file.Files.walkFileTree;
  */
 public class OSGiWrapper implements Step {
 
+    private static final String EMBED_DEPENDENCY = "Embed-Dependency";
+    private static final String EMBEDDED_ARTIFACTS = "Embedded-Artifacts";
+
     private Path inputJar;
     private Path outputJar;
     private Path sourcesDir;
@@ -86,6 +89,8 @@ public class OSGiWrapper implements Step {
     private String bundleDescription;
     private String bundleLicense;
 
+    private String bundleClasspath;
+
     private String webContext;
 
     private PrintStream stderr = System.err;
@@ -106,7 +111,8 @@ public class OSGiWrapper implements Step {
                        String dynamicimportPackages,
                        String embeddedDependencies,
                        String bundleDescription,
-                       String privatePackages) {
+                       String privatePackages,
+                       String bundleClasspath) {
         this.inputJar = inputJar;
         this.sourcesDir = sourcesDir;
         this.classesDir = classesDir;
@@ -133,9 +139,12 @@ public class OSGiWrapper implements Step {
         this.includeResources = includeResources;
 
         this.webContext = webContext;
+
+        this.bundleClasspath = bundleClasspath;
     }
 
     private void setProperties(Analyzer analyzer) {
+
         analyzer.setProperty(Analyzer.BUNDLE_NAME, bundleName);
         analyzer.setProperty(Analyzer.BUNDLE_SYMBOLICNAME, bundleSymbolicName);
         analyzer.setProperty(Analyzer.BUNDLE_VERSION, bundleVersion.replace('-', '.'));
@@ -151,8 +160,6 @@ public class OSGiWrapper implements Step {
         //analyzer.setProperty("-provider-policy", "${range;[===,==+)}");
         //analyzer.setProperty("-consumer-policy", "${range;[===,==+)}");
 
-        // There are no good defaults so make sure you set the Import-Package
-        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
         if (privatePackages != null) {
             analyzer.setProperty(Analyzer.PRIVATE_PACKAGE, privatePackages);
         }
@@ -170,19 +177,18 @@ public class OSGiWrapper implements Step {
             analyzer.setProperty(Analyzer.INCLUDE_RESOURCE, includeResources);
         }
 
-        if(embeddedDependencies != null) {
-            analyzer.setProperty(Analyzer.BUNDLE_CLASSPATH,
-                                 embeddedDependencies);
-            String finalIncludes = Strings.isNullOrEmpty(includeResources) ?
-                    embeddedDependencies : (includeResources+","+embeddedDependencies);
-            analyzer.setProperty(Analyzer.INCLUDE_RESOURCE,
-                                 finalIncludes);
+        if (embeddedDependencies != null) {
+            analyzer.setProperty(EMBED_DEPENDENCY, embeddedDependencies);
         }
+
+        // There are no good defaults so make sure you set the Import-Package
+        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
 
         if (isWab()) {
             analyzer.setProperty(Analyzer.WAB, "src/main/webapp/");
             analyzer.setProperty("Web-ContextPath", webContext);
-            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
+            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages +
+                    ",org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
     }
 
@@ -334,8 +340,10 @@ public class OSGiWrapper implements Step {
         Jar dot = analyzer.getJar();
 
         log("wab %s", wab);
-        analyzer.setBundleClasspath("WEB-INF/classes," +
-                                            analyzer.getProperty(analyzer.BUNDLE_CLASSPATH));
+
+        if (bundleClasspath != null) {
+            analyzer.setBundleClasspath("WEB-INF/classes," + bundleClasspath);
+        }
 
         Set<String> paths = new HashSet<>(dot.getResources().keySet());
 
