@@ -31,6 +31,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -42,6 +43,7 @@ import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Handles REST API call of openstack node config.
@@ -57,6 +59,9 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
     private static final String DELETE = "DELETE";
+
+    private static final String HOST_NAME = "hostname";
+    private static final String ERROR_MESSAGE = " cannot be null";
 
     private final OpenstackNodeAdminService osNodeAdminService =
                                             get(OpenstackNodeAdminService.class);
@@ -99,7 +104,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
      *
      * @param input openstack nodes JSON input stream
      * @return 200 OK with the updated openstack node's config, 400 BAD_REQUEST
-     * if the JSON is malformed
+     * if the JSON is malformed, and 304 NOT_MODIFIED without the updated config
      * @onos.rsModel OpenstackNode
      */
     @PUT
@@ -125,28 +130,29 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     /**
      * Removes a set of openstack nodes' config from the JSON input stream.
      *
-     * @param input openstack nodes JSON input stream
-     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed
+     * @param hostname host name contained in openstack nodes configuration
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed, and
+     * 304 NOT_MODIFIED without the updated config
      * @onos.rsModel OpenstackNode
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteNodes(InputStream input) {
+    @Path("{hostname}")
+    public Response deleteNodes(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, DELETE));
 
-        Set<OpenstackNode> nodes = readNodeConfiguration(input);
-        for (OpenstackNode osNode: nodes) {
-            OpenstackNode existing = osNodeService.node(osNode.hostname());
-            if (existing == null) {
-                log.warn("There is no node configuration to delete : {}", osNode.hostname());
-                return Response.notModified().build();
-            } else {
-                osNodeAdminService.removeNode(osNode.hostname());
-            }
+        OpenstackNode existing =
+                osNodeService.node(nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
+
+        if (existing == null) {
+            log.warn("There is no node configuration to delete : {}", hostname);
+            return Response.notModified().build();
+        } else {
+            osNodeAdminService.removeNode(hostname);
         }
 
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     private Set<OpenstackNode> readNodeConfiguration(InputStream input) {

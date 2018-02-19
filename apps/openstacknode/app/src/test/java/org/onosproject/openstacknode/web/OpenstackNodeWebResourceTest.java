@@ -94,7 +94,7 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API POST with creating new nodes operation.
+     * Tests the results of the REST API POST method with creating new nodes operation.
      */
     @Test
     public void testCreateNodesWithCreateOperation() {
@@ -118,7 +118,7 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API POST without creating new nodes operation.
+     * Tests the results of the REST API POST method without creating new nodes operation.
      */
     @Test
     public void testCreateNodesWithoutCreateOperation() {
@@ -138,7 +138,7 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API PUT with modifying the nodes.
+     * Tests the results of the REST API PUT method with modifying the nodes.
      */
     @Test
     public void testUpdateNodesWithoutModifyOperation() {
@@ -162,7 +162,7 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API PUT without modifying the nodes.
+     * Tests the results of the REST API PUT method without modifying the nodes.
      */
     @Test
     public void testUpdateNodesWithModifyOperation() {
@@ -174,6 +174,52 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
                 .getResourceAsStream("openstack-node-gateway-config.json");
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
+        final int status = response.getStatus();
+
+        assertThat(status, is(304));
+
+        verify(mockOpenstackNodeService);
+    }
+
+    /**
+     * Tests the results of the REST API DELETE method with deleting the nodes.
+     */
+    @Test
+    public void testDeleteNodesWithDeletionOperation() {
+        expect(mockOpenstackNodeService.node(anyString())).andReturn(openstackNode).once();
+        replay(mockOpenstackNodeService);
+
+        expect(mockOpenstackNodeAdminService.removeNode(anyString())).andReturn(openstackNode).once();
+        replay(mockOpenstackNodeAdminService);
+
+        String location = PATH + "/gateway-node";
+
+        final WebTarget wt = target();
+        Response response = wt.path(location).request(
+                            MediaType.APPLICATION_JSON_TYPE).delete();
+
+        final int status = response.getStatus();
+
+        assertThat(status, is(204));
+
+        verify(mockOpenstackNodeService);
+        verify(mockOpenstackNodeAdminService);
+    }
+
+    /**
+     * Tests the results of the REST API DELETE method without deleting the nodes.
+     */
+    @Test
+    public void testDeleteNodesWithoutDeletionOperation() {
+        expect(mockOpenstackNodeService.node(anyString())).andReturn(null).once();
+        replay(mockOpenstackNodeService);
+
+        String location = PATH + "/gateway-node";
+
+        final WebTarget wt = target();
+        Response response = wt.path(location).request(
+                MediaType.APPLICATION_JSON_TYPE).delete();
+
         final int status = response.getStatus();
 
         assertThat(status, is(304));
