@@ -55,6 +55,7 @@ import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 import org.slf4j.Logger;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -99,6 +100,7 @@ public class DistributedOpenstackNetworkStore
             .register(IPVersionType.class)
             .register(Ipv6AddressMode.class)
             .register(Ipv6RaMode.class)
+            .register(LinkedHashMap.class)
             .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
