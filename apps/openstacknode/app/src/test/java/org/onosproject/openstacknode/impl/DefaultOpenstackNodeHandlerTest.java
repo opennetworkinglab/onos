@@ -15,13 +15,10 @@
  */
 package org.onosproject.openstacknode.impl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,16 +69,15 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
-import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
-import org.onosproject.openstacknode.api.OpenstackNodeListener;
-import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -493,75 +489,6 @@ public class DefaultOpenstackNodeHandlerTest {
         @Override
         public MacAddress vlanPortMac() {
             return MacAddress.NONE;
-        }
-    }
-
-    private static class TestOpenstackNodeManager implements OpenstackNodeService, OpenstackNodeAdminService {
-        Map<String, OpenstackNode> osNodeMap = Maps.newHashMap();
-        List<OpenstackNodeListener> listeners = Lists.newArrayList();
-
-        @Override
-        public Set<OpenstackNode> nodes() {
-            return ImmutableSet.copyOf(osNodeMap.values());
-        }
-
-        @Override
-        public Set<OpenstackNode> nodes(OpenstackNode.NodeType type) {
-            return osNodeMap.values().stream()
-                    .filter(osNode -> osNode.type() == type)
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<OpenstackNode> completeNodes() {
-            return osNodeMap.values().stream()
-                    .filter(osNode -> osNode.state() == COMPLETE)
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<OpenstackNode> completeNodes(OpenstackNode.NodeType type) {
-            return osNodeMap.values().stream()
-                    .filter(osNode -> osNode.type() == type && osNode.state() == COMPLETE)
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public OpenstackNode node(String hostname) {
-            return osNodeMap.get(hostname);
-        }
-
-        @Override
-        public OpenstackNode node(DeviceId deviceId) {
-            return osNodeMap.values().stream()
-                    .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
-                            Objects.equals(osNode.ovsdb(), deviceId))
-                    .findFirst().orElse(null);
-        }
-
-        @Override
-        public void addListener(OpenstackNodeListener listener) {
-            listeners.add(listener);
-        }
-
-        @Override
-        public void removeListener(OpenstackNodeListener listener) {
-            listeners.remove(listener);
-        }
-
-        @Override
-        public void createNode(OpenstackNode osNode) {
-            osNodeMap.put(osNode.hostname(), osNode);
-        }
-
-        @Override
-        public void updateNode(OpenstackNode osNode) {
-            osNodeMap.put(osNode.hostname(), osNode);
-        }
-
-        @Override
-        public OpenstackNode removeNode(String hostname) {
-            return null;
         }
     }
 
