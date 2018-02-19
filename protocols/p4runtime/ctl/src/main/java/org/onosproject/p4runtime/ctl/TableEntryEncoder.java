@@ -73,23 +73,24 @@ final class TableEntryEncoder {
     }
 
     /**
-     * Returns a collection of P4Runtime table entry protobuf messages, encoded from the given collection of PI table
-     * entries for the given pipeconf. If a PI table entry cannot be encoded, it is skipped, hence the returned
-     * collection might have different size than the input one.
-     * <p>
-     * Please check the log for an explanation of any error that might have occurred.
+     * Returns a collection of P4Runtime table entry protobuf messages, encoded
+     * from the given collection of PI table entries for the given pipeconf. If
+     * a PI table entry cannot be encoded, an EncodeException is thrown.
      *
      * @param piTableEntries PI table entries
      * @param pipeconf       PI pipeconf
      * @return collection of P4Runtime table entry protobuf messages
+     * @throws EncodeException if a PI table entry cannot be encoded
      */
-    static Collection<TableEntry> encode(Collection<PiTableEntry> piTableEntries, PiPipeconf pipeconf) {
+    static Collection<TableEntry> encode(Collection<PiTableEntry> piTableEntries,
+                                                PiPipeconf pipeconf)
+            throws EncodeException {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
         if (browser == null) {
-            log.error("Unable to get a P4Info browser for pipeconf {}, skipping encoding of all table entries");
-            return Collections.emptyList();
+            throw new EncodeException(format(
+                    "Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
         }
 
         ImmutableList.Builder<TableEntry> tableEntryMsgListBuilder = ImmutableList.builder();
@@ -97,8 +98,8 @@ final class TableEntryEncoder {
         for (PiTableEntry piTableEntry : piTableEntries) {
             try {
                 tableEntryMsgListBuilder.add(encodePiTableEntry(piTableEntry, browser));
-            } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
-                log.error("Unable to encode PI table entry: {}", e.getMessage());
+            } catch (P4InfoBrowser.NotFoundException e) {
+                throw new EncodeException(e.getMessage());
             }
         }
 

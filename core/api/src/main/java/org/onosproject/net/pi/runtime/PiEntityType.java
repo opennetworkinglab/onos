@@ -31,5 +31,10 @@ public enum PiEntityType {
     /**
      * Action profile group.
      */
-    GROUP
+    GROUP,
+
+    /**
+     * Action profile group member.
+     */
+    GROUP_MEMBER
 }

@@ -147,7 +147,7 @@ public class TableEntryEncoderTest {
     }
 
     @Test
-    public void testTableEntryEncoder() throws P4InfoBrowser.NotFoundException {
+    public void testTableEntryEncoder() throws Exception {
 
         Collection<TableEntry> result = encode(Lists.newArrayList(piTableEntry), defaultPipeconf);
         assertThat(result, hasSize(1));
@@ -191,7 +191,7 @@ public class TableEntryEncoderTest {
     }
 
     @Test
-    public void testActopProfileGroup() throws P4InfoBrowser.NotFoundException {
+    public void testActopProfileGroup() throws Exception {
         Collection<TableEntry> result = encode(Lists.newArrayList(piTableEntryWithGroupAction), defaultPipeconf);
         assertThat(result, hasSize(1));
 

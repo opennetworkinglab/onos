@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Instance of a member of an action group in a protocol-independent pipeline.
  */
 @Beta
-public final class PiActionGroupMember {
+public final class PiActionGroupMember implements PiEntity {
 
     private final PiActionGroupMemberId id;
     private final PiAction action;
@@ -63,6 +63,11 @@ public final class PiActionGroupMember {
      */
     public int weight() {
         return weight;
+    }
+
+    @Override
+    public PiEntityType piEntityType() {
+        return PiEntityType.GROUP_MEMBER;
     }
 
     @Override

@@ -29,6 +29,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
@@ -42,6 +43,7 @@ import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiPipeconfService;
@@ -49,6 +51,7 @@ import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.slf4j.Logger;
 import p4.P4RuntimeGrpc;
+import p4.P4RuntimeOuterClass;
 import p4.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.P4RuntimeOuterClass.ActionProfileMember;
 import p4.P4RuntimeOuterClass.Entity;
@@ -88,6 +91,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
@@ -161,7 +165,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             try {
                 return supplier.get();
             } catch (StatusRuntimeException ex) {
-                logP4RuntimeErrorStatus(ex, opDescription);
+                log.warn("Unable to execute {} on {}: {}", opDescription, deviceId, ex.toString());
                 throw ex;
             } catch (Throwable ex) {
                 log.error("Exception in client of {}, executing {}", deviceId, opDescription, ex);
@@ -170,18 +174,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 writeLock.unlock();
             }
         }, contextExecutor);
-    }
-
-    private void logP4RuntimeErrorStatus(StatusRuntimeException ex, String description) {
-        String statusString = ex.getStatus().getDescription();
-        try {
-            com.google.rpc.Status status = com.google.rpc.Status.parseFrom(statusString.getBytes());
-            log.warn("{} failed on {} due to {}", description, deviceId, status.toString());
-        } catch (InvalidProtocolBufferException e) {
-            log.warn("{} failed on {} due to {}", description, deviceId, statusString);
-        } catch (NullPointerException e) {
-            log.warn("{} failed on {}", description, deviceId);
-        }
     }
 
     @Override
@@ -308,7 +300,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             streamRequestObserver.onNext(requestMsg);
             return result.get();
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, "Arbitration update");
+            log.error("Unable to perform arbitration update on {}: {}", deviceId, e.getMessage());
             arbitrationUpdateMap.remove(newElectionId);
             return false;
         } catch (InterruptedException | ExecutionException e) {
@@ -360,7 +352,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             this.blockingStub.setForwardingPipelineConfig(request);
             return true;
         } catch (StatusRuntimeException ex) {
-            logP4RuntimeErrorStatus(ex, "Set pipeline config");
+            log.warn("Unable to set pipeline config on {}: {}", deviceId, ex.getMessage());
             return false;
         }
     }
@@ -369,19 +361,26 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                                         PiPipeconf pipeconf) {
         WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
 
-        Collection<Update> updateMsgs = TableEntryEncoder.encode(piTableEntries, pipeconf)
-                .stream()
-                .map(tableEntryMsg ->
-                             Update.newBuilder()
-                                     .setEntity(Entity.newBuilder()
-                                                        .setTableEntry(tableEntryMsg)
-                                                        .build())
-                                     .setType(UPDATE_TYPES.get(opType))
-                                     .build())
-                .collect(Collectors.toList());
-
-        if (updateMsgs.size() == 0) {
+        if (piTableEntries.size() == 0) {
             return true;
+        }
+
+        Collection<Update> updateMsgs = null;
+        try {
+            updateMsgs = TableEntryEncoder.encode(piTableEntries, pipeconf)
+                    .stream()
+                    .map(tableEntryMsg ->
+                                 Update.newBuilder()
+                                         .setEntity(Entity.newBuilder()
+                                                            .setTableEntry(tableEntryMsg)
+                                                            .build())
+                                         .setType(UPDATE_TYPES.get(opType))
+                                         .build())
+                    .collect(Collectors.toList());
+        } catch (EncodeException e) {
+            log.error("Unable to encode table entries, aborting {} operation: {}",
+                      opType.name(), e.getMessage());
+            return false;
         }
 
         writeRequestBuilder
@@ -394,7 +393,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestBuilder.build());
             return true;
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, "Write table entries");
+            logWriteErrors(piTableEntries, e, opType, "table entry");
             return false;
         }
     }
@@ -425,7 +424,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = blockingStub.read(requestMsg);
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, "Dump table");
+            log.warn("Unable to dump table {} from {}: {}", piTableId, deviceId, e.getMessage());
             return Collections.emptyList();
         }
 
@@ -534,7 +533,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = () -> blockingStub.read(request);
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, "Read counter");
+            log.warn("Unable to read counter cells from {}: {}", deviceId, e.getMessage());
             return Collections.emptyList();
         }
 
@@ -548,13 +547,15 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private boolean doWriteActionGroupMembers(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
         final Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
-        try {
-            for (PiActionGroupMember member : group.members()) {
+
+        for (PiActionGroupMember member : group.members()) {
+            try {
                 actionProfileMembers.add(ActionProfileMemberEncoder.encode(group, member, pipeconf));
+            } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
+                log.warn("Unable to encode group member, aborting {} operation: {} [{}]",
+                         opType.name(), e.getMessage(), member.toString());
+                return false;
             }
-        } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-            log.warn("Unable to write ({}) group members: {}", opType, e.getMessage());
-            return false;
         }
 
         final Collection<Update> updateMsgs = actionProfileMembers.stream()
@@ -581,7 +582,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, String.format("%s group members", opType));
+            logWriteErrors(group.members(), e, opType, "group member");
             return false;
         }
     }
@@ -624,8 +625,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             groupResponses = blockingStub.read(groupRequestMsg);
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, String.format("Dump group from action profile %s",
-                                                     piActionProfileId.id()));
+            log.warn("Unable to dump action profile {} from {}: {}", piActionProfileId, deviceId, e.getMessage());
             return Collections.emptySet();
         }
 
@@ -673,8 +673,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             memberResponses = blockingStub.read(memberRequestMsg);
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, String.format("Read members from action profile %s",
-                                                     piActionProfileId.id()));
+            log.warn("Unable to read members of action profile {} from {}: {}",
+                     piActionProfileId, deviceId, e.getMessage());
             return Collections.emptyList();
         }
 
@@ -715,7 +715,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf);
         } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-            log.warn("Unable to encode group: {}", e.getMessage());
+            log.warn("Unable to encode group, aborting {} operation: {}", e.getMessage(), opType.name());
             return false;
         }
 
@@ -733,7 +733,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            logP4RuntimeErrorStatus(e, String.format("%s group", opType));
+            logWriteErrors(Collections.singleton(group), e, opType, "group");
             return false;
         }
     }
@@ -779,6 +779,82 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    private <E extends PiEntity> void logWriteErrors(Collection<E> writeEntities,
+                                                     StatusRuntimeException ex,
+                                                     WriteOperationType opType,
+                                                     String entryType) {
+        List<P4RuntimeOuterClass.Error> errors = null;
+        String description = null;
+        try {
+            errors = extractWriteErrorDetails(ex);
+        } catch (InvalidProtocolBufferException e) {
+            description = ex.getStatus().getDescription();
+        }
+
+        log.warn("Unable to {} {} {}(s) on {}: {}{} (detailed errors might be logged below)",
+                 opType.name(), writeEntities.size(), entryType, deviceId,
+                 ex.getStatus().getCode().name(),
+                 description == null ? "" : " - " + description);
+
+        if (errors == null || errors.isEmpty()) {
+            return;
+        }
+
+        // FIXME: we are assuming entities is an ordered collection, e.g. a list,
+        // and that errors are reported in the same order as the corresponding
+        // written entity. Write RPC methods should be refactored to accept an
+        // order list of entities, instead of a collection.
+        if (errors.size() == writeEntities.size()) {
+            Iterator<E> entityIterator = writeEntities.iterator();
+            errors.stream()
+                    .map(e -> ImmutablePair.of(e, entityIterator.next()))
+                    .filter(p -> p.left.getCanonicalCode() != Status.OK.getCode().value())
+                    .forEach(p -> log.warn("Unable to {} {}: {} [{}]",
+                                           opType.name(), entryType, parseP4Error(p.getLeft()),
+                                           p.getRight().toString()));
+        } else {
+            log.error("Unable to reconcile error details to updates " +
+                              "(sent {} updates, but device returned {} errors)",
+                      entryType, writeEntities.size(), errors.size());
+            errors.stream()
+                    .filter(err -> err.getCanonicalCode() != Status.OK.getCode().value())
+                    .forEach(err -> log.warn("Unable to {} {} (unknown): {}",
+                                 opType.name(), entryType, parseP4Error(err)));
+        }
+    }
+
+    private List<P4RuntimeOuterClass.Error> extractWriteErrorDetails(
+            StatusRuntimeException ex) throws InvalidProtocolBufferException {
+        String statusString = ex.getStatus().getDescription();
+        if (statusString == null) {
+            return Collections.emptyList();
+        }
+        com.google.rpc.Status status = com.google.rpc.Status
+                .parseFrom(statusString.getBytes());
+        return status.getDetailsList().stream()
+                .map(any -> {
+                    try {
+                        return any.unpack(P4RuntimeOuterClass.Error.class);
+                    } catch (InvalidProtocolBufferException e) {
+                        log.warn("Unable to unpack P4Runtime Error: {}",
+                                 any.toString());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+    }
+
+    private String parseP4Error(P4RuntimeOuterClass.Error err) {
+        return format("%s %s (%s code %d)%s",
+                      Status.fromCodeValue(err.getCanonicalCode()),
+                      err.getMessage(),
+                      err.getSpace(),
+                      err.getCode(),
+                      err.hasDetails() ? "\n" + err.getDetails().toString() : "");
     }
 
     /**
