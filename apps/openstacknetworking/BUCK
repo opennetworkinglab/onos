@@ -15,6 +15,7 @@ COMPILE_DEPS = [
     '//lib:jackson-coreutils',
     '//lib:btf',
     '//lib:msg-simple',
+    '//lib:snakeyaml',
 ]
 
 TEST_DEPS = [
@@ -29,19 +30,22 @@ BUNDLES = [
     '//apps/openstacknetworking:onos-apps-openstacknetworking',
 ]
 
-EXCLUDED_BUNDLES = [
-    '//lib:openstack4j-core',
-    '//lib:openstack4j-http-connector',
-    '//lib:openstack4j-httpclient',
-    '//lib:json-patch',
-    '//lib:jackson-coreutils',
-    '//lib:btf',
-    '//lib:msg-simple',
-    '//lib:spifly-bundle',
-    '//lib:spifly-weaver',
-    '//lib:spifly-core',
-    '//lib:aries-util',
-]
+RESOURCES = {
+    'openstack4j-core-3.1.0.jar': 'src/main/resources/deps/openstack4j-core-3.1.0.jar',
+    'openstack4j-http-connector-3.1.0.jar': 'src/main/resources/deps/openstack4j-http-connector-3.1.0.jar',
+    'openstack4j-httpclient-3.1.0.jar': 'src/main/resources/deps/openstack4j-httpclient-3.1.0.jar',
+    'json-patch-1.9.jar': 'src/main/resources/deps/json-patch-1.9.jar',
+    'jackson-coreutils-1.6.jar': 'src/main/resources/deps/jackson-coreutils-1.6.jar',
+    'msg-simple-1.1.jar': 'src/main/resources/deps/msg-simple-1.1.jar',
+    'btf-1.2.jar': 'src/main/resources/deps/btf-1.2.jar',
+    'snakeyaml-1.15.jar': 'src/main/resources/deps/snakeyaml-1.15.jar',
+}
+
+OPENSTACK4J_LIB = 'openstack4j-core-3.1.0.jar,openstack4j-http-connector-3.1.0.jar,openstack4j-httpclient-3.1.0.jar'
+JACKSON_LIB = 'json-patch-1.9.jar,jackson-coreutils-1.6.jar,msg-simple-1.1.jar,btf-1.2.jar,snakeyaml-1.15.jar'
+
+INCLUDE_PACKAGES = 'com.google.common.net,com.google.common.io,com.fasterxml.jackson.annotation,*'
+EXCLUDE_PACKAGES = '!org.openstack4j,!org.openstack4j.*'
 
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
@@ -51,6 +55,11 @@ osgi_jar_with_tests (
     api_version = '1.0',
     api_description = 'REST API for OpenStack Networking',
     api_package = 'org.onosproject.openstacknetworking.web',
+
+    # dependency embedding
+    include_resources = RESOURCES,
+    import_packages = INCLUDE_PACKAGES + ',' + EXCLUDE_PACKAGES,
+    bundle_classpath = OPENSTACK4J_LIB + ',' + JACKSON_LIB
 )
 
 onos_app (
@@ -59,7 +68,6 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
-    excluded_bundles = EXCLUDED_BUNDLES,
     description = 'OpenStack Networking application.',
     required_apps = [
         'org.onosproject.openstacknode'
