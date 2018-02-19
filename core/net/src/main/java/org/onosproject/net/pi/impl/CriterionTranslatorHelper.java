@@ -98,39 +98,39 @@ import static org.onosproject.net.pi.impl.CriterionTranslator.CriterionTranslato
  * Helper class to translate criterion instances to PI field matches.
  */
 final class CriterionTranslatorHelper {
-    private static final Map<Class<? extends Criterion>, CriterionTranslator> TRANSLATORS =
+    private static final Map<Class<? extends Criterion>, Class<? extends CriterionTranslator>> TRANSLATORS =
             // Add here new CriterionTranslator implementations.
-            new ImmutableMap.Builder<Class<? extends Criterion>, CriterionTranslator>()
-                    .put(PortCriterion.class, new PortCriterionTranslator())
-                    .put(EthCriterion.class, new EthCriterionTranslator())
-                    .put(EthTypeCriterion.class, new EthTypeCriterionTranslator())
-                    .put(IPCriterion.class, new IpCriterionTranslator())
-                    .put(VlanIdCriterion.class, new VlanIdCriterionTranslator())
-                    .put(UdpPortCriterion.class, new UdpPortCriterionTranslator())
-                    .put(IPDscpCriterion.class, new IPDscpCriterionTranslator())
-                    .put(IPProtocolCriterion.class, new IPProtocolCriterionTranslator())
-                    .put(IPv6ExthdrFlagsCriterion.class, new IPv6ExthdrFlagsCriterionTranslator())
-                    .put(IPv6FlowLabelCriterion.class, new IPv6FlowLabelCriterionTranslator())
-                    .put(IPv6NDLinkLayerAddressCriterion.class, new IPv6NDLinkLayerAddressCriterionTranslator())
-                    .put(IPv6NDTargetAddressCriterion.class, new IPv6NDTargetAddressCriterionTranslator())
-                    .put(IcmpCodeCriterion.class, new IcmpCodeCriterionTranslator())
-                    .put(IcmpTypeCriterion.class, new IcmpTypeCriterionTranslator())
-                    .put(Icmpv6CodeCriterion.class, new Icmpv6CodeCriterionTranslator())
-                    .put(Icmpv6TypeCriterion.class, new Icmpv6TypeCriterionTranslator())
-                    .put(MplsBosCriterion.class, new MplsBosCriterionTranslator())
-                    .put(MplsCriterion.class, new MplsCriterionTranslator())
-                    .put(MplsTcCriterion.class, new MplsTcCriterionTranslator())
-                    .put(PbbIsidCriterion.class, new PbbIsidCriterionTranslator())
-                    .put(SctpPortCriterion.class, new SctpPortCriterionTranslator())
-                    .put(TcpFlagsCriterion.class, new TcpFlagsCriterionTranslator())
-                    .put(TcpPortCriterion.class, new TcpPortCriterionTranslator())
-                    .put(TunnelIdCriterion.class, new TunnelIdCriterionTranslator())
-                    .put(VlanPcpCriterion.class, new VlanPcpCriterionTranslator())
-                    .put(ArpHaCriterion.class, new ArpHaCriterionTranslator())
-                    .put(ArpOpCriterion.class, new ArpOpCriterionTranslator())
-                    .put(ArpPaCriterion.class, new ArpPaCriterionTranslator())
-                    .put(IPEcnCriterion.class, new IPEcnCriterionTranslator())
-                    .put(MetadataCriterion.class, new MetadataCriterionTranslator())
+            new ImmutableMap.Builder<Class<? extends Criterion>, Class<? extends CriterionTranslator>>()
+                    .put(PortCriterion.class, PortCriterionTranslator.class)
+                    .put(EthCriterion.class, EthCriterionTranslator.class)
+                    .put(EthTypeCriterion.class, EthTypeCriterionTranslator.class)
+                    .put(IPCriterion.class, IpCriterionTranslator.class)
+                    .put(VlanIdCriterion.class, VlanIdCriterionTranslator.class)
+                    .put(UdpPortCriterion.class, UdpPortCriterionTranslator.class)
+                    .put(IPDscpCriterion.class, IPDscpCriterionTranslator.class)
+                    .put(IPProtocolCriterion.class, IPProtocolCriterionTranslator.class)
+                    .put(IPv6ExthdrFlagsCriterion.class, IPv6ExthdrFlagsCriterionTranslator.class)
+                    .put(IPv6FlowLabelCriterion.class, IPv6FlowLabelCriterionTranslator.class)
+                    .put(IPv6NDLinkLayerAddressCriterion.class, IPv6NDLinkLayerAddressCriterionTranslator.class)
+                    .put(IPv6NDTargetAddressCriterion.class, IPv6NDTargetAddressCriterionTranslator.class)
+                    .put(IcmpCodeCriterion.class, IcmpCodeCriterionTranslator.class)
+                    .put(IcmpTypeCriterion.class, IcmpTypeCriterionTranslator.class)
+                    .put(Icmpv6CodeCriterion.class, Icmpv6CodeCriterionTranslator.class)
+                    .put(Icmpv6TypeCriterion.class, Icmpv6TypeCriterionTranslator.class)
+                    .put(MplsBosCriterion.class, MplsBosCriterionTranslator.class)
+                    .put(MplsCriterion.class, MplsCriterionTranslator.class)
+                    .put(MplsTcCriterion.class, MplsTcCriterionTranslator.class)
+                    .put(PbbIsidCriterion.class, PbbIsidCriterionTranslator.class)
+                    .put(SctpPortCriterion.class, SctpPortCriterionTranslator.class)
+                    .put(TcpFlagsCriterion.class, TcpFlagsCriterionTranslator.class)
+                    .put(TcpPortCriterion.class, TcpPortCriterionTranslator.class)
+                    .put(TunnelIdCriterion.class, TunnelIdCriterionTranslator.class)
+                    .put(VlanPcpCriterion.class, VlanPcpCriterionTranslator.class)
+                    .put(ArpHaCriterion.class, ArpHaCriterionTranslator.class)
+                    .put(ArpOpCriterion.class, ArpOpCriterionTranslator.class)
+                    .put(ArpPaCriterion.class, ArpPaCriterionTranslator.class)
+                    .put(IPEcnCriterion.class, IPEcnCriterionTranslator.class)
+                    .put(MetadataCriterion.class, MetadataCriterionTranslator.class)
                     .build();
 
     private CriterionTranslatorHelper() {
@@ -157,18 +157,17 @@ final class CriterionTranslatorHelper {
                     criterion.getClass().getSimpleName()));
         }
 
-        CriterionTranslator translator = TRANSLATORS.get(criterion.getClass());
-
         try {
+            final CriterionTranslator translator = TRANSLATORS.get(criterion.getClass()).newInstance();
             translator.init(criterion, bitWidth);
             switch (matchType) {
                 case EXACT:
                     return new PiExactFieldMatch(fieldId, translator.exactMatch());
                 case TERNARY:
-                    Pair<ImmutableByteSequence, ImmutableByteSequence> tp = translator.ternaryMatch();
+                    final Pair<ImmutableByteSequence, ImmutableByteSequence> tp = translator.ternaryMatch();
                     return new PiTernaryFieldMatch(fieldId, tp.getLeft(), tp.getRight());
                 case LPM:
-                    Pair<ImmutableByteSequence, Integer> lp = translator.lpmMatch();
+                    final Pair<ImmutableByteSequence, Integer> lp = translator.lpmMatch();
                     return new PiLpmFieldMatch(fieldId, lp.getLeft(), lp.getRight());
                 default:
                     throw new PiTranslationException(format(
@@ -181,6 +180,9 @@ final class CriterionTranslatorHelper {
         } catch (CriterionTranslatorException e) {
             throw new PiTranslationException(format(
                     "Unable to translate criterion %s: %s", criterion.type(), e.getMessage()));
+        } catch (InstantiationException | IllegalAccessException e) {
+            // Was not able to instantiate the criterion translator.
+            throw new RuntimeException(e);
         }
     }
 }
