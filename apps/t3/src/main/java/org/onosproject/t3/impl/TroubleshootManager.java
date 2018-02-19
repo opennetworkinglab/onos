@@ -887,7 +887,9 @@ public class TroubleshootManager implements TroubleshootService {
                 //to the possible outputs for this packet
                 if (instruction.type().equals(Instruction.Type.OUTPUT)) {
                     buildOutputFromDevice(trace, in, builder, outputPorts,
-                            (OutputInstruction) instruction, groupsForDevice);
+                            (OutputInstruction) instruction, ImmutableList.copyOf(groupsForDevice));
+                    //clearing the groups because we start from the top.
+                    groupsForDevice.clear();
                 } else {
                     builder = translateInstruction(builder, instruction);
                 }
@@ -906,10 +908,15 @@ public class TroubleshootManager implements TroubleshootService {
                 trace.addResultMessage("Null group for Instruction " + instr);
                 break;
             }
-            //add the group to the traversed groups
-            groupsForDevice.add(group);
+
             //Cycle in each of the group's buckets and add them to the groups for this Device.
             for (GroupBucket bucket : group.buckets().buckets()) {
+
+                //add the group to the traversed groups
+                if (!groupsForDevice.contains(group)) {
+                    groupsForDevice.add(group);
+                }
+
                 getGroupsFromInstructions(trace, groupsForDevice, bucket.treatment().allInstructions(),
                         deviceId, builder, outputPorts, in);
             }
