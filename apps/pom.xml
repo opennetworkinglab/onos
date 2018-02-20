@@ -99,7 +99,6 @@
         <module>openstacknetworkingui</module>
         <module>cfm</module>
         <module>routeradvertisement</module>
-        <module>t3</module>
         <module>simplefabric</module>
     </modules>
 

@@ -26,4 +26,5 @@ onos_app (
     url = 'https://wiki.opencord.org/pages/viewpage.action?pageId=4456974',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',
+    required_apps = [ 'org.onosproject.segmentrouting' ],
 )
