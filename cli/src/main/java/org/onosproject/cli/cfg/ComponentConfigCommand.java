@@ -41,6 +41,7 @@ public class ComponentConfigCommand extends AbstractShellCommand {
 
     static final String GET = "get";
     static final String SET = "set";
+    static final String PRESET = "preset";
 
     private static final String FMT = "    name=%s, type=%s, value=%s, defaultValue=%s, description=%s";
     private static final String SHORT_FMT = "    %s=%s";
@@ -51,7 +52,7 @@ public class ComponentConfigCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "command",
-            description = "Command name (get|set)",
+            description = "Command name (get|set|preset)",
             required = false, multiValued = false)
     String command = null;
 
@@ -85,6 +86,8 @@ public class ComponentConfigCommand extends AbstractShellCommand {
                 service.unsetProperty(component, name);
             } else if (command.equals(SET)) {
                 service.setProperty(component, name, value);
+            } else if (command.equals(PRESET)) {
+                service.preSetProperty(component, name, value);
             } else {
                 error("Illegal usage");
             }
