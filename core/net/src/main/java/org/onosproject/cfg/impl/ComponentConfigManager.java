@@ -244,6 +244,9 @@ public class ComponentConfigManager implements ComponentConfigService {
                 return;
             }
         }
+
+        // If definition doesn't exist in local catalog, cache the property.
+        preSet(componentName, name, value);
     }
 
     // Locates the property in the component map and replaces it with an
@@ -259,6 +262,21 @@ public class ComponentConfigManager implements ComponentConfigService {
             }
             log.warn("Unable to reset non-existent property {} for component {}",
                      name, componentName);
+        }
+    }
+
+    // Stores non-existent property so that loadExistingValues() can load in future.
+    private void preSet(String componentName, String name, String value) {
+        try {
+            Configuration config = cfgAdmin.getConfiguration(componentName, null);
+            Dictionary<String, Object> props = config.getProperties();
+            if (props == null) {
+                props = new Hashtable<>();
+            }
+            props.put(name, value);
+            config.update(props);
+        } catch (IOException e) {
+            log.error("Failed to preset configuration for {}", componentName);
         }
     }
 
