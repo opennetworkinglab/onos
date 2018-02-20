@@ -16,7 +16,6 @@
 
 package org.onosproject.openstacknetworking.web;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
@@ -53,7 +52,7 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
     private static final String FLOATING_IPS = "floatingips";
 
     private final OpenstackRouterAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackRouterAdminService.class);
+                                        get(OpenstackRouterAdminService.class);
 
     @Context
     private UriInfo uriInfo;

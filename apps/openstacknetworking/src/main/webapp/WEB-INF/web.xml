@@ -20,20 +20,31 @@
          id="ONOS" version="2.5">
     <display-name>Openstack Switching REST API v1.0</display-name>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Secured</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <security-role>
+        <role-name>admin</role-name>
+    </security-role>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>karaf</realm-name>
+    </login-config>
+
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>
-                org.onosproject.openstacknetworking.web.OpenstackPortWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackNetworkWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackSubnetWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackRouterWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackFloatingIpWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackSecurityGroupWebResource,
-                org.onosproject.openstacknetworking.web.OpenstackSecurityGroupRuleWebResource
-            </param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.onosproject.openstacknetworking.web.OpenstackNetworkingWebApplication</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
