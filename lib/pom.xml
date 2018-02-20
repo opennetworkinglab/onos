@@ -29,7 +29,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-dependencies</artifactId>
     <packaging>pom</packaging>
-    <version>1.11.2-rc6</version>
+    <version>1.11.2-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System shared dependencies</description>
