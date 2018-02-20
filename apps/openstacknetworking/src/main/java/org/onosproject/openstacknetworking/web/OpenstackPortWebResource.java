@@ -15,11 +15,9 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +36,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles Rest API call from Neutron ML2 plugin.
@@ -73,7 +71,9 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     public Response createPorts(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronPort port = readPort(input);
+        final NeutronPort port = (NeutronPort)
+                                 jsonToModelEntity(input, NeutronPort.class);
+
         adminService.createPort(port);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(PORTS)
@@ -98,7 +98,9 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     public Response updatePort(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
-        final NeutronPort port = readPort(input);
+        final NeutronPort port = (NeutronPort)
+                                 jsonToModelEntity(input, NeutronPort.class);
+
         adminService.updatePort(port);
 
         return status(Response.Status.OK).build();
@@ -119,17 +121,5 @@ public class OpenstackPortWebResource extends AbstractWebResource {
 
         adminService.removePort(id);
         return noContent().build();
-    }
-
-    private NeutronPort readPort(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronPort.class)
-                    .readerFor(NeutronPort.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

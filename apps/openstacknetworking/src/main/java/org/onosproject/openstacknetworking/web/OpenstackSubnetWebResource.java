@@ -19,11 +19,9 @@ package org.onosproject.openstacknetworking.web;
  * Handles Rest API call from Neutron ML2 plugin.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +40,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 @Path("subnets")
 public class OpenstackSubnetWebResource extends AbstractWebResource {
@@ -74,7 +72,9 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
     public Response createSubnet(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronSubnet subnet = readSubnet(input);
+        final NeutronSubnet subnet = (NeutronSubnet)
+                            jsonToModelEntity(input, NeutronSubnet.class);
+
         adminService.createSubnet(subnet);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(SUBNETS)
@@ -100,7 +100,9 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
     public Response updateSubnet(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
-        final NeutronSubnet subnet = readSubnet(input);
+        final NeutronSubnet subnet = (NeutronSubnet)
+                            jsonToModelEntity(input, NeutronSubnet.class);
+
         adminService.updateSubnet(subnet);
 
         return status(Response.Status.OK).build();
@@ -121,17 +123,5 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
 
         adminService.removeSubnet(id);
         return noContent().build();
-    }
-
-    private NeutronSubnet readSubnet(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronSubnet.class)
-                    .readerFor(NeutronSubnet.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

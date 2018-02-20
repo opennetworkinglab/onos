@@ -15,11 +15,9 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +36,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles Security Group Rest API call from Neutron ML2 plugin.
@@ -72,7 +70,9 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
     public Response createSecurityGroups(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronSecurityGroup sg = readSecurityGroup(input);
+        final NeutronSecurityGroup sg = (NeutronSecurityGroup)
+                            jsonToModelEntity(input, NeutronSecurityGroup.class);
+
         adminService.createSecurityGroup(sg);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(SECURITY_GROUPS)
@@ -95,7 +95,9 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
     public Response updateSecurityGroups(InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE"));
 
-        final NeutronSecurityGroup sg = readSecurityGroup(input);
+        final NeutronSecurityGroup sg = (NeutronSecurityGroup)
+                            jsonToModelEntity(input, NeutronSecurityGroup.class);
+
         // Do nothing ..
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(SECURITY_GROUPS)
@@ -119,17 +121,5 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
 
         adminService.removeSecurityGroup(id);
         return noContent().build();
-    }
-
-    private NeutronSecurityGroup readSecurityGroup(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronSecurityGroup.class)
-                    .readerFor(NeutronSecurityGroup.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

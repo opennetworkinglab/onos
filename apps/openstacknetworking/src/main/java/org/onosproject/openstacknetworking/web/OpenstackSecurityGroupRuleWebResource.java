@@ -15,11 +15,9 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +35,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles Security Group Rule Rest API call from Neutron ML2 plugin.
@@ -71,7 +69,9 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
     public Response createSecurityGroupRules(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronSecurityGroupRule sgRule = readSecurityGroupRule(input);
+        final NeutronSecurityGroupRule sgRule = (NeutronSecurityGroupRule)
+                        jsonToModelEntity(input, NeutronSecurityGroupRule.class);
+
         adminService.createSecurityGroupRule(sgRule);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                 .path(SECURITY_GROUP_RULES)
@@ -95,17 +95,5 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
 
         adminService.removeSecurityGroupRule(id);
         return noContent().build();
-    }
-
-    private NeutronSecurityGroupRule readSecurityGroupRule(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronSecurityGroupRule.class)
-                    .readerFor(NeutronSecurityGroupRule.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

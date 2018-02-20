@@ -16,11 +16,9 @@
 
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +37,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles REST API call of Neutron L3 plugin.
@@ -74,7 +72,9 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
     public Response createFloatingIp(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronFloatingIP floatingIp = readFloatingIp(input);
+        final NeutronFloatingIP floatingIp = (NeutronFloatingIP)
+                                jsonToModelEntity(input, NeutronFloatingIP.class);
+
         adminService.createFloatingIp(floatingIp);
 
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -100,7 +100,9 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
     public Response updateFloatingIp(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
-        final NeutronFloatingIP floatingIp = readFloatingIp(input);
+        final NeutronFloatingIP floatingIp = (NeutronFloatingIP)
+                                jsonToModelEntity(input, NeutronFloatingIP.class);
+
         adminService.updateFloatingIp(floatingIp);
 
         return status(Response.Status.OK).build();
@@ -120,17 +122,5 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
 
         adminService.removeFloatingIp(id);
         return noContent().build();
-    }
-
-    private NeutronFloatingIP readFloatingIp(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronFloatingIP.class)
-                    .readerFor(NeutronFloatingIP.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

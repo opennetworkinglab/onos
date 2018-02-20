@@ -15,11 +15,9 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +36,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles REST API call of Neutron ML2 plugin.
@@ -73,7 +71,9 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
     public Response createNetwork(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
 
-        final NeutronNetwork net = readNetwork(input);
+        final NeutronNetwork net = (NeutronNetwork)
+                             jsonToModelEntity(input, NeutronNetwork.class);
+
         adminService.createNetwork(net);
 
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -99,7 +99,9 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
     public Response updateNetwork(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
-        final NeutronNetwork net = readNetwork(input);
+        final NeutronNetwork net = (NeutronNetwork)
+                             jsonToModelEntity(input, NeutronNetwork.class);
+
         adminService.updateNetwork(net);
 
         return status(Response.Status.OK).build();
@@ -120,17 +122,5 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
 
         adminService.removeNetwork(id);
         return noContent().build();
-    }
-
-    private NeutronNetwork readNetwork(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronNetwork.class)
-                    .readerFor(NeutronNetwork.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

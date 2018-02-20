@@ -15,11 +15,9 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.openstack.networking.domain.NeutronRouter;
 import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
@@ -39,10 +37,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
 
 /**
  * Handles REST API call of Neturon L3 plugin.
@@ -76,7 +74,9 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     public Response createRouter(InputStream input) {
         log.trace(String.format(MESSAGE_ROUTER, "CREATE"));
 
-        final NeutronRouter osRouter = readRouter(input);
+        final NeutronRouter osRouter = (NeutronRouter)
+                            jsonToModelEntity(input, NeutronRouter.class);
+
         adminService.createRouter(osRouter);
 
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -102,7 +102,9 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     public Response updateRouter(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE_ROUTER, "UPDATE " + id));
 
-        final NeutronRouter osRouter = readRouter(input);
+        final NeutronRouter osRouter = (NeutronRouter)
+                            jsonToModelEntity(input, NeutronRouter.class);
+
         osRouter.setId(id);
         adminService.updateRouter(osRouter);
 
@@ -125,7 +127,9 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     public Response addRouterInterface(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE_ROUTER_IFACE, "UPDATE " + id));
 
-        final NeutronRouterInterface osRouterIface = readRouterInterface(input);
+        final NeutronRouterInterface osRouterIface = (NeutronRouterInterface)
+                        jsonToModelEntity(input, NeutronRouterInterface.class);
+
         adminService.addRouterInterface(osRouterIface);
 
         return status(Response.Status.OK).build();
@@ -147,7 +151,9 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     public Response removeRouterInterface(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE_ROUTER_IFACE, "DELETE " + id));
 
-        final NeutronRouterInterface osRouterIface = readRouterInterface(input);
+        final NeutronRouterInterface osRouterIface = (NeutronRouterInterface)
+                        jsonToModelEntity(input, NeutronRouterInterface.class);
+
         adminService.removeRouterInterface(osRouterIface.getPortId());
 
         return status(Response.Status.OK).build();
@@ -167,29 +173,5 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
 
         adminService.removeRouter(id);
         return noContent().build();
-    }
-
-    private NeutronRouter readRouter(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronRouter.class)
-                    .readerFor(NeutronRouter.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    private NeutronRouterInterface readRouterInterface(InputStream input) {
-        try {
-            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
-            log.trace(mapper().writeValueAsString(jsonTree));
-            return ObjectMapperSingleton.getContext(NeutronRouterInterface.class)
-                    .readerFor(NeutronRouterInterface.class)
-                    .readValue(jsonTree);
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }
