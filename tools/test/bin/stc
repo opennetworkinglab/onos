@@ -5,7 +5,7 @@
 
 . $ONOS_ROOT/tools/build/envDefaults
 
-VER=${STC_VERSION:-2.3}
+VER=${STC_VERSION:-2.4}
 MVN_JAR=org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
 JAR=${MAVEN_REPO:-$HOME/.m2/repository}/$MVN_JAR
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
@@ -22,9 +22,11 @@ DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=y"
 
 scenario=${1:-smoke}
 
-[ ! -f $scenario ] && scenario=$SCENARIOS/$scenario
-[ ! -f $scenario ] && scenario=$scenario.xml
-[ ! -f $scenario ] && echo "Scenario $scenario file not found" && exit 1
+if [ $scenario != "-?" -a $scenario != "-h" -a $scenario != "--help" ]; then
+    [ ! -f $scenario ] && scenario=$SCENARIOS/$scenario
+    [ ! -f $scenario ] && scenario=$scenario.xml
+    [ ! -f $scenario ] && echo "Scenario $scenario file not found" && exit 1
+fi
 
 # Remove the test name from the list of parameters, if one is specified
 [ $# -ge 1 ] && shift
