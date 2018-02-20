@@ -18,13 +18,11 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 
@@ -32,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack security groups.
@@ -72,19 +71,8 @@ public class OpenstackSecurityGroupListCommand extends AbstractShellCommand {
     private JsonNode json(List<SecurityGroup> securityGroups) {
         ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
         for (SecurityGroup sg: securityGroups) {
-            result.add(writeSecurityGroup(sg));
+            result.add(modelEntityToJson(sg, NeutronSecurityGroup.class));
         }
         return result;
-    }
-
-    private ObjectNode writeSecurityGroup(SecurityGroup sg) {
-        try {
-            String strSg = ObjectMapperSingleton.getContext(NeutronSecurityGroup.class)
-                    .writerFor(NeutronSecurityGroup.class)
-                    .writeValueAsString(sg);
-            return (ObjectNode) mapper().readTree(strSg.getBytes());
-        } catch (Exception e) {
-            throw new IllegalArgumentException();
-        }
     }
 }

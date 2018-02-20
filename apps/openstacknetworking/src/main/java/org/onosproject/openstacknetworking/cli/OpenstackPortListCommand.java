@@ -18,14 +18,12 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
@@ -36,6 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack ports.
@@ -85,19 +84,8 @@ public class OpenstackPortListCommand extends AbstractShellCommand {
     private JsonNode json(List<Port> ports) {
         ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
         for (Port port: ports) {
-            result.add(writePort(port));
+            result.add(modelEntityToJson(port, NeutronPort.class));
         }
         return result;
-    }
-
-    private ObjectNode writePort(Port port) {
-        try {
-            String strPort = ObjectMapperSingleton.getContext(NeutronPort.class)
-                    .writerFor(NeutronPort.class)
-                    .writeValueAsString(port);
-            return (ObjectNode) mapper().readTree(strPort.getBytes());
-        } catch (Exception e) {
-            throw new IllegalStateException();
-        }
     }
 }

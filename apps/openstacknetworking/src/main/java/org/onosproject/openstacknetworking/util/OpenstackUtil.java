@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.slf4j.Logger;
@@ -56,6 +57,26 @@ public final class OpenstackUtil {
                     .readValue(jsonTree);
         } catch (Exception e) {
             throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Converts openstack model entity object into JSON object.
+     *
+     * @param entity openstack model entity object
+     * @param entityClazz openstack model entity class
+     * @return JSON object
+     */
+    public static ObjectNode modelEntityToJson(ModelEntity entity, Class entityClazz) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String strModelEntity = ObjectMapperSingleton.getContext(entityClazz)
+                    .writerFor(entityClazz)
+                    .writeValueAsString(entity);
+            log.trace(strModelEntity);
+            return (ObjectNode) mapper.readTree(strModelEntity.getBytes());
+        } catch (Exception e) {
+            throw new IllegalStateException();
         }
     }
 }

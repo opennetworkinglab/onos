@@ -18,13 +18,11 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 
@@ -32,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack floating IP addresses.
@@ -69,20 +68,8 @@ public class OpenstackFloatingIpListCommand extends AbstractShellCommand {
     private JsonNode json(List<NetFloatingIP> floatingIps) {
         ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
         for (NetFloatingIP floatingIp: floatingIps) {
-            result.add(writeFloatingIp(floatingIp));
+            result.add(modelEntityToJson(floatingIp, NeutronFloatingIP.class));
         }
         return result;
-    }
-
-    private ObjectNode writeFloatingIp(NetFloatingIP floatingIp) {
-        try {
-            String strFloatingIp = ObjectMapperSingleton.getContext(NeutronFloatingIP.class)
-                    .writerFor(NeutronFloatingIP.class)
-                    .writeValueAsString(floatingIp);
-            log.trace(strFloatingIp);
-            return (ObjectNode) mapper().readTree(strFloatingIp.getBytes());
-        } catch (Exception e) {
-            throw new IllegalStateException();
-        }
     }
 }

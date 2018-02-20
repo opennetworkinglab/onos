@@ -18,12 +18,10 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Subnet;
 import org.openstack4j.openstack.networking.domain.NeutronNetwork;
@@ -33,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack networks.
@@ -75,19 +74,8 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
     private JsonNode json(List<Network> networks) {
         ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
         for (Network net: networks) {
-            result.add(writeNetwork(net));
+            result.add(modelEntityToJson(net, NeutronNetwork.class));
         }
         return result;
-    }
-
-    private ObjectNode writeNetwork(Network net) {
-        try {
-            String strNet = ObjectMapperSingleton.getContext(NeutronNetwork.class)
-                    .writerFor(NeutronNetwork.class)
-                    .writeValueAsString(net);
-            return (ObjectNode) mapper().readTree(strNet.getBytes());
-        } catch (Exception e) {
-            throw new IllegalStateException();
-        }
     }
 }

@@ -18,13 +18,11 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
-import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
@@ -37,6 +35,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack routers.
@@ -100,19 +99,8 @@ public class OpenstackRouterListCommand extends AbstractShellCommand {
     private JsonNode json(List<Router> routers) {
         ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
         for (Router router: routers) {
-            result.add(writeRouter(router));
+            result.add(modelEntityToJson(router, NeutronRouter.class));
         }
         return result;
-    }
-
-    private ObjectNode writeRouter(Router osRouter) {
-        try {
-            String strNet = ObjectMapperSingleton.getContext(NeutronRouter.class)
-                    .writerFor(NeutronRouter.class)
-                    .writeValueAsString(osRouter);
-            return (ObjectNode) mapper().readTree(strNet.getBytes());
-        } catch (Exception e) {
-            throw new IllegalStateException();
-        }
     }
 }
