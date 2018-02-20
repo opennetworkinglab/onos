@@ -948,8 +948,10 @@ public class OpenstackRoutingHandler {
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
                     log.debug("Router external gateway {} added", event.externalGateway().getNetworkId());
+                    break;
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
                     log.debug("Router external gateway {} removed", event.externalGateway().getNetworkId());
+                    break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                 case OPENSTACK_FLOATING_IP_UPDATED:
                 case OPENSTACK_FLOATING_IP_REMOVED:
