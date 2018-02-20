@@ -182,7 +182,7 @@ final class CriterionTranslatorHelper {
                     "Unable to translate criterion %s: %s", criterion.type(), e.getMessage()));
         } catch (InstantiationException | IllegalAccessException e) {
             // Was not able to instantiate the criterion translator.
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 }
