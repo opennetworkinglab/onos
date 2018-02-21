@@ -40,8 +40,6 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -62,12 +60,6 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_R
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_CREATED;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_REMOVED;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_UPDATED;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -114,15 +106,12 @@ public final class OpenstackSwitchingHandler {
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
-    private final InternalOpenstackNetworkListener osNetworkListener =
-            new InternalOpenstackNetworkListener();
     private ApplicationId appId;
 
     @Activate
     void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         instancePortService.addListener(instancePortListener);
-        osNetworkService.addListener(osNetworkListener);
 
         log.info("Started");
     }
@@ -130,7 +119,6 @@ public final class OpenstackSwitchingHandler {
     @Deactivate
     void deactivate() {
         instancePortService.removeListener(instancePortListener);
-        osNetworkService.removeListener(osNetworkListener);
         eventExecutor.shutdown();
 
         log.info("Stopped");
@@ -416,37 +404,6 @@ public final class OpenstackSwitchingHandler {
         private void instPortRemoved(InstancePort instPort) {
             setNetworkRules(instPort, false);
             // TODO add something else if needed
-        }
-    }
-
-    private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
-
-        @Override
-        public boolean isRelevant(OpenstackNetworkEvent event) {
-            return !(event.subject() == null && event.port() == null);
-        }
-
-        @Override
-        public void event(OpenstackNetworkEvent event) {
-            try {
-                if ((event.type() == OPENSTACK_NETWORK_CREATED ||
-                        event.type() == OPENSTACK_NETWORK_UPDATED) && !event.subject().isAdminStateUp()) {
-                    setNetworkAdminRules(event.subject(), true);
-                } else if ((event.type() == OPENSTACK_NETWORK_UPDATED && event.subject().isAdminStateUp()) ||
-                        (event.type() == OPENSTACK_NETWORK_REMOVED && !event.subject().isAdminStateUp())) {
-                    setNetworkAdminRules(event.subject(), false);
-                }
-
-                if ((event.type() == OPENSTACK_PORT_CREATED ||
-                        event.type() == OPENSTACK_PORT_UPDATED) && !event.port().isAdminStateUp()) {
-                    setPortAdminRules(event.port(), true);
-                } else if ((event.type() == OPENSTACK_PORT_UPDATED && event.port().isAdminStateUp()) ||
-                        (event.type() == OPENSTACK_PORT_REMOVED && !event.port().isAdminStateUp())) {
-                    setPortAdminRules(event.port(), false);
-                }
-            } catch (Exception e) {
-                log.error("Exception occurred while processing OpenstackNetworkEvent because of {}", e.toString());
-            }
         }
     }
 }

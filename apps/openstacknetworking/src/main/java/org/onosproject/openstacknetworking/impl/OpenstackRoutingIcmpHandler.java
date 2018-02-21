@@ -68,7 +68,6 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -194,6 +193,12 @@ public class OpenstackRoutingIcmpHandler {
             return;
         }
 
+        MacAddress externalPeerRouterMac = externalPeerRouterMac(srcSubnet);
+        if (externalPeerRouterMac == null) {
+            log.trace(ERR_REQ + "failed to get external peer router mac");
+            return;
+        }
+
         if (isForSubnetGateway(IpAddress.valueOf(ipPacket.getDestinationAddress()),
                 srcSubnet)) {
             // this is a request for the subnet gateway
@@ -204,15 +209,42 @@ public class OpenstackRoutingIcmpHandler {
             if (externalIp == null) {
                 return;
             }
-            sendRequestForExternal(ipPacket, srcDevice, externalIp);
+
+            sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouterMac(srcSubnet));
             String icmpInfoKey = String.valueOf(getIcmpId(icmp))
                     .concat(String.valueOf(externalIp.getIp4Address().toInt()))
                     .concat(String.valueOf(ipPacket.getDestinationAddress()));
-            icmpInfoMap.compute(icmpInfoKey, (id, existing) -> {
-                checkArgument(existing == null, ERR_DUPLICATE);
-                return instPort;
-            });
+            try {
+                icmpInfoMap.compute(icmpInfoKey, (id, existing) -> {
+                    checkArgument(existing == null, ERR_DUPLICATE);
+                    return instPort;
+                });
+            } catch (IllegalArgumentException e) {
+                log.warn("Exception occurred because of {}", e.toString());
+            }
+
         }
+    }
+
+    private MacAddress externalPeerRouterMac(Subnet subnet) {
+        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        Router osRouter = osRouterService.router(osRouterIface.getId());
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
+
+        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
+
+        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
     }
 
     private void handleEchoReply(IPv4 ipPacket, ICMP icmp) {
@@ -322,7 +354,8 @@ public class OpenstackRoutingIcmpHandler {
         sendReply(icmpReply, instPort);
     }
 
-    private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice, IpAddress srcNatIp) {
+    private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice,
+                                        IpAddress srcNatIp, MacAddress externalRouterMac) {
         ICMP icmpReq = (ICMP) ipPacket.getPayload();
         icmpReq.resetChecksum();
         ipPacket.setSourceAddress(srcNatIp.getIp4Address().toInt()).resetChecksum();
@@ -331,7 +364,7 @@ public class OpenstackRoutingIcmpHandler {
         Ethernet icmpRequestEth = new Ethernet();
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
                 .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(DEFAULT_EXTERNAL_ROUTER_MAC)
+                .setDestinationMACAddress(externalRouterMac)
                 .setPayload(ipPacket);
 
         OpenstackNode osNode = osNodeService.node(srcDevice);
@@ -341,7 +374,7 @@ public class OpenstackRoutingIcmpHandler {
             throw new IllegalStateException(error);
         }
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(osNode.patchPortNum())
+                .setOutput(osNode.uplinkPortNum())
                 .build();
 
         OutboundPacket packet = new DefaultOutboundPacket(

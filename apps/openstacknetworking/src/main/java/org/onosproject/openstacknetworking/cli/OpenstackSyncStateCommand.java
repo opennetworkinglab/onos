@@ -259,7 +259,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
     private void printFloatingIp(NetFloatingIP floatingIp) {
         final String strFloating = String.format(FLOATING_IP_FORMAT,
                 floatingIp.getId(),
-                floatingIp.getFixedIpAddress(),
+                floatingIp.getFloatingIpAddress(),
                 Strings.isNullOrEmpty(floatingIp.getFixedIpAddress()) ?
                         "" : floatingIp.getFixedIpAddress());
         print(strFloating);

@@ -36,8 +36,10 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.model.network.NetFloatingIP;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -67,6 +69,10 @@ public class OpenstackRoutingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackRouterService osRouterService;
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
@@ -99,12 +105,26 @@ public class OpenstackRoutingArpHandler {
             }
 
             IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-            if (!isServiceIp(targetIp.getIp4Address())) {
+
+            MacAddress targetMac = null;
+
+            NetFloatingIP floatingIP = osRouterService.floatingIps().stream()
+                    .filter(ip -> ip.getFloatingIpAddress().equals(targetIp.toString()))
+                    .findAny().orElse(null);
+
+            if (floatingIP != null && floatingIP.getPortId() != null) {
+                targetMac = MacAddress.valueOf(osNetworkService.port(floatingIP.getPortId()).getMacAddress());
+            }
+
+            if (isExternalGatewaySourceIp(targetIp.getIp4Address())) {
+                targetMac = Constants.DEFAULT_GATEWAY_MAC;
+            }
+
+            if (targetMac == null) {
                 log.trace("Unknown target ARP request for {}, ignore it", targetIp);
                 return;
             }
 
-            MacAddress targetMac = Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
             Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                     targetMac, ethernet);
 
@@ -163,14 +183,10 @@ public class OpenstackRoutingArpHandler {
         }
     }
 
-    private boolean isServiceIp(IpAddress targetIp) {
-        // FIXME use floating IP and external gateway information of router instead
-        // once openstack4j fixed
+    private boolean isExternalGatewaySourceIp(IpAddress targetIp) {
         return osNetworkService.ports().stream()
                 .filter(osPort -> Objects.equals(osPort.getDeviceOwner(),
-                        DEVICE_OWNER_ROUTER_GW) ||
-                        Objects.equals(osPort.getDeviceOwner(),
-                                DEVICE_OWNER_FLOATING_IP))
+                        DEVICE_OWNER_ROUTER_GW))
                 .flatMap(osPort -> osPort.getFixedIps().stream())
                 .anyMatch(ip -> IpAddress.valueOf(ip.getIpAddress()).equals(targetIp));
     }

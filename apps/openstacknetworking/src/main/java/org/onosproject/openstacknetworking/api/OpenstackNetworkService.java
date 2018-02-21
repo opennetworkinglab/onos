@@ -117,6 +117,13 @@ public interface OpenstackNetworkService
     void deleteExternalPeerRouter(ExternalGateway externalGateway);
 
     /**
+     * Deletes external router with supplied ip address.
+     *
+     * @param ipAddress ip address
+     */
+    void deleteExternalPeerRouter(String ipAddress);
+
+    /**
      * Updates external router mac address with supplied ip address.
      *
      * @param ipAddress ip address

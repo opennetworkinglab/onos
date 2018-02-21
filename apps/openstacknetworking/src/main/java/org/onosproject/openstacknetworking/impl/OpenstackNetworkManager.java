@@ -418,6 +418,17 @@ public class OpenstackNetworkManager
         }
     }
 
+    @Override
+    public void deleteExternalPeerRouter(String ipAddress) {
+        if (ipAddress == null) {
+            return;
+        }
+
+        if (externalPeerRouterMap.containsKey(ipAddress)) {
+            externalPeerRouterMap.remove(ipAddress);
+        }
+
+    }
     private IpAddress getExternalGatewaySourceIp(ExternalGateway externalGateway, Router router) {
         Port exGatewayPort = ports(externalGateway.getNetworkId())
                 .stream()

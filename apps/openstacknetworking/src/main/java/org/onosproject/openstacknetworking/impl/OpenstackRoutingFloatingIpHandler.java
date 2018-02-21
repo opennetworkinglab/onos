@@ -48,10 +48,14 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.Router;
+import org.openstack4j.model.network.RouterInterface;
+import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +66,10 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_INTERNAL;
+import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -152,8 +158,59 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(error);
         }
 
+        setComputeNodeToGateway(instPort, osNet, install);
         setDownstreamRules(floatingIp, osNet, instPort, install);
         setUpstreamRules(floatingIp, osNet, instPort, install);
+    }
+
+    private void setComputeNodeToGateway(InstancePort instPort, Network osNet, boolean install) {
+        TrafficTreatment treatment;
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(instPort.ipAddress().toIpPrefix())
+                .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
+
+        switch (osNet.getNetworkType()) {
+            case VXLAN:
+                sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
+                break;
+            case VLAN:
+                sBuilder.matchVlanId(VlanId.vlanId(osNet.getProviderSegID()));
+                break;
+            default:
+                final String error = String.format(
+                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        osNet.getNetworkType().toString());
+                throw new IllegalStateException(error);
+        }
+
+        OpenstackNode selectedGatewayNode = selectGatewayNode();
+        if (selectedGatewayNode == null) {
+            return;
+        }
+        treatment = DefaultTrafficTreatment.builder()
+                .extension(buildExtension(
+                        deviceService,
+                        instPort.deviceId(),
+                        selectedGatewayNode.dataIp().getIp4Address()),
+                        instPort.deviceId())
+                .setOutput(osNodeService.node(instPort.deviceId()).tunnelPortNum())
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                instPort.deviceId(),
+                sBuilder.build(),
+                treatment,
+                PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE,
+                ROUTING_TABLE,
+                install);
+    }
+
+    private OpenstackNode selectGatewayNode() {
+        //TODO support multiple loadbalancing options.
+        return osNodeService.completeNodes(GATEWAY).stream().findAny().orElse(null);
     }
 
     private void setDownstreamRules(NetFloatingIP floatingIp, Network osNet,
@@ -281,11 +338,17 @@ public class OpenstackRoutingFloatingIpHandler {
                 throw new IllegalStateException(error);
         }
 
+        MacAddress externalPeerRouterMac = externalPeerRouterMac(osNet);
+        if (externalPeerRouterMac == null) {
+            return;
+        }
+
+
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                     .setIpSrc(floating.getIp4Address())
-                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                    .setEthDst(Constants.DEFAULT_EXTERNAL_ROUTER_MAC);
+                    .setEthSrc(instPort.macAddress())
+                    .setEthDst(externalPeerRouterMac);
 
             if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
                 tBuilder.popVlan();
@@ -295,13 +358,43 @@ public class OpenstackRoutingFloatingIpHandler {
                     appId,
                     gNode.intgBridge(),
                     sBuilder.build(),
-                    tBuilder.setOutput(gNode.patchPortNum()).build(),
+                    tBuilder.setOutput(gNode.uplinkPortNum()).build(),
                     PRIORITY_FLOATING_EXTERNAL,
                     GW_COMMON_TABLE,
                     install);
         });
     }
 
+    private MacAddress externalPeerRouterMac(Network network) {
+        if (network == null) {
+            return null;
+        }
+
+        Subnet subnet = osNetworkService.subnets(network.getId()).stream().findAny().orElse(null);
+
+        if (subnet == null) {
+            return null;
+        }
+
+        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        Router osRouter = osRouterService.router(osRouterIface.getId());
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
+
+        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
+
+        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
+    }
     private class InternalFloatingIpListener implements OpenstackRouterListener {
 
         @Override

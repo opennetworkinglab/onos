@@ -55,6 +55,15 @@
         </command>
         <command>
             <action class="org.onosproject.openstacknetworking.cli.UpdateExternalPeerRouterVlanCommand"/>
+            <completers>
+                <ref component-id="ipAddressCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.DeleteExternalPeerRouterCommand" />
+            <completers>
+                <ref component-id="ipAddressCompleter"/>
+            </completers>
         </command>
     </command-bundle>
 

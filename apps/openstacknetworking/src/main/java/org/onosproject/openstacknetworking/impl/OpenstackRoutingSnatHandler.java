@@ -73,7 +73,10 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -189,7 +192,7 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
-        MacAddress externalPeerRouterMac = getExternalPeerRouterMac(srcSubnet);
+        MacAddress externalPeerRouterMac = externalPeerRouterMac(srcSubnet);
         if (externalPeerRouterMac == null) {
             return;
         }
@@ -205,6 +208,27 @@ public class OpenstackRoutingSnatHandler {
                 externalGatewayIp, externalPeerRouterMac);
     }
 
+    private MacAddress externalPeerRouterMac(Subnet subnet) {
+        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        Router osRouter = osRouterService.router(osRouterIface.getId());
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
+
+        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
+
+        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
+    }
+
     private Subnet getSourceSubnet(InstancePort instance, IpAddress srcIp) {
         Port osPort = osNetworkService.port(instance.portId());
         IP fixedIp = osPort.getFixedIps().stream()
@@ -216,32 +240,6 @@ public class OpenstackRoutingSnatHandler {
         return osNetworkService.subnet(fixedIp.getSubnetId());
     }
 
-    private MacAddress getExternalPeerRouterMac(Subnet srcSubnet) {
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), srcSubnet.getId()))
-                .findAny().orElse(null);
-        if (osRouterIface == null) {
-            // this subnet is not connected to the router
-            log.trace(ERR_PACKETIN + "source subnet(ID:{}, CIDR:{}) has no router",
-                    srcSubnet.getId(), srcSubnet.getCidr());
-            return null;
-        }
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter == null) {
-            return null;
-        }
-        if (osRouter.getExternalGatewayInfo() == null) {
-            // this router does not have external connectivity
-            log.trace(ERR_PACKETIN + "router({}) has no external gateway",
-                    osRouter.getName());
-            return null;
-        }
-
-        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-
-        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
-    }
     private IpAddress getExternalIp(Subnet srcSubnet) {
         RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), srcSubnet.getId()))
