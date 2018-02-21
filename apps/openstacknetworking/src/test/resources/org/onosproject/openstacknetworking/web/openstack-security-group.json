@@ -1,0 +1,22 @@
+{
+  "security_group": {
+    "id": "2076db17-a522-4506-91de-c6dd8e837028",
+    "tenant_id": "e4f50856753b4dc6afee5fa6b9b6c550",
+    "description": "security group for webservers",
+    "name": "new-webservers",
+    "security_group_rules": [
+      {
+        "id": "2bc0accf-312e-429a-956e-e4407625eb62",
+        "tenant_id": "e4f50856753b4dc6afee5fa6b9b6c550",
+        "security_group_id": "a7734e61-b545-452d-a3cd-0189cbd9747a",
+        "direction": "ingress",
+        "ethertype": "IPv4",
+        "port_range_max": 80,
+        "port_range_min": 80,
+        "protocol": "tcp",
+        "remote_ip_prefix": "",
+        "remote_group_id": "85cc3048-abc3-43cc-89b3-377341426ac5"
+      }
+    ]
+  }
+}

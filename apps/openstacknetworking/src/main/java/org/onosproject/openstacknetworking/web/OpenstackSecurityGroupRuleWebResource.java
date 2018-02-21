@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
@@ -50,7 +49,7 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
     private static final String SECURITY_GROUP_RULES = "security-group-rules";
 
     private final OpenstackSecurityGroupAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackSecurityGroupAdminService.class);
+                                    get(OpenstackSecurityGroupAdminService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -90,7 +89,7 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeSecurityGroupRule(@PathParam("id") String id) {
+    public Response deleteSecurityGroupRule(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "REMOVE " + id));
 
         adminService.removeSecurityGroupRule(id);

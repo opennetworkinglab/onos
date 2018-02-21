@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
@@ -51,7 +50,7 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
     private static final String SECURITY_GROUPS = "security-groups";
 
     private final OpenstackSecurityGroupAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackSecurityGroupAdminService.class);
+                                    get(OpenstackSecurityGroupAdminService.class);
 
     @Context
     private UriInfo uriInfo;
