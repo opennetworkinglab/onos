@@ -21,11 +21,21 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
 
+import java.util.List;
+
 /**
  * API for troubleshooting services, providing static analysis of installed
  * flows and groups.
  */
 public interface TroubleshootService {
+
+    /**
+     * Requests a static trace be performed between all hosts in the network, given a type of traffic.
+     *
+     * @param type the etherType of the traffic we want to trace.
+     * @return a trace result
+     */
+    List<StaticPacketTrace> pingAll(EthType.EtherType type);
 
     /**
      * Requests a static trace be performed between the two hosts in the network, given a type of traffic.

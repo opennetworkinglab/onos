@@ -59,7 +59,7 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());
 
-        //Printing the created packet
+        //Printing the traced hosts
         print("Tracing between: %s and %s", srcHost, dstHost);
 
         //Build the trace
