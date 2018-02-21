@@ -28,6 +28,12 @@
                 <entry key="-et" value-ref="ethTypeCompleter"/>
             </optional-completers>
         </command>
+        <command>
+            <action class="org.onosproject.t3.cli.TroubleshootPingAllTraceCommand"/>
+            <optional-completers>
+                <entry key="-et" value-ref="ethTypeCompleter"/>
+            </optional-completers>
+        </command>
     </command-bundle>
 
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>

@@ -19,6 +19,7 @@ package org.onosproject.t3.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -131,12 +132,29 @@ public class TroubleshootManager implements TroubleshootService {
     protected EdgePortService edgePortService;
 
     @Override
+    public List<StaticPacketTrace> pingAll(EtherType type) {
+        ImmutableList.Builder<StaticPacketTrace> tracesBuilder = ImmutableList.builder();
+        hostService.getHosts().forEach(host -> {
+            List<IpAddress> ipAddresses = getIpAddresses(host, type, false);
+            if (ipAddresses.size() > 0) {
+                hostService.getHosts().forEach(hostToPing -> {
+                    List<IpAddress> ipAddressesToPing = getIpAddresses(hostToPing, type, false);
+                    if (ipAddressesToPing.size() > 0 && !host.equals(hostToPing)) {
+                        tracesBuilder.add(trace(host.id(), hostToPing.id(), type));
+                    }
+                });
+            }
+        });
+        return tracesBuilder.build();
+    }
+
+    @Override
     public StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
         Host source = hostService.getHost(sourceHost);
         Host destination = hostService.getHost(destinationHost);
 
-        //Temporary trace to fail in case we don't have neough information or what is provided is incoherent
-        StaticPacketTrace failTrace = new StaticPacketTrace(null, null);
+        //Temporary trace to fail in case we don't have enough information or what is provided is incoherent
+        StaticPacketTrace failTrace = new StaticPacketTrace(null, null, Pair.of(source, destination));
 
         if (source == null) {
             failTrace.addResultMessage("Source Host " + sourceHost + " does not exist");
@@ -160,7 +178,9 @@ public class TroubleshootManager implements TroubleshootService {
             // we are under same leaf so it's L2 Unicast.
             if (areBridged(source, destination)) {
                 selectorBuilder.matchEthDst(destination.mac());
-                return trace(selectorBuilder.build(), source.location());
+                StaticPacketTrace trace = trace(selectorBuilder.build(), source.location());
+                trace.addEndpointHosts(Pair.of(source, destination));
+                return trace;
             }
 
             //handle the IPs for src and dst in case of L3
@@ -191,8 +211,9 @@ public class TroubleshootManager implements TroubleshootService {
                 failTrace.addResultMessage("Can't get " + source.location().deviceId() +
                         " router MAC from segment routing config can't perform L3 tracing.");
             }
-
-            return trace(selectorBuilder.build(), source.location());
+            StaticPacketTrace trace = trace(selectorBuilder.build(), source.location());
+            trace.addEndpointHosts(Pair.of(source, destination));
+            return trace;
 
         } catch (ConfigException e) {
             failTrace.addResultMessage("Can't get config " + e.getMessage());
@@ -212,14 +233,7 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private boolean matchIP(Host host, StaticPacketTrace failTrace, Builder selectorBuilder,
                             EtherType etherType, boolean src) {
-        List<IpAddress> ips = host.ipAddresses().stream().filter(ipAddress -> {
-            if (etherType.equals(EtherType.IPV4)) {
-                return ipAddress.isIp4() && !ipAddress.isLinkLocal();
-            } else if (etherType.equals(EtherType.IPV6)) {
-                return ipAddress.isIp6() && !ipAddress.isLinkLocal();
-            }
-            return false;
-        }).collect(Collectors.toList());
+        List<IpAddress> ips = getIpAddresses(host, etherType, true);
 
         if (ips.size() > 0) {
             if (etherType.equals(EtherType.IPV4)) {
@@ -240,6 +254,21 @@ public class TroubleshootManager implements TroubleshootService {
             return false;
         }
         return true;
+    }
+
+    private List<IpAddress> getIpAddresses(Host host, EtherType etherType, boolean checklocal) {
+        return host.ipAddresses().stream().filter(ipAddress -> {
+            boolean correctIp = false;
+            if (etherType.equals(EtherType.IPV4)) {
+                correctIp = ipAddress.isIp4();
+            } else if (etherType.equals(EtherType.IPV6)) {
+                correctIp = ipAddress.isIp6();
+            }
+            if (checklocal) {
+                correctIp = correctIp && !ipAddress.isLinkLocal();
+            }
+            return correctIp;
+        }).collect(Collectors.toList());
     }
 
     /**

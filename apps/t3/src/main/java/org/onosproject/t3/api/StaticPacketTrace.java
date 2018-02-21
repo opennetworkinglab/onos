@@ -17,8 +17,10 @@
 package org.onosproject.t3.api;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
 
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Encapsulates the result of tracing a packet (traffic selector) through
@@ -39,6 +42,7 @@ public class StaticPacketTrace {
     private Map<DeviceId, List<GroupsInDevice>> outputsForDevice;
     private Map<DeviceId, List<FlowEntry>> flowsForDevice;
     private StringBuilder resultMessage;
+    private Pair<Host, Host> hosts;
 
     /**
      * Builds the trace with a given packet and a connect point.
@@ -53,6 +57,24 @@ public class StaticPacketTrace {
         outputsForDevice = new HashMap<>();
         flowsForDevice = new HashMap<>();
         resultMessage = new StringBuilder();
+        hosts = null;
+    }
+
+    /**
+     * Builds the trace with a given packet and a connect point.
+     *
+     * @param packet the packet to trace
+     * @param in     the initial connect point
+     * @param hosts  pair of source and destination hosts
+     */
+    public StaticPacketTrace(TrafficSelector packet, ConnectPoint in, Pair<Host, Host> hosts) {
+        this.inPacket = packet;
+        this.in = in;
+        completePaths = new ArrayList<>();
+        outputsForDevice = new HashMap<>();
+        flowsForDevice = new HashMap<>();
+        resultMessage = new StringBuilder();
+        this.hosts = hosts;
     }
 
     /**
@@ -153,6 +175,24 @@ public class StaticPacketTrace {
      */
     public List<FlowEntry> getFlowsForDevice(DeviceId deviceId) {
         return flowsForDevice.getOrDefault(deviceId, ImmutableList.of());
+    }
+
+    /**
+     * Return, if present, the two hosts at the endpoints of this trace.
+     *
+     * @return pair of source and destination hosts
+     */
+    public Optional<Pair<Host, Host>> getEndpointHosts() {
+        return Optional.ofNullable(hosts);
+    }
+
+    /**
+     * Sets the two hosts at the endpoints of this trace.
+     *
+     * @param endpointHosts pair of source and destination hosts
+     */
+    public void addEndpointHosts(Pair<Host, Host> endpointHosts) {
+        hosts = endpointHosts;
     }
 
     @Override
