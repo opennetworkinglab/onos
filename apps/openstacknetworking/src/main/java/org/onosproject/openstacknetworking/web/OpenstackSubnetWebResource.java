@@ -19,7 +19,6 @@ package org.onosproject.openstacknetworking.web;
  * Handles Rest API call from Neutron ML2 plugin.
  */
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
@@ -53,7 +52,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
     private static final String SUBNETS = "subnets";
 
     private final OpenstackNetworkAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackNetworkAdminService.class);
+                                        get(OpenstackNetworkAdminService.class);
 
     @Context
     private UriInfo uriInfo;

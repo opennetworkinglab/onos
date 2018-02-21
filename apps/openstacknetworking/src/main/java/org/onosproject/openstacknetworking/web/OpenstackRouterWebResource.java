@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronRouter;
@@ -55,7 +54,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     private static final String ROUTERS = "routers";
 
     private final OpenstackRouterAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackRouterAdminService.class);
+                                        get(OpenstackRouterAdminService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -148,7 +147,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     @Path("{id}/remove_router_interface")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeRouterInterface(@PathParam("id") String id, InputStream input) {
+    public Response deleteRouterInterface(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE_ROUTER_IFACE, "DELETE " + id));
 
         final NeutronRouterInterface osRouterIface = (NeutronRouterInterface)

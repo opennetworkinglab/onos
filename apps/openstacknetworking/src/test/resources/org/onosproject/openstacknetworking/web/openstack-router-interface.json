@@ -1,0 +1,8 @@
+{
+  "router_interface": {
+    "id": "f49a1319-423a-4ee6-ba54-1d95a4f6cc68",
+    "subnet_id": "f49a1319-423a-4ee6-ba54-1d95a4f6cc68",
+    "port_id": "65c0ee9f-d634-4522-8954-51021b570b0d",
+    "tenant_id": "d6700c0c9ffa4f1cb322cd4a1f3906fa"
+  }
+}
