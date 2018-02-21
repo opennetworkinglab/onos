@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;
@@ -39,18 +39,18 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * Unit test for openstack floating IP REST API.
+ * Unit test for openstack port REST API.
  */
-public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
+public class OpenstackPortWebResourceTest extends ResourceTest {
 
-    final OpenstackRouterAdminService mockOpenstackRouterAdminService =
-            createMock(OpenstackRouterAdminService.class);
-    private static final String PATH = "floatingips";
+    final OpenstackNetworkAdminService mockOpenstackNetworkAdminService =
+            createMock(OpenstackNetworkAdminService.class);
+    private static final String PATH = "ports";
 
     /**
-     * Constructs an openstack floating IP test instance.
+     * Constructs an openstack port test instance.
      */
-    public OpenstackFloatingIpWebResourceTest() {
+    public OpenstackPortWebResourceTest() {
         super(ResourceConfig.forApplicationClass(OpenstackNetworkingWebApplication.class));
     }
 
@@ -61,8 +61,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
     public void setUpTest() {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
-                        .add(OpenstackRouterAdminService.class,
-                                mockOpenstackRouterAdminService);
+                        .add(OpenstackNetworkAdminService.class,
+                                mockOpenstackNetworkAdminService);
         setServiceDirectory(testDirectory);
 
     }
@@ -71,13 +71,13 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      * Tests the results of the REST API POST with creation operation.
      */
     @Test
-    public void testCreateFloatingIpWithCreationOperation() {
-        mockOpenstackRouterAdminService.createFloatingIp(anyObject());
-        replay(mockOpenstackRouterAdminService);
+    public void testCreatePortWithCreationOperation() {
+        mockOpenstackNetworkAdminService.createPort(anyObject());
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+        InputStream jsonStream = OpenstackNetworkWebResourceTest.class
+                .getResourceAsStream("openstack-port.json");
 
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
@@ -85,16 +85,16 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         assertThat(status, is(201));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 
     /**
      * Tests the results of the REST API POST with incorrect input.
      */
     @Test
-    public void testCreateFloatingIpWithIncorrectInput() {
+    public void testCreatePortWithIncorrectInput() {
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
+        InputStream jsonStream = OpenstackPortWebResourceTest.class
                 .getResourceAsStream("dummy.json");
 
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
@@ -105,17 +105,17 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API POST with duplicated floating IP.
+     * Tests the results of the REST API POST with duplicated port ID.
      */
     @Test
-    public void testCreateFloatingIpWithDuplicatedIp() {
-        mockOpenstackRouterAdminService.createFloatingIp(anyObject());
+    public void testCreatePortWithDuplicatedId() {
+        mockOpenstackNetworkAdminService.createPort(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
-        replay(mockOpenstackRouterAdminService);
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+        InputStream jsonStream = OpenstackNetworkWebResourceTest.class
+                .getResourceAsStream("openstack-port.json");
 
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
@@ -123,41 +123,41 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         assertThat(status, is(400));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 
     /**
      * Tests the results of the REST API PUT with updating operation.
      */
     @Test
-    public void testUpdateFloatingIpWithUpdatingOperation() {
-        mockOpenstackRouterAdminService.updateFloatingIp(anyObject());
-        replay(mockOpenstackRouterAdminService);
+    public void testUpdatePortWithUpdatingOperation() {
+        mockOpenstackNetworkAdminService.updatePort(anyObject());
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+        InputStream jsonStream = OpenstackNetworkWebResourceTest.class
+                .getResourceAsStream("openstack-port.json");
 
-        Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
+        Response response = wt.path(PATH + "/65c0ee9f-d634-4522-8954-51021b570b0d")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
         final int status = response.getStatus();
 
         assertThat(status, is(200));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 
     /**
      * Tests the results of the REST API PUT with incorrect input.
      */
     @Test
-    public void testUpdateFloatingIpWithIncorrectInput() {
+    public void testUpdatePortWithIncorrectInput() {
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
+        InputStream jsonStream = OpenstackNetworkWebResourceTest.class
                 .getResourceAsStream("dummy.json");
 
-        Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
+        Response response = wt.path(PATH + "/65c0ee9f-d634-4522-8954-51021b570b0d")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
         final int status = response.getStatus();
@@ -166,56 +166,56 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the results of the REST API PUT with non-existing ID.
+     * Tests the results of the REST API PUT with non-existing port ID.
      */
     @Test
-    public void testUpdateFloatingIpWithNonexistId() {
-        mockOpenstackRouterAdminService.updateFloatingIp(anyObject());
+    public void testUpdatePortWithNonexistId() {
+        mockOpenstackNetworkAdminService.updatePort(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
-        replay(mockOpenstackRouterAdminService);
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
-        InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+        InputStream jsonStream = OpenstackNetworkWebResourceTest.class
+                .getResourceAsStream("openstack-port.json");
 
-        Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
+        Response response = wt.path(PATH + "/65c0ee9f-d634-4522-8954-51021b570b0d")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
         final int status = response.getStatus();
 
         assertThat(status, is(400));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 
     /**
      * Tests the results of the REST API DELETE with deletion operation.
      */
     @Test
-    public void testDeleteFloatingIpWithDeletionOperation() {
-        mockOpenstackRouterAdminService.removeFloatingIp(anyString());
-        replay(mockOpenstackRouterAdminService);
+    public void testDeletePortWithDeletionOperation() {
+        mockOpenstackNetworkAdminService.removePort(anyString());
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
 
-        Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
+        Response response = wt.path(PATH + "/65c0ee9f-d634-4522-8954-51021b570b0d")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .delete();
         final int status = response.getStatus();
 
         assertThat(status, is(204));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 
     /**
-     * Tests the results of the REST API DELETE with non-existing ID.
+     * Tests the results of the REST API DELETE with non-existing port ID.
      */
     @Test
-    public void testDeleteFloatingIpWithNonexistId() {
-        mockOpenstackRouterAdminService.removeFloatingIp(anyString());
+    public void testDeletePortWithNonexistId() {
+        mockOpenstackNetworkAdminService.removePort(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
-        replay(mockOpenstackRouterAdminService);
+        replay(mockOpenstackNetworkAdminService);
 
         final WebTarget wt = target();
 
@@ -226,6 +226,6 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         assertThat(status, is(400));
 
-        verify(mockOpenstackRouterAdminService);
+        verify(mockOpenstackNetworkAdminService);
     }
 }

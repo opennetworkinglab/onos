@@ -1,0 +1,20 @@
+{
+  "network": {
+    "id": "396f12f8-521e-4b91-8e21-2e003500433a",
+    "subnets": [
+      "10.10.0.0/24"
+    ],
+    "provider:physical_network": "physnet1",
+    "admin_state_up": true,
+    "tenant_id": "20bd52ff3e1b40039c312395b04683cf",
+    "provider:network_type": "vlan",
+    "router:external": true,
+    "provider:segmentation_id": "1002",
+    "availability_zone_hints": [
+      "1"
+    ],
+    "availability_zones": [
+      "nova"
+    ]
+  }
+}

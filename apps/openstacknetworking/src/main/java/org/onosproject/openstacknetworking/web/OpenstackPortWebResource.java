@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronPort;
@@ -52,7 +51,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     private static final String PORTS = "ports";
 
     private final OpenstackNetworkAdminService adminService =
-            DefaultServiceDirectory.getService(OpenstackNetworkAdminService.class);
+                                        get(OpenstackNetworkAdminService.class);
 
     @Context
     private UriInfo uriInfo;
