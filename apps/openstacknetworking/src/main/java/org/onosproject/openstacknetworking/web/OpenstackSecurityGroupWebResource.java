@@ -61,7 +61,7 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
      *
      * @param input security group JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
-     * is invalid or duplicated port already exists
+     * is invalid or duplicated security group ID already exists
      * @onos.rsModel NeutronSecurityGroup
      */
     @POST
@@ -85,8 +85,8 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
      * Updates a security group from the JSON input stream.
      *
      * @param input security group JSON input stream
-     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
-     * is invalid or duplicated port already exists
+     * @return 200 OK with the updated security group, 400 BAD_REQUEST if the
+     * request is invalid
      * @onos.rsModel NeutronSecurityGroup
      */
     @PUT
@@ -95,15 +95,9 @@ public class OpenstackSecurityGroupWebResource extends AbstractWebResource {
     public Response updateSecurityGroups(InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATE"));
 
-        final NeutronSecurityGroup sg = (NeutronSecurityGroup)
-                            jsonToModelEntity(input, NeutronSecurityGroup.class);
-
-        // Do nothing ..
-        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
-                .path(SECURITY_GROUPS)
-                .path(sg.getId());
-
-        return created(locationBuilder.build()).build();
+        // Do nothing ...
+        // TODO: this interface will purged sooner or later...
+        return Response.ok().build();
     }
 
     /**
