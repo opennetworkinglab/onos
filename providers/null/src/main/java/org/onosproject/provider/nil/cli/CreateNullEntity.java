@@ -17,6 +17,7 @@ package org.onosproject.provider.nil.cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Longs;
+import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -96,11 +97,19 @@ public abstract class CreateNullEntity extends AbstractShellCommand {
         EdgePortService eps = get(EdgePortService.class);
         HostService hs = get(HostService.class);
 
-        List<ConnectPoint> points = ImmutableList
-                .sortedCopyOf((l, r) -> Longs.compare(l.port().toLong(), r.port().toLong()),
-                              eps.getEdgePoints(deviceId));
-        return points.stream()
-                .filter(p -> !Objects.equals(p, otherPoint) && hs.getConnectedHosts(p).isEmpty())
-                .findFirst().orElse(null);
+        // As there may be a slight delay in edge service getting updated, retry a few times
+        for (int i = 0; i < 3; i++) {
+            List<ConnectPoint> points = ImmutableList
+                    .sortedCopyOf((l, r) -> Longs.compare(l.port().toLong(), r.port().toLong()),
+                                  eps.getEdgePoints(deviceId));
+            ConnectPoint point = points.stream()
+                    .filter(p -> !Objects.equals(p, otherPoint) && hs.getConnectedHosts(p).isEmpty())
+                    .findFirst().orElse(null);
+            if (point != null) {
+                return point;
+            }
+            Tools.delay(100);
+        }
+        return null;
     }
 }

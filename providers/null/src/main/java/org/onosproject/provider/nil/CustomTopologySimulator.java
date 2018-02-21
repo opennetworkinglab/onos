@@ -122,12 +122,12 @@ public class CustomTopologySimulator extends TopologySimulator {
     protected void createHosts() {
     }
 
-    /**
-     * Resets the device and host ID seeds to the default values. That is, the
-     * next assigned values will start from 1 again.
-     */
-    public void resetIdSeeds() {
+    @Override
+    public void tearDownTopology() {
+        super.tearDownTopology();
         nextDeviceId = 0;
         nextHostId = 0;
+        nameToId.clear();
     }
+
 }

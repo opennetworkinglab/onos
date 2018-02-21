@@ -14,11 +14,16 @@ function sim {
     echo "$@" >> $CMDS
 }
 
-sim "wipe-out please"
+# Generate the recipe using the following:
+# 2 spines, can potentially be few more
+# 12 leaves in total
+#     2 leaf pair
+#     8 non-paired
+# Host per leaf up to 1K
 
 spinePorts=48
 leafPorts=64
-accessPorts=1024
+accessPorts=128
 
 # Create spines
 for spine in {1..2}; do
@@ -56,29 +61,27 @@ for access in {1..8}; do
     done
 
     # Create hosts for each single leaf
-    for host in {1..25}; do
+    for host in {1..50}; do
         sim "null-create-host Access-${access} 10.0.${access}.${host}"
     done
 done
 
 
-
-# make sure null providers are activated
+# make sure null providers are activated and any running simulation is stopped
 onos ${node} app activate org.onosproject.null
-
 sleep 2
+onos ${node} null-simulation stop
+
+# wait until the masterships clear-out across the cluster
+while onos ${node} masters | grep -qv " 0 devices"; do sleep 1; done
+
+# clean-up
+onos ${node} wipe-out please
+sleep 1
 
 # start custom simulation..
 onos ${node} null-simulation start custom
-
-# Generate the recipe using the following:
-# 2 spines, can potentially be few more
-# 12 leaves in total
-#     2 leaf pair
-#     8 non-paired
-# Host per leaf up to 1K
-
-sleep 5
+sleep 2
 
 # Add devices, links, and hosts
 cat $CMDS | onos ${node}

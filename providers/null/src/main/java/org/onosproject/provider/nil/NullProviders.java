@@ -385,6 +385,7 @@ public class NullProviders {
             delay(500);
             simulator.tearDownTopology();
             simulator = null;
+
         }
     }
 
