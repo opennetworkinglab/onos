@@ -150,7 +150,6 @@ public class TroubleshootManager implements TroubleshootService {
                 .matchVlanId(source.vlan());
 
 
-
         try {
             //if the location deviceId is the same, the two hosts are under same subnet and vlan on the interface
             // we are under same leaf so it's L2 Unicast.
@@ -218,10 +217,18 @@ public class TroubleshootManager implements TroubleshootService {
         }).collect(Collectors.toList());
 
         if (ips.size() > 0) {
-            if (src) {
-                selectorBuilder.matchIPSrc(ips.get(0).toIpPrefix());
-            } else {
-                selectorBuilder.matchIPDst(ips.get(0).toIpPrefix());
+            if (etherType.equals(EtherType.IPV4)) {
+                if (src) {
+                    selectorBuilder.matchIPSrc(ips.get(0).toIpPrefix());
+                } else {
+                    selectorBuilder.matchIPDst(ips.get(0).toIpPrefix());
+                }
+            } else if (etherType.equals(EtherType.IPV6)) {
+                if (src) {
+                    selectorBuilder.matchIPv6Src(ips.get(0).toIpPrefix());
+                } else {
+                    selectorBuilder.matchIPv6Dst(ips.get(0).toIpPrefix());
+                }
             }
         } else {
             failTrace.addResultMessage("Host " + host + " has no " + etherType + " address");
