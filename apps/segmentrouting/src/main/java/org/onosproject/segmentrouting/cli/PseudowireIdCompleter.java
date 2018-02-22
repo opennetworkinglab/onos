@@ -19,7 +19,7 @@ import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
-import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +39,7 @@ public class PseudowireIdCompleter implements Completer {
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
 
-        List<DefaultL2Tunnel> tunnels = srService.getL2Tunnels();
+        List<L2Tunnel> tunnels = srService.getL2Tunnels();
 
         // combine polices and tunnels to pseudowires
         Iterator<String> pseudowires = tunnels.stream()

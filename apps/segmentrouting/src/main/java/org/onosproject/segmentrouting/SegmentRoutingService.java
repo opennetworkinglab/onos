@@ -22,9 +22,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
-import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
-import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
+import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 
 import com.google.common.collect.ImmutableMap;
@@ -91,18 +91,18 @@ public interface SegmentRoutingService {
      *
      * @return list of l2 tunnels
      */
-    List<DefaultL2Tunnel> getL2Tunnels();
+    List<L2Tunnel> getL2Tunnels();
 
     /**
      * Returns all l2 policie of pseudowires.
      *
      * @return list of l2 policies.
      */
-    List<DefaultL2TunnelPolicy> getL2Policies();
+    List<L2TunnelPolicy> getL2Policies();
 
     /**
      * Removes pw. Essentially updates configuration for PwaasConfig
-     * and sends event for removal. The rest are handled by L2TunnelHandler
+     * and sends event for removal. The rest are handled by DefaultL2TunnelHandler
      *
      * @param pwId The pseudowire id
      * @return SUCCESS if operation successful or a descriptive error otherwise.
@@ -125,9 +125,9 @@ public interface SegmentRoutingService {
      * @return SUCCESS if operation is successful or a descriptive error otherwise.
      */
     L2TunnelHandler.Result addPseudowire(String tunnelId, String pwLabel, String cP1,
-                                         String cP1InnerVlan, String cP1OuterVlan, String cP2,
-                                         String cP2InnerVlan, String cP2OuterVlan,
-                                         String mode, String sdTag);
+                                          String cP1InnerVlan, String cP1OuterVlan, String cP2,
+                                          String cP2InnerVlan, String cP2OuterVlan,
+                                          String mode, String sdTag);
 
     /**
      * Creates a policy.

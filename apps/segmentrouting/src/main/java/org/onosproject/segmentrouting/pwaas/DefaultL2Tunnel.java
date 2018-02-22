@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of the default l2 tunnel.
  */
-public class DefaultL2Tunnel {
+public class DefaultL2Tunnel implements L2Tunnel {
 
     /**
      * Mode of the pseudo wire.
@@ -132,6 +132,7 @@ public class DefaultL2Tunnel {
      *
      * @return the pseudo wire mode
      */
+    @Override
     public L2Mode pwMode() {
         return pwMode;
     }
@@ -142,6 +143,7 @@ public class DefaultL2Tunnel {
      *
      * @return the service delimitation vlan id
      */
+    @Override
     public VlanId sdTag() {
         return sdTag;
     }
@@ -151,6 +153,7 @@ public class DefaultL2Tunnel {
      *
      * @return the pseudo wire tunnel id
      */
+    @Override
     public long tunnelId() {
         return tunnelId;
     }
@@ -160,6 +163,7 @@ public class DefaultL2Tunnel {
      *
      * @return the mpls pw label
      */
+    @Override
     public MplsLabel pwLabel() {
         return pwLabel;
     }
@@ -169,6 +173,7 @@ public class DefaultL2Tunnel {
      *
      * @param path The path to set
      */
+    @Override
     public void setPath(List<Link> path) {
         pathUsed = new ArrayList<>(path);
     }
@@ -178,6 +183,7 @@ public class DefaultL2Tunnel {
      *
      * @param vlan the vlan to use.
      */
+    @Override
     public void setTransportVlan(VlanId vlan) {
         transportVlan = vlan;
     }
@@ -187,10 +193,12 @@ public class DefaultL2Tunnel {
      *
      * @return pathUsed
      */
+    @Override
     public List<Link> pathUsed() {
         return pathUsed;
     }
 
+    @Override
     public VlanId transportVlan() {
         return transportVlan;
     }
@@ -201,6 +209,7 @@ public class DefaultL2Tunnel {
      *
      * @return the mpls inter-co label
      */
+    @Override
     public MplsLabel interCoLabel() {
         return interCoLabel;
     }

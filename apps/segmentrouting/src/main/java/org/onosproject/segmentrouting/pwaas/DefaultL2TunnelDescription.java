@@ -26,17 +26,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Helper class to carry the l2 tunnel
  * and its policy.
  */
-public class DefaultL2TunnelDescription {
+public class DefaultL2TunnelDescription implements L2TunnelDescription {
 
     /**
      * The l2 tunnel.
      */
-    private DefaultL2Tunnel l2Tunnel;
+    private L2Tunnel l2Tunnel;
 
     /**
      * The l2 tunnel policy.
      */
-    private DefaultL2TunnelPolicy l2TunnelPolicy;
+    private L2TunnelPolicy l2TunnelPolicy;
 
     /**
      * Creates a l2 tunnel description using the given info.
@@ -44,8 +44,8 @@ public class DefaultL2TunnelDescription {
      * @param l2Tunnel the l2 tunnel
      * @param l2TunnelPolicy the l2 tunnel description
      */
-    public DefaultL2TunnelDescription(DefaultL2Tunnel l2Tunnel,
-                                      DefaultL2TunnelPolicy l2TunnelPolicy) {
+    public DefaultL2TunnelDescription(L2Tunnel l2Tunnel,
+                                      L2TunnelPolicy l2TunnelPolicy) {
         checkNotNull(l2Tunnel);
         checkNotNull(l2TunnelPolicy);
 
@@ -61,39 +61,23 @@ public class DefaultL2TunnelDescription {
         this.l2TunnelPolicy = null;
     }
 
-    /**
-     * Returns the l2 tunnel.
-     *
-     * @return the l2 tunnel
-     */
-    public DefaultL2Tunnel l2Tunnel() {
+    @Override
+    public L2Tunnel l2Tunnel() {
         return l2Tunnel;
     }
 
-    /**
-     * Returns the l2 tunnel policy.
-     *
-     * @return the l2 tunnel policy.
-     */
-    public DefaultL2TunnelPolicy l2TunnelPolicy() {
+    @Override
+    public L2TunnelPolicy l2TunnelPolicy() {
         return l2TunnelPolicy;
     }
 
-    /**
-     * Sets the l2 tunnel.
-     *
-     * @param tunnel the l2 tunnel to set.
-     */
-    public void setL2Tunnel(DefaultL2Tunnel tunnel) {
+    @Override
+    public void setL2Tunnel(L2Tunnel tunnel) {
         l2Tunnel = tunnel;
     }
 
-    /**
-     * Sets the l2 policy.
-     *
-     * @param policy the policy to set.
-     */
-    public void setL2TunnelPolicy(DefaultL2TunnelPolicy policy) {
+    @Override
+    public void setL2TunnelPolicy(L2TunnelPolicy policy) {
         l2TunnelPolicy = policy;
     }
 
