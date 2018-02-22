@@ -30,6 +30,9 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intf.InterfaceService;
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
+import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
@@ -116,7 +119,7 @@ public class PwaasConfig extends Config<ApplicationId> {
     @Override
     public boolean isValid() {
 
-        Set<DefaultL2TunnelDescription> pseudowires;
+        Set<L2TunnelDescription> pseudowires;
         try {
             pseudowires = getPwIds().stream()
                     .map(this::getPwDescription)
@@ -138,7 +141,7 @@ public class PwaasConfig extends Config<ApplicationId> {
      * @param l2Tunnel the tunnel to verify
      * @return the result of the verification
      */
-    private void verifyTunnel(DefaultL2Tunnel l2Tunnel) {
+    private void verifyTunnel(L2Tunnel l2Tunnel) {
 
         // Service delimiting tag not supported yet.
         if (!l2Tunnel.sdTag().equals(VlanId.NONE)) {
@@ -274,8 +277,8 @@ public class PwaasConfig extends Config<ApplicationId> {
      * @param vlanSet Vlan set used with this configuration
      * @param tunnelSet Tunnel set used with this configuration
      */
-    private void verifyGlobalValidity(DefaultL2Tunnel tunnel,
-                                      DefaultL2TunnelPolicy policy,
+    private void verifyGlobalValidity(L2Tunnel tunnel,
+                                      L2TunnelPolicy policy,
                                       Set<MplsLabel> labelSet,
                                       Map<ConnectPoint, Set<VlanId>> vlanSet,
                                       Set<Long> tunnelSet) {
@@ -412,13 +415,13 @@ public class PwaasConfig extends Config<ApplicationId> {
      * @param l2TunnelDescription the pseudo wire description
      * @return the result of the check
      */
-    private void verifyPseudoWire(DefaultL2TunnelDescription l2TunnelDescription,
+    private void verifyPseudoWire(L2TunnelDescription l2TunnelDescription,
                                   Set<MplsLabel> labelSet,
                                   Map<ConnectPoint, Set<VlanId>> vlanset,
                                   Set<Long> tunnelSet) {
 
-        DefaultL2Tunnel l2Tunnel = l2TunnelDescription.l2Tunnel();
-        DefaultL2TunnelPolicy l2TunnelPolicy = l2TunnelDescription.l2TunnelPolicy();
+        L2Tunnel l2Tunnel = l2TunnelDescription.l2Tunnel();
+        L2TunnelPolicy l2TunnelPolicy = l2TunnelDescription.l2TunnelPolicy();
 
         verifyTunnel(l2Tunnel);
 
@@ -447,7 +450,7 @@ public class PwaasConfig extends Config<ApplicationId> {
      * @param pseudowires Set of pseudowries to validate
      * @return returns true if everything goes well.
      */
-    public boolean configurationValidity(Set<DefaultL2TunnelDescription> pseudowires) {
+    public boolean configurationValidity(Set<L2TunnelDescription> pseudowires) {
 
         // structures to keep pw information
         // in order to see if instantiating them will create
@@ -459,7 +462,7 @@ public class PwaasConfig extends Config<ApplicationId> {
         // check that pseudowires can be instantiated in the network
         // we try to guarantee that all the pws will work before
         // instantiating any of them
-        for (DefaultL2TunnelDescription pw : pseudowires) {
+        for (L2TunnelDescription pw : pseudowires) {
             verifyPseudoWire(pw, labelsUsed, vlanIds, tunIds);
         }
 
@@ -543,7 +546,7 @@ public class PwaasConfig extends Config<ApplicationId> {
      * @return set of l2 tunnel descriptions
      * @throws IllegalArgumentException if wrong format
      */
-    public DefaultL2TunnelDescription getPwDescription(Long tunnelId) {
+    public L2TunnelDescription getPwDescription(Long tunnelId) {
         JsonNode pwDescription = object.get(tunnelId.toString());
         if (!hasFields((ObjectNode) pwDescription,
                       SRC_CP, SRC_INNER_TAG, SRC_OUTER_TAG,
@@ -580,14 +583,14 @@ public class PwaasConfig extends Config<ApplicationId> {
         tempString = pwDescription.get(PW_LABEL).asText();
         MplsLabel pwLabel = parsePWLabel(tempString);
 
-        DefaultL2Tunnel l2Tunnel = new DefaultL2Tunnel(
+        L2Tunnel l2Tunnel = new DefaultL2Tunnel(
                 l2Mode,
                 sdTag,
                 tunnelId,
                 pwLabel
         );
 
-        DefaultL2TunnelPolicy l2TunnelPolicy = new DefaultL2TunnelPolicy(
+        L2TunnelPolicy l2TunnelPolicy = new DefaultL2TunnelPolicy(
                 tunnelId,
                 srcCp,
                 srcInnerTag,

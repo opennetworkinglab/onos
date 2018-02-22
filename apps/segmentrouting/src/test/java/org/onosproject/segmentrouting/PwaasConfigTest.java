@@ -46,8 +46,11 @@ import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.segmentrouting.config.PwaasConfig;
+
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
+import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
-import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2Mode;
 
@@ -326,15 +329,15 @@ public class PwaasConfigTest {
      */
     @Test
     public void testGetPwDescription() {
-        DefaultL2TunnelDescription l2TunnelDescription = null;
+        L2TunnelDescription l2TunnelDescription = null;
 
-        DefaultL2Tunnel l2Tunnel = new DefaultL2Tunnel(
+        L2Tunnel l2Tunnel = new DefaultL2Tunnel(
             L2Mode.valueOf(MODE_1),
             SD_TAG_1,
             Long.parseLong(TUNNEL_ID_1),
             PW_LABEL_1
         );
-        DefaultL2TunnelPolicy l2TunnelPolicy = new DefaultL2TunnelPolicy(
+        L2TunnelPolicy l2TunnelPolicy = new DefaultL2TunnelPolicy(
                 Long.parseLong(TUNNEL_ID_1),
                 INGRESS_1,
                 INGRESS_INNER_TAG_1,

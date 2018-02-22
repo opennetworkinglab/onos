@@ -102,8 +102,11 @@ import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
+import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
@@ -420,7 +423,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkHandler = new LinkHandler(this);
         routeHandler = new RouteHandler(this);
         neighbourHandler = new SegmentRoutingNeighbourDispatcher(this);
-        l2TunnelHandler = new L2TunnelHandler(this);
+        l2TunnelHandler = new DefaultL2TunnelHandler(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
@@ -447,18 +450,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
                 .register(DestinationSetNextObjectiveStoreKey.class,
-                        VlanNextObjectiveStoreKey.class,
-                        DestinationSet.class,
-                        NextNeighbors.class,
-                        Tunnel.class,
-                        DefaultTunnel.class,
-                        Policy.class,
-                        TunnelPolicy.class,
-                        Policy.Type.class,
-                        PortNextObjectiveStoreKey.class,
-                        XConnectStoreKey.class,
-                        DefaultL2Tunnel.class,
-                        DefaultL2TunnelPolicy.class
+                          VlanNextObjectiveStoreKey.class,
+                          DestinationSet.class,
+                          NextNeighbors.class,
+                          Tunnel.class,
+                          DefaultTunnel.class,
+                          Policy.class,
+                          TunnelPolicy.class,
+                          Policy.Type.class,
+                          PortNextObjectiveStoreKey.class,
+                          XConnectStoreKey.class,
+                          L2Tunnel.class,
+                          L2TunnelPolicy.class,
+                          DefaultL2Tunnel.class,
+                          DefaultL2TunnelPolicy.class
                 );
     }
 
@@ -552,20 +557,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public List<DefaultL2Tunnel> getL2Tunnels() {
+    public List<L2Tunnel> getL2Tunnels() {
         return l2TunnelHandler.getL2Tunnels();
     }
 
     @Override
-    public List<DefaultL2TunnelPolicy> getL2Policies() {
+    public List<L2TunnelPolicy> getL2Policies() {
         return l2TunnelHandler.getL2Policies();
     }
 
     @Override
     public L2TunnelHandler.Result addPseudowire(String tunnelId, String pwLabel, String cP1,
-                                         String cP1InnerVlan, String cP1OuterVlan, String cP2,
-                                         String cP2InnerVlan, String cP2OuterVlan,
-                                         String mode, String sdTag) {
+                                                 String cP1InnerVlan, String cP1OuterVlan, String cP2,
+                                                 String cP2InnerVlan, String cP2OuterVlan,
+                                                 String mode, String sdTag) {
         // Try to inject an empty Pwaas config if it is not found for the first time
         PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
         if (config == null) {
@@ -1407,7 +1412,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         break;
                 }
             } else if (event.configClass().equals(PwaasConfig.class)) {
-                checkState(l2TunnelHandler != null, "L2TunnelHandler is not initialized");
+                checkState(l2TunnelHandler != null, "DefaultL2TunnelHandler is not initialized");
                 switch (event.type()) {
                     case CONFIG_ADDED:
                         l2TunnelHandler.processPwaasConfigAdded(event);

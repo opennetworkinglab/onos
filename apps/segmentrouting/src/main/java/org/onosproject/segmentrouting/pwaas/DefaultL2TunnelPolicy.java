@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of the default l2 tunnel policy.
  */
-public class DefaultL2TunnelPolicy {
+public class DefaultL2TunnelPolicy implements L2TunnelPolicy {
 
     /**
      * Id of the tunnel associated to this policy.
@@ -97,65 +97,37 @@ public class DefaultL2TunnelPolicy {
         this.cP2OuterTag = policy.cP2OuterTag;
     }
 
-    /**
-     * Returns the first connect point of the policy.
-     *
-     * @return first connect point
-     */
+    @Override
     public ConnectPoint cP1() {
         return cP1;
     }
 
-    /**
-     * Returns the second connect point of the policy.
-     *
-     * @return second connect point
-     */
+    @Override
     public ConnectPoint cP2() {
         return cP2;
     }
 
-    /**
-     * Returns the cP1 inner vlan tag of the policy.
-     *
-     * @return cP1 inner vlan tag
-     */
+    @Override
     public VlanId cP1InnerTag() {
         return cP1InnerTag;
     }
 
-    /**
-     * Returns the cP1 outer vlan tag of the policy.
-     *
-     * @return cP1 outer vlan tag
-     */
+    @Override
     public VlanId cP1OuterTag() {
         return cP1OuterTag;
     }
 
-    /**
-     * Returns the cP2 inner vlan tag of the policy.
-     *
-     * @return cP2 inner vlan tag
-     */
+    @Override
     public VlanId cP2InnerTag() {
         return cP2InnerTag;
     }
 
-    /**
-     * Returns the cP2 outer vlan tag of the policy.
-     *
-     * @return cP2 outer vlan tag
-     */
+    @Override
     public VlanId cP2OuterTag() {
         return cP2OuterTag;
     }
 
-    /**
-     * Returns the tunnel ID of the policy.
-     *
-     * @return Tunnel ID
-     */
+    @Override
     public long tunnelId() {
         return this.tunnelId;
     }
