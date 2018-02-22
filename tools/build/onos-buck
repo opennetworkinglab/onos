@@ -10,7 +10,7 @@ BUCK_SHA="45d8bd28f441991257babf89f7a317edb3a2b536"
 
 # onos-yang-tools buck plugin version
 YANG_VER="2.4.1"
-ONOS_PLUGIN_VER="1.0.2"
+ONOS_PLUGIN_VER="1.0.3"
 MAVEN_BASE="https://repo1.maven.org/maven2"
 MAVEN_ONOSPROJECT="$MAVEN_BASE/org/onosproject"
 
