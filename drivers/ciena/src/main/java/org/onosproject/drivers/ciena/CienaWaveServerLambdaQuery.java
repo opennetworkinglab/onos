@@ -29,19 +29,19 @@ import java.util.stream.IntStream;
 
 /**
  * Ciena WaveServer Lambda query.
- * 88 50GHz flex grid channels with 12.5 slot width, starting from 0 to 87.
+ * 88 50GHz flex grid channels with 6.25 slot width, starting from 0 to 87.
  */
 public class CienaWaveServerLambdaQuery extends AbstractHandlerBehaviour implements LambdaQuery {
 
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {
-        //88 channels of 50 GHz with 12.5 GHz slothWidth
+        // 88 channels of 50 GHz with 6.25 GHz slothWidth
         int slots = (int) (ChannelSpacing.CHL_50GHZ.frequency().asHz() /
-                ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
+                ChannelSpacing.CHL_6P25GHZ.frequency().asHz());
         int channels = 88;
-        //total lambdas are equal to: channels * slots
+        // total lambdas are equal to: channels * slots
         return IntStream.rangeClosed(0, channels * slots)
-                .mapToObj(x -> OchSignal.newFlexGridSlot(2 * x))
+                .mapToObj(OchSignal::newFlexGridSlot)
                 .collect(ImmutableSet.toImmutableSet());
     }
 
