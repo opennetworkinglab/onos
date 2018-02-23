@@ -2,15 +2,17 @@
   "type": "object",
   "description": "A subnet object.",
   "required": [
-    "subnets"
+    "subnet"
   ],
   "properties": {
-    "subnets": {
+    "subnet": {
       "type": "object",
       "required": [
+        "id",
         "enable_dhcp",
         "network_id",
         "tenant_id",
+        "cidr",
         "dns_nameservers",
         "allocation_pools",
         "host_routes",
@@ -20,6 +22,11 @@
         "ipv6_ra_mode"
       ],
       "properties": {
+        "id": {
+          "type": "string",
+          "example": "2f245a7b-796b-4f26-9cf9-9e82d248fda7",
+          "description": "The ID of the subnet."
+        },
         "enable_dhcp": {
           "type": "boolean",
           "example": true,
@@ -34,6 +41,11 @@
           "type": "string",
           "example": "4fd44f30292945e481c7b8a0c8908869",
           "description": "The ID of the project."
+        },
+        "cidr": {
+          "type": "string",
+          "example": "192.168.199.0/24",
+          "description": "The CIDR of the subnet."
         },
         "dns_nameservers": {
           "type": "array",
@@ -80,10 +92,12 @@
             "properties": {
               "destination": {
                 "type": "string",
+                "example": "",
                 "description": "The destination CIDR."
               },
               "nexthop": {
                 "type": "string",
+                "example": "",
                 "description": "The IP address of the next hop for the corresponding destination."
               }
             }
@@ -102,10 +116,12 @@
         },
         "ipv6_address_mode": {
           "type": "string",
+          "example": "",
           "description": "The IPv6 address modes specifies mechanisms for assigning IP addresses."
         },
         "ipv6_ra_mode": {
           "type": "string",
+          "example": "",
           "description": "The IPv6 router advertisement specifies whether the networking service should transmit ICMPv6 packets, for a subnet."
         }
       }

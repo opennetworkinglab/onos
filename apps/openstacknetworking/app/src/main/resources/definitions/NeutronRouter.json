@@ -76,10 +76,12 @@
             "properties": {
               "destination": {
                 "type": "string",
+                "example": "",
                 "description": "The destination CIDR."
               },
               "nexthop": {
                 "type": "string",
+                "example": "",
                 "description": "The IP address of the next hop for the corresponding destination."
               }
             }

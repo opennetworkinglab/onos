@@ -181,6 +181,7 @@
           "type": "object",
           "additionalProperties": {
             "type": "string",
+            "example": "",
             "description": "A dictionary that enables the application running on the specific host to pass and receive vif port information specific to the networking back-end."
           }
         }

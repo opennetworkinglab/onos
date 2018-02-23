@@ -1,44 +1,52 @@
 {
-  "type": "array",
-  "items": {
-    "type": "object",
-    "required": [
-      "hostname",
-      "type",
-      "managementIp",
-      "dataIp",
-      "uplinkPort",
-      "integrationBridge",
-      "vlanPort"
-    ],
-    "properties": {
-      "hostname": {
-        "type": "string",
-        "example": "host1"
-      },
-      "type": {
-        "type": "string",
-        "example": "GATEWAY"
-      },
-      "managementIp": {
-        "type": "string",
-        "example": "10.10.10.1"
-      },
-      "dataIp": {
-        "type": "string",
-        "example": "20.20.20.2"
-      },
-      "uplinkPort": {
-        "type": "string",
-        "example": "2"
-      },
-      "integrationBridge": {
-        "type": "string",
-        "example": "of:0000000000000001"
-      },
-      "vlanPort": {
-        "type": "string",
-        "example": "1"
+  "type": "object",
+  "required": [
+    "nodes"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "hostname",
+          "type",
+          "managementIp",
+          "dataIp",
+          "uplinkPort",
+          "integrationBridge",
+          "vlanPort"
+        ],
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "example": "host1"
+          },
+          "type": {
+            "type": "string",
+            "example": "GATEWAY"
+          },
+          "managementIp": {
+            "type": "string",
+            "example": "10.10.10.1"
+          },
+          "dataIp": {
+            "type": "string",
+            "example": "20.20.20.2"
+          },
+          "uplinkPort": {
+            "type": "string",
+            "example": "2"
+          },
+          "integrationBridge": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "vlanPort": {
+            "type": "string",
+            "example": "1"
+          }
+        }
       }
     }
   }
