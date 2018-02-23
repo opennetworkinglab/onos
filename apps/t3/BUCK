@@ -7,7 +7,7 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//drivers/default:onos-drivers-default',
-    '//apps/segmentrouting:onos-apps-segmentrouting',
+    '//apps/segmentrouting/app:onos-apps-segmentrouting-app',
 ]
 
 TEST_DEPS = [
