@@ -125,6 +125,10 @@ final class PiFlowRuleTranslatorImpl {
                 .withMatchKey(piMatchKey)
                 .withAction(piTableAction);
 
+        if (piTableAction != null) {
+            tableEntryBuilder.withAction(piTableAction);
+        }
+
         if (needPriority) {
             tableEntryBuilder.withPriority(rule.priority());
         }
@@ -202,18 +206,15 @@ final class PiFlowRuleTranslatorImpl {
             }
         }
 
-        if (piTableAction == null) {
-            // No PiInstruction, no interpreter. It's time to give up.
-            throw new PiTranslationException(
-                    "Unable to translate treatment, neither an interpreter or a "
-                            + "protocol-independent instruction were provided.");
-        }
-
         return piTableAction;
     }
 
     private static PiTableAction typeCheckAction(PiTableAction piTableAction, PiTableModel table)
             throws PiTranslationException {
+        if (piTableAction == null) {
+            // skip check if null
+            return null;
+        }
         switch (piTableAction.type()) {
             case ACTION:
                 return checkPiAction((PiAction) piTableAction, table);

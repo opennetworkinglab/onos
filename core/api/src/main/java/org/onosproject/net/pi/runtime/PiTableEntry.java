@@ -255,7 +255,6 @@ public final class PiTableEntry implements PiEntity {
         public PiTableEntry build() {
             checkNotNull(tableId);
             checkNotNull(matchKey);
-            checkNotNull(tableAction);
             return new PiTableEntry(tableId, matchKey, tableAction, cookie, priority, timeout);
         }
     }

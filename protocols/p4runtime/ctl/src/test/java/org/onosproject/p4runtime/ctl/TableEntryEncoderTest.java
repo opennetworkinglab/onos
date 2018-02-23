@@ -115,6 +115,19 @@ public class TableEntryEncoderTest {
             .withCookie(2)
             .build();
 
+    private final PiTableEntry piTableEntryWithoutAction = PiTableEntry
+            .builder()
+            .forTable(tableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethDstAddrFieldId, ethAddr, ofOnes(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethSrcAddrFieldId, ethAddr, ofOnes(6)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(inPortFieldId, portValue, ofOnes(2)))
+                                  .addFieldMatch(new PiTernaryFieldMatch(ethTypeFieldId, portValue, ofOnes(2)))
+                                  .build())
+            .withPriority(1)
+            .withCookie(2)
+            .build();
+
     private final PiTableEntry piTableEntryWithGroupAction = PiTableEntry
             .builder()
             .forTable(ecmpTableId)
@@ -217,5 +230,35 @@ public class TableEntryEncoderTest {
         // Action profile group id
         int actionProfileGroupId = tableEntryMsg.getAction().getActionProfileGroupId();
         assertThat(actionProfileGroupId, is(1));
+    }
+
+    @Test
+    public void testEncodeWithNoAction() throws Exception {
+        Collection<TableEntry> result = encode(Lists.newArrayList(piTableEntryWithoutAction), defaultPipeconf);
+        assertThat(result, hasSize(1));
+
+        TableEntry tableEntryMsg = result.iterator().next();
+
+        Collection<PiTableEntry> decodedResults = decode(Lists.newArrayList(tableEntryMsg), defaultPipeconf);
+        PiTableEntry decodedPiTableEntry = decodedResults.iterator().next();
+
+        // Test equality for decoded entry.
+        new EqualsTester()
+                .addEqualityGroup(piTableEntryWithoutAction, decodedPiTableEntry)
+                .testEquals();
+
+        // Table ID.
+        int p4InfoTableId = browser.tables().getByName(tableId.id()).getPreamble().getId();
+        int encodedTableId = tableEntryMsg.getTableId();
+        assertThat(encodedTableId, is(p4InfoTableId));
+
+        // Ternary match.
+        byte[] encodedTernaryMatchValue = tableEntryMsg.getMatch(0).getTernary().getValue().toByteArray();
+        assertThat(encodedTernaryMatchValue, is(ethAddr.asArray()));
+
+        // no action
+        assertThat(tableEntryMsg.hasAction(), is(false));
+
+        // TODO: improve, assert other field match types (ternary, LPM)
     }
 }

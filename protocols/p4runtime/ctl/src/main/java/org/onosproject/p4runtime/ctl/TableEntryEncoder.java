@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.P4RuntimeUtils.assertPrefixLen;
@@ -236,7 +237,9 @@ final class TableEntryEncoder {
         }
 
         // Table action.
-        tableEntryMsgBuilder.setAction(encodePiTableAction(piTableEntry.action(), browser));
+        if (piTableEntry.action() != null) {
+            tableEntryMsgBuilder.setAction(encodePiTableAction(piTableEntry.action(), browser));
+        }
 
         // Field matches.
         if (piTableEntry.matchKey().equals(PiMatchKey.EMPTY)) {
@@ -267,7 +270,9 @@ final class TableEntryEncoder {
         piTableEntryBuilder.withCookie(tableEntryMsg.getControllerMetadata());
 
         // Table action.
-        piTableEntryBuilder.withAction(decodeTableActionMsg(tableEntryMsg.getAction(), browser));
+        if (tableEntryMsg.hasAction()) {
+            piTableEntryBuilder.withAction(decodeTableActionMsg(tableEntryMsg.getAction(), browser));
+        }
 
         // Timeout.
         // FIXME: how to decode table entry messages with timeout, given that the timeout value is lost after encoding?
@@ -428,7 +433,7 @@ final class TableEntryEncoder {
 
     static TableAction encodePiTableAction(PiTableAction piTableAction, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException, EncodeException {
-
+        checkNotNull(piTableAction, "Cannot encode null PiTableAction");
         TableAction.Builder tableActionMsgBuilder = TableAction.newBuilder();
 
         switch (piTableAction.type()) {
