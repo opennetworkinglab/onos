@@ -393,6 +393,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         log.info("Deploying process : Establishing forward direction for pseudowire {}", l2TunnelId);
 
+        VlanId egressVlan = determineEgressVlan(pw.l2TunnelPolicy().cP1OuterTag(),
+                                                pw.l2TunnelPolicy().cP1InnerTag(),
+                                                pw.l2TunnelPolicy().cP2OuterTag(),
+                                                pw.l2TunnelPolicy().cP2InnerTag());
         // We establish the tunnel.
         // result.nextId will be used in fwd
         result = deployPseudoWireInit(pw.l2Tunnel(),
@@ -400,16 +404,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                       pw.l2TunnelPolicy().cP2(),
                                       FWD,
                                       fwdNextHop,
-                                      spinePw);
+                                      spinePw,
+                                      egressVlan);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire initiation for CP1");
             return Result.ADDITION_ERROR;
         }
-
-        VlanId egressVlan = determineEgressVlan(pw.l2TunnelPolicy().cP1OuterTag(),
-                                                pw.l2TunnelPolicy().cP1InnerTag(),
-                                                pw.l2TunnelPolicy().cP2OuterTag(),
-                                                pw.l2TunnelPolicy().cP2InnerTag());
 
         // We create the policy.
         result = deployPolicy(l2TunnelId,
@@ -426,7 +426,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         // We terminate the tunnel
         result = deployPseudoWireTerm(pw.l2Tunnel(),
                                        pw.l2TunnelPolicy().cP2(),
-                                       VlanId.NONE,
+                                       egressVlan,
                                        FWD,
                                       spinePw);
 
@@ -438,22 +438,25 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         log.info("Deploying process : Establishing reverse direction for pseudowire {}", l2TunnelId);
 
+        egressVlan = determineEgressVlan(pw.l2TunnelPolicy().cP2OuterTag(),
+                                         pw.l2TunnelPolicy().cP2InnerTag(),
+                                         pw.l2TunnelPolicy().cP1OuterTag(),
+                                         pw.l2TunnelPolicy().cP1InnerTag());
+
         // We establish the reverse tunnel.
         result = deployPseudoWireInit(pw.l2Tunnel(),
                                        pw.l2TunnelPolicy().cP2(),
                                        pw.l2TunnelPolicy().cP1(),
                                        REV,
                                        revNextHop,
-                                       spinePw);
+                                       spinePw,
+                                       egressVlan);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire initiation for CP2");
             return Result.ADDITION_ERROR;
         }
 
-        egressVlan = determineEgressVlan(pw.l2TunnelPolicy().cP2OuterTag(),
-                                          pw.l2TunnelPolicy().cP2InnerTag(),
-                                          pw.l2TunnelPolicy().cP1OuterTag(),
-                                          pw.l2TunnelPolicy().cP1InnerTag());
+
         result = deployPolicy(l2TunnelId,
                                pw.l2TunnelPolicy().cP2(),
                                pw.l2TunnelPolicy().cP2InnerTag(),
@@ -467,7 +470,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         result = deployPseudoWireTerm(pw.l2Tunnel(),
                                        pw.l2TunnelPolicy().cP1(),
-                                       VlanId.NONE,
+                                       egressVlan,
                                        REV,
                                       spinePw);
 
@@ -674,11 +677,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                       fwdInitNextFuture,
                       FWD);
 
-        log.debug("Update process : Start deleting rev policy for {}", tunnelId);
-        egressVlan = determineEgressVlan(oldPw.l2TunnelPolicy().cP2OuterTag(),
-                                          oldPw.l2TunnelPolicy().cP2InnerTag(),
-                                          oldPw.l2TunnelPolicy().cP1OuterTag(),
-                                          oldPw.l2TunnelPolicy().cP1InnerTag());
         deletePolicy(tunnelId, oldPw.l2TunnelPolicy().cP2(),
                       oldPw.l2TunnelPolicy().cP2InnerTag(),
                       oldPw.l2TunnelPolicy().cP2OuterTag(),
@@ -756,18 +754,18 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 l2PolicyStore.put(Long.toString(tunnelId), newPw.l2TunnelPolicy());
                 l2TunnelStore.put(Long.toString(tunnelId), newPw.l2Tunnel());
 
+                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP1OuterTag(),
+                                                          newPw.l2TunnelPolicy().cP1InnerTag(),
+                                                          newPw.l2TunnelPolicy().cP2OuterTag(),
+                                                          newPw.l2TunnelPolicy().cP2InnerTag());
+
                 log.debug("Update process : Deploying new fwd pw for {}", tunnelId);
                 Result lamdaResult = deployPseudoWireInit(newPw.l2Tunnel(), newPw.l2TunnelPolicy().cP1(),
                                                            newPw.l2TunnelPolicy().cP2(), FWD,
-                                                           fwdNextHop, finalNewPwSpine);
+                                                           fwdNextHop, finalNewPwSpine, egressVlanId);
                 if (lamdaResult != SUCCESS) {
                     return;
                 }
-
-                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP1OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP1InnerTag(),
-                                                           newPw.l2TunnelPolicy().cP2OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP2InnerTag());
 
                 lamdaResult = deployPolicy(tunnelId, newPw.l2TunnelPolicy().cP1(),
                                             newPw.l2TunnelPolicy().cP1InnerTag(),
@@ -777,7 +775,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                     return;
                 }
                 deployPseudoWireTerm(newPw.l2Tunnel(), newPw.l2TunnelPolicy().cP2(),
-                                      VlanId.NONE, FWD, finalNewPwSpine);
+                                      egressVlanId, FWD, finalNewPwSpine);
 
             }
         });
@@ -785,19 +783,21 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             if (status == null) {
 
                 log.debug("Update process : Deploying new rev pw for {}", tunnelId);
+
+                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP2OuterTag(),
+                                                          newPw.l2TunnelPolicy().cP2InnerTag(),
+                                                          newPw.l2TunnelPolicy().cP1OuterTag(),
+                                                          newPw.l2TunnelPolicy().cP1InnerTag());
+
                 Result lamdaResult = deployPseudoWireInit(newPw.l2Tunnel(),
                                                            newPw.l2TunnelPolicy().cP2(),
                                                            newPw.l2TunnelPolicy().cP1(),
                                                            REV,
-                                                           revNextHop, finalNewPwSpine);
+                                                           revNextHop, finalNewPwSpine, egressVlanId);
                 if (lamdaResult != SUCCESS) {
                     return;
                 }
 
-                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP2OuterTag(),
-                                                           newPw.l2TunnelPolicy().cP2InnerTag(),
-                                                           newPw.l2TunnelPolicy().cP1OuterTag(),
-                                                           newPw.l2TunnelPolicy().cP1InnerTag());
                 lamdaResult = deployPolicy(tunnelId,
                                             newPw.l2TunnelPolicy().cP2(),
                                             newPw.l2TunnelPolicy().cP2InnerTag(),
@@ -809,7 +809,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 }
                 deployPseudoWireTerm(newPw.l2Tunnel(),
                                       newPw.l2TunnelPolicy().cP1(),
-                                      VlanId.NONE,
+                                      egressVlanId,
                                       REV, finalNewPwSpine);
             }
         });
@@ -1055,7 +1055,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @return the result of the operation
      */
     private Result deployPseudoWireInit(L2Tunnel l2Tunnel, ConnectPoint ingress,
-                                        ConnectPoint egress, Direction direction, Link nextHop, boolean spinePw) {
+                                        ConnectPoint egress, Direction direction,
+                                        Link nextHop, boolean spinePw, VlanId termVlanId) {
 
         if (nextHop == null) {
             log.warn("No path between ingress and egress cps for tunnel {}", l2Tunnel.tunnelId());
@@ -1070,7 +1071,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                                                          nextHop.dst(),
                                                                          l2Tunnel,
                                                                          egress.deviceId(),
-                                                                         spinePw);
+                                                                         spinePw,
+                                                                         termVlanId);
 
         if (nextObjectiveBuilder == null) {
             return INTERNAL_ERROR;
@@ -1124,7 +1126,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         // We create the group relative to the termination.
         NextObjective.Builder nextObjectiveBuilder = createNextObjective(TERMINATION, egress, null,
                                                                          l2Tunnel, egress.deviceId(),
-                                                                         spinePw);
+                                                                         spinePw,
+                                                                         egressVlan);
         if (nextObjectiveBuilder == null) {
             return INTERNAL_ERROR;
         }
@@ -1345,7 +1348,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      */
     private NextObjective.Builder createNextObjective(Pipeline pipeline, ConnectPoint srcCp,
                                                       ConnectPoint dstCp,  L2Tunnel l2Tunnel,
-                                                      DeviceId egressId, boolean spinePw) {
+                                                      DeviceId egressId, boolean spinePw, VlanId termVlanId) {
         NextObjective.Builder nextObjBuilder;
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
         if (pipeline == INITIATION) {
@@ -1416,6 +1419,9 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             if (!spinePw) {
                 treatmentBuilder.popVlan();
             }
+
+            // set the appropriate transport vlan
+            treatmentBuilder.setVlanId(l2Tunnel.transportVlan());
         } else {
             // We create the next objective which
             // will be a simple l2 group.
@@ -1423,10 +1429,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                     .builder()
                     .withType(NextObjective.Type.SIMPLE)
                     .fromApp(srManager.appId());
+
+            // for termination point we use the outer vlan of the
+            // encapsulated packet
+            treatmentBuilder.setVlanId(termVlanId);
         }
 
-        // set the appropriate transport vlan
-        treatmentBuilder.setVlanId(l2Tunnel.transportVlan());
         treatmentBuilder.setOutput(srcCp.port());
         nextObjBuilder.addTreatment(treatmentBuilder.build());
         return nextObjBuilder;
