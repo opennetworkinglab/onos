@@ -30,7 +30,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -49,7 +48,6 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
-import org.onosproject.segmentrouting.config.PwaasConfig;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedSet;
@@ -64,7 +62,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.flowobjective.ForwardingObjective.Flag.VERSATILE;
 import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Pipeline.INITIATION;
 import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Pipeline.TERMINATION;
@@ -168,28 +165,14 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
-     * Deploys any pre-existing pseudowires in the configuration.
      * Used by manager only in initialization.
      */
     @Override
     public void init() {
-
-        PwaasConfig config = srManager.cfgService.getConfig(srManager.appId(), PwaasConfig.class);
-        if (config == null) {
-            return;
-        }
-
-        log.info("Deploying existing pseudowires");
-
-        // gather pseudowires
-        Set<L2TunnelDescription> pwToAdd = config
-                .getPwIds()
-                .stream()
-                .map(config::getPwDescription)
-                .collect(Collectors.toSet());
-
-        // deploy pseudowires
-        deploy(pwToAdd);
+        // Since we have no pseudowires in netcfg there
+        // is nothing to do in initialization.
+        // I leave it here because potentially we might need to
+        // use it in the future.
     }
 
     /**
@@ -254,25 +237,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         pwToUpdate.forEach(tun -> updatePw(tun, tun));
     }
 
-    @Override
-    public void processPwaasConfigAdded(NetworkConfigEvent event) {
-        checkArgument(event.config().isPresent(),
-                "Config is not presented in PwaasConfigAdded event {}", event);
-
-        log.info("Network event : Pseudowire configuration added!");
-        PwaasConfig config = (PwaasConfig) event.config().get();
-
-        // gather pseudowires
-        Set<L2TunnelDescription> pwToAdd = config
-                .getPwIds()
-                .stream()
-                .map(config::getPwDescription)
-                .collect(Collectors.toSet());
-
-        // deploy pseudowires
-        deploy(pwToAdd);
-    }
-
     /**
      * Returns the new vlan id for an ingress point of a
      * pseudowire. For double tagged, it is the outer,
@@ -334,10 +298,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
-     * Adds a single pseudowire from leaf to a leaf.
-     * This method can be called from cli commands
-     * without configuration updates, thus it does not check for mastership
-     * of the ingress pseudowire device.
+     * Adds a single pseudowire.
      *
      * @param pw The pseudowire
      * @param spinePw True if pseudowire is from leaf to spine
@@ -490,15 +451,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     /**
      * To deploy a number of pseudo wires.
-     * <p>
-     * Called ONLY when configuration changes, thus the check
-     * for the mastership of the device.
-     * <p>
-     * Only the master of CP1 will deploy this pseudowire.
      *
      * @param pwToAdd the set of pseudo wires to add
      */
-    private void deploy(Set<L2TunnelDescription> pwToAdd) {
+    public void deploy(Set<L2TunnelDescription> pwToAdd) {
 
         Result result;
 
@@ -507,11 +463,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             ConnectPoint cp2 = currentL2Tunnel.l2TunnelPolicy().cP2();
             long tunnelId = currentL2Tunnel.l2TunnelPolicy().tunnelId();
 
-            // only the master of CP1 will program this pseudowire
-            if (!srManager.isMasterOf(cp1)) {
-                log.debug("Not the master of {}. Ignore pseudo wire deployment id={}", cp1, tunnelId);
-                continue;
-            }
 
             try {
                 // differentiate between leaf-leaf pseudowires and leaf-spine
@@ -550,57 +501,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         }
     }
 
-
-    @Override
-    public void processPwaasConfigUpdated(NetworkConfigEvent event) {
-        checkArgument(event.config().isPresent(),
-                "Config is not presented in PwaasConfigUpdated event {}", event);
-        checkArgument(event.prevConfig().isPresent(),
-                "PrevConfig is not presented in PwaasConfigUpdated event {}", event);
-
-        log.info("Pseudowire configuration updated.");
-
-        // We retrieve the old pseudo wires.
-        PwaasConfig prevConfig = (PwaasConfig) event.prevConfig().get();
-        Set<Long> prevPws = prevConfig.getPwIds();
-
-        // We retrieve the new pseudo wires.
-        PwaasConfig config = (PwaasConfig) event.config().get();
-        Set<Long> newPws = config.getPwIds();
-
-        // We compute the pseudo wires to update.
-        Set<Long> updPws = newPws.stream()
-                .filter(tunnelId -> prevPws.contains(tunnelId)
-                        && !config.getPwDescription(tunnelId).equals(prevConfig.getPwDescription(tunnelId)))
-                .collect(Collectors.toSet());
-
-        // The pseudo wires to remove.
-        Set<Long> rmvPWs = prevPws.stream()
-                .filter(tunnelId -> !newPws.contains(tunnelId)).collect(Collectors.toSet());
-
-        Set<L2TunnelDescription> pwToRemove = rmvPWs.stream()
-                .map(prevConfig::getPwDescription)
-                .collect(Collectors.toSet());
-        tearDown(pwToRemove);
-
-        // The pseudo wires to add.
-        Set<Long> addedPWs = newPws.stream()
-                .filter(tunnelId -> !prevPws.contains(tunnelId))
-                .collect(Collectors.toSet());
-        Set<L2TunnelDescription> pwToAdd = addedPWs.stream()
-                .map(config::getPwDescription)
-                .collect(Collectors.toSet());
-        deploy(pwToAdd);
-
-
-        // The pseudo wires to update.
-        updPws.forEach(tunnelId -> updatePw(prevConfig.getPwDescription(tunnelId),
-                                            config.getPwDescription(tunnelId)));
-
-        log.info("Pseudowires removed : {}, Pseudowires updated : {}, Pseudowires added : {}", rmvPWs,
-                 updPws, addedPWs);
-    }
-
     /**
      * Helper function to update a pw.
      * <p>
@@ -621,11 +521,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         ConnectPoint oldCp1 = oldPw.l2TunnelPolicy().cP1();
         long tunnelId = oldPw.l2Tunnel().tunnelId();
 
-        // only the master of CP1 will update this pseudowire
-        if (!srManager.isMasterOf(oldPw.l2TunnelPolicy().cP1())) {
-            log.debug("Not the master of {}. Ignore pseudo wire update id={}", oldCp1, tunnelId);
-            return;
-        }
         // only determine if the new pseudowire is leaf-spine, because
         // removal process is the same for both leaf-leaf and leaf-spine pws
         boolean newPwSpine;
@@ -815,24 +710,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         });
     }
 
-    @Override
-    public void processPwaasConfigRemoved(NetworkConfigEvent event) {
-        checkArgument(event.prevConfig().isPresent(),
-                "PrevConfig is not presented in PwaasConfigRemoved event {}", event);
-
-        log.info("Network event : Pseudowire configuration removed!");
-        PwaasConfig config = (PwaasConfig) event.prevConfig().get();
-
-        Set<L2TunnelDescription> pwToRemove = config
-                .getPwIds()
-                .stream()
-                .map(config::getPwDescription)
-                .collect(Collectors.toSet());
-
-        // We teardown all the pseudo wire deployed
-        tearDown(pwToRemove);
-    }
-
     /**
      * Helper function for removing a single pseudowire.
      * <p>
@@ -956,12 +833,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             ConnectPoint cp1 = currentL2Tunnel.l2TunnelPolicy().cP1();
             ConnectPoint cp2 = currentL2Tunnel.l2TunnelPolicy().cP2();
             long tunnelId = currentL2Tunnel.l2TunnelPolicy().tunnelId();
-
-            // only the master of CP1 will program this pseudowire
-            if (!srManager.isMasterOf(cp1)) {
-                log.debug("Not the master of {}. Ignore pseudo wire removal id={}", cp1, tunnelId);
-                continue;
-            }
 
             // no need to differentiate here between leaf-leaf and leaf-spine, because
             // the only change is in the groups, which we do not remove either way

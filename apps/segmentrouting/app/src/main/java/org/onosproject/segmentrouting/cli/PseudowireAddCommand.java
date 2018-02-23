@@ -19,8 +19,17 @@ package org.onosproject.segmentrouting.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.L2Tunnel;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
+import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
+
+import static org.onosproject.segmentrouting.pwaas.PwaasUtil.*;
 
 
 /**
@@ -86,16 +95,36 @@ public class PseudowireAddCommand extends AbstractShellCommand {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
-        L2TunnelHandler.Result res = srService.addPseudowire(pwId, pwLabel,
-                                                             cP1, cP1InnerVlan, cP1OuterVlan,
-                                                             cP2, cP2InnerVlan, cP2OuterVlan,
-                                                             mode, sDTag);
+        L2Tunnel tun;
+        L2TunnelPolicy policy;
+
+        try {
+            tun = new DefaultL2Tunnel(parseMode(mode), parseVlan(sDTag), parsePwId(pwId), parsePWLabel(pwLabel));
+        } catch (Exception e) {
+            print("Exception while parsing L2Tunnel : {}", e);
+            return;
+        }
+
+        try {
+            policy = new DefaultL2TunnelPolicy(parsePwId(pwId),
+                                               ConnectPoint.deviceConnectPoint(cP1), parseVlan(cP1InnerVlan),
+                                               parseVlan(cP1OuterVlan), ConnectPoint.deviceConnectPoint(cP2),
+                                               parseVlan(cP2InnerVlan), parseVlan(cP2OuterVlan));
+
+        } catch (Exception e) {
+            print("Exception while parsing L2TunnelPolicy : {}", e);
+            return;
+        }
+
+        L2TunnelDescription pw = new DefaultL2TunnelDescription(tun, policy);
+        L2TunnelHandler.Result res = srService.addPseudowire(pw);
+
         switch (res) {
             case ADDITION_ERROR:
-                print("Pseudowire could not be added, error in configuration, please check logs for more details!");
+                print("Pseudowire could not be added, please check logs for more details!");
                 break;
-            case CONFIG_NOT_FOUND:
-                print("Configuration for pwaas was not found! Initialize the configuration first through netcfg.");
+            case SUCCESS:
+                print("Pseudowire was added succesfully!");
                 break;
             default:
                 break;

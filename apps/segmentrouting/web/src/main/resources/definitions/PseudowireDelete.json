@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "title": "pseudowire-deletion",
+  "required": [
+    "pwId"
+  ],
+  "properties": {
+    "pwId": {
+      "type": "string",
+      "example": "42",
+      "description": "Id of pseudowire to delete."
+    }
+  }
+}

@@ -23,6 +23,8 @@ import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 
+import static org.onosproject.segmentrouting.pwaas.PwaasUtil.parsePwId;
+
 
 /**
  * Command to remove a pseudowire.
@@ -44,8 +46,15 @@ public class PseudowireRemoveCommand extends AbstractShellCommand {
 
         // remove the pseudowire
         SegmentRoutingManager mngr = (SegmentRoutingManager) srService;
-        L2TunnelHandler.Result res = mngr.removePseudowire(pwId);
+        int pwIntId;
+        try {
+            pwIntId = parsePwId(pwId);
+        } catch (Exception e) {
+            print("Exception while parsing pseudowire id : {}", e);
+            return;
+        }
 
+        L2TunnelHandler.Result res = mngr.removePseudowire(pwIntId);
         switch (res) {
             case REMOVAL_ERROR:
                 error("Error in deletion, pseudowire not found!");

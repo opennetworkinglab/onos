@@ -15,6 +15,6 @@
  */
 
 /**
- * Set of resources implementing the segment routing application REST API.
+ * Segment routing application components.
  */
 package org.onosproject.segmentrouting.web;

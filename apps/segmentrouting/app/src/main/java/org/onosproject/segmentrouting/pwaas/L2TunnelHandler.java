@@ -17,7 +17,6 @@
 package org.onosproject.segmentrouting.pwaas;
 
 import org.onosproject.net.Link;
-import org.onosproject.net.config.NetworkConfigEvent;
 
 import java.util.List;
 import java.util.Set;
@@ -46,27 +45,6 @@ public interface L2TunnelHandler {
      * @param link The link that failed
      */
     void processLinkDown(Link link);
-
-    /**
-     * Processes Pwaas Config added event.
-     *
-     * @param event network config add event
-     */
-    void processPwaasConfigAdded(NetworkConfigEvent event);
-
-    /**
-     * Processes PWaaS Config updated event.
-     *
-     * @param event network config updated event
-     */
-    void processPwaasConfigUpdated(NetworkConfigEvent event);
-
-    /**
-     * Processes Pwaas Config removed event.
-     *
-     * @param event network config removed event
-     */
-    void processPwaasConfigRemoved(NetworkConfigEvent event);
 
     /**
      * Helper function to handle the pw removal.
