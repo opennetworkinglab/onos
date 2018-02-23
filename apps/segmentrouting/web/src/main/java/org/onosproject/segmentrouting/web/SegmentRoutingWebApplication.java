@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * Segment routing REST implementation.
- */
 package org.onosproject.segmentrouting.web;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
+
+/**
+ * Segment Routing Web application.
+ */
+public class SegmentRoutingWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(PseudowireWebResource.class);
+    }
+}

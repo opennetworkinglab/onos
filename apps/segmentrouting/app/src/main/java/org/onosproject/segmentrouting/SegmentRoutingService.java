@@ -25,6 +25,7 @@ import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 
 import com.google.common.collect.ImmutableMap;
@@ -101,33 +102,20 @@ public interface SegmentRoutingService {
     List<L2TunnelPolicy> getL2Policies();
 
     /**
-     * Removes pw. Essentially updates configuration for PwaasConfig
-     * and sends event for removal. The rest are handled by DefaultL2TunnelHandler
+     * Removes pseudowire. Used ONLY by the REST api.
      *
-     * @param pwId The pseudowire id
+     * @param pwId The id of the pseudowire.
      * @return SUCCESS if operation successful or a descriptive error otherwise.
      */
-    L2TunnelHandler.Result removePseudowire(String pwId);
+    L2TunnelHandler.Result removePseudowire(Integer pwId);
 
     /**
      * Adds a Pseudowire to the configuration.
      *
-     * @param tunnelId The pseudowire id
-     * @param pwLabel Pw label
-     * @param cP1 Connection Point 1 of pw
-     * @param cP1InnerVlan Outer vlan of cp2
-     * @param cP1OuterVlan Outer vlan of cp1
-     * @param cP2 Connection Point 2 of pw
-     * @param cP2InnerVlan Inner vlan of cp2
-     * @param cP2OuterVlan Outer vlan of cp1
-     * @param mode Mode of pw
-     * @param sdTag Service Delimiting tag of pw
+     * @param tunnel The pseudowire tunnel.
      * @return SUCCESS if operation is successful or a descriptive error otherwise.
      */
-    L2TunnelHandler.Result addPseudowire(String tunnelId, String pwLabel, String cP1,
-                                          String cP1InnerVlan, String cP1OuterVlan, String cP2,
-                                          String cP2InnerVlan, String cP2OuterVlan,
-                                          String mode, String sdTag);
+    L2TunnelHandler.Result addPseudowire(L2TunnelDescription tunnel);
 
     /**
      * Creates a policy.

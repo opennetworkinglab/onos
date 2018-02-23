@@ -15,8 +15,6 @@
  */
 package org.onosproject.segmentrouting;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -94,7 +92,6 @@ import org.onosproject.routeservice.RouteListener;
 import org.onosproject.routeservice.RouteService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.PwaasConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.XConnectConfig;
@@ -104,9 +101,13 @@ import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
+
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
+
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
@@ -142,6 +143,7 @@ import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REGISTERED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGISTERED;
+import static org.onosproject.segmentrouting.pwaas.PwaasUtil.configurationValidity;
 
 /**
  * Segment routing manager.
@@ -234,7 +236,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private RouteHandler routeHandler = null;
     LinkHandler linkHandler = null;
     private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
-    private L2TunnelHandler l2TunnelHandler = null;
+    private DefaultL2TunnelHandler l2TunnelHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
@@ -311,16 +313,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 @Override
                 public McastConfig createConfig() {
                     return new McastConfig();
-                }
-            };
-
-    private final ConfigFactory<ApplicationId, PwaasConfig> pwaasConfigFactory =
-            new ConfigFactory<ApplicationId, PwaasConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY,
-                    PwaasConfig.class, "pwaas") {
-                @Override
-                public PwaasConfig createConfig() {
-                    return new PwaasConfig();
                 }
             };
 
@@ -430,7 +422,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.registerConfigFactory(appConfigFactory);
         cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
-        cfgService.registerConfigFactory(pwaasConfigFactory);
         log.info("Configuring network before adding listeners");
         cfgListener.configureNetwork();
 
@@ -474,7 +465,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(appConfigFactory);
         cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
-        cfgService.unregisterConfigFactory(pwaasConfigFactory);
         compCfgService.unregisterProperties(getClass(), false);
 
         hostService.removeListener(hostListener);
@@ -567,55 +557,90 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public L2TunnelHandler.Result addPseudowire(String tunnelId, String pwLabel, String cP1,
-                                                 String cP1InnerVlan, String cP1OuterVlan, String cP2,
-                                                 String cP2InnerVlan, String cP2OuterVlan,
-                                                 String mode, String sdTag) {
-        // Try to inject an empty Pwaas config if it is not found for the first time
-        PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
-        if (config == null) {
-            log.debug("Pwaas config not found. Try to create an empty one.");
-            cfgService.applyConfig(appId(), PwaasConfig.class, new ObjectMapper().createObjectNode());
-            config = cfgService.getConfig(appId(), PwaasConfig.class);
+    public L2TunnelHandler.Result addPseudowire(L2TunnelDescription l2TunnelDescription) {
+
+        List<L2Tunnel> tunnels = getL2Tunnels();
+        List<L2TunnelPolicy> policies = getL2Policies();
+
+        // combine polices and tunnels to pseudowires
+        List<L2TunnelDescription> pseudowires = tunnels.stream()
+                .map(l2Tunnel -> {
+                    L2TunnelPolicy policy = null;
+                    for (L2TunnelPolicy l2Policy : policies) {
+                        if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
+                            policy = l2Policy;
+                            break;
+                        }
+                    }
+
+                    return new DefaultL2TunnelDescription(l2Tunnel, policy);
+                })
+                .collect(Collectors.toList());
+
+
+        // creating a new list with the new pseudowire
+        Set<L2TunnelDescription> newPseudowires = new HashSet<>(pseudowires);
+
+        // corner case where we try to add the exact same pseudowire
+        if (newPseudowires.contains(l2TunnelDescription)) {
+            log.info("Pseudowire with {} already exists!", l2TunnelDescription);
+            return L2TunnelHandler.Result.SUCCESS;
         }
 
-        ObjectNode object = config.addPseudowire(tunnelId, pwLabel,
-                                                 cP1, cP1InnerVlan, cP1OuterVlan,
-                                                 cP2, cP2InnerVlan, cP2OuterVlan,
-                                                 mode, sdTag);
-        if (object == null) {
-            log.warn("Could not add pseudowire to the configuration!");
+        // add the new pseudowire to the Set
+        newPseudowires.add(l2TunnelDescription);
+
+        // validate the new set of pseudowires
+        boolean res = configurationValidity(newPseudowires);
+        if (res) {
+
+            // deploy a set with ONLY the new pseudowire
+            newPseudowires = new HashSet<>();
+            newPseudowires.add(l2TunnelDescription);
+            l2TunnelHandler.deploy(newPseudowires);
+
+            log.info("Pseudowire with {} deployment started, check log for any errors in this process!",
+                     l2TunnelDescription.l2Tunnel().tunnelId());
+            return L2TunnelHandler.Result.SUCCESS;
+        } else {
+
+            log.error("Pseudowire with {} can not be added!", l2TunnelDescription.l2Tunnel().tunnelId());
             return L2TunnelHandler.Result.ADDITION_ERROR;
         }
-
-        // inform everyone about the valid change in the pw configuration
-        cfgService.applyConfig(appId(), PwaasConfig.class, object);
-        return L2TunnelHandler.Result.SUCCESS;
     }
 
     @Override
-    public L2TunnelHandler.Result removePseudowire(String pwId) {
+    public L2TunnelHandler.Result removePseudowire(Integer pwId) {
 
-        PwaasConfig config = cfgService.getConfig(appId(), PwaasConfig.class);
-        if (config == null) {
-            log.warn("Configuration for Pwaas class could not be found!");
-            return L2TunnelHandler.Result.CONFIG_NOT_FOUND;
-        }
+        List<L2Tunnel> tunnels = getL2Tunnels();
+        List<L2TunnelPolicy> policies = getL2Policies();
 
-        ObjectNode object = config.removePseudowire(pwId);
-        if (object == null) {
-            log.warn("Could not delete pseudowire from configuration!");
+        // get the pseudowire, if it exists
+        List<L2TunnelDescription> pseudowires = tunnels.stream().map(l2Tunnel -> {
+            L2TunnelPolicy policy = null;
+            for (L2TunnelPolicy l2Policy : policies) {
+                if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
+                    policy = l2Policy;
+                    break;
+                }
+            }
+
+            return new DefaultL2TunnelDescription(l2Tunnel, policy);
+        }).filter(l2desc ->
+            l2desc.l2Tunnel().tunnelId() == pwId
+        ).collect(Collectors.toList());
+
+        if (pseudowires.size() == 0) {
+            log.error("Pseudowire with id {} does not exist", pwId);
             return L2TunnelHandler.Result.REMOVAL_ERROR;
+        } else {
+
+            l2TunnelHandler.tearDown(new HashSet<>(pseudowires));
+
+            log.info("Removal of pseudowire with {} started, check log for any errors in this process!",
+                     pwId);
+            return L2TunnelHandler.Result.SUCCESS;
         }
-
-        // sanity check, this should never fail since we removed a pw
-        // and we always check when we update the configuration
-        config.isValid();
-
-        // inform everyone
-        cfgService.applyConfig(appId(), PwaasConfig.class, object);
-
-        return L2TunnelHandler.Result.SUCCESS;
     }
 
     @Override
@@ -1411,21 +1436,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     default:
                         break;
                 }
-            } else if (event.configClass().equals(PwaasConfig.class)) {
-                checkState(l2TunnelHandler != null, "DefaultL2TunnelHandler is not initialized");
-                switch (event.type()) {
-                    case CONFIG_ADDED:
-                        l2TunnelHandler.processPwaasConfigAdded(event);
-                        break;
-                    case CONFIG_UPDATED:
-                        l2TunnelHandler.processPwaasConfigUpdated(event);
-                        break;
-                    case CONFIG_REMOVED:
-                        l2TunnelHandler.processPwaasConfigRemoved(event);
-                        break;
-                    default:
-                        break;
-                }
             }
         }
 
@@ -1440,8 +1450,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             if (!event.configClass().equals(SegmentRoutingDeviceConfig.class) &&
                     !event.configClass().equals(SegmentRoutingAppConfig.class) &&
                     !event.configClass().equals(InterfaceConfig.class) &&
-                    !event.configClass().equals(XConnectConfig.class) &&
-                    !event.configClass().equals(PwaasConfig.class)) {
+                    !event.configClass().equals(XConnectConfig.class)) {
                 log.debug("Ignore event {} due to class mismatch", event);
                 return false;
             }
