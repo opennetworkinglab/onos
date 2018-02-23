@@ -54,6 +54,7 @@ import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -939,6 +940,33 @@ public class McastHandler {
         return builder.build();
     }
 
+    // Utility method to verify is a link is a pair-link
+    private boolean isPairLink(Link link) {
+        // Take src id, src port, dst id and dst port
+        final DeviceId srcId = link.src().deviceId();
+        final PortNumber srcPort = link.src().port();
+        final DeviceId dstId = link.dst().deviceId();
+        final PortNumber dstPort = link.dst().port();
+        // init as true
+        boolean isPairLink = true;
+        try {
+            // If one of this condition is not true; it is not a pair link
+            if (!(srManager.deviceConfiguration.isEdgeDevice(srcId) &&
+                  srManager.deviceConfiguration.isEdgeDevice(dstId) &&
+                  srManager.deviceConfiguration.getPairDeviceId(srcId).equals(dstId) &&
+                  srManager.deviceConfiguration.getPairLocalPort(srcId).equals(srcPort) &&
+                  srManager.deviceConfiguration.getPairLocalPort(dstId).equals(dstPort))) {
+                    isPairLink = false;
+                }
+        } catch (DeviceConfigNotFoundException e) {
+            // Configuration not provided
+            log.warn("Could not check if the link {} is pairlink "
+                             + "config not yet provided", link);
+            isPairLink = false;
+        }
+        return isPairLink;
+    }
+
     /**
      * Gets a path from src to dst.
      * If a path was allocated before, returns the allocated path.
@@ -955,6 +983,9 @@ public class McastHandler {
         List<Path> allPaths = Lists.newArrayList(
                 topologyService.getPaths(currentTopology, src, dst)
         );
+        // Create list of valid paths
+        allPaths.removeIf(path -> path.links().stream().anyMatch(this::isPairLink));
+        // If there are no valid paths, just exit
         log.debug("{} path(s) found from {} to {}", allPaths.size(), src, dst);
         if (allPaths.isEmpty()) {
             return Optional.empty();
