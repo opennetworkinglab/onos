@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-pce</artifactId>
-        <version>1.10.12</version>
+        <version>1.10.13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
