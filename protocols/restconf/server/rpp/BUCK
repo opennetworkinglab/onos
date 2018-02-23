@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//lib:jersey-server',
     '//lib:javax.ws.rs-api',
     '//lib:servlet-api',
+    '//lib:javax.inject',
     '//utils/rest:onlab-rest',
     '//apps/restconf/api:onos-apps-restconf-api',
 ]

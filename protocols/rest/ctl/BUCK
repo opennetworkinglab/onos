@@ -6,7 +6,6 @@ COMPILE_DEPS = [
     '//lib:httpcore-osgi',
     '//lib:javax.ws.rs-api',
     '//lib:hk2-api',
-    '//lib:jersey-guava',
     '//lib:aopalliance-repackaged',
     '//lib:javax.inject',
     '//protocols/rest/api:onos-protocols-rest-api',

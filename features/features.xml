@@ -61,7 +61,7 @@
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
         <bundle>mvn:io.atomix/atomix/2.0.18</bundle>
 
-        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.26</bundle>
 
         <bundle>mvn:org.mapdb/mapdb/1.0.7</bundle>
     </feature>
@@ -71,25 +71,25 @@
         <feature>war</feature>
         <feature>onos-thirdparty-base</feature>
         <!-- Bundles for jersey-common 2.x -->
-        <bundle>mvn:org.glassfish.jersey.core/jersey-common/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-common/2.26</bundle>
         <bundle>mvn:javax.annotation/javax.annotation-api/1.2</bundle>
-        <bundle>mvn:javax.ws.rs/javax.ws.rs-api/2.0.1</bundle>
-        <bundle>mvn:org.glassfish.hk2/hk2-api/2.5.0-b32</bundle>
-        <bundle>mvn:org.glassfish.hk2/hk2-locator/2.5.0-b32</bundle>
+        <bundle>mvn:javax.ws.rs/javax.ws.rs-api/2.1</bundle>
+        <bundle>mvn:org.glassfish.hk2/hk2-api/2.5.0-b42</bundle>
+        <bundle>mvn:org.glassfish.hk2/hk2-locator/2.5.0-b42</bundle>
         <bundle>mvn:org.glassfish.hk2/osgi-resource-locator/1.0.1</bundle>
-        <bundle>mvn:org.glassfish.hk2.external/javax.inject/2.5.0-b32</bundle>
-        <bundle>mvn:org.glassfish.jersey.bundles.repackaged/jersey-guava/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.hk2.external/javax.inject/2.5.0-b42</bundle>
+        <bundle>mvn:org.glassfish.jersey.inject/jersey-hk2/2.26</bundle>
         <!-- Bundles for jersey-server -->
-        <bundle>mvn:org.glassfish.jersey.core/jersey-server/2.25.1</bundle>
-        <bundle>mvn:org.glassfish.hk2.external/aopalliance-repackaged/2.5.0-b32</bundle>
-        <bundle>mvn:org.glassfish.hk2/hk2-utils/2.5.0-b32</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-server/2.26</bundle>
+        <bundle>mvn:org.glassfish.hk2.external/aopalliance-repackaged/2.5.0-b42</bundle>
+        <bundle>mvn:org.glassfish.hk2/hk2-utils/2.5.0-b42</bundle>
         <bundle>mvn:javax.validation/validation-api/1.1.0.Final</bundle>
-        <bundle>mvn:org.javassist/javassist/3.20.0-GA</bundle>
+        <bundle>mvn:org.javassist/javassist/3.22.0-GA</bundle>
         <!-- Bundles for jersey-servlet -->
-        <bundle>mvn:org.glassfish.jersey.containers/jersey-container-servlet/2.25.1</bundle>
-        <bundle>mvn:org.glassfish.jersey.containers/jersey-container-servlet-core/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.jersey.containers/jersey-container-servlet/2.26</bundle>
+        <bundle>mvn:org.glassfish.jersey.containers/jersey-container-servlet-core/2.26</bundle>
         <!-- Bundles for jersey-media-multipart -->
-        <bundle>mvn:org.glassfish.jersey.media/jersey-media-multipart/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.jersey.media/jersey-media-multipart/2.26</bundle>
         <bundle>mvn:org.jvnet.mimepull/mimepull/1.9.6</bundle>
     </feature>
 

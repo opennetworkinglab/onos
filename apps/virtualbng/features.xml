@@ -17,7 +17,7 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
-        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.25.1</bundle>
+        <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.26</bundle>
         <bundle>mvn:${project.groupId}/onos-app-virtualbng/${project.version}</bundle>
         <feature>onos-thirdparty-web</feature>
     </feature>
