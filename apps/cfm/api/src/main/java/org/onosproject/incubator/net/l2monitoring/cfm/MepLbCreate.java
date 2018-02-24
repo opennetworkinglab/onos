@@ -16,7 +16,6 @@
 package org.onosproject.incubator.net.l2monitoring.cfm;
 
 import org.onlab.packet.MacAddress;
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 
 /**
@@ -54,7 +53,7 @@ public interface MepLbCreate {
      * [802.1q] 12.14.7.3.2:e
      * @return The priority to be used
      */
-    Priority vlanPriority();
+    Mep.Priority vlanPriority();
 
     /**
      * The drop eligible parameter to be used in the transmitted LBMs.
@@ -63,7 +62,7 @@ public interface MepLbCreate {
     Boolean vlanDropEligible();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbCreate}.
+     * Builder for {@link MepLbCreate}.
      */
     interface MepLbCreateBuilder {
         MepLbCreateBuilder numberMessages(int numberMessages);
@@ -89,7 +88,7 @@ public interface MepLbCreate {
          */
         MepLbCreateBuilder dataTlvB64(String dataTlv);
 
-        MepLbCreateBuilder vlanPriority(Priority vlanPriority);
+        MepLbCreateBuilder vlanPriority(Mep.Priority vlanPriority);
 
         MepLbCreateBuilder vlanDropEligible(boolean vlanDropEligible);
 

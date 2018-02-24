@@ -53,6 +53,17 @@ public class MepCodec extends JsonCodec<Mep> {
     private static final String DEFECT_PRESENT_TIME = "defect-present-time";
     private static final String DEFECT_ABSENT_TIME = "defect-absent-time";
 
+    /**
+     * Decodes the Mep entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @param mdName The MD name
+     * @param maName The MA name
+     * @return decoded Mep
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
      public Mep decode(ObjectNode json, CodecContext context, String
                         mdName, String maName) {
         if (json == null || !json.isObject()) {
@@ -127,6 +138,15 @@ public class MepCodec extends JsonCodec<Mep> {
         }
     }
 
+    /**
+     * Encodes the Mep entity into JSON.
+     *
+     * @param mep Mep to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(Mep mep, CodecContext context) {
         checkNotNull(mep, "Mep cannot be null");

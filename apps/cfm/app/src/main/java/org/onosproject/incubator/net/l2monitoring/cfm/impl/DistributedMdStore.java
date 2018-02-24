@@ -108,12 +108,9 @@ public class DistributedMdStore extends AbstractStore<MdEvent, MdStoreDelegate>
                         .register(InternetDomainName.class)
                         .register(MacAddress.class)
                         .register(ImmutablePair.class)
-                        .register(org.onosproject.incubator.net.l2monitoring
-                                            .cfm.Component.MhfCreationType.class)
-                        .register(org.onosproject.incubator.net.l2monitoring
-                                            .cfm.Component.IdPermissionType.class)
-                        .register(org.onosproject.incubator.net.l2monitoring
-                                            .cfm.Component.TagType.class)
+                        .register(org.onosproject.incubator.net.l2monitoring.cfm.Component.MhfCreationType.class)
+                        .register(org.onosproject.incubator.net.l2monitoring.cfm.Component.IdPermissionType.class)
+                        .register(org.onosproject.incubator.net.l2monitoring.cfm.Component.TagType.class)
                         .build("md")))
                 .build();
         mapListener = new InternalMdListener();

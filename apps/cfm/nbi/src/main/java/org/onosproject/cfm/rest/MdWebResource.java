@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Path("md")
 public class MdWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    public static final String JSON_NOT_NULL = "JsonNode can not be null";
 
     /**
      * Get all Maintenance Domains.

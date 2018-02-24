@@ -19,16 +19,21 @@ import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepEntry;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepLbCreate;
+import org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepLtCreate;
+import org.onosproject.incubator.net.l2monitoring.cfm.MepLtEntry;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 
 import java.util.Optional;
 
+/**
+ * A common base interface for Mep service.
+ */
 public interface CfmMepServiceBase {
     /**
-     * Retrieve a named {@link org.onosproject.incubator.net.l2monitoring.cfm.MepEntry} belonging to an MA.
+     * Retrieve a named {@link MepEntry} belonging to an MA.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mepId A Mep Id
@@ -39,7 +44,7 @@ public interface CfmMepServiceBase {
             throws CfmConfigException;
 
     /**
-     * Delete a named {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep} belonging to an MA.
+     * Delete a named {@link Mep} belonging to an MA.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mepId A Mep Id
@@ -51,7 +56,7 @@ public interface CfmMepServiceBase {
             throws CfmConfigException;
 
     /**
-     * Create a named {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep} on an MA.
+     * Create a named {@link Mep} on an MA.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mep A Mep object
@@ -62,7 +67,7 @@ public interface CfmMepServiceBase {
             throws CfmConfigException;
 
     /**
-     * Create a {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry Loopback} session on the named Mep.
+     * Create a {@link MepLbEntry Loopback} session on the named Mep.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mepId A Mep Id
@@ -73,7 +78,7 @@ public interface CfmMepServiceBase {
                           MepLbCreate lbCreate) throws CfmConfigException;
 
     /**
-     * Abort a {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry Loopback} session on the named Mep.
+     * Abort a {@link MepLbEntry Loopback} session on the named Mep.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mepId A Mep Id
@@ -83,7 +88,7 @@ public interface CfmMepServiceBase {
             throws CfmConfigException;
 
     /**
-     * Create a {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtEntry Linktrace} session on the named Mep.
+     * Create a {@link MepLtEntry Linktrace} session on the named Mep.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @param mepId A Mep Id

@@ -15,8 +15,6 @@
  */
 package org.onosproject.incubator.net.l2monitoring.soam.delay;
 
-import static org.junit.Assert.*;
-
 import java.time.Duration;
 
 import org.junit.Before;
@@ -24,6 +22,8 @@ import org.junit.Test;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementThreshold.ThresholdOption;
+
+import static org.junit.Assert.assertEquals;
 
 public class DelayMeasurementThresholdOptionTest {
 

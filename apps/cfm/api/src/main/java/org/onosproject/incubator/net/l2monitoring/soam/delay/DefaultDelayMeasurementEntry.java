@@ -19,15 +19,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 import com.google.common.collect.Lists;
+import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry}.
+ * The default implementation of {@link DelayMeasurementEntry}.
  */
 public final class DefaultDelayMeasurementEntry
     extends DefaultDelayMeasurementCreate implements DelayMeasurementEntry {
@@ -112,14 +112,14 @@ public final class DefaultDelayMeasurementEntry
     }
 
     public static DmEntryBuilder builder(SoamId dmId, DmType dmCfgType,
-            Version version, MepId remoteMepId, Priority priority)
+            Version version, MepId remoteMepId, Mep.Priority priority)
                     throws SoamConfigException {
         return new DefaultDmEntryBuilder(dmId, dmCfgType, version,
                 remoteMepId, priority);
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry}.
+     * Builder for {@link DelayMeasurementEntry}.
      */
     private static final class DefaultDmEntryBuilder extends DefaultDmCreateBuilder
                                         implements DmEntryBuilder {
@@ -135,7 +135,7 @@ public final class DefaultDelayMeasurementEntry
         private Collection<DelayMeasurementStatHistory> historicalResults;
 
         private DefaultDmEntryBuilder(SoamId dmId, DmType dmCfgType,
-                Version version, MepId remoteMepId, Priority priority)
+                Version version, MepId remoteMepId, Mep.Priority priority)
                         throws SoamConfigException {
             super(dmCfgType, version, remoteMepId, priority);
             if (dmId == null) {

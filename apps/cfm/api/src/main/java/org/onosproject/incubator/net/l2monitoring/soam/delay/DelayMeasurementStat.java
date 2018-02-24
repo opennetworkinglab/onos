@@ -278,7 +278,7 @@ public interface DelayMeasurementStat {
 
     /**
      * Abstract Builder interface for DelayMeasurementStat.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStat}.
+     * {@link DelayMeasurementStat}.
      */
     interface DmStatBuilder {
         DmStatBuilder frameDelayTwoWayMin(Duration frameDelayTwoWayMin);

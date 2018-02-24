@@ -44,8 +44,8 @@ brought by the augments. Instead the models have been defined independently in
 ONOS as a new structure under reusing common ONOS classes such as DeviceId, 
 PortNumber, NetworkResource, Identifier, MacAddress etc. 
 
-* onos/incubator/src/main/java/org/onosproject/api/net/l2monitoring/cfm
-* onos/incubator/src/main/java/org/onosproject/api/net/l2monitoring/soam
+* onos/apps/cfm/api/src/main/java/org/onosproject/l2monitoring/cfm
+* onos/apps/cfm/api/src/main/java/org/onosproject/l2monitoring/soam
 
 ## Java Model
 These immutable objects are defined as Java POJOs with little dependencies on 

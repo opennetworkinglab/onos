@@ -50,23 +50,23 @@ public interface MaIdShort {
      */
     enum MaIdType {
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr}.
+         * Implemented as {@link MaIdCharStr}.
          */
         CHARACTERSTRING,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet}.
+         * Implemented as {@link MaId2Octet}.
          */
         TWOOCTET,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731}.
+         * Implemented as {@link MaIdIccY1731}.
          */
         ICCY1731,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid}.
+         * Implemented as {@link MaIdPrimaryVid}.
          */
         PRIMARYVID,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId}.
+         * Implemented as {@link MaIdRfc2685VpnId}.
          */
         RFC2685VPNID
     }

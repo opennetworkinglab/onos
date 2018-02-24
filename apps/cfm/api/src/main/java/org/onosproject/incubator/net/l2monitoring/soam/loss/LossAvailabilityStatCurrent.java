@@ -19,7 +19,7 @@ import java.time.Instant;
 
 /**
  * Object for representing Loss Availability Stats Current.
- * Extends {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStat}
+ * Extends {@link LossAvailabilityStat}
  */
 public interface LossAvailabilityStatCurrent extends LossAvailabilityStat {
     /**
@@ -29,7 +29,7 @@ public interface LossAvailabilityStatCurrent extends LossAvailabilityStat {
     Instant startTime();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStatCurrent}.
+     * Builder for {@link LossAvailabilityStatCurrent}.
      */
     public interface LaStatCurrentBuilder extends LaStatBuilder {
         LossAvailabilityStatCurrent build();

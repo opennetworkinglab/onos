@@ -49,7 +49,7 @@ public interface MepLtEntry {
     Collection<MepLtTransactionEntry> linktraceDatabase();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtEntry}.
+     * Builder for {@link MepLtEntry}.
      */
     interface MepLtEntryBuilder {
         MepLtEntryBuilder nextLtmIdentifier(int nextLtmIdentifier);

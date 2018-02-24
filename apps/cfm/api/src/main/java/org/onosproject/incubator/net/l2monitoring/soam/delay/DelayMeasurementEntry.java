@@ -106,7 +106,7 @@ public interface DelayMeasurementEntry extends DelayMeasurementCreate {
     Collection<DelayMeasurementStatHistory> historicalResults();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry}.
+     * Builder for {@link DelayMeasurementEntry}.
      */
     public interface DmEntryBuilder extends DmCreateBuilder {
         DmEntryBuilder sessionStatus(SessionStatus sessionStatus);

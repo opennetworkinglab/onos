@@ -19,11 +19,10 @@ import java.util.Base64;
 
 import org.onlab.packet.MacAddress;
 import org.onlab.util.HexString;
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbCreate}.
+ * The default implementation of {@link MepLbCreate}.
  */
 public final class DefaultMepLbCreate implements MepLbCreate {
 
@@ -31,7 +30,7 @@ public final class DefaultMepLbCreate implements MepLbCreate {
     private final MepId remoteMepId;
     private final Integer numberMessages;
     private final String dataTlvHex;
-    private final Priority vlanPriority;
+    private final Mep.Priority vlanPriority;
     private final Boolean vlanDropEligible;
 
     private DefaultMepLbCreate(DefaultMepLbCreateBuilder builder) {
@@ -64,7 +63,7 @@ public final class DefaultMepLbCreate implements MepLbCreate {
     }
 
     @Override
-    public Priority vlanPriority() {
+    public Mep.Priority vlanPriority() {
         return vlanPriority;
     }
 
@@ -86,7 +85,7 @@ public final class DefaultMepLbCreate implements MepLbCreate {
         private final MepId remoteMepId;
         private Integer numberMessages;
         private String dataTlvHex;
-        private Priority vlanPriority;
+        private Mep.Priority vlanPriority;
         private Boolean vlanDropEligible;
 
         private DefaultMepLbCreateBuilder(MacAddress remoteMepAddress) {
@@ -126,7 +125,7 @@ public final class DefaultMepLbCreate implements MepLbCreate {
         }
 
         @Override
-        public MepLbCreateBuilder vlanPriority(Priority vlanPriority) {
+        public MepLbCreateBuilder vlanPriority(Mep.Priority vlanPriority) {
             this.vlanPriority = vlanPriority;
             return this;
         }

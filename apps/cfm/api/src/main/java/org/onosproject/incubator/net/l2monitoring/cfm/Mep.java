@@ -212,7 +212,7 @@ public interface Mep extends NetworkResource {
 
     /**
      * Supported FNG Address Types.
-     * See {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep.FngAddress}
+     * See {@link Mep.FngAddress}
      */
     public enum FngAddressType {
         IPV4,
@@ -235,7 +235,7 @@ public interface Mep extends NetworkResource {
 
     /**
      * Options for setting the lowest fault defect.
-     * Each comprises a set of {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep.FaultDefectType}
+     * Each comprises a set of {@link Mep.FaultDefectType}
      */
     public enum LowestFaultDefect {
         ALL_DEFECTS(FaultDefectType.DEF_RDI_CCM,
@@ -344,7 +344,7 @@ public interface Mep extends NetworkResource {
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep}.
+     * Builder for {@link Mep}.
      */
     interface MepBuilder {
 

@@ -24,7 +24,7 @@ import java.util.Collection;
 /**
  * Components which can be managed in a manner equivalent to an 802.1Q bridge.
  *
- * Direct child of the {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation}.
+ * Direct child of the {@link MaintenanceAssociation}.
  */
 public interface Component {
 
@@ -59,7 +59,7 @@ public interface Component {
     TagType tagType();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.Component}.
+     * Builder for {@link Component}.
      */
     interface ComponentBuilder {
 

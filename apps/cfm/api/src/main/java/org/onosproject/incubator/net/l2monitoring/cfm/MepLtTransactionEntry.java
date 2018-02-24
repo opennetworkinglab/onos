@@ -69,7 +69,7 @@ public interface MepLtTransactionEntry {
     Collection<MepLtReply> ltrReplies();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtTransactionEntry}.
+     * Builder for {@link MepLtTransactionEntry}.
      */
     interface MepLtEntryBuilder {
         MepLtEntryBuilder macAddress(MacAddress macAddress);

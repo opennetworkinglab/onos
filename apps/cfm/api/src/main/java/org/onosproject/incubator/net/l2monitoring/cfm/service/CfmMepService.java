@@ -33,7 +33,7 @@ import org.onosproject.net.DeviceId;
 public interface CfmMepService
         extends ListenerService<CfmMepEvent, CfmMepListener>, CfmMepServiceBase {
     /**
-     * Retrieve all {@link org.onosproject.incubator.net.l2monitoring.cfm.MepEntry}(s) belonging to an MA.
+     * Retrieve all {@link MepEntry}(s) belonging to an MA.
      * @param mdName A Maintenance Domain
      * @param maName A Maintetance Association in the MD
      * @return A collection of MEP Entries
@@ -43,7 +43,7 @@ public interface CfmMepService
             throws CfmConfigException;
 
     /**
-     * Retrieve all {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep}(s) belonging to an MA.
+     * Retrieve all {@link Mep}(s) belonging to an MA.
      * Note: This just returns the configuration part of the Mep, not the MepEntry
      * which contains config and state
      * @param deviceId A device id

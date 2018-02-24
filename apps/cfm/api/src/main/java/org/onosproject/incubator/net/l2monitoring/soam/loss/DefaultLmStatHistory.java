@@ -22,7 +22,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * The default implementation of LossMeasurementStatHistory.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatHistory}
+ * {@link LossMeasurementStatHistory}
  */
 public final class DefaultLmStatHistory extends DefaultLmStat
         implements LossMeasurementStatHistory {

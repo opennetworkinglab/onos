@@ -56,19 +56,19 @@ public interface MdId {
      */
     enum MdNameType {
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr}.
+         * Implemented as {@link MdIdCharStr}.
          */
         CHARACTERSTRING,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName}.
+         * Implemented as {@link MdIdDomainName}.
          */
         DOMAINNAME,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint}.
+         * Implemented as {@link MdIdMacUint}.
          */
         MACANDUINT,
         /**
-         * Implemented as {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone}.
+         * Implemented as {@link MdIdNone}.
          */
         NONE
     }

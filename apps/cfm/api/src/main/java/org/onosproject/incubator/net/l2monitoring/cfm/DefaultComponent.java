@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.VlanId;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.Component}.
+ * The default implementation of {@link Component}.
  */
 public final class DefaultComponent implements Component {
 

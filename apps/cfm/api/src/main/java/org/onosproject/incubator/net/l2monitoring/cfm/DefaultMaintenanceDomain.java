@@ -26,7 +26,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain}.
+ * The default implementation of {@link MaintenanceDomain}.
  */
 public final class DefaultMaintenanceDomain implements MaintenanceDomain {
 

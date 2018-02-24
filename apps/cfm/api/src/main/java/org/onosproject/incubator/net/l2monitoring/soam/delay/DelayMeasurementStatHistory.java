@@ -36,7 +36,7 @@ public interface DelayMeasurementStatHistory extends DelayMeasurementStat {
     Instant endTime();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatHistory}.
+     * Builder for {@link DelayMeasurementStatHistory}.
      */
     public interface DmStatHistoryBuilder extends DmStatBuilder {
         DmStatHistoryBuilder endTime(Instant endTime);

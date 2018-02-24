@@ -20,7 +20,7 @@ import java.time.Instant;
 
 /**
  * The default implementation of LossMeasurementStatCurrent.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatCurrent}
+ * {@link LossMeasurementStatCurrent}
  */
 public final class DefaultLmStatCurrent extends DefaultLmStat
         implements LossMeasurementStatCurrent {

@@ -22,7 +22,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.MilliPct;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementThreshold}.
+ * The default implementation of {@link LossMeasurementThreshold}.
  */
 public final class DefaultLmThreshold implements LossMeasurementThreshold {
 

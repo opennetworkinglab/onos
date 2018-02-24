@@ -53,7 +53,7 @@ public interface MepLtCreate {
 
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtCreate}.
+     * Builder for {@link MepLtCreate}.
      */
     interface MepLtCreateBuilder {
         MepLtCreateBuilder transmitLtmFlags(BitSet transmitLtmFlags);

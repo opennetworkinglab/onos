@@ -23,7 +23,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * The default implementation of DelayMeasurementThreshold.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementThreshold}.
+ * {@link DelayMeasurementThreshold}.
  */
 public final class DefaultDelayMeasurementThreshold
         implements DelayMeasurementThreshold {
@@ -230,7 +230,7 @@ public final class DefaultDelayMeasurementThreshold
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementThreshold}.
+     * Builder for {@link DelayMeasurementThreshold}.
      */
     private static final class DefaultDmThresholdBuilder implements DmThresholdBuilder {
         private final SoamId threshId;

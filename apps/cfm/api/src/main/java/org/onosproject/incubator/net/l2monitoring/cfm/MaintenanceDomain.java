@@ -17,9 +17,24 @@ package org.onosproject.incubator.net.l2monitoring.cfm;
 
 import java.util.Collection;
 
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
+import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatCurrent;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatHistory;
+import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate;
+import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementEntry;
+import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatCurrent;
+import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatHistory;
 import org.onosproject.net.NetworkResource;
 
 /**
@@ -28,37 +43,37 @@ import org.onosproject.net.NetworkResource;
  * See IEEE 802.1Q Section 12.14.5.1.3 CFM entities.<br>
  * This is the root of the L2 Monitoring hierarchy<br>
  * |-Maintenance-Domain*<br>
- *   |-{@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId}
+ *   |-{@link MdId}
  *               (MdIdCharStr or MdIdDomainName or MdIdMacUint or MdIdNone)<br>
- *   |-{@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation Maintenance-Association}*<br>
- *     |-{@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort}
- *      ({@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr}
- *      or {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid}
- *      or {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet}
- *      or {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId}
- *      or {@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731})<br>
- *     |-{@link org.onosproject.incubator.net.l2monitoring.cfm.Component}*<br>
- *     |-{@link org.onosproject.incubator.net.l2monitoring.cfm.Mep}* (Maintenance-Association-EndPoint)
- *     and {@link org.onosproject.incubator.net.l2monitoring.cfm.MepEntry}*<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId}<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry}<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtEntry}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtTransactionEntry}*<br>
- *     |  |     |-{@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtReply}*<br>
- *     |  |        |-{@link org.onosproject.incubator.net.l2monitoring.cfm.SenderIdTlv}<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate} (SOAM)*
- *       and {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.SoamId DmId}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatCurrent}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatHistory}*<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate} (SOAM)*
- *      and {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementEntry}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.SoamId LmId}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatCurrent}<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatHistory}*<br>
- *     |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.RemoteMepEntry}*<br>
- *     |  |  |-{@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId RemoteMepId}<br>
- *     |-{@link org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId RemoteMepId}*<br>
+ *   |-{@link MaintenanceAssociation Maintenance-Association}*<br>
+ *     |-{@link MaIdShort}
+ *      ({@link MaIdCharStr}
+ *      or {@link MaIdPrimaryVid}
+ *      or {@link MaId2Octet}
+ *      or {@link MaIdRfc2685VpnId}
+ *      or {@link MaIdIccY1731})<br>
+ *     |-{@link Component}*<br>
+ *     |-{@link Mep}* (Maintenance-Association-EndPoint)
+ *     and {@link MepEntry}*<br>
+ *     |  |-{@link MepId}<br>
+ *     |  |-{@link MepLbEntry}<br>
+ *     |  |-{@link MepLtEntry}<br>
+ *     |  |  |-{@link MepLtTransactionEntry}*<br>
+ *     |  |     |-{@link MepLtReply}*<br>
+ *     |  |        |-{@link SenderIdTlv}<br>
+ *     |  |-{@link DelayMeasurementCreate} (SOAM)*
+ *       and {@link DelayMeasurementEntry}<br>
+ *     |  |  |-{@link SoamId DmId}<br>
+ *     |  |  |-{@link DelayMeasurementStatCurrent}<br>
+ *     |  |  |-{@link DelayMeasurementStatHistory}*<br>
+ *     |  |-{@link LossMeasurementCreate} (SOAM)*
+ *      and {@link LossMeasurementEntry}<br>
+ *     |  |  |-{@link SoamId LmId}<br>
+ *     |  |  |-{@link LossMeasurementStatCurrent}<br>
+ *     |  |  |-{@link LossMeasurementStatHistory}*<br>
+ *     |  |-{@link RemoteMepEntry}*<br>
+ *     |  |  |-{@link MepId RemoteMepId}<br>
+ *     |-{@link MepId RemoteMepId}*<br>
  *<br>
  * *above indicates 0-many can be created
  * -Create suffix means the Object is part of a request
@@ -107,7 +122,7 @@ public interface MaintenanceDomain extends NetworkResource {
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain}.
+     * Builder for {@link MaintenanceDomain}.
      */
     interface MdBuilder {
         MdBuilder mdLevel(MdLevel mdLevel);

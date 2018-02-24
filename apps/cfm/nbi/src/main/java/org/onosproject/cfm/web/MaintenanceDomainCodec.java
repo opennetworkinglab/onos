@@ -24,10 +24,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain.MdLevel;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdMaNameUtil;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,6 +47,15 @@ public class MaintenanceDomainCodec extends JsonCodec<MaintenanceDomain> {
 
     }
 
+    /**
+     * Encodes the MaintenanceDomain entity into JSON.
+     *
+     * @param md MaintenanceDomain to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MaintenanceDomain md, CodecContext context) {
         checkNotNull(md, "Maintenance Domain cannot be null");
@@ -67,6 +73,15 @@ public class MaintenanceDomainCodec extends JsonCodec<MaintenanceDomain> {
         return result;
     }
 
+    /**
+     * Decodes the MaintenanceDomain entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded MaintenanceDomain
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public MaintenanceDomain decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -82,24 +97,7 @@ public class MaintenanceDomainCodec extends JsonCodec<MaintenanceDomain> {
         }
 
         try {
-            MdId mdId = null;
-            MdId.MdNameType nameType =
-                    MdId.MdNameType.valueOf(mdNameType);
-            switch (nameType) {
-                case DOMAINNAME:
-                    mdId = MdIdDomainName.asMdId(mdName);
-                    break;
-                case MACANDUINT:
-                    mdId = MdIdMacUint.asMdId(mdName);
-                    break;
-                case NONE:
-                    mdId = MdIdNone.asMdId();
-                    break;
-                case CHARACTERSTRING:
-                default:
-                    mdId = MdIdCharStr.asMdId(mdName);
-            }
-
+            MdId mdId = MdMaNameUtil.parseMdName(mdNameType, mdName);
             MaintenanceDomain.MdBuilder builder = DefaultMaintenanceDomain.builder(mdId);
             JsonNode mdLevelNode = mdNode.get(MD_LEVEL);
             if (mdLevelNode != null) {
@@ -118,6 +116,15 @@ public class MaintenanceDomainCodec extends JsonCodec<MaintenanceDomain> {
         }
     }
 
+    /**
+     * Encodes the collection of the MaintenanceDomain entities.
+     *
+     * @param mdEntities collection of MaintenanceDomain to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<MaintenanceDomain> mdEntities, CodecContext context) {
         ArrayNode an = context.mapper().createArrayNode();

@@ -145,7 +145,7 @@ public interface MepEntry extends Mep {
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepEntry}.
+     * Builder for {@link MepEntry}.
      */
     interface MepEntryBuilder extends MepBuilder {
         MepEntryBuilder macAddress(MacAddress macAddress);

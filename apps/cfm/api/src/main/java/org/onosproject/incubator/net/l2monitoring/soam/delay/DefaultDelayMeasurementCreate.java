@@ -18,13 +18,13 @@ package org.onosproject.incubator.net.l2monitoring.soam.delay;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.soam.DefaultMeasurementCreateBase;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
+import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate}.
+ * The default implementation of {@link DelayMeasurementCreate}.
  */
 public class DefaultDelayMeasurementCreate extends DefaultMeasurementCreateBase
                             implements DelayMeasurementCreate {
@@ -84,13 +84,13 @@ public class DefaultDelayMeasurementCreate extends DefaultMeasurementCreateBase
     }
 
     public static DmCreateBuilder builder(DmType dmCfgType,
-            Version version, MepId remoteMepId, Priority priority)
+                                          Version version, MepId remoteMepId, Mep.Priority priority)
                     throws SoamConfigException {
         return new DefaultDmCreateBuilder(dmCfgType, version, remoteMepId, priority);
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate}.
+     * Builder for {@link DelayMeasurementCreate}.
      */
     protected static class DefaultDmCreateBuilder extends DefaultMeasCreateBaseBuilder
                     implements DmCreateBuilder {
@@ -104,7 +104,7 @@ public class DefaultDelayMeasurementCreate extends DefaultMeasurementCreateBase
         protected Collection<DelayMeasurementThreshold> thresholds;
 
         protected DefaultDmCreateBuilder(DmType dmCfgType, Version version,
-                MepId remoteMepId, Priority priority)
+                MepId remoteMepId, Mep.Priority priority)
                         throws SoamConfigException {
             super(version, remoteMepId, priority);
             this.dmCfgType = dmCfgType;

@@ -113,7 +113,7 @@ public interface LossMeasurementEntry extends LossMeasurementCreate {
     Collection<LossAvailabilityStatHistory> availabilityHistories();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementEntry}.
+     * Builder for {@link LossMeasurementEntry}.
      */
     public interface LmEntryBuilder extends LmCreateBuilder {
         LmEntryBuilder measuredForwardFlr(MilliPct measuredForwardFlr);

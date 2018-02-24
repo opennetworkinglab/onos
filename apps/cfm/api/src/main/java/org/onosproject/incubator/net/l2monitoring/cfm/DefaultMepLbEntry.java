@@ -16,7 +16,7 @@
 package org.onosproject.incubator.net.l2monitoring.cfm;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry}.
+ * The default implementation of {@link MepLbEntry}.
  */
 public final class DefaultMepLbEntry implements MepLbEntry {
     private final long nextLbmIdentifier;

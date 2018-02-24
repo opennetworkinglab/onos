@@ -27,7 +27,7 @@ import org.onosproject.net.NetworkResource;
  * A model of the Maintenance Association.
  *
  * See IEEE 802.1Q Section 12.14 CFM entities
- * Direct child of {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain}
+ * Direct child of {@link MaintenanceDomain}
  */
 public interface MaintenanceAssociation extends NetworkResource {
     /**
@@ -105,7 +105,7 @@ public interface MaintenanceAssociation extends NetworkResource {
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation}.
+     * Builder for {@link MaintenanceAssociation}.
      */
     interface MaBuilder {
 

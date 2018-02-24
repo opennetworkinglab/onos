@@ -180,7 +180,10 @@ public class MepWebResource extends AbstractWebResource {
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
             MaIdShort maId = MaIdCharStr.asMaId(maName);
-            MaintenanceAssociation ma = get(CfmMdService.class).getMaintenanceAssociation(mdId, maId).get();
+            MaintenanceAssociation ma =
+                    get(CfmMdService.class).getMaintenanceAssociation(mdId, maId)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "MA " + mdName + "/" + maName + " not Found"));
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode cfg = mapper.readTree(input);
@@ -194,12 +197,14 @@ public class MepWebResource extends AbstractWebResource {
                         " already exists").build();
             }
             return Response
-                    .created(new URI("md/" + mdName + "/ma/" + ma.maId() + "/mep/" + mep.mepId()))
-                    .entity("{ \"success\":\"mep " + mdName + "/" + ma.maId() + "/" + mep.mepId() + " created\" }")
+                    .created(new URI("md/" + mdName + "/ma/" + ma.maId() +
+                            "/mep/" + mep.mepId()))
+                    .entity("{ \"success\":\"mep " + mdName + "/" + ma.maId() +
+                            "/" + mep.mepId() + " created\" }")
                     .build();
         } catch (Exception | CfmConfigException e) {
             log.error("Create Mep on " + mdName + "/" + maName + " failed because of exception {}",
-                      e.toString());
+                      e);
             return Response.serverError()
                     .entity("{ \"failure\":\"" + e.toString() + "\" }")
                     .build();
@@ -229,9 +234,25 @@ public class MepWebResource extends AbstractWebResource {
 
         MdId mdId = MdIdCharStr.asMdId(mdName);
         MaIdShort maId = MaIdCharStr.asMaId(maName);
-        MaintenanceDomain md = get(CfmMdService.class).getMaintenanceDomain(mdId).get();
-        MaintenanceAssociation ma = get(CfmMdService.class)
-                .getMaintenanceAssociation(mdId, maId).get();
+        MaintenanceDomain md;
+        Optional<MaintenanceDomain> mdOpt = get(CfmMdService.class).getMaintenanceDomain(mdId);
+        if (mdOpt.isPresent()) {
+            md = mdOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + mdName + " does not exist\" }")
+                    .build();
+        }
+        MaintenanceAssociation ma;
+        Optional<MaintenanceAssociation> maOpt = get(CfmMdService.class)
+                .getMaintenanceAssociation(mdId, maId);
+        if (maOpt.isPresent()) {
+            ma = maOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + maName + " does not exist\" }")
+                    .build();
+        }
 
         MepId mepId = MepId.valueOf(mepIdShort);
 
@@ -275,9 +296,25 @@ public class MepWebResource extends AbstractWebResource {
 
         MdId mdId = MdIdCharStr.asMdId(mdName);
         MaIdShort maId = MaIdCharStr.asMaId(maName);
-        MaintenanceDomain md = get(CfmMdService.class).getMaintenanceDomain(mdId).get();
-        MaintenanceAssociation ma = get(CfmMdService.class)
-                .getMaintenanceAssociation(mdId, maId).get();
+        MaintenanceDomain md;
+        Optional<MaintenanceDomain> mdOpt = get(CfmMdService.class).getMaintenanceDomain(mdId);
+        if (mdOpt.isPresent()) {
+            md = mdOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + mdName + " does not exist\" }")
+                    .build();
+        }
+        MaintenanceAssociation ma;
+        Optional<MaintenanceAssociation> maOpt = get(CfmMdService.class)
+                .getMaintenanceAssociation(mdId, maId);
+        if (maOpt.isPresent()) {
+            ma = maOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + maName + " does not exist\" }")
+                    .build();
+        }
 
         MepId mepId = MepId.valueOf(mepIdShort);
 
@@ -319,9 +356,25 @@ public class MepWebResource extends AbstractWebResource {
 
         MdId mdId = MdIdCharStr.asMdId(mdName);
         MaIdShort maId = MaIdCharStr.asMaId(maName);
-        MaintenanceDomain md = get(CfmMdService.class).getMaintenanceDomain(mdId).get();
-        MaintenanceAssociation ma = get(CfmMdService.class)
-                .getMaintenanceAssociation(mdId, maId).get();
+        MaintenanceDomain md;
+        Optional<MaintenanceDomain> mdOpt = get(CfmMdService.class).getMaintenanceDomain(mdId);
+        if (mdOpt.isPresent()) {
+            md = mdOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + mdName + " does not exist\" }")
+                    .build();
+        }
+        MaintenanceAssociation ma;
+        Optional<MaintenanceAssociation> maOpt = get(CfmMdService.class)
+                .getMaintenanceAssociation(mdId, maId);
+        if (maOpt.isPresent()) {
+            ma = maOpt.get();
+        } else {
+            return Response.serverError()
+                    .entity("{ \"failure\":\"" + maName + " does not exist\" }")
+                    .build();
+        }
 
         MepId mepId = MepId.valueOf(mepIdShort);
 

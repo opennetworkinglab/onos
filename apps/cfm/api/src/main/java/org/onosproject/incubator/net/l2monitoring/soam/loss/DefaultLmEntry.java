@@ -19,15 +19,15 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.soam.MilliPct;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
-import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.Version;
+import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementEntry}.
+ * The default implementation of {@link LossMeasurementEntry}.
  */
 public final class DefaultLmEntry extends DefaultLmCreate
         implements LossMeasurementEntry {
@@ -113,8 +113,8 @@ public final class DefaultLmEntry extends DefaultLmCreate
         return availabilityHistories;
     }
 
-    public static LmEntryBuilder builder(Version version, MepId remoteMepId,
-            Priority priority, LmType lmCfgType, SoamId lmId)
+    public static LmEntryBuilder builder(DelayMeasurementCreate.Version version, MepId remoteMepId,
+                                         Mep.Priority priority, LmType lmCfgType, SoamId lmId)
                     throws SoamConfigException {
         return new DefaultLmEntryBuilder(version, remoteMepId,
                 priority, lmCfgType, lmId);
@@ -134,8 +134,8 @@ public final class DefaultLmEntry extends DefaultLmCreate
         private LossAvailabilityStatCurrent availabilityCurrent;
         private Collection<LossAvailabilityStatHistory> availabilityHistories;
 
-        protected DefaultLmEntryBuilder(Version version, MepId remoteMepId,
-                Priority priority, LmType lmCfgType, SoamId lmId)
+        protected DefaultLmEntryBuilder(DelayMeasurementCreate.Version version, MepId remoteMepId,
+                                        Mep.Priority priority, LmType lmCfgType, SoamId lmId)
                 throws SoamConfigException {
             super(version, remoteMepId, priority, lmCfgType);
             this.lmId = lmId;

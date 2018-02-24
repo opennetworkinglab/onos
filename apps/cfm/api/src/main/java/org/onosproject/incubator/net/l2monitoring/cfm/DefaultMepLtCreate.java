@@ -21,7 +21,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import java.util.BitSet;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtCreate}.
+ * The default implementation of {@link MepLtCreate}.
  */
 public final class DefaultMepLtCreate implements MepLtCreate {
     private final MacAddress remoteMepAddress;

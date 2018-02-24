@@ -101,18 +101,6 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-cli</artifactId>
-            <version>${onos.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.karaf.shell</groupId>
-            <artifactId>org.apache.karaf.shell.console</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
         </dependency>
 

@@ -21,7 +21,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * Object for representing Loss Availability Stats History.
- * Extends {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStat}
+ * Extends {@link LossAvailabilityStat}
  */
 public interface LossAvailabilityStatHistory extends LossAvailabilityStat {
     /**
@@ -37,7 +37,7 @@ public interface LossAvailabilityStatHistory extends LossAvailabilityStat {
     Instant endTime();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStatHistory}.
+     * Builder for {@link LossAvailabilityStatHistory}.
      */
     public interface LaStatHistoryBuilder extends LaStatBuilder {
         LossAvailabilityStatHistory build();

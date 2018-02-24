@@ -20,7 +20,7 @@ import java.time.Instant;
 
 /**
  * The default implementation of LossAvailabilityStatCurrent.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStatCurrent}.
+ * {@link LossAvailabilityStatCurrent}.
  */
 public final class DefaultLaStatCurrent extends DefaultLaStat
                         implements LossAvailabilityStatCurrent {

@@ -124,6 +124,7 @@ import org.slf4j.Logger;
  */
 public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour implements FlowRuleProgrammable {
 
+    public static final int RADIX_16 = 16;
     protected final Logger log = getLogger(getClass());
     public static final String MICROSEMI_DRIVERS = "com.microsemi.drivers";
     public static final int PRIORITY_DEFAULT = 50000;
@@ -141,7 +142,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
      */
     @Override
     public Collection<FlowEntry> getFlowEntries() {
-        Collection<FlowEntry> flowEntryCollection = new HashSet<FlowEntry>();
+        Collection<FlowEntry> flowEntryCollection = new HashSet<>();
 
         UniSideInterfaceAssignmentEnum portAssignment = UniSideInterfaceAssignmentEnum.UNI_C_ON_HOST;
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
@@ -156,9 +157,9 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
         CoreService coreService = checkNotNull(handler().get(CoreService.class));
         ApplicationId appId = coreService.getAppId(MICROSEMI_DRIVERS);
         MseaSaFilteringNetconfService mseaSaFilteringService =
-                (MseaSaFilteringNetconfService) checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
+                checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
         MseaUniEvcServiceNetconfService mseaUniEvcServiceSvc =
-                (MseaUniEvcServiceNetconfService) checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
+                checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
         log.debug("getFlowEntries() called on EA1000FlowRuleProgrammable");
 
         //First get the MseaSaFiltering rules
@@ -230,21 +231,21 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
      */
     @Override
     public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
-        Collection<FlowRule> frAdded = new HashSet<FlowRule>();
-        if (rules == null || rules.size() == 0) {
+        Collection<FlowRule> frAdded = new HashSet<>();
+        if (rules == null || rules.isEmpty()) {
             return rules;
         }
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         MseaSaFilteringNetconfService mseaSaFilteringService =
-                (MseaSaFilteringNetconfService) checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
+                checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
         MseaUniEvcServiceNetconfService mseaUniEvcServiceSvc =
-                (MseaUniEvcServiceNetconfService) checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
+                checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
         log.debug("applyFlowRules() called on EA1000FlowRuleProgrammable with {} rules.", rules.size());
-        // FIXME: Change this so it's dynamically driven
+        // TODO: Change this so it's dynamically driven
         UniSideInterfaceAssignmentEnum portAssignment = UniSideInterfaceAssignmentEnum.UNI_C_ON_HOST;
 
-        List<SourceAddressRange> saRangeList = new ArrayList<SourceAddressRange>();
+        List<SourceAddressRange> saRangeList = new ArrayList<>();
         Map<Integer, Evc> evcMap = new HashMap<>();
 
         //Retrieve the list of actual EVCs and the CeVlanMaps from device
@@ -282,12 +283,13 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
 
         //If there are IPv4 Flow Rules created commit them now through the
         //MseaSaFiltering service
-        if (saRangeList.size() > 0) {
+        if (!saRangeList.isEmpty()) {
             try {
                 mseaSaFilteringService.setMseaSaFiltering(
                             buildSaFilteringObject(saRangeList), session, DatastoreId.RUNNING);
             } catch (NetconfException e) {
-                log.error("Error applying Flow Rules to SA Filtering - will try again: " + e.getMessage());
+                log.error("Error applying Flow Rules to SA Filtering - " +
+                        "will try again: " + e.getMessage(), e);
                 sessionMutex.release();
                 return frAdded;
             }
@@ -303,7 +305,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                     + deviceName.getSchemeSpecificPart()));
             uni.evc(evcList);
 
-            List<BwpGroup> bwpGroupList = new ArrayList<BwpGroup>();
+            List<BwpGroup> bwpGroupList = new ArrayList<>();
             BwpGroup bwpGrp = new DefaultBwpGroup();
             bwpGrp.groupIndex((short) 0);
             bwpGroupList.add(bwpGrp);
@@ -319,7 +321,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
             try {
                 mseaUniEvcServiceSvc.setMseaUniEvcService(mseaUniEvcServiceFilter, session, DatastoreId.RUNNING);
             } catch (NetconfException e) {
-                log.error("Error applying Flow Rules to EVC - will try again: " + e.getMessage());
+                log.error("Error applying Flow Rules to EVC - will try again: " + e.getMessage(), e);
                 sessionMutex.release();
                 return frAdded;
             }
@@ -341,13 +343,13 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
         NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
         MseaSaFilteringNetconfService mseaSaFilteringService =
-                (MseaSaFilteringNetconfService) checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
+                checkNotNull(handler().get(MseaSaFilteringNetconfService.class));
         MseaUniEvcServiceNetconfService mseaUniEvcServiceSvc =
-                (MseaUniEvcServiceNetconfService) checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
+                checkNotNull(handler().get(MseaUniEvcServiceNetconfService.class));
         UniSideInterfaceAssignmentEnum portAssignment = UniSideInterfaceAssignmentEnum.UNI_C_ON_HOST;
         log.debug("removeFlowRules() called on EA1000FlowRuleProgrammable with {} rules.", rulesToRemove.size());
 
-        if (rulesToRemove.size() == 0) {
+        if (rulesToRemove.isEmpty()) {
             return rulesToRemove;
         }
 
@@ -369,11 +371,11 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
             log.warn("Error on removeFlowRules.", e1);
         }
 
-        List<SourceAddressRange> saRangeList = new ArrayList<SourceAddressRange>();
+        List<SourceAddressRange> saRangeList = new ArrayList<>();
         Map<Integer, String> ceVlanMapMap = new HashMap<>();
         Map<Integer, List<Short>> flowIdMap = new HashMap<>();
 
-        Collection<FlowRule> rulesRemoved = new HashSet<FlowRule>();
+        Collection<FlowRule> rulesRemoved = new HashSet<>();
         for (FlowRule ruleToRemove : rulesToRemove) {
             // IP SA Filtering can only apply to Port 0 optics
             if (ruleToRemove.selector().getCriterion(Type.IPV4_SRC) != null &&
@@ -416,13 +418,13 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                 rulesRemoved.add(ruleToRemove);
 
             } else {
-                log.info("Unexpected Flow Rule type removal: " + ruleToRemove);
+                log.warn("Unexpected Flow Rule type removal: " + ruleToRemove);
             }
         }
 
         //If there are IPv4 Flow Rules created commit them now through the
         //MseaSaFiltering service
-        if (saRangeList.size() > 0 && acvtiveFiltRanges.size() == 0) {
+        if (!saRangeList.isEmpty() && acvtiveFiltRanges.isEmpty()) {
             try {
                 SourceIpaddressFiltering saFilter =
                         new DefaultSourceIpaddressFiltering();
@@ -432,26 +434,26 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                 mseaSaFilteringService.deleteMseaSaFilteringRange(
                         mseaSaFiltering, session, DatastoreId.RUNNING);
             } catch (NetconfException e) {
-                log.warn("Remove FlowRule on MseaSaFilteringService could not delete all SARules - "
-                        + "they may already have been deleted: " + e.getMessage());
+                log.debug("Remove FlowRule on MseaSaFilteringService could not delete all SARules - "
+                        + "they may already have been deleted: " + e.getMessage(), e);
             }
-        } else if (saRangeList.size() > 0) {
+        } else if (!saRangeList.isEmpty()) {
             try {
                 mseaSaFilteringService.deleteMseaSaFilteringRange(
                         buildSaFilteringObject(saRangeList), session, DatastoreId.RUNNING);
             } catch (NetconfException e) {
                 log.warn("Remove FlowRule on MseaSaFilteringService could not delete SARule - "
-                        + "it may already have been deleted: " + e.getMessage());
+                        + "it may already have been deleted: " + e.getMessage(), e);
             }
         }
 
-        if (ceVlanMapMap.size() > 0) {
+        if (!ceVlanMapMap.isEmpty()) {
             try {
                 mseaUniEvcServiceSvc.removeEvcUniFlowEntries(ceVlanMapMap, flowIdMap,
                         session, DatastoreId.RUNNING, portAssignment);
             } catch (NetconfException e) {
-                log.warn("Remove FlowRule on MseaUniEvcService could not delete EVC - "
-                        + "it may already have been deleted: " + e.getMessage());
+                log.debug("Remove FlowRule on MseaUniEvcService could not delete EVC - "
+                        + "it may already have been deleted: " + e.getMessage(), e);
             }
         }
 
@@ -468,7 +470,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
      * @return - the CEVlanMap we're looking for
      */
     private String getCeVlanMapForIdxFromEvcList(List<Evc> evcList, long evcIndex, UniSide side) {
-        if (evcList != null && evcList.size() > 0) {
+        if (evcList != null && !evcList.isEmpty()) {
             for (Evc evc:evcList) {
                 if (evc.evcIndex() == evcIndex && evc.evcPerUni() != null) {
                     if (side == UniSide.CUSTOMER &&
@@ -581,7 +583,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                 epun.ingressBwpGroupIndex(getMeterId(fr.treatment()));
 
                 epuc.ceVlanMap(new ServiceListType(oppositeCeVlanMap));
-                epuc.ingressBwpGroupIndex(new Long(0));
+                epuc.ingressBwpGroupIndex(0);
             } else {
                 epuc.ceVlanMap(new ServiceListType(newCeVlanMap));
                 epuc.tagManipulation(tm);
@@ -589,11 +591,11 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                 epuc.ingressBwpGroupIndex(getMeterId(fr.treatment()));
 
                 epun.ceVlanMap(new ServiceListType(oppositeCeVlanMap));
-                epun.ingressBwpGroupIndex(new Long(0));
+                epun.ingressBwpGroupIndex(0);
             }
 
             evc.evcIndex(fr.tableId());
-            evc.name(new Identifier45("EVC-" + String.valueOf(fr.tableId())));
+            evc.name(new Identifier45("EVC-" + fr.tableId()));
 
             DefaultEvcPerUni epu = new DefaultEvcPerUni();
             epu.evcPerUnin(epun);
@@ -626,7 +628,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
 
     private Collection<FlowEntry> convertSaFilteringToFlowRules(
             MseaSaFiltering saFilteringCurrent, ApplicationId appId) {
-        Collection<FlowEntry> flowEntryCollection = new HashSet<FlowEntry>();
+        Collection<FlowEntry> flowEntryCollection = new HashSet<>();
 
         List<SourceAddressRange> saRangelist =
                 saFilteringCurrent.sourceIpaddressFiltering().interfaceEth0().sourceAddressRange();
@@ -645,7 +647,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                 FlowRule.Builder feBuilder = new DefaultFlowRule.Builder();
                 if (sa.name() != null && sa.name().startsWith("Flow:")) {
                     String[] nameParts = sa.name().split(":");
-                    Long cookie = Long.valueOf(nameParts[1], 16);
+                    Long cookie = Long.valueOf(nameParts[1], RADIX_16);
                     feBuilder = feBuilder.withCookie(cookie);
                 } else {
                     feBuilder = feBuilder.fromApp(appId);
@@ -670,7 +672,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
 
     private Collection<FlowEntry> convertEvcUniToFlowRules(
             MseaUniEvcService uniEvcCurrent, UniSideInterfaceAssignmentEnum portAssignment) {
-        Collection<FlowEntry> flowEntryCollection = new HashSet<FlowEntry>();
+        Collection<FlowEntry> flowEntryCollection = new HashSet<>();
 
         if (uniEvcCurrent == null || uniEvcCurrent.mefServices() == null ||
                 uniEvcCurrent.mefServices().uni() == null || uniEvcCurrent.mefServices().uni().evc() == null) {
@@ -698,7 +700,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                     .forDevice(handler().data().deviceId())
                     .withSelector(tsUniN)
                     .withTreatment(uniNTreatment)
-                    .forTable(new Long(evc.evcIndex()).intValue()) //narrowing to int
+                    .forTable(Math.toIntExact(evc.evcIndex())) //narrowing to int
                     .makePermanent()
                     .withPriority(PRIORITY_DEFAULT)
                     .withCookie(flowId)
@@ -724,7 +726,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
                             .forDevice(handler().data().deviceId())
                             .withSelector(tsUniC)
                             .withTreatment(uniCTreatment)
-                            .forTable(new Long(evc.evcIndex()).intValue()) //narrowing to int
+                            .forTable(Math.toIntExact(evc.evcIndex())) //narrowing to int
                             .makePermanent()
                             .withPriority(PRIORITY_DEFAULT)
                             .withCookie(flowId)
@@ -762,7 +764,8 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
     private Criterion criterionPortForUniSide(
             UniSideInterfaceAssignmentEnum portAssignment, boolean portN) {
         boolean cOnOptics = (portAssignment == UniSideInterfaceAssignmentEnum.UNI_C_ON_OPTICS);
-        int portNum = ((cOnOptics && portN) || (!cOnOptics && !portN)) ? 1 : 0;
+        //If both are true or both are false then return 1
+        int portNum = (cOnOptics == portN) ? 1 : 0;
         return Criteria.matchInPort(PortNumber.portNumber(portNum));
     }
 
@@ -770,8 +773,8 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
             EvcPerUni evcPerUni, boolean portN) {
         TrafficTreatment.Builder trBuilder = DefaultTrafficTreatment.builder();
 
-        TagManipulation tm = null;
-        short meterId = 0;
+        TagManipulation tm;
+        short meterId;
         if (portN) {
             tm = evcPerUni.evcPerUnin().tagManipulation();
             meterId = (short) evcPerUni.evcPerUnin().ingressBwpGroupIndex();
@@ -782,7 +785,6 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
 
         if (meterId > 0L) {
             trBuilder = trBuilder.meter(MeterId.meterId((long) meterId));
-//            trBuilder = trBuilder.meter(MeterId.meterId(meterId)).transition(0);
         }
 
         if (tm == null) {

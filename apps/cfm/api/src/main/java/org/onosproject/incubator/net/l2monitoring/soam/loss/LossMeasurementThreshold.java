@@ -150,7 +150,7 @@ public interface LossMeasurementThreshold {
     MilliPct backwardAvailableRatio();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementThreshold}.
+     * Builder for {@link LossMeasurementThreshold}.
      */
     public interface LmThresholdBuilder {
 

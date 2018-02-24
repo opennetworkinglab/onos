@@ -22,7 +22,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * The default implementation of LossAvailabilityStatHistory.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStatHistory}.
+ * {@link LossAvailabilityStatHistory}.
  */
 public final class DefaultLaStatHistory extends DefaultLaStat
                         implements LossAvailabilityStatHistory {

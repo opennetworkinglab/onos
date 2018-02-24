@@ -27,12 +27,8 @@ import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceAssociat
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation.CcmInterval;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation.MaBuilder;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdMaNameUtil;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 
@@ -53,6 +49,15 @@ public class MaintenanceAssociationCodec extends JsonCodec<MaintenanceAssociatio
     private static final String RMEP_LIST = "rmep-list";
     private static final String MA = "ma";
 
+    /**
+     * Encodes the MaintenanceAssociation entity into JSON.
+     *
+     * @param ma MaintenanceAssociation to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MaintenanceAssociation ma, CodecContext context) {
         checkNotNull(ma, "Maintenance Association cannot be null");
@@ -72,6 +77,16 @@ public class MaintenanceAssociationCodec extends JsonCodec<MaintenanceAssociatio
         return result;
     }
 
+    /**
+     * Decodes the MaintenanceAssociation entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @param mdNameLen the length of the corresponding MD's name
+     * @return decoded MaintenanceAssociation
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     public MaintenanceAssociation decode(ObjectNode json, CodecContext context, int mdNameLen) {
         if (json == null || !json.isObject()) {
             return null;
@@ -86,25 +101,7 @@ public class MaintenanceAssociationCodec extends JsonCodec<MaintenanceAssociatio
         }
 
         try {
-            MaIdShort maId = null;
-            MaIdShort.MaIdType maIdType = MaIdShort.MaIdType.valueOf(maNameType);
-            switch (maIdType) {
-                case PRIMARYVID:
-                    maId = MaIdPrimaryVid.asMaId(maName);
-                    break;
-                case TWOOCTET:
-                    maId = MaId2Octet.asMaId(maName);
-                    break;
-                case RFC2685VPNID:
-                    maId = MaIdRfc2685VpnId.asMaIdHex(maName);
-                    break;
-                case ICCY1731:
-                    maId = MaIdIccY1731.asMaId(maName);
-                    break;
-                case CHARACTERSTRING:
-                default:
-                    maId = MaIdCharStr.asMaId(maName);
-            }
+            MaIdShort maId = MdMaNameUtil.parseMaName(maNameType, maName);
             MaBuilder builder =
                     DefaultMaintenanceAssociation.builder(maId, mdNameLen);
 
@@ -140,6 +137,15 @@ public class MaintenanceAssociationCodec extends JsonCodec<MaintenanceAssociatio
 
     }
 
+    /**
+     * Encodes the collection of the MaintenanceAssociation entities.
+     *
+     * @param maEntities collection of MaintenanceAssociation to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<MaintenanceAssociation> maEntities, CodecContext context) {
         ArrayNode an = context.mapper().createArrayNode();

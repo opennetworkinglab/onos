@@ -20,7 +20,7 @@ import java.time.Duration;
 import org.onosproject.incubator.net.l2monitoring.soam.MilliPct;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStat}.
+ * The default implementation of {@link LossMeasurementStat}.
  */
 public abstract class DefaultLmStat implements LossMeasurementStat {
     private final Duration elapsedTime;
@@ -127,7 +127,7 @@ public abstract class DefaultLmStat implements LossMeasurementStat {
 
     /**
      * Abstract implementation of LmStatBuilder.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStat.LmStatBuilder}
+     * {@link LossMeasurementStat.LmStatBuilder}
      */
     protected abstract static class DefaultLmStatBuilder implements LmStatBuilder {
         private final Duration elapsedTime;

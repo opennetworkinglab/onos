@@ -170,7 +170,7 @@ public interface LossAvailabilityStat {
 
     /**
      * Abstract builder for classes derived from LossAvailabilityStat.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStat}.
+     * {@link LossAvailabilityStat}.
      */
     public interface LaStatBuilder {
         LaStatBuilder forwardHighLoss(Long forwardHighLoss);

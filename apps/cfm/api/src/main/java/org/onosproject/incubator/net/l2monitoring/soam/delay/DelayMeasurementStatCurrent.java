@@ -28,7 +28,7 @@ public interface DelayMeasurementStatCurrent extends DelayMeasurementStat {
     Instant startTime();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatCurrent}.
+     * Builder for {@link DelayMeasurementStatCurrent}.
      */
     public interface DmStatCurrentBuilder extends DmStatBuilder {
         DmStatCurrentBuilder startTime(Instant startTime);

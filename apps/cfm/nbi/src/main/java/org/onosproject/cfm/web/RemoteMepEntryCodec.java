@@ -29,6 +29,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class RemoteMepEntryCodec extends JsonCodec<RemoteMepEntry> {
 
+    /**
+     * Encodes the RemoteMepEntry entity into JSON.
+     *
+     * @param remoteMepEntry  RemoteMepEntry to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(RemoteMepEntry remoteMepEntry, CodecContext context) {
         checkNotNull(remoteMepEntry, "Mep cannot be null");
@@ -62,6 +71,15 @@ public class RemoteMepEntryCodec extends JsonCodec<RemoteMepEntry> {
         return result;
     }
 
+    /**
+     * Encodes the collection of the RemoteMepEntry entities.
+     *
+     * @param remoteMepEntries collection of RemoteMepEntry to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<RemoteMepEntry> remoteMepEntries,
             CodecContext context) {

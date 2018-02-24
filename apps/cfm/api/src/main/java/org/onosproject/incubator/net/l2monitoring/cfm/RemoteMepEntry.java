@@ -73,7 +73,7 @@ public interface RemoteMepEntry {
     SenderIdTlvType senderIdTlvType();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.RemoteMepEntry}.
+     * Builder for {@link RemoteMepEntry}.
      */
     public interface RemoteMepEntryBuilder {
         RemoteMepEntryBuilder failedOrOkTime(Duration failedOrOkTime);

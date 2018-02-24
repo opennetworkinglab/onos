@@ -186,7 +186,7 @@ public interface DelayMeasurementThreshold {
     Duration averageFrameDelayRangeBackward();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementThreshold}.
+     * Builder for {@link DelayMeasurementThreshold}.
      */
     public interface DmThresholdBuilder {
         DmThresholdBuilder addToThresholdsEnabled(

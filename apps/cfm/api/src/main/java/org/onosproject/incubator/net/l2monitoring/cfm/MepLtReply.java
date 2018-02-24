@@ -63,7 +63,7 @@ public interface MepLtReply {
     LtrReply ltrRelay();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLtReply}.
+     * Builder for {@link MepLtReply}.
      */
     public interface MepLtReplyBuilder {
         MepLtReplyBuilder replyOrder(int replyOrder);

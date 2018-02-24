@@ -28,6 +28,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class MepLbEntryCodec extends JsonCodec<MepLbEntry> {
 
+    /**
+     * Encodes the MepLbEntry entity into JSON.
+     *
+     * @param mepLbEntry MepLbEntry to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MepLbEntry mepLbEntry, CodecContext context) {
         checkNotNull(mepLbEntry, "Mep Lb Entry cannot be null");

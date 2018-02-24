@@ -34,6 +34,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class MepEntryCodec extends JsonCodec<MepEntry> {
 
+    /**
+     * Encodes the MepEntry entity into JSON.
+     *
+     * @param mepEntry  MepEntry to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MepEntry mepEntry, CodecContext context) {
         checkNotNull(mepEntry, "Mep cannot be null");
@@ -41,7 +50,7 @@ public class MepEntryCodec extends JsonCodec<MepEntry> {
         ObjectNode result = context.mapper().createObjectNode();
 
         //Get the common attributes
-        Mep mep = (Mep) mepEntry;
+        Mep mep = mepEntry;
         ObjectNode mepAttrs = new MepCodec().encode(mep, context);
         Iterator<Entry<String, JsonNode>> elements = mepAttrs.fields();
         while (elements.hasNext()) {
@@ -81,6 +90,15 @@ public class MepEntryCodec extends JsonCodec<MepEntry> {
         return result;
     }
 
+    /**
+     * Encodes the collection of the MepEntry entities.
+     *
+     * @param mepEntryEntities collection of MepEntry to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<MepEntry> mepEntryEntities, CodecContext context) {
         ArrayNode an = context.mapper().createArrayNode();

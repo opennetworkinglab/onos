@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep Maintenance Association Endpoint's} storage interface.
+ * {@link Mep Maintenance Association Endpoint's} storage interface.
  * Note: because the Mep is immutable if anything needs to be
  * changed in it, then it must be replaced in the store.
  */

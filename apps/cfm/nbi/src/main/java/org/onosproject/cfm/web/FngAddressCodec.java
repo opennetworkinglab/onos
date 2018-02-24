@@ -25,6 +25,8 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep.FngAddress;
 
+import java.util.Locale;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -33,6 +35,15 @@ import static org.onlab.util.Tools.nullIsIllegal;
  */
 public class FngAddressCodec extends JsonCodec<FngAddress> {
 
+    /**
+     * Encodes the FngAddress entity into JSON.
+     *
+     * @param fngAddress  FngAddress to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(FngAddress fngAddress, CodecContext context) {
         checkNotNull(fngAddress, "FngAddress cannot be null");
@@ -47,6 +58,15 @@ public class FngAddressCodec extends JsonCodec<FngAddress> {
         return result;
     }
 
+    /**
+     * Decodes the FngAddress entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded FngAddress
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public FngAddress decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -57,7 +77,7 @@ public class FngAddressCodec extends JsonCodec<FngAddress> {
 
         String addressType = nullIsIllegal(node.get("address-type"),
                             "address type is required").asText();
-        Mep.FngAddressType type = Mep.FngAddressType.valueOf(addressType.toUpperCase());
+        Mep.FngAddressType type = Mep.FngAddressType.valueOf(addressType.toUpperCase(Locale.ENGLISH));
         JsonNode ipAddressNode = node.get("ipAddress");
 
         switch (type) {

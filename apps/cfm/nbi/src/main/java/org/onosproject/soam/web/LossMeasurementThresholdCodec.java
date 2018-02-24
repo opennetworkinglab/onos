@@ -29,6 +29,7 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
+
 import static org.onosproject.incubator.net.l2monitoring.soam.loss.DefaultLmThreshold.*;
 
 /**
@@ -131,7 +132,7 @@ public class LossMeasurementThresholdCodec extends JsonCodec<LossMeasurementThre
         LossMeasurementThreshold.LmThresholdBuilder builder = builder(thresholdId);
 
         if (thrNode.get("thresholds") != null) {
-            context.codec(ThresholdOption.class)
+            context.codec(LossMeasurementThreshold.ThresholdOption.class)
                     .decode((ArrayNode) (thrNode.get("thresholds")), context)
                     .forEach(builder::addToThreshold);
         }

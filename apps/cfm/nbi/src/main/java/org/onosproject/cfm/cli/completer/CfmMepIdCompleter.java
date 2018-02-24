@@ -41,32 +41,17 @@ public class CfmMepIdCompleter extends AbstractChoicesCompleter {
         CfmMepService mepService = get(CfmMepService.class);
 
         mdService.getAllMaintenanceDomain().forEach(md -> {
-            choices.add(new StringBuilder(md.mdId().mdName())
-                            .append("(")
-                            .append(md.mdId().nameType())
-                            .append(")").toString());
+            choices.add(md.mdId().mdName() + "(" + md.mdId().nameType() + ")");
 
             md.maintenanceAssociationList().forEach(ma -> {
-                    choices.add(new StringBuilder(md.mdId().mdName())
-                            .append("(")
-                            .append(md.mdId().nameType())
-                            .append(") ")
-                            .append(ma.maId().maName())
-                            .append("(")
-                            .append(ma.maId().nameType())
-                            .append(")").toString());
+                    choices.add(md.mdId().mdName() + "(" + md.mdId().nameType() +
+                            ") " + ma.maId().maName() + "(" + ma.maId().nameType() + ")");
 
                     try {
                         mepService.getAllMeps(md.mdId(), ma.maId()).forEach(mep ->
-                                choices.add(new StringBuilder(md.mdId().mdName())
-                                        .append("(")
-                                        .append(md.mdId().nameType())
-                                        .append(") ")
-                                        .append(ma.maId().maName())
-                                        .append("(")
-                                        .append(ma.maId().nameType())
-                                        .append(") ")
-                                        .append(mep.mepId()).toString())
+                                choices.add(md.mdId().mdName() + "(" +
+                                        md.mdId().nameType() + ") " + ma.maId().maName() +
+                                        "(" + ma.maId().nameType() + ") " + mep.mepId())
                         );
                     } catch (CfmConfigException e) {
                         log.warn("Unable to retrieve mep details", e);

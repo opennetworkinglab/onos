@@ -62,7 +62,7 @@ public interface MepTsCreate {
     Optional<TestType> testType();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepTsCreate}.
+     * Builder for {@link MepTsCreate}.
      */
     interface MepTsCreateBuilder {
         MepTsCreateBuilder isReceiver(Optional<Boolean> isReceiver);

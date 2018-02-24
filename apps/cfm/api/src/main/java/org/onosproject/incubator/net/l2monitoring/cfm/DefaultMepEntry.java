@@ -33,7 +33,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.MepEntry}.
+ * The default implementation of {@link MepEntry}.
  */
 public final class DefaultMepEntry extends DefaultMep implements MepEntry {
 

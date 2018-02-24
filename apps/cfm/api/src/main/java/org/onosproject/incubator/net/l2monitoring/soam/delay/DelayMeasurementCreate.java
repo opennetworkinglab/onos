@@ -88,7 +88,7 @@ public interface DelayMeasurementCreate extends MeasurementCreateBase {
     Collection<DelayMeasurementThreshold> thresholds();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate}.
+     * Builder for {@link DelayMeasurementCreate}.
      */
     public interface DmCreateBuilder extends MeasCreateBaseBuilder {
 

@@ -20,7 +20,7 @@ import org.onosproject.net.driver.HandlerBehaviour;
 /**
  * Behaviour that allows Layer 2 SOAM PM in the form of Delay Measurement to be implemented by devices.
  *
- * Has all of the same methods as {@link org.onosproject.incubator.net.l2monitoring.soam.SoamService},
+ * Has all of the same methods as {@link SoamService},
  * so we don't repeat them here
  */
 public interface SoamDmProgrammable extends HandlerBehaviour, SoamService {

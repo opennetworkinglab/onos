@@ -17,11 +17,9 @@ package org.onosproject.incubator.net.l2monitoring.soam;
 
 import java.time.Duration;
 
-import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
-import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.DataPattern;
-import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.TestTlvPattern;
-import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.Version;
+import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
+import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate;
 
 /**
  * A base interface with attributes that are common to both Delay and Loss Measurements.
@@ -32,7 +30,7 @@ public interface MeasurementCreateBase {
      * The exact PDUs to use are specified by this object in combination with measurement-type
      * @return The version of the PDUs
      */
-    Version version();
+    DelayMeasurementCreate.Version version();
 
     /**
      * The remote MEP to perform the tests against.
@@ -52,7 +50,7 @@ public interface MeasurementCreateBase {
      * The priority of frames with Performance Monitoring OAM message information.
      * @return A priority enumerated value 0-7
      */
-    Priority priority();
+    Mep.Priority priority();
 
     /**
      * The Loss Measurement frame size between 64 bytes and the maximum transmission unit of the EVC.
@@ -72,7 +70,7 @@ public interface MeasurementCreateBase {
      * test-tlv-included is 'true' the value of this object is ignored
      * @return The data pattern - ones or zeroes
      */
-    DataPattern dataPattern();
+    DelayMeasurementCreate.DataPattern dataPattern();
 
     /**
      * Whether a Test TLV or Data TLV is included when the size of the LM frame is determined by the frame-size object.
@@ -90,7 +88,7 @@ public interface MeasurementCreateBase {
      * test-tlv-included is 'false' the value of this object is ignored
      * @return A TLV pattern enum
      */
-    TestTlvPattern testTlvPattern();
+    DelayMeasurementCreate.TestTlvPattern testTlvPattern();
 
     /**
      * The Measurement Interval for FLR statistics.
@@ -156,7 +154,7 @@ public interface MeasurementCreateBase {
     SessionType sessionType();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.MeasurementCreateBase}.
+     * Builder for {@link MeasurementCreateBase}.
      */
     public interface MeasCreateBaseBuilder {
         MeasCreateBaseBuilder messagePeriod(
@@ -164,11 +162,11 @@ public interface MeasurementCreateBase {
 
         MeasCreateBaseBuilder frameSize(Short frameSize) throws SoamConfigException;
 
-        MeasCreateBaseBuilder dataPattern(DataPattern dataPattern);
+        MeasCreateBaseBuilder dataPattern(DelayMeasurementCreate.DataPattern dataPattern);
 
         MeasCreateBaseBuilder testTlvIncluded(boolean testTlvIncluded);
 
-        MeasCreateBaseBuilder testTlvPattern(TestTlvPattern testTlvPattern);
+        MeasCreateBaseBuilder testTlvPattern(DelayMeasurementCreate.TestTlvPattern testTlvPattern);
 
         MeasCreateBaseBuilder measurementInterval(
                 Duration measurementInterval) throws SoamConfigException;

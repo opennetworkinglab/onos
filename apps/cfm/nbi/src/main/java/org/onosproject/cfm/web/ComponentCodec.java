@@ -42,6 +42,15 @@ public class ComponentCodec extends JsonCodec<Component> {
     private static final String MHF_CREATION_TYPE = "mhf-creation-type";
     private static final String ID_PERMISSION = "id-permission";
 
+    /**
+     * Encodes the Component entity into JSON.
+     *
+     * @param component  Component to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(Component component, CodecContext context) {
 
@@ -63,15 +72,31 @@ public class ComponentCodec extends JsonCodec<Component> {
         return (ObjectNode) context.mapper().createObjectNode().set(COMPONENT, node);
     }
 
+    /**
+     * Encodes the collection of the Component entities.
+     *
+     * @param components collection of Component to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<Component> components, CodecContext context) {
         ArrayNode an = context.mapper().createArrayNode();
-        components.forEach(component -> {
-            an.add(encode(component, context));
-        });
+        components.forEach(component -> an.add(encode(component, context)));
         return an;
     }
 
+    /**
+     * Decodes the Component entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded Component
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public Component decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -87,7 +112,7 @@ public class ComponentCodec extends JsonCodec<Component> {
 
         List<VlanId> vidList = (new VidCodec()).decode((ArrayNode)
                 nullIsIllegal(componentNode.get(VID_LIST), "vid-list is required"), context);
-        if (vidList == null || vidList.size() < 1) {
+        if (vidList == null || vidList.isEmpty()) {
             throw new IllegalArgumentException("A least one VID is required in component: " + componentId);
         }
         for (VlanId vid:vidList) {

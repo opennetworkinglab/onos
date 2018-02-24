@@ -82,8 +82,6 @@ import org.onosproject.soam.web.StopTimeCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementThreshold.*;
-
 /**
  * Enables the CFM REST Web Service component at /onos/cfm.
  * Each codec for the rest interfaces should be registered here.
@@ -95,6 +93,9 @@ public class CfmWebComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CodecService codecService;
 
+    /**
+     * On activation of this component register these codecs with the codec service.
+     */
     @Activate
     public void activate() {
         codecService.registerCodec(MaintenanceDomain.class,
@@ -146,7 +147,7 @@ public class CfmWebComponent {
                                         new LossAvailabilityStatHistoryCodec());
         codecService.registerCodec(CounterOption.class,
                                         new LmCounterOptionCodec());
-        codecService.registerCodec(ThresholdOption.class,
+        codecService.registerCodec(LossMeasurementThreshold.ThresholdOption.class,
                                         new LmThresholdOptionCodec());
 
         codecService.registerCodec(StartTime.class, new StartTimeCodec());
@@ -155,6 +156,9 @@ public class CfmWebComponent {
         log.info("CFM Web Component Started");
     }
 
+    /**
+     * On deactivation of this component unregister these codecs from the codec service.
+     */
     @Deactivate
     public void deactivate() {
         log.info("CFM Web Component Stopped");
@@ -189,7 +193,7 @@ public class CfmWebComponent {
         codecService.unregisterCodec(LossAvailabilityStatCurrent.class);
         codecService.unregisterCodec(LossAvailabilityStatHistory.class);
         codecService.unregisterCodec(CounterOption.class);
-        codecService.unregisterCodec(ThresholdOption.class);
+        codecService.unregisterCodec(LossMeasurementThreshold.ThresholdOption.class);
 
     }
 }

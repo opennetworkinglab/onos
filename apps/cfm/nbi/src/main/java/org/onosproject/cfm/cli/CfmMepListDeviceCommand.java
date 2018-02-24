@@ -22,9 +22,6 @@ import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepService;
 import org.onosproject.net.DeviceId;
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Lists all the MEPs on a particular device.
@@ -32,11 +29,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Command(scope = "onos", name = "cfm-mep-device-list",
         description = "Lists a set of MEPs filtered by device.")
 public class CfmMepListDeviceCommand extends AbstractShellCommand {
-    private final Logger log = getLogger(getClass());
-    @Argument(index = 0, name = "device",
+    @Argument(name = "device",
             description = "Device Id",
-            required = true, multiValued = false)
-    String deviceStr = null;
+            required = true)
+    private String deviceStr = null;
 
     @Override
     protected void execute() {
@@ -44,9 +40,8 @@ public class CfmMepListDeviceCommand extends AbstractShellCommand {
         if (deviceStr != null) {
             DeviceId deviceId = DeviceId.deviceId(deviceStr);
             try {
-                mepService.getAllMepsByDevice(deviceId).forEach(mep -> {
-                    print(printMep(mep));
-                });
+                mepService.getAllMepsByDevice(deviceId)
+                        .forEach(mep -> print(printMep(mep)));
             } catch (CfmConfigException e) {
                 log.error("Error retrieving Meps for Device {}",
                         deviceId, e);
@@ -59,19 +54,12 @@ public class CfmMepListDeviceCommand extends AbstractShellCommand {
      * @param mep The MEP to print
      * @return A string with MD name, MA name and Mep details
      */
-    public static String printMep(Mep mep) {
-        StringBuffer sb = new StringBuffer("MEP: ");
-        sb.append(mep.mdId().mdName() + "/");
-        sb.append(mep.maId().maName() + "/");
-        sb.append(mep.mepId());
-        sb.append(" Device:" + mep.deviceId());
-        sb.append(", Port: " + mep.port());
-        sb.append(", Vlan: " + mep.primaryVid());
-        sb.append(", AdminSt: " + mep.administrativeState());
-        sb.append(", CciEnabled: " + mep.cciEnabled());
-        sb.append(", Priority: " + mep.ccmLtmPriority());
-
-        return sb.toString();
+    private static String printMep(Mep mep) {
+         return "MEP: " + mep.mdId().mdName() + "/" + mep.maId().maName() + "/" +
+                 mep.mepId() + " Device:" + mep.deviceId() + ", Port: " +
+                 mep.port() + ", Vlan: " + mep.primaryVid() + ", AdminSt: " +
+                 mep.administrativeState() + ", CciEnabled: " + mep.cciEnabled() +
+                 ", Priority: " + mep.ccmLtmPriority();
     }
 
 }

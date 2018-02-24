@@ -17,6 +17,7 @@ package org.onosproject.cfm.rest;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -134,9 +135,9 @@ public class MaWebResource extends AbstractWebResource {
         log.debug("POST called to Create MA");
         try {
             MdId mdId = MdIdCharStr.asMdId(mdName);
-            MaintenanceDomain md = get(CfmMdService.class)
-                                            .getMaintenanceDomain(mdId).get();
-            if (md == null) {
+            Optional<MaintenanceDomain> md = get(CfmMdService.class)
+                                            .getMaintenanceDomain(mdId);
+            if (!md.isPresent()) {
                 return Response.serverError().entity("{ \"failure\":\"md "
                                         + mdName + " does not exist\" }").build();
             }

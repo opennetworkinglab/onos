@@ -26,7 +26,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep}.
+ * The default implementation of {@link Mep}.
  */
 public class DefaultMep implements Mep {
 
@@ -334,7 +334,7 @@ public class DefaultMep implements Mep {
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.Mep}.
+     * Builder for {@link Mep}.
      */
     protected static class DefaultMepBuilder implements Mep.MepBuilder {
         protected final MepId mepId;

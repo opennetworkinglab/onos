@@ -20,7 +20,7 @@ import java.time.Duration;
 import org.onosproject.incubator.net.l2monitoring.soam.MilliPct;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStat}.
+ * The default implementation of {@link LossAvailabilityStat}.
  */
 public abstract class DefaultLaStat implements LossAvailabilityStat {
     private final Duration elapsedTime;
@@ -141,7 +141,7 @@ public abstract class DefaultLaStat implements LossAvailabilityStat {
 
     /**
      * Abstract base class for builders of.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossAvailabilityStat}.
+     * {@link LossAvailabilityStat}.
      */
     protected abstract static class DefaultLaStatBuilder implements LaStatBuilder {
         private final Duration elapsedTime;

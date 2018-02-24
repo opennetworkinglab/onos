@@ -34,16 +34,8 @@ public class CfmMaNameCompleter extends AbstractChoicesCompleter {
         CfmMdService service = get(CfmMdService.class);
         service.getAllMaintenanceDomain().forEach(md ->
             md.maintenanceAssociationList().forEach(ma ->
-                choices.add(new StringBuilder(md.mdId().mdName())
-                .append("(")
-                .append(md.mdId().nameType())
-                .append(")")
-                .append(ma.maId().maName())
-                .append("(")
-                .append(ma.maId().nameType())
-                .append(")").toString())
-            )
-        );
+                choices.add(md.mdId().mdName() + "(" + md.mdId().nameType() + ")" +
+                        ma.maId().maName() + "(" + ma.maId().nameType() + ")")));
 
         return choices;
     }

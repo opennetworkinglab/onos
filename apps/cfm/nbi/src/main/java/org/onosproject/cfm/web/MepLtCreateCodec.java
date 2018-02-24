@@ -40,6 +40,15 @@ public class MepLtCreateCodec extends JsonCodec<MepLtCreate> {
     private static final String LINKTRACE = "linktrace";
     private static final String USE_FDB_ONLY = "use-fdb-only";
 
+    /**
+     * Encodes the MepLtCreate entity into JSON.
+     *
+     * @param mepLtCreate MepLtCreate to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MepLtCreate mepLtCreate, CodecContext context) {
         checkNotNull(mepLtCreate, "Mep Lt Create cannot be null");
@@ -62,7 +71,15 @@ public class MepLtCreateCodec extends JsonCodec<MepLtCreate> {
         return result;
     }
 
-
+    /**
+     * Decodes the MepLtCreate entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded MepLtCreate
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public MepLtCreate decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -74,7 +91,7 @@ public class MepLtCreateCodec extends JsonCodec<MepLtCreate> {
         JsonNode remoteMepIdNode = linktraceNode.get(REMOTE_MEP_ID);
         JsonNode remoteMepMacNode = linktraceNode.get(REMOTE_MEP_MAC);
 
-        MepLtCreate.MepLtCreateBuilder ltCreateBuilder = null;
+        MepLtCreate.MepLtCreateBuilder ltCreateBuilder;
         if (remoteMepIdNode != null) {
             MepId remoteMepId = MepId.valueOf((short) remoteMepIdNode.asInt());
             ltCreateBuilder = DefaultMepLtCreate.builder(remoteMepId);

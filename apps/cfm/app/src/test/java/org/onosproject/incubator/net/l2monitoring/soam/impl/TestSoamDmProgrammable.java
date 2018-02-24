@@ -42,8 +42,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-import static org.onosproject.incubator.net.l2monitoring.soam.impl.SoamManagerTest.*;
-
 /**
  * A dummy implementation of the SoamDmProgrammable for test purposes.
  */
@@ -80,7 +78,7 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
                         .build();
 
         dmEntry1 = DefaultDelayMeasurementEntry
-                .builder(DMID101, DelayMeasurementCreate.DmType.DM1DMTX,
+                .builder(SoamManagerTest.DMID101, DelayMeasurementCreate.DmType.DM1DMTX,
                         DelayMeasurementCreate.Version.Y17312011,
                         MepId.valueOf((short) 11), Mep.Priority.PRIO5)
                 .currentResult(current)
@@ -94,7 +92,8 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
             MdId mdName, MaIdShort maName, MepId mepId)
             throws CfmConfigException, SoamConfigException {
         Collection<DelayMeasurementEntry> dmEntries = new ArrayList<>();
-        if (mdName.equals(MDNAME1) && maName.equals(MANAME1) && mepId.equals(MEPID1)) {
+        if (mdName.equals(SoamManagerTest.MDNAME1) && maName.equals(SoamManagerTest.MANAME1)
+                && mepId.equals(SoamManagerTest.MEPID1)) {
             dmEntries.add(dmEntry1);
             return dmEntries;
         }
@@ -105,7 +104,8 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
     public DelayMeasurementEntry getDm(
             MdId mdName, MaIdShort maName, MepId mepId, SoamId dmId)
             throws CfmConfigException, SoamConfigException {
-        if (mdName.equals(MDNAME1) && maName.equals(MANAME1) && mepId.equals(MEPID1)) {
+        if (mdName.equals(SoamManagerTest.MDNAME1) && maName.equals(SoamManagerTest.MANAME1)
+                && mepId.equals(SoamManagerTest.MEPID1)) {
             return dmEntry1;
         }
         return null;
@@ -115,7 +115,8 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
     public DelayMeasurementStatCurrent getDmCurrentStat(
             MdId mdName, MaIdShort maName, MepId mepId, SoamId dmId)
             throws CfmConfigException, SoamConfigException {
-        if (mdName.equals(MDNAME1) && maName.equals(MANAME1) && mepId.equals(MEPID1)) {
+        if (mdName.equals(SoamManagerTest.MDNAME1) && maName.equals(SoamManagerTest.MANAME1)
+                && mepId.equals(SoamManagerTest.MEPID1)) {
             return dmEntry1.currentResult();
         }
         return null;
@@ -125,7 +126,8 @@ public class TestSoamDmProgrammable extends AbstractHandlerBehaviour implements 
     public Collection<DelayMeasurementStatHistory> getDmHistoricalStats(
             MdId mdName, MaIdShort maName, MepId mepId, SoamId dmId)
             throws CfmConfigException, SoamConfigException {
-        if (mdName.equals(MDNAME1) && maName.equals(MANAME1) && mepId.equals(MEPID1)) {
+        if (mdName.equals(SoamManagerTest.MDNAME1) && maName.equals(SoamManagerTest.MANAME1)
+                && mepId.equals(SoamManagerTest.MEPID1)) {
             return dmEntry1.historicalResults();
         }
         return null;

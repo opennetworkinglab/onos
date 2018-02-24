@@ -42,6 +42,15 @@ public class MepLbCreateCodec extends JsonCodec<MepLbCreate> {
     public static final String VLAN_PRIORITY = "vlanPriority";
     public static final String LOOPBACK = "loopback";
 
+    /**
+     * Encodes the MepLbCreate entity into JSON.
+     *
+     * @param mepLbCreate MepLbCreate to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MepLbCreate mepLbCreate, CodecContext context) {
         checkNotNull(mepLbCreate, "Mep Lb Create cannot be null");
@@ -66,7 +75,15 @@ public class MepLbCreateCodec extends JsonCodec<MepLbCreate> {
         return result;
     }
 
-
+    /**
+     * Decodes the MepLbCreate entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded MepLbCreate
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public MepLbCreate decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -78,7 +95,7 @@ public class MepLbCreateCodec extends JsonCodec<MepLbCreate> {
         JsonNode remoteMepIdNode = loopbackNode.get(REMOTE_MEP_ID);
         JsonNode remoteMepMacNode = loopbackNode.get(REMOTE_MEP_MAC);
 
-        MepLbCreate.MepLbCreateBuilder lbCreateBuilder = null;
+        MepLbCreate.MepLbCreateBuilder lbCreateBuilder;
         if (remoteMepIdNode != null) {
             MepId remoteMepId = MepId.valueOf((short) remoteMepIdNode.asInt());
             lbCreateBuilder = DefaultMepLbCreate.builder(remoteMepId);

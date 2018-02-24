@@ -125,7 +125,7 @@ public interface LossMeasurementCreate extends MeasurementCreateBase {
     Collection<LossMeasurementThreshold> lossMeasurementThreshold();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate}.
+     * Builder for {@link LossMeasurementCreate}.
      */
     public interface LmCreateBuilder extends MeasCreateBaseBuilder {
 

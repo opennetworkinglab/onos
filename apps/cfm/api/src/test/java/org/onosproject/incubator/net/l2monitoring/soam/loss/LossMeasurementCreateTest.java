@@ -15,8 +15,6 @@
  */
 package org.onosproject.incubator.net.l2monitoring.soam.loss;
 
-import static org.junit.Assert.*;
-
 import java.time.Duration;
 
 import org.junit.Before;
@@ -35,6 +33,8 @@ import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCre
 import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate.CounterOption;
 import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate.LmCreateBuilder;
 import org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate.LmType;
+
+import static org.junit.Assert.assertEquals;
 
 public class LossMeasurementCreateTest {
 

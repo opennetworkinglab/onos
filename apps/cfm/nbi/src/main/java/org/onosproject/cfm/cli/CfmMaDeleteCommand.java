@@ -18,17 +18,8 @@ package org.onosproject.cfm.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 
@@ -39,58 +30,26 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
         description = "Delete a CFM Maintenance Association and its children.")
 public class CfmMaDeleteCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "name",
+    private static final int MA_NAME_PARTS_COUNT = 4;
+    @Argument(name = "name",
             description = "Maintenance Domain name and type (in brackets) " +
                     "and the Maintenance Association name and type (in brackets)",
-            required = true, multiValued = false)
-    String name = null;
+            required = true)
+    private String name = null;
 
     @Override
     protected void execute() {
         CfmMdService service = get(CfmMdService.class);
 
         String[] nameParts = name.split("[()]");
-        if (nameParts.length != 4) {
+        if (nameParts.length != MA_NAME_PARTS_COUNT) {
             throw new IllegalArgumentException("Invalid name format. Must be in " +
                     "the format of <identifier(name-type)identifier(name-type)>");
         }
 
-        MdId mdId = null;
-        MdId.MdNameType nameTypeEnum = MdId.MdNameType.valueOf(nameParts[1]);
-        switch (nameTypeEnum) {
-            case DOMAINNAME:
-                mdId = MdIdDomainName.asMdId(nameParts[0]);
-                break;
-            case MACANDUINT:
-                mdId = MdIdMacUint.asMdId(nameParts[0]);
-                break;
-            case NONE:
-                mdId = MdIdNone.asMdId();
-                break;
-            case CHARACTERSTRING:
-            default:
-                mdId = MdIdCharStr.asMdId(nameParts[0]);
-        }
+        MdId mdId = CfmMdListMdCommand.parseMdName(nameParts[0] + "(" + nameParts[1] + ")");
 
-        MaIdShort maId = null;
-        MaIdShort.MaIdType maNameTypeEnum = MaIdShort.MaIdType.valueOf(nameParts[3]);
-        switch (maNameTypeEnum) {
-            case TWOOCTET:
-                maId = MaId2Octet.asMaId(nameParts[2]);
-                break;
-            case ICCY1731:
-                maId = MaIdIccY1731.asMaId(nameParts[2]);
-                break;
-            case PRIMARYVID:
-                maId = MaIdPrimaryVid.asMaId(nameParts[2]);
-                break;
-            case RFC2685VPNID:
-                maId = MaIdRfc2685VpnId.asMaIdHex(nameParts[2]);
-                break;
-            case CHARACTERSTRING:
-            default:
-                maId = MaIdCharStr.asMaId(nameParts[2]);
-        }
+        MaIdShort maId = CfmMdListMdCommand.parseMaName(nameParts[2] + "(" + nameParts[3] + ")");
 
         try {
             boolean deleted = service.deleteMaintenanceAssociation(mdId, maId);

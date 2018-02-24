@@ -18,7 +18,7 @@ package org.onosproject.incubator.net.l2monitoring.cfm.service;
 import org.onosproject.event.EventListener;
 
 /**
- * Entity capable of receiving {@link org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepEvent} events.
+ * Entity capable of receiving {@link CfmMepEvent} events.
  */
 public interface CfmMepListener extends EventListener<CfmMepEvent> {
 }

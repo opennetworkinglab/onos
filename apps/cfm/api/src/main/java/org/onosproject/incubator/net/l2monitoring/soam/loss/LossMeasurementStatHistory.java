@@ -21,7 +21,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * Object for representing Loss Measurement Stats History.
- * Extends {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStat}
+ * Extends {@link LossMeasurementStat}
  */
 public interface LossMeasurementStatHistory extends LossMeasurementStat {
     /**
@@ -37,7 +37,7 @@ public interface LossMeasurementStatHistory extends LossMeasurementStat {
     Instant endTime();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatHistory}.
+     * Builder for {@link LossMeasurementStatHistory}.
      */
     public interface LmStatHistoryBuilder extends LmStatBuilder {
         LossMeasurementStatHistory build();

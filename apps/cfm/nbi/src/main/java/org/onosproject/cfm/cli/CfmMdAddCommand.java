@@ -21,14 +21,8 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
-
-import java.util.Optional;
 
 /**
  * Adds a Maintenance Domain to the existing list.
@@ -37,58 +31,39 @@ import java.util.Optional;
         description = "Add a CFM Maintenance Domain.")
 public class CfmMdAddCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "name-type",
+    @Argument(name = "name-type",
             description = "Maintenance Domain name type",
-            required = true, multiValued = false)
-    String nameType = null;
+            required = true)
+    private String nameType = null;
 
     @Argument(index = 1, name = "name",
             description = "Maintenance Domain name. Restrictions apply depending " +
                     "on name-type. Leave empty if name type is none",
-            required = true, multiValued = false)
-    String name = null;
+            required = true)
+    private String name = null;
 
     @Argument(index = 2, name = "level",
             description = "Maintenance Domain level LEVEL0-LEVEL7",
-            required = true, multiValued = false)
-    String level = null;
+            required = true)
+    private String level = null;
 
     @Argument(index = 3, name = "numeric-id",
-            description = "An optional numeric id for Maintenance Domain [1-65535]",
-            required = false, multiValued = false)
-    short numericId = 0;
+            description = "An optional numeric id for Maintenance Domain [1-65535]")
+    private Short numericId = null;
 
     @Override
     protected void execute() {
         CfmMdService service = get(CfmMdService.class);
-        MdId mdId = null;
-        MdId.MdNameType nameTypeEnum = MdId.MdNameType.valueOf(nameType);
-        switch (nameTypeEnum) {
-            case DOMAINNAME:
-                mdId = MdIdDomainName.asMdId(name);
-                break;
-            case MACANDUINT:
-                mdId = MdIdMacUint.asMdId(name);
-                break;
-            case NONE:
-                mdId = MdIdNone.asMdId();
-                break;
-            case CHARACTERSTRING:
-            default:
-                mdId = MdIdCharStr.asMdId(name);
-        }
+        MdId mdId = CfmMdListMdCommand.parseMdName(name + "(" + nameType + ")");
+
         MaintenanceDomain.MdLevel levelEnum =
                 MaintenanceDomain.MdLevel.valueOf(level);
-        Optional<Short> numericIdOpt = Optional.empty();
-        if (numericId > 0) {
-            numericIdOpt = Optional.of(numericId);
-        }
 
-        MaintenanceDomain.MdBuilder builder = null;
         try {
-            builder = DefaultMaintenanceDomain.builder(mdId).mdLevel(levelEnum);
-            if (numericIdOpt.isPresent()) {
-                builder = builder.mdNumericId(numericIdOpt.get());
+            MaintenanceDomain.MdBuilder builder = DefaultMaintenanceDomain
+                    .builder(mdId).mdLevel(levelEnum);
+            if (numericId != null) {
+                builder = builder.mdNumericId(numericId);
             }
             boolean created = service.createMaintenanceDomain(builder.build());
             print("Maintenance Domain with id %s is successfully %s.",

@@ -23,7 +23,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.cfm.RemoteMepEntry}.
+ * The default implementation of {@link RemoteMepEntry}.
  */
 public class DefaultRemoteMepEntry implements RemoteMepEntry {
 

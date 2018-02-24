@@ -27,7 +27,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCre
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.Version;
 
 /**
- * Abstract implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.MeasurementCreateBase}.
+ * Abstract implementation of {@link MeasurementCreateBase}.
  */
 public abstract class DefaultMeasurementCreateBase
         implements MeasurementCreateBase {
@@ -144,7 +144,7 @@ public abstract class DefaultMeasurementCreateBase
 
     /**
      * Abstract Builder class for  building.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.MeasurementCreateBase}.
+     * {@link MeasurementCreateBase}.
      */
     protected abstract static class DefaultMeasCreateBaseBuilder implements MeasCreateBaseBuilder {
         protected final Version version;

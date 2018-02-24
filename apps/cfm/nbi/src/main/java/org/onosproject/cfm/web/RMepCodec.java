@@ -33,20 +33,45 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class RMepCodec extends JsonCodec<MepId> {
 
+    /**
+     * Encodes the MepId entity into JSON.
+     *
+     * @param rmep  MepId to encode
+     * @param context encoding context
+     * @return JSON node
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ObjectNode encode(MepId rmep, CodecContext context) {
         return context.mapper().createObjectNode().put("rmep", rmep.id());
     }
 
+    /**
+     * Encodes the collection of the MepId entities.
+     *
+     * @param rmeps collection of MepId to encode
+     * @param context  encoding context
+     * @return JSON array
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support encode operations
+     */
     @Override
     public ArrayNode encode(Iterable<MepId> rmeps, CodecContext context) {
         ArrayNode an = context.mapper().createArrayNode();
-        rmeps.forEach(rmep -> {
-            an.add(encode(rmep, context));
-        });
+        rmeps.forEach(rmep -> an.add(encode(rmep, context)));
         return an;
     }
 
+    /**
+     * Decodes the MepId entity from JSON.
+     *
+     * @param json    JSON to decode
+     * @param context decoding context
+     * @return decoded MepId
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public MepId decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
@@ -60,6 +85,15 @@ public class RMepCodec extends JsonCodec<MepId> {
 
     }
 
+    /**
+     * Decodes the MepId JSON array into a collection of entities.
+     *
+     * @param json    JSON array to decode
+     * @param context decoding context
+     * @return collection of decoded MepId
+     * @throws java.lang.UnsupportedOperationException if the codec does not
+     *                                                 support decode operations
+     */
     @Override
     public List<MepId> decode(ArrayNode json, CodecContext context) {
         List<MepId> rmepList = new ArrayList<>();

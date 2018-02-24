@@ -39,18 +39,15 @@ import static org.slf4j.LoggerFactory.getLogger;
         description = "Lists a filtered set of MEPs or all if no parameters specified.")
 public class CfmMepListCommand extends AbstractShellCommand {
     private final Logger log = getLogger(getClass());
-    @Argument(index = 0, name = "md",
-            description = "Maintenance Domain name and type (in brackets) - will use all MDs if not specified",
-            required = false, multiValued = false)
-    String mdStr = null;
+    @Argument(name = "md",
+            description = "Maintenance Domain name and type (in brackets) - will use all MDs if not specified")
+    private String mdStr = null;
     @Argument(index = 1, name = "ma",
-            description = "Maintenance Association name and type (in brackets) - requires MD",
-            required = false, multiValued = false)
-    String maStr = null;
+            description = "Maintenance Association name and type (in brackets) - requires MD")
+    private String maStr = null;
     @Argument(index = 2, name = "mep",
-            description = "MEP identifier - requires MD and MA",
-            required = false, multiValued = false)
-    String mepStr = null;
+            description = "MEP identifier - requires MD and MA")
+    private String mepStr = null;
 
     @Override
     protected void execute() {
@@ -83,9 +80,8 @@ public class CfmMepListCommand extends AbstractShellCommand {
                 } else {
                     //MD and MA given but no MEP given
                     try {
-                        mepService.getAllMeps(mdId, maId).forEach(mep -> {
-                            print(printMepEntry(mep));
-                        });
+                        mepService.getAllMeps(mdId, maId)
+                                .forEach(mep -> print(printMepEntry(mep)));
                     } catch (CfmConfigException e) {
                         log.error("Error retrieving Meps for {}/{}",
                                 mdId.mdName(), maId.maName(), e);
@@ -96,9 +92,8 @@ public class CfmMepListCommand extends AbstractShellCommand {
                 mdService.getAllMaintenanceAssociation(mdId).forEach(ma -> {
                     print(printMaId(ma.maId()));
                     try {
-                        mepService.getAllMeps(mdId, ma.maId()).forEach(mep -> {
-                            print(printMepEntry(mep));
-                        });
+                        mepService.getAllMeps(mdId, ma.maId())
+                                .forEach(mep -> print(printMepEntry(mep)));
                     } catch (CfmConfigException e) {
                         log.error("Error retrieving Meps for {}/{}",
                                 mdId.mdName(), ma.maId().maName(), e);
@@ -113,9 +108,8 @@ public class CfmMepListCommand extends AbstractShellCommand {
                 mdService.getAllMaintenanceAssociation(md.mdId()).forEach(ma -> {
                     print(printMaId(ma.maId()));
                     try {
-                        mepService.getAllMeps(md.mdId(), ma.maId()).forEach(mep -> {
-                            print(printMepEntry(mep));
-                        });
+                        mepService.getAllMeps(md.mdId(), ma.maId())
+                                .forEach(mep -> print(printMepEntry(mep)));
                     } catch (CfmConfigException e) {
                         log.error("Error retrieving Meps for {}/{}",
                                 md.mdId().mdName(), ma.maId().maName(), e);
@@ -130,25 +124,38 @@ public class CfmMepListCommand extends AbstractShellCommand {
      * @param mep The MEPEntry to print
      * @return A string with MepEntry details
      */
-    public static String printMepEntry(MepEntry mep) {
+    private static String printMepEntry(MepEntry mep) {
         StringBuffer sb = new StringBuffer("MEP: ");
         sb.append(mep.mepId());
-        sb.append(" Device:" + mep.deviceId());
-        sb.append(", Port: " + mep.port());
-        sb.append(", Vlan: " + mep.primaryVid());
-        sb.append(", AdminSt: " + mep.administrativeState());
-        sb.append(", CciEnabled: " + mep.cciEnabled());
-        sb.append(", Priority: " + mep.ccmLtmPriority());
+        sb.append(" Device:");
+        sb.append(mep.deviceId());
+        sb.append(", Port: ");
+        sb.append(mep.port());
+        sb.append(", Vlan: ");
+        sb.append(mep.primaryVid());
+        sb.append(", AdminSt: ");
+        sb.append(mep.administrativeState());
+        sb.append(", CciEnabled: ");
+        sb.append(mep.cciEnabled());
+        sb.append(", Priority: ");
+        sb.append(mep.ccmLtmPriority());
         sb.append("\n"); //The following are state
-        sb.append(", Total CCMs: " + mep.totalCcmsTransmitted());
-        sb.append(", MAC: " + mep.macAddress());
-        sb.append(", Fault: " + mep.fngState());
+        sb.append(", Total CCMs: ");
+        sb.append(mep.totalCcmsTransmitted());
+        sb.append(", MAC: ");
+        sb.append(mep.macAddress());
+        sb.append(", Fault: ");
+        sb.append(mep.fngState());
 
         mep.activeRemoteMepList().forEach(rmep -> {
-            sb.append("\n\tRmep: " + rmep.remoteMepId());
-            sb.append(", Mac: " + rmep.macAddress());
-            sb.append(", State: " + rmep.state());
-            sb.append(", Failed Time: " + rmep.failedOrOkTime());
+            sb.append("\n\tRmep: ");
+            sb.append(rmep.remoteMepId());
+            sb.append(", Mac: ");
+            sb.append(rmep.macAddress());
+            sb.append(", State: ");
+            sb.append(rmep.state());
+            sb.append(", Failed Time: ");
+            sb.append(rmep.failedOrOkTime());
 
         });
 
@@ -156,18 +163,12 @@ public class CfmMepListCommand extends AbstractShellCommand {
         return sb.toString();
     }
 
-    public static String printMdId(MdId mdId) {
-        StringBuffer sb = new StringBuffer("MD: ");
-        sb.append(mdId.mdName());
-        sb.append("(" + mdId.nameType() + ")");
-        return sb.toString();
+    private static String printMdId(MdId mdId) {
+        return "MD: " + mdId.mdName() + "(" + mdId.nameType() + ")";
     }
 
-    public static String printMaId(MaIdShort maId) {
-        StringBuffer sb = new StringBuffer("MA: ");
-        sb.append(maId.maName());
-        sb.append("(" + maId.nameType() + ")");
-        return sb.toString();
+    private static String printMaId(MaIdShort maId) {
+        return "MA: " + maId.maName() + "(" + maId.nameType() + ")";
     }
 
 }

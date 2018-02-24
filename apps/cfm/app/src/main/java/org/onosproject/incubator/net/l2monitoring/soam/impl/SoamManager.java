@@ -230,7 +230,7 @@ public class SoamManager implements SoamService {
 
     @Override
     public LossMeasurementStatCurrent getLmCurrentStat(MdId mdName,
-            MaIdShort maName, MepId mepId, SoamId lmId) {
+                                                       MaIdShort maName, MepId mepId, SoamId lmId) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 

@@ -20,7 +20,7 @@ import java.time.Instant;
 
 /**
  * The default implementation of DelayMeasurementStatCurrent.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatCurrent}.
+ * {@link DelayMeasurementStatCurrent}.
  */
 public final class DefaultDelayMeasurementStatCurrent
     extends DefaultDelayMeasurementStat
@@ -43,7 +43,7 @@ public final class DefaultDelayMeasurementStatCurrent
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatCurrent}.
+     * Builder for {@link DelayMeasurementStatCurrent}.
      */
     private static final class DefaultDmStatCurrentBuilder extends DefaultDmStatBuilder
         implements DmStatCurrentBuilder {

@@ -15,8 +15,6 @@
  */
 package org.onosproject.incubator.net.l2monitoring.soam.delay;
 
-import static org.junit.Assert.*;
-
 import java.time.Duration;
 
 import org.junit.Before;
@@ -29,6 +27,8 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.DmType;
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.Version;
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementEntry.SessionStatus;
+
+import static org.junit.Assert.assertEquals;
 
 public class DelayMeasurementEntryTest {
 

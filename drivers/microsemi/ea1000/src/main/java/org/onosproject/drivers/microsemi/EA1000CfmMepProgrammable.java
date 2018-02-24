@@ -107,14 +107,16 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
     implements CfmMepProgrammable {
 
     private static final int NUMERIC_ID_MAX = 64;
-    private static final int REMOTEMEPLIST_MIN_COUNT = 2;
-    private static final int REMOTEMEPLIST_MAX_COUNT = 9;
     private static final int COMPONENT_LIST_SIZE = 1;
     private static final int VIDLIST_SIZE_MIN = 1;
     private static final int MEP_PORT_MIN = 0;
     private static final int MEP_PORT_MAX = 1;
+    public static final String MUST_1_64_MSG = " must be between 1 and 64 inclusive for EA1000";
     private final Logger log = getLogger(getClass());
 
+    /**
+     * Creates the instance of the EA1000CfmMepProgrammable.
+     */
     public EA1000CfmMepProgrammable() {
         log.debug("Loaded handler behaviour EA1000CfmMepProgrammable");
     }
@@ -142,10 +144,9 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                 .maintenanceAssociation().get(0).addToRemoteMeps(MepIdType.of(mep.mepId().value()));
 
         //Add all of the existing meps on this MD/MA to the remote meps list
-        cfmMepService.getAllMeps(mdName, maName).forEach(m -> {
-            mseaCfmOpParam.mefCfm().maintenanceDomain().get(0)
-                    .maintenanceAssociation().get(0).addToRemoteMeps(MepIdType.of(m.mepId().value()));
-        });
+        cfmMepService.getAllMeps(mdName, maName).forEach(m -> mseaCfmOpParam.mefCfm()
+                .maintenanceDomain().get(0).maintenanceAssociation().get(0)
+                .addToRemoteMeps(MepIdType.of(m.mepId().value())));
         try {
             mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
             log.info("Created MEP {} on device {}", mdName + "/" + maName +
@@ -154,8 +155,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             return true;
         } catch (NetconfException e) {
             log.error("Unable to create MEP {}/{}/{} on device {}",
-                    mdName, maName, mep.mepId(), handler().data().deviceId());
-            throw new CfmConfigException("Unable to create MEP :" + e.getMessage());
+                    mdName, maName, mep.mepId(), handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to create MEP :" + e.getMessage(), e);
         }
     }
 
@@ -183,8 +184,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             }
         } catch (NetconfException e) {
             log.error("Unable to get MEP {}/{}/{} on device {}",
-                    mdName, maName, mepId, handler().data().deviceId());
-            throw new CfmConfigException("Unable to get MEP :" + e.getMessage());
+                    mdName, maName, mepId, handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to get MEP :" + e.getMessage(), e);
         }
     }
 
@@ -235,7 +236,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             //The MA and/or MD have probably been deleted
             // try to get numeric id values from oldMd
             log.debug("Could not get MD/MA details from MD service during deletion of MEP {}." +
-                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId));
+                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId), e);
             yangMa.id(getMaNumericId(oldMd.get(), maName));
         }
 
@@ -251,7 +252,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             //The MD has probably been deleted
             // try to get numeric id values from oldMd
             log.debug("Could not get MD details from MD service during deletion of MEP {}." +
-                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId));
+                    "Continuing with values from event", new MepKeyId(mdName, maName, mepId), e);
             yangMd.id(oldMd.get().mdNumericId());
         }
         yangMd.addToMaintenanceAssociation(yangMa);
@@ -290,14 +291,12 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                 .mefcfm.MaintenanceDomain yangMd = buildYangMdFromApiMd(md);
 
         if (md.mdNumericId() <= 0 || md.mdNumericId() > NUMERIC_ID_MAX) {
-            throw new CfmConfigException("Numeric id of MD " + mdId + " must"
-                    + " be between 1 and 64 inclusive for EA1000");
+            throw new CfmConfigException("Numeric id of MD " + mdId + MUST_1_64_MSG);
         }
 
         for (MaintenanceAssociation ma:md.maintenanceAssociationList()) {
             if (ma.maNumericId() <= 0 || ma.maNumericId() > NUMERIC_ID_MAX) {
-                throw new CfmConfigException("Numeric id of MA " + mdId + " must"
-                        + " be between 1 and 64 inclusive for EA1000");
+                throw new CfmConfigException("Numeric id of MA " + mdId + MUST_1_64_MSG);
             }
             org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain
                     .MaintenanceAssociation yangMa = buildYangMaFromApiMa(ma);
@@ -320,8 +319,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             return created;
         } catch (NetconfException e) {
             log.error("Unable to create MD {} on device {}",
-                    mdId.mdName(), handler().data().deviceId());
-            throw new CfmConfigException("Unable to create MD :" + e.getMessage());
+                    mdId.mdName(), handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to create MD :" + e.getMessage(), e);
         }
     }
 
@@ -344,8 +343,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             return created;
         } catch (NetconfException e) {
             log.error("Unable to create MA {} on device {}",
-                    mdId.mdName() + "/" + maId.maName(), handler().data().deviceId());
-            throw new CfmConfigException("Unable to create MA :" + e.getMessage());
+                    mdId.mdName() + "/" + maId.maName(), handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to create MA :" + e.getMessage(), e);
         }
     }
 
@@ -362,11 +361,9 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         yangMd.addToMaintenanceAssociation(yangMa);
 
         if (md.mdNumericId() <= 0 || md.mdNumericId() > NUMERIC_ID_MAX) {
-            throw new CfmConfigException("Numeric id of MD " + mdName + " must"
-                    + " be between 1 and 64 inclusive for EA1000");
+            throw new CfmConfigException("Numeric id of MD " + mdName + MUST_1_64_MSG);
         } else if (ma.maNumericId() <= 0 || ma.maNumericId() > NUMERIC_ID_MAX) {
-            throw new CfmConfigException("Numeric id of MA " + maName + " must"
-                    + " be between 1 and 64 inclusive for EA1000");
+            throw new CfmConfigException("Numeric id of MA " + maName + MUST_1_64_MSG);
         }
 
         MefCfm mefCfm = new DefaultMefCfm();
@@ -391,7 +388,6 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         // the Meps should have been deleted first
         //If there are none known to ONOS we do not check for Meps on the actual device
         // - there might might be some orphaned ones down there - we want to delete these
-        //FIXME: When CfmMepService is extended to be persistent come back and enable check
         CfmMdService mdService = checkNotNull(handler().get(CfmMdService.class));
         MseaCfmNetconfService mseaCfmService =
                 checkNotNull(handler().get(MseaCfmNetconfService.class));
@@ -404,6 +400,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             mdNumericId = mdService.getMaintenanceDomain(mdId).get().mdNumericId();
             yangMd.id(mdNumericId);
         } catch (NoSuchElementException e) {
+            log.debug("Cannot get numericId of MD from service - getting from oldValue", e);
             yangMd.id(oldMd.get().mdNumericId());
         }
 
@@ -415,13 +412,12 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
 
         try {
             boolean deleted = mseaCfmService.deleteMseaMd(mseaCfmOpParam, session, DatastoreId.RUNNING);
-            log.info("Deleted MD {} on device {}", mdName,
-                    handler().data().deviceId());
+            log.info("Deleted MD {} on device {}", mdName, handler().data().deviceId());
             return deleted;
         } catch (NetconfException e) {
             log.error("Unable to delete MD {} ({}) on device {}",
-                    mdName, mdNumericId, handler().data().deviceId());
-            throw new CfmConfigException("Unable to delete MD :" + e.getMessage());
+                    mdName, mdNumericId, handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to delete MD :" + e.getMessage(), e);
         }
 
     }
@@ -447,6 +443,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                     mdService.getMaintenanceAssociation(mdId, maId).get().maNumericId();
             yangMa.id(maNumericId);
         } catch (NoSuchElementException e) {
+            log.debug("Cannot get numericId of MA from service - getting from oldValue", e);
             yangMa.id(getMaNumericId(oldMd.get(), maId));
         }
 
@@ -457,6 +454,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
             mdNumericId = mdService.getMaintenanceDomain(mdId).get().mdNumericId();
             yangMd.id(mdNumericId);
         } catch (NoSuchElementException e) {
+            log.debug("Cannot get numericId of MD from service - getting from oldValue", e);
             yangMd.id(oldMd.get().mdNumericId());
         }
         yangMd.addToMaintenanceAssociation(yangMa);
@@ -475,8 +473,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         } catch (NetconfException e) {
             log.error("Unable to delete MA {} ({}) on device {}",
                     mdId.mdName() + "/" + maId.maName(),
-                    mdNumericId + "/" + maNumericId, handler().data().deviceId());
-            throw new CfmConfigException("Unable to delete MA :" + e.getMessage());
+                    mdNumericId + "/" + maNumericId, handler().data().deviceId(), e);
+            throw new CfmConfigException("Unable to delete MA :" + e.getMessage(), e);
         }
     }
 
@@ -523,7 +521,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         mseaCfmOpParam.mefCfm(mefCfm);
 
         try {
-            boolean result = false;
+            boolean result;
             if (isCreate) {
                 result = mseaCfmService.setMseaCfm(mseaCfmOpParam, session, DatastoreId.RUNNING);
             } else {
@@ -535,9 +533,9 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         } catch (NetconfException e) {
             log.error("Unable to {} RemoteMep {} in MA {} on device {}",
                     isCreate ? "create" : "delete", remoteMep, mdId.mdName() + "/" + maId.maName(),
-                    handler().data().deviceId());
+                    handler().data().deviceId(), e);
             throw new CfmConfigException("Unable to " + (isCreate ? "create" : "delete")
-                    + " Remote Mep:" + e.getMessage());
+                    + " Remote Mep:" + e.getMessage(), e);
         }
     }
 
@@ -671,25 +669,9 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         }
 
         if (apiMa.ccmInterval() != null) {
-            switch (apiMa.ccmInterval()) {
-            case INTERVAL_3MS:
-                yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX3_3MS);
-                break;
-            case INTERVAL_10MS:
-                yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX10MS);
-                break;
-            case INTERVAL_100MS:
-                yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX100MS);
-                break;
-            case INTERVAL_1S:
-                yamgMa.ccmInterval(CcmIntervalEnum.YANGAUTOPREFIX1S);
-                break;
-            default:
-                throw new CfmConfigException("EA1000 only supports "
-                        + "3ms, 10ms, 100ms and 1s for CCM Interval. Rejecting: "
-                        + apiMa.ccmInterval().name());
-            }
+            yamgMa.ccmInterval(getYangCcmIntervalFromApi(apiMa.ccmInterval()));
         }
+
         if (apiMa.componentList() == null || apiMa.componentList().size() != COMPONENT_LIST_SIZE) {
             throw new CfmConfigException("EA1000 supports only 1 Component in an MA");
         }
@@ -722,6 +704,24 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         yamgMa.componentList(compList);
         yamgMa.id(apiMa.maNumericId());
         return yamgMa;
+    }
+
+    private static CcmIntervalEnum getYangCcmIntervalFromApi(
+            MaintenanceAssociation.CcmInterval cci) throws CfmConfigException {
+        switch (cci) {
+            case INTERVAL_3MS:
+                return CcmIntervalEnum.YANGAUTOPREFIX3_3MS;
+            case INTERVAL_10MS:
+                return CcmIntervalEnum.YANGAUTOPREFIX10MS;
+            case INTERVAL_100MS:
+                return CcmIntervalEnum.YANGAUTOPREFIX100MS;
+            case INTERVAL_1S:
+                return CcmIntervalEnum.YANGAUTOPREFIX1S;
+            default:
+                throw new CfmConfigException("EA1000 only supports "
+                        + "3ms, 10ms, 100ms and 1s for CCM Interval. Rejecting: "
+                        + cci.name());
+        }
     }
 
     private static MaintenanceAssociationEndPoint buildYangMepFromApiMep(Mep mep)
@@ -786,7 +786,7 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                     .maintenancedomain.maintenanceassociation
                     .maintenanceassociationendpoint.remotemepdatabase.RemoteMep
                     rmep:yangMep.remoteMepDatabase().remoteMep()) {
-                builder = (MepEntry.MepEntryBuilder) builder.addToActiveRemoteMepList(
+                builder = builder.addToActiveRemoteMepList(
                         getApiRemoteMepFromYangRemoteMep(rmep));
             }
         }
@@ -805,9 +805,8 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
         AugmentedMseaCfmMaintenanceAssociationEndPoint augmentedyangMep = yangMep
                 .augmentation(DefaultAugmentedMseaCfmMaintenanceAssociationEndPoint.class);
 
-        if (augmentedyangMep != null) {
-            if (augmentedyangMep.lastDefectSent() != null) {
-                builder = (MepEntry.MepEntryBuilder) builder
+        if (augmentedyangMep != null && augmentedyangMep.lastDefectSent() != null)  {
+            builder = builder
                 .activeXconCcmDefect(augmentedyangMep.lastDefectSent().bits()
                             .get(Bits.CROSS_CONNECT_CCM.bits()))
                 .activeErrorCcmDefect(augmentedyangMep.lastDefectSent().bits()
@@ -818,7 +817,6 @@ public class EA1000CfmMepProgrammable extends AbstractHandlerBehaviour
                         .get(Bits.REMOTE_RDI.bits()))
                 .activeRemoteCcmDefect(augmentedyangMep.lastDefectSent().bits()
                         .get(Bits.REMOTE_INVALID_CCM.bits()));
-            }
         }
 
         return builder.buildEntry();

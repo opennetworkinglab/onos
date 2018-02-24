@@ -21,8 +21,8 @@ import org.onosproject.incubator.net.l2monitoring.soam.MilliPct;
 
 /**
  * Abstract base interface for the creation of Loss Measurement Stat.
- * This is the base for {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatHistory}
- * and {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStatCurrent}
+ * This is the base for {@link LossMeasurementStatHistory}
+ * and {@link LossMeasurementStatCurrent}
  */
 public interface LossMeasurementStat {
     /**
@@ -142,7 +142,7 @@ public interface LossMeasurementStat {
     Long soamPdusReceived();
 
     /**
-     * Base interface for builders of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementStat}.
+     * Base interface for builders of {@link LossMeasurementStat}.
      */
     interface LmStatBuilder {
         LmStatBuilder forwardTransmittedFrames(Long forwardTransmittedFrames);

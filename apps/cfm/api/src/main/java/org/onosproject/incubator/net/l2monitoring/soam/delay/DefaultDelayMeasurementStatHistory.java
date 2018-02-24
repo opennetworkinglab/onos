@@ -22,7 +22,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 
 /**
  * The default implementation of DelayMeasurementStatHistory.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatHistory}.
+ * {@link DelayMeasurementStatHistory}.
  */
 public class DefaultDelayMeasurementStatHistory extends DefaultDelayMeasurementStat
         implements DelayMeasurementStatHistory {
@@ -53,7 +53,7 @@ public class DefaultDelayMeasurementStatHistory extends DefaultDelayMeasurementS
     }
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStatHistory}.
+     * Builder for {@link DelayMeasurementStatHistory}.
      */
     private static final class DefaultDmStatHistoryBuilder
         extends DefaultDmStatBuilder implements DmStatHistoryBuilder {

@@ -27,7 +27,7 @@ import org.onosproject.incubator.net.l2monitoring.soam.SoamConfigException;
 import org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementCreate.Version;
 
 /**
- * The default implementation of {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate}.
+ * The default implementation of {@link LossMeasurementCreate}.
  */
 public class DefaultLmCreate extends DefaultMeasurementCreateBase
         implements LossMeasurementCreate {
@@ -101,7 +101,7 @@ public class DefaultLmCreate extends DefaultMeasurementCreateBase
 
     /**
      * Implementation of LmCreateBuilder.
-     * {@link org.onosproject.incubator.net.l2monitoring.soam.loss.LossMeasurementCreate.LmCreateBuilder}
+     * {@link LossMeasurementCreate.LmCreateBuilder}
      */
     protected static class DefaultLmCreateBuilder extends DefaultMeasCreateBaseBuilder
             implements LmCreateBuilder {

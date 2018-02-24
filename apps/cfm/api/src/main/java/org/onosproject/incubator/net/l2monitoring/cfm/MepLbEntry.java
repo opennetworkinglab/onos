@@ -58,7 +58,7 @@ public interface MepLbEntry {
     long countLbrMacMisMatch();
 
     /**
-     * Builder for {@link org.onosproject.incubator.net.l2monitoring.cfm.MepLbEntry}.
+     * Builder for {@link MepLbEntry}.
      */
     interface MepLbEntryBuilder {
         MepLbEntryBuilder nextLbmIdentifier(long nextLbmIdentifier);

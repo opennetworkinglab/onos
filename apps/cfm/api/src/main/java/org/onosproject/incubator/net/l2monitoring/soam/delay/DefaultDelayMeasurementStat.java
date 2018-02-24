@@ -22,7 +22,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Abstract default implementation of DelayMeasurementStat.
- * {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStat}.
+ * {@link DelayMeasurementStat}.
  */
 public abstract class DefaultDelayMeasurementStat implements DelayMeasurementStat {
 
@@ -326,7 +326,7 @@ public abstract class DefaultDelayMeasurementStat implements DelayMeasurementSta
     }
 
     /**
-     * Abstract builder for {@link org.onosproject.incubator.net.l2monitoring.soam.delay.DelayMeasurementStat}.
+     * Abstract builder for {@link DelayMeasurementStat}.
      */
     protected abstract static class DefaultDmStatBuilder implements DmStatBuilder {
 

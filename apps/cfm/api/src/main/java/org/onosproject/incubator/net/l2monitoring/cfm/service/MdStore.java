@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * {@link org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain Maintenance Domain's} storage interface.
+ * {@link MaintenanceDomain Maintenance Domain's} storage interface.
  * Note: because the MaintenanceDomain is immutable if anything needs to be
  * changed in it, then it must be replaced in the store. This includes adding
  * and deleting Maintenance Associations from an MD.

@@ -20,20 +20,10 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaId2Octet;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdIccY1731;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdPrimaryVid;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdRfc2685VpnId;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdCharStr;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdDomainName;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdMacUint;
-import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdIdNone;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdMaNameUtil;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
-
-import java.util.Optional;
 
 /**
  * Lists a particular Maintenance Domain.
@@ -41,63 +31,65 @@ import java.util.Optional;
 @Command(scope = "onos", name = "cfm-md-list",
         description = "Lists a single CFM Maintenance Domain or all if none specified.")
 public class CfmMdListMdCommand extends AbstractShellCommand {
-    @Argument(index = 0, name = "name",
-            description = "Maintenance Domain name and type (in brackets)",
-            required = false, multiValued = false)
-    String name = null;
+    @Argument(name = "name",
+            description = "Maintenance Domain name and type (in brackets)")
+    private String name = null;
 
     @Override
     protected void execute() {
-        CfmMdService service = get(CfmMdService.class);
+        CfmMdService service;
+        service = get(CfmMdService.class);
 
         if (name != null) {
             MdId mdId = parseMdName(name);
             print("Maintenance Domain:");
-            Optional<MaintenanceDomain> md = service.getMaintenanceDomain(mdId);
-            print(printMd(md));
-            md.get().maintenanceAssociationList().forEach(ma -> printMa(Optional.of(ma)));
-        } else {
-            service.getAllMaintenanceDomain().forEach(md -> {
-                print(printMd(Optional.of(md)));
+            service.getMaintenanceDomain(mdId).ifPresent(md -> {
+                print(printMd(md));
+                md.maintenanceAssociationList().forEach(CfmMdListMdCommand::printMa);
             });
+        } else {
+            service.getAllMaintenanceDomain().forEach(md -> print(printMd(md)));
         }
     }
 
-    public static String printMd(Optional<MaintenanceDomain> md) {
-        if (!md.isPresent()) {
-            return new String("MD not found");
+    private static String printMd(MaintenanceDomain md) {
+        if (md == null) {
+            return "MD not found";
         } else {
-            StringBuffer sb = new StringBuffer("\tMD: ");
-            sb.append(md.get().mdId().mdName());
-            sb.append("(" + md.get().mdId().nameType());
-            sb.append(") Lvl:" + md.get().mdLevel().ordinal());
-            sb.append(", Num: " + md.get().mdNumericId());
+            StringBuilder sb = new StringBuilder("\tMD: ");
+            sb.append(md.mdId().mdName());
+            sb.append("(");
+            sb.append(md.mdId().nameType());
+            sb.append(") Lvl:");
+            sb.append(md.mdLevel().ordinal());
+            sb.append(", Num: ");
+            sb.append(md.mdNumericId());
 
-            md.get().maintenanceAssociationList().
-                    forEach(ma -> sb.append(printMa(Optional.of(ma))));
+            md.maintenanceAssociationList().
+                    forEach(ma -> sb.append(printMa(ma)));
             return sb.toString();
         }
     }
 
-    public static String printMa(Optional<MaintenanceAssociation> ma) {
-        if (!ma.isPresent()) {
+    private static String printMa(MaintenanceAssociation ma) {
+        if (ma == null) {
             return "\n\tNo MA found";
         }
 
         StringBuilder sb = new StringBuilder("\n\t\tMA: ");
-        sb.append(ma.get().maId().maName());
+        sb.append(ma.maId().maName());
         sb.append("(");
-        sb.append(ma.get().maId().nameType());
+        sb.append(ma.maId().nameType());
         sb.append(") CCM: ");
-        sb.append(ma.get().ccmInterval());
+        sb.append(ma.ccmInterval());
         sb.append(" Num: ");
-        sb.append(ma.get().maNumericId());
+        sb.append(ma.maNumericId());
 
-        ma.get().remoteMepIdList().forEach(rmep -> {
+        ma.remoteMepIdList().forEach(rmep -> {
                     sb.append("\n\t\t\tRmep: ");
                     sb.append(rmep);
                 });
-        ma.get().componentList().forEach(comp -> {
+        ma.componentList().forEach(comp -> {
             sb.append("\n\t\t\tComponent: ");
             sb.append(comp.componentId());
             sb.append(" Perm: ");
@@ -116,59 +108,24 @@ public class CfmMdListMdCommand extends AbstractShellCommand {
         return sb.toString();
     }
 
-    public static MdId parseMdName(String mdStr) {
+    static MdId parseMdName(String mdStr) {
         String[] nameParts = mdStr.split("[()]");
         if (nameParts.length != 2) {
             throw new IllegalArgumentException("Invalid name format. " +
                     "Must be in the format of <identifier(name-type)>");
         }
 
-        MdId mdId = null;
-        MdId.MdNameType nameTypeEnum = MdId.MdNameType.valueOf(nameParts[1]);
-        switch (nameTypeEnum) {
-            case DOMAINNAME:
-                mdId = MdIdDomainName.asMdId(nameParts[0]);
-                break;
-            case MACANDUINT:
-                mdId = MdIdMacUint.asMdId(nameParts[0]);
-                break;
-            case NONE:
-                mdId = MdIdNone.asMdId();
-                break;
-            case CHARACTERSTRING:
-            default:
-                mdId = MdIdCharStr.asMdId(nameParts[0]);
-        }
-        return mdId;
+        return MdMaNameUtil.parseMdName(nameParts[1], nameParts[0]);
     }
 
-    public static MaIdShort parseMaName(String maStr) {
+    static MaIdShort parseMaName(String maStr) {
         String[] nameParts = maStr.split("[()]");
         if (nameParts.length != 2) {
             throw new IllegalArgumentException("Invalid name format. " +
                     "Must be in the format of <identifier(name-type)>");
         }
 
-        MaIdShort maId = null;
-        MaIdShort.MaIdType nameTypeEnum = MaIdShort.MaIdType.valueOf(nameParts[1]);
-        switch (nameTypeEnum) {
-            case ICCY1731:
-                maId = MaIdIccY1731.asMaId(nameParts[0]);
-                break;
-            case PRIMARYVID:
-                maId = MaIdPrimaryVid.asMaId(nameParts[0]);
-                break;
-            case RFC2685VPNID:
-                maId = MaIdRfc2685VpnId.asMaIdHex(nameParts[0]);
-                break;
-            case TWOOCTET:
-                maId = MaId2Octet.asMaId(nameParts[0]);
-                break;
-            case CHARACTERSTRING:
-            default:
-                maId = MaIdCharStr.asMaId(nameParts[0]);
-        }
-        return maId;
+        return MdMaNameUtil.parseMaName(nameParts[1], nameParts[0]);
     }
 
 }
