@@ -1533,6 +1533,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case SOURCE_ADDED:
                     mcastHandler.processSourceAdded(event);
                     break;
+                case SOURCE_UPDATED:
+                    mcastHandler.processSourceUpdated(event);
+                    break;
                 case SINK_ADDED:
                     mcastHandler.processSinkAdded(event);
                     break;
