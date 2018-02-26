@@ -1552,7 +1552,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         if (dhcpServerConnectMac != null && dhcpConnectVlan != null) {
             newServerInfo = serverInfo;
-            log.info("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp6(),
+            log.debug("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp6(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
         } else {
             log.warn("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp6(),
@@ -1850,7 +1850,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         for (DhcpServerInfo serverInfo : validServerInfoList) {
             if (inPort.equals(serverInfo.getDhcpServerConnectPoint().get())) {
                 foundServerInfo = serverInfo;
-                log.warn("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
+                log.debug("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
                         inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
                 break;
             } else {
