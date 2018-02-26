@@ -1596,7 +1596,7 @@ public class DefaultRoutingHandler {
             boolean sameResult = prevRun.equals(thisRun);
             log.debug("dev:{} prevRun:{} thisRun:{} sameResult:{}", devId, prevRun,
                       thisRun, sameResult);
-            if (thisRun == null || !sameResult || (sameResult && --constantAttempts > 0)) {
+            if (thisRun == null || !sameResult || (--constantAttempts > 0)) {
                 // exponentially increasing intervals for retries
                 executorService.schedule(this,
                     RETRY_INTERVAL_MS * (int) Math.pow(counter, RETRY_INTERVAL_SCALE),

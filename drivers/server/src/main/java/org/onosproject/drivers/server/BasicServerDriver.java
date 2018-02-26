@@ -66,6 +66,7 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      */
     protected static RestSBController controller = null;
     protected static DriverHandler       handler = null;
+    private static final Object CONTROLLER_LOCK = new Object();
 
     public BasicServerDriver() {};
 
@@ -78,18 +79,16 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      *         or the controller cannot be retrieved.
      */
     private void init() {
-        // Already done
-        if ((handler != null) && (controller != null)) {
-            return;
-        }
+        synchronized (CONTROLLER_LOCK) {
+            // Already done
+            if ((handler != null) && (controller != null)) {
+                return;
+            }
 
-        try {
             handler = handler();
             checkNotNull(handler, HANDLER_NULL);
             controller = handler.get(RestSBController.class);
             checkNotNull(controller, CONTROLLER_NULL);
-        } catch (ServiceNotFoundException e) {
-            throw e;
         }
     }
 
@@ -101,10 +100,11 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      * @return RestSBController instance
      */
     protected RestSBController getController() {
-        if (controller == null) {
-            init();
+        synchronized (CONTROLLER_LOCK) {
+            if (controller == null) {
+                init();
+            }
         }
-
         return controller;
     }
 
@@ -116,8 +116,10 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      * @return DriverHandler instance
      */
     protected DriverHandler getHandler() {
-        if (handler == null) {
-            init();
+        synchronized (CONTROLLER_LOCK) {
+            if (handler == null) {
+                init();
+            }
         }
 
         return handler;

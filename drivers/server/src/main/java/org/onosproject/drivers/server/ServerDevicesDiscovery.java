@@ -415,7 +415,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                     Thread.sleep(1);
                 } catch (InterruptedException intEx) {
                     // Just retry
-                } finally {
                     continue;
                 }
             }

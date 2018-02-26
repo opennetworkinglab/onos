@@ -82,7 +82,7 @@ public class OpenstackRoutingFloatingIpHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
-    private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
+    private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type %s";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -180,7 +180,7 @@ public class OpenstackRoutingFloatingIpHandler {
                 break;
             default:
                 final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         osNet.getNetworkType().toString());
                 throw new IllegalStateException(error);
         }
@@ -260,7 +260,7 @@ public class OpenstackRoutingFloatingIpHandler {
                             .setOutput(gNode.vlanPortNum());
                     break;
                 default:
-                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
+                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
                             osNet.getNetworkType());
                     throw new IllegalStateException(error);
             }
@@ -302,7 +302,7 @@ public class OpenstackRoutingFloatingIpHandler {
                             .setOutput(PortNumber.IN_PORT);
                     break;
                 default:
-                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
+                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
                             osNet.getNetworkType());
                     throw new IllegalStateException(error);
             }
@@ -333,7 +333,7 @@ public class OpenstackRoutingFloatingIpHandler {
                 sBuilder.matchVlanId(VlanId.vlanId(osNet.getProviderSegID()));
                 break;
             default:
-                final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
                         osNet.getNetworkType());
                 throw new IllegalStateException(error);
         }
