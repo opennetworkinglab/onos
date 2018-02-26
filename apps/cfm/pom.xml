@@ -101,24 +101,4 @@
 
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <_wab>src/main/webapp/</_wab>
-                        <Include-Resource>WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
-                            {maven-resources}</Include-Resource>
-                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-                        <Import-Package>*,org.glassfish.jersey.servlet</Import-Package>
-                        <Web-ContextPath>${web.context}</Web-ContextPath>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
