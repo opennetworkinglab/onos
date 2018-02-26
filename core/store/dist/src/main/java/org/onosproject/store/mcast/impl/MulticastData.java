@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -100,5 +101,13 @@ public final class MulticastData {
                 Objects.equals(source(), other.source()) &&
                 Objects.equals(sinks(), other.sinks()) &&
                 Objects.equals(isEmpty, other.isEmpty);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("source", source())
+                .add("sinks", sinks())
+                .toString();
     }
 }

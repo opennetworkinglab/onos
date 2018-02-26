@@ -135,11 +135,28 @@ public class DistributedMcastStore
                     checkNotNull(newData);
                     checkNotNull(oldData);
 
+                    // They are not equal
                     if (!Objects.equal(oldData.source(), newData.source())) {
-                        notifyDelegate(new McastEvent(McastEvent.Type.SOURCE_ADDED,
-                                                      mcastRouteInfo(route,
-                                                                     newData.sinks(),
-                                                                     newData.source())));
+                        // Both not null, it is an update event
+                        if (oldData.source() != null && newData.source() != null) {
+                            // Broadcast old and new data
+                            notifyDelegate(new McastEvent(McastEvent.Type.SOURCE_UPDATED,
+                                                          mcastRouteInfo(route,
+                                                                         newData.sinks(),
+                                                                         newData.source()),
+                                                          mcastRouteInfo(route,
+                                                                         oldData.sinks(),
+                                                                         oldData.source())));
+                        } else if (oldData.source() == null && newData.source() != null) {
+                            // It is a source added event, broadcast new data
+                            notifyDelegate(new McastEvent(McastEvent.Type.SOURCE_ADDED,
+                                                          mcastRouteInfo(route,
+                                                                         newData.sinks(),
+                                                                         newData.source())));
+                        } else {
+                            // Scenario not managed for now
+                            log.warn("Unhandled scenario {} - new {} - old {}", event.type());
+                        }
                     } else {
                         Sets.difference(newData.sinks(), oldData.sinks()).forEach(sink ->
                             notifyDelegate(new McastEvent(McastEvent.Type.SINK_ADDED,
