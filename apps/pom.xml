@@ -100,6 +100,7 @@
         <module>cfm</module>
         <module>routeradvertisement</module>
         <module>simplefabric</module>
+        <module>odtn</module>
     </modules>
 
     <properties>

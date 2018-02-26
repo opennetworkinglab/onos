@@ -234,6 +234,7 @@ ONOS_APPS = [
     '//apps/simplefabric:onos-apps-simplefabric-oar',
     '//apps/kafka-integration:onos-apps-kafka-integration-oar',
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
+    '//apps/odtn:onos-apps-odtn-oar',
 ]
 
 PROTOCOL_APPS = [

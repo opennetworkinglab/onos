@@ -1,0 +1,39 @@
+APPS = [
+    'org.onosproject.yang',
+    'org.onosproject.config',
+    'org.onosproject.configsync',
+    'org.onosproject.models.tapi',
+    'org.onosproject.models.openconfig',
+
+    # strictly speaking following are not mandatory
+    'org.onosproject.restconf',
+    'org.onosproject.drivers.netconf',
+    'org.onosproject.netconf',
+    'org.onosproject.configsync-netconf',
+]
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:onos-yang-model',
+    '//lib:onos-yang-runtime',
+    '//apps/config:onos-apps-config',
+    '//models/tapi:onos-models-tapi',
+    '//models/openconfig:onos-models-openconfig',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    title = 'ODTN Service Application',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'ODTN Service Application',
+    required_apps = APPS,
+)
