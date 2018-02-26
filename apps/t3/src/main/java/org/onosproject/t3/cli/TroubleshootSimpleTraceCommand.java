@@ -30,7 +30,7 @@ import static org.onlab.packet.EthType.EtherType;
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
  */
-@Command(scope = "onos", name = "troubleshoot-simple",
+@Command(scope = "onos", name = "t3-troubleshoot-simple",
         description = "Given two hosts troubleshoots flows and groups between them, in case of segment routing")
 public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
 
