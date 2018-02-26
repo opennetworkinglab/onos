@@ -74,12 +74,12 @@ class NullFlowRuleProvider extends NullProviders.AbstractNullProvider
 
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
-        // FIXME: invoke executeBatch
+        throw new UnsupportedOperationException("Cannot apply individual flow rules");
     }
 
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
-        // FIXME: invoke executeBatch
+        throw new UnsupportedOperationException("Cannot remove individual flow rules");
     }
 
     @Override

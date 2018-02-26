@@ -43,6 +43,16 @@ public interface FlowRuleService
     int getFlowRuleCount();
 
     /**
+     * Returns the number of flow rules for the given device.
+     *
+     * @param deviceId device identifier
+     * @return number of flow rules for the given device
+     */
+    default int getFlowRuleCount(DeviceId deviceId) {
+        return 0;
+    }
+
+    /**
      * Returns the collection of flow entries applied on the specified device.
      * This will include flow rules which may not yet have been applied to
      * the device.

@@ -179,6 +179,7 @@ ONOS_APPS = [
     '//apps/test/election:onos-apps-test-election-oar',
     '//apps/test/flow-perf:onos-apps-test-flow-perf-oar',
     '//apps/test/intent-perf:onos-apps-test-intent-perf-oar',
+    '//apps/test/route-scale:onos-apps-test-route-scale-oar',
     '//apps/test/loadtest:onos-apps-test-loadtest-oar',
     '//apps/test/netcfg-monitor:onos-apps-test-netcfg-monitor-oar',
     '//apps/test/messaging-perf:onos-apps-test-messaging-perf-oar',

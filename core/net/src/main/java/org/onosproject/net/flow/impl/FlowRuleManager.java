@@ -101,6 +101,7 @@ public class FlowRuleManager
                                                  FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
+    public static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private final Logger log = getLogger(getClass());
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
@@ -233,8 +234,16 @@ public class FlowRuleManager
     }
 
     @Override
+    public int getFlowRuleCount(DeviceId deviceId) {
+        checkPermission(FLOWRULE_READ);
+        checkNotNull(deviceId, "Device ID cannot be null");
+        return store.getFlowRuleCount(deviceId);
+    }
+
+    @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         checkPermission(FLOWRULE_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getFlowEntries(deviceId);
     }
 
@@ -252,6 +261,7 @@ public class FlowRuleManager
     @Override
     public void purgeFlowRules(DeviceId deviceId) {
         checkPermission(FLOWRULE_WRITE);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         store.purgeFlowRule(deviceId);
     }
 
@@ -343,6 +353,7 @@ public class FlowRuleManager
      */
     @Override
     protected synchronized FlowRuleProvider getProvider(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         // if device supports FlowRuleProgrammable,
         // use FlowRuleProgrammable via FlowRuleDriverProvider
         return Optional.ofNullable(deviceService.getDevice(deviceId))
@@ -714,11 +725,13 @@ public class FlowRuleManager
     @Override
     public Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId) {
         checkPermission(FLOWRULE_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getTableStatistics(deviceId);
     }
 
     @Override
     public long getActiveFlowRuleCount(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getActiveFlowRuleCount(deviceId);
     }
 

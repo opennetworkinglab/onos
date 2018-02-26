@@ -34,8 +34,11 @@ import java.util.Objects;
  * Base command for adding simulated entities to the custom topology simulation.
  */
 public abstract class CreateNullEntity extends AbstractShellCommand {
+
     protected static final String GEO = "geo";
     protected static final String GRID = "grid";
+
+    protected static final int MAX_EDGE_PORT_TRIES = 5;
 
     /**
      * Validates that the simulator is custom.
@@ -94,22 +97,32 @@ public abstract class CreateNullEntity extends AbstractShellCommand {
      * @return connect point available for link or host attachment
      */
     protected ConnectPoint findAvailablePort(DeviceId deviceId, ConnectPoint otherPoint) {
-        EdgePortService eps = get(EdgePortService.class);
         HostService hs = get(HostService.class);
+        return findAvailablePorts(deviceId).stream()
+                .filter(p -> !Objects.equals(p, otherPoint) && hs.getConnectedHosts(p).isEmpty())
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Finds an available connect points among edge ports of the specified device.
+     *
+     * @param deviceId device identifier
+     * @return list of connect points available for link or host attachments
+     */
+    protected List<ConnectPoint> findAvailablePorts(DeviceId deviceId) {
+        EdgePortService eps = get(EdgePortService.class);
 
         // As there may be a slight delay in edge service getting updated, retry a few times
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < MAX_EDGE_PORT_TRIES; i++) {
             List<ConnectPoint> points = ImmutableList
                     .sortedCopyOf((l, r) -> Longs.compare(l.port().toLong(), r.port().toLong()),
                                   eps.getEdgePoints(deviceId));
-            ConnectPoint point = points.stream()
-                    .filter(p -> !Objects.equals(p, otherPoint) && hs.getConnectedHosts(p).isEmpty())
-                    .findFirst().orElse(null);
-            if (point != null) {
-                return point;
+            if (!points.isEmpty()) {
+                return points;
             }
             Tools.delay(100);
         }
-        return null;
+        return ImmutableList.of();
     }
+
 }

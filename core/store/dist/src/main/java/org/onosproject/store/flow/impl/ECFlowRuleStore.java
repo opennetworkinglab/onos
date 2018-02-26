@@ -186,6 +186,7 @@ public class ECFlowRuleStore
             .register(KryoNamespaces.API)
             .register(MastershipBasedTimestamp.class);
 
+    private EventuallyConsistentMap<DeviceId, Integer> flowCounts;
 
     private IdGenerator idGenerator;
     private NodeId local;
@@ -211,6 +212,14 @@ public class ECFlowRuleStore
                 0,
                 backupPeriod,
                 TimeUnit.MILLISECONDS);
+
+        flowCounts = storageService.<DeviceId, Integer>eventuallyConsistentMapBuilder()
+                .withName("onos-flow-counts")
+                .withSerializer(serializerBuilder)
+                .withAntiEntropyPeriod(5, TimeUnit.SECONDS)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .withTombstonesDisabled()
+                .build();
 
         deviceTableStats = storageService.<DeviceId, List<TableStatisticsEntry>>eventuallyConsistentMapBuilder()
                 .withName("onos-flow-table-stats")
@@ -333,8 +342,14 @@ public class ECFlowRuleStore
     @Override
     public int getFlowRuleCount() {
         return Streams.stream(deviceService.getDevices()).parallel()
-                        .mapToInt(device -> Iterables.size(getFlowEntries(device.id())))
-                        .sum();
+                .mapToInt(device -> getFlowRuleCount(device.id()))
+                .sum();
+    }
+
+    @Override
+    public int getFlowRuleCount(DeviceId deviceId) {
+        Integer count = flowCounts.get(deviceId);
+        return count != null ? count : 0;
     }
 
     @Override
@@ -703,7 +718,13 @@ public class ECFlowRuleStore
             log.debug("Sending flowEntries for devices {} to {} for backup.", deviceIds, nodeId);
             Map<DeviceId, Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>>
                     deviceFlowEntries = Maps.newConcurrentMap();
-            deviceIds.forEach(id -> deviceFlowEntries.put(id, getFlowTableCopy(id)));
+            deviceIds.forEach(id -> {
+                Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> copy = getFlowTableCopy(id);
+                int flowCount = copy.entrySet().stream()
+                        .mapToInt(e -> e.getValue().values().size()).sum();
+                flowCounts.put(id, flowCount);
+                deviceFlowEntries.put(id, copy);
+            });
             clusterCommunicator.<Map<DeviceId,
                                  Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>>,
                                  Set<DeviceId>>
