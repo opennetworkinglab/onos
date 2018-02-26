@@ -305,7 +305,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             String portTypeStr = get(nn, NIC_PARAM_PORT_TYPE);
             Port.Type portType = PORT_TYPE_MAP.get(portTypeStr);
             if (portType == null) {
-                throw new RuntimeException(
+                throw new IllegalArgumentException(
                     portTypeStr + " is not a valid port type for NIC " + nicId
                 );
             }
@@ -313,7 +313,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             String hwAddr      = get(nn, NIC_PARAM_HW_ADDR);
             JsonNode tagNode   = nicObjNode.path(NIC_PARAM_RX_FILTER);
             if (tagNode == null) {
-                throw new RuntimeException(
+                throw new IllegalArgumentException(
                     "The Rx filters of NIC " + nicId + " are not reported"
                 );
             }
@@ -723,7 +723,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         // And verify that this is the traffic class we want to monitor
         if (!id.equals(tcId.toString())) {
-            throw new RuntimeException(
+            throw new IllegalStateException(
                 "Failed to retrieve monitoring data for traffic class " + tcId +
                 ". Traffic class ID does not agree."
             );

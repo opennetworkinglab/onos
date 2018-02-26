@@ -160,7 +160,7 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
         try {
             result = jsonNode.get(attribute).asText();
         } catch (Exception ex) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                 "Failed to read JSON attribute: " + attribute
             );
         }

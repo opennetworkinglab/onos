@@ -129,7 +129,7 @@ public interface L2TunnelHandler {
 
         private final int code;
         private final String description;
-        public int nextId;
+        protected int nextId;
 
         Result(int code, String description) {
             this.code = code;
