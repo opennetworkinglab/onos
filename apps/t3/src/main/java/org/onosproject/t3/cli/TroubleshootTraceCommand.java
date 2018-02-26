@@ -38,7 +38,7 @@ import static org.onlab.packet.EthType.EtherType;
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
  */
-@Command(scope = "onos", name = "troubleshoot",
+@Command(scope = "onos", name = "t3-troubleshoot",
         description = "troubleshoots flows and groups between source and destination")
 public class TroubleshootTraceCommand extends AbstractShellCommand {
 
