@@ -13,11 +13,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-apps</artifactId>
+        <artifactId>onos-apps-cfm</artifactId>
         <version>1.13.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-apps-cfm</artifactId>
+    <artifactId>onos-apps-cfm-nbi</artifactId>
     <packaging>bundle</packaging>
     <version>1.13.0-SNAPSHOT</version>
 
@@ -47,7 +47,8 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-api</artifactId>
+            <artifactId>onos-apps-cfm-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -90,7 +91,14 @@
             <artifactId>jersey-test-framework-provider-jetty</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-rest</artifactId>

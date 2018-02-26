@@ -35,7 +35,8 @@
         <onos.app.requires>
           org.onosproject.yang,
           org.onosproject.netconf,
-          org.onosproject.models.microsemi
+          org.onosproject.models.microsemi,
+          org.onosproject.cfm
         </onos.app.requires>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.title>Microsemi Drivers</onos.app.title>
@@ -50,7 +51,8 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-api</artifactId>
+            <artifactId>onos-apps-cfm-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -133,14 +135,14 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-net</artifactId>
+            <artifactId>onos-apps-cfm-app</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-net</artifactId>
+            <artifactId>onos-apps-cfm-app</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
