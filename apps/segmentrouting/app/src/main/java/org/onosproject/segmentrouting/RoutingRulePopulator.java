@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -846,16 +847,7 @@ public class RoutingRulePopulator {
         // NOTE: Some switch hardware share the same filtering flow among different ports.
         //       We use this metadata to let the driver know that there is no more enabled port
         //       within the same VLAN on this device.
-        boolean noMoreEnabledPort = srManager.interfaceService.getInterfaces().stream()
-                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
-                .filter(intf -> intf.vlanTagged().contains(vlanId) ||
-                        intf.vlanUntagged().equals(vlanId) ||
-                        intf.vlanNative().equals(vlanId))
-                .noneMatch(intf -> {
-                    Port port = srManager.deviceService.getPort(intf.connectPoint());
-                    return port != null && port.isEnabled();
-                });
-        if (noMoreEnabledPort) {
+        if (noMoreEnabledPort(deviceId, vlanId)) {
             tBuilder.wipeDeferred();
         }
 
@@ -1246,5 +1238,29 @@ public class RoutingRulePopulator {
                 grpHandler.removeGroupFromPort(portNumber, tbuilder.build(), mbuilder.build());
             }
         }
+    }
+
+    /**
+     * Checks if there is other enabled port within the given VLAN on the given device.
+     *
+     * @param deviceId device ID
+     * @param vlanId VLAN ID
+     * @return true if there is no more port enabled within the given VLAN on the given device
+     */
+    boolean noMoreEnabledPort(DeviceId deviceId, VlanId vlanId) {
+        Set<ConnectPoint> enabledPorts = srManager.deviceService.getPorts(deviceId).stream()
+                .filter(Port::isEnabled)
+                .map(port -> new ConnectPoint(port.element().id(), port.number()))
+                .collect(Collectors.toSet());
+
+        return enabledPorts.stream().noneMatch(cp ->
+            // Given vlanId is included in the vlan-tagged configuration
+            srManager.getTaggedVlanId(cp).contains(vlanId) ||
+            // Given vlanId is INTERNAL_VLAN and the interface is not configured
+            (srManager.getTaggedVlanId(cp).isEmpty() && srManager.getInternalVlanId(cp) == null &&
+                    vlanId.equals(INTERNAL_VLAN)) ||
+            // interface is configured and either vlan-untagged or vlan-native matches given vlanId
+            (srManager.getInternalVlanId(cp) != null && srManager.getInternalVlanId(cp).equals(vlanId))
+        );
     }
 }
