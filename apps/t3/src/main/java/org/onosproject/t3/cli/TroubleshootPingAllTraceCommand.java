@@ -74,6 +74,11 @@ public class TroubleshootPingAllTraceCommand extends AbstractShellCommand {
                         printResultOnly(trace, ipv4);
                     }
                 } else {
+                    if (trace.getEndpointHosts().isPresent()) {
+                        Host source = trace.getEndpointHosts().get().getLeft();
+                        Host destination = trace.getEndpointHosts().get().getRight();
+                        print("Source %s --> Destination %s", source.id(), destination.id());
+                    }
                     print("Error in obtaining trace: %s", trace.resultMessage());
                 }
                 print("%s", StringUtils.leftPad("", 100, '-'));

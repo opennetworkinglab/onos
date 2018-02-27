@@ -19,6 +19,7 @@ package org.onosproject.t3.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -137,9 +138,18 @@ public class TroubleshootManager implements TroubleshootService {
         hostService.getHosts().forEach(host -> {
             List<IpAddress> ipAddresses = getIpAddresses(host, type, false);
             if (ipAddresses.size() > 0) {
+                //check if the host has only local IPs of that ETH type
+                boolean onlyLocalSrc = ipAddresses.size() == 1 && ipAddresses.get(0).isLinkLocal();
                 hostService.getHosts().forEach(hostToPing -> {
                     List<IpAddress> ipAddressesToPing = getIpAddresses(hostToPing, type, false);
-                    if (ipAddressesToPing.size() > 0 && !host.equals(hostToPing)) {
+                    //check if the other host has only local IPs of that ETH type
+                    boolean onlyLocalDst = ipAddressesToPing.size() == 1 && ipAddressesToPing.get(0).isLinkLocal();
+                    boolean sameLocation = Sets.intersection(host.locations(), hostToPing.locations()).size() > 0;
+                    //Trace is done only if they are both local and under the same location
+                    // or not local and if they are not the same host.
+                    if (((sameLocation && onlyLocalDst && onlyLocalSrc) ||
+                            (!onlyLocalSrc && !onlyLocalDst && ipAddressesToPing.size() > 0))
+                            && !host.equals(hostToPing)) {
                         tracesBuilder.add(trace(host.id(), hostToPing.id(), type));
                     }
                 });
