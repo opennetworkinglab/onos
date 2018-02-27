@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
@@ -87,14 +86,12 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     private final OpenstackNodeStoreDelegate delegate = new InternalNodeStoreDelegate();
 
     private ApplicationId appId;
-    private NodeId localNode;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
         osNodeStore.setDelegate(delegate);
 
-        localNode = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
 
         log.info("Started");

@@ -123,7 +123,7 @@ public interface OpenstackNode {
     PortNumber tunnelPortNum();
 
     /**
-     * Returns the vlan port nubmer.
+     * Returns the vlan port number.
      *
      * @return port number; null if vlan port does not exist
      */

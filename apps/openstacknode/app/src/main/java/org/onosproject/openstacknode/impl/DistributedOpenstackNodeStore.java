@@ -148,6 +148,9 @@ public class DistributedOpenstackNodeStore
         return osNode == null ? null : osNode.value();
     }
 
+    /**
+     * An internal openstack node map listener.
+     */
     private class OpenstackNodeMapListener implements MapEventListener<String, OpenstackNode> {
 
         @Override

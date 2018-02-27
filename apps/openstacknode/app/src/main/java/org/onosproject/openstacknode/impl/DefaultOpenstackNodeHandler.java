@@ -208,7 +208,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 addSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.vlanIntf());
             }
         } catch (Exception e) {
-            log.error("Exception occured because of {}", e.toString());
+            log.error("Exception occurred because of {}", e.toString());
         }
     }
 
@@ -226,6 +226,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         //TODO
     }
 
+    /**
+     * Checks whether the controller has a connection with an OVSDB that resides
+     * inside the given openstack node.
+     *
+     * @param osNode openstack node
+     * @return true if the controller is connected to the OVSDB, false otherwise
+     */
     private boolean isOvsdbConnected(OpenstackNode osNode) {
         OvsdbNodeId ovsdb = new OvsdbNodeId(osNode.managementIp(), ovsdbPort);
         OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
@@ -234,6 +241,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 client.isConnected();
     }
 
+    /**
+     * Creates a bridge with a given name on a given openstack node.
+     *
+     * @param osNode openstack node
+     * @param bridgeName bridge name
+     * @param deviceId device identifier
+     */
     private void createBridge(OpenstackNode osNode, String bridgeName, DeviceId deviceId) {
         Device device = deviceService.getDevice(osNode.ovsdb());
         if (device == null || !device.is(BridgeConfig.class)) {
@@ -263,6 +277,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         bridgeConfig.addBridge(bridgeDesc);
     }
 
+    /**
+     * Adds a network interface (aka port) into a given bridge of openstack node.
+     *
+     * @param osNode openstack node
+     * @param bridgeName bridge name
+     * @param intfName interface name
+     */
     private void addSystemInterface(OpenstackNode osNode, String bridgeName, String intfName) {
         Device device = deviceService.getDevice(osNode.ovsdb());
         if (device == null || !device.is(BridgeConfig.class)) {
@@ -272,6 +293,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         bridgeConfig.addPort(BridgeName.bridgeName(bridgeName), intfName);
     }
 
+    /**
+     * Creates a tunnel interface in a given openstack node.
+     *
+     * @param osNode openstack node
+     */
     private void createTunnelInterface(OpenstackNode osNode) {
         if (isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
             return;
@@ -317,6 +343,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    /**
+     * Checks whether a given network interface in a given openstack node is enabled or not.
+     *
+     * @param osNode openstack node
+     * @param intf network interface name
+     * @return true if the given interface is enabled, false otherwise
+     */
     private boolean isIntfEnabled(OpenstackNode osNode, String intf) {
         if (!deviceService.isAvailable(osNode.intgBridge())) {
             return false;
@@ -327,6 +360,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         port.isEnabled());
     }
 
+    /**
+     * Checks whether all requirements for this state are fulfilled or not.
+     *
+     * @param osNode openstack node
+     * @return true if all requirements are fulfilled, false otherwise
+     */
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
@@ -359,6 +398,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    /**
+     * Configures the openstack node with new state.
+     *
+     * @param osNode openstack node
+     * @param newState a new state
+     */
     private void setState(OpenstackNode osNode, NodeState newState) {
         if (osNode.state() == newState) {
             return;
@@ -368,6 +413,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         log.info("Changed {} state: {}", osNode.hostname(), newState);
     }
 
+    /**
+     * Bootstraps a new openstack node.
+     *
+     * @param osNode openstack node
+     */
     private void bootstrapNode(OpenstackNode osNode) {
         if (isCurrentStateDone(osNode)) {
             setState(osNode, osNode.state().nextState());
@@ -377,6 +427,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    /**
+     * An internal OVSDB listener. This listener is used for listening the
+     * network facing events from OVSDB device. If a new OVSDB device is detected,
+     * ONOS tries to bootstrap the openstack node.
+     */
     private class InternalOvsdbListener implements DeviceListener {
 
         @Override
@@ -415,6 +470,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    /**
+     * An internal integration bridge listener. This listener is used for
+     * listening the events from integration bridge. To listen the events from
+     * other types of bridge such as provider bridge or tunnel bridge, we need
+     * to augment OpenstackNodeService.node() method.
+     */
     private class InternalBridgeListener implements DeviceListener {
 
         @Override
@@ -478,6 +539,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    /**
+     * An internal openstack node listener.
+     * The notification is triggered by OpenstackNodeStore.
+     */
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {
 
         @Override

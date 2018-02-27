@@ -52,8 +52,22 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final String uplinkPort;
     private final NodeState state;
 
+    private static final String NOT_NULL_MSG = "Node % cannot be null";
+
     private static final String OVSDB = "ovsdb:";
 
+    /**
+     * A default constructor of Openstack Node.
+     *
+     * @param hostname      hostname
+     * @param type          node type
+     * @param intgBridge    integration bridge
+     * @param managementIp  management IP address
+     * @param dataIp        data IP address
+     * @param vlanIntf      VLAN interface
+     * @param uplinkPort    uplink port name
+     * @param state         node state
+     */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
                                    IpAddress managementIp,
@@ -279,6 +293,9 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .state(osNode.state());
     }
 
+    /**
+     * A builder class for openstack Node.
+     */
     public static final class Builder implements OpenstackNode.Builder {
 
         private String hostname;
@@ -290,16 +307,17 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private String uplinkPort;
         private NodeState state;
 
+        // private constructor not intended to use from external
         private Builder() {
         }
 
         @Override
         public DefaultOpenstackNode build() {
-            checkArgument(hostname != null, "Node hostname cannot be null");
-            checkArgument(type != null, "Node type cannot be null");
-            checkArgument(intgBridge != null, "Node integration bridge cannot be null");
-            checkArgument(managementIp != null, "Node management IP cannot be null");
-            checkArgument(state != null, "Node state cannot be null");
+            checkArgument(hostname != null, NOT_NULL_MSG, "hostname");
+            checkArgument(type != null, NOT_NULL_MSG, "type");
+            checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
+            checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
+            checkArgument(state != null, NOT_NULL_MSG, "state");
 
             if (type == NodeType.GATEWAY && uplinkPort == null) {
                 throw new IllegalArgumentException("Uplink port is required for gateway node");
