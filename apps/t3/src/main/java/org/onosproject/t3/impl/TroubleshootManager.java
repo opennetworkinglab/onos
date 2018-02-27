@@ -968,6 +968,10 @@ public class TroubleshootManager implements TroubleshootService {
                 trace.addResultMessage("Null group for Instruction " + instr);
                 break;
             }
+            if (group.buckets().buckets().size() == 0) {
+                trace.addResultMessage("Group " + group.id() + "has no buckets");
+                break;
+            }
 
             //Cycle in each of the group's buckets and add them to the groups for this Device.
             for (GroupBucket bucket : group.buckets().buckets()) {

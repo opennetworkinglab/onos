@@ -593,6 +593,36 @@ final class T3TestObjects {
 
     static final ConnectPoint LLDP_FLOW_CP = ConnectPoint.deviceConnectPoint(LLDP_FLOW_DEVICE + "/" + 1);
 
+    //No Buckets
+
+    static final DeviceId NO_BUCKET_DEVICE = DeviceId.deviceId("nobucket");
+
+    private static final TrafficSelector NO_BUCKET_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .build();
+
+    private static final GroupId NO_BUCKET_GROUP_ID = GroupId.valueOf(1);
+
+    private static final TrafficTreatment NO_BUCKET_TREATMENT = DefaultTrafficTreatment.builder()
+            .group(NO_BUCKET_GROUP_ID)
+            .build();
+    private static final FlowRule NO_BUCKET_FLOW = DefaultFlowEntry.builder().forDevice(NO_BUCKET_DEVICE)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(NO_BUCKET_SELECTOR)
+            .withTreatment(NO_BUCKET_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry NO_BUCKET_ENTRY = new DefaultFlowEntry(NO_BUCKET_FLOW);
+
+    private static final GroupBuckets NO_BUCKETS = new GroupBuckets(ImmutableList.of());
+
+    static final Group NO_BUCKET_GROUP =
+            new DefaultGroup(NO_BUCKET_GROUP_ID, NO_BUCKET_DEVICE, Group.Type.SELECT, NO_BUCKETS);
+
+    static final ConnectPoint NO_BUCKET_CP = ConnectPoint.deviceConnectPoint(NO_BUCKET_DEVICE + "/" + 1);
+
     //helper elements
 
     static final String MASTER_1 = "Master1";

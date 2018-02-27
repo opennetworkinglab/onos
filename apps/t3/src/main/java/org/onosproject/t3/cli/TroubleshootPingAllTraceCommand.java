@@ -16,10 +16,14 @@
 
 package org.onosproject.t3.cli;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 
@@ -54,36 +58,48 @@ public class TroubleshootPingAllTraceCommand extends AbstractShellCommand {
         if (!type.equals(EtherType.IPV4) && !type.equals(EtherType.IPV6)) {
             print("Command only support IPv4 or IPv6");
         } else {
-            print("--------------------------------------------------------------------------");
+            print("%s", StringUtils.leftPad("", 100, '-'));
             //Obtain the list of traces
             List<StaticPacketTrace> traces = service.pingAll(type);
 
             if (traces.size() == 0) {
                 print("No traces were obtained, please check system configuration");
             }
-
+            boolean ipv4 = type.equals(EtherType.IPV4);
             traces.forEach(trace -> {
                 if (trace.getInitialPacket() != null) {
                     if (verbosity1) {
                         printVerbose(trace);
                     } else {
-                        printResultOnly(trace);
+                        printResultOnly(trace, ipv4);
                     }
                 } else {
                     print("Error in obtaining trace: %s", trace.resultMessage());
                 }
-                print("--------------------------------------------------------------------------");
+                print("%s", StringUtils.leftPad("", 100, '-'));
             });
         }
 
 
     }
 
-    private void printResultOnly(StaticPacketTrace trace) {
+    private void printResultOnly(StaticPacketTrace trace, boolean ipv4) {
         if (trace.getEndpointHosts().isPresent()) {
             Host source = trace.getEndpointHosts().get().getLeft();
             Host destination = trace.getEndpointHosts().get().getRight();
-            print("Source %s --> Destination %s", source.id(), destination.id());
+            IpAddress srcIP;
+            IpAddress dstIP;
+            if (ipv4 && trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_SRC) != null) {
+                srcIP = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_SRC)).ip().address();
+                dstIP = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_DST)).ip().address();
+                print("Source %s (%s) --> Destination %s (%s)", source.id(), srcIP, destination.id(), dstIP);
+            } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_SRC) != null) {
+                srcIP = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_SRC)).ip().address();
+                dstIP = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST)).ip().address();
+                print("Source %s (%s) --> Destination %s (%s)", source.id(), srcIP, destination.id(), dstIP);
+            } else {
+                print("Source %s --> Destination %s", source.id(), destination.id());
+            }
             print("%s", trace.resultMessage());
         } else {
             print("Can't gather host information from trace");
