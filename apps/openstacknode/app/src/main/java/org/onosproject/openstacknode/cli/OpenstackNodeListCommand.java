@@ -67,17 +67,7 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (OpenstackNode osNode : osNodes) {
-            result.add(mapper.createObjectNode()
-                    .put("hostname", osNode.hostname())
-                    .put("type", osNode.type().name())
-                    .put("integrationBridge", osNode.intgBridge().toString())
-                    .put("managementIp", osNode.managementIp().toString())
-                    .put("dataIp", osNode.dataIp().toString())
-                    .put("vlanIntf", osNode.vlanIntf())
-                    .put("tunnelPortNum", osNode.tunnelPortNum().toString())
-                    .put("vlanPortNum", osNode.vlanPortNum().toString())
-                    .put("uplinkPort", osNode.uplinkPort())
-                    .put("state", osNode.state().name()));
+            result.add(jsonForEntity(osNode, OpenstackNode.class));
         }
         return result;
     }

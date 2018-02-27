@@ -44,6 +44,9 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
 
     private static final String TYPE = "type";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String TUNNEL_PORT_NUM = "tunnelPortNum";
+    private static final String VLAN_PORT_NUM = "vlanPortNum";
+    private static final String STATE = "state";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
 
@@ -55,7 +58,8 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
                 .put(HOST_NAME, node.hostname())
                 .put(TYPE, node.type().name())
                 .put(MANAGEMENT_IP, node.managementIp().toString())
-                .put(INTEGRATION_BRIDGE, node.intgBridge().toString());
+                .put(INTEGRATION_BRIDGE, node.intgBridge().toString())
+                .put(STATE, node.state().name());
 
         OpenstackNode.NodeType type = node.type();
 
@@ -69,6 +73,14 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
 
         if (node.dataIp() != null) {
             result.put(DATA_IP, node.dataIp().toString());
+        }
+
+        if (node.tunnelPortNum() != null) {
+            result.put(TUNNEL_PORT_NUM, node.tunnelPortNum().toString());
+        }
+
+        if (node.vlanPortNum() != null) {
+            result.put(VLAN_PORT_NUM, node.vlanPortNum().toString());
         }
 
         return result;
