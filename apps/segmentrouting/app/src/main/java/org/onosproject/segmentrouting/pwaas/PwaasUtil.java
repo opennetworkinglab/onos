@@ -43,10 +43,10 @@ public final class PwaasUtil {
     private static final Logger log = LoggerFactory.getLogger(PwaasUtil.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);;
+    private static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public static InterfaceService intfService = AbstractShellCommand.get(InterfaceService.class);
+    private static InterfaceService intfService = AbstractShellCommand.get(InterfaceService.class);
 
     private PwaasUtil() {
         return;
