@@ -444,7 +444,7 @@ public class TroubleshootManager implements TroubleshootService {
                         .getCriterion(Criterion.Type.ETH_TYPE);
                 //We treat as correct output only if it's not LLDP or BDDP
                 if (!(ethTypeCriterion.ethType().equals(EtherType.LLDP.ethType())
-                        || !ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
+                        && !ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
                     if (hostsList.isEmpty()) {
                         trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
                                 .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
