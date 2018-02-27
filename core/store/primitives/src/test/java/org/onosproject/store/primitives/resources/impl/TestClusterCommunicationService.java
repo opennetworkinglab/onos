@@ -127,8 +127,8 @@ public class TestClusterCommunicationService implements ClusterCommunicationServ
     public <M, R> void addSubscriber(
             MessageSubject subject,
             Function<byte[], M> decoder,
-
-            Function<M, CompletableFuture<R>> handler, Function<R, byte[]> encoder) {
+            Function<M, CompletableFuture<R>> handler,
+            Function<R, byte[]> encoder) {
         subscribers.put(subject, message -> {
             CompletableFuture<byte[]> future = new CompletableFuture<>();
             try {
@@ -153,12 +153,16 @@ public class TestClusterCommunicationService implements ClusterCommunicationServ
             Consumer<M> handler,
             Executor executor) {
         subscribers.put(subject, message -> {
-            try {
-                handler.accept(decoder.apply(message));
-            } catch (Exception e) {
-                return Futures.exceptionalFuture(new MessagingException.RemoteHandlerFailure());
-            }
-            return Futures.completedFuture(null);
+            CompletableFuture<byte[]> future = new CompletableFuture<>();
+            executor.execute(() -> {
+                try {
+                    handler.accept(decoder.apply(message));
+                    future.complete(null);
+                } catch (Exception e) {
+                    future.completeExceptionally(new MessagingException.RemoteHandlerFailure());
+                }
+            });
+            return future;
         });
     }
 
