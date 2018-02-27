@@ -28,6 +28,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
@@ -169,6 +170,12 @@ public class FabricNextPipeliner {
                                                            nextObjective.appId()));
 
         // flow
+        // If operation is ADD_TO_EXIST or REMOVE_FROM_EXIST, means we modify
+        // group buckets only, no changes for flow rule
+        if (nextObjective.op() == Objective.Operation.ADD_TO_EXISTING ||
+                nextObjective.op() == Objective.Operation.REMOVE_FROM_EXISTING) {
+            return;
+        }
         TrafficSelector selector = buildNextIdSelector(nextObjective.id());
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(PiActionGroupId.of(nextObjective.id()))
