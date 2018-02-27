@@ -25,7 +25,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>onos-apps-config</artifactId>
     <packaging>bundle</packaging>
-    <description>Dynamic Config App6</description>
+    <description>Dynamic Config App</description>
     <properties>
         <onos.app.name>org.onosproject.configapp</onos.app.name>
         <onos.app.category>Utility</onos.app.category>
@@ -71,8 +71,12 @@
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+        </dependency>
+
     </dependencies>
-
-
 
 </project>

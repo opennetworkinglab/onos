@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//lib:onos-yang-model',
     '//core/store/serializers:onos-core-serializers',
     '//cli:onos-cli',
+    '//lib:commons-text',
 ]
 
 osgi_jar_with_tests (

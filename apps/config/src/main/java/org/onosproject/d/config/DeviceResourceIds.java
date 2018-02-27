@@ -44,6 +44,7 @@ public abstract class DeviceResourceIds {
      */
     public static final String DCS_NAMESPACE = "org.onosproject.dcs";
 
+    // FIXME '/' is problematic name from RFC 7950/7951 point of view
     /**
      * SchemaId name for root node.
      */

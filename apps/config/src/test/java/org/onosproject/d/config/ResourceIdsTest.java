@@ -15,10 +15,15 @@
  */
 package org.onosproject.d.config;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
+import static org.onosproject.d.config.DeviceResourceIds.DEVICES_ID;
+import static org.onosproject.d.config.DeviceResourceIds.toResourceId;
+import static org.onosproject.d.config.ResourceIds.fromInstanceIdentifier;
 
 import org.junit.Test;
+import org.onosproject.net.DeviceId;
 import org.onosproject.yang.model.ResourceId;
 
 public class ResourceIdsTest {
@@ -27,6 +32,64 @@ public class ResourceIdsTest {
             .addBranchPointSchema(DeviceResourceIds.ROOT_NAME, DCS_NAMESPACE)
             .addBranchPointSchema(DeviceResourceIds.DEVICES_NAME, DCS_NAMESPACE)
             .build();
+
+    @Test
+    public void testFromInstanceIdentifier() {
+
+        ResourceId eth0 = ResourceId.builder()
+                .addBranchPointSchema("interfaces", "ietf-interfaces")
+                .addBranchPointSchema("interface", "ietf-interfaces")
+                .addKeyLeaf("name", "ietf-interfaces", "eth0")
+                .build();
+        assertThat(ResourceIds.fromInstanceIdentifier("/ietf-interfaces:interfaces/interface[name=\"eth0\"]"),
+                   is(eth0));
+
+        assertThat("fromInstanceIdentifier return path relative to virtual root",
+                   ResourceIds.fromInstanceIdentifier("/org.onosproject.dcs:devices"),
+                   is(ResourceIds.relativize(ResourceIds.ROOT_ID, DEVICES_ID)));
+
+        assertThat(ResourceIds.prefixDcsRoot(
+                     ResourceIds.fromInstanceIdentifier("/org.onosproject.dcs:devices")),
+                   is(DEVICES_ID));
+
+        assertThat(ResourceIds.fromInstanceIdentifier("/"),
+                    is(nullValue()));
+
+        DeviceId deviceId = DeviceId.deviceId("test:device-identifier");
+        assertThat(ResourceIds.prefixDcsRoot(
+                 fromInstanceIdentifier("/org.onosproject.dcs:devices/device[device-id=\"test:device-identifier\"]")),
+                   is(toResourceId(deviceId)));
+
+    }
+
+    @Test
+    public void testToInstanceIdentifier() {
+
+        assertThat(ResourceIds.toInstanceIdentifier(ResourceIds.ROOT_ID),
+                   is("/"));
+        assertThat(ResourceIds.toInstanceIdentifier(DEVICES_ID),
+                   is("/org.onosproject.dcs:devices"));
+
+        DeviceId deviceId = DeviceId.deviceId("test:device-identifier");
+        assertThat(ResourceIds.toInstanceIdentifier(toResourceId(deviceId)),
+                   is("/org.onosproject.dcs:devices/device[device-id=\"test:device-identifier\"]"));
+
+        assertThat(ResourceIds.toInstanceIdentifier(ResourceIds.relativize(DEVICES_ID, toResourceId(deviceId))),
+                   is("/org.onosproject.dcs:device[device-id=\"test:device-identifier\"]"));
+
+        ResourceId eth0 = ResourceId.builder()
+                .addBranchPointSchema("interfaces", "ietf-interfaces")
+                .addBranchPointSchema("interface", "ietf-interfaces")
+                .addKeyLeaf("name", "ietf-interfaces", "eth0")
+                .build();
+        assertThat(ResourceIds.toInstanceIdentifier(eth0),
+                   is("/ietf-interfaces:interfaces/interface[name=\"eth0\"]"));
+
+
+        assertThat(ResourceIds.toInstanceIdentifier(ResourceIds.concat(toResourceId(deviceId), eth0)),
+                   is("/org.onosproject.dcs:devices/device[device-id=\"test:device-identifier\"]"
+                           + "/ietf-interfaces:interfaces/interface[name=\"eth0\"]"));
+    }
 
     @Test
     public void testConcat() {

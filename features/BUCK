@@ -6,6 +6,7 @@ osgi_feature (
     '//lib:atomix',
     '//lib:commons-lang',
     '//lib:commons-lang3',
+    '//lib:commons-text',
     '//lib:commons-configuration',
     '//lib:guava',
     '//lib:netty',
