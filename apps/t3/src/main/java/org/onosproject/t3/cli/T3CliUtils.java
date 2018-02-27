@@ -16,6 +16,7 @@
 
 package org.onosproject.t3.cli;
 
+import org.apache.commons.lang.StringUtils;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.GroupBucket;
@@ -84,7 +85,6 @@ final class T3CliUtils {
                 tracePrint.append("\n");
                 tracePrint = printFlows(trace, verbose, connectPoint, tracePrint);
                 tracePrint = printGroups(trace, verbose, connectPoint, tracePrint);
-                tracePrint.append("Output through " + connectPoint);
                 tracePrint.append("\n");
             } else {
                 for (ConnectPoint connectPoint : path) {
@@ -102,7 +102,7 @@ final class T3CliUtils {
                     previous = connectPoint;
                 }
             }
-            tracePrint.append("---------------------------------------------------------------\n");
+            tracePrint.append(StringUtils.leftPad("\n", 100, '-'));
         }
         return tracePrint;
     }

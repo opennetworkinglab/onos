@@ -35,8 +35,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
@@ -157,6 +157,20 @@ public class TroubleshootManagerTest {
         assertNotNull("Trace should not be null", traceFail);
         assertNull("Trace should have 0 output", traceFail.getGroupOuputs(SINGLE_FLOW_DEVICE));
         log.info("trace {}", traceFail.resultMessage());
+    }
+
+    /**
+     * Test group with no buckets.
+     */
+    @Test
+    public void noBucketsTest() throws Exception {
+
+        StaticPacketTrace traceFail = mngr.trace(PACKET_OK, NO_BUCKET_CP);
+        assertNotNull("Trace should not be null", traceFail);
+        assertTrue("Trace should be unsuccessful",
+                traceFail.resultMessage().contains("no buckets"));
+        log.info("trace {}", traceFail.resultMessage());
+
     }
 
     /**
@@ -416,6 +430,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(LLDP_FLOW_ENTRY);
             } else if (deviceId.equals(MULTICAST_GROUP_FLOW_DEVICE)) {
                 return ImmutableList.of(MULTICAST_GROUP_FLOW_ENTRY);
+            } else if (deviceId.equals(NO_BUCKET_DEVICE)) {
+                return ImmutableList.of(NO_BUCKET_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -444,6 +460,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(DUAL_LINK_GROUP);
             } else if (deviceId.equals(MULTICAST_GROUP_FLOW_DEVICE)) {
                 return ImmutableList.of(MULTICAST_GROUP);
+            } else if (deviceId.equals(NO_BUCKET_DEVICE)) {
+                return ImmutableList.of(NO_BUCKET_GROUP);
             }
             return ImmutableList.of();
         }

@@ -65,6 +65,7 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
         //Build the trace
         StaticPacketTrace trace = service.trace(HostId.hostId(srcHost), HostId.hostId(dstHost), type);
         if (trace.getInitialPacket() != null) {
+            print("Tracing Packet: %s", trace.getInitialPacket());
             print("%s", T3CliUtils.printTrace(trace, verbosity1, verbosity2));
         } else {
             print("Cannot obtain trace between %s and %s", srcHost, dstHost);
