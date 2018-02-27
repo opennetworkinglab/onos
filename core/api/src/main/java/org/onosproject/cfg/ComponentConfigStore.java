@@ -47,10 +47,11 @@ public interface ComponentConfigStore
 
 
     /**
-     * Returns set of component configuration property names.
+     * Returns set of component configuration property names. This includes
+     * only the names of properties whose values depart from their default.
      *
      * @param component component name
-     * @return set of property names
+     * @return set of property names whose values are set to non-default values
      */
     default Set<String> getProperties(String component) {
         return ImmutableSet.of();
@@ -58,9 +59,11 @@ public interface ComponentConfigStore
 
     /**
      * Returns the string value of the given component configuration property.
+     * For properties whose values are set to their default this may return null.
      *
      * @param component component name
-     * @param name      property name; null if no property found
+     * @param name      property name; null if no property found or if value
+     *                  is default
      * @return set of property names
      */
     default String getProperty(String component, String name) {
