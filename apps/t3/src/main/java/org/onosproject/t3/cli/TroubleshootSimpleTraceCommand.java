@@ -25,6 +25,8 @@ import org.onosproject.net.HostId;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 
+import java.util.Set;
+
 import static org.onlab.packet.EthType.EtherType;
 
 /**
@@ -62,15 +64,17 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
         //Printing the traced hosts
         print("Tracing between: %s and %s", srcHost, dstHost);
 
-        //Build the trace
-        StaticPacketTrace trace = service.trace(HostId.hostId(srcHost), HostId.hostId(dstHost), type);
-        if (trace.getInitialPacket() != null) {
-            print("Tracing Packet: %s", trace.getInitialPacket());
-            print("%s", T3CliUtils.printTrace(trace, verbosity1, verbosity2));
-        } else {
-            print("Cannot obtain trace between %s and %s", srcHost, dstHost);
-            print("Reason: %s", trace.resultMessage());
-        }
+        //Build the traces
+        Set<StaticPacketTrace> traces = service.trace(HostId.hostId(srcHost), HostId.hostId(dstHost), type);
+        traces.forEach(trace -> {
+            if (trace.getInitialPacket() != null) {
+                print("Tracing Packet: %s", trace.getInitialPacket());
+                print("%s", T3CliUtils.printTrace(trace, verbosity1, verbosity2));
+            } else {
+                print("Cannot obtain trace between %s and %s", srcHost, dstHost);
+                print("Reason: %s", trace.resultMessage());
+            }
+        });
 
 
     }

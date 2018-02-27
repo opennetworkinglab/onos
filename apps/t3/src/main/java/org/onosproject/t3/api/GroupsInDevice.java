@@ -21,6 +21,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.group.Group;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class to represent the groups in a device for a given output and packet.
@@ -83,8 +84,31 @@ public class GroupsInDevice {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        GroupsInDevice that = (GroupsInDevice) o;
+
+        return Objects.equals(output, that.output) &&
+                Objects.equals(groups, that.groups) &&
+                Objects.equals(selector, that.selector);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(output, groups, selector);
+    }
+
+    @Override
     public String toString() {
         return "GroupsInDevice{" +
+
                 "output=" + output +
                 ", groups=" + groups +
                 ", selector=" + selector +

@@ -18,6 +18,7 @@ package org.onosproject.t3.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
@@ -150,7 +151,7 @@ public class TroubleshootManager implements TroubleshootService {
                     if (((sameLocation && onlyLocalDst && onlyLocalSrc) ||
                             (!onlyLocalSrc && !onlyLocalDst && ipAddressesToPing.size() > 0))
                             && !host.equals(hostToPing)) {
-                        tracesBuilder.add(trace(host.id(), hostToPing.id(), type));
+                        tracesBuilder.addAll(trace(host.id(), hostToPing.id(), type));
                     }
                 });
             }
@@ -159,7 +160,7 @@ public class TroubleshootManager implements TroubleshootService {
     }
 
     @Override
-    public StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
+    public Set<StaticPacketTrace> trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
         Host source = hostService.getHost(sourceHost);
         Host destination = hostService.getHost(destinationHost);
 
@@ -168,12 +169,12 @@ public class TroubleshootManager implements TroubleshootService {
 
         if (source == null) {
             failTrace.addResultMessage("Source Host " + sourceHost + " does not exist");
-            return failTrace;
+            return ImmutableSet.of(failTrace);
         }
 
         if (destination == null) {
             failTrace.addResultMessage("Destination Host " + destinationHost + " does not exist");
-            return failTrace;
+            return ImmutableSet.of(failTrace);
         }
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
@@ -188,9 +189,13 @@ public class TroubleshootManager implements TroubleshootService {
             // we are under same leaf so it's L2 Unicast.
             if (areBridged(source, destination)) {
                 selectorBuilder.matchEthDst(destination.mac());
-                StaticPacketTrace trace = trace(selectorBuilder.build(), source.location());
-                trace.addEndpointHosts(Pair.of(source, destination));
-                return trace;
+                ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
+                source.locations().forEach(hostLocation -> {
+                    StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
+                    trace.addEndpointHosts(Pair.of(source, destination));
+                    traces.add(trace);
+                });
+                return traces.build();
             }
 
             //handle the IPs for src and dst in case of L3
@@ -198,18 +203,18 @@ public class TroubleshootManager implements TroubleshootService {
 
                 //Match on the source IP
                 if (!matchIP(source, failTrace, selectorBuilder, etherType, true)) {
-                    return failTrace;
+                    return ImmutableSet.of(failTrace);
                 }
 
                 //Match on destination IP
                 if (!matchIP(destination, failTrace, selectorBuilder, etherType, false)) {
-                    return failTrace;
+                    return ImmutableSet.of(failTrace);
                 }
 
             } else {
                 failTrace.addResultMessage("Host based trace supports only IPv4 or IPv6 as EtherType, " +
                         "please use packet based");
-                return failTrace;
+                return ImmutableSet.of(failTrace);
             }
 
             //l3 unicast, we get the dst mac of the leaf the source is connected to from netcfg
@@ -221,13 +226,17 @@ public class TroubleshootManager implements TroubleshootService {
                 failTrace.addResultMessage("Can't get " + source.location().deviceId() +
                         " router MAC from segment routing config can't perform L3 tracing.");
             }
-            StaticPacketTrace trace = trace(selectorBuilder.build(), source.location());
-            trace.addEndpointHosts(Pair.of(source, destination));
-            return trace;
+            ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
+            source.locations().forEach(hostLocation -> {
+                StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
+                trace.addEndpointHosts(Pair.of(source, destination));
+                traces.add(trace);
+            });
+            return traces.build();
 
         } catch (ConfigException e) {
             failTrace.addResultMessage("Can't get config " + e.getMessage());
-            return failTrace;
+            return ImmutableSet.of(failTrace);
         }
     }
 
@@ -333,11 +342,12 @@ public class TroubleshootManager implements TroubleshootService {
                 "Device " + in.deviceId() + " must exist in ONOS");
 
         StaticPacketTrace trace = new StaticPacketTrace(packet, in);
+        boolean isDualHomed = getHosts(trace).stream().anyMatch(host -> host.locations().size() > 1);
         //FIXME this can be done recursively
-        trace = traceInDevice(trace, packet, in);
+        trace = traceInDevice(trace, packet, in, isDualHomed);
         //Building output connect Points
         List<ConnectPoint> path = new ArrayList<>();
-        trace = getTrace(path, in, trace);
+        trace = getTrace(path, in, trace, isDualHomed);
         return trace;
     }
 
@@ -347,9 +357,11 @@ public class TroubleshootManager implements TroubleshootService {
      * @param completePath the path traversed by the packet
      * @param in           the input connect point
      * @param trace        the trace to build
+     * @param isDualHomed  true if the trace we are doing starts or ends in a dual homed host
      * @return the build trace for that packet.
      */
-    private StaticPacketTrace getTrace(List<ConnectPoint> completePath, ConnectPoint in, StaticPacketTrace trace) {
+    private StaticPacketTrace getTrace(List<ConnectPoint> completePath, ConnectPoint in, StaticPacketTrace trace,
+                                       boolean isDualHomed) {
 
         log.debug("------------------------------------------------------------");
 
@@ -384,8 +396,9 @@ public class TroubleshootManager implements TroubleshootService {
             //If the two host collections contain the same item it means we reached the proper output
             if (!Collections.disjoint(hostsList, hosts)) {
                 log.debug("Stopping here because host is expected destination {}, reached through", completePath);
-                trace.addResultMessage("Reached required destination Host " + cp);
-                computePath(completePath, trace, outputPath.getOutput());
+                if (computePath(completePath, trace, outputPath.getOutput())) {
+                    trace.addResultMessage("Reached required destination Host " + cp);
+                }
                 break;
             } else if (cp.port().equals(PortNumber.CONTROLLER)) {
 
@@ -434,9 +447,9 @@ public class TroubleshootManager implements TroubleshootService {
                     updatedPacket.add(Criteria.matchInPort(dst.port()));
                     log.debug("DST Connect Point {}", dst);
                     //build the elements for that device
-                    traceInDevice(trace, updatedPacket.build(), dst);
+                    traceInDevice(trace, updatedPacket.build(), dst, isDualHomed);
                     //continue the trace along the path
-                    getTrace(completePath, dst, trace);
+                    getTrace(completePath, dst, trace, isDualHomed);
                 }
             } else if (edgePortService.isEdgePoint(outputPath.getOutput()) &&
                     trace.getInitialPacket().getCriterion(Criterion.Type.ETH_DST) != null &&
@@ -569,7 +582,7 @@ public class TroubleshootManager implements TroubleshootService {
      * @param trace        the trace we are building
      * @param output       the final output connect point
      */
-    private void computePath(List<ConnectPoint> completePath, StaticPacketTrace trace, ConnectPoint output) {
+    private boolean computePath(List<ConnectPoint> completePath, StaticPacketTrace trace, ConnectPoint output) {
         List<ConnectPoint> traverseList = new ArrayList<>();
         if (!completePath.contains(trace.getInitialConnectPoint())) {
             traverseList.add(trace.getInitialConnectPoint());
@@ -578,21 +591,26 @@ public class TroubleshootManager implements TroubleshootService {
         if (output != null && !completePath.contains(output)) {
             traverseList.add(output);
         }
-        trace.addCompletePath(traverseList);
+        if (!trace.getCompletePaths().contains(traverseList)) {
+            trace.addCompletePath(traverseList);
+            return true;
+        }
+        return false;
     }
 
     /**
      * Traces the packet inside a device starting from an input connect point.
      *
-     * @param trace  the trace we are building
-     * @param packet the packet we are tracing
-     * @param in     the input connect point.
+     * @param trace       the trace we are building
+     * @param packet      the packet we are tracing
+     * @param in          the input connect point.
+     * @param isDualHomed true if the trace we are doing starts or ends in a dual homed host
      * @return updated trace
      */
-    private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in) {
+    private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in,
+                                            boolean isDualHomed) {
 
-        //we already traversed this device.
-        if (trace.getGroupOuputs(in.deviceId()) != null) {
+        if (trace.getGroupOuputs(in.deviceId()) != null && !isDualHomed) {
             log.debug("Trace already contains device and given outputs");
             return trace;
         }
@@ -1018,6 +1036,11 @@ public class TroubleshootManager implements TroubleshootService {
             trace.addResultMessage("Connect point out " + output + " is same as initial input " +
                     trace.getInitialConnectPoint());
         } else {
+            GroupsInDevice device = new GroupsInDevice(output, groupsForDevice, builder.build());
+            if (trace.getGroupOuputs(output.deviceId()) != null
+                    && trace.getGroupOuputs(output.deviceId()).contains(device)) {
+                return;
+            }
             trace.addGroupOutputPath(in.deviceId(),
                     new GroupsInDevice(output, groupsForDevice, builder.build()));
             outputPorts.add(outputInstruction.port());
