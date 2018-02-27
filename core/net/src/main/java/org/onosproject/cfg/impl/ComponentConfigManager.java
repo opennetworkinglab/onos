@@ -335,17 +335,34 @@ public class ComponentConfigManager implements ComponentConfigService {
                 String name = p.name();
                 String globalValue = store.getProperty(componentName, name);
                 String localValue = localProperties != null ? (String) localProperties.get(name) : null;
+
+                log.debug("Processing {} property {}; global {}; local {}",
+                          componentName, name, globalValue, localValue);
                 try {
-                    // If the global value is the same as default, reset to
-                    // default locally.
-                    if (Objects.equals(globalValue, p.defaultValue())) {
+                    // 1) If the global value is the same as default, or
+                    // 2) if it is not set explicitly, but the local value is
+                    // not the same as the default, reset local value to default.
+                    if (Objects.equals(globalValue, p.defaultValue()) ||
+                            (globalValue == null &&
+                                    !Objects.equals(localValue, p.defaultValue()))) {
+                        log.debug("Resetting {} property {}; value same as default",
+                                  componentName, name);
                         reset(componentName, name);
 
                     } else if (!Objects.equals(globalValue, localValue)) {
-                        // If the local value is different from global value?
+                        // If the local value is different from global value
                         // validate the global value and apply it locally.
+                        log.debug("Setting {} property {} to {}",
+                                  componentName, name, globalValue);
                         checkValidity(componentName, name, globalValue);
                         set(componentName, name, globalValue);
+
+                    } else {
+                        // Otherwise, simply update the registered property
+                        // with the global value.
+                        log.debug("Syncing {} property {} to {}",
+                                  componentName, name, globalValue);
+                        map.put(name, ConfigProperty.setProperty(p, globalValue));
                     }
                 } catch (IllegalArgumentException e) {
                     log.warn("Value {} is not a valid {}; using default",
@@ -356,18 +373,15 @@ public class ComponentConfigManager implements ComponentConfigService {
         } catch (IOException e) {
             log.error("Unable to get configuration for " + componentName, e);
         }
-
     }
 
-    // FIXME: This should be a slightly deferred execution to allow changing
-    // values just once per component when a number of updates arrive shortly
-    // after each other.
     private void triggerUpdate(String componentName) {
         try {
             Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
             Map<String, ConfigProperty> map = properties.get(componentName);
             Dictionary<String, Object> props = new Hashtable<>();
-            map.values().stream().filter(p -> p.value() != null).forEach(p -> props.put(p.name(), p.value()));
+            map.values().stream().filter(p -> p.value() != null)
+                    .forEach(p -> props.put(p.name(), p.value()));
             cfg.update(props);
         } catch (IOException e) {
             log.warn("Unable to update configuration for " + componentName, e);
