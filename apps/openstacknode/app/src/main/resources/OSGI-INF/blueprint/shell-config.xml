@@ -21,9 +21,15 @@
         </command>
         <command>
             <action class="org.onosproject.openstacknode.cli.OpenstackNodeCheckCommand"/>
+            <completers>
+                <ref component-id="hostnameCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.openstacknode.cli.OpenstackNodeInitCommand"/>
         </command>
     </command-bundle>
+
+    <bean id="hostnameCompleter" class="org.onosproject.openstacknode.cli.OpenstackHostnameCompleter"/>
+
 </blueprint>
