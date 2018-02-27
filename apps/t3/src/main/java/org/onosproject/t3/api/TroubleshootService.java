@@ -22,6 +22,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * API for troubleshooting services, providing static analysis of installed
@@ -45,7 +46,7 @@ public interface TroubleshootService {
      * @param type            the etherType of the traffic we want to trace.
      * @return a trace result
      */
-    StaticPacketTrace trace(HostId sourceHost, HostId destinationHost, EthType.EtherType type);
+    Set<StaticPacketTrace> trace(HostId sourceHost, HostId destinationHost, EthType.EtherType type);
 
     /**
      * Requests a static trace be performed for the given traffic selector
