@@ -58,6 +58,17 @@ tar_file(
     other_tars = [ '//tools/package:onos-package-runtime' ],
 )
 
+tar_file(
+    name = 'onos-admin',
+    root = 'onos-admin-%s' % ONOS_VERSION,
+    srcs = [
+        'tools/dev/bin/onos-create-app',
+        'tools/test/bin/onos',
+    ],
+    other_tars = [ '//tools/package:onos-package-runtime' ],
+    flat = True,
+)
+
 only_lib_dep_pom(
     name = 'top-level-pom',
     src = 'pom.xml',

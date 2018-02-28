@@ -20,10 +20,7 @@
 # Tool to collect node-specific diagnostics into a single tar stream.
 # -----------------------------------------------------------------------------
 
-# If ONOS_HOME is set, respect its value.
-# If ONOS_HOME is not set (e.g. in the init or service environment),
-# set it based on this script's path.
-ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+ONOS_HOME=$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)
 
 diag=/tmp/diag$$
 mkdir -p $diag; cd $diag

@@ -21,12 +21,8 @@ _EOF_
 [ "$1" = "-w" ] && echo "-w option is deprecated" && shift   # Deprecated
 [ "$1" = "-f" ] && echo "-f option is deprecated" && shift   # Deprecated
 
-# If ONOS_HOME is set, respect its value.
-# If ONOS_HOME is not set (e.g. in the init or service environment),
-# set it based on this script's path.
-ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
-[ $(dirname $0)/find-node.sh ] && . $(dirname $0)/find-node.sh
-[ -x ${ONOS_HOME}/bin/_find-node ] && . ${ONOS_HOME}/bin/_find-node
+[ -f $(dirname $0)/find-node.sh ] && . $(dirname $0)/find-node.sh
+[ -f $(dirname $0)/_find-node ] && . $(dirname $0)/_find-node
 
 [ -n "$1" ] && OCI=$(find_node $1) && shift
 

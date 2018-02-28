@@ -319,6 +319,7 @@ def tar_file(
    name,
    srcs,
    other_tars = [],
+   flat = False,
    root = None,
    out = None,
    visibility = [ 'PUBLIC' ],
@@ -328,6 +329,11 @@ def tar_file(
             'cp -R -L $SRCDIR/* $TMP/%(root_dir)s' ]
    for t in other_tars:
        cmds += [ 'tar -zxf $(location %s)' % t + ' -C $TMP/%(root_dir)s' ]
+
+   if flat:
+       cmds += [ 'find $TMP/%(root_dir)s -type f -exec mv {} $TMP/%(root_dir)s \;',
+                 'find $TMP/%(root_dir)s/* -type d -d -exec rmdir {} \;' ]
+
    cmds += [ 'tar -C $TMP -zcf $OUT %(root_dir)s' ]
 
    cmd = ' && '.join(cmds) % {

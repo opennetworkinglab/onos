@@ -25,7 +25,6 @@ ssh -t -t $ONOS_USER@$OCN "
     cd \$(ls -Fd onos-test-*/)
     export ONOS_ROOT=\$PWD
     export ONOS_STAGE_ROOT=/tmp
-    export ONOS_TEST_STAGE_ROOT=/tmp
     source \$ONOS_ROOT/tools/dev/bash_profile
     setPrimaryInstance 1
     onos-verify-cell   # TODO: remove once warden does this for us
