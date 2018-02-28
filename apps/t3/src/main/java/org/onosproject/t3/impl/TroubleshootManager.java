@@ -160,6 +160,11 @@ public class TroubleshootManager implements TroubleshootService {
     }
 
     @Override
+    public Generator<Set<StaticPacketTrace>> pingAllGenerator(EtherType type) {
+        return new PingAllGenerator(type, hostService, this);
+    }
+
+    @Override
     public Set<StaticPacketTrace> trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
         Host source = hostService.getHost(sourceHost);
         Host destination = hostService.getHost(destinationHost);
@@ -275,7 +280,7 @@ public class TroubleshootManager implements TroubleshootService {
         return true;
     }
 
-    private List<IpAddress> getIpAddresses(Host host, EtherType etherType, boolean checklocal) {
+    List<IpAddress> getIpAddresses(Host host, EtherType etherType, boolean checklocal) {
         return host.ipAddresses().stream().filter(ipAddress -> {
             boolean correctIp = false;
             if (etherType.equals(EtherType.IPV4)) {
@@ -398,6 +403,7 @@ public class TroubleshootManager implements TroubleshootService {
                 log.debug("Stopping here because host is expected destination {}, reached through", completePath);
                 if (computePath(completePath, trace, outputPath.getOutput())) {
                     trace.addResultMessage("Reached required destination Host " + cp);
+                    trace.setSuccess(true);
                 }
                 break;
             } else if (cp.port().equals(PortNumber.CONTROLLER)) {
@@ -457,6 +463,7 @@ public class TroubleshootManager implements TroubleshootService {
                             .mac().isMulticast()) {
                 trace.addResultMessage("Packet is multicast and reached output " + outputPath.getOutput() +
                         " which is enabled and is edge port");
+                trace.setSuccess(true);
                 computePath(completePath, trace, outputPath.getOutput());
                 completePath.clear();
                 if (!hasOtherOutput(in.deviceId(), trace, outputPath.getOutput())) {
@@ -477,6 +484,7 @@ public class TroubleshootManager implements TroubleshootService {
                                 .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
                                 cp + " with hosts " + hostsList);
                     }
+                    trace.setSuccess(true);
                     computePath(completePath, trace, outputPath.getOutput());
                 }
 
