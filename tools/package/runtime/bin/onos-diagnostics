@@ -19,6 +19,12 @@
 # -----------------------------------------------------------------------------
 # Tool to collect cluster-wide diagnostics into a single tar stream.
 # -----------------------------------------------------------------------------
+
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+
+. $(dirname $0)/_find-node
+
 function usage() {
     echo "usage: $(basename $0) [-x] [-n name] [-u user] [-p password] [ip1 ip2...]"
     echo ""
@@ -69,6 +75,9 @@ CLI_COMMANDS=(
     "ports -e"
     "portstats -nz"
 
+    "packet-processors"
+    "packet-requests"
+
     "intents"
     "flows -s"
     "groups"
@@ -93,8 +102,7 @@ while getopts n:u:p:x?h o; do
         *) usage;;
     esac
 done
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+
 user=${user:-$ONOS_WEB_USER}
 password=${password:-$ONOS_WEB_PASS}
 let OPC=$OPTIND-1
@@ -118,7 +126,7 @@ for node in $nodes; do
     printf "logs "
     curl -sS --fail --user $user:$password  \
         http://$node:8181/onos/v1/diagnostics > ../$node.tar.gz
-    tar zxf ../$node.tar.gz
+    tar zxf ../$node.tar.gz && rm ../$node.tar.gz
 
     # Acquire remotely obtained diagnostics via ssh CLI
     for cmd in "${CLI_COMMANDS[@]}"; do
@@ -127,9 +135,7 @@ for node in $nodes; do
         onos $node $cmd 2>/dev/null >$cmdLog
     done
 
-    # Tar-up local and remote diagnostics together
     printf " Done.\n"
-    tar zcf ../$node.tar.gz *
 done
 
 # Tar-up diagnostics from all the nodes

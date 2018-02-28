@@ -46,6 +46,9 @@ onos-buck build //docs:internal //docs:external
 # Package test tar.gz
 onos-buck build //:onos-test
 
+# Package admin tar.gz
+onos-buck build //:onos-admin
+
 # Build ONOS archetypes & deploy to staging repo using the release profile.
 # Note that release of the staging repository is a separate manual step.
 if [ $dryRun -eq 0 ]; then

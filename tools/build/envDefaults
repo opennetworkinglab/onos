@@ -41,12 +41,14 @@ fi
 
 # ONOS test bits (onos-test.tar.gz) staging environment
 export ONOS_TEST_BITS=onos-test-${ONOS_VERSION%~*}
-export ONOS_TEST_STAGE_ROOT=${ONOS_TEST_STAGE_ROOT:-/tmp}
-export ONOS_TEST_STAGE=$ONOS_STAGE_ROOT/$ONOS_TEST_BITS
-export ONOS_TEST_TAR=$ONOS_TEST_STAGE.tar.gz
+export ONOS_TEST_TAR=$ONOS_STAGE_ROOT/$ONOS_TEST_BITS.tar.gz
+
+# ONOS admin bits (onos-admin.tar.gz) staging environment
+export ONOS_ADMIN_BITS=onos-admin-${ONOS_VERSION%~*}
+export ONOS_ADMIN_TAR=$ONOS_STAGE_ROOT/$ONOS_ADMIN_BITS.tar.gz
 
 export ONOS_INSTALL_DIR="/opt/onos"     # Installation directory on remote
-export OCI="${OCI:-192.168.56.101}"     # ONOS Controller Instance
+export OCI="${OCI:-localhost}"          # ONOS Controller Instance
 export ONOS_USER="${ONOS_USER:-sdn}"    # ONOS user on remote system
 export ONOS_GROUP="${ONOS_GROUP:-sdn}"  # ONOS group on remote system
 export ONOS_PWD="rocks"                 # ONOS user password on remote system

@@ -3,8 +3,10 @@
 # Tool to create an application from scratch using ONOS Maven archetypes.
 # -----------------------------------------------------------------------------
 
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-. $ONOS_ROOT/tools/build/envDefaults
+# If ONOS_HOME is set, respect its value.
+# If ONOS_HOME is not set (e.g. in the init or service environment),
+# set it based on this script's path.
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
 
 type=${1:-bundle}
 

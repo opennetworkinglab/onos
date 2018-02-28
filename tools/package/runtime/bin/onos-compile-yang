@@ -20,14 +20,10 @@
 # Tool to compile the specified YANG file(s) using the ONOS live compilation.
 # -----------------------------------------------------------------------------
 
-# If ONOS_HOME is set, respect its value.
-# If ONOS_HOME is not set (e.g. in the init or service environment),
-# set it based on this script's path.
-ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
 ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
 
-. ${ONOS_HOME}/bin/_find-node
+. $(dirname $0)/_find-node
 
 node=$(find_node $1)
 yang=$2
