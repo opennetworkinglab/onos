@@ -22,6 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
@@ -215,7 +216,7 @@ public interface SegmentRoutingService {
      * @param mcastIp the group ip
      * @return the mapping mcastIp-device to mcast role
      */
-    Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp);
+    Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp);
 
     /**
      * Returns the associated paths to the mcast group.
