@@ -1,5 +1,5 @@
 module tapi-otsi {
-    namespace "urn:onf:params:xml:ns:yang:tapi-otsi";
+    namespace "urn:onf:otcc:yang:tapi-otsi";
     prefix tapi-otsi;
     import tapi-common {
         prefix tapi-common;
@@ -10,16 +10,24 @@ module tapi-otsi {
     import tapi-topology {
         prefix tapi-topology;
     }
-    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
-        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
-        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
-        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
-    description "none";
-    revision 2017-05-31 {
-        description "TAPI SDK 2.0-alpha";
-        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+        Project List: <mailto:transport-api@opennetworking.org>
+        Editor: Karthik Sethuraman
+                <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI OTSi Model definitions.
+        Source: TapiOtsi.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
+        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
     }
     augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point" {
         uses otsi-connection-end-point-spec;
@@ -32,13 +40,25 @@ module tapi-otsi {
     /***********************
     * package object-classes
     **********************/ 
-        grouping otsi-a-client-adaptation-pac {
+        grouping otsi-client-adaptation-pac {
             description "none";
         }
         grouping otsi-connection-end-point-spec {
-            uses tapi-otsi:otsi-a-client-adaptation-pac;
-            uses tapi-otsi:otsi-termination-pac;
-            uses tapi-otsi:otsi-g-ctp-pac;
+            container otsi-adapter {
+                config false;
+                uses otsi-client-adaptation-pac;
+                description "none";
+            }
+            container otsi-termination {
+                config false;
+                uses otsi-termination-pac;
+                description "none";
+            }
+            container otsi-ctp {
+                config false;
+                uses otsi-ctp-pac;
+                description "none";
+            }
             description "none";
         }
         grouping otsi-termination-pac {
@@ -71,7 +91,7 @@ module tapi-otsi {
             }
             description "none";
         }
-        grouping otsi-a-pool-pac {
+        grouping otsi-pool-pac {
             list available-frequency-slot {
                 config false;
                 uses frequency-slot;
@@ -85,7 +105,11 @@ module tapi-otsi {
             description "none";
         }
         grouping otsi-node-edge-point-spec {
-            uses tapi-otsi:otsi-a-pool-pac;
+            container otsi-pool {
+                config false;
+                uses otsi-pool-pac;
+                description "none";
+            }
             description "none";
         }
         grouping otsi-routing-spec {
@@ -95,15 +119,12 @@ module tapi-otsi {
             }
             description "none";
         }
-        grouping otsi-g-ctp-pac {
+        grouping otsi-ctp-pac {
             list selected-frequency-slot {
                 config false;
                 uses frequency-slot;
                 description "none";
             }
-            description "none";
-        }
-        feature otsia {
             description "none";
         }
 

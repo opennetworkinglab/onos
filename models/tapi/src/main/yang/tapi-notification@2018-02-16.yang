@@ -1,19 +1,27 @@
 module tapi-notification {
-    namespace "urn:onf:params:xml:ns:yang:tapi-notification";
+    namespace "urn:onf:otcc:yang:tapi-notification";
     prefix tapi-notification;
     import tapi-common {
         prefix tapi-common;
     }
-    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
-        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
-        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
-        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
-    description "none";
-    revision 2017-05-31 {
-        description "TAPI SDK 2.0-alpha";
-        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+        Project List: <mailto:transport-api@opennetworking.org>
+        Editor: Karthik Sethuraman
+                <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Notification Model definitions.
+        Source: TapiNotification.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
+        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
     }
     augment "/tapi-common:context" {
         uses notification-context;
@@ -296,6 +304,36 @@ module tapi-notification {
                     description "none";
                 }
                 enum CONNECTION_END_POINT {
+                    description "none";
+                }
+                enum MAINTENANCE_ENTITY_GROUP {
+                    description "none";
+                }
+                enum MAINTENANCE_ENTITY {
+                    description "none";
+                }
+                enum MEG_END_POINT {
+                    description "none";
+                }
+                enum MEG_INTERMEDIATE_POINT {
+                    description "none";
+                }
+                enum SWITCH_CONTROL {
+                    description "none";
+                }
+                enum SWITCH {
+                    description "none";
+                }
+                enum ROUTE {
+                    description "none";
+                }
+                enum NODE_RULE_GROUP {
+                    description "none";
+                }
+                enum INTER_RULE_GROUP {
+                    description "none";
+                }
+                enum RULE {
                     description "none";
                 }
             }

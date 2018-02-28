@@ -1,5 +1,5 @@
 module tapi-odu {
-    namespace "urn:onf:params:xml:ns:yang:tapi-odu";
+    namespace "urn:onf:otcc:yang:tapi-odu";
     prefix tapi-odu;
     import tapi-common {
         prefix tapi-common;
@@ -13,16 +13,24 @@ module tapi-odu {
     import tapi-oam {
         prefix tapi-oam;
     }
-    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
-        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
-        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
-        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
-    description "none";
-    revision 2017-05-31 {
-        description "TAPI SDK 2.0-alpha";
-        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+        Project List: <mailto:transport-api@opennetworking.org>
+        Editor: Karthik Sethuraman
+                <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Odu Model definitions.
+        Source: TapiOdu.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
+        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
     }
     augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
         uses odu-node-edge-point-spec;
@@ -75,10 +83,25 @@ module tapi-odu {
                 It is present only if the CEP contains a TTP";
         }
         grouping odu-connection-end-point-spec {
-            uses tapi-odu:odu-common-pac;
-            uses tapi-odu:odu-termination-and-client-adaptation-pac;
-            uses tapi-odu:odu-ctp-pac;
-            uses tapi-odu:odu-protection-pac;
+            container odu-common {
+                uses odu-common-pac;
+                description "none";
+            }
+            container odu-term-and-adapter {
+                config false;
+                uses odu-termination-and-client-adaptation-pac;
+                description "none";
+            }
+            container odu-ctp {
+                config false;
+                uses odu-ctp-pac;
+                description "none";
+            }
+            container odu-protection {
+                config false;
+                uses odu-protection-pac;
+                description "none";
+            }
             description "none";
         }
         grouping odu-pool-pac {
@@ -99,7 +122,11 @@ module tapi-odu {
             description "none";
         }
         grouping odu-node-edge-point-spec {
-            uses tapi-odu:odu-pool-pac;
+            container odu-pool {
+                config false;
+                uses odu-pool-pac;
+                description "none";
+            }
             description "none";
         }
         grouping odu-ctp-pac {
@@ -123,7 +150,7 @@ module tapi-odu {
                     In case of ODUk mapping over ODUCn, the TPN is encoded in a 14-bit field so the value range is 0-16383. See clause 20.4.1.1/G.709-2016.
                     ";
             }
-            leaf accepted-m-si {
+            leaf accepted-msi {
                 type string;
                 config false;
                 description "This attribute is applicable when the ODU CTP object instance represents a lower order ODU1 or ODU2 CTP Sink at the client layer of the ODU3P/ODU12 adaptation function or represents a lower order ODUj CTP Sink at the client layer of the ODUP/ODUj-21 adaptation function. This attribute is a 1-byte field that represents the accepted multiplex structure of the adaptation function. ";
@@ -132,11 +159,28 @@ module tapi-odu {
                 It is present only if the CEP contains a CTP";
         }
         grouping odu-mep-spec {
-            uses tapi-odu:odu-mep-pac;
-            uses tapi-odu:odu-ncm-pac;
-            uses tapi-odu:odu-tcm-mep-pac;
-            uses tapi-odu:odu-defect-pac;
-            uses tapi-odu:odu-pm-pac;
+            container odu-mep {
+                uses odu-mep-pac;
+                description "none";
+            }
+            container odu-ncm {
+                config false;
+                uses odu-ncm-pac;
+                description "none";
+            }
+            container odu-tcm {
+                config false;
+                uses odu-tcm-mep-pac;
+                description "none";
+            }
+            container odu-defect {
+                uses odu-defect-pac;
+                description "none";
+            }
+            container odu-pm {
+                uses odu-pm-pac;
+                description "none";
+            }
             description "none";
         }
         grouping odu-protection-pac {
@@ -195,11 +239,29 @@ module tapi-odu {
             description "none";
         }
         grouping odu-mip-spec {
-            uses tapi-odu:odu-mip-pac;
-            uses tapi-odu:odu-ncm-pac;
-            uses tapi-odu:odu-tcm-mip-pac;
-            uses tapi-odu:odu-pm-pac;
-            uses tapi-odu:odu-defect-pac;
+            container odu-mip {
+                config false;
+                uses odu-mip-pac;
+                description "none";
+            }
+            container odu-ncm {
+                config false;
+                uses odu-ncm-pac;
+                description "none";
+            }
+            container odu-tcm {
+                config false;
+                uses odu-tcm-mip-pac;
+                description "none";
+            }
+            container odu-pm {
+                uses odu-pm-pac;
+                description "none";
+            }
+            container odu-defect {
+                uses odu-defect-pac;
+                description "none";
+            }
             description "none";
         }
         grouping odu-mip-pac {
@@ -341,9 +403,6 @@ module tapi-odu {
                 description "Trail Trace Identifier Mismatch";
             }
             description "The valid list of defects raised on the entity. If the value of any attribute is true, then the corresponding defect is raised.";
-        }
-        feature odu {
-            description "none";
         }
 
     /***********************

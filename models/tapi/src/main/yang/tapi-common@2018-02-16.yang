@@ -1,16 +1,25 @@
 module tapi-common {
-    namespace "urn:onf:params:xml:ns:yang:tapi-common";
+    namespace "urn:onf:otcc:yang:tapi-common";
     prefix tapi-common;
-    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
-        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
-        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
-        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
-    description "none";
-    revision 2017-05-31 {
-        description "TAPI SDK 2.0-alpha";
-        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+        Project List: <mailto:transport-api@opennetworking.org>
+        Editor: Karthik Sethuraman
+                <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Common Model definitions.
+        Source: TapiCommon.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0
+        ";
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
+        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
     }
     /***********************
     * package object-classes
@@ -81,11 +90,11 @@ module tapi-common {
             description "Provides state attributes that are applicable to an entity that reflects operational aspects. Such an entity is expected to also have lifecycle aspects.";
         }
         container context {
-        	presence "TAPI";
-            uses _context;
+            uses tapi-context;
+            presence "Root container for all TAPI interaction";
             description "none";
         }
-        grouping _context {
+        grouping tapi-context {
             list service-interface-point {
                 key 'uuid';
                 min-elements 2;
@@ -111,8 +120,8 @@ module tapi-common {
                 description "Usage of layerProtocolName [>1]  in the ServiceInterfacePoint should be considered experimental";
             }
             uses resource-spec;
-            uses tapi-common:admin-state-pac;
-            uses tapi-common:capacity-pac;
+            uses admin-state-pac;
+            uses capacity-pac;
             description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
                 The structure of LTP supports all transport protocols including circuit and packet forms.";
         }
@@ -236,6 +245,9 @@ module tapi-common {
                 }
                 enum ETY {
                     description "Models the ETY layer as per ITU-T G.8010";
+                }
+                enum DSR {
+                    description "Models a Digital Signal of an unspecified rate. This value can be used when the intent is to respresent an generic digital layer signal without making any statement on its format or overhead (processing) capabilities.";
                 }
             }
             description "Provides a controlled list of layer protocol names and indicates the naming authority.

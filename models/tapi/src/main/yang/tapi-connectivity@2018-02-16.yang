@@ -1,5 +1,5 @@
 module tapi-connectivity {
-    namespace "urn:onf:params:xml:ns:yang:tapi-connectivity";
+    namespace "urn:onf:otcc:yang:tapi-connectivity";
     prefix tapi-connectivity;
     import tapi-common {
         prefix tapi-common;
@@ -10,16 +10,24 @@ module tapi-connectivity {
     import tapi-path-computation {
         prefix tapi-path-computation;
     }
-    organization "Open Networking Foundation (ONF) / Open Transport Working Group(OTWG) / Transport API (TAPI) Project";
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        WG Web: TAPI SDK Project <http://opensourcesdn.org/projects/project-snowmass/>
-        WG List: TAPI Discussion list <mailto: transport-api@login.opennetworking.org>,
-        WG Chair: Karthik Sethuraman <mailto:karthik.sethuraman@necam.com>,
-        Editor: Ricard Vilalta <mailto:ricard.vilalta@cttc.es>";
-    description "none";
-    revision 2017-05-31 {
-        description "TAPI SDK 2.0-alpha";
-        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020 and RFC 6087";
+        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+        Project List: <mailto:transport-api@opennetworking.org>
+        Editor: Karthik Sethuraman
+                <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Connectivity Model definitions.
+        Source: TapiConnectivity.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
+        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
     }
     augment "/tapi-common:context" {
         uses connectivity-context;
@@ -57,7 +65,7 @@ module tapi-connectivity {
                 description "none";
             }
             list switch-control {
-                key 'local-id';
+                key 'uuid';
                 config false;
                 uses switch-control;
                 description "none";
@@ -123,12 +131,10 @@ module tapi-connectivity {
         grouping connectivity-constraint {
             leaf service-type {
                 type service-type;
-                config false;
                 description "none";
             }
             leaf service-level {
                 type string;
-                config false;
                 description "An abstract value the meaning of which is mutually agreed – typically represents metrics such as - Class of service, priority, resiliency, availability";
             }
             leaf is-exclusive {
@@ -137,7 +143,6 @@ module tapi-connectivity {
                 description "To distinguish if the resources are exclusive to the service  - for example between EPL(isExclusive=true) and EVPL (isExclusive=false), or between EPLAN (isExclusive=true) and EVPLAN (isExclusive=false)";
             }
             container requested-capacity {
-                config false;
                 uses tapi-common:capacity;
                 description "none";
             }
@@ -147,13 +152,11 @@ module tapi-connectivity {
             }
             list cost-characteristic {
                 key 'cost-name';
-                config false;
                 uses tapi-topology:cost-characteristic;
                 description "The list of costs where each cost relates to some aspect of the TopologicalEntity.";
             }
             list latency-characteristic {
                 key 'traffic-property-name';
-                config false;
                 uses tapi-topology:latency-characteristic;
                 description "The effect on the latency of a queuing process. This only has significant effect for packet based systems and has a complex characteristic.";
             }
@@ -161,17 +164,15 @@ module tapi-connectivity {
                 type leafref {
                     path '/tapi-common:context/tapi-connectivity:connectivity-service/tapi-connectivity:uuid';
                 }
-                config false;
                 description "none";
             }
             leaf-list diversity-exclusion {
                 type leafref {
                     path '/tapi-common:context/tapi-connectivity:connectivity-service/tapi-connectivity:uuid';
                 }
-                config false;
                 description "none";
             }
-            uses tapi-connectivity:route-compute-policy;
+            uses route-compute-policy;
             description "none";
         }
         grouping connectivity-service {
@@ -197,10 +198,10 @@ module tapi-connectivity {
                 description "none";
             }
             uses tapi-common:service-spec;
-            uses tapi-connectivity:connectivity-constraint;
-            uses tapi-connectivity:topology-constraint;
+            uses connectivity-constraint;
+            uses topology-constraint;
             uses tapi-common:admin-state-pac;
-            uses tapi-connectivity:resilience-constraint;
+            uses resilience-constraint;
             description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
                 At the lowest level of recursion, a FC represents a cross-connection within an NE.";
         }
@@ -216,7 +217,7 @@ module tapi-connectivity {
                 description "none";
             }
             container capacity {
-                uses tapi-common:capacity-pac;
+                uses tapi-common:capacity;
                 description "none";
             }
             leaf direction {
@@ -314,7 +315,7 @@ module tapi-connectivity {
         grouping switch-control {
             leaf-list sub-switch-control {
                 type leafref {
-                    path '/tapi-common:context/tapi-connectivity:connection/tapi-connectivity:switch-control/tapi-connectivity:local-id';
+                    path '/tapi-common:context/tapi-connectivity:connection/tapi-connectivity:switch-control/tapi-connectivity:uuid';
                 }
                 description "none";
             }
@@ -323,8 +324,8 @@ module tapi-connectivity {
                 uses switch;
                 description "none";
             }
-            uses tapi-common:local-class;
-            uses tapi-connectivity:resilience-constraint;
+            uses tapi-common:resource-spec;
+            uses resilience-constraint;
             description "Represents the capability to control and coordinate switches, to add/delete/modify FCs and to add/delete/modify LTPs/LPs so as to realize a protection scheme.";
         }
         grouping resilience-constraint {
