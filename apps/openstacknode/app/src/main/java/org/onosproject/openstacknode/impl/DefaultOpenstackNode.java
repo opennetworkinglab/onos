@@ -214,15 +214,13 @@ public class DefaultOpenstackNode implements OpenstackNode {
 
         if (obj instanceof DefaultOpenstackNode) {
             DefaultOpenstackNode that = (DefaultOpenstackNode) obj;
-            if (Objects.equals(hostname, that.hostname) &&
+            return Objects.equals(hostname, that.hostname) &&
                     Objects.equals(type, that.type) &&
                     Objects.equals(intgBridge, that.intgBridge) &&
                     Objects.equals(managementIp, that.managementIp) &&
                     Objects.equals(dataIp, that.dataIp) &&
                     Objects.equals(uplinkPort, that.uplinkPort) &&
-                    Objects.equals(vlanIntf, that.vlanIntf)) {
-                return true;
-            }
+                    Objects.equals(vlanIntf, that.vlanIntf);
         }
         return false;
     }

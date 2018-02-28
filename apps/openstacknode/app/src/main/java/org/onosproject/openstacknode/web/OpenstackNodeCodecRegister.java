@@ -38,14 +38,14 @@ public class OpenstackNodeCodecRegister {
     protected CodecService codecService;
 
     @Activate
-    public void activate() {
+    protected void activate() {
         codecService.registerCodec(OpenstackNode.class, new OpenstackNodeCodec());
 
         log.info("Started");
     }
 
     @Deactivate
-    public void deactivate() {
+    protected void deactivate() {
         codecService.unregisterCodec(OpenstackNode.class);
 
         log.info("Stopped");

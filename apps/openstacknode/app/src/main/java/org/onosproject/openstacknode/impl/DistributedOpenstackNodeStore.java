@@ -49,7 +49,11 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
-import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.*;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_COMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_CREATED;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_INCOMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_REMOVED;
+import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -61,7 +65,7 @@ public class DistributedOpenstackNodeStore
         extends AbstractStore<OpenstackNodeEvent, OpenstackNodeStoreDelegate>
         implements OpenstackNodeStore {
 
-    protected final Logger log = getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_DUPLICATE = " already exists";
@@ -158,12 +162,10 @@ public class DistributedOpenstackNodeStore
             switch (event.type()) {
                 case INSERT:
                     log.debug("OpenStack node created {}", event.newValue());
-                    eventExecutor.execute(() -> {
-                        notifyDelegate(new OpenstackNodeEvent(
-                                OPENSTACK_NODE_CREATED,
-                                event.newValue().value()
-                        ));
-                    });
+                    eventExecutor.execute(() ->
+                            notifyDelegate(new OpenstackNodeEvent(
+                                OPENSTACK_NODE_CREATED, event.newValue().value()
+                    )));
                     break;
                 case UPDATE:
                     log.debug("OpenStack node updated {}", event.newValue());
@@ -187,12 +189,10 @@ public class DistributedOpenstackNodeStore
                     break;
                 case REMOVE:
                     log.debug("OpenStack node removed {}", event.oldValue());
-                    eventExecutor.execute(() -> {
-                        notifyDelegate(new OpenstackNodeEvent(
-                                OPENSTACK_NODE_REMOVED,
-                                event.oldValue().value()
-                        ));
-                    });
+                    eventExecutor.execute(() ->
+                            notifyDelegate(new OpenstackNodeEvent(
+                                OPENSTACK_NODE_REMOVED, event.oldValue().value()
+                    )));
                     break;
                 default:
                     // do nothing

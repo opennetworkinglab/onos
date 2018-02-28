@@ -25,9 +25,6 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Initializes nodes for OpenStack node service.
  */
@@ -64,16 +61,12 @@ public class OpenstackNodeInitCommand extends AbstractShellCommand {
         }
 
         if (isAll) {
-            List<String> osNodes = osNodeService.nodes().stream()
-                    .map(OpenstackNode::hostname)
-                    .collect(Collectors.toList());
-            hostnames = osNodes.toArray(new String[osNodes.size()]);
+            hostnames = osNodeService.nodes().stream()
+                    .map(OpenstackNode::hostname).toArray(String[]::new);
         } else if (isIncomplete) {
-            List<String> osNodes = osNodeService.nodes().stream()
+            hostnames = osNodeService.nodes().stream()
                     .filter(osNode -> osNode.state() != NodeState.COMPLETE)
-                    .map(OpenstackNode::hostname)
-                    .collect(Collectors.toList());
-            hostnames = osNodes.toArray(new String[osNodes.size()]);
+                    .map(OpenstackNode::hostname).toArray(String[]::new);
         }
 
         for (String hostname : hostnames) {

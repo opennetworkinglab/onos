@@ -77,8 +77,11 @@ import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
-import static org.onosproject.openstacknode.api.Constants.*;
-import static org.onosproject.openstacknode.api.NodeState.*;
+import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
+import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -89,7 +92,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
-    protected final Logger log = getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
     private static final String OVSDB_PORT = "ovsdbPortNum";
     private static final int DEFAULT_OVSDB_PORT = 6640;
@@ -351,13 +354,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @return true if the given interface is enabled, false otherwise
      */
     private boolean isIntfEnabled(OpenstackNode osNode, String intf) {
-        if (!deviceService.isAvailable(osNode.intgBridge())) {
-            return false;
-        }
-        return deviceService.getPorts(osNode.intgBridge()).stream()
-                .anyMatch(port -> Objects.equals(
-                        port.annotations().value(PORT_NAME), intf) &&
-                        port.isEnabled());
+        return deviceService.isAvailable(osNode.intgBridge()) &&
+                deviceService.getPorts(osNode.intgBridge()).stream()
+                        .anyMatch(port -> Objects.equals(
+                                port.annotations().value(PORT_NAME), intf) &&
+                                port.isEnabled());
     }
 
     /**
@@ -369,10 +370,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
-                if (!deviceService.isAvailable(osNode.intgBridge())) {
-                    return false;
-                }
-                return true;
+                return deviceService.isAvailable(osNode.intgBridge());
             case DEVICE_CREATED:
                 if (osNode.dataIp() != null &&
                         !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
@@ -388,7 +386,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 }
                 return true;
             case COMPLETE:
-                return false;
             case INCOMPLETE:
                 // always return false
                 // run init CLI to re-trigger node bootstrap
@@ -556,9 +553,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
-                    eventExecutor.execute(() -> {
-                        bootstrapNode(event.subject());
-                    });
+                    eventExecutor.execute(() -> bootstrapNode(event.subject()));
                     break;
                 case OPENSTACK_NODE_COMPLETE:
                     break;

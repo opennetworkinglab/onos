@@ -78,6 +78,18 @@ public enum NodeState {
         }
     };
 
+    /**
+     * Processes the given node which is under a certain state.
+     *
+     * @param handler openstack node handler
+     * @param osNode openstack node
+     */
     public abstract void process(OpenstackNodeHandler handler, OpenstackNode osNode);
+
+    /**
+     * Transits to the next state.
+     *
+     * @return the next openstack node state
+     */
     public abstract NodeState nextState();
 }

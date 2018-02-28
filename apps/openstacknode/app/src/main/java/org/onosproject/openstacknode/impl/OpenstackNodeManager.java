@@ -58,7 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
         implements OpenstackNodeService, OpenstackNodeAdminService {
 
-    protected final Logger log = getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
     private static final String MSG_NODE = "OpenStack node %s %s";
     private static final String MSG_CREATED = "created";
@@ -166,11 +166,10 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
     @Override
     public OpenstackNode node(DeviceId deviceId) {
-        OpenstackNode result = osNodeStore.nodes().stream()
+        return osNodeStore.nodes().stream()
                 .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
                         Objects.equals(osNode.ovsdb(), deviceId))
                 .findFirst().orElse(null);
-        return result;
     }
 
     private class InternalNodeStoreDelegate implements OpenstackNodeStoreDelegate {

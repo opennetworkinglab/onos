@@ -22,6 +22,9 @@ import org.onosproject.event.AbstractEvent;
  */
 public class OpenstackNodeEvent extends AbstractEvent<OpenstackNodeEvent.Type, OpenstackNode> {
 
+    /**
+     * List of openstack node event types.
+     */
     public enum Type {
 
         /**
