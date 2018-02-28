@@ -100,6 +100,8 @@ import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.mcast.McastHandler;
+import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
@@ -164,7 +166,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private NeighbourResolutionService neighbourResolutionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    CoreService coreService;
+    public CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     PacketService packetService;
@@ -176,7 +178,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     HostLocationProbingService probingService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    DeviceService deviceService;
+    public DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     DeviceAdminService deviceAdminService;
@@ -185,7 +187,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    LinkService linkService;
+    public LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public MastershipService mastershipService;
@@ -194,7 +196,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MulticastRouteService multicastRouteService;
+    public MulticastRouteService multicastRouteService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public TopologyService topologyService;
@@ -232,7 +234,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalLinkListener linkListener = null;
     private InternalDeviceListener deviceListener = null;
     private AppConfigHandler appCfgHandler = null;
-    XConnectHandler xConnectHandler = null;
+    public XConnectHandler xConnectHandler = null;
     McastHandler mcastHandler = null;
     HostHandler hostHandler = null;
     private RouteHandler routeHandler = null;
@@ -706,7 +708,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp) {
+    public Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp) {
         return mcastHandler.getMcastRoles(mcastIp);
     }
 
@@ -847,7 +849,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param connectPoint connect point
      * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
      */
-    VlanId getInternalVlanId(ConnectPoint connectPoint) {
+    public VlanId getInternalVlanId(ConnectPoint connectPoint) {
         VlanId untaggedVlanId = getUntaggedVlanId(connectPoint);
         VlanId nativeVlanId = getNativeVlanId(connectPoint);
         return untaggedVlanId != null ? untaggedVlanId : nativeVlanId;

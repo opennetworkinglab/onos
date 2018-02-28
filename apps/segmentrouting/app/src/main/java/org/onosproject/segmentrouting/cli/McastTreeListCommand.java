@@ -24,8 +24,8 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.segmentrouting.McastHandler.McastRole;
 import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 
 import java.util.Collection;
@@ -35,9 +35,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.segmentrouting.McastHandler.McastRole.EGRESS;
-import static org.onosproject.segmentrouting.McastHandler.McastRole.INGRESS;
-import static org.onosproject.segmentrouting.McastHandler.McastRole.TRANSIT;
+import static org.onosproject.segmentrouting.mcast.McastRole.EGRESS;
+import static org.onosproject.segmentrouting.mcast.McastRole.INGRESS;
+import static org.onosproject.segmentrouting.mcast.McastRole.TRANSIT;
 
 /**
  * Command to show the list of mcast trees.

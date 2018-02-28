@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.segmentrouting;
+package org.onosproject.segmentrouting.mcast;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -54,6 +54,8 @@ import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastRouteInfo;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
+import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
@@ -85,7 +87,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
- * Handles multicast-related events.
+ * Handles Multicast related events.
  */
 public class McastHandler {
     private static final Logger log = LoggerFactory.getLogger(McastHandler.class);
@@ -141,24 +143,6 @@ public class McastHandler {
             = newScheduledThreadPool(1, groupedThreads("mcastBktCorrector", "mcastbktC-%d", log));
 
     /**
-     * Role in the multicast tree.
-     */
-    public enum McastRole {
-        /**
-         * The device is the ingress device of this group.
-         */
-        INGRESS,
-        /**
-         * The device is the transit device of this group.
-         */
-        TRANSIT,
-        /**
-         * The device is the egress device of this group.
-         */
-        EGRESS
-    }
-
-    /**
      * Constructs the McastEventHandler.
      *
      * @param srManager Segment Routing manager
@@ -191,7 +175,7 @@ public class McastHandler {
     /**
      * Read initial multicast from mcast store.
      */
-    protected void init() {
+    public void init() {
         srManager.multicastRouteService.getRoutes().forEach(mcastRoute -> {
             ConnectPoint source = srManager.multicastRouteService.fetchSource(mcastRoute);
             Set<ConnectPoint> sinks = srManager.multicastRouteService.fetchSinks(mcastRoute);
@@ -204,7 +188,7 @@ public class McastHandler {
     /**
      * Clean up when deactivating the application.
      */
-    protected void terminate() {
+    public void terminate() {
         executorService.shutdown();
     }
 
@@ -213,7 +197,7 @@ public class McastHandler {
      *
      * @param event McastEvent with SOURCE_ADDED type
      */
-    protected void processSourceAdded(McastEvent event) {
+    public void processSourceAdded(McastEvent event) {
         log.info("processSourceAdded {}", event);
         McastRouteInfo mcastRouteInfo = event.subject();
         if (!mcastRouteInfo.isComplete()) {
@@ -232,7 +216,7 @@ public class McastHandler {
      *
      * @param event McastEvent with SOURCE_UPDATED type
      */
-    protected void processSourceUpdated(McastEvent event) {
+    public void processSourceUpdated(McastEvent event) {
         log.info("processSourceUpdated {}", event);
         // Get old and new data
         McastRouteInfo mcastRouteInfo = event.subject();
@@ -250,7 +234,7 @@ public class McastHandler {
      *
      * @param event McastEvent with SINK_ADDED type
      */
-    protected void processSinkAdded(McastEvent event) {
+    public void processSinkAdded(McastEvent event) {
         log.info("processSinkAdded {}", event);
         McastRouteInfo mcastRouteInfo = event.subject();
         if (!mcastRouteInfo.isComplete()) {
@@ -269,7 +253,7 @@ public class McastHandler {
      *
      * @param event McastEvent with SINK_REMOVED type
      */
-    protected void processSinkRemoved(McastEvent event) {
+    public void processSinkRemoved(McastEvent event) {
         log.info("processSinkRemoved {}", event);
         McastRouteInfo mcastRouteInfo = event.subject();
         if (!mcastRouteInfo.isComplete()) {
@@ -288,7 +272,7 @@ public class McastHandler {
      *
      * @param event McastEvent with ROUTE_REMOVED type
      */
-    protected void processRouteRemoved(McastEvent event) {
+    public void processRouteRemoved(McastEvent event) {
         log.info("processRouteRemoved {}", event);
         McastRouteInfo mcastRouteInfo = event.subject();
         if (!mcastRouteInfo.source().isPresent()) {
@@ -522,7 +506,7 @@ public class McastHandler {
      *
      * @param affectedLink Link that is going down
      */
-    protected void processLinkDown(Link affectedLink) {
+    public void processLinkDown(Link affectedLink) {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
@@ -587,7 +571,7 @@ public class McastHandler {
      *
      * @param deviceDown device going down
      */
-    protected void processDeviceDown(DeviceId deviceDown) {
+    public void processDeviceDown(DeviceId deviceDown) {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
@@ -690,7 +674,7 @@ public class McastHandler {
         // Do nothing if the port is configured as suppressed
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
         SegmentRoutingAppConfig appConfig = srManager.cfgService
-                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+                .getConfig(srManager.appId(), SegmentRoutingAppConfig.class);
         if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
             log.info("Ignore suppressed port {}", connectPoint);
             return;
@@ -904,7 +888,7 @@ public class McastHandler {
 
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)
-                .withType(NextObjective.Type.BROADCAST).fromApp(srManager.appId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(srManager.appId())
                 .withMeta(metadata);
 
         outPorts.forEach(port -> {
@@ -949,7 +933,7 @@ public class McastHandler {
                 .withMeta(metabuilder.build())
                 .nextStep(nextId)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(srManager.appId)
+                .fromApp(srManager.appId())
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
         return fwdBuilder;
     }
@@ -983,7 +967,7 @@ public class McastHandler {
                 .pushVlan().setVlanId(assignedVlan).build();
         filtBuilder.withMeta(tt);
 
-        return filtBuilder.permit().fromApp(srManager.appId);
+        return filtBuilder.permit().fromApp(srManager.appId());
     }
 
     /**
@@ -1015,11 +999,11 @@ public class McastHandler {
         boolean isPairLink = true;
         try {
             // If one of this condition is not true; it is not a pair link
-            if (!(srManager.deviceConfiguration.isEdgeDevice(srcId) &&
-                  srManager.deviceConfiguration.isEdgeDevice(dstId) &&
-                  srManager.deviceConfiguration.getPairDeviceId(srcId).equals(dstId) &&
-                  srManager.deviceConfiguration.getPairLocalPort(srcId).equals(srcPort) &&
-                  srManager.deviceConfiguration.getPairLocalPort(dstId).equals(dstPort))) {
+            if (!(srManager.deviceConfiguration().isEdgeDevice(srcId) &&
+                  srManager.deviceConfiguration().isEdgeDevice(dstId) &&
+                  srManager.deviceConfiguration().getPairDeviceId(srcId).equals(dstId) &&
+                  srManager.deviceConfiguration().getPairLocalPort(srcId).equals(srcPort) &&
+                  srManager.deviceConfiguration().getPairLocalPort(dstId).equals(dstPort))) {
                     isPairLink = false;
                 }
         } catch (DeviceConfigNotFoundException e) {
@@ -1231,8 +1215,8 @@ public class McastHandler {
 
             for (PortNumber port : ports) {
                 // Spine-facing port should have no subnet and no xconnect
-                if (srManager.deviceConfiguration != null &&
-                        srManager.deviceConfiguration.getPortSubnets(ingressDevice, port).isEmpty() &&
+                if (srManager.deviceConfiguration() != null &&
+                        srManager.deviceConfiguration().getPortSubnets(ingressDevice, port).isEmpty() &&
                         !srManager.xConnectHandler.hasXConnect(new ConnectPoint(ingressDevice, port))) {
                     return port;
                 }
@@ -1264,8 +1248,8 @@ public class McastHandler {
                 // Tries to find at least one port that is not spine-facing
                 for (PortNumber port : ports) {
                     // Spine-facing port should have no subnet and no xconnect
-                    if (srManager.deviceConfiguration != null &&
-                            (!srManager.deviceConfiguration.getPortSubnets(deviceId, port).isEmpty() ||
+                    if (srManager.deviceConfiguration() != null &&
+                            (!srManager.deviceConfiguration().getPortSubnets(deviceId, port).isEmpty() ||
                             srManager.xConnectHandler.hasXConnect(new ConnectPoint(deviceId, port)))) {
                         return true;
                     }
@@ -1287,7 +1271,7 @@ public class McastHandler {
         // Do nothing if the port is configured as suppressed
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
         SegmentRoutingAppConfig appConfig = srManager.cfgService
-                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+                .getConfig(srManager.appId(), SegmentRoutingAppConfig.class);
         if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
             log.info("Ignore suppressed port {}", connectPoint);
             return;
@@ -1314,7 +1298,7 @@ public class McastHandler {
      * @param vlanId assigned VLAN ID
      * @param install true to add, false to remove
      */
-    protected void updateFilterToDevice(DeviceId deviceId, PortNumber portNum,
+    public void updateFilterToDevice(DeviceId deviceId, PortNumber portNum,
                                         VlanId vlanId, boolean install) {
         lastMcastChange = Instant.now();
         mcastLock();
@@ -1465,7 +1449,7 @@ public class McastHandler {
                                           entry -> entry.getValue().value().id()));
     }
 
-    public Map<McastStoreKey, McastHandler.McastRole> getMcastRoles(IpAddress mcastIp) {
+    public Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp) {
         // If mcast ip is present
         if (mcastIp != null) {
             return mcastRoleStore.entrySet().stream()
