@@ -29,7 +29,7 @@
             </optional-completers>
         </command>
         <command>
-            <action class="org.onosproject.t3.cli.TroubleshootPingAllTraceCommand"/>
+            <action class="org.onosproject.t3.cli.TroubleshootPingAllCommand"/>
             <optional-completers>
                 <entry key="-et" value-ref="ethTypeCompleter"/>
             </optional-completers>

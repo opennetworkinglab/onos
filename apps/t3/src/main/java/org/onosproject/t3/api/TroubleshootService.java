@@ -20,6 +20,7 @@ import org.onlab.packet.EthType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.t3.impl.Generator;
 
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,14 @@ public interface TroubleshootService {
      * @return a trace result
      */
     List<StaticPacketTrace> pingAll(EthType.EtherType type);
+
+    /**
+     * Requests a static trace be performed between all hosts in the network, given a type of traffic.
+     *
+     * @param type the etherType of the traffic we want to trace.
+     * @return a trace result
+     */
+    Generator<Set<StaticPacketTrace>> pingAllGenerator(EthType.EtherType type);
 
     /**
      * Requests a static trace be performed between the two hosts in the network, given a type of traffic.

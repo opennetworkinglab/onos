@@ -43,6 +43,7 @@ public class StaticPacketTrace {
     private Map<DeviceId, List<FlowEntry>> flowsForDevice;
     private StringBuilder resultMessage;
     private Pair<Host, Host> hosts;
+    private boolean success = false;
 
     /**
      * Builds the trace with a given packet and a connect point.
@@ -194,6 +195,23 @@ public class StaticPacketTrace {
     public void addEndpointHosts(Pair<Host, Host> endpointHosts) {
         hosts = endpointHosts;
     }
+
+    /**
+     * Return if this trace is successful.
+     * @return true if successful
+     */
+    public boolean isSuccess() {
+        return success;
+    }
+
+    /**
+     * Sets if this trace is successful.
+     * @param success true if trace is successful.
+     */
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
+
 
     @Override
     public String toString() {
