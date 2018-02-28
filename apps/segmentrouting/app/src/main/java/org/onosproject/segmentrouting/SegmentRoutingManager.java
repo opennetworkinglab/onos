@@ -1538,19 +1538,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         public void event(McastEvent event) {
             switch (event.type()) {
                 case SOURCE_ADDED:
-                    mcastHandler.processSourceAdded(event);
-                    break;
                 case SOURCE_UPDATED:
-                    mcastHandler.processSourceUpdated(event);
-                    break;
                 case SINK_ADDED:
-                    mcastHandler.processSinkAdded(event);
-                    break;
                 case SINK_REMOVED:
-                    mcastHandler.processSinkRemoved(event);
-                    break;
                 case ROUTE_REMOVED:
-                    mcastHandler.processRouteRemoved(event);
+                    mcastHandler.processMcastEvent(event);
                     break;
                 case ROUTE_ADDED:
                 default:
