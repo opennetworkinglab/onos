@@ -41,7 +41,6 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -180,7 +179,7 @@ public class DistributedMcastStore
                     // and the source connect point
                     notifyDelegate(new McastEvent(McastEvent.Type.ROUTE_REMOVED,
                                                       mcastRouteInfo(route,
-                                                                     Collections.emptySet(),
+                                                                     oldData.sinks(),
                                                                      oldData.source()
                                                                      )));
                     break;
