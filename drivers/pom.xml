@@ -51,7 +51,7 @@
         <module>oplink</module>
         <!-- <module>bmv2</module> -->
         <module>hp</module>
-        <module>microsemi</module>
+        <module>microsemi/ea1000</module>
     </modules>
 
     <!--<properties>

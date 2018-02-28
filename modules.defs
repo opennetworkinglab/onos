@@ -103,7 +103,7 @@ ONOS_DRIVERS = [
     '//drivers/lisp:onos-drivers-lisp-oar',
     '//drivers/flowspec:onos-drivers-flowspec-oar',
     '//drivers/huawei:onos-drivers-huawei-oar',
-    '//drivers/microsemi:onos-drivers-microsemi-oar',
+    '//drivers/microsemi/ea1000:onos-drivers-microsemi-ea1000-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
     '//drivers/bmv2:onos-drivers-bmv2-oar',
     '//drivers/barefoot:onos-drivers-barefoot-oar',

@@ -46,7 +46,7 @@ public class MockMicrosemiRegistrator extends MicrosemiModelRegistrator {
     private static final String SER_FILE_PATH = "yang" + FS + "resources" +
             FS + "YangMetaData.ser";
     private static final String META_PATH =
-            PATH.replace("drivers/microsemi", "")
+            PATH.replace("drivers/microsemi/ea1000", "")
                     + SER_FILE_PATH;
 
     @Override
