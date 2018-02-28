@@ -1,0 +1,44 @@
+include_defs('//apps/openstacknetworking/openstack4j.bucklet')
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:org.apache.karaf.shell.console',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//cli:onos-cli',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
+    '//lib:json-patch',
+    '//lib:jackson-coreutils',
+    '//lib:btf',
+    '//lib:msg-simple',
+    '//lib:snakeyaml',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+    '//web/api:onos-rest-tests',
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/openstacknetworking',
+    api_title = 'OpenStack Networking API',
+    api_version = '1.0',
+    api_description = 'REST API for OpenStack Networking',
+    api_package = 'org.onosproject.openstacknetworking.web',
+
+    # dependency embedding
+    import_packages = INCLUDE_PACKAGES + ',' + EXCLUDE_PACKAGES  + ',' + ALL_PACKAGES,
+    bundle_classpath = get_openstack4j_deps_path() + get_jackson_deps_path()
+)
