@@ -1750,13 +1750,11 @@ public class Ofdpa2GroupHandler {
         // trying to remove buckets from the same group, each with its own
         // potentially stale copy of allActiveKeys
         synchronized (flowObjectiveStore) {
-            List<Deque<GroupKey>> modifiedGroupKeys = Lists.newArrayList();
-            ArrayDeque<GroupKey> top = new ArrayDeque<>();
-            top.add(l2InterfaceGroupDesc.appCookie());
-            modifiedGroupKeys.add(top);
-
+            // NOTE: The groupKey is computed by deviceId, VLAN and portNum. It remains the same when we modify L2IG.
+            //       Therefore we use the same groupKey of the existing group.
+            List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
             flowObjectiveStore.putNextGroup(nextObjective.id(),
-                                            new OfdpaNextGroup(modifiedGroupKeys,
+                                            new OfdpaNextGroup(allActiveKeys,
                                                                nextObjective));
         }
 
