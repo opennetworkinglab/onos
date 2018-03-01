@@ -26,6 +26,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -61,6 +62,9 @@ final class T3TestObjects {
     private static final String HOST_TWO_VLAN = "None";
     private static final String HOST_ONE = HOST_ONE_MAC + "/" + HOST_ONE_VLAN;
     private static final String HOST_TWO = HOST_TWO_MAC + "/" + HOST_TWO_VLAN;
+    private static final String HOST_DUAL_HOMED_MAC = "00:00:00:00:00:03";
+    private static final String HOST_DUAL_HOMED_VLAN = "None";
+    private static final String HOST_DUAL_HOMED = HOST_DUAL_HOMED_MAC + "/" + HOST_DUAL_HOMED_VLAN;
 
     //offline device
     static final DeviceId OFFLINE_DEVICE = DeviceId.deviceId("offlineDevice");
@@ -623,6 +627,74 @@ final class T3TestObjects {
 
     static final ConnectPoint NO_BUCKET_CP = ConnectPoint.deviceConnectPoint(NO_BUCKET_DEVICE + "/" + 1);
 
+    //Dual Homing
+
+    static final DeviceId DUAL_HOME_DEVICE_1 = DeviceId.deviceId("DualHomeDevice1");
+
+    static final DeviceId DUAL_HOME_DEVICE_2 = DeviceId.deviceId("DualHomeDevice2");
+
+    static final DeviceId DUAL_HOME_DEVICE_3 = DeviceId.deviceId("DualHomeDevice3");
+
+    static final ConnectPoint DUAL_HOME_CP_1_1 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_1 + "/" + 1);
+    static final ConnectPoint DUAL_HOME_CP_1_2 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_1 + "/" + 2);
+    static final ConnectPoint DUAL_HOME_CP_1_3 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_1 + "/" + 3);
+
+    static final ConnectPoint DUAL_HOME_CP_2_1 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_2 + "/" + 1);
+    static final ConnectPoint DUAL_HOME_CP_2_2 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_2 + "/" + 2);
+
+    static final ConnectPoint DUAL_HOME_CP_3_1 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_3 + "/" + 1);
+    static final ConnectPoint DUAL_HOME_CP_3_2 = ConnectPoint.deviceConnectPoint(DUAL_HOME_DEVICE_3 + "/" + 2);
+
+
+    private static final TrafficSelector  DUAL_HOME_INPUT_FLOW_SELECTOR = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .build();
+
+    private static final GroupId DUAL_HOME_GROUP_ID = GroupId.valueOf(1);
+
+    private static final TrafficTreatment DUAL_HOME_GROUP_TREATMENT = DefaultTrafficTreatment.builder()
+            .group(DUAL_HOME_GROUP_ID)
+            .build();
+    private static final FlowRule DUAL_HOME_INPUT_FLOW = DefaultFlowEntry.builder().forDevice(DUAL_HOME_DEVICE_1)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(DUAL_HOME_INPUT_FLOW_SELECTOR)
+            .withTreatment(DUAL_HOME_GROUP_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DUAL_HOME_FLOW_ENTRY = new DefaultFlowEntry(DUAL_HOME_INPUT_FLOW);
+
+    private static final TrafficTreatment DUAL_HOME_OUTPUT_1_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.portNumber(2)).build();
+    private static final TrafficTreatment DUAL_HOME_OUTPUT_2_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.portNumber(3)).build();
+
+    private static final GroupBucket BUCKET_1_DUAL_HOMED =
+            DefaultGroupBucket.createSelectGroupBucket(DUAL_HOME_OUTPUT_1_FLOW_TREATMENT);
+
+    private static final GroupBucket BUCKET_2_DUAL_HOMED =
+            DefaultGroupBucket.createSelectGroupBucket(DUAL_HOME_OUTPUT_2_FLOW_TREATMENT);
+
+    private static final GroupBuckets BUCKETS_MULTIPLE_DUAL = new GroupBuckets(ImmutableList.of(BUCKET_1_DUAL_HOMED,
+            BUCKET_2_DUAL_HOMED));
+
+    static final Group DUAL_HOME_GROUP = new DefaultGroup(DUAL_HOME_GROUP_ID, DUAL_HOME_DEVICE_1,
+            Group.Type.SELECT, BUCKETS_MULTIPLE_DUAL);
+
+    private static final TrafficTreatment DUAL_HOME_TREATMENT = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.portNumber("2"))
+            .build();
+    private static final FlowRule DUAL_HOME_OUT_FLOW = DefaultFlowEntry.builder().forDevice(DUAL_HOME_DEVICE_2)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(DUAL_HOME_INPUT_FLOW_SELECTOR)
+            .withTreatment(DUAL_HOME_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry DUAL_HOME_OUT_FLOW_ENTRY = new DefaultFlowEntry(DUAL_HOME_OUT_FLOW);
+
     //helper elements
 
     static final String MASTER_1 = "Master1";
@@ -634,6 +706,12 @@ final class T3TestObjects {
     static final Host H2 = new DefaultHost(ProviderId.NONE, HostId.hostId(HOST_TWO), MacAddress.valueOf(100),
             VlanId.NONE, new HostLocation(TOPO_FLOW_3_DEVICE, PortNumber.portNumber(2), 0),
             ImmutableSet.of(IpAddress.valueOf("127.0.0.3")));
+
+    static final Host DUAL_HOME_H = new DefaultHost(ProviderId.NONE, HostId.hostId(HOST_DUAL_HOMED),
+            MacAddress.valueOf(HOST_DUAL_HOMED_MAC),
+            VlanId.NONE, ImmutableSet.of(new HostLocation(DUAL_HOME_DEVICE_2, PortNumber.portNumber(2), 0),
+            new HostLocation(DUAL_HOME_DEVICE_3, PortNumber.portNumber(2), 0)),
+            ImmutableSet.of(IpAddress.valueOf("127.0.0.4")), true, DefaultAnnotations.builder().build());
 
     static final TrafficSelector PACKET_OK = DefaultTrafficSelector.builder()
             .matchInPort(PortNumber.portNumber(1))
@@ -665,6 +743,13 @@ final class T3TestObjects {
             .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
             .matchEthDst(MacAddress.valueOf("01:00:5e:00:00:01"))
             .matchIPDst(IpPrefix.valueOf("224.0.0.1/32"))
+            .build();
+
+    static final TrafficSelector PACKET_DUAL_HOME = DefaultTrafficSelector.builder()
+            .matchInPort(PortNumber.portNumber(1))
+            .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+            .matchIPSrc(IpPrefix.valueOf("127.0.0.1/32"))
+            .matchIPDst(IpPrefix.valueOf("127.0.0.4/32"))
             .build();
 
     static final TrafficSelector PACKET_FAIL = DefaultTrafficSelector.builder()
