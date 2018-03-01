@@ -1353,6 +1353,27 @@ public class DefaultGroupHandler {
     }
 
     /**
+     * Creates simple next objective for a single port.
+     *
+     * @param deviceId device id that has the port to deal with
+     * @param portNum the outgoing port on the device
+     * @param vlanId vlan id associated with the port
+     * @param popVlan true if POP_VLAN action is applied on the packets, false otherwise
+     */
+    public void createPortNextObjective(DeviceId deviceId, PortNumber portNum, VlanId vlanId, boolean popVlan) {
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+        mbuilder.matchVlanId(vlanId);
+
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.immediate().setOutput(portNum);
+        if (popVlan) {
+            tbuilder.immediate().popVlan();
+        }
+
+        createGroupFromPort(portNum, tbuilder.build(), mbuilder.build());
+    }
+
+    /**
      * Removes simple next objective for a single port.
      *
      * @param deviceId device id that has the port to deal with
@@ -1513,16 +1534,23 @@ public class DefaultGroupHandler {
      *                 does not involve pop vlan tag action.
      */
     public void updateL2InterfaceGroupBucket(PortNumber portNumber, VlanId vlanId, boolean pushVlan) {
+        TrafficTreatment.Builder oldTBuilder = DefaultTrafficTreatment.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.setOutput(portNumber);
+        oldTBuilder.setOutput(portNumber);
         if (pushVlan) {
             tBuilder.popVlan();
+        } else {
+            oldTBuilder.popVlan();
         }
-        tBuilder.setOutput(portNumber);
 
         TrafficSelector metadata =
                 DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
 
-        int nextId = getVlanNextObjectiveId(vlanId);
+        // Update portNextObjStore with new L2IG
+        int nextId = getPortNextObjectiveId(portNumber, oldTBuilder.build(), metadata, false);
+        portNextObjStore.remove(new PortNextObjectiveStoreKey(deviceId, portNumber, oldTBuilder.build(), metadata));
+        portNextObjStore.put(new PortNextObjectiveStoreKey(deviceId, portNumber, tBuilder.build(), metadata), nextId);
 
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)
