@@ -707,15 +707,29 @@ public class HostHandler {
         MacAddress mac = host.mac();
         VlanId hostVlanId = host.vlan();
 
-        // Check whether the host vlan is valid for new interface configuration
-        if ((!popVlan && hostVlanId.equals(vlanId)) ||
-                (popVlan && hostVlanId.equals(VlanId.NONE))) {
-            srManager.defaultRoutingHandler.updateBridging(deviceId, portNum, mac, vlanId, popVlan, install);
-            // Update Forwarding objective and corresponding simple Next objective
-            // for each host and IP address connected to given port
-            host.ipAddresses().forEach(ipAddress -> srManager.defaultRoutingHandler.updateFwdObj(
-                    deviceId, portNum, ipAddress.toIpPrefix(), mac, vlanId, popVlan, install)
+        if (!install) {
+            // Do not check the host validity. Just remove all rules corresponding to the vlan id
+            // Revoke forwarding objective for bridging to the host
+            srManager.defaultRoutingHandler.updateBridging(deviceId, portNum, mac, vlanId, popVlan, false);
+
+            // Revoke forwarding objective and corresponding simple Next objective
+            // for each Host and IP address connected to given port
+            host.ipAddresses().forEach(ipAddress ->
+                srManager.routingRulePopulator.updateFwdObj(deviceId, portNum, ipAddress.toIpPrefix(),
+                                                            mac, vlanId, popVlan, false)
             );
+        } else {
+            // Check whether the host vlan is valid for new interface configuration
+            if ((!popVlan && hostVlanId.equals(vlanId)) ||
+                    (popVlan && hostVlanId.equals(VlanId.NONE))) {
+                srManager.defaultRoutingHandler.updateBridging(deviceId, portNum, mac, vlanId, popVlan, true);
+                // Update Forwarding objective and corresponding simple Next objective
+                // for each Host and IP address connected to given port
+                host.ipAddresses().forEach(ipAddress ->
+                    srManager.routingRulePopulator.updateFwdObj(deviceId, portNum, ipAddress.toIpPrefix(),
+                                                                mac, vlanId, popVlan, true)
+                );
+            }
         }
     }
 
