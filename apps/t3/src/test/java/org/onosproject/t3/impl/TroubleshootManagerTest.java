@@ -364,6 +364,23 @@ public class TroubleshootManagerTest {
 
     }
 
+    /**
+     * Tests dual homing of a host.
+     */
+    @Test
+    public void dualhomedTest() throws Exception {
+        StaticPacketTrace traceSuccess = mngr.trace(PACKET_DUAL_HOME, DUAL_HOME_CP_1_1);
+
+        assertNotNull("trace should not be null", traceSuccess);
+        assertTrue("Should have 2 output paths", traceSuccess.getCompletePaths().size() == 2);
+        assertTrue("Should contain proper path", traceSuccess.getCompletePaths()
+                .contains(ImmutableList.of(DUAL_HOME_CP_1_1, DUAL_HOME_CP_1_2, DUAL_HOME_CP_2_1, DUAL_HOME_CP_2_2)));
+        assertTrue("Should contain proper path", traceSuccess.getCompletePaths()
+                .contains(ImmutableList.of(DUAL_HOME_CP_1_1, DUAL_HOME_CP_1_3, DUAL_HOME_CP_3_1, DUAL_HOME_CP_3_2)));
+
+    }
+
+
     private StaticPacketTrace testSuccess(TrafficSelector packet, ConnectPoint in, DeviceId deviceId, ConnectPoint out,
                                           int paths, int outputs) {
         StaticPacketTrace traceSuccess = mngr.trace(packet, in);
@@ -432,6 +449,10 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(MULTICAST_GROUP_FLOW_ENTRY);
             } else if (deviceId.equals(NO_BUCKET_DEVICE)) {
                 return ImmutableList.of(NO_BUCKET_ENTRY);
+            } else if (deviceId.equals(DUAL_HOME_DEVICE_1)) {
+                return ImmutableList.of(DUAL_HOME_FLOW_ENTRY);
+            } else if (deviceId.equals(DUAL_HOME_DEVICE_2) || deviceId.equals(DUAL_HOME_DEVICE_3)) {
+                return ImmutableList.of(DUAL_HOME_OUT_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -462,6 +483,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(MULTICAST_GROUP);
             } else if (deviceId.equals(NO_BUCKET_DEVICE)) {
                 return ImmutableList.of(NO_BUCKET_GROUP);
+            } else if (deviceId.equals(DUAL_HOME_DEVICE_1)) {
+                return ImmutableList.of(DUAL_HOME_GROUP);
             }
             return ImmutableList.of();
         }
@@ -485,6 +508,9 @@ public class TroubleshootManagerTest {
                     connectPoint.equals(DUAL_LINK_3_CP_3_OUT)) {
                 return ImmutableSet.of(H1);
             }
+            if (connectPoint.equals(DUAL_HOME_CP_2_2) || connectPoint.equals(DUAL_HOME_CP_3_2)) {
+                return ImmutableSet.of(DUAL_HOME_H);
+            }
             return ImmutableSet.of();
         }
 
@@ -494,6 +520,8 @@ public class TroubleshootManagerTest {
                 return ImmutableSet.of(H1);
             } else if (mac.equals(H2.mac())) {
                 return ImmutableSet.of(H2);
+            } else if (mac.equals(DUAL_HOME_H.mac())) {
+                return ImmutableSet.of(DUAL_HOME_H);
             }
             return ImmutableSet.of();
         }
@@ -504,6 +532,8 @@ public class TroubleshootManagerTest {
                 return ImmutableSet.of(H1);
             } else if ((H2.ipAddresses().contains(ip))) {
                 return ImmutableSet.of(H2);
+            } else if ((DUAL_HOME_H.ipAddresses().contains(ip))) {
+                return ImmutableSet.of(DUAL_HOME_H);
             }
             return ImmutableSet.of();
         }
@@ -568,6 +598,20 @@ public class TroubleshootManagerTest {
                         .type(Link.Type.DIRECT)
                         .src(DUAL_LINK_2_CP_3_OUT)
                         .dst(DUAL_LINK_3_CP_2_IN)
+                        .build());
+            } else if (connectPoint.equals(DUAL_HOME_CP_1_2)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_HOME_CP_1_2)
+                        .dst(DUAL_HOME_CP_2_1)
+                        .build());
+            } else if (connectPoint.equals(DUAL_HOME_CP_1_3)) {
+                return ImmutableSet.of(DefaultLink.builder()
+                        .providerId(ProviderId.NONE)
+                        .type(Link.Type.DIRECT)
+                        .src(DUAL_HOME_CP_1_3)
+                        .dst(DUAL_HOME_CP_3_1)
                         .build());
             }
             return ImmutableSet.of();
