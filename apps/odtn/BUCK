@@ -10,6 +10,7 @@ APPS = [
     'org.onosproject.drivers.netconf',
     'org.onosproject.netconf',
     'org.onosproject.configsync-netconf',
+    'org.onosproject.protocols.restconfserver'
 ]
 
 COMPILE_DEPS = [
@@ -19,6 +20,9 @@ COMPILE_DEPS = [
     '//apps/config:onos-apps-config',
     '//models/tapi:onos-models-tapi',
     '//models/openconfig:onos-models-openconfig',
+    '//apps/yang:onos-apps-yang',
+    '//incubator/api:onos-incubator-api',
+    '//lib:COMPILE'
 ]
 
 TEST_DEPS = [

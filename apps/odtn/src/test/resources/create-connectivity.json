@@ -1,0 +1,52 @@
+{
+    "tapi-connectivity:input":
+    {
+        "end-point" : [
+            {
+                "layer-protocol-name" : "OTSiA",
+                "service-interface-point": "00000000-0000-4200-0001-110000000000",
+                "capacity" : {
+                },
+                "direction" : "BIDIRECTIONAL",
+                "role" : "UNKNOWN",
+                "protection-role" : "WORK",
+                "local-id": "00000000-0000-4100-0001-110000000000",
+                "name" : [
+                        {
+                            "value-name" : "main",
+                            "value" : "sep11"
+                        }
+                ],
+                "administrative-state" : "UNLOCKED",
+                "operational-state" : "ENABLED",
+                "lifecycle-state" : "INSTALLED"
+            }
+            ,
+            {
+                "layer-protocol-name" : "OTSiA",
+                "service-interface-point": "00000000-0000-4200-0001-210000000000",
+                "capacity" : {
+                },
+                "direction" : "BIDIRECTIONAL",
+                "role" : "UNKNOWN",
+                "protection-role" : "WORK",
+                "local-id": "00000000-0000-4100-0001-210000000000",
+                "name" : [
+                        {
+                            "value-name" : "main",
+                            "value" : "sep21"
+                        }
+                ],
+                "administrative-state" : "UNLOCKED",
+                "operational-state" : "ENABLED",
+                "lifecycle-state" : "INSTALLED"
+            }
+        ],
+
+        "conn-constraint" : {},
+        "topo-constraint" : {},
+        "resilience-constraint" : [ ],
+        "state" : "operational-state"
+    }
+}
+

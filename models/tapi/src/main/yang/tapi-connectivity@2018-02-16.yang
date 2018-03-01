@@ -676,6 +676,7 @@ module tapi-connectivity {
             description "none";
             input {
                 list end-point {
+                    key 'local-id';
                     min-elements 2;
                     uses connectivity-service-end-point;
                     description "none";
