@@ -2234,6 +2234,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (getVlanNextObjectiveId(deviceId, vlanId) != -1) {
             // Update L2IG bucket of the port
             grpHandler.updateL2InterfaceGroupBucket(portNum, vlanId, pushVlan);
+            // Update bridging and unicast routing rule for each host
+            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
+                    vlanId, !pushVlan, false));
+            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
+                    vlanId, pushVlan, true));
         } else {
             log.warn("Failed to retrieve next objective for vlan {} in device {}:{}", vlanId, deviceId, portNum);
         }
@@ -2256,9 +2261,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         int nextId = getVlanNextObjectiveId(deviceId, vlanId);
 
         if (nextId != -1 && !install) {
-            // Update next objective for a single port as an output port
-            // Remove a single port from L2FG
-            grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
             // Remove L2 Bridging rule and L3 Unicast rule to the host
             hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
                     vlanId, pushVlan, install));
@@ -2270,10 +2272,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 // Remove L2FG for VLAN
                 grpHandler.removeBcastGroupFromVlan(deviceId, portNum, vlanId, pushVlan);
             } else {
-                // Remove L2IG of the port
-                grpHandler.removePortNextObjective(deviceId, portNum, vlanId, pushVlan);
+                // Remove a single port from L2FG
+                grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
             }
+            // Remove L2IG of the port
+            grpHandler.removePortNextObjective(deviceId, portNum, vlanId, pushVlan);
         } else if (install) {
+            // Create L2IG of the port
+            grpHandler.createPortNextObjective(deviceId, portNum, vlanId, pushVlan);
+            // Create L2 Bridging rule and L3 Unicast rule to the host
+            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
+                    vlanId, pushVlan, install));
             if (nextId != -1) {
                 // Add a single port to L2FG
                 grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
@@ -2282,8 +2291,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 grpHandler.createBcastGroupFromVlan(vlanId, Collections.singleton(portNum));
                 routingRulePopulator.updateSubnetBroadcastRule(deviceId, vlanId, install);
             }
-            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
-                    vlanId, pushVlan, install));
         } else {
             log.warn("Failed to retrieve next objective for vlan {} in device {}:{}", vlanId, deviceId, portNum);
         }

@@ -1639,12 +1639,15 @@ public class RoutingRulePopulator {
         srManager.flowObjectiveService.forward(deviceId, install ? fob.add(context) : fob.remove(context));
 
         if (!install) {
-            DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
-            if (grpHandler == null) {
-                log.warn("updateFwdObj: groupHandler for device {} not found", deviceId);
-            } else {
-                // Remove L3UG for the given port and host
-                grpHandler.removeGroupFromPort(portNumber, tbuilder.build(), mbuilder.build());
+            if (!srManager.getVlanPortMap(deviceId).containsKey(vlanId) ||
+                    !srManager.getVlanPortMap(deviceId).get(vlanId).contains(portNumber)) {
+                DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
+                if (grpHandler == null) {
+                    log.warn("updateFwdObj: groupHandler for device {} not found", deviceId);
+                } else {
+                    // Remove L3UG for the given port and host
+                    grpHandler.removeGroupFromPort(portNumber, tbuilder.build(), mbuilder.build());
+                }
             }
         }
     }
