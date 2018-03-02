@@ -425,6 +425,7 @@ public class McastHandler {
                 return;
             }
 
+            boolean isLast = false;
             // When source and sink are on the same device
             if (source.deviceId().equals(sink.deviceId())) {
                 // Source and sink are on even the same port. There must be something wrong.
@@ -433,12 +434,15 @@ public class McastHandler {
                              mcastIp, sink, source);
                     return;
                 }
-                removePortFromDevice(sink.deviceId(), sink.port(), mcastIp, assignedVlan(source));
+                isLast = removePortFromDevice(sink.deviceId(), sink.port(), mcastIp, assignedVlan(source));
+                if (isLast) {
+                    mcastRoleStore.remove(new McastStoreKey(mcastIp, sink.deviceId()));
+                }
                 return;
             }
 
             // Process the egress device
-            boolean isLast = removePortFromDevice(sink.deviceId(), sink.port(), mcastIp, assignedVlan(null));
+            isLast = removePortFromDevice(sink.deviceId(), sink.port(), mcastIp, assignedVlan(null));
             if (isLast) {
                 mcastRoleStore.remove(new McastStoreKey(mcastIp, sink.deviceId()));
             }
@@ -456,7 +460,9 @@ public class McastHandler {
                                 mcastIp,
                                 assignedVlan(link.src().deviceId().equals(source.deviceId()) ? source : null)
                         );
-                        mcastRoleStore.remove(new McastStoreKey(mcastIp, link.src().deviceId()));
+                        if (isLast) {
+                            mcastRoleStore.remove(new McastStoreKey(mcastIp, link.src().deviceId()));
+                        }
                     }
                 }
             }
@@ -576,8 +582,11 @@ public class McastHandler {
                 // Remove transit-facing port on ingress device
                 PortNumber ingressTransitPort = ingressTransitPort(mcastIp);
                 if (ingressTransitPort != null) {
-                    removePortFromDevice(ingressDevice, ingressTransitPort, mcastIp, assignedVlan(source));
-                    mcastRoleStore.remove(new McastStoreKey(mcastIp, transitDevice));
+                    boolean isLast = removePortFromDevice(ingressDevice, ingressTransitPort,
+                                                          mcastIp, assignedVlan(source));
+                    if (isLast) {
+                        mcastRoleStore.remove(new McastStoreKey(mcastIp, ingressDevice));
+                    }
                 }
 
                 // Construct a new path for each egress device
@@ -657,7 +666,13 @@ public class McastHandler {
                     PortNumber ingressTransitPort = ingressTransitPort(mcastIp);
                     if (ingressTransitPort != null) {
                         // Remove transit-facing port on ingress device
-                        removePortFromDevice(ingressDevice, ingressTransitPort, mcastIp, assignedVlan(source));
+                        boolean isLast = removePortFromDevice(ingressDevice, ingressTransitPort,
+                                                              mcastIp, assignedVlan(source));
+                        // There are no further ports
+                        if (isLast) {
+                            // Remove entire ingress
+                            mcastRoleStore.remove(new McastStoreKey(mcastIp, ingressDevice));
+                        }
                     }
                     // One of the egress device is down
                     if (egressDevices.contains(deviceDown)) {
@@ -667,8 +682,6 @@ public class McastHandler {
                         egressDevices.remove(deviceDown);
                         // If there are no more egress and ingress does not have sinks
                         if (egressDevices.isEmpty() && !hasSinks(ingressDevice, mcastIp)) {
-                            // Remove entire ingress
-                            mcastRoleStore.remove(new McastStoreKey(mcastIp, ingressDevice));
                             // We have done
                             return;
                         }
@@ -902,6 +915,9 @@ public class McastHandler {
         // Setup new transit mcast role
         mcastRoleStore.put(new McastStoreKey(mcastIp, links.get(0).dst().deviceId()),
                            McastRole.TRANSIT);
+        // Setup new ingress mcast role
+        mcastRoleStore.put(new McastStoreKey(mcastIp, links.get(0).src().deviceId()),
+                           McastRole.INGRESS);
     }
 
     /**
@@ -1180,6 +1196,18 @@ public class McastHandler {
                 .map(mcastRoute -> srManager.multicastRouteService.fetchSource(mcastRoute))
                 .findAny().orElse(null);
     }
+    /**
+     * Gets sinks of given multicast group.
+     *
+     * @param mcastIp multicast IP
+     * @return set of sinks or empty set if not found
+     */
+    private Set<ConnectPoint> getSinks(IpAddress mcastIp) {
+        return srManager.multicastRouteService.getRoutes().stream()
+                .filter(mcastRoute -> mcastRoute.group().equals(mcastIp))
+                .map(mcastRoute -> srManager.multicastRouteService.fetchSinks(mcastRoute))
+                .findAny().orElse(Collections.emptySet());
+    }
 
     /**
      * Gets groups which is affected by the link down event.
@@ -1433,13 +1461,17 @@ public class McastHandler {
                         DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
                                 .stream().findAny().orElse(null);
                         Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+                        // Get source and sinks from Mcast Route Service and warn about errors
                         ConnectPoint source = getSource(mcastIp);
+                        Set<ConnectPoint> sinks = getSinks(mcastIp);
 
                         // Do not proceed if ingress device or source of this group are missing
                         if (ingressDevice == null || source == null) {
-                            log.warn("Unable to run buckets corrector. " +
-                                             "Missing ingress {} or source {} for group {}",
-                                     ingressDevice, source, mcastIp);
+                            if (!sinks.isEmpty()) {
+                                log.warn("Unable to run buckets corrector. " +
+                                                 "Missing ingress {} or source {} for group {}",
+                                         ingressDevice, source, mcastIp);
+                            }
                             return;
                         }
 
