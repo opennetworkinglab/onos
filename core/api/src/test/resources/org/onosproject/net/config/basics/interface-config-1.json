@@ -1,0 +1,48 @@
+[
+
+  {
+    "name": "interface1",
+    "mac": "AB:CD:EF:00:00:01",
+    "vlan": 1,
+    "vlan-tagged": [11],
+    "ips" : [
+        "1.2.3.1/16",
+        "1.2.3.11/16"
+    ]
+  },
+
+  {
+    "name": "interface2",
+    "mac": "AB:CD:EF:00:00:02",
+    "vlan": 2,
+    "vlan-untagged": 22,
+    "ips" : [
+      "1.2.3.2/16",
+      "1.2.3.12/16"
+    ]
+  },
+
+  {
+    "name": "interface3",
+    "mac": "AB:CD:EF:00:00:03",
+    "vlan": 3,
+    "vlan-tagged": [33],
+    "ips" : [
+      "1.2.3.3/16",
+      "1.2.3.13/16"
+    ]
+  },
+
+  {
+    "name": "interface4",
+    "mac": "AB:CD:EF:00:00:04",
+    "vlan-native": 4,
+    "vlan-tagged": [44],
+    "ips" : [
+      "1.2.3.4/16",
+      "1.2.3.14/16"
+    ]
+  }
+  ]
+
+

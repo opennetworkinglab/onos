@@ -177,7 +177,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         }
 
         if (!intf.vlanTagged().isEmpty()) {
-            intfNode.set(VLAN_UNTAGGED, putVlans(intf.vlanTagged()));
+            intfNode.set(VLAN_TAGGED, putVlans(intf.vlanTagged()));
         }
 
         if (!intf.vlanNative().equals(VlanId.NONE)) {
