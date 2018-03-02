@@ -145,7 +145,8 @@ public final class RestconfUtils {
         } catch (RestconfException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("convertJsonToDataNode failure: {}", ex.getMessage());
+            log.error("convertJsonToDataNode failure: {}", ex.getMessage(), ex);
+            log.info("Failed JSON: \n{}", rootNode);
             log.debug("convertJsonToDataNode failure", ex);
             throw new RestconfException("ERROR: JSON cannot be converted to DataNode",
                     ex, RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
