@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
@@ -318,6 +319,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
+                                                 MacAddress unicastMac,
                                                  ApplicationId applicationId) {
         // Consider PortNumber.ANY as wildcard. Match ETH_DST only
         if (portCriterion != null && portCriterion.port() == PortNumber.ANY) {
@@ -326,7 +328,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
         // Multicast MAC
         if (ethCriterion.mask() != null) {
-            return processMcastEthDstFilter(ethCriterion, assignedVlan, applicationId);
+            return processMcastEthDstFilter(ethCriterion, assignedVlan, unicastMac, applicationId);
         }
 
         //handling untagged packets via assigned VLAN

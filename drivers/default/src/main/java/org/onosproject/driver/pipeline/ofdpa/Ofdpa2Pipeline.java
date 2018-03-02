@@ -22,6 +22,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -65,6 +66,7 @@ import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
@@ -256,6 +258,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      */
     protected boolean shouldRetry() {
         return true;
+    }
+
+    /**
+     * Determines whether this driver requires unicast flow to be installed before multicast flow
+     * in TMAC table.
+     *
+     * @return true if required
+     */
+    protected boolean requireUnicastBeforeMulticast() {
+        return false;
     }
 
     //////////////////////////////////////
@@ -473,16 +485,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // NOTE: it is possible that a filtering objective only has vidCriterion
             log.warn("filtering objective missing dstMac, cannot program TMAC table");
         } else {
+            MacAddress unicastMac = readEthDstFromTreatment(filt.meta());
             List<List<FlowRule>> allStages = processEthDstFilter(portCriterion, ethCriterion,
-                    vidCriterion, assignedVlan, applicationId);
+                    vidCriterion, assignedVlan, unicastMac, applicationId);
             for (List<FlowRule> flowRules : allStages) {
-                log.trace("Starting a new flow rule stage");
+                log.trace("Starting a new flow rule stage for TMAC table flow");
                 ops.newStage();
 
                 for (FlowRule flowRule : flowRules) {
                     log.trace("{} flow rules in TMAC table: {} for dev: {}",
                             (install) ? "adding" : "removing", flowRules, deviceId);
-
                     if (install) {
                         ops = ops.add(flowRule);
                     } else {
@@ -505,7 +517,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             List<List<FlowRule>> allStages = processVlanIdFilter(
                     portCriterion, vidCriterion, assignedVlan, applicationId);
             for (List<FlowRule> flowRules : allStages) {
-                log.trace("Starting a new flow rule stage");
+                log.trace("Starting a new flow rule stage for VLAN table flow");
                 ops.newStage();
 
                 for (FlowRule flowRule : flowRules) {
@@ -651,12 +663,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     /**
      * Allows routed packets with correct destination MAC to be directed
-     * to unicast-IP routing table or MPLS forwarding table.
+     * to unicast routing table, multicast routing table or MPLS forwarding table.
      *
      * @param portCriterion  port on device for which this filter is programmed
      * @param ethCriterion   dstMac of device for which is filter is programmed
      * @param vidCriterion   vlan assigned to port, or NONE for untagged
      * @param assignedVlan   assigned vlan-id for untagged packets
+     * @param unicastMac     some switches require a unicast TMAC flow to be programmed before multicast
+     *                       TMAC flow. This MAC address will be used for the unicast TMAC flow.
+     *                       This is unused if the filtering objective is a unicast.
      * @param applicationId  for application programming this filter
      * @return stages of flow rules for port-vlan filters
 
@@ -665,6 +680,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
+                                                 MacAddress unicastMac,
                                                  ApplicationId applicationId) {
         // Consider PortNumber.ANY as wildcard. Match ETH_DST only
         if (portCriterion != null && PortNumber.ANY.equals(portCriterion.port())) {
@@ -673,7 +689,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         // Multicast MAC
         if (ethCriterion.mask() != null) {
-            return processMcastEthDstFilter(ethCriterion, assignedVlan, applicationId);
+            return processMcastEthDstFilter(ethCriterion, assignedVlan, unicastMac, applicationId);
         }
 
         //handling untagged packets via assigned VLAN
@@ -907,13 +923,35 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     List<List<FlowRule>> processMcastEthDstFilter(EthCriterion ethCriterion,
                                                       VlanId assignedVlan,
+                                                      MacAddress unicastMac,
                                                       ApplicationId applicationId) {
-        ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        ImmutableList.Builder<FlowRule> unicastFlows = ImmutableList.builder();
+        ImmutableList.Builder<FlowRule> multicastFlows = ImmutableList.builder();
+        TrafficSelector.Builder selector;
+        TrafficTreatment.Builder treatment;
         FlowRule rule;
 
         if (IPV4_MULTICAST.equals(ethCriterion.mac())) {
+            if (requireUnicastBeforeMulticast()) {
+                selector = DefaultTrafficSelector.builder();
+                treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+                selector.matchEthDst(unicastMac);
+                selector.matchVlanId(assignedVlan);
+                treatment.transition(UNICAST_ROUTING_TABLE);
+                rule = DefaultFlowRule.builder()
+                        .forDevice(deviceId)
+                        .withSelector(selector.build())
+                        .withTreatment(treatment.build())
+                        .withPriority(DEFAULT_PRIORITY)
+                        .fromApp(applicationId)
+                        .makePermanent()
+                        .forTable(TMAC_TABLE).build();
+                unicastFlows.add(rule);
+            }
+
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
             selector.matchEthType(Ethernet.TYPE_IPV4);
             selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
             selector.matchVlanId(assignedVlan);
@@ -926,10 +964,28 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .fromApp(applicationId)
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
-            builder.add(rule);
+            multicastFlows.add(rule);
         }
 
         if (IPV6_MULTICAST.equals(ethCriterion.mac())) {
+            if (requireUnicastBeforeMulticast()) {
+                selector = DefaultTrafficSelector.builder();
+                treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthType(Ethernet.TYPE_IPV6);
+                selector.matchEthDst(unicastMac);
+                selector.matchVlanId(assignedVlan);
+                treatment.transition(UNICAST_ROUTING_TABLE);
+                rule = DefaultFlowRule.builder()
+                        .forDevice(deviceId)
+                        .withSelector(selector.build())
+                        .withTreatment(treatment.build())
+                        .withPriority(DEFAULT_PRIORITY)
+                        .fromApp(applicationId)
+                        .makePermanent()
+                        .forTable(TMAC_TABLE).build();
+                unicastFlows.add(rule);
+            }
+
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
             selector.matchEthType(Ethernet.TYPE_IPV6);
@@ -944,9 +1000,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .fromApp(applicationId)
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
-            builder.add(rule);
+            multicastFlows.add(rule);
         }
-        return ImmutableList.of(builder.build());
+        return ImmutableList.of(unicastFlows.build(), multicastFlows.build());
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
@@ -1679,6 +1735,21 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         for (Instruction i : treatment.allInstructions()) {
             if (i instanceof ModVlanIdInstruction) {
                 return ((ModVlanIdInstruction) i).vlanId();
+            }
+        }
+        return null;
+    }
+
+    private static MacAddress readEthDstFromTreatment(TrafficTreatment treatment) {
+        if (treatment == null) {
+            return null;
+        }
+        for (Instruction i : treatment.allInstructions()) {
+            if (i instanceof ModEtherInstruction) {
+                ModEtherInstruction modEtherInstruction = (ModEtherInstruction) i;
+                if (modEtherInstruction.subtype() == L2SubType.ETH_DST) {
+                    return modEtherInstruction.mac();
+                }
             }
         }
         return null;

@@ -41,4 +41,9 @@ public class Ofdpa3QmxPipeline extends Ofdpa3Pipeline {
     protected boolean supportIpv6L4Dst() {
         return false;
     }
+
+    @Override
+    protected boolean requireUnicastBeforeMulticast() {
+        return true;
+    }
 }
