@@ -568,11 +568,9 @@ public class DeviceManager
 
         private PortDescription ensurePortEnabledState(PortDescription desc, boolean enabled) {
             if (desc.isEnabled() != enabled) {
-                return new DefaultPortDescription(desc.portNumber(),
-                                                  enabled,
-                                                  desc.type(),
-                                                  desc.portSpeed(),
-                                                  desc.annotations());
+                return DefaultPortDescription.builder(desc)
+                        .isEnabled(enabled)
+                        .build();
             }
             return desc;
         }
