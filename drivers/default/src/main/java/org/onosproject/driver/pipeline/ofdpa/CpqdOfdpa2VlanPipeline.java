@@ -107,7 +107,7 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
         }
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
-        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        List<PortNumber> portnums = new ArrayList<>();
         if (portCriterion != null) {
             if (portCriterion.port() == PortNumber.ALL) {
                 for (Port port : deviceService.getPorts(deviceId)) {
@@ -120,7 +120,7 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
             }
         }
 
-        List<FlowRule> rules = new ArrayList<FlowRule>();
+        List<FlowRule> rules = new ArrayList<>();
         for (PortNumber pnum : portnums) {
             // for unicast IP packets
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();

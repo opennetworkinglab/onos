@@ -106,7 +106,6 @@ import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
  * Driver for Broadcom's OF-DPA v2.0 TTP.
  */
 public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeliner {
-
     protected static final int PORT_TABLE = 0;
     protected static final int VLAN_TABLE = 10;
     protected static final int VLAN_1_TABLE = 11;
@@ -129,12 +128,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int LOWEST_PRIORITY = 0x0;
 
     protected static final int MPLS_L2_PORT_PRIORITY = 2;
-
     protected static final int MPLS_TUNNEL_ID_BASE = 0x10000;
     protected static final int MPLS_TUNNEL_ID_MAX = 0x1FFFF;
 
     protected static final int MPLS_UNI_PORT_MAX = 0x0000FFFF;
-
     protected static final int MPLS_NNI_PORT_BASE = 0x00020000;
     protected static final int MPLS_NNI_PORT_MAX = 0x0002FFFF;
 
@@ -158,10 +155,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected Ofdpa2GroupHandler groupHandler;
 
     // flows installations to be retried
-    protected ScheduledExecutorService executorService
+    private ScheduledExecutorService executorService
         = newScheduledThreadPool(5, groupedThreads("OfdpaPipeliner", "retry-%d", log));
-    protected static final int MAX_RETRY_ATTEMPTS = 10;
-    protected static final int RETRY_MS = 1000;
+    private static final int MAX_RETRY_ATTEMPTS = 10;
+    private static final int RETRY_MS = 1000;
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -265,7 +262,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         sendForward(fwd, rules);
     }
 
-    protected void sendForward(ForwardingObjective fwd, Collection<FlowRule> rules) {
+    private void sendForward(ForwardingObjective fwd, Collection<FlowRule> rules) {
         FlowRuleOperations.Builder flowOpsBuilder = FlowRuleOperations.builder();
         switch (fwd.op()) {
         case ADD:
@@ -890,7 +887,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return builder.add(rule).build();
     }
 
-    protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
+    List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
                                                       VlanId assignedVlan,
                                                       ApplicationId applicationId) {
         ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
@@ -1027,7 +1024,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             for (Instruction ins : fwd.treatment().allInstructions()) {
                 if (ins instanceof OutputInstruction) {
                     OutputInstruction o = (OutputInstruction) ins;
-                    if (o != null && PortNumber.CONTROLLER.equals(o.port())) {
+                    if (PortNumber.CONTROLLER.equals(o.port())) {
                         ttBuilder.add(o);
                     } else {
                         log.warn("Only allowed treatments in versatile forwarding "
@@ -1080,7 +1077,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *            for this type of forwarding objective. An empty set may be
      *            returned if there is an issue in processing the objective.
      */
-    protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
+    private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
         log.debug("Processing specific fwd objective:{} in dev:{} with next:{}",
                   fwd.id(), deviceId, fwd.nextId());
         boolean isEthTypeObj = isSupportedEthTypeObjective(fwd);
@@ -1145,17 +1142,19 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             } else {
                 forTableId = UNICAST_ROUTING_TABLE;
             }
+
+            /*
+            // XXX decrementing IP ttl is done automatically for routing, this
+            // action is ignored or rejected in ofdpa as it is not fully implemented
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        // XXX decrementing IP ttl is done automatically for routing, this
-                        // action is ignored or rejected in ofdpa as it is not fully implemented
-                        //tb.deferred().add(instr);
+                        tb.deferred().add(instr);
                     }
                 }
             }
-
+            */
         } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
             if (buildIpv6Selector(filteredSelector, fwd) < 0) {
                 return Collections.emptyList();
@@ -1168,16 +1167,18 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 forTableId = UNICAST_ROUTING_TABLE;
             }
 
+            // XXX decrementing IP ttl is done automatically for routing, this
+            // action is ignored or rejected in ofdpa as it is not fully implemented
+            /*
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        // XXX decrementing IP ttl is done automatically for routing, this
-                        // action is ignored or rejected in ofdpa as it is not fully implemented
-                        //tb.deferred().add(instr);
+                        tb.deferred().add(instr);
                     }
                 }
             }
+            */
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)
@@ -1304,7 +1305,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return flowRuleCollection;
     }
 
-    protected int buildIpv4Selector(TrafficSelector.Builder builderToUpdate,
+    private int buildIpv4Selector(TrafficSelector.Builder builderToUpdate,
                                     TrafficSelector.Builder extBuilder,
                                     ForwardingObjective fwd,
                                     boolean allowDefaultRoute) {
@@ -1363,7 +1364,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return 0 if the update ends correctly. -1 if the matches
      * are not yet supported
      */
-    protected int buildIpv6Selector(TrafficSelector.Builder builderToUpdate,
+    int buildIpv6Selector(TrafficSelector.Builder builderToUpdate,
                                     ForwardingObjective fwd) {
 
         TrafficSelector selector = fwd.selector();
@@ -1401,7 +1402,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return 0;
     }
 
-    protected FlowRule defaultRoute(ForwardingObjective fwd,
+    FlowRule defaultRoute(ForwardingObjective fwd,
                                     TrafficSelector.Builder complementarySelector,
                                     int forTableId,
                                     TrafficTreatment.Builder tb) {
@@ -1532,7 +1533,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return !(ethDst == null && vlanId == null);
     }
 
-    protected NextGroup getGroupForNextObjective(Integer nextId) {
+    NextGroup getGroupForNextObjective(Integer nextId) {
         NextGroup next = flowObjectiveStore.getNextGroup(nextId);
         if (next != null) {
             List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());

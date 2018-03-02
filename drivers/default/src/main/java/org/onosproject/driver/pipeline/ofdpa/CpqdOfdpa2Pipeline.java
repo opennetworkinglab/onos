@@ -179,7 +179,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
-        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        List<PortNumber> portnums = new ArrayList<>();
         if (portCriterion.port() == PortNumber.ALL) {
             for (Port port : deviceService.getPorts(deviceId)) {
                 if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
@@ -335,7 +335,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         }
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
-        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        List<PortNumber> portnums = new ArrayList<>();
         if (portCriterion != null) {
             if (portCriterion.port() == PortNumber.ALL) {
                 for (Port port : deviceService.getPorts(deviceId)) {
@@ -348,7 +348,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             }
         }
 
-        List<FlowRule> rules = new ArrayList<FlowRule>();
+        List<FlowRule> rules = new ArrayList<>();
         for (PortNumber pnum : portnums) {
             // TMAC rules for unicast IP packets
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -459,7 +459,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             return Collections.emptySet();
         }
         boolean defaultRule = false;
-        int forTableId = -1;
+        int forTableId;
         TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
         TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
