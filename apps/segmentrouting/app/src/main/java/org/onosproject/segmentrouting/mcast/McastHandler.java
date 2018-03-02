@@ -733,7 +733,7 @@ public class McastHandler {
         }
 
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan, mcastIp, routerMac);
+                filterObjBuilder(port, assignedVlan, mcastIp, routerMac);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
                         deviceId, port.toLong(), assignedVlan),
@@ -996,14 +996,13 @@ public class McastHandler {
     /**
      * Creates a filtering objective builder for multicast.
      *
-     * @param deviceId Device ID
      * @param ingressPort ingress port of the multicast stream
      * @param assignedVlan assigned VLAN ID
      * @param routerMac router MAC. This is carried in metadata and used from some switches that
      *                  need to put unicast entry before multicast entry in TMAC table.
      * @return filtering objective builder
      */
-    private FilteringObjective.Builder filterObjBuilder(DeviceId deviceId, PortNumber ingressPort,
+    private FilteringObjective.Builder filterObjBuilder(PortNumber ingressPort,
             VlanId assignedVlan, IpAddress mcastIp, MacAddress routerMac) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
 
@@ -1367,7 +1366,7 @@ public class McastHandler {
         }
 
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan, mcastIp, routerMac);
+                filterObjBuilder(port, assignedVlan, mcastIp, routerMac);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully removed filter on {}/{}, vlan {}",
                                          deviceId, port.toLong(), assignedVlan),
