@@ -144,7 +144,8 @@ public class OpenstackRoutingFloatingIpHandler {
                                     boolean install) {
         Network osNet = osNetworkService.network(osPort.getNetworkId());
         if (osNet == null) {
-            final String error = String.format(ERR_FLOW + "no network(%s) exists",
+            final String errorFormat = ERR_FLOW + "no network(%s) exists";
+            final String error = String.format(errorFormat,
                     floatingIp.getFloatingIpAddress(),
                     osPort.getNetworkId());
             throw new IllegalStateException(error);
@@ -153,7 +154,8 @@ public class OpenstackRoutingFloatingIpHandler {
         MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
         InstancePort instPort = instancePortService.instancePort(srcMac);
         if (instPort == null) {
-            final String error = String.format(ERR_FLOW + "no host(MAC:%s) found",
+            final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
+            final String error = String.format(errorFormat,
                     floatingIp.getFloatingIpAddress(), srcMac);
             throw new IllegalStateException(error);
         }
@@ -222,13 +224,13 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(error);
         }
         if (osNet.getNetworkType() == NetworkType.VXLAN && cNode.dataIp() == null) {
-            final String error = String.format(ERR_FLOW +
-                    "VXLAN mode is not ready for %s", floatingIp, cNode.hostname());
+            final String errorFormat = ERR_FLOW + "VXLAN mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
             throw new IllegalStateException(error);
         }
         if (osNet.getNetworkType() == NetworkType.VLAN && cNode.vlanIntf() == null) {
-            final String error = String.format(ERR_FLOW +
-                    "VLAN mode is not ready for %s", floatingIp, cNode.hostname());
+            final String errorFormat = ERR_FLOW + "VLAN mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
             throw new IllegalStateException(error);
         }
 
@@ -460,7 +462,8 @@ public class OpenstackRoutingFloatingIpHandler {
         private void associateFloatingIp(NetFloatingIP osFip) {
             Port osPort = osNetworkService.port(osFip.getPortId());
             if (osPort == null) {
-                final String error = String.format(ERR_FLOW + "port(%s) not found",
+                final String errorFormat = ERR_FLOW + "port(%s) not found";
+                final String error = String.format(errorFormat,
                         osFip.getFloatingIpAddress(), osFip.getPortId());
                 throw new IllegalStateException(error);
             }

@@ -108,7 +108,6 @@ public class OpenstackRoutingHandler {
 
     private static final String MSG_ENABLED = "Enabled ";
     private static final String MSG_DISABLED = "Disabled ";
-    private static final String ERR_SET_FLOWS = "Failed to set flows for router %s:";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
     private static final boolean USE_STATEFUL_SNAT = false;
 
@@ -237,7 +236,7 @@ public class OpenstackRoutingHandler {
         Subnet osSubnet = osNetworkService.subnet(osRouterIface.getSubnetId());
         if (osSubnet == null) {
             final String error = String.format(
-                    ERR_SET_FLOWS + "subnet %s does not exist",
+                    "Failed to set flows for router %s: subnet %s does not exist",
                     osRouterIface.getId(),
                     osRouterIface.getSubnetId());
             throw new IllegalStateException(error);
@@ -261,7 +260,7 @@ public class OpenstackRoutingHandler {
         Subnet osSubnet = osNetworkService.subnet(osRouterIface.getSubnetId());
         if (osSubnet == null) {
             final String error = String.format(
-                    ERR_SET_FLOWS + "subnet %s does not exist",
+                    "Failed to set flows for router %s: subnet %s does not exist",
                     osRouterIface.getId(),
                     osRouterIface.getSubnetId());
             throw new IllegalStateException(error);
@@ -421,8 +420,8 @@ public class OpenstackRoutingHandler {
                                 install));
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         network.getNetworkType().toString());
                 throw new IllegalStateException(error);
         }
@@ -615,8 +614,8 @@ public class OpenstackRoutingHandler {
                         install);
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         networkType.toString());
                 throw new IllegalStateException(error);
         }
@@ -645,8 +644,8 @@ public class OpenstackRoutingHandler {
                 sBuilder.matchVlanId(VlanId.vlanId(segmentId));
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         networkType.toString());
                 throw new IllegalStateException(error);
         }
@@ -811,8 +810,8 @@ public class OpenstackRoutingHandler {
                         .matchEthDst(osNodeService.node(deviceId).vlanPortMac());
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         networkType.toString());
                 throw new IllegalStateException(error);
         }
@@ -870,8 +869,8 @@ public class OpenstackRoutingHandler {
                 sBuilder.matchVlanId(VlanId.vlanId(segmentId));
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE,
                         networkType.toString());
                 throw new IllegalStateException(error);
         }

@@ -74,7 +74,7 @@ public final class OpenstackSwitchingHandler {
 
     private final Logger log = getLogger(getClass());
 
-    private static final String ERR_SET_FLOWS = "Failed to set flows for %s: ";
+    private static final String ERR_SET_FLOWS_VNI = "Failed to set flows for %s: Failed to get VNI for %s";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     CoreService coreService;
@@ -341,9 +341,9 @@ public final class OpenstackSwitchingHandler {
         Network osNet = osNetworkService.network(instPort.networkId());
 
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
-            final String error = String.format(
-                    ERR_SET_FLOWS + "Failed to get VNI for %s",
-                    instPort, osNet == null ? "<none>" : osNet.getName());
+            final String error =
+                    String.format(ERR_SET_FLOWS_VNI,
+                        instPort, osNet == null ? "<none>" : osNet.getName());
             throw new IllegalStateException(error);
         }
 
@@ -354,9 +354,9 @@ public final class OpenstackSwitchingHandler {
     private Long getVni(InstancePort instPort) {
         Network osNet = osNetworkService.network(instPort.networkId());
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
-            final String error = String.format(
-                    ERR_SET_FLOWS + "Failed to get VNI for %s",
-                    instPort, osNet == null ? "<none>" : osNet.getName());
+            final String error =
+                    String.format(ERR_SET_FLOWS_VNI,
+                        instPort, osNet == null ? "<none>" : osNet.getName());
             throw new IllegalStateException(error);
         }
         return Long.valueOf(osNet.getProviderSegID());

@@ -285,8 +285,8 @@ public class OpenstackRoutingSnatHandler {
                                        TpPort patPort, IpAddress externalIp, MacAddress externalPeerRouterMac) {
         Network osNet = osNetworkService.network(srcInstPort.networkId());
         if (osNet == null) {
-            final String error = String.format(ERR_PACKETIN + "network %s not found",
-                    srcInstPort.networkId());
+            final String error = String.format("%s network %s not found",
+                                        ERR_PACKETIN, srcInstPort.networkId());
             throw new IllegalStateException(error);
         }
 
@@ -333,9 +333,8 @@ public class OpenstackRoutingSnatHandler {
                         .setEthSrc(DEFAULT_GATEWAY_MAC);
                 break;
             default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE + "%s",
-                        networkType.toString());
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE, networkType.toString());
                 throw new IllegalStateException(error);
         }
 
@@ -373,8 +372,8 @@ public class OpenstackRoutingSnatHandler {
                     tmpBuilder.setOutput(gNode.vlanPortNum());
                     break;
                 default:
-                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
-                            networkType.toString());
+                    final String error = String.format("%s %s",
+                            ERR_UNSUPPORTED_NET_TYPE, networkType.toString());
                     throw new IllegalStateException(error);
             }
 
@@ -412,8 +411,8 @@ public class OpenstackRoutingSnatHandler {
                 tBuilder.popVlan();
                 break;
             default:
-                final String error = String.format(ERR_UNSUPPORTED_NET_TYPE + "%s",
-                        networkType.toString());
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE, networkType.toString());
                 throw new IllegalStateException(error);
         }
 
