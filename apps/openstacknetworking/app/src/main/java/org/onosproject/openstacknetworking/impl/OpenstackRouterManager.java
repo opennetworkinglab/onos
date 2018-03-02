@@ -273,7 +273,7 @@ public class OpenstackRouterManager
         @Override
         public void notify(OpenstackRouterEvent event) {
             if (event != null) {
-                log.trace("send oepnstack routing event {}", event);
+                log.trace("send openstack routing event {}", event);
                 process(event);
             }
         }

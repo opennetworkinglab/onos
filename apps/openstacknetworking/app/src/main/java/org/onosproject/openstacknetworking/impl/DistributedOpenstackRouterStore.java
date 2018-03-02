@@ -52,13 +52,24 @@ import org.slf4j.Logger;
 
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.*;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_FLOATING_IP_ASSOCIATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_FLOATING_IP_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_FLOATING_IP_DISASSOCIATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_FLOATING_IP_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_FLOATING_IP_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_GATEWAY_ADDED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_GATEWAY_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_INTERFACE_ADDED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_INTERFACE_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_INTERFACE_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackRouterEvent.Type.OPENSTACK_ROUTER_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -174,16 +185,12 @@ public class DistributedOpenstackRouterStore
 
     @Override
     public Router router(String routerId) {
-        Versioned<Router> versioned = osRouterStore.get(routerId);
-        return versioned == null ? null : versioned.value();
+        return osRouterStore.asJavaMap().get(routerId);
     }
 
     @Override
     public Set<Router> routers() {
-        Set<Router> osRouters = osRouterStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osRouters);
+        return ImmutableSet.copyOf(osRouterStore.asJavaMap().values());
     }
 
     @Override
@@ -212,16 +219,12 @@ public class DistributedOpenstackRouterStore
 
     @Override
     public RouterInterface routerInterface(String routerIfaceId) {
-        Versioned<RouterInterface> osRouterIface = osRouterInterfaceStore.get(routerIfaceId);
-        return osRouterIface == null ? null : osRouterIface.value();
+        return osRouterInterfaceStore.asJavaMap().get(routerIfaceId);
     }
 
     @Override
     public Set<RouterInterface> routerInterfaces() {
-        Set<RouterInterface> osRouterIfaces = osRouterInterfaceStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osRouterIfaces);
+        return ImmutableSet.copyOf(osRouterInterfaceStore.asJavaMap().values());
     }
 
     @Override
@@ -250,16 +253,12 @@ public class DistributedOpenstackRouterStore
 
     @Override
     public NetFloatingIP floatingIp(String floatingIpId) {
-        Versioned<NetFloatingIP> osFloatingIp = osFloatingIpStore.get(floatingIpId);
-        return osFloatingIp == null ? null : osFloatingIp.value();
+        return osFloatingIpStore.asJavaMap().get(floatingIpId);
     }
 
     @Override
     public Set<NetFloatingIP> floatingIps() {
-        Set<NetFloatingIP> osFloatingIps = osFloatingIpStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osFloatingIps);
+        return ImmutableSet.copyOf(osFloatingIpStore.asJavaMap().values());
     }
 
     @Override
@@ -285,22 +284,22 @@ public class DistributedOpenstackRouterStore
                     break;
                 case INSERT:
                     log.debug("OpenStack router created");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_CREATED,
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case REMOVE:
                     log.debug("OpenStack router removed");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_REMOVED,
-                                event.oldValue().value()));
-                    });
+                                event.oldValue().value()))
+                    );
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack router event type");
                     break;
             }
         }
@@ -329,33 +328,33 @@ public class DistributedOpenstackRouterStore
             switch (event.type()) {
                 case UPDATE:
                     log.debug("OpenStack router interface updated");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_UPDATED,
                                 router(event.newValue().value().getId()),
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case INSERT:
                     log.debug("OpenStack router interface created");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_ADDED,
                                 router(event.newValue().value().getId()),
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case REMOVE:
                     log.debug("OpenStack router interface removed");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackRouterEvent(
                                 OPENSTACK_ROUTER_INTERFACE_REMOVED,
                                 router(event.oldValue().value().getId()),
-                                event.oldValue().value()));
-                    });
+                                event.oldValue().value()))
+                    );
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack router interface event type");
                     break;
             }
         }
@@ -407,7 +406,7 @@ public class DistributedOpenstackRouterStore
                     });
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack floating IP event type");
                     break;
             }
         }

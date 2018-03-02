@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -140,16 +139,12 @@ public class DistributedOpenstackNodeStore
 
     @Override
     public Set<OpenstackNode> nodes() {
-        Set<OpenstackNode> osNodes = osNodeStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osNodes);
+        return ImmutableSet.copyOf(osNodeStore.asJavaMap().values());
     }
 
     @Override
     public OpenstackNode node(String hostname) {
-        Versioned<OpenstackNode> osNode = osNodeStore.get(hostname);
-        return osNode == null ? null : osNode.value();
+        return osNodeStore.asJavaMap().get(hostname);
     }
 
     /**

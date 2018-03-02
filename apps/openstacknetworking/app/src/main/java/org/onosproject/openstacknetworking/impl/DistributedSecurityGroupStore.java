@@ -50,7 +50,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.*;
+import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_RULE_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -138,16 +141,12 @@ public class DistributedSecurityGroupStore
 
     @Override
     public SecurityGroup securityGroup(String sgId) {
-        Versioned<SecurityGroup> osSg = osSecurityGroupStore.get(sgId);
-        return osSg == null ? null : osSg.value();
+        return osSecurityGroupStore.asJavaMap().get(sgId);
     }
 
     @Override
     public Set<SecurityGroup> securityGroups() {
-        Set<SecurityGroup> osSgs = osSecurityGroupStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osSgs);
+        return ImmutableSet.copyOf(osSecurityGroupStore.asJavaMap().values());
     }
 
     @Override

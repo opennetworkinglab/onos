@@ -59,13 +59,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.*;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_SECURITY_GROUP_ADDED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_SECURITY_GROUP_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -184,16 +193,12 @@ public class DistributedOpenstackNetworkStore
 
     @Override
     public Network network(String netId) {
-        Versioned<Network> versioned = osNetworkStore.get(netId);
-        return versioned == null ? null : versioned.value();
+        return osNetworkStore.asJavaMap().get(netId);
     }
 
     @Override
     public Set<Network> networks() {
-        Set<Network> osNets = osNetworkStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osNets);
+        return ImmutableSet.copyOf(osNetworkStore.asJavaMap().values());
     }
 
     @Override
@@ -222,16 +227,12 @@ public class DistributedOpenstackNetworkStore
 
     @Override
     public Subnet subnet(String subnetId) {
-        Versioned<Subnet> osSubnet = osSubnetStore.get(subnetId);
-        return osSubnet == null ? null : osSubnet.value();
+        return osSubnetStore.asJavaMap().get(subnetId);
     }
 
     @Override
     public Set<Subnet> subnets() {
-        Set<Subnet> osSubnets = osSubnetStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osSubnets);
+        return ImmutableSet.copyOf(osSubnetStore.asJavaMap().values());
     }
 
     @Override
@@ -260,16 +261,12 @@ public class DistributedOpenstackNetworkStore
 
     @Override
     public Port port(String portId) {
-        Versioned<Port> osPort = osPortStore.get(portId);
-        return osPort == null ? null : osPort.value();
+        return osPortStore.asJavaMap().get(portId);
     }
 
     @Override
     public Set<Port> ports() {
-        Set<Port> osPorts = osPortStore.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(osPorts);
+        return ImmutableSet.copyOf(osPortStore.asJavaMap().values());
     }
 
     @Override
@@ -286,30 +283,30 @@ public class DistributedOpenstackNetworkStore
             switch (event.type()) {
                 case UPDATE:
                     log.debug("OpenStack network updated");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_UPDATED,
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case INSERT:
                     log.debug("OpenStack network created");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_CREATED,
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case REMOVE:
                     log.debug("OpenStack network removed");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_NETWORK_REMOVED,
-                                event.oldValue().value()));
-                    });
+                                event.oldValue().value()))
+                    );
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack network event type");
                     break;
             }
         }
@@ -322,33 +319,33 @@ public class DistributedOpenstackNetworkStore
             switch (event.type()) {
                 case UPDATE:
                     log.debug("OpenStack subnet updated");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_UPDATED,
                                 network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case INSERT:
                     log.debug("OpenStack subnet created");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_CREATED,
                                 network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case REMOVE:
                     log.debug("OpenStack subnet removed");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_SUBNET_REMOVED,
                                 network(event.oldValue().value().getNetworkId()),
-                                event.oldValue().value()));
-                    });
+                                event.oldValue().value()))
+                    );
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack subnet event type");
                     break;
             }
         }
@@ -372,24 +369,24 @@ public class DistributedOpenstackNetworkStore
                     break;
                 case INSERT:
                     log.debug("OpenStack port created");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_CREATED,
                                 network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()));
-                    });
+                                event.newValue().value()))
+                    );
                     break;
                 case REMOVE:
                     log.debug("OpenStack port removed");
-                    eventExecutor.execute(() -> {
+                    eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_REMOVED,
                                 network(event.oldValue().value().getNetworkId()),
-                                event.oldValue().value()));
-                    });
+                                event.oldValue().value()))
+                    );
                     break;
                 default:
-                    log.error("Unsupported event type");
+                    log.error("Unsupported openstack port event type");
                     break;
             }
         }

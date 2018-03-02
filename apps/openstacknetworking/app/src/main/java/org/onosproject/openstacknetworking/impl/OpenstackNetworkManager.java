@@ -51,7 +51,6 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
@@ -508,10 +507,7 @@ public class OpenstackNetworkManager
 
     @Override
     public Set<ExternalPeerRouter> externalPeerRouters() {
-        Set<ExternalPeerRouter> externalPeerRouters = externalPeerRouterMap.values().stream()
-                .map(Versioned::value)
-                .collect(Collectors.toSet());
-        return ImmutableSet.copyOf(externalPeerRouters);
+        return ImmutableSet.copyOf(externalPeerRouterMap.asJavaMap().values());
     }
 
     private boolean isNetworkInUse(String netId) {
@@ -533,7 +529,7 @@ public class OpenstackNetworkManager
         @Override
         public void notify(OpenstackNetworkEvent event) {
             if (event != null) {
-                log.trace("send oepnstack switching event {}", event);
+                log.trace("send openstack switching event {}", event);
                 process(event);
             }
         }
