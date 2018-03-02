@@ -70,7 +70,13 @@ public final class OmsPortHelper {
         builder.set(OpticalAnnotations.GRID_HZ, String.valueOf(grid.asHz()));
 
         long portSpeed = 0;
-        return new DefaultPortDescription(number, isEnabled, Port.Type.OMS, portSpeed, builder.build());
+        return DefaultPortDescription.builder()
+                .withPortNumber(number)
+                .isEnabled(isEnabled)
+                .type(Port.Type.OMS)
+                .portSpeed(portSpeed)
+                .annotations(builder.build())
+                .build();
     }
 
     /**

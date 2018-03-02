@@ -257,7 +257,7 @@ public class GnmiDeviceDescriptionDiscovery
                 int number = Character.getNumericValue(portId.charAt(portId.length() - 1));
                 PortNumber portNumber = PortNumber.portNumber(number, portId);
                 ports.put(portId, DefaultPortDescription.builder()
-                        .withPortNumer(portNumber));
+                        .withPortNumber(portNumber));
             }
             if (name.equals("enabled")) {
                 DefaultPortDescription.Builder builder = ports.get(portId);

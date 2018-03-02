@@ -198,7 +198,12 @@ public class ConfigOpticalDeviceDiscovery extends AbstractHandlerBehaviour
             long portSpeed = port.flatMap(OpticalPortConfig::speed).orElse(speedFallback);
             Port.Type type = port.map(OpticalPortConfig::type).orElse(Port.Type.COPPER);
 
-            portDescs.add(new DefaultPortDescription(number, isEnabled, type, portSpeed));
+            portDescs.add(DefaultPortDescription.builder()
+                    .withPortNumber(number)
+                    .isEnabled(isEnabled)
+                    .type(type)
+                    .portSpeed(portSpeed)
+                    .build());
         }
 
         return portDescs;

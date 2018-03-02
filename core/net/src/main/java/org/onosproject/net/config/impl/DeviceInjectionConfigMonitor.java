@@ -189,7 +189,7 @@ public class DeviceInjectionConfigMonitor {
                 // TODO inject port details if something like BasicPortConfig was created
                 PortNumber number = portNumber(i);
                 boolean isEnabled = true;
-                portDescs.add(new DefaultPortDescription(number, isEnabled));
+                portDescs.add(DefaultPortDescription.builder().withPortNumber(number) .isEnabled(isEnabled).build());
             }
             providerService.updatePorts(did, portDescs);
         }

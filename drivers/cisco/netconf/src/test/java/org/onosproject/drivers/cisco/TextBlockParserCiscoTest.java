@@ -118,18 +118,24 @@ public class TextBlockParserCiscoTest {
                 .set(AnnotationKeys.PORT_NAME, INTF6_NAME);
 
         List<PortDescription> intfs = new ArrayList<>();
-        intfs.add(new DefaultPortDescription(INTF1_PORT, IS_ENABLED, COPPER, CONNECTION_SPEED_ETHERNET,
-                                             int1Annotations.build()));
-        intfs.add(new DefaultPortDescription(INTF2_PORT, IS_NOT_ENABLED, COPPER, CONNECTION_SPEED_ETHERNET,
-                                             int2Annotations.build()));
-        intfs.add(new DefaultPortDescription(INTF3_PORT, IS_NOT_ENABLED, COPPER, CONNECTION_SPEED_ETHERNET,
-                                             int3Annotations.build()));
-        intfs.add(new DefaultPortDescription(INTF4_PORT, IS_ENABLED, COPPER, CONNECTION_SPEED_SERIAL,
-                                             int4Annotations.build()));
-        intfs.add(new DefaultPortDescription(INTF5_PORT, IS_ENABLED, FIBER, CONNECTION_SPEED_POS,
-                                             int5Annotations.build()));
-        intfs.add(new DefaultPortDescription(INTF6_PORT, IS_ENABLED, FIBER, CONNECTION_SPEED_FDDI,
-                                             int6Annotations.build()));
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF1_PORT).isEnabled(IS_ENABLED)
+                .type(COPPER).portSpeed(CONNECTION_SPEED_ETHERNET)
+                .annotations(int1Annotations.build()).build());
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF2_PORT).isEnabled(IS_NOT_ENABLED)
+                .type(COPPER).portSpeed(CONNECTION_SPEED_ETHERNET)
+                .annotations(int2Annotations.build()).build());
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF3_PORT).isEnabled(IS_NOT_ENABLED)
+                .type(COPPER).portSpeed(CONNECTION_SPEED_ETHERNET)
+                .annotations(int3Annotations.build()).build());
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF4_PORT).isEnabled(IS_ENABLED)
+                .type(COPPER).portSpeed(CONNECTION_SPEED_SERIAL)
+                .annotations(int4Annotations.build()).build());
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF5_PORT).isEnabled(IS_ENABLED)
+                .type(FIBER).portSpeed(CONNECTION_SPEED_POS)
+                .annotations(int5Annotations.build()).build());
+        intfs.add(DefaultPortDescription.builder().withPortNumber(INTF6_PORT).isEnabled(IS_ENABLED)
+                .type(FIBER).portSpeed(CONNECTION_SPEED_FDDI)
+                .annotations(int6Annotations.build()).build());
         return intfs;
     }
 

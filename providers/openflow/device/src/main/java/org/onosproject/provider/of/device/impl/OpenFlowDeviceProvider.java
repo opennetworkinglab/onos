@@ -1163,11 +1163,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (ether.isPresent()) {
                 // ethernet port
                 // TODO parse other part of OFPortDescPropEthernet if necessary
-                return new DefaultPortDescription(portNo,
-                                                  enabled,
-                                                  COPPER,
-                                                  portSpeed(port),
-                                                  annotations.build());
+                return DefaultPortDescription.builder()
+                        .withPortNumber(portNo)
+                        .isEnabled(enabled)
+                        .type(COPPER)
+                        .portSpeed(portSpeed(port))
+                        .annotations(annotations.build())
+                        .build();
             }
 
             Optional<OFPortDescPropOptical> optical = port.getProperties().stream()
@@ -1237,19 +1239,23 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
                 // TODO How to determine appropriate port type?
 
-                return new DefaultPortDescription(portNo,
-                                                  enabled,
-                                                  FIBER,
-                                                  portSpeed(port),
-                                                  annotations.build());
+                return DefaultPortDescription.builder()
+                        .withPortNumber(portNo)
+                        .isEnabled(enabled)
+                        .type(FIBER)
+                        .portSpeed(portSpeed(port))
+                        .annotations(annotations.build())
+                        .build();
             }
 
             // fall back default
-            return new DefaultPortDescription(portNo,
-                                              enabled,
-                                              COPPER,
-                                              portSpeed(port),
-                                              annotations.build());
+            return DefaultPortDescription.builder()
+                    .withPortNumber(portNo)
+                    .isEnabled(enabled)
+                    .type(COPPER)
+                    .portSpeed(portSpeed(port))
+                    .annotations(annotations.build())
+                    .build();
 
         }
 
@@ -1272,8 +1278,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             SparseAnnotations annotations = makePortAnnotation(port.getName(),
                                                                port.getHwAddr().toString(),
                                                                adminDown).build();
-            return new DefaultPortDescription(portNo, enabled, type,
-                                              portSpeed(port), annotations);
+            return DefaultPortDescription.builder()
+                    .withPortNumber(portNo)
+                    .isEnabled(enabled)
+                    .type(type)
+                    .portSpeed(portSpeed(port))
+                    .annotations(annotations)
+                    .build();
         }
 
         /**
@@ -1349,7 +1360,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     break;
             }
 
-            return new DefaultPortDescription(portNo, enabled, FIBER, 0, annotations);
+            return DefaultPortDescription.builder()
+                    .withPortNumber(portNo)
+                    .isEnabled(enabled)
+                    .type(FIBER)
+                    .portSpeed(0)
+                    .annotations(annotations)
+                    .build();
         }
 
         /**

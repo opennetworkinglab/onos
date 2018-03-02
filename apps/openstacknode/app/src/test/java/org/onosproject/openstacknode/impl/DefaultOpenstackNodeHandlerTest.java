@@ -120,13 +120,13 @@ public class DefaultOpenstackNodeHandlerTest {
             .disableInBand()
             .build();
 
-    private static final PortDescription PATCH_ROUT = new DefaultPortDescription(
-            PortNumber.portNumber(1),
-            true,
-            DefaultAnnotations.builder()
+    private static final PortDescription PATCH_ROUT = DefaultPortDescription.builder()
+            .withPortNumber(PortNumber.portNumber(1))
+            .isEnabled(true)
+            .annotations(DefaultAnnotations.builder()
                     .set(PORT_NAME, PATCH_ROUT_BRIDGE)
-                    .build()
-    );
+                    .build())
+            .build();
 
     private static final String COMPUTE_1_HOSTNAME = "compute_1";
     private static final String COMPUTE_2_HOSTNAME = "compute_2";

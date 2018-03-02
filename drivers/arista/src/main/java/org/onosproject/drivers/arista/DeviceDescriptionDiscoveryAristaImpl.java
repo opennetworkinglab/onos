@@ -128,9 +128,13 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
                         .set(INTERFACE_TYPE, interfaceNode.path(INTERFACE_TYPE).asText())
                         .build();
 
-                PortDescription portDescription = new DefaultPortDescription(PortNumber
-                        .portNumber(getPortNumber(name)),
-                        true, Port.Type.FIBER, bandwidth, annotations);
+                PortDescription portDescription = DefaultPortDescription.builder()
+                        .withPortNumber(PortNumber.portNumber(getPortNumber(name)))
+                        .isEnabled(true)
+                        .type(Port.Type.FIBER)
+                        .portSpeed(bandwidth)
+                        .annotations(annotations)
+                        .build();
                 ports.add(portDescription);
 
             });

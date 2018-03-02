@@ -299,7 +299,8 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 portList = new ArrayList<>();
             }
             if (portNumber != null) {
-                PortDescription portDescriptions = new DefaultPortDescription(portNumber, true);
+                PortDescription portDescriptions = DefaultPortDescription.builder().withPortNumber(portNumber)
+                        .isEnabled(true).build();
                 portList.add(portDescriptions);
             }
 

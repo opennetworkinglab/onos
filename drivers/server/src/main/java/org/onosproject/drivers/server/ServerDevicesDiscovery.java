@@ -446,12 +446,13 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
             // Create a port description and add it to the list
             portDescriptions.add(
-                new DefaultPortDescription(
-                    portNumber, nic.status(),
-                    nic.portType(), nic.speed(),
-                    annotations.build()
-                )
-            );
+                    DefaultPortDescription.builder()
+                            .withPortNumber(portNumber)
+                            .isEnabled(nic.status())
+                            .type(nic.portType())
+                            .portSpeed(nic.speed())
+                            .annotations(annotations.build())
+                            .build());
 
             log.info(
                 "Port discovery on device {}: NIC {} is {} at {} Mbps",

@@ -134,13 +134,23 @@ public class Ea1000DeviceDescription extends AbstractHandlerBehaviour implements
 
         DefaultAnnotations annotationOptics = DefaultAnnotations.builder().set(AnnotationKeys.PORT_NAME, "Optics")
                 .build();
-        PortDescription optics = new DefaultPortDescription(PortNumber.portNumber(0), true, Port.Type.FIBER, 1000,
-                annotationOptics);
+        PortDescription optics = DefaultPortDescription.builder()
+                .withPortNumber(PortNumber.portNumber(0))
+                .isEnabled(true)
+                .type(Port.Type.FIBER)
+                .portSpeed(1000)
+                .annotations(annotationOptics)
+                .build();
         ports.add(optics);
 
         DefaultAnnotations annotationHost = DefaultAnnotations.builder().set(AnnotationKeys.PORT_NAME, "Host").build();
-        PortDescription host = new DefaultPortDescription(PortNumber.portNumber(1), true, Port.Type.COPPER, 1000,
-                annotationHost);
+        PortDescription host = DefaultPortDescription.builder()
+                .withPortNumber(PortNumber.portNumber(1))
+                .isEnabled(true)
+                .type(Port.Type.COPPER)
+                .portSpeed(1000)
+                .annotations(annotationHost)
+                .build();
         ports.add(host);
 
         return ports;

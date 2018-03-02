@@ -182,9 +182,13 @@ public final class HuaweiXmlParser {
 
             DefaultAnnotations annotations = DefaultAnnotations.builder()
                     .set(PORT_NAME, ifName).build();
-            ports.add(new DefaultPortDescription(portNumber(port), isEnabled,
-                                                 COPPER, portSpeed,
-                                                 annotations));
+            ports.add(DefaultPortDescription.builder()
+                      .withPortNumber(portNumber(port))
+                      .isEnabled(isEnabled)
+                      .type(COPPER)
+                      .portSpeed(portSpeed)
+                      .annotations(annotations)
+                      .build());
         }
     }
 

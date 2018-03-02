@@ -211,11 +211,13 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
             }
             //Updating ports of the link
             List<PortDescription> srcPortDescriptions = new LinkedList<>();
-            srcPortDescriptions.add(new DefaultPortDescription(linkDes.src().port(), true));
+            srcPortDescriptions.add(DefaultPortDescription.builder()
+                    .withPortNumber(linkDes.src().port()).isEnabled(true).build());
             deviceProviderService.updatePorts(linkDes.src().deviceId(), srcPortDescriptions);
 
             List<PortDescription> dstPortDescriptions = new LinkedList<>();
-            dstPortDescriptions.add(new DefaultPortDescription(linkDes.dst().port(), true));
+            dstPortDescriptions.add(DefaultPortDescription.builder()
+                    .withPortNumber(linkDes.dst().port()).isEnabled(true).build());
             deviceProviderService.updatePorts(linkDes.dst().deviceId(), dstPortDescriptions);
             linkProviderService.linkDetected(linkDes);
         }
@@ -229,11 +231,13 @@ public class OspfTopologyProvider extends AbstractProvider implements DeviceProv
             LinkDescription linkDes = buildLinkDes(ospfRouter, ospfLinkTed);
             //Updating ports of the link
             List<PortDescription> srcPortDescriptions = new LinkedList<>();
-            srcPortDescriptions.add(new DefaultPortDescription(linkDes.src().port(), true));
+            srcPortDescriptions.add(DefaultPortDescription.builder()
+                    .withPortNumber(linkDes.src().port()).isEnabled(true).build());
             deviceProviderService.updatePorts(linkDes.src().deviceId(), srcPortDescriptions);
 
             List<PortDescription> dstPortDescriptions = new LinkedList<>();
-            dstPortDescriptions.add(new DefaultPortDescription(linkDes.dst().port(), true));
+            dstPortDescriptions.add(DefaultPortDescription.builder()
+                    .withPortNumber(linkDes.dst().port()).isEnabled(true).build());
             deviceProviderService.updatePorts(linkDes.dst().deviceId(), dstPortDescriptions);
             linkProviderService.linkVanished(linkDes);
         }

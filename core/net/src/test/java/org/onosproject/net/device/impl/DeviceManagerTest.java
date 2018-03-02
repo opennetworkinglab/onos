@@ -190,15 +190,15 @@ public class DeviceManagerTest {
     public void updatePorts() {
         connectDevice(DID1, SW1);
         List<PortDescription> pds = new ArrayList<>();
-        pds.add(new DefaultPortDescription(P1, true));
-        pds.add(new DefaultPortDescription(P2, true));
-        pds.add(new DefaultPortDescription(P3, true));
+        pds.add(DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P3).isEnabled(true).build());
         providerService.updatePorts(DID1, pds);
         validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED, PORT_ADDED);
         pds.clear();
 
-        pds.add(new DefaultPortDescription(P1, false));
-        pds.add(new DefaultPortDescription(P3, true));
+        pds.add(DefaultPortDescription.builder().withPortNumber(P1).isEnabled(false).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P3).isEnabled(true).build());
         providerService.updatePorts(DID1, pds);
         validateEvents(PORT_UPDATED, PORT_REMOVED);
     }
@@ -207,14 +207,16 @@ public class DeviceManagerTest {
     public void updatePortStatus() {
         connectDevice(DID1, SW1);
         List<PortDescription> pds = new ArrayList<>();
-        pds.add(new DefaultPortDescription(P1, true));
-        pds.add(new DefaultPortDescription(P2, true));
+        pds.add(DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build());
         providerService.updatePorts(DID1, pds);
         validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
 
-        providerService.portStatusChanged(DID1, new DefaultPortDescription(P1, false));
+        providerService.portStatusChanged(DID1, DefaultPortDescription.builder()
+                .withPortNumber(P1).isEnabled(false).build());
         validateEvents(PORT_UPDATED);
-        providerService.portStatusChanged(DID1, new DefaultPortDescription(P1, false));
+        providerService.portStatusChanged(DID1, DefaultPortDescription.builder()
+                .withPortNumber(P1).isEnabled(false).build());
         assertTrue("no events expected", listener.events.isEmpty());
     }
 
@@ -222,8 +224,8 @@ public class DeviceManagerTest {
     public void getPorts() {
         connectDevice(DID1, SW1);
         List<PortDescription> pds = new ArrayList<>();
-        pds.add(new DefaultPortDescription(P1, true));
-        pds.add(new DefaultPortDescription(P2, true));
+        pds.add(DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build());
         providerService.updatePorts(DID1, pds);
         validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED);
         assertEquals("wrong port count", 2, service.getPorts(DID1).size());

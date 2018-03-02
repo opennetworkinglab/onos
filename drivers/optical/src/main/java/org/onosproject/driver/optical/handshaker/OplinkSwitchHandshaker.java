@@ -245,8 +245,13 @@ public class OplinkSwitchHandshaker extends AbstractOpenFlowSwitch implements Op
             } else {
                 builder.set(OUTPUT_PORT_STATUS, STATUS_OUT_SERVICE);
             }
-            portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
-                    port.type(), port.portSpeed(), builder.build()));
+            portDescs.add(DefaultPortDescription.builder()
+                    .withPortNumber(port.number())
+                    .isEnabled(port.isEnabled())
+                    .type(port.type())
+                    .portSpeed(port.portSpeed())
+                    .annotations(builder.build())
+                    .build());
         }
         return portDescs;
     }

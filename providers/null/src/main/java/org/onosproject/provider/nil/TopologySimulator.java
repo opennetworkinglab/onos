@@ -396,8 +396,12 @@ public abstract class TopologySimulator {
     protected List<PortDescription> buildPorts(int portCount) {
         List<PortDescription> ports = Lists.newArrayList();
         for (int i = 1; i <= portCount; i++) {
-            ports.add(new DefaultPortDescription(PortNumber.portNumber(i), true,
-                                                 Port.Type.COPPER, 0));
+            ports.add(DefaultPortDescription.builder()
+                    .withPortNumber(PortNumber.portNumber(i))
+                    .isEnabled(true)
+                    .type(Port.Type.COPPER)
+                    .portSpeed(0)
+                    .build());
         }
         return ports;
     }

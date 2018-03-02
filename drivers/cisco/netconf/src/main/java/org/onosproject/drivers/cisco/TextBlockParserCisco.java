@@ -185,8 +185,13 @@ final class TextBlockParserCisco {
         long portSpeed = getPortSpeed(textStr);
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(AnnotationKeys.PORT_NAME, firstWord);
-        return "-1".equals(port) ? null : new DefaultPortDescription(PortNumber.portNumber(port),
-                                                                     isEnabled, type, portSpeed, annotations.build());
+        return "-1".equals(port) ? null : DefaultPortDescription.builder()
+                .withPortNumber(PortNumber.portNumber(port))
+                .isEnabled(isEnabled)
+                .type(type)
+                .portSpeed(portSpeed)
+                .annotations(annotations.build())
+                .build();
     }
 
     /**

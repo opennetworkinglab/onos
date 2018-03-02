@@ -97,7 +97,9 @@ class DeviceDescriptions {
             SparseAnnotations merged = union(oldOne.value().annotations(),
                                              newDesc.value().annotations());
             newOne = new Timestamped<>(
-                            new DefaultPortDescription(newDesc.value(), merged),
+                            DefaultPortDescription.builder(newDesc.value())
+                                .annotations(merged)
+                                .build(),
                             newDesc.timestamp());
         }
         portDescs.put(newOne.value().portNumber(), newOne);

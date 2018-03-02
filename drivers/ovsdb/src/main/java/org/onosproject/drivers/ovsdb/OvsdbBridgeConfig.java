@@ -116,12 +116,12 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         Set<OvsdbPort> ports = client.getPorts();
 
         return ports.stream()
-                .map(x -> new DefaultPortDescription(
-                                PortNumber.portNumber(x.portNumber().value()),
-                                true,
-                                DefaultAnnotations.builder()
-                                        .set("portName", x.portName().value())
-                                        .build()))
+                .map(x -> DefaultPortDescription.builder()
+                        .withPortNumber(PortNumber.portNumber(x.portNumber().value()))
+                        .isEnabled(true)
+                        .annotations(DefaultAnnotations.builder()
+                                .set("portName", x.portName().value())
+                                .build()).build())
                 .collect(Collectors.toSet());
     }
 

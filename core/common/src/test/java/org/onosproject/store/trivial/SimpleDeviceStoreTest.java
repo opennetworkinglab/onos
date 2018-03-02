@@ -282,8 +282,8 @@ public class SimpleDeviceStoreTest {
     public final void testUpdatePorts() {
         putDevice(DID1, SW1);
         List<PortDescription> pds = Arrays.asList(
-                new DefaultPortDescription(P1, true),
-                new DefaultPortDescription(P2, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build(),
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build()
                 );
 
         List<DeviceEvent> events = deviceStore.updatePorts(PID, DID1, pds);
@@ -300,9 +300,9 @@ public class SimpleDeviceStoreTest {
 
 
         List<PortDescription> pds2 = Arrays.asList(
-                new DefaultPortDescription(P1, false),
-                new DefaultPortDescription(P2, true),
-                new DefaultPortDescription(P3, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(false).build(),
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build(),
+                DefaultPortDescription.builder().withPortNumber(P3).isEnabled(true).build()
                 );
 
         events = deviceStore.updatePorts(PID, DID1, pds2);
@@ -325,8 +325,8 @@ public class SimpleDeviceStoreTest {
         }
 
         List<PortDescription> pds3 = Arrays.asList(
-                new DefaultPortDescription(P1, false),
-                new DefaultPortDescription(P2, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(false).build(),
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build()
                 );
         events = deviceStore.updatePorts(PID, DID1, pds3);
         assertFalse("event should be triggered", events.isEmpty());
@@ -351,12 +351,12 @@ public class SimpleDeviceStoreTest {
     public final void testUpdatePortStatus() {
         putDevice(DID1, SW1);
         List<PortDescription> pds = Arrays.asList(
-                new DefaultPortDescription(P1, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
         DeviceEvent event = deviceStore.updatePortStatus(PID, DID1,
-                new DefaultPortDescription(P1, false));
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(false).build());
         assertEquals(PORT_UPDATED, event.type());
         assertDevice(DID1, SW1, event.subject());
         assertEquals(P1, event.port().number());
@@ -369,12 +369,12 @@ public class SimpleDeviceStoreTest {
         putDeviceAncillary(DID1, SW1);
         putDevice(DID1, SW1);
         List<PortDescription> pds = Arrays.asList(
-                new DefaultPortDescription(P1, true, A1)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).annotations(A1).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
         DeviceEvent event = deviceStore.updatePortStatus(PID, DID1,
-                new DefaultPortDescription(P1, false, A1_2));
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(false).annotations(A1_2).build());
         assertEquals(PORT_UPDATED, event.type());
         assertDevice(DID1, SW1, event.subject());
         assertEquals(P1, event.port().number());
@@ -382,12 +382,12 @@ public class SimpleDeviceStoreTest {
         assertFalse("Port is disabled", event.port().isEnabled());
 
         DeviceEvent event2 = deviceStore.updatePortStatus(PIDA, DID1,
-                new DefaultPortDescription(P1, true));
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build());
         assertNull("Ancillary is ignored if primary exists", event2);
 
         // but, Ancillary annotation update will be notified
         DeviceEvent event3 = deviceStore.updatePortStatus(PIDA, DID1,
-                new DefaultPortDescription(P1, true, A2));
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).annotations(A2).build());
         assertEquals(PORT_UPDATED, event3.type());
         assertDevice(DID1, SW1, event3.subject());
         assertEquals(P1, event3.port().number());
@@ -396,7 +396,7 @@ public class SimpleDeviceStoreTest {
 
         // port only reported from Ancillary will be notified as down
         DeviceEvent event4 = deviceStore.updatePortStatus(PIDA, DID1,
-                new DefaultPortDescription(P2, true));
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build());
         assertEquals(PORT_ADDED, event4.type());
         assertDevice(DID1, SW1, event4.subject());
         assertEquals(P2, event4.port().number());
@@ -410,8 +410,8 @@ public class SimpleDeviceStoreTest {
         putDevice(DID1, SW1);
         putDevice(DID2, SW1);
         List<PortDescription> pds = Arrays.<PortDescription>asList(
-                new DefaultPortDescription(P1, true),
-                new DefaultPortDescription(P2, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build(),
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
@@ -433,8 +433,8 @@ public class SimpleDeviceStoreTest {
         putDevice(DID1, SW1);
         putDevice(DID2, SW1);
         List<PortDescription> pds = Arrays.asList(
-                new DefaultPortDescription(P1, true),
-                new DefaultPortDescription(P2, false)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build(),
+                DefaultPortDescription.builder().withPortNumber(P2).isEnabled(false).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
@@ -454,7 +454,7 @@ public class SimpleDeviceStoreTest {
     public final void testRemoveDevice() {
         putDevice(DID1, SW1, A1);
         List<PortDescription> pds = Arrays.asList(
-                new DefaultPortDescription(P1, true, A2)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).annotations(A2).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds);
         putDevice(DID2, SW1);
@@ -474,7 +474,7 @@ public class SimpleDeviceStoreTest {
         // putBack Device, Port w/o annotation
         putDevice(DID1, SW1);
         List<PortDescription> pds2 = Arrays.asList(
-                new DefaultPortDescription(P1, true)
+                DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build()
                 );
         deviceStore.updatePorts(PID, DID1, pds2);
 

@@ -356,9 +356,14 @@ public class NetconfDeviceProvider extends AbstractProvider
                         Port port = deviceService.getPort(deviceId, portNumber);
                         //rebuilding port description with admin state changed.
                         providerService.portStatusChanged(deviceId,
-                                new DefaultPortDescription(portNumber, enable, false,
-                                        port.type(), port.portSpeed(),
-                                        (SparseAnnotations) port.annotations()));
+                                DefaultPortDescription.builder()
+                                        .withPortNumber(portNumber)
+                                        .isEnabled(enable)
+                                        .isRemoved(false)
+                                        .type(port.type())
+                                        .portSpeed(port.portSpeed())
+                                        .annotations((SparseAnnotations) port.annotations())
+                                        .build());
                     } else {
                         log.warn("Your device {} port {} status can't be changed to {}",
                                 deviceId, portNumber, enable);

@@ -163,9 +163,13 @@ public class PcepTopologyProvider extends AbstractProvider
         if (port != null) {
             SparseAnnotations annotations = DefaultAnnotations.builder()
                     .putAll(port.annotations()).build();
-            portList.add(new DefaultPortDescription(port.number(), port.isEnabled(),
-                                                    port.type(), port.portSpeed(),
-                                                    annotations));
+            portList.add(DefaultPortDescription.builder()
+                    .withPortNumber(port.number())
+                    .isEnabled(port.isEnabled())
+                    .type(port.type())
+                    .portSpeed(port.portSpeed())
+                    .annotations(annotations)
+                    .build());
         }
 
         portMap.put(dpid.value(), portList);

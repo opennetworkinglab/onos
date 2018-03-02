@@ -71,7 +71,9 @@ public class PortAnnotationOperator implements PortConfigOperator {
         builder.putAll(descr.annotations());
         builder.putAll(annotations);
 
-        return DefaultPortDescription.copyReplacingAnnotation(descr, builder.build());
+        return DefaultPortDescription.builder(descr)
+                    .annotations(builder.build())
+                    .build();
     }
 
 }

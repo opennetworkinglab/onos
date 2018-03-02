@@ -725,7 +725,9 @@ public class SimpleDeviceStore
             if (oldOne != null) {
                 SparseAnnotations merged = union(oldOne.annotations(),
                                                  newDesc.annotations());
-                newOne = new DefaultPortDescription(newOne, merged);
+                newOne = DefaultPortDescription.builder(newOne)
+                            .annotations(merged)
+                            .build();
             }
             return portDescs.put(newOne.portNumber(), newOne);
         }

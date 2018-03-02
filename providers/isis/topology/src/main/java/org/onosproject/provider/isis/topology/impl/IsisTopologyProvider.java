@@ -231,7 +231,8 @@ public class IsisTopologyProvider extends AbstractProvider implements DeviceProv
             portList = new ArrayList<>();
         }
         if (portNumber != null) {
-            PortDescription portDescriptions = new DefaultPortDescription(portNumber, true);
+            PortDescription portDescriptions = DefaultPortDescription.builder()
+                    .withPortNumber(portNumber).isEnabled(true).build();
             portList.add(portDescriptions);
         }
         portMap.put(deviceId, portList);

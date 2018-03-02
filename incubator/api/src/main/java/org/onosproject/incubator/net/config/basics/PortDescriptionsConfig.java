@@ -97,7 +97,7 @@ public class PortDescriptionsConfig extends Config<DeviceId> {
                 PortNumber portNumber = createPortNumber(number, name);
 
                 DefaultPortDescription.Builder builder = DefaultPortDescription.builder()
-                        .withPortNumer(portNumber);
+                        .withPortNumber(portNumber);
                 if (portNode.has(ENABLED)) {
                     builder.isEnabled(portNode.path(ENABLED).asBoolean());
                 }

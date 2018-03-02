@@ -82,11 +82,13 @@ public final class OduCltPortHelper {
         builder.set(SIGNAL_TYPE, signalType.toString());
 
         long portSpeed = signalType.bitRate();
-        return new DefaultPortDescription(number,
-                                          isEnabled,
-                                          Port.Type.ODUCLT,
-                                          portSpeed,
-                                          builder.build());
+        return DefaultPortDescription.builder()
+                .withPortNumber(number)
+                .isEnabled(isEnabled)
+                .type(Port.Type.ODUCLT)
+                .portSpeed(portSpeed)
+                .annotations(builder.build())
+                .build();
     }
 
     /**

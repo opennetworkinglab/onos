@@ -134,7 +134,7 @@ public final class OpticalPortOperator implements PortConfigOperator {
             return descr;
         }
         return DefaultPortDescription.builder(descr)
-                .withPortNumer(port)
+                .withPortNumber(port)
                 .annotations(sa)
                 .build();
     }

@@ -716,12 +716,10 @@ public class DeviceManager
                 log.trace("Device not found: {}", deviceId);
             }
 
-            PortDescription newPortDescription = new DefaultPortDescription(basePortDescription.portNumber(),
-                                                                            basePortDescription.isEnabled(),
-                                                                            true,
-                                                                            basePortDescription.type(),
-                                                                            basePortDescription.portSpeed(),
-                                                                            basePortDescription.annotations());
+            PortDescription newPortDescription = DefaultPortDescription.builder(basePortDescription)
+                .isRemoved(true)
+                .build();
+
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
                                                              deviceId,
                                                              newPortDescription);

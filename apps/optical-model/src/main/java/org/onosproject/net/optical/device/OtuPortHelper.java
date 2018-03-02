@@ -82,11 +82,13 @@ public final class OtuPortHelper {
         builder.set(SIGNAL_TYPE, signalType.toString());
 
         long portSpeed = 0; // TODO specify appropriate value?
-        return new DefaultPortDescription(number,
-                                          isEnabled,
-                                          Port.Type.OTU,
-                                          portSpeed,
-                                          builder.build());
+        return DefaultPortDescription.builder()
+                .withPortNumber(number)
+                .isEnabled(isEnabled)
+                .type(Port.Type.OTU)
+                .portSpeed(portSpeed)
+                .annotations(builder.build())
+                .build();
     }
 
     /**

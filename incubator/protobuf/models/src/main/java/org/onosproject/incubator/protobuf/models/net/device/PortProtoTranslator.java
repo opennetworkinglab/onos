@@ -50,7 +50,9 @@ public final class PortProtoTranslator {
         long portSpeed = portDescription.getPortSpeed();
         SparseAnnotations annotations = AnnotationsTranslator.asAnnotations(portDescription.getAnnotationsMap());
         // TODO How to deal with more specific Port...
-        return new DefaultPortDescription(number, isEnabled, type, portSpeed, annotations);
+        return DefaultPortDescription.builder().withPortNumber(number).isEnabled(isEnabled)
+                .type(type).portSpeed(portSpeed).annotations(annotations)
+                .build();
     }
 
     /**

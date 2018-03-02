@@ -139,8 +139,13 @@ public class OplinkHandshakerUtil {
                 // power value is actually signed-short value, down casting to recover sign bit.
                 builder.set(OpticalAnnotations.CURRENT_POWER, Short.toString((short) power.getPowerValue()));
             }
-            portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
-                    port.type(), port.portSpeed(), builder.build()));
+            portDescs.add(DefaultPortDescription.builder()
+                    .withPortNumber(port.number())
+                    .isEnabled(port.isEnabled())
+                    .type(port.type())
+                    .portSpeed(port.portSpeed())
+                    .annotations(builder.build())
+                    .build());
         }
         return portDescs;
     }
@@ -181,8 +186,13 @@ public class OplinkHandshakerUtil {
                 }
                 addLink(port.number(), neighbor);
             }
-            portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
-                                                     port.type(), port.portSpeed(), builder.build()));
+            portDescs.add(DefaultPortDescription.builder()
+                    .withPortNumber(port.number())
+                    .isEnabled(port.isEnabled())
+                    .type(port.type())
+                    .portSpeed(port.portSpeed())
+                    .annotations(builder.build())
+                    .build());
         }
         return portDescs;
     }

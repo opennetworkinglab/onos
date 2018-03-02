@@ -347,11 +347,12 @@ public final class JuniperUtils {
 
         long portSpeed = toMbps(phyIntf.getString(SPEED));
 
-        portDescriptions.add(new DefaultPortDescription(portNumber,
-                                                        admUp && opUp,
-                                                        Type.COPPER,
-                                                        portSpeed,
-                                                        annotations.build()));
+        portDescriptions.add(DefaultPortDescription.builder()
+                .withPortNumber(portNumber)
+                .isEnabled(admUp && opUp)
+                .type(Type.COPPER)
+                .portSpeed(portSpeed)
+                .annotations(annotations.build()).build());
 
         // parse each logical Interface
         for (HierarchicalConfiguration logIntf : phyIntf.configurationsAt("logical-interface")) {
@@ -394,11 +395,12 @@ public final class JuniperUtils {
             // it seemed all logical loop-back interfaces were down
             boolean lEnabled = logIntf.getString("if-config-flags.iff-up") != null;
 
-            portDescriptions.add(new DefaultPortDescription(lPortNumber,
-                                                            admUp && opUp && lEnabled,
-                                                            Type.COPPER,
-                                                            portSpeed,
-                                                            lannotations.build()));
+            portDescriptions.add(DefaultPortDescription.builder()
+                    .withPortNumber(lPortNumber)
+                    .isEnabled(admUp && opUp && lEnabled)
+                    .type(Type.COPPER)
+                    .portSpeed(portSpeed).annotations(lannotations.build())
+                    .build());
         }
     }
 

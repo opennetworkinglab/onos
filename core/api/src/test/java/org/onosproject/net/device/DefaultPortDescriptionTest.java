@@ -33,15 +33,17 @@ public class DefaultPortDescriptionTest {
     private static PortNumber port1 = PortNumber.portNumber(1);
     private static long portSpeed1 = 111L;
     private static DefaultPortDescription portDescription1 =
-            new DefaultPortDescription(port1, true, COPPER, portSpeed1);
+            DefaultPortDescription.builder().withPortNumber(port1).isEnabled(true)
+                    .type(COPPER).portSpeed(portSpeed1).build();
 
     private static DefaultPortDescription sameAsPortDescription1 =
-            new DefaultPortDescription(portDescription1,
-                                       portDescription1.annotations());
+            DefaultPortDescription.builder(portDescription1)
+                            .annotations(portDescription1.annotations())
+                            .build();
 
     private static PortNumber port2 = PortNumber.portNumber(2);
     private static DefaultPortDescription portDescription2 =
-            new DefaultPortDescription(port2, true);
+            DefaultPortDescription.builder().withPortNumber(port2).isEnabled(true).build();
 
     private static DefaultPortDescription portDescription3 =
             new DefaultPortDescription();

@@ -160,7 +160,8 @@ public class GrpcRemoteServiceTest {
         assertEqualsButNotSame(DEVICE_ID, svDeviceProviderService.deviceConnectedDid);
         assertEqualsButNotSame(DDESC, svDeviceProviderService.deviceConnectedDesc);
 
-        PortDescription portDescription = new DefaultPortDescription(PORT, true, ANON);
+        PortDescription portDescription = DefaultPortDescription.builder().withPortNumber(PORT)
+                .isEnabled(true).annotations(ANON).build();
         List<PortDescription> portDescriptions = ImmutableList.of(portDescription);
         clDeviceProviderService.updatePorts(DEVICE_ID, portDescriptions);
         assertTrue(svDeviceProviderService.updatePorts.await(10, TimeUnit.SECONDS));

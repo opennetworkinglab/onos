@@ -100,7 +100,9 @@ public final class OchPortHelper {
 
         DefaultAnnotations annotations = builder.build();
         long portSpeed = signalType.bitRate();
-        return new DefaultPortDescription(number, isEnabled, Port.Type.OCH, portSpeed, annotations);
+        return DefaultPortDescription.builder().withPortNumber(number).isEnabled(isEnabled)
+                .type(Port.Type.OCH).portSpeed(portSpeed).annotations(annotations)
+                .build();
     }
 
     /**

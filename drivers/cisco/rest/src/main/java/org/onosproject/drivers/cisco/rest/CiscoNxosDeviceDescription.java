@@ -136,8 +136,11 @@ public class CiscoNxosDeviceDescription extends AbstractHandlerBehaviour
                         long portSpeed = itf.get(ETH_BW).asLong() / ONE_THOUSAND; //in Mbps
                         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                                 .set(AnnotationKeys.PORT_NAME, ifName);
-                        PortDescription desc = new DefaultPortDescription(PortNumber.portNumber(ifNum), state,
-                                Port.Type.FIBER, portSpeed, annotations.build());
+                        PortDescription desc = DefaultPortDescription.builder()
+                                .withPortNumber(PortNumber.portNumber(ifNum))
+                                .isEnabled(state)
+                                .type(Port.Type.FIBER).portSpeed(portSpeed).annotations(annotations.build())
+                                .build();
                         ports.add(desc);
                     }
                 });
