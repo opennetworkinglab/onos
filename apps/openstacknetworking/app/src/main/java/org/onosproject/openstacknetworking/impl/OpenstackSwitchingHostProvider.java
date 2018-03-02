@@ -76,32 +76,31 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     private static final String PORT_NAME_PREFIX_VM = "tap";
     private static final String ERR_ADD_HOST = "Failed to add host: ";
     private static final String ANNOTATION_SEGMENT_ID = "segId";
+    private static final String SONA_HOST_SCHEME = "sona";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    HostProviderRegistry hostProviderRegistry;
+    protected HostProviderRegistry hostProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    HostService hostService;
+    protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MastershipService mastershipService;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackNetworkService osNetworkService;
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackNodeService osNodeService;
+    protected OpenstackNodeService osNodeService;
 
     private final ExecutorService deviceEventExecutor =
             Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
-    private final ExecutorService configEventExecutor =
-            Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "config-event"));
     private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
     private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
@@ -111,7 +110,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
      * Creates OpenStack switching host provider.
      */
     public OpenstackSwitchingHostProvider() {
-        super(new ProviderId("sona", OPENSTACK_NETWORKING_APP_ID));
+        super(new ProviderId(SONA_HOST_SCHEME, OPENSTACK_NETWORKING_APP_ID));
     }
 
     @Activate
@@ -131,7 +130,6 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         deviceService.removeListener(internalDeviceListener);
 
         deviceEventExecutor.shutdown();
-        configEventExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -141,6 +139,14 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         // no probe is required
     }
 
+    /**
+     * Processes port addition event.
+     * Once a port addition event is detected, it tries to create a host instance
+     * with openstack augmented host information such as networkId, portId,
+     * createTime, segmentId and notifies to host provider.
+     *
+     * @param port port object used in ONOS
+     */
     private void processPortAdded(Port port) {
         // TODO check the node state is COMPLETE
         org.openstack4j.model.network.Port osPort = osNetworkService.port(port);
@@ -184,13 +190,24 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         hostProvider.hostDetected(hostId, hostDesc, false);
     }
 
+    /**
+     * Processes port removal event.
+     * Once a port removal event is detected, it tries to look for a host
+     * instance through host provider by giving connect point information,
+     * and vanishes it.
+     *
+     * @param port port object used in ONOS
+     */
     private void processPortRemoved(Port port) {
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
-        hostService.getConnectedHosts(connectPoint).forEach(host -> {
-                    hostProvider.hostVanished(host.id());
-                });
+        hostService.getConnectedHosts(connectPoint)
+                    .forEach(host -> hostProvider.hostVanished(host.id()));
     }
 
+    /**
+     * An internal device listener which listens the port events generated from
+     * OVS integration bridge.
+     */
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
@@ -205,12 +222,9 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                 return false;
             }
             String portName = port.annotations().value(PORT_NAME);
-            if (Strings.isNullOrEmpty(portName) ||
-                    !portName.startsWith(PORT_NAME_PREFIX_VM)) {
-                // handles Nova created port event only
-                return false;
-            }
-            return true;
+
+            return !Strings.isNullOrEmpty(portName) &&
+                    portName.startsWith(PORT_NAME_PREFIX_VM);
         }
 
         @Override
@@ -218,36 +232,16 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
             switch (event.type()) {
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
-                        deviceEventExecutor.execute(() -> {
-                            log.debug("Instance port {} is removed from {}",
-                                     event.port().annotations().value(PORT_NAME),
-                                     event.subject().id());
-                            processPortRemoved(event.port());
-                        });
+                        portRemovedHelper(deviceEventExecutor, event);
                     } else if (event.port().isEnabled()) {
-                        deviceEventExecutor.execute(() -> {
-                            log.debug("Instance Port {} is detected from {}",
-                                     event.port().annotations().value(PORT_NAME),
-                                     event.subject().id());
-                            processPortAdded(event.port());
-                        });
+                        portAddedHelper(deviceEventExecutor, event);
                     }
                     break;
                 case PORT_ADDED:
-                    deviceEventExecutor.execute(() -> {
-                        log.debug("Instance port {} is detected from {}",
-                                 event.port().annotations().value(PORT_NAME),
-                                 event.subject().id());
-                        processPortAdded(event.port());
-                    });
+                    portAddedHelper(deviceEventExecutor, event);
                     break;
                 case PORT_REMOVED:
-                    deviceEventExecutor.execute(() -> {
-                        log.debug("Instance port {} is removed from {}",
-                                event.port().annotations().value(PORT_NAME),
-                                event.subject().id());
-                        processPortRemoved(event.port());
-                    });
+                    portRemovedHelper(deviceEventExecutor, event);
                     break;
                 default:
                     break;
@@ -255,12 +249,50 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         }
     }
 
+    /**
+     * A helper method which logs the port addition event and performs port
+     * addition action.
+     *
+     * @param executor device executor service
+     * @param event device event
+     */
+    private void portAddedHelper(ExecutorService executor, DeviceEvent event) {
+        executor.execute(() -> {
+            log.debug("Instance port {} is detected from {}",
+                    event.port().annotations().value(PORT_NAME),
+                    event.subject().id());
+            processPortAdded(event.port());
+        });
+    }
+
+    /**
+     * A helper method which logs the port removal event and performs port
+     * removal action.
+     *
+     * @param executor device executor service
+     * @param event device event
+     */
+    private void portRemovedHelper(ExecutorService executor, DeviceEvent event) {
+        executor.execute(() -> {
+            log.debug("Instance port {} is removed from {}",
+                    event.port().annotations().value(PORT_NAME),
+                    event.subject().id());
+            processPortRemoved(event.port());
+        });
+    }
+
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            // do not allow to proceed without mastership
+            Device device = deviceService.getDevice(event.subject().intgBridge());
+            return mastershipService.isLocalMaster(device.id());
+        }
 
         @Override
         public void event(OpenstackNodeEvent event) {
             OpenstackNode osNode = event.subject();
-            // TODO check leadership of the node and make only the leader process
 
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
@@ -275,7 +307,10 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
+                    // not reacts to the events other than complete and incomplete states
+                    break;
                 default:
+                    log.warn("Unsupported openstack node event type");
                     break;
             }
         }
