@@ -28,6 +28,7 @@ import org.glassfish.jersey.server.ChunkedOutput;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
+import org.onosproject.d.config.ResourceIds;
 import org.onosproject.restconf.api.RestconfError;
 import org.onosproject.restconf.api.RestconfException;
 import org.onosproject.restconf.api.RestconfRpcOutput;
@@ -151,13 +152,16 @@ public class RestconfManager implements RestconfService {
 
         try {
             dynamicConfigService.createNode(rl.ridForDynConfig(), dataNode);
-        } catch (FailedException e) {
+        } catch (Exception e) {
             if (e.getMessage().startsWith("Requested node already present")) {
                 throw new RestconfException("Already exists", e,
                         RestconfError.ErrorTag.DATA_EXISTS, CONFLICT,
                         Optional.of(uri.getPath()));
             } else {
-                log.error("ERROR: DynamicConfigService: ", e);
+                log.error("ERROR: DynamicConfigService: creating {} with {}",
+                          ResourceIds.toInstanceIdentifier(rl.ridForDynConfig()),
+                          dataNode,
+                          e);
                 throw new RestconfException("ERROR: DynamicConfigService", e,
                     RestconfError.ErrorTag.OPERATION_FAILED, INTERNAL_SERVER_ERROR,
                     Optional.of(uri.getPath()));
