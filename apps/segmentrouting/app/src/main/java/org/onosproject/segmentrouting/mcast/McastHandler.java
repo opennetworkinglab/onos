@@ -680,8 +680,16 @@ public class McastHandler {
             return;
         }
 
+        MacAddress routerMac;
+        try {
+            routerMac = srManager.deviceConfiguration().getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException dcnfe) {
+            log.warn("Fail to push filtering objective since device is not configured. Abort");
+            return;
+        }
+
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan, mcastIp);
+                filterObjBuilder(deviceId, port, assignedVlan, mcastIp, routerMac);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
                         deviceId, port.toLong(), assignedVlan),
@@ -944,10 +952,12 @@ public class McastHandler {
      * @param deviceId Device ID
      * @param ingressPort ingress port of the multicast stream
      * @param assignedVlan assigned VLAN ID
+     * @param routerMac router MAC. This is carried in metadata and used from some switches that
+     *                  need to put unicast entry before multicast entry in TMAC table.
      * @return filtering objective builder
      */
     private FilteringObjective.Builder filterObjBuilder(DeviceId deviceId, PortNumber ingressPort,
-            VlanId assignedVlan, IpAddress mcastIp) {
+            VlanId assignedVlan, IpAddress mcastIp, MacAddress routerMac) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
 
         if (mcastIp.isIp4()) {
@@ -964,7 +974,9 @@ public class McastHandler {
             .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
         }
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                .pushVlan().setVlanId(assignedVlan).build();
+                .pushVlan().setVlanId(assignedVlan)
+                .setEthDst(routerMac)
+                .build();
         filtBuilder.withMeta(tt);
 
         return filtBuilder.permit().fromApp(srManager.appId());
@@ -1277,8 +1289,16 @@ public class McastHandler {
             return;
         }
 
+        MacAddress routerMac;
+        try {
+            routerMac = srManager.deviceConfiguration().getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException dcnfe) {
+            log.warn("Fail to push filtering objective since device is not configured. Abort");
+            return;
+        }
+
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, assignedVlan, mcastIp);
+                filterObjBuilder(deviceId, port, assignedVlan, mcastIp, routerMac);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully removed filter on {}/{}, vlan {}",
                                          deviceId, port.toLong(), assignedVlan),
