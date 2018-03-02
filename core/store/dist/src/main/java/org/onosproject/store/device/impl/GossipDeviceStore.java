@@ -660,6 +660,7 @@ public class GossipDeviceStore
 
                 final Port oldPort = ports.get(number);
                 final Port newPort;
+                boolean isRemoved = portDescription.isRemoved();
 
 
                 final Timestamped<PortDescription> existingPortDesc = descs.getPortDesc(number);
@@ -675,9 +676,13 @@ public class GossipDeviceStore
                     continue;
                 }
 
-                events.add(oldPort == null ?
-                                   createPort(device, newPort, ports) :
-                                   updatePort(device, oldPort, newPort, ports));
+                if (isRemoved && oldPort != null) {
+                    events.add(removePort(deviceId, oldPort.number()));
+                } else if (!isRemoved) {
+                    events.add(oldPort == null ?
+                                       createPort(device, newPort, ports) :
+                                       updatePort(device, oldPort, newPort, ports));
+                }
             }
 
             events.addAll(pruneOldPorts(device, ports, processed));
