@@ -22,6 +22,9 @@ import org.onosproject.event.AbstractEvent;
  */
 public class InstancePortEvent extends AbstractEvent<InstancePortEvent.Type, InstancePort> {
 
+    /**
+     * Instance port event type.
+     */
     public enum Type {
 
         /**

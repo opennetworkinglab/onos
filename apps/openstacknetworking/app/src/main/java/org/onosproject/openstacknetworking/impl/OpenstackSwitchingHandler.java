@@ -77,31 +77,31 @@ public final class OpenstackSwitchingHandler {
     private static final String ERR_SET_FLOWS_VNI = "Failed to set flows for %s: Failed to get VNI for %s";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MastershipService mastershipService;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackFlowRuleService osFlowRuleService;
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    InstancePortService instancePortService;
+    protected InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackNetworkService osNetworkService;
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackNodeService osNodeService;
+    protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    DriverService driverService;
+    protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    OpenstackSecurityGroupService securityGroupService;
+    protected OpenstackSecurityGroupService securityGroupService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -124,8 +124,16 @@ public final class OpenstackSwitchingHandler {
         log.info("Stopped");
     }
 
+    /**
+     * Configures L2 forwarding rules.
+     * Currently, SONA only supports VXLAN and VLAN tunnelled L2 forwarding.
+     *
+     * @param instPort instance port object
+     * @param install install flag, add the rule if true, remove it otherwise
+     */
     private void setNetworkRules(InstancePort instPort, boolean install) {
-        switch (osNetworkService.network(instPort.networkId()).getNetworkType()) {
+        NetworkType type = osNetworkService.network(instPort.networkId()).getNetworkType();
+        switch (type) {
             case VXLAN:
                 setTunnelTagFlowRules(instPort, install);
                 setForwardingRules(instPort, install);
@@ -135,19 +143,29 @@ public final class OpenstackSwitchingHandler {
                 setForwardingRulesForVlan(instPort, install);
                 break;
             default:
+                log.warn("Unsupported network tunnel type {}", type.name());
                 break;
         }
     }
 
+    /**
+     * Configures the flow rules which are used for L2 packet switching.
+     * Note that these rules will be inserted in switching table (table 5).
+     *
+     * @param instPort instance port object
+     * @param install install flag, add the rule if true, remove it otherwise
+     */
     private void setForwardingRules(InstancePort instPort, boolean install) {
         // switching rules for the instPorts in the same node
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                // TODO: need to handle IPv6 in near future
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(instPort.ipAddress().toIpPrefix())
                 .matchTunnelId(getVni(instPort))
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                // TODO: this might not be necessary for the VMs located in the same subnet
                 .setEthDst(instPort.macAddress())
                 .setOutput(instPort.portNumber())
                 .build();
@@ -191,9 +209,17 @@ public final class OpenstackSwitchingHandler {
                 });
     }
 
+    /**
+     * Configures the flow rules which are used for L2 VLAN packet switching.
+     * Note that these rules will be inserted in switching table (table 5).
+     *
+     * @param instPort instance port object
+     * @param install install flag, add the rule if true, remove it otherwise
+     */
     private void setForwardingRulesForVlan(InstancePort instPort, boolean install) {
         // switching rules for the instPorts in the same node
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                // TODO: need to handle IPv6 in near future
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(instPort.ipAddress().toIpPrefix())
                 .matchVlanId(getVlanId(instPort))
@@ -201,6 +227,7 @@ public final class OpenstackSwitchingHandler {
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .popVlan()
+                // TODO: this might not be necessary for the VMs located in the same subnet
                 .setEthDst(instPort.macAddress())
                 .setOutput(instPort.portNumber())
                 .build();
@@ -234,13 +261,23 @@ public final class OpenstackSwitchingHandler {
                 });
     }
 
+    /**
+     * Configures the flow rule which is for using VXLAN to tag the packet
+     * based on the in_port number of a virtual instance.
+     * Note that this rule will be inserted in VNI table (table 0).
+     *
+     * @param instPort instance port object
+     * @param install install flag, add the rule if true, remove it otherwise
+     */
     private void setTunnelTagFlowRules(InstancePort instPort, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                // TODO: need to handle IPv6 in near future
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchInPort(instPort.portNumber())
                 .build();
 
-        // XXX All egress traffic needs to go through connection tracking module, which might hurt its performance.
+        // XXX All egress traffic needs to go through connection tracking module,
+        // which might hurt its performance.
         ExtensionTreatment ctTreatment =
                 RulePopulatorUtil.niciraConnTrackTreatmentBuilder(driverService, instPort.deviceId())
                         .commit(true).build();
@@ -263,8 +300,17 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
+    /**
+     * Configures the flow rule which is for using VLAN to tag the packet
+     * based on the in_port number of a virtual instance.
+     * Note that this rule will be inserted in VNI table (table 0).
+     *
+     * @param instPort instance port object
+     * @param install install flag, add the rule if true, remove it otherwise
+     */
     private void setVlanTagFlowRules(InstancePort instPort, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                // TODO: need to handle IPv6 in near future
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchInPort(instPort.portNumber())
                 .build();
@@ -283,7 +329,6 @@ public final class OpenstackSwitchingHandler {
                 PRIORITY_TUNNEL_TAG_RULE,
                 SRC_VNI_TABLE,
                 install);
-
     }
 
     private void setNetworkAdminRules(Network network, boolean install) {
@@ -305,7 +350,7 @@ public final class OpenstackSwitchingHandler {
 
         osNodeService.completeNodes().stream()
                 .filter(osNode -> osNode.type() == COMPUTE)
-                .forEach(osNode -> {
+                .forEach(osNode ->
                     osFlowRuleService.setRule(
                             appId,
                             osNode.intgBridge(),
@@ -313,12 +358,13 @@ public final class OpenstackSwitchingHandler {
                             treatment,
                             PRIORITY_ADMIN_RULE,
                             ACL_TABLE,
-                            install);
-                });
+                            install)
+                );
     }
 
     private void setPortAdminRules(Port port, boolean install) {
-        InstancePort instancePort = instancePortService.instancePort(MacAddress.valueOf(port.getMacAddress()));
+        InstancePort instancePort =
+                instancePortService.instancePort(MacAddress.valueOf(port.getMacAddress()));
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(instancePort.portNumber())
                 .build();
@@ -337,6 +383,12 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
+    /**
+     * Obtains the VLAN ID from the given instance port.
+     *
+     * @param instPort instance port object
+     * @return VLAN ID
+     */
     private VlanId getVlanId(InstancePort instPort) {
         Network osNet = osNetworkService.network(instPort.networkId());
 
@@ -350,7 +402,12 @@ public final class OpenstackSwitchingHandler {
         return VlanId.vlanId(osNet.getProviderSegID());
     }
 
-
+    /**
+     * Obtains the VNI from the given instance port.
+     *
+     * @param instPort instance port object
+     * @return VXLAN Network Identifier (VNI)
+     */
     private Long getVni(InstancePort instPort) {
         Network osNet = osNetworkService.network(instPort.networkId());
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
@@ -362,6 +419,13 @@ public final class OpenstackSwitchingHandler {
         return Long.valueOf(osNet.getProviderSegID());
     }
 
+    /**
+     * An internal instance port listener which listens the port events generated
+     * from VM. The corresponding L2 forwarding rules will be generated and
+     * inserted to integration bridge only if a new VM port is detected. If the
+     * existing detected VM port is removed due to VM purge, we will remove the
+     * corresponding L2 forwarding to as well for the sake of resource saving.
+     */
     private class InternalInstancePortListener implements InstancePortListener {
 
         @Override
