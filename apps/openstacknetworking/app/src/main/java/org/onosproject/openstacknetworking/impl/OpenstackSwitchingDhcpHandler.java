@@ -75,14 +75,15 @@ public class OpenstackSwitchingDhcpHandler {
     protected final Logger log = getLogger(getClass());
 
     private static final String DHCP_SERVER_MAC = "dhcpServerMac";
+    private static final String DHCP_DATA_MTU = "dhcpDataMtu";
     private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
     private static final byte PACKET_TTL = (byte) 127;
     // TODO add MTU, static route option codes to ONOS DHCP and remove here
     private static final byte DHCP_OPTION_MTU = (byte) 26;
     private static final byte[] DHCP_DATA_LEASE_INFINITE =
             ByteBuffer.allocate(4).putInt(-1).array();
-    private static final byte[] DHCP_DATA_MTU_DEFAULT =
-            ByteBuffer.allocate(2).putShort((short) 1450).array();
+    // we are using 1450 as a default DHCP MTU value
+    private static final int DHCP_DATA_MTU_DEFAULT = 1450;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -102,6 +103,10 @@ public class OpenstackSwitchingDhcpHandler {
     @Property(name = DHCP_SERVER_MAC, value = DEFAULT_GATEWAY_MAC_STR,
             label = "Fake MAC address for virtual network subnet gateway")
     private String dhcpServerMac = DEFAULT_GATEWAY_MAC_STR;
+
+    @Property(name = DHCP_DATA_MTU, intValue = DHCP_DATA_MTU_DEFAULT,
+            label = "DHCP data Maximum Transmission Unit")
+    private int dhcpDataMtu = DHCP_DATA_MTU_DEFAULT;
 
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
 
@@ -130,10 +135,17 @@ public class OpenstackSwitchingDhcpHandler {
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         String updatedMac;
+        Integer updateMtu;
 
         updatedMac = Tools.get(properties, DHCP_SERVER_MAC);
+        updateMtu = Tools.getIntegerProperty(properties, DHCP_DATA_MTU);
+
         if (!Strings.isNullOrEmpty(updatedMac) && !updatedMac.equals(dhcpServerMac)) {
             dhcpServerMac = updatedMac;
+        }
+
+        if (updateMtu != null && updateMtu != dhcpDataMtu) {
+            dhcpDataMtu = updateMtu;
         }
 
         log.info("Modified");
@@ -363,11 +375,10 @@ public class OpenstackSwitchingDhcpHandler {
             option.setData(DEFAULT_DNS.toOctets());
             options.add(option);
 
-            // TODO fix MTU value to be configurable
             option = new DhcpOption();
             option.setCode(DHCP_OPTION_MTU);
             option.setLength((byte) 2);
-            option.setData(DHCP_DATA_MTU_DEFAULT);
+            option.setData(ByteBuffer.allocate(2).putShort((short) dhcpDataMtu).array());
             options.add(option);
 
             // router address
