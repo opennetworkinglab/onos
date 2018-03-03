@@ -50,7 +50,6 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.ExtensionCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
@@ -435,21 +434,26 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // NOTE: it is possible that a filtering objective only has vidCriterion
             log.warn("filtering objective missing dstMac, cannot program TMAC table");
         } else {
-            for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
-                                                         vidCriterion, assignedVlan,
-                                                         applicationId)) {
-                log.trace("{} MAC filtering rules in TMAC table: {} for dev: {}",
-                          (install) ? "adding" : "removing", tmacRule, deviceId);
+            List<List<FlowRule>> allStages = processEthDstFilter(portCriterion, ethCriterion,
+                    vidCriterion, assignedVlan, applicationId);
+            for (List<FlowRule> flowRules : allStages) {
+                log.trace("Starting a new flow rule stage");
+                ops.newStage();
 
-                if (install) {
-                    ops = ops.add(tmacRule);
-                } else {
-                    // NOTE: Only remove TMAC flow when there is no more enabled port within the
-                    // same VLAN on this device if TMAC doesn't support matching on in_port.
-                    if (matchInPortTmacTable() || (filt.meta() != null && filt.meta().clearedDeferred())) {
-                        ops = ops.remove(tmacRule);
+                for (FlowRule flowRule : flowRules) {
+                    log.trace("{} flow rules in TMAC table: {} for dev: {}",
+                            (install) ? "adding" : "removing", flowRules, deviceId);
+
+                    if (install) {
+                        ops = ops.add(flowRule);
                     } else {
-                        log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
+                        // NOTE: Only remove TMAC flow when there is no more enabled port within the
+                        // same VLAN on this device if TMAC doesn't support matching on in_port.
+                        if (matchInPortTmacTable() || (filt.meta() != null && filt.meta().clearedDeferred())) {
+                            ops = ops.remove(flowRule);
+                        } else {
+                            log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
+                        }
                     }
                 }
             }
@@ -459,46 +463,17 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // NOTE: it is possible that a filtering objective only has ethCriterion
             log.info("filtering objective missing VLAN, cannot program VLAN Table");
         } else {
-            /*
-             * NOTE: Separate vlan filtering rules and assignment rules
-             * into different stage in order to guarantee that filtering rules
-             * always go first, as required by ofdpa.
-             */
-            List<FlowRule> allRules = processVlanIdFilter(
+            List<List<FlowRule>> allStages = processVlanIdFilter(
                     portCriterion, vidCriterion, assignedVlan, applicationId);
-            List<FlowRule> filteringRules = new ArrayList<>();
-            List<FlowRule> assignmentRules = new ArrayList<>();
+            for (List<FlowRule> flowRules : allStages) {
+                log.trace("Starting a new flow rule stage");
+                ops.newStage();
 
-            allRules.forEach(flowRule -> {
-                VlanId vlanId;
-                if (requireVlanExtensions()) {
-                    ExtensionCriterion extCriterion =
-                            (ExtensionCriterion) flowRule.selector().getCriterion(Criterion.Type.EXTENSION);
-                    vlanId = ((OfdpaMatchVlanVid) extCriterion.extensionSelector()).vlanId();
-                } else {
-                    VlanIdCriterion vlanIdCriterion =
-                            (VlanIdCriterion) flowRule.selector().getCriterion(Criterion.Type.VLAN_VID);
-                    vlanId = vlanIdCriterion.vlanId();
+                for (FlowRule flowRule : flowRules) {
+                    log.trace("{} flow rules in VLAN table: {} for dev: {}",
+                            (install) ? "adding" : "removing", flowRule, deviceId);
+                    ops = install ? ops.add(flowRule) : ops.remove(flowRule);
                 }
-                if (!vlanId.equals(VlanId.NONE)) {
-                    filteringRules.add(flowRule);
-                } else {
-                    assignmentRules.add(flowRule);
-                }
-            });
-
-            for (FlowRule filteringRule : filteringRules) {
-                log.trace("{} VLAN filtering rule in VLAN table: {} for dev: {}",
-                          (install) ? "adding" : "removing", filteringRule, deviceId);
-                ops = install ? ops.add(filteringRule) : ops.remove(filteringRule);
-            }
-
-            ops.newStage();
-
-            for (FlowRule assignmentRule : assignmentRules) {
-                log.trace("{} VLAN assignment rule in VLAN table: {} for dev: {}",
-                        (install) ? "adding" : "removing", assignmentRule, deviceId);
-                ops = install ? ops.add(assignmentRule) : ops.remove(assignmentRule);
             }
         }
 
@@ -527,18 +502,24 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * Since it is non-OF spec, we need an extension treatment for that.
      * The useVlanExtension must be set to false for OFDPA i12.
      * </p>
+     * <p>
+     * NOTE: Separate VLAN filtering rules and assignment rules
+     * into different stages in order to guarantee that filtering rules
+     * always go first, as required by OFDPA.
+     * </p>
      *
      * @param portCriterion       port on device for which this filter is programmed
      * @param vidCriterion        vlan assigned to port, or NONE for untagged
      * @param assignedVlan        assigned vlan-id for untagged packets
      * @param applicationId       for application programming this filter
-     * @return list of FlowRule for port-vlan filters
+     * @return stages of flow rules for port-vlan filters
      */
-    protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
+    protected List<List<FlowRule>> processVlanIdFilter(PortCriterion portCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
-        List<FlowRule> rules = new ArrayList<>();
+        List<FlowRule> filteringRules = new ArrayList<>();
+        List<FlowRule> assignmentRules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         TrafficSelector.Builder preSelector = null;
@@ -597,8 +578,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         } else {
             log.warn("Filtering Objective missing Port Criterion . " +
-                    "VLAN Table cannot be programmed for {}",
-                    deviceId);
+                    "VLAN Table cannot be programmed for {}", deviceId);
         }
 
         for (PortNumber pnum : portnums) {
@@ -612,6 +592,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .fromApp(applicationId)
                     .makePermanent()
                     .forTable(VLAN_TABLE).build();
+            assignmentRules.add(rule);
 
             if (preSelector != null) {
                 preSelector.matchInPort(pnum);
@@ -623,12 +604,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                         .fromApp(applicationId)
                         .makePermanent()
                         .forTable(VLAN_TABLE).build();
-                rules.add(preRule);
+                filteringRules.add(preRule);
             }
-
-            rules.add(rule);
         }
-        return rules;
+        return ImmutableList.of(assignmentRules, filteringRules);
     }
 
     /**
@@ -640,10 +619,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param vidCriterion   vlan assigned to port, or NONE for untagged
      * @param assignedVlan   assigned vlan-id for untagged packets
      * @param applicationId  for application programming this filter
-     * @return list of FlowRule for port-vlan filters
+     * @return stages of flow rules for port-vlan filters
 
      */
-    protected List<FlowRule> processEthDstFilter(PortCriterion portCriterion,
+    protected List<List<FlowRule>> processEthDstFilter(PortCriterion portCriterion,
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
@@ -714,7 +693,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     applicationId,
                     null));
         }
-        return rules;
+        return ImmutableList.of(rules);
     }
 
     /**
@@ -852,7 +831,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .forTable(TMAC_TABLE).build();
     }
 
-    protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
+    protected List<List<FlowRule>> processEthDstOnlyFilter(EthCriterion ethCriterion,
                                                      ApplicationId applicationId) {
         ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
 
@@ -884,10 +863,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        return builder.add(rule).build();
+        return ImmutableList.of(builder.add(rule).build());
     }
 
-    List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
+    List<List<FlowRule>> processMcastEthDstFilter(EthCriterion ethCriterion,
                                                       VlanId assignedVlan,
                                                       ApplicationId applicationId) {
         ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
@@ -928,7 +907,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     .forTable(TMAC_TABLE).build();
             builder.add(rule);
         }
-        return builder.build();
+        return ImmutableList.of(builder.build());
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
