@@ -162,7 +162,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processVlanIdFilter
      */
     @Override
-    protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
+    protected List<List<FlowRule>> processVlanIdFilter(PortCriterion portCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
@@ -217,7 +217,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             rules.add(rule);
         }
 
-        return rules;
+        return ImmutableList.of(rules);
     }
 
     /**
@@ -314,7 +314,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processEthDstFilter
      */
     @Override
-    protected List<FlowRule> processEthDstFilter(PortCriterion portCriterion,
+    protected List<List<FlowRule>> processEthDstFilter(PortCriterion portCriterion,
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
@@ -413,11 +413,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .forTable(TMAC_TABLE).build();
             rules.add(rule);
         }
-        return rules;
+        return ImmutableList.of(rules);
     }
 
     @Override
-    protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
+    protected List<List<FlowRule>> processEthDstOnlyFilter(EthCriterion ethCriterion,
                                                      ApplicationId applicationId) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -435,7 +435,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        return ImmutableList.<FlowRule>builder().add(rule).build();
+        return ImmutableList.of(ImmutableList.of(rule));
     }
 
     /*

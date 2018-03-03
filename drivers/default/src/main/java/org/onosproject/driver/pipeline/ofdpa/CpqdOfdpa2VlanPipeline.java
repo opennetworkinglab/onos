@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -86,7 +88,7 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
      * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processEthDstFilter
      */
     @Override
-    protected List<FlowRule> processEthDstFilter(PortCriterion portCriterion,
+    protected List<List<FlowRule>> processEthDstFilter(PortCriterion portCriterion,
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
@@ -141,7 +143,7 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
                     .forTable(TMAC_TABLE).build();
             rules.add(rule);
         }
-        return rules;
+        return ImmutableList.of(rules);
     }
 
     /*
