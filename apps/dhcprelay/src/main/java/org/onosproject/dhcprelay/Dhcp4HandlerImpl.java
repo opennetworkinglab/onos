@@ -766,11 +766,11 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
             ipv4Packet.setSourceAddress(ipFacingServer.toInt());
             ipv4Packet.setDestinationAddress(newServerInfo.getDhcpServerIp4().get().toInt());
-            log.info("Directly connected {}", isDirectlyConnected);
-            log.info("Dhcp Server IP: {}", newServerInfo.getDhcpServerIp4().get());
+            log.debug("Directly connected {}", isDirectlyConnected);
+            log.debug("DHCP server IP: {}", newServerInfo.getDhcpServerIp4().get());
             if (isDirectlyConnected) {
 
-                log.info("**Default****Dhcp Server IP: {}", newServerInfo.getDhcpServerIp4().get());
+                log.debug("Default DHCP server IP: {}", newServerInfo.getDhcpServerIp4().get());
                 if (newServerInfo.getDhcpConnectMac().isPresent()) {
                     etherReply.setDestinationMACAddress(newServerInfo.getDhcpConnectMac().get());
                 }
@@ -817,7 +817,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                 int effectiveRelayAgentIp = relayAgentIp != null ?
                         relayAgentIp.toInt() : clientInterfaceIp.toInt();
                 dhcpPacket.setGatewayIPAddress(effectiveRelayAgentIp);
-                log.info("In Default, Relay Agent IP {}", effectiveRelayAgentIp);
+                log.debug("In Default, Relay Agent IP {}", effectiveRelayAgentIp);
             } else {
                 if (!newServerInfo.getDhcpServerIp4().isPresent()) {
                   // do nothing
@@ -869,16 +869,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
 
-        Ip4Address relayAgentIp = null;
-
-
-        VlanId dhcpConnectVlan = null;
-        MacAddress dhcpConnectMac = null;
-        Ip4Address dhcpServerIp = null;
-
-        VlanId indirectDhcpConnectVlan = null;
-        MacAddress indirectDhcpConnectMac = null;
-        Ip4Address indirectDhcpServerIp = null;
+        Ip4Address relayAgentIp;
 
         Ip4Address clientInterfaceIp =
                 interfaceService.getInterfacesByPort(context.inPacket().receivedFrom())
@@ -902,14 +893,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         // Multi DHCP Start
         ConnectPoint clientConnectionPoint = context.inPacket().receivedFrom();
         VlanId vlanIdInUse = VlanId.vlanId(ethernetPacket.getVlanID());
-        Interface clientInterface = interfaceService.getInterfacesByPort(clientConnectionPoint)
-                .stream().filter(iface -> dhcp4HandlerUtil.interfaceContainsVlan(iface, vlanIdInUse))
-                .findFirst()
-                .orElse(null);
 
         List<InternalPacket> internalPackets = new ArrayList<>();
         List<DhcpServerInfo> serverInfoList = findValidServerInfo(directConnFlag);
-        List<DhcpServerInfo> copyServerInfoList = new ArrayList<DhcpServerInfo>(serverInfoList);
+        List<DhcpServerInfo> copyServerInfoList = new ArrayList<>(serverInfoList);
 
         for (DhcpServerInfo serverInfo : copyServerInfoList) {
              // get dhcp header.
@@ -941,10 +928,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
 
             etherReply.setSourceMACAddress(macFacingServer);
-            etherReply.setDestinationMACAddress(dhcpConnectMac);
-            etherReply.setVlanID(dhcpConnectVlan.toShort());
+            etherReply.setDestinationMACAddress(newServerInfo.getDhcpConnectMac().get());
+            etherReply.setVlanID(newServerInfo.getDhcpConnectVlan().get().toShort());
             ipv4Packet.setSourceAddress(ipFacingServer.toInt());
-            ipv4Packet.setDestinationAddress(dhcpServerIp.toInt());
+            ipv4Packet.setDestinationAddress(newServerInfo.getDhcpServerIp4().get().toInt());
             if (isDirectlyConnected) {
                 // set default info and replace with indirect if available later on.
                 if (newServerInfo.getDhcpConnectMac().isPresent()) {
@@ -1752,7 +1739,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
 
         if (dhcpServerConnectMac != null && dhcpConnectVlan != null) {
             newServerInfo = serverInfo;
-            log.warn("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp4(),
+            log.debug("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp4(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
         } else {
             log.warn("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp4(),
@@ -1824,7 +1811,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             if (log.isTraceEnabled()) {
                 log.trace("Relaying packet to destination {}", packet.destLocation);
             }
-            log.info("DHCP RELAY: packetService.emit(o) to port {}", packet.destLocation);
+            log.debug("packetService.emit(o) to port {}", packet.destLocation);
             packetService.emit(o);
         }
     }
@@ -1836,7 +1823,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         for (DhcpServerInfo serverInfo : validServerInfoList) {
             if (inPort.equals(serverInfo.getDhcpServerConnectPoint().get())) {
                 foundServerInfo = serverInfo;
-                log.warn("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
+                log.debug("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
                         inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
                 break;
             } else {
