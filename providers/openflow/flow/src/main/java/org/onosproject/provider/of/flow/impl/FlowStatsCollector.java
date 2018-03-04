@@ -92,9 +92,11 @@ class FlowStatsCollector implements SwitchDataCollector {
     }
 
     public synchronized void stop() {
-        log.debug("Stopping Stats collection thread for {}", sw.getStringId());
-        task.cancel();
-        task = null;
+        if (task != null) {
+            log.debug("Stopping Stats collection thread for {}", sw.getStringId());
+            task.cancel();
+            task = null;
+        }
     }
 
 }
