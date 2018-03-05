@@ -1158,18 +1158,17 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 forTableId = UNICAST_ROUTING_TABLE;
             }
 
-            /*
-            // XXX decrementing IP ttl is done automatically for routing, this
+            // TODO decrementing IP ttl is done automatically for routing, this
             // action is ignored or rejected in ofdpa as it is not fully implemented
-            if (fwd.treatment() != null) {
-                for (Instruction instr : fwd.treatment().allInstructions()) {
-                    if (instr instanceof L3ModificationInstruction &&
-                            ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        tb.deferred().add(instr);
-                    }
-                }
-            }
-            */
+            // if (fwd.treatment() != null) {
+            //     for (Instruction instr : fwd.treatment().allInstructions()) {
+            //         if (instr instanceof L3ModificationInstruction &&
+            //                 ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
+            //             tb.deferred().add(instr);
+            //         }
+            //     }
+            // }
+
         } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
             if (buildIpv6Selector(filteredSelector, fwd) < 0) {
                 return Collections.emptyList();
@@ -1182,18 +1181,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 forTableId = UNICAST_ROUTING_TABLE;
             }
 
-            // XXX decrementing IP ttl is done automatically for routing, this
+            // TODO decrementing IP ttl is done automatically for routing, this
             // action is ignored or rejected in ofdpa as it is not fully implemented
-            /*
-            if (fwd.treatment() != null) {
-                for (Instruction instr : fwd.treatment().allInstructions()) {
-                    if (instr instanceof L3ModificationInstruction &&
-                            ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        tb.deferred().add(instr);
-                    }
-                }
-            }
-            */
+            // if (fwd.treatment() != null) {
+            //     for (Instruction instr : fwd.treatment().allInstructions()) {
+            //         if (instr instanceof L3ModificationInstruction &&
+            //                 ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
+            //             tb.deferred().add(instr);
+            //         }
+            //     }
+            // }
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)
