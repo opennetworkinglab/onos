@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $loc, fs, ufs, wsock, vs, ls;
+    var $log, $loc, fs, gs, ufs, wsock, vs, ls;
 
     // internal state
     var webSockOpts, // web socket options
@@ -33,6 +33,7 @@
         url, // web socket URL
         clusterNodes = [], // ONOS instances data for failover
         clusterIndex = -1, // the instance to which we are connected
+        glyphs = [],
         connectRetries = 0, // limit our attempts at reconnecting
         openListeners = {}, // registered listeners for websocket open()
         nextListenerId = 1, // internal ID for open listeners
@@ -51,6 +52,13 @@
                     $log.info('Connected to cluster node ' + d.ip);
                     // TODO: add connect info to masthead somewhere
                 }
+            });
+            glyphs = data.glyphs;
+            glyphs.forEach(function (d, i) {
+                var gdata = {};
+                gdata['_' + d.id] = d.viewbox;
+                gdata[d.id] = d.path;
+                gs.registerGlyphs(gdata);
             });
         },
 
@@ -187,6 +195,7 @@
         handlers = {};
         clusterNodes = [];
         clusterIndex = -1;
+        glyphs = [];
         connectRetries = 0;
         openListeners = {};
         nextListenerId = 1;
@@ -324,12 +333,13 @@
     // ===== Definition of module
     angular.module('onosRemote')
     .factory('WebSocketService',
-        ['$log', '$location', 'FnService', 'UrlFnService', 'WSock',
+        ['$log', '$location', 'FnService', 'GlyphService', 'UrlFnService', 'WSock',
 
-        function (_$log_, _$loc_, _fs_, _ufs_, _wsock_) {
+        function (_$log_, _$loc_, _fs_, _gs_, _ufs_, _wsock_) {
             $log = _$log_;
             $loc = _$loc_;
             fs = _fs_;
+            gs = _gs_;
             ufs = _ufs_;
             wsock = _wsock_;
 

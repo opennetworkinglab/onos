@@ -20,7 +20,7 @@
 describe('factory: fw/util/prefs.js', function() {
     var $cookies, ps, fs;
 
-    beforeEach(module('onosUtil', 'onosRemote'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosRemote'));
 
     var mockCookies = {
         foo: 'bar'

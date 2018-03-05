@@ -48,6 +48,8 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiGlyph;
+import org.onosproject.ui.UiGlyphFactory;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiSessionToken;
@@ -82,6 +84,8 @@ import static java.util.stream.Collectors.toSet;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.UI_READ;
 import static org.onosproject.security.AppPermission.Type.UI_WRITE;
+import static org.onosproject.security.AppPermission.Type.GLYPH_READ;
+import static org.onosproject.security.AppPermission.Type.GLYPH_WRITE;
 import static org.onosproject.ui.UiView.Category.NETWORK;
 import static org.onosproject.ui.UiView.Category.PLATFORM;
 import static org.onosproject.ui.impl.lion.BundleStitcher.generateBundles;
@@ -102,6 +106,8 @@ public class UiExtensionManager
     private static final String CORE = "core";
     private static final String GUI_ADDED = "guiAdded";
     private static final String GUI_REMOVED = "guiRemoved";
+    private static final String GLYPH_ADDED = "glyphAdded";
+    private static final String GLYPH_REMOVED = "glyphRemoved";
     private static final String UPDATE_PREFS = "updatePrefs";
     private static final String SLASH = "/";
 
@@ -133,6 +139,8 @@ public class UiExtensionManager
 
     // List of all extensions
     private final List<UiExtension> extensions = Lists.newArrayList();
+
+    private final List<UiGlyph> glyphs = Lists.newArrayList();
 
     // Map of views to extensions
     private final Map<String, UiExtension> views = Maps.newHashMap();
@@ -332,9 +340,43 @@ public class UiExtensionManager
     }
 
     @Override
+    public synchronized void register(UiGlyphFactory glyphFactory) {
+        checkPermission(GLYPH_WRITE);
+        boolean glyphAdded = false;
+        for (UiGlyph glyph : glyphFactory.glyphs()) {
+            if (!glyphs.contains(glyph)) {
+                glyphs.add(glyph);
+                glyphAdded = true;
+            }
+        }
+        if (glyphAdded) {
+            UiWebSocketServlet.sendToAll(GLYPH_ADDED, null);
+        }
+    }
+
+    @Override
+    public synchronized void unregister(UiGlyphFactory glyphFactory) {
+        checkPermission(GLYPH_WRITE);
+        boolean glyphRemoved = false;
+        for (UiGlyph glyph : glyphFactory.glyphs()) {
+            glyphs.remove(glyph);
+            glyphRemoved = true;
+        }
+        if (glyphRemoved) {
+            UiWebSocketServlet.sendToAll(GLYPH_REMOVED, null);
+        }
+    }
+
+    @Override
     public synchronized List<UiExtension> getExtensions() {
         checkPermission(UI_READ);
         return ImmutableList.copyOf(extensions);
+    }
+
+    @Override
+    public synchronized List<UiGlyph> getGlyphs() {
+        checkPermission(GLYPH_READ);
+        return ImmutableList.copyOf(glyphs);
     }
 
     @Override

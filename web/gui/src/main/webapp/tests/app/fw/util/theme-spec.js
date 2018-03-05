@@ -20,7 +20,7 @@
 describe('factory: fw/util/theme.js', function() {
     var ts, $log, fs;
 
-    beforeEach(module('onosUtil', 'onosRemote'));
+    beforeEach(module('onosUtil', 'onosSvg', 'onosRemote'));
 
     beforeEach(inject(function (ThemeService, _$log_, FnService) {
         ts = ThemeService;

@@ -85,6 +85,10 @@ public final class GlyphConstants {
 
     public static final String CLOUD = "m_cloud";
 
+    public static final String ID = "id";
+    public static final String VIEWBOX = "viewbox";
+    public static final String PATH = "path";
+
     // non-instantiable
     private GlyphConstants() {
     }

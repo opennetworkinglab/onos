@@ -85,7 +85,9 @@ public class AppPermission extends BasicPermission {
         UI_WRITE,
         UPGRADE_READ,
         UPGRADE_WRITE,
-        UPGRADE_EVENT
+        UPGRADE_EVENT,
+        GLYPH_READ,
+        GLYPH_WRITE
     }
 
     protected Type type;

@@ -17,6 +17,7 @@ package org.onosproject.ui;
 
 import org.onosproject.ui.lion.LionBundle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,6 +40,22 @@ public interface UiExtensionService {
     void unregister(UiExtension extension);
 
     /**
+     * Registers the specified user interface glyph factory.
+     *
+     * @param factory UI glyph factory to register
+     */
+    default void register(UiGlyphFactory factory) {
+    }
+
+    /**
+     * Unregisters the specified user interface glyph factory.
+     *
+     * @param factory UI glyph factory to unregister
+     */
+    default void unregister(UiGlyphFactory factory) {
+    }
+
+    /**
      * Returns the list of registered user interface extensions.
      *
      * @return list of extensions
@@ -52,6 +69,15 @@ public interface UiExtensionService {
      * @return contributing user interface extension
      */
     UiExtension getViewExtension(String viewId);
+
+    /**
+     * Returns the list of registered user interface glyphs.
+     *
+     * @return list of glyphs
+     */
+    default List<UiGlyph> getGlyphs() {
+        return new ArrayList<UiGlyph>();
+    }
 
     /**
      * Returns the navigation pane localization bundle.
