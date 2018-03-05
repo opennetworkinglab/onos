@@ -111,6 +111,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -195,8 +196,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private InternalHostListener hostListener = new InternalHostListener();
     private Boolean dhcpFpmEnabled = false;
     private Dhcp6HandlerUtil dhcp6HandlerUtil = new Dhcp6HandlerUtil();
-    private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
-    private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
+    private List<DhcpServerInfo> defaultServerInfoList = new CopyOnWriteArrayList<>();
+    private List<DhcpServerInfo> indirectServerInfoList = new CopyOnWriteArrayList<>();
     private class IpAddressInfo {
         Ip6Address ip6Address;
         long    prefTime;

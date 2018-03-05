@@ -19,7 +19,6 @@ package org.onosproject.dhcprelay;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -97,6 +96,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -173,8 +173,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
     protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
     private InternalHostListener hostListener = new InternalHostListener();
 
-    private List<DhcpServerInfo> defaultServerInfoList = Lists.newArrayList();
-    private List<DhcpServerInfo> indirectServerInfoList = Lists.newArrayList();
+    private List<DhcpServerInfo> defaultServerInfoList = new CopyOnWriteArrayList<>();
+    private List<DhcpServerInfo> indirectServerInfoList = new CopyOnWriteArrayList<>();
     private Dhcp4HandlerUtil dhcp4HandlerUtil = new Dhcp4HandlerUtil();
 
     @Activate
