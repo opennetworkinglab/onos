@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flowobjective.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -252,7 +253,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         checkPermission(FLOWRULE_WRITE);
         if (forwardingObjective.nextId() == null ||
-                forwardingObjective.op() == Objective.Operation.REMOVE ||
                 flowObjectiveStore.getNextGroup(forwardingObjective.nextId()) != null ||
                 !queueFwdObjective(deviceId, forwardingObjective)) {
             // fast path
@@ -290,7 +290,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 pendingForwards.compute(fwd.nextId(), (id, pending) -> {
                     PendingFlowObjective pendfo = new PendingFlowObjective(deviceId, fwd);
                     if (pending == null) {
-                        return Sets.newHashSet(pendfo);
+                        return Sets.newLinkedHashSet(ImmutableSet.of(pendfo));
                     } else {
                         pending.add(pendfo);
                         return pending;
