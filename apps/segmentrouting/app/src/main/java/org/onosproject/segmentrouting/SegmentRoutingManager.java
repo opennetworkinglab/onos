@@ -1139,11 +1139,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
                         DeviceId deviceId = ((Device) event.subject()).id();
                         if (deviceService.isAvailable(deviceId)) {
-                            log.info("Processing device event {} for available device {}",
+                            log.info("** DEVICE UP Processing device event {} "
+                                    + "for available device {}",
                                      event.type(), ((Device) event.subject()).id());
                             processDeviceAdded((Device) event.subject());
                         } else {
-                            log.info("Processing device event {} for unavailable device {}",
+                            log.info(" ** DEVICE DOWN Processing device event {}"
+                                    + " for unavailable device {}",
                                      event.type(), ((Device) event.subject()).id());
                             processDeviceRemoved((Device) event.subject());
                         }
