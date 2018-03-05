@@ -24,6 +24,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.intentsync.IntentSynchronizationService;
@@ -105,11 +106,11 @@ public class ReactiveRoutingFib implements IntentRequestListener {
 
         // Rewrite the destination MAC address
         MacAddress hostMac = null;
-        ConnectPoint egressPoint = null;
+        FilteredConnectPoint egressPoint = null;
         for (Host host : hostService.getHostsByIp(hostIpAddress)) {
             if (host.mac() != null) {
                 hostMac = host.mac();
-                egressPoint = host.location();
+                egressPoint = new FilteredConnectPoint(host.location());
                 break;
             }
         }
@@ -133,11 +134,11 @@ public class ReactiveRoutingFib implements IntentRequestListener {
             return;
         }
 
-        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        Set<FilteredConnectPoint> ingressPoints = new HashSet<>();
 
         for (ConnectPoint connectPoint : interfaceConnectPoints) {
             if (!connectPoint.equals(egressPoint)) {
-                ingressPoints.add(connectPoint);
+                ingressPoints.add(new FilteredConnectPoint(connectPoint));
             }
         }
 
@@ -147,8 +148,8 @@ public class ReactiveRoutingFib implements IntentRequestListener {
                         .key(key)
                         .selector(selector.build())
                         .treatment(treatment.build())
-                        .ingressPoints(ingressPoints)
-                        .egressPoint(egressPoint)
+                        .filteredIngressPoints(ingressPoints)
+                        .filteredEgressPoint(egressPoint)
                         .priority(priority)
                         .constraints(CONSTRAINTS)
                         .build();
@@ -220,8 +221,8 @@ public class ReactiveRoutingFib implements IntentRequestListener {
                 .key(key)
                 .selector(selector.build())
                 .treatment(treatment.build())
-                .ingressPoints(Collections.singleton(ingressPoint))
-                .egressPoint(egressPort)
+                .filteredIngressPoints(Collections.singleton(new FilteredConnectPoint(ingressPoint)))
+                .filteredEgressPoint(new FilteredConnectPoint(egressPort))
                 .priority(priority)
                 .constraints(CONSTRAINTS)
                 .build();
@@ -303,8 +304,8 @@ public class ReactiveRoutingFib implements IntentRequestListener {
         checkNotNull(dstMacAddress);
         checkNotNull(srcConnectPoint);
 
-        Set<ConnectPoint> ingressPoints = new HashSet<>();
-        ingressPoints.add(srcConnectPoint);
+        Set<FilteredConnectPoint> ingressPoints = new HashSet<>();
+        ingressPoints.add(new FilteredConnectPoint(srcConnectPoint));
         IpPrefix dstIpPrefix = dstIpAddress.toIpPrefix();
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -329,8 +330,8 @@ public class ReactiveRoutingFib implements IntentRequestListener {
                         .key(key)
                         .selector(selector.build())
                         .treatment(treatment.build())
-                        .ingressPoints(ingressPoints)
-                        .egressPoint(dstConnectPoint)
+                        .filteredIngressPoints(ingressPoints)
+                        .filteredEgressPoint(new FilteredConnectPoint(dstConnectPoint))
                         .priority(priority)
                         .constraints(CONSTRAINTS)
                         .build();
@@ -348,17 +349,17 @@ public class ReactiveRoutingFib implements IntentRequestListener {
         MultiPointToSinglePointIntent existingIntent =
                 getExistingMp2pIntent(ipPrefix);
         if (existingIntent != null) {
-            Set<ConnectPoint> ingressPoints = existingIntent.ingressPoints();
+            Set<FilteredConnectPoint> ingressPoints = existingIntent.filteredIngressPoints();
             // Add host connect point into ingressPoints of the existing intent
-            if (ingressPoints.add(ingressConnectPoint)) {
+            if (ingressPoints.add(new FilteredConnectPoint(ingressConnectPoint))) {
                 MultiPointToSinglePointIntent updatedMp2pIntent =
                         MultiPointToSinglePointIntent.builder()
                                 .appId(appId)
                                 .key(existingIntent.key())
                                 .selector(existingIntent.selector())
                                 .treatment(existingIntent.treatment())
-                                .ingressPoints(ingressPoints)
-                                .egressPoint(existingIntent.egressPoint())
+                                .filteredIngressPoints(ingressPoints)
+                                .filteredEgressPoint(existingIntent.filteredEgressPoint())
                                 .priority(existingIntent.priority())
                                 .constraints(CONSTRAINTS)
                                 .build();

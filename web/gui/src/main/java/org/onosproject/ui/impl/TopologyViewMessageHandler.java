@@ -34,6 +34,7 @@ import org.onosproject.mastership.MastershipListener;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -554,7 +555,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             HostId dst = hostId(string(payload, DST));
             Host dstHost = services.host().getHost(dst);
 
-            Set<ConnectPoint> ingressPoints = getHostLocations(src);
+            Set<FilteredConnectPoint> ingressPoints = getHostLocations(src);
 
             // FIXME: clearly, this is not enough
             TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -566,8 +567,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                             .appId(appId)
                             .selector(selector)
                             .treatment(treatment)
-                            .ingressPoints(ingressPoints)
-                            .egressPoint(dstHost.location())
+                            .filteredIngressPoints(ingressPoints)
+                            .filteredEgressPoint(new FilteredConnectPoint(dstHost.location()))
                             .build();
 
             services.intent().submit(intent);
@@ -832,10 +833,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    private Set<ConnectPoint> getHostLocations(Set<HostId> hostIds) {
-        Set<ConnectPoint> points = new HashSet<>();
+    private Set<FilteredConnectPoint> getHostLocations(Set<HostId> hostIds) {
+        Set<FilteredConnectPoint> points = new HashSet<>();
         for (HostId hostId : hostIds) {
-            points.add(getHostLocation(hostId));
+            points.add(new FilteredConnectPoint(getHostLocation(hostId)));
         }
         return points;
     }

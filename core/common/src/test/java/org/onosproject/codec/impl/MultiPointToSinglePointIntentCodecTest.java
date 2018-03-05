@@ -46,6 +46,8 @@ import java.util.Set;
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.onosproject.net.intent.ConnectivityIntentTest.FP2;
+import static org.onosproject.net.intent.ConnectivityIntentTest.FPS1;
 
 /**
  * Suite of tests of the multi-to-single point intent's codec for rest api.
@@ -91,8 +93,8 @@ public class MultiPointToSinglePointIntentCodecTest extends AbstractIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoints(PS1)
-                .egressPoint(P2)
+                .filteredIngressPoints(FPS1)
+                .filteredEgressPoint(FP2)
                 .build();
 
         assertThat(intent, notNullValue());
@@ -108,8 +110,20 @@ public class MultiPointToSinglePointIntentCodecTest extends AbstractIntentTest {
         assertThat(result.get("id").textValue(), is("0x0"));
         assertThat(result.get("appId").textValue(), is("foo"));
         assertThat(result.get("priority").asInt(), is(100));
-        assertThat(result.get("ingressPoint").get(0).get("port").textValue(), is("3"));
-        assertThat(result.get("ingressPoint").get(1).get("port").textValue(), is("1"));
+
+        boolean found1 = false;
+        boolean found3 = false;
+        for (int i = 0; i < FPS1.size(); i++) {
+            String portString = result.get("ingressPoint").get(i).get("port").textValue();
+            if (portString.equals("1")) {
+                found1 = true;
+            } else if (portString.equals("3")) {
+                found3 = true;
+            }
+        }
+        assertThat("Port 1 was not found", found1, is(true));
+        assertThat("Port 3 was not found", found3, is(true));
+
         assertThat(result.get("egressPoint").get("port").textValue(), is("2"));
         assertThat(result.get("egressPoint").get("device").textValue(), is("222"));
     }

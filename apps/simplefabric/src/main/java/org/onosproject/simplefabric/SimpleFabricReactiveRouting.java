@@ -37,6 +37,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.EncapsulationType;
@@ -376,13 +377,13 @@ public class SimpleFabricReactiveRouting {
                 continue;
             }
 
-            Set<ConnectPoint> newIngressPoints = new HashSet<>();
+            Set<FilteredConnectPoint> newIngressPoints = new HashSet<>();
             boolean ingressPointChanged = false;
-            for (ConnectPoint cp : intent.ingressPoints()) {
-                if (deviceService.isAvailable(cp.deviceId()) &&
-                    (simpleFabric.findL2Network(cp, VlanId.NONE) != null ||
+            for (FilteredConnectPoint cp : intent.filteredIngressPoints()) {
+                if (deviceService.isAvailable(cp.connectPoint().deviceId()) &&
+                    (simpleFabric.findL2Network(cp.connectPoint(), VlanId.NONE) != null ||
                      (simpleFabric.REACTIVE_ALLOW_LINK_CP &&
-                      !linkService.getIngressLinks(cp).isEmpty()))) {
+                      !linkService.getIngressLinks(cp.connectPoint()).isEmpty()))) {
                     newIngressPoints.add(cp);
                 } else {
                     log.info("refresh route ingress cp of "
@@ -405,8 +406,8 @@ public class SimpleFabricReactiveRouting {
                         .key(intent.key())
                         .selector(intent.selector())
                         .treatment(intent.treatment())
-                        .ingressPoints(newIngressPoints)
-                        .egressPoint(intent.egressPoint())
+                        .filteredIngressPoints(newIngressPoints)
+                        .filteredEgressPoint(intent.filteredEgressPoint())
                         .priority(intent.priority())
                         .constraints(intent.constraints())
                         .build();
@@ -810,11 +811,11 @@ public class SimpleFabricReactiveRouting {
         }
 
         // check and merge already existing ingress points
-        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        Set<FilteredConnectPoint> ingressPoints = new HashSet<>();
         MultiPointToSinglePointIntent existingIntent = (MultiPointToSinglePointIntent) intentService.getIntent(key);
         if (existingIntent != null) {
-            ingressPoints.addAll(existingIntent.ingressPoints());
-            if (!ingressPoints.add(srcCp)  // alread exists and dst not changed
+            ingressPoints.addAll(existingIntent.filteredIngressPoints());
+            if (!ingressPoints.add(new FilteredConnectPoint(srcCp))  // alread exists and dst not changed
                     && egressPoint.equals(existingIntent.egressPoint())
                     && treatment.equals(existingIntent.treatment())) {
                 log.warn("srcCP is already in mp2p intent: srcPrefix={} dstPrefix={} srcCp={}",
@@ -826,7 +827,7 @@ public class SimpleFabricReactiveRouting {
         } else {
             log.info("create mp2p intent: srcPrefix={} dstPrefix={} srcCp={}",
                      srcPrefix, dstPrefix, srcCp);
-            ingressPoints.add(srcCp);
+            ingressPoints.add(new FilteredConnectPoint(srcCp));
         }
 
         // priority for forwarding case
@@ -837,8 +838,8 @@ public class SimpleFabricReactiveRouting {
             .appId(reactiveAppId)
             .selector(selector.build())
             .treatment(treatment)
-            .ingressPoints(ingressPoints)
-            .egressPoint(egressPoint)
+            .filteredIngressPoints(ingressPoints)
+            .filteredEgressPoint(new FilteredConnectPoint(egressPoint))
             .priority(priority)
             .constraints(buildConstraints(reactiveConstraints, encap))
             .build();

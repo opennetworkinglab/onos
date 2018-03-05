@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,13 +80,13 @@ public class MultiPointToSinglePointIntentCodec extends JsonCodec<MultiPointToSi
                     context.codec(ConnectPoint.class);
             JsonNode connectPointsJson = json.get(INGRESS_POINT);
 
-            Set<ConnectPoint> ingressCp = new HashSet<ConnectPoint>();
+            Set<FilteredConnectPoint> ingressCp = new HashSet<>();
             if (connectPointsJson != null) {
                 for (int i = 0; i < connectPointsJson.size(); i++) {
-                    ingressCp.add(connectPointCodec.decode(get(connectPointsJson, i),
-                                                           context));
+                    ingressCp.add(new FilteredConnectPoint(connectPointCodec.decode(get(connectPointsJson, i),
+                                                           context)));
                 }
-                builder.ingressPoints(ingressCp);
+                builder.filteredIngressPoints(ingressCp);
             }
         }
 
@@ -93,7 +94,7 @@ public class MultiPointToSinglePointIntentCodec extends JsonCodec<MultiPointToSi
                                               EGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
         ConnectPoint egress = context.codec(ConnectPoint.class)
                 .decode(egressJson, context);
-        builder.egressPoint(egress);
+        builder.filteredEgressPoint(new FilteredConnectPoint(egress));
 
         return builder.build();
     }

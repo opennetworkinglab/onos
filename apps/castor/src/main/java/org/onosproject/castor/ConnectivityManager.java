@@ -322,12 +322,12 @@ public class ConnectivityManager implements ConnectivityManagerService {
             updateExistingL2Intents(peer);
         }
 
-        Set<ConnectPoint> ingressPorts = new HashSet<>();
+        Set<FilteredConnectPoint> ingressPorts = new HashSet<>();
         ConnectPoint egressPort = ConnectPoint.deviceConnectPoint(peer.getPort());
 
         for (Peer inPeer : castorStore.getAllPeers()) {
             if (!inPeer.getName().equals(peer.getName())) {
-                ingressPorts.add(ConnectPoint.deviceConnectPoint(inPeer.getPort()));
+                ingressPorts.add(new FilteredConnectPoint(ConnectPoint.deviceConnectPoint(inPeer.getPort())));
             }
         }
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -341,8 +341,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                 .key(key)
                 .selector(selector.build())
                 .treatment(treatment)
-                .ingressPoints(ingressPorts)
-                .egressPoint(egressPort)
+                .filteredIngressPoints(ingressPorts)
+                .filteredEgressPoint(new FilteredConnectPoint(egressPort))
                 .priority(FLOW_PRIORITY)
                 .build();
         intentSynchronizer.submit(intent);
@@ -364,9 +364,9 @@ public class ConnectivityManager implements ConnectivityManagerService {
 
         for (MultiPointToSinglePointIntent oldIntent : oldIntents) {
 
-            Set<ConnectPoint> ingressPoints = oldIntent.ingressPoints();
+            Set<FilteredConnectPoint> ingressPoints = oldIntent.filteredIngressPoints();
             ConnectPoint egressPoint = oldIntent.egressPoint();
-            if (ingressPoints.add(ConnectPoint.deviceConnectPoint(peer.getPort()))) {
+            if (ingressPoints.add(new FilteredConnectPoint(ConnectPoint.deviceConnectPoint(peer.getPort())))) {
 
                 MultiPointToSinglePointIntent updatedMp2pIntent =
                         MultiPointToSinglePointIntent.builder()
@@ -374,8 +374,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                                 .key(oldIntent.key())
                                 .selector(oldIntent.selector())
                                 .treatment(oldIntent.treatment())
-                                .ingressPoints(ingressPoints)
-                                .egressPoint(egressPoint)
+                                .filteredIngressPoints(ingressPoints)
+                                .filteredEgressPoint(new FilteredConnectPoint(egressPoint))
                                 .priority(oldIntent.priority())
                                 .build();
 
@@ -453,9 +453,9 @@ public class ConnectivityManager implements ConnectivityManagerService {
 
         for (MultiPointToSinglePointIntent oldIntent : oldIntents) {
 
-            Set<ConnectPoint> ingressPoints = oldIntent.ingressPoints();
-            ConnectPoint egressPoint = oldIntent.egressPoint();
-            if (ingressPoints.remove(ConnectPoint.deviceConnectPoint(peer.getPort()))) {
+            Set<FilteredConnectPoint> ingressPoints = oldIntent.filteredIngressPoints();
+            FilteredConnectPoint egressPoint = oldIntent.filteredEgressPoint();
+            if (ingressPoints.remove(new FilteredConnectPoint(ConnectPoint.deviceConnectPoint(peer.getPort())))) {
 
                 MultiPointToSinglePointIntent updatedMp2pIntent =
                         MultiPointToSinglePointIntent.builder()
@@ -463,8 +463,8 @@ public class ConnectivityManager implements ConnectivityManagerService {
                                 .key(oldIntent.key())
                                 .selector(oldIntent.selector())
                                 .treatment(oldIntent.treatment())
-                                .ingressPoints(ingressPoints)
-                                .egressPoint(egressPoint)
+                                .filteredIngressPoints(ingressPoints)
+                                .filteredEgressPoint(egressPoint)
                                 .priority(oldIntent.priority())
                                 .build();
 

@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Constraint;
@@ -50,13 +51,13 @@ public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentC
         }
 
         String egressDeviceString = deviceStrings[deviceStrings.length - 1];
-        ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
+        FilteredConnectPoint egress = new FilteredConnectPoint(ConnectPoint.deviceConnectPoint(egressDeviceString));
 
-        Set<ConnectPoint> ingressPoints = new HashSet<>();
+        Set<FilteredConnectPoint> ingressPoints = new HashSet<>();
         for (int index = 0; index < deviceStrings.length - 1; index++) {
             String ingressDeviceString = deviceStrings[index];
             ConnectPoint ingress = ConnectPoint.deviceConnectPoint(ingressDeviceString);
-            ingressPoints.add(ingress);
+            ingressPoints.add(new FilteredConnectPoint(ingress));
         }
 
         TrafficSelector selector = buildTrafficSelector();
@@ -68,8 +69,8 @@ public class AddMultiPointToSinglePointIntentCommand extends ConnectivityIntentC
                 .key(key())
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoints(ingressPoints)
-                .egressPoint(egress)
+                .filteredIngressPoints(ingressPoints)
+                .filteredEgressPoint(egress)
                 .constraints(constraints)
                 .priority(priority())
                 .resourceGroup(resourceGroup())

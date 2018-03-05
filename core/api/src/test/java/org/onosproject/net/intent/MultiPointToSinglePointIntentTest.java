@@ -91,8 +91,8 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoints(PS1)
-                .egressPoint(P2)
+                .filteredIngressPoints(FPS1)
+                .filteredEgressPoint(FP2)
                 .build();
     }
 
@@ -102,8 +102,8 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoints(PS2)
-                .egressPoint(P1)
+                .filteredIngressPoints(FPS2)
+                .filteredEgressPoint(FP1)
                 .build();
     }
 
@@ -112,8 +112,8 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(VLANMATCH1)
                 .treatment(NOP)
-                .ingressPoints(PS1)
-                .egressPoint(P2)
+                .filteredIngressPoints(FPS1)
+                .filteredEgressPoint(FP2)
                 .build();
     }
 
@@ -122,8 +122,8 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoints(PS1)
-                .egressPoint(P2)
+                .filteredIngressPoints(FPS1)
+                .filteredEgressPoint(FP2)
                 .resourceGroup(RESOURCE_GROUP)
                 .build();
     }

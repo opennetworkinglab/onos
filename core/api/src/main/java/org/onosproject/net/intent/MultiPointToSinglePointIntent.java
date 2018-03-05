@@ -176,42 +176,6 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
         }
 
         /**
-         * Sets the ingress point of the single point to multi point intent
-         * that will be built.
-         *
-         * @param ingressPoints ingress connect points
-         * @return this builder
-         */
-        @Deprecated
-        public Builder ingressPoints(Set<ConnectPoint> ingressPoints) {
-            if (this.ingressPoints != null) {
-                log.warn("Ingress points are already set, " +
-                                 "this will override original ingress points.");
-            }
-            this.ingressPoints = ingressPoints.stream()
-                    .map(FilteredConnectPoint::new)
-                    .collect(Collectors.toSet());
-            return this;
-        }
-
-        /**
-         * Sets the egress point of the multi point to single point intent
-         * that will be built.
-         *
-         * @param egressPoint egress connect point
-         * @return this builder
-         */
-        @Deprecated
-        public Builder egressPoint(ConnectPoint egressPoint) {
-            if (this.egressPoint != null) {
-                log.warn("Egress point is already set, " +
-                                 "this will override original egress point.");
-            }
-            this.egressPoint = new FilteredConnectPoint(egressPoint);
-            return this;
-        }
-
-        /**
          * Sets the filtered ingress point of the single point to multi point intent
          * that will be built.
          *
