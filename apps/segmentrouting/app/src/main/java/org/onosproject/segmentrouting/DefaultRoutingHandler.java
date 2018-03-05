@@ -429,7 +429,7 @@ public class DefaultRoutingHandler {
             if (linkDown == null) {
                 // either a linkUp or a switchDown - compute all route changes by
                 // comparing all routes of existing ECMP SPG to new ECMP SPG
-                routeChanges = computeRouteChange();
+                routeChanges = computeRouteChange(switchDown);
 
                 // deal with linkUp of a seen-before link
                 if (linkUp != null && srManager.linkHandler.isSeenLink(linkUp)) {
@@ -1185,7 +1185,7 @@ public class DefaultRoutingHandler {
      * @return the set of affected routes which may be empty if no routes were
      *         affected
      */
-    private Set<ArrayList<DeviceId>> computeRouteChange() {
+    private Set<ArrayList<DeviceId>> computeRouteChange(DeviceId failedSwitch) {
         ImmutableSet.Builder<ArrayList<DeviceId>> changedRtBldr =
                 ImmutableSet.builder();
 
@@ -1223,6 +1223,22 @@ public class DefaultRoutingHandler {
                 // then use the current/existing map to compare to updated/new map
                 // as switch may have been removed
                 changedRtBldr.addAll(compareGraphs(currEcmpSpg, newEcmpSpg, rootSw));
+            }
+        }
+
+        // handle clearing state for a failed switch in case the switch does
+        // not have a pair, or the pair is not available
+        if (failedSwitch != null) {
+            DeviceId pairDev = getPairDev(failedSwitch);
+            if (pairDev == null || !srManager.deviceService.isAvailable(pairDev)) {
+                log.debug("Proxy Route changes to downed Sw:{}", failedSwitch);
+                srManager.deviceService.getDevices().forEach(dev -> {
+                    if (!dev.id().equals(failedSwitch) &&
+                            srManager.mastershipService.isLocalMaster(dev.id())) {
+                        log.debug(" : {}", dev.id());
+                        changedRtBldr.add(Lists.newArrayList(dev.id(), failedSwitch));
+                    }
+                });
             }
         }
 
@@ -1353,8 +1369,8 @@ public class DefaultRoutingHandler {
 
         if (pairDev != null) {
             if (!srManager.deviceService.isAvailable(pairDev)) {
-                log.warn("pairedDev {} not available .. routing this dev:{} "
-                        + "without mastership check",
+                log.warn("pairedDev {} not available .. routing both this dev:{} "
+                        + "and pair without mastership check for pair",
                           pairDev, deviceId);
                 return pairDev; // handle both temporarily
             }

@@ -677,6 +677,7 @@ public class RoutingRulePopulator {
             tbuilder.deferred().decMplsTtl();
             // swap results in MPLS packet with same BoS bit regardless of bit value
             // depending on configuration we can ECMP this packet or choose one output
+            // XXX reconsider types
             if (srManager.getMplsEcmp()) {
                 ds = new DestinationSet(false, true, segmentId, destSw);
             } else {
