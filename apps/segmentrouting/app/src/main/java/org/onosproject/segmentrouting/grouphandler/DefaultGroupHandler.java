@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting.grouphandler;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -472,13 +473,14 @@ public class DefaultGroupHandler {
 
             // some store elements may not be hashed next-objectives - ignore them
             if (isSimpleNextObjective(dskey)) {
+                Set<DeviceId> displayNextHops = nextHops == null ? ImmutableSet.of() : nextHops;
                 log.debug("Ignoring {} of SIMPLE nextObj for targetSw:{}"
                         + " -> dstSw:{} with current nextHops:{} to new"
                         + " nextHops: {} in nextId:{}",
                           (revoke) ? "removal" : "addition", targetSw, destSw,
                           currNeighbors, nextHops, nextId);
-                if ((revoke && !nextHops.isEmpty())
-                        || (!revoke && !nextHops.equals(currNeighbors))) {
+                if ((revoke && !displayNextHops.isEmpty())
+                        || (!revoke && !displayNextHops.equals(currNeighbors))) {
                     log.warn("Simple next objective cannot be edited to "
                             + "move from {} to {}", currNeighbors, nextHops);
                 }
