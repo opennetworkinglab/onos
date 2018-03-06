@@ -216,14 +216,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         try {
             routerIp = config.getRouterIpv6(deviceId);
 
-            Optional<Ip6Address> linkLocalIp = srManager.interfaceService.getInterfacesByPort(inPort)
-                    .stream()
-                    .map(Interface::mac)
-                    .map(MacAddress::toBytes)
-                    .map(IPv6::getLinkLocalAddress)
-                    .map(Ip6Address::valueOf)
-                    .findFirst();
-
+            Optional<Ip6Address> linkLocalIp = getLinkLocalIp(inPort);
             // Ensure ICMP to the router IP, EUI-64 link-local IP, or gateway IP
             if (destinationAddress.equals(routerIp.getIp6Address()) ||
                     (linkLocalIp.isPresent() && destinationAddress.equals(linkLocalIp.get())) ||
@@ -240,18 +233,26 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
     /**
      * Sends an ICMPv6 reply message.
      *
-     * Note: we assume that packets sending from the edge switches to the hosts
-     * have untagged VLAN.
      * @param ethRequest the original ICMP request
      * @param outport the output port where the ICMP reply should be sent to
      */
     private void sendIcmpv6Response(Ethernet ethRequest, ConnectPoint outport) {
-        // Note: We assume that packets arrive at the edge switches have untagged VLAN.
+        int sid = -1;
         Ethernet ethReply = ICMP6.buildIcmp6Reply(ethRequest);
         IPv6 icmpRequestIpv6 = (IPv6) ethRequest.getPayload();
         IPv6 icmpReplyIpv6 = (IPv6) ethRequest.getPayload();
+        // Source IP of the echo "reply"
+        Ip6Address srcIpAddress = Ip6Address.valueOf(icmpRequestIpv6.getDestinationAddress());
+        // Destination IP of the echo "reply"
         Ip6Address destIpAddress = Ip6Address.valueOf(icmpRequestIpv6.getSourceAddress());
+        Optional<Ip6Address> linkLocalIp = getLinkLocalIp(outport);
         Ip6Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
+
+        // Fast path if the echo request targets the link-local address of switch interface
+        if (linkLocalIp.isPresent() && srcIpAddress.equals(linkLocalIp.get())) {
+            sendPacketOut(outport, ethReply, sid, destIpAddress, icmpReplyIpv6.getHopLimit());
+            return;
+        }
 
         // Note: Source IP of the ICMP request doesn't belong to any configured subnet.
         //       The source might be an indirect host behind a router.
@@ -272,8 +273,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         }
 
         // Search SID only if store lookup is success otherwise proceed with "sid=-1"
-        int sid = -1;
-        if (destRouterAddress !=  null) {
+        if (destRouterAddress != null) {
             sid = config.getIPv6SegmentId(destRouterAddress);
             if (sid < 0) {
                 log.warn("Failed to lookup SID of the switch that {} attaches to. " +
@@ -335,14 +335,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
             try {
                 DeviceId deviceId = pkt.inPort().deviceId();
 
-                Optional<Ip6Address> linkLocalIp = srManager.interfaceService.getInterfacesByPort(pkt.inPort())
-                        .stream()
-                        .map(Interface::mac)
-                        .map(MacAddress::toBytes)
-                        .map(IPv6::getLinkLocalAddress)
-                        .map(Ip6Address::valueOf)
-                        .findFirst();
-
+                Optional<Ip6Address> linkLocalIp = getLinkLocalIp(pkt.inPort());
                 if (linkLocalIp.isPresent() && pkt.target().equals(linkLocalIp.get())) {
                     MacAddress routerMac = config.getDeviceMac(deviceId);
                     sendResponse(pkt, routerMac, hostService);
@@ -462,5 +455,21 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                 VlanId.NONE
         );
         flood(ndpRequest, inPort, targetAddress);
+    }
+
+    /**
+     * Returns link-local IP of given connect point.
+     *
+     * @param cp connect point
+     * @return optional link-local IP
+     */
+    private Optional<Ip6Address> getLinkLocalIp(ConnectPoint cp) {
+        return srManager.interfaceService.getInterfacesByPort(cp)
+                .stream()
+                .map(Interface::mac)
+                .map(MacAddress::toBytes)
+                .map(IPv6::getLinkLocalAddress)
+                .map(Ip6Address::valueOf)
+                .findFirst();
     }
 }
