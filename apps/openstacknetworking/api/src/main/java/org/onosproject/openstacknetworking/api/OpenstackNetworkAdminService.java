@@ -22,7 +22,7 @@ import org.openstack4j.model.network.Subnet;
 /**
  * Service for administering the inventory of OpenStack network, subnet and port.
  */
-public interface OpenstackNetworkAdminService {
+public interface OpenstackNetworkAdminService extends OpenstackNetworkService {
 
     /**
      * Creates a network with the given information.

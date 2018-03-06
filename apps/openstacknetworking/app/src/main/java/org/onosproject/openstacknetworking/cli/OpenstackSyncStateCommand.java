@@ -21,7 +21,6 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
@@ -84,7 +83,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
         OpenstackSecurityGroupService osSgService = get(OpenstackSecurityGroupService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
-        OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
         OpenstackRouterService osRouterService = get(OpenstackRouterService.class);
 
@@ -120,7 +118,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print("\nSynchronizing OpenStack networks");
         print(NETWORK_FORMAT, "ID", "Name", "VNI", "Subnets");
         osClient.networking().network().list().forEach(osNet -> {
-            if (osNetService.network(osNet.getId()) != null) {
+            if (osNetAdminService.network(osNet.getId()) != null) {
                 osNetAdminService.updateNetwork(osNet);
             } else {
                 osNetAdminService.createNetwork(osNet);
@@ -131,23 +129,23 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print("\nSynchronizing OpenStack subnets");
         print(SUBNET_FORMAT, "ID", "Network", "CIDR");
         osClient.networking().subnet().list().forEach(osSubnet -> {
-            if (osNetService.subnet(osSubnet.getId()) != null) {
+            if (osNetAdminService.subnet(osSubnet.getId()) != null) {
                 osNetAdminService.updateSubnet(osSubnet);
             } else {
                 osNetAdminService.createSubnet(osSubnet);
             }
-            printSubnet(osSubnet, osNetService);
+            printSubnet(osSubnet, osNetAdminService);
         });
 
         print("\nSynchronizing OpenStack ports");
         print(PORT_FORMAT, "ID", "Network", "MAC", "Fixed IPs");
         osClient.networking().port().list().forEach(osPort -> {
-            if (osNetService.port(osPort.getId()) != null) {
+            if (osNetAdminService.port(osPort.getId()) != null) {
                 osNetAdminService.updatePort(osPort);
             } else {
                 osNetAdminService.createPort(osPort);
             }
-            printPort(osPort, osNetService);
+            printPort(osPort, osNetAdminService);
         });
 
         print("\nSynchronizing OpenStack routers");
@@ -160,13 +158,13 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             }
 
             // FIXME do we need to manage router interfaces separately?
-            osNetService.ports().stream()
+            osNetAdminService.ports().stream()
                     .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
                             Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
                     .forEach(osPort -> addRouterIface(osPort, osRouterService,
                             osRouterAdminService));
 
-            printRouter(osRouter, osNetService);
+            printRouter(osRouter, osNetAdminService);
         });
 
         print("\nSynchronizing OpenStack floating IPs");
@@ -213,7 +211,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print(strNet);
     }
 
-    private void printSubnet(Subnet osSubnet, OpenstackNetworkService osNetService) {
+    private void printSubnet(Subnet osSubnet, OpenstackNetworkAdminService osNetService) {
         final String strSubnet = String.format(SUBNET_FORMAT,
                 osSubnet.getId(),
                 osNetService.network(osSubnet.getNetworkId()).getName(),
@@ -221,7 +219,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print(strSubnet);
     }
 
-    private void printPort(Port osPort, OpenstackNetworkService osNetService) {
+    private void printPort(Port osPort, OpenstackNetworkAdminService osNetService) {
         List<String> fixedIps = osPort.getFixedIps().stream()
                 .map(IP::getIpAddress)
                 .collect(Collectors.toList());
@@ -233,7 +231,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print(strPort);
     }
 
-    private void printRouter(Router osRouter, OpenstackNetworkService osNetService) {
+    private void printRouter(Router osRouter, OpenstackNetworkAdminService osNetService) {
         List<String> externals = osNetService.ports().stream()
                 .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
                         Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_GW))
