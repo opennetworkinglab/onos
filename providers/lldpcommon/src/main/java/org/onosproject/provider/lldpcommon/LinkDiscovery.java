@@ -68,6 +68,7 @@ public class LinkDiscovery implements TimerTask {
 
     private Timeout timeout;
     private volatile boolean isStopped;
+
     // Set of ports to be probed
     private final HashMap<Long, String> portMap = Maps.newHashMap();
 
@@ -221,9 +222,7 @@ public class LinkDiscovery implements TimerTask {
 
         if (context.mastershipService().isLocalMaster(device.id())) {
             log.trace("Sending probes from {}", device.id());
-            portMap.entrySet().forEach(
-                e -> sendProbes(e.getKey(), e.getValue())
-            );
+            portMap.forEach(this::sendProbes);
         }
 
         if (!isStopped()) {
