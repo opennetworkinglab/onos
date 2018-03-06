@@ -183,7 +183,6 @@ public class TroubleshootManager implements TroubleshootService {
         }
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
-                .matchInPort(source.location().port())
                 .matchEthType(etherType.ethType().toShort())
                 .matchEthDst(source.mac())
                 .matchVlanId(source.vlan());
@@ -196,6 +195,7 @@ public class TroubleshootManager implements TroubleshootService {
                 selectorBuilder.matchEthDst(destination.mac());
                 ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
                 source.locations().forEach(hostLocation -> {
+                    selectorBuilder.matchInPort(hostLocation.port());
                     StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
                     trace.addEndpointHosts(Pair.of(source, destination));
                     traces.add(trace);
@@ -233,6 +233,7 @@ public class TroubleshootManager implements TroubleshootService {
             }
             ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
             source.locations().forEach(hostLocation -> {
+                selectorBuilder.matchInPort(hostLocation.port());
                 StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
                 trace.addEndpointHosts(Pair.of(source, destination));
                 traces.add(trace);
@@ -305,8 +306,13 @@ public class TroubleshootManager implements TroubleshootService {
      */
     private boolean areBridged(Host source, Host destination) throws ConfigException {
 
-        //If the location is not the same we don't even check vlan or subnets
-        if (!source.location().deviceId().equals(destination.location().deviceId())) {
+        //If the locations is not the same we don't even check vlan or subnets
+        if (Collections.disjoint(source.locations(), destination.locations())) {
+            return false;
+        }
+
+        if (!source.vlan().equals(VlanId.NONE) && !destination.vlan().equals(VlanId.NONE)
+                && !source.vlan().equals(destination.vlan())) {
             return false;
         }
 
@@ -318,11 +324,17 @@ public class TroubleshootManager implements TroubleshootService {
             Interface intfH1 = interfaceCfgH1.getInterfaces().stream().findFirst().get();
             Interface intfH2 = interfaceCfgH2.getInterfaces().stream().findFirst().get();
 
-            if (!intfH1.vlanNative().equals(intfH2.vlanNative())) {
-                return false;
+            if (source.vlan().equals(VlanId.NONE) && !destination.vlan().equals(VlanId.NONE)) {
+                return intfH1.vlanUntagged().equals(destination.vlan()) ||
+                        intfH1.vlanNative().equals(destination.vlan());
             }
 
-            if (!intfH1.vlanTagged().equals(intfH2.vlanTagged())) {
+            if (!source.vlan().equals(VlanId.NONE) && destination.vlan().equals(VlanId.NONE)) {
+                return intfH2.vlanUntagged().equals(source.vlan()) ||
+                        intfH2.vlanNative().equals(source.vlan());
+            }
+
+            if (!intfH1.vlanNative().equals(intfH2.vlanNative())) {
                 return false;
             }
 
@@ -397,6 +409,16 @@ public class TroubleshootManager implements TroubleshootService {
             Set<Host> hostsList = hostService.getConnectedHosts(cp);
             //Hosts queried from the original ip or mac
             Set<Host> hosts = getHosts(trace);
+
+            if (in.equals(cp) && trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID) != null &&
+                    outputPath.getFinalPacket().getCriterion(Criterion.Type.VLAN_VID) != null
+                    && ((VlanIdCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID)).vlanId()
+                    .equals(((VlanIdCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.VLAN_VID))
+                            .vlanId())) {
+                trace.addResultMessage("Connect point out " + cp + " is same as initial input " +
+                        trace.getInitialConnectPoint());
+                break;
+            }
 
             //If the two host collections contain the same item it means we reached the proper output
             if (!Collections.disjoint(hostsList, hosts)) {
@@ -480,9 +502,30 @@ public class TroubleshootManager implements TroubleshootService {
                                 .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
                                 cp + " with no hosts connected ");
                     } else {
-                        trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
-                                .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                                cp + " with hosts " + hostsList);
+                        IpAddress ipAddress = null;
+                        if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_DST) != null) {
+                            ipAddress = ((IPCriterion) trace.getInitialPacket()
+                                    .getCriterion(Criterion.Type.IPV4_DST)).ip().address();
+                        } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST) != null) {
+                            ipAddress = ((IPCriterion) trace.getInitialPacket()
+                                    .getCriterion(Criterion.Type.IPV6_DST)).ip().address();
+                        }
+                        if (ipAddress != null) {
+                            IpAddress finalIpAddress = ipAddress;
+                            if (hostsList.stream().anyMatch(host -> host.ipAddresses().contains(finalIpAddress)) ||
+                            hostService.getHostsByIp(finalIpAddress).isEmpty()) {
+                                trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                                        .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                        cp + " with hosts " + hostsList);
+                            } else {
+                                trace.addResultMessage("Wrong output " + cp + " for required destination ip " +
+                                        ipAddress);
+                            }
+                        } else {
+                            trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                                    .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                    cp + " with hosts " + hostsList);
+                        }
                     }
                     trace.setSuccess(true);
                     computePath(completePath, trace, outputPath.getOutput());
@@ -1039,20 +1082,15 @@ public class TroubleshootManager implements TroubleshootService {
                                        List<Group> groupsForDevice) {
         ConnectPoint output = new ConnectPoint(in.deviceId(), outputInstruction.port());
 
-        //if the output is the input same we drop, except if the output is the controller
-        if (output.equals(in)) {
-            trace.addResultMessage("Connect point out " + output + " is same as initial input " +
-                    trace.getInitialConnectPoint());
-        } else {
-            GroupsInDevice device = new GroupsInDevice(output, groupsForDevice, builder.build());
-            if (trace.getGroupOuputs(output.deviceId()) != null
-                    && trace.getGroupOuputs(output.deviceId()).contains(device)) {
-                return;
-            }
-            trace.addGroupOutputPath(in.deviceId(),
-                    new GroupsInDevice(output, groupsForDevice, builder.build()));
-            outputPorts.add(outputInstruction.port());
+        outputPorts.add(outputInstruction.port());
+
+        GroupsInDevice device = new GroupsInDevice(output, groupsForDevice, builder.build());
+        if (trace.getGroupOuputs(output.deviceId()) != null
+                && trace.getGroupOuputs(output.deviceId()).contains(device)) {
+            return;
         }
+        trace.addGroupOutputPath(in.deviceId(),
+                new GroupsInDevice(output, groupsForDevice, builder.build()));
     }
 
     /**
