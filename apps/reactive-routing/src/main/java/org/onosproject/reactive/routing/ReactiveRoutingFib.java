@@ -137,7 +137,7 @@ public class ReactiveRoutingFib implements IntentRequestListener {
         Set<FilteredConnectPoint> ingressPoints = new HashSet<>();
 
         for (ConnectPoint connectPoint : interfaceConnectPoints) {
-            if (!connectPoint.equals(egressPoint)) {
+            if (!connectPoint.equals(egressPoint.connectPoint())) {
                 ingressPoints.add(new FilteredConnectPoint(connectPoint));
             }
         }
