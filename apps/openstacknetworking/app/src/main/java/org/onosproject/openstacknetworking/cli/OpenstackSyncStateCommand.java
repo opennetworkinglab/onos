@@ -22,7 +22,6 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.openstack4j.api.OSClient;
@@ -84,7 +83,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         OpenstackSecurityGroupService osSgService = get(OpenstackSecurityGroupService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
-        OpenstackRouterService osRouterService = get(OpenstackRouterService.class);
 
         Access osAccess;
         try {
@@ -151,7 +149,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print("\nSynchronizing OpenStack routers");
         print(ROUTER_FORMAT, "ID", "Name", "External", "Internal");
         osClient.networking().router().list().forEach(osRouter -> {
-            if (osRouterService.router(osRouter.getId()) != null) {
+            if (osRouterAdminService.router(osRouter.getId()) != null) {
                 osRouterAdminService.updateRouter(osRouter);
             } else {
                 osRouterAdminService.createRouter(osRouter);
@@ -161,8 +159,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             osNetAdminService.ports().stream()
                     .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
                             Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
-                    .forEach(osPort -> addRouterIface(osPort, osRouterService,
-                            osRouterAdminService));
+                    .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
 
             printRouter(osRouter, osNetAdminService);
         });
@@ -170,7 +167,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print("\nSynchronizing OpenStack floating IPs");
         print(FLOATING_IP_FORMAT, "ID", "Floating IP", "Fixed IP");
         osClient.networking().floatingip().list().forEach(osFloating -> {
-            if (osRouterService.floatingIp(osFloating.getId()) != null) {
+            if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
                 osRouterAdminService.updateFloatingIp(osFloating);
             } else {
                 osRouterAdminService.createFloatingIp(osFloating);
@@ -180,8 +177,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
     }
 
     // TODO fix the logic to add router interface to router
-    private void addRouterIface(Port osPort, OpenstackRouterService service,
-                                OpenstackRouterAdminService adminService) {
+    private void addRouterIface(Port osPort, OpenstackRouterAdminService adminService) {
         osPort.getFixedIps().forEach(p -> {
             JsonNode jsonTree = mapper().createObjectNode()
                     .put("id", osPort.getDeviceId())
@@ -192,7 +188,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                 RouterInterface rIface = getContext(NeutronRouterInterface.class)
                         .readerFor(NeutronRouterInterface.class)
                         .readValue(jsonTree);
-                if (service.routerInterface(rIface.getPortId()) != null) {
+                if (adminService.routerInterface(rIface.getPortId()) != null) {
                     adminService.updateRouterInterface(rIface);
                 } else {
                     adminService.addRouterInterface(rIface);

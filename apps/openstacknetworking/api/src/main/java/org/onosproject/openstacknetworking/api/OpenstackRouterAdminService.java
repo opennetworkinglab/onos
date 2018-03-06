@@ -22,7 +22,7 @@ import org.openstack4j.model.network.RouterInterface;
 /**
  * Service for administering the inventory of OpenStack router and floating IP.
  */
-public interface OpenstackRouterAdminService {
+public interface OpenstackRouterAdminService extends OpenstackRouterService {
 
     /**
      * Creates a router with the given information.
