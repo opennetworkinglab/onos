@@ -15,6 +15,7 @@
  */
 package org.onosproject.provider.lldpcommon;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import io.netty.util.Timeout;
@@ -222,7 +223,7 @@ public class LinkDiscovery implements TimerTask {
 
         if (context.mastershipService().isLocalMaster(device.id())) {
             log.trace("Sending probes from {}", device.id());
-            portMap.forEach(this::sendProbes);
+            ImmutableMap.copyOf(portMap).forEach(this::sendProbes);
         }
 
         if (!isStopped()) {
