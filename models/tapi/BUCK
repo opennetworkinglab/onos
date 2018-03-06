@@ -1,5 +1,10 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
 
 yang_model(
   app_name = 'org.onosproject.models.tapi',
-  title = 'Transport API YANG Models',
+  title = 'ONF Transport API YANG Models',
+  custom_registrator = True,
+  deps = COMPILE_DEPS,
 )
