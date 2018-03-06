@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -274,7 +273,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             result = DocumentTreeResult.invalidPath();
         } catch (Exception e) {
             logger().error("Failed to apply {} to state machine", commit.value(), e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
         return result;
     }
@@ -366,7 +365,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             }
         } catch (Exception e) {
             logger().warn("Failure applying {}", commit, e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -457,7 +456,7 @@ public class AtomixDocumentTreeService extends AbstractRaftService {
             return commitTransaction(transactionScope);
         } catch (Exception e) {
             logger().warn("Failure applying {}", commit, e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 

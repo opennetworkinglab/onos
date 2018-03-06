@@ -16,11 +16,7 @@
 
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
+import com.google.common.collect.Maps;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AtomicValueEvent;
@@ -31,8 +27,10 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.utils.MeteringAgent;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of a {@code AsyncAtomicValue}.
@@ -170,14 +168,15 @@ public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
                 final MeteringAgent.Context newTimer = monitor.startTimer(NOTIFY_LISTENER);
                 byte[] rawNewValue = Versioned.valueOrNull(event.newValue());
                 byte[] rawOldValue = Versioned.valueOrNull(event.oldValue());
+
                 try {
                     listener.event(new AtomicValueEvent<>(name,
                             rawNewValue == null ? null : serializer.decode(rawNewValue),
-                                    rawOldValue == null ? null : serializer.decode(rawOldValue)));
+                            rawOldValue == null ? null : serializer.decode(rawOldValue)));
                     newTimer.stop(null);
                 } catch (Exception e) {
                     newTimer.stop(e);
-                    Throwables.propagate(e);
+                    throw new IllegalStateException(e.getCause());
                 }
             }
         }

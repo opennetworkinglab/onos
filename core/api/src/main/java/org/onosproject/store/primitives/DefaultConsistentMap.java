@@ -232,7 +232,7 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
         } catch (TimeoutException e) {
             throw new ConsistentMapException.Timeout(name());
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(e.getCause());
+            Throwables.throwIfUnchecked(e.getCause());
             throw new ConsistentMapException(e.getCause());
         }
     }

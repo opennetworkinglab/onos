@@ -126,7 +126,7 @@ public class DefaultAtomicCounterMap<K> extends Synchronous<AsyncAtomicCounterMa
         } catch (TimeoutException e) {
             throw new ConsistentMapException.Timeout(name());
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(e.getCause());
+            Throwables.throwIfUnchecked(e.getCause());
             throw new ConsistentMapException(e.getCause());
         }
     }

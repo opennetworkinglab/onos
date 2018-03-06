@@ -15,14 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.stream.Collectors;
-
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
@@ -30,6 +22,13 @@ import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -500,7 +499,8 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
             try {
                 queue.put(event);
             } catch (InterruptedException e) {
-                Throwables.propagate(e);
+                Thread.interrupted();
+                throw new IllegalStateException(e);
             }
         }
 

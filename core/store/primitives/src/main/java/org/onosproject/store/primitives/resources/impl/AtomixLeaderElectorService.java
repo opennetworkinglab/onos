@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -177,7 +176,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             return newLeadership;
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -197,7 +196,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             }
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -222,7 +221,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
                     commit.value().nodeId().equals(electionState.leader().nodeId()));
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -247,7 +246,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             return true;
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -271,7 +270,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             notifyLeadershipChanges(changes);
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -286,7 +285,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             return leadership(topic);
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -304,7 +303,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             }).keySet());
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -320,7 +319,7 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
             return result;
         } catch (Exception e) {
             logger().error("State machine operation failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 

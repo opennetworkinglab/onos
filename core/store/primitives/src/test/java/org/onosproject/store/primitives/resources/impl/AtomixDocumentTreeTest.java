@@ -16,18 +16,9 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
 import com.google.common.base.Throwables;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
-
 import org.junit.Test;
 import org.onosproject.store.primitives.NodeUpdate;
 import org.onosproject.store.primitives.TransactionId;
@@ -40,6 +31,14 @@ import org.onosproject.store.service.Ordering;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -482,7 +481,8 @@ public class AtomixDocumentTreeTest extends AtomixTestBase<AtomixDocumentTree> {
             try {
                 queue.put(event);
             } catch (InterruptedException e) {
-                Throwables.propagate(e);
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e);
             }
         }
 

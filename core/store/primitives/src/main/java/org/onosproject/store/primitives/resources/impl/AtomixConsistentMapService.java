@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -731,7 +730,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             }
         } catch (Exception e) {
             logger().warn("Failure applying {}", commit, e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -753,7 +752,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             return commitTransaction(transactionScope);
         } catch (Exception e) {
             logger().warn("Failure applying {}", commit, e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         } finally {
             discardTombstones();
         }

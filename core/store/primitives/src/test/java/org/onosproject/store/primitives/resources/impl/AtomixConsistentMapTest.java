@@ -15,15 +15,6 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.Arrays;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
-
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
@@ -36,6 +27,14 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
+
+import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -594,7 +593,8 @@ public class AtomixConsistentMapTest extends AtomixTestBase<AtomixConsistentMap>
             try {
                 queue.put(event);
             } catch (InterruptedException e) {
-                Throwables.propagate(e);
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e);
             }
         }
 

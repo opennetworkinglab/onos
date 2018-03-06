@@ -15,18 +15,17 @@
  */
 package org.onosproject.net.config;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.slf4j.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Throwables;
+
+import java.io.IOException;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@link Config} with access to {@link CodecService}.
@@ -69,7 +68,7 @@ public abstract class BaseConfig<S>
             return decode(mapper().readTree(json), entityClass);
         } catch (IOException e) {
             log.error("Exception caught.", e);
-            throw Throwables.propagate(e);
+            throw new IllegalArgumentException(e);
         }
     }
 

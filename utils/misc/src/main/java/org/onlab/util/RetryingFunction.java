@@ -15,9 +15,9 @@
  */
 package org.onlab.util;
 
-import java.util.function.Function;
-
 import com.google.common.base.Throwables;
+
+import java.util.function.Function;
 
 /**
  * Function that retries execution on failure.
@@ -52,7 +52,8 @@ public class RetryingFunction<U, V> implements Function<U, V> {
                 return baseFunction.apply(input);
             } catch (Throwable t) {
                 if (!exceptionClass.isAssignableFrom(t.getClass()) || retryAttempts == maxRetries) {
-                    Throwables.propagate(t);
+                    Throwables.throwIfUnchecked(t);
+                    throw new RetriesExceededException(t);
                 }
                 Tools.randomDelay(maxDelayBetweenRetries);
                 retryAttempts++;

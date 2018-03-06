@@ -16,7 +16,6 @@
 
 package org.onlab.util;
 
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -280,7 +279,7 @@ public class SharedScheduledExecutorService implements ScheduledExecutorService 
                 // if repeat flag set as false, we simply throw an exception to
                 // terminate this task
                 if (!repeatFlag) {
-                    throw Throwables.propagate(e);
+                    throw new IllegalStateException(e);
                 }
             }
         }

@@ -119,7 +119,7 @@ public class DefaultDocumentTree<V> extends Synchronous<AsyncDocumentTree<V>> im
         } catch (TimeoutException e) {
             throw new DocumentException.Timeout(name());
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(e.getCause());
+            Throwables.throwIfUnchecked(e.getCause());
             throw new ConsistentMapException(e.getCause());
         }
     }

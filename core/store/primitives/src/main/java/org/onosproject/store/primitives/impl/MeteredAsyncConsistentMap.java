@@ -16,6 +16,17 @@
 
 package org.onosproject.store.primitives.impl;
 
+import com.google.common.collect.Maps;
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
+import org.onosproject.store.service.Versioned;
+import org.onosproject.utils.MeteringAgent;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,20 +36,6 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import org.onosproject.store.primitives.MapUpdate;
-import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.service.AsyncConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.TransactionLog;
-import org.onosproject.store.service.Version;
-import org.onosproject.store.service.Versioned;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-
-import org.onosproject.utils.MeteringAgent;
 
 /**
  * {@link AsyncConsistentMap} that meters all its operations.
@@ -310,7 +307,7 @@ public class MeteredAsyncConsistentMap<K, V>  extends DelegatingAsyncConsistentM
                 timer.stop(null);
             } catch (Exception e) {
                 timer.stop(e);
-                Throwables.propagate(e);
+                throw new IllegalStateException(e);
             }
         }
     }

@@ -16,16 +16,6 @@
 
 package org.onosproject.store.primitives.impl;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
@@ -37,6 +27,16 @@ import org.onosproject.store.service.DistributedPrimitive;
 import org.onosproject.store.service.TransactionException;
 import org.onosproject.store.service.TransactionalMap;
 import org.onosproject.store.service.Version;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -87,7 +87,7 @@ public abstract class TransactionalMapParticipant<K, V> implements Transactional
                     } catch (TimeoutException e) {
                         throw new TransactionException.Timeout();
                     } catch (ExecutionException e) {
-                        Throwables.propagateIfPossible(e.getCause());
+                        Throwables.throwIfUnchecked(e);
                         throw new TransactionException(e.getCause());
                     }
                 }

@@ -165,7 +165,7 @@ public class DefaultConsistentMultimap<K, V>
         } catch (TimeoutException e) {
             throw new ConsistentMapException.Timeout();
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(e.getCause());
+            Throwables.throwIfUnchecked(e.getCause());
             throw new ConsistentMapException(e.getCause());
         }
     }

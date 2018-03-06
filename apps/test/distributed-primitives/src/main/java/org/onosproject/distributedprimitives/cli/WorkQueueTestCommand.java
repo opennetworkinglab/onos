@@ -15,11 +15,6 @@
  */
 package org.onosproject.distributedprimitives.cli;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -31,7 +26,10 @@ import org.onosproject.store.service.Task;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 
-import com.google.common.base.Throwables;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * CLI command to test a distributed work queue.
@@ -108,7 +106,7 @@ public class WorkQueueTestCommand extends AbstractShellCommand {
         try {
             return future.get(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 }

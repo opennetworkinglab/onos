@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -169,7 +168,7 @@ public class AtomixWorkQueueService extends AbstractRaftService {
                     .collect(Collectors.toCollection(ArrayList::new));
         } catch (Exception e) {
             logger().warn("State machine update failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -186,7 +185,7 @@ public class AtomixWorkQueueService extends AbstractRaftService {
             });
         } catch (Exception e) {
             logger().warn("State machine update failed", e);
-            throw Throwables.propagate(e);
+            throw new IllegalStateException(e);
         }
     }
 

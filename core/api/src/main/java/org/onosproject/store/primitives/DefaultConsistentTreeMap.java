@@ -17,12 +17,11 @@
 package org.onosproject.store.primitives;
 
 import com.google.common.base.Throwables;
-
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.ConsistentTreeMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Synchronous;
-import org.onosproject.store.service.ConsistentTreeMap;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
@@ -63,7 +62,7 @@ public class DefaultConsistentTreeMap<V>
             Thread.currentThread().interrupt();
             throw new ConsistentMapException.Interrupted();
         } catch (ExecutionException e) {
-            Throwables.propagateIfPossible(e.getCause());
+            Throwables.throwIfUnchecked(e.getCause());
             throw new ConsistentMapException(e.getCause());
         } catch (TimeoutException e) {
             throw new ConsistentMapException.Timeout();

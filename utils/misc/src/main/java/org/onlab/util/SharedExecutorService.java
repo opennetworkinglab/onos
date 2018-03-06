@@ -16,7 +16,6 @@
 package org.onlab.util;
 
 import com.codahale.metrics.Timer;
-import com.google.common.base.Throwables;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
@@ -222,7 +221,7 @@ class SharedExecutorService implements ExecutorService {
                 runnable.run();
             } catch (Exception e) {
                 log.error("Uncaught exception on " + runnable.getClass().getSimpleName(), e);
-                throw Throwables.propagate(e);
+                throw new IllegalStateException(e);
             }
         }
     }
