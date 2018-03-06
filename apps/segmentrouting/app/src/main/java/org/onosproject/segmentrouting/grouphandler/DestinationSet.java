@@ -211,9 +211,9 @@ public class DestinationSet {
         String type;
         if (!notBos && !swap) {
             type = "default";
-        } else if (!notBos && swap) {
+        } else if (!notBos) {
             type = "swapbos";
-        } else if (notBos && !swap) {
+        } else if (!swap) {
             type = "not-bos";
         } else {
             type = "swap-nb";
