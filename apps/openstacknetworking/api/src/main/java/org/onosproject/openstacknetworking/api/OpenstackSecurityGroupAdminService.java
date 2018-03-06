@@ -21,7 +21,7 @@ import org.openstack4j.model.network.SecurityGroupRule;
 /**
  * Service for administering the inventory of Openstack security group.
  */
-public interface OpenstackSecurityGroupAdminService {
+public interface OpenstackSecurityGroupAdminService extends OpenstackSecurityGroupService {
     /**
      * Creates a security group.
      *

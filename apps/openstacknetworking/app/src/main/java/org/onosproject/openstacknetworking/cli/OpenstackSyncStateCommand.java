@@ -23,7 +23,6 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
-import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.model.identity.v2.Access;
@@ -80,7 +79,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
-        OpenstackSecurityGroupService osSgService = get(OpenstackSecurityGroupService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
 
@@ -105,7 +103,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         print("Synchronizing OpenStack security groups");
         print(SECURITY_GROUP_FORMAT, "ID", "Name");
         osClient.networking().securitygroup().list().forEach(osSg -> {
-            if (osSgService.securityGroup(osSg.getId()) != null) {
+            if (osSgAdminService.securityGroup(osSg.getId()) != null) {
                 osSgAdminService.updateSecurityGroup(osSg);
             } else {
                 osSgAdminService.createSecurityGroup(osSg);
