@@ -4,4 +4,4 @@
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-cd $ONOS_ROOT && onos-buck build onos --show-output && onos-check-bits
+cd $ONOS_ROOT && onos-buck build onos --deep --show-output && onos-check-bits
