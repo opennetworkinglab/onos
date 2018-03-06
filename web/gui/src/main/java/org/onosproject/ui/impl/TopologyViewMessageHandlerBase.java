@@ -308,6 +308,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels("", name, device.id().toString()));
         payload.set("props", props(device.annotations()));
         addGeoLocation(device, payload);
+        addGridLocation(device, payload);
         addMetaUi(device.id().toString(), payload);
 
         String type = DEVICE_EVENT.get(event.type());
@@ -354,6 +355,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels(nameForHost(host), ip, host.mac().toString(), ""));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
+        addGridLocation(host, payload);
         addMetaUi(host.id().toString(), payload);
 
         String type = HOST_EVENT.get(event.type());
@@ -424,6 +426,30 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 payload.set("location", loc);
             } catch (NumberFormatException e) {
                 log.warn("Invalid geo data: latitude={}, longitude={}", slat, slng);
+            }
+        }
+    }
+
+    // Adds a grid location JSON to the specified payload object.
+    private void addGridLocation(Annotated annotated, ObjectNode payload) {
+        Annotations annotations = annotated.annotations();
+        if (annotations == null) {
+            return;
+        }
+
+        String xs = annotations.value(AnnotationKeys.GRID_X);
+        String ys = annotations.value(AnnotationKeys.GRID_Y);
+        if (xs != null && ys != null) {
+            try {
+                double x = Double.parseDouble(xs);
+                double y = Double.parseDouble(ys);
+                ObjectNode loc = objectNode()
+                        .put("locType", "grid")
+                        .put("latOrY", y)
+                        .put("longOrX", x);
+                payload.set("location", loc);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid grid data: x={}, y={}", xs, ys);
             }
         }
     }

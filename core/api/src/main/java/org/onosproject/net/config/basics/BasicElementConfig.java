@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.config.basics;
 
+import java.util.Objects;
+
 /**
  * Basic configuration for network elements, e.g. devices, hosts. Such elements
  * can have a friendly name, geo-coordinates (or grid-coordinates),
@@ -202,16 +204,12 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
     /**
      * Returns true if the grid coordinates (gridY and gridX) are set on
-     * this element; false otherwise.
-     * <p>
-     * It is assumed that elements will not be placed at {@code (0,0)}.
-     * If you really need to position the element there, consider setting the
-     * coordinates to something like {@code (0.000001, 0.000001)} instead.
+     * this element, i.e. if locType is set to 'grid'; false otherwise.
      *
      * @return true if grid coordinates are set; false otherwise.
      */
     public boolean gridCoordsSet() {
-        return !doubleIsZero(gridY()) || !doubleIsZero(gridX());
+        return Objects.equals(locType(), LOC_TYPE_GRID);
     }
 
     /**

@@ -61,15 +61,22 @@ function sim {
     echo "$@" >> $CMDS
 }
 
+function y {
+    let p="${3:-300} * ($1 - 1) - (${3:-300} * ($2 - 1)) / 2"
+    echo $p
+}
+
 # Create spines
 for spine in $(seq 1 $spines); do
-    sim "null-create-device switch Spine-${spine} ${spinePorts}"
+    sim "null-create-device switch Spine-${spine} ${spinePorts} 0 $(y $spine $spines) grid"
 done
 
 # Create 2 leaf pairs with dual links to the spines and a link between the pair
 for pair in $serviceLeafGroups; do
-    sim "null-create-device switch Leaf-${pair}1 ${leafPorts}"
-    sim "null-create-device switch Leaf-${pair}2 ${leafPorts}"
+    [ $pair = A ] && l1=1 || l1=3
+    [ $pair = A ] && l2=2 || l2=4
+    sim "null-create-device switch Leaf-${pair}1 ${leafPorts} -200 $(y $l1 4) grid"
+    sim "null-create-device switch Leaf-${pair}2 ${leafPorts} -200 $(y $l2 4) grid"
     sim "null-create-link direct Leaf-${pair}1 Leaf-${pair}2"
 
     for spine in $(seq 1 $spines); do
@@ -88,7 +95,7 @@ done
 
 # Create single access leafs with dual links to the spines
 for access in $(seq $accessLeaves); do
-    sim "null-create-device switch Access-${access} ${accessPorts}"
+    sim "null-create-device switch Access-${access} ${accessPorts} 200 $(y $access $accessLeaves) grid"
 
     for spine in $(seq 1 $spines); do
         for link in $(seq 1 $spineLinks); do

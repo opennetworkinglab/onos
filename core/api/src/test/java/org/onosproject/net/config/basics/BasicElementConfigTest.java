@@ -117,7 +117,7 @@ public class BasicElementConfigTest {
 
     @Test
     public void someGridCoords() {
-        cfg.gridX(35.0).gridY(49.7);
+        cfg.gridX(35.0).gridY(49.7).locType(GRID);
         print(cfg);
         assertTrue("grid at origin?", cfg.gridCoordsSet());
         assertEquals("gridx", 35.0, cfg.gridX(), ZERO_THRESHOLD);
