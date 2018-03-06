@@ -43,7 +43,6 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.provider.ProviderId;
@@ -544,11 +543,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     protected int getFlowCount(DeviceId deviceId) {
-        int count = 0;
-        for (FlowEntry flowEntry : services.flow().getFlowEntries(deviceId)) {
-            count++;
-        }
-        return count;
+        return services.flow().getFlowRuleCount(deviceId);
     }
 
     protected int getTunnelCount(DeviceId deviceId) {

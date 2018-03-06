@@ -30,7 +30,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
@@ -310,8 +309,20 @@ public class DistributedFlowRuleStore
     @Override
     public int getFlowRuleCount() {
         return Streams.stream(deviceService.getDevices()).parallel()
-                .mapToInt(device -> Iterables.size(getFlowEntries(device.id())))
+                .mapToInt(device -> getFlowRuleCount(device.id()))
                 .sum();
+    }
+
+    @Override
+    public int getFlowRuleCount(DeviceId deviceId) {
+        DocumentPath path = getPathFor(deviceId);
+        try {
+            return flows.getChildren(path).values().stream()
+                    .mapToInt(v -> v.value().values().size())
+                    .sum();
+       } catch (NoSuchDocumentPathException e) {
+            return 0;
+        }
     }
 
     /**

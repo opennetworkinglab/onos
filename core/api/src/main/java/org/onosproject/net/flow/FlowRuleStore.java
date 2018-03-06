@@ -33,6 +33,16 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
     int getFlowRuleCount();
 
     /**
+     * Returns the number of flow rules for the given device in the store.
+     *
+     * @param deviceId device identifier
+     * @return number of flow rules for the given device
+     */
+    default int getFlowRuleCount(DeviceId deviceId) {
+        return 0;
+    }
+
+    /**
      * Returns the stored flow.
      *
      * @param rule the rule to look for
