@@ -27,10 +27,15 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Abstracts XMPP stream open event.
  */
 public class XmppStreamOpen implements XmppStreamEvent {
+
+    private final Logger log = LoggerFactory.getLogger(XmppStreamOpen.class);
 
     public static final String QNAME = "stream";
 
@@ -54,7 +59,7 @@ public class XmppStreamOpen implements XmppStreamEvent {
             writer.write(Namespace.get("jabber:client"));
             out.write(">");
         } catch (IOException ex) {
-            ex.printStackTrace();
+            log.info("Error writing XML", ex);
         }
         return out.toString();
     }

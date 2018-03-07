@@ -71,7 +71,7 @@ public class XmppServer {
             log.info("Listening for device connections on {}", socketAddress);
 
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalStateException(ex);
         }
     }
 
