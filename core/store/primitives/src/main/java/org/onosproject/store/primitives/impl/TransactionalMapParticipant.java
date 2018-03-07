@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onosproject.store.primitives.MapUpdate;
@@ -87,7 +86,6 @@ public abstract class TransactionalMapParticipant<K, V> implements Transactional
                     } catch (TimeoutException e) {
                         throw new TransactionException.Timeout();
                     } catch (ExecutionException e) {
-                        Throwables.throwIfUnchecked(e);
                         throw new TransactionException(e.getCause());
                     }
                 }
