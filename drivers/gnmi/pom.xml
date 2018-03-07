@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.11.0-SNAPSHOT</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,9 +30,16 @@
 
     <description>gNMI device drivers</description>
     <dependencies>
+
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-grpc-protocol-api</artifactId>
+            <artifactId>onos-protocols-grpc-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-protocols-gnmi-stub</artifactId>
             <version>${project.version}</version>
         </dependency>
 

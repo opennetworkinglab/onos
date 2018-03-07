@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-grpc-protocol-api</artifactId>
+            <artifactId>onos-protocols-grpc-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -49,9 +49,11 @@
         <module>lisp</module>
         <module>flowspec</module>
         <module>oplink</module>
-        <!-- <module>bmv2</module> -->
+        <module>p4runtime</module>
+        <module>bmv2</module>
         <module>hp</module>
         <module>microsemi/ea1000</module>
+        <module>gnmi</module>
     </modules>
 
     <!--<properties>

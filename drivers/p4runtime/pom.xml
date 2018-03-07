@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.11.0-SNAPSHOT</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -30,9 +30,10 @@
     
     <description>P4Runtime device drivers</description>
     <dependencies>
+
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-grpc-protocol-api</artifactId>
+            <artifactId>onos-protocols-grpc-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -40,6 +41,12 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
             <version>1.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-protocols-p4runtime-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- protocols/p4runtime/api missing -->

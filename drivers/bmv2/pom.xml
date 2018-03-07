@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.11.0-SNAPSHOT</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-grpc-protocol-api</artifactId>
+            <artifactId>onos-protocols-grpc-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -44,11 +44,27 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-incubator-bmv2-model</artifactId>
+            <artifactId>onos-protocols-p4runtime-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- protocols/p4runtime/api missing -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-protocols-p4runtime-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers-p4runtime</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-pipelines-basic</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 

@@ -25,7 +25,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-grpc-protocol</artifactId>
+    <artifactId>onos-protocols-grpc</artifactId>
 
     <modules>
         <module>api</module>
