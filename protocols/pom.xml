@@ -44,6 +44,7 @@
         <module>restconf</module>
         <module>tl1</module>
         <module>grpc</module>
+        <module>gnmi/stub</module>
         <module>p4runtime</module>
         <module>xmpp</module>
     </modules>
