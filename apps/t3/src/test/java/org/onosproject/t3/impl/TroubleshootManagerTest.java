@@ -53,10 +53,13 @@ import org.onosproject.net.group.GroupServiceAdapter;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.routeservice.ResolvedRoute;
+import org.onosproject.routeservice.RouteServiceAdapter;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -88,6 +91,7 @@ public class TroubleshootManagerTest {
         mngr.deviceService = new TestDeviceService();
         mngr.mastershipService = new TestMastershipService();
         mngr.edgePortService = new TestEdgePortService();
+        mngr.routeService = new TestRouteService();
 
         assertNotNull("Manager should not be null", mngr);
 
@@ -646,6 +650,13 @@ public class TroubleshootManagerTest {
         public boolean isEdgePoint(ConnectPoint point) {
             return point.equals(MULTICAST_OUT_CP) ||
                     point.equals(MULTICAST_OUT_CP_2);
+        }
+    }
+
+    private class TestRouteService extends RouteServiceAdapter {
+        @Override
+        public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
+            return Optional.empty();
         }
     }
 

@@ -8,11 +8,13 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//drivers/default:onos-drivers-default',
     '//apps/segmentrouting/app:onos-apps-segmentrouting-app',
+    '//apps/route-service/api:onos-apps-route-service-api',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//utils/misc:onlab-misc',
+    '//apps/route-service/api:onos-apps-route-service-api-tests',
 ]
 
 osgi_jar_with_tests (
@@ -26,5 +28,5 @@ onos_app (
     url = 'https://wiki.opencord.org/pages/viewpage.action?pageId=4456974',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',
-    required_apps = [ 'org.onosproject.segmentrouting' ],
+    required_apps = [ 'org.onosproject.segmentrouting', 'org.onosproject.route-service' ],
 )

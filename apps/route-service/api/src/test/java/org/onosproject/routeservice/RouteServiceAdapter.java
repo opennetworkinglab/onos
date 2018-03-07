@@ -16,7 +16,9 @@
 
 package org.onosproject.routeservice;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -53,6 +55,11 @@ public class RouteServiceAdapter implements RouteAdminService {
     @Override
     public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
         return null;
+    }
+
+    @Override
+    public Collection<ResolvedRoute> getAllResolvedRoutes(IpPrefix prefix) {
+        return ImmutableList.of();
     }
 
     @Override
