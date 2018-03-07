@@ -16,6 +16,7 @@
 
 package org.onosproject.routeservice.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -208,6 +209,11 @@ public class RouteManager implements RouteService, RouteAdminService {
     @Override
     public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
         return resolvedRouteStore.longestPrefixMatch(ip);
+    }
+
+    @Override
+    public Collection<ResolvedRoute> getAllResolvedRoutes(IpPrefix prefix) {
+        return ImmutableList.copyOf(resolvedRouteStore.getAllRoutes(prefix));
     }
 
     @Override

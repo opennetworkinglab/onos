@@ -67,6 +67,8 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.routeservice.ResolvedRoute;
+import org.onosproject.routeservice.RouteService;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.t3.api.GroupsInDevice;
 import org.onosproject.t3.api.StaticPacketTrace;
@@ -80,6 +82,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -132,6 +135,9 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EdgePortService edgePortService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RouteService routeService;
 
     @Override
     public List<StaticPacketTrace> pingAll(EtherType type) {
@@ -404,6 +410,7 @@ public class TroubleshootManager implements TroubleshootService {
             ConnectPoint cp = outputPath.getOutput();
             log.debug("Connect point in {}", in);
             log.debug("Output path {}", cp);
+            log.debug("{}", outputPath.getFinalPacket());
 
             //Hosts for the the given output
             Set<Host> hostsList = hostService.getConnectedHosts(cp);
@@ -497,38 +504,40 @@ public class TroubleshootManager implements TroubleshootService {
                 //We treat as correct output only if it's not LLDP or BDDP
                 if (!(ethTypeCriterion.ethType().equals(EtherType.LLDP.ethType())
                         && !ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
-                    if (hostsList.isEmpty()) {
-                        trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
-                                .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                                cp + " with no hosts connected ");
-                    } else {
-                        IpAddress ipAddress = null;
-                        if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_DST) != null) {
-                            ipAddress = ((IPCriterion) trace.getInitialPacket()
-                                    .getCriterion(Criterion.Type.IPV4_DST)).ip().address();
-                        } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST) != null) {
-                            ipAddress = ((IPCriterion) trace.getInitialPacket()
-                                    .getCriterion(Criterion.Type.IPV6_DST)).ip().address();
-                        }
-                        if (ipAddress != null) {
-                            IpAddress finalIpAddress = ipAddress;
-                            if (hostsList.stream().anyMatch(host -> host.ipAddresses().contains(finalIpAddress)) ||
-                            hostService.getHostsByIp(finalIpAddress).isEmpty()) {
+                    if (computePath(completePath, trace, outputPath.getOutput())) {
+                        if (hostsList.isEmpty()) {
+                            trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
+                                    .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                    cp + " with no hosts connected ");
+                        } else {
+                            IpAddress ipAddress = null;
+                            if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_DST) != null) {
+                                ipAddress = ((IPCriterion) trace.getInitialPacket()
+                                        .getCriterion(Criterion.Type.IPV4_DST)).ip().address();
+                            } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST) != null) {
+                                ipAddress = ((IPCriterion) trace.getInitialPacket()
+                                        .getCriterion(Criterion.Type.IPV6_DST)).ip().address();
+                            }
+                            if (ipAddress != null) {
+                                IpAddress finalIpAddress = ipAddress;
+                                if (hostsList.stream().anyMatch(host -> host.ipAddresses().contains(finalIpAddress)) ||
+                                        hostService.getHostsByIp(finalIpAddress).isEmpty()) {
+                                    trace.addResultMessage("Packet is " +
+                                            ((EthTypeCriterion) outputPath.getFinalPacket()
+                                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
+                                            cp + " with hosts " + hostsList);
+                                } else {
+                                    trace.addResultMessage("Wrong output " + cp + " for required destination ip " +
+                                            ipAddress);
+                                }
+                            } else {
                                 trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
                                         .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
                                         cp + " with hosts " + hostsList);
-                            } else {
-                                trace.addResultMessage("Wrong output " + cp + " for required destination ip " +
-                                        ipAddress);
                             }
-                        } else {
-                            trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
-                                    .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                                    cp + " with hosts " + hostsList);
                         }
+                        trace.setSuccess(true);
                     }
-                    trace.setSuccess(true);
-                    computePath(completePath, trace, outputPath.getOutput());
                 }
 
             } else {
@@ -661,10 +670,15 @@ public class TroubleshootManager implements TroubleshootService {
     private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in,
                                             boolean isDualHomed) {
 
-        if (trace.getGroupOuputs(in.deviceId()) != null && !isDualHomed) {
+        boolean multipleRoutes = false;
+        if (trace.getGroupOuputs(in.deviceId()) != null) {
+            multipleRoutes = multipleRoutes(trace);
+        }
+        if (trace.getGroupOuputs(in.deviceId()) != null && !isDualHomed && !multipleRoutes) {
             log.debug("Trace already contains device and given outputs");
             return trace;
         }
+
         log.debug("Packet {} coming in from {}", packet, in);
 
         //if device is not available exit here.
@@ -686,7 +700,6 @@ public class TroubleshootManager implements TroubleshootService {
 
         List<FlowEntry> flows = new ArrayList<>();
         List<FlowEntry> outputFlows = new ArrayList<>();
-
         List<Instruction> deferredInstructions = new ArrayList<>();
 
         FlowEntry nextTableIdEntry = findNextTableIdEntry(in.deviceId(), -1);
@@ -810,7 +823,35 @@ public class TroubleshootManager implements TroubleshootService {
         trace.addFlowsForDevice(in.deviceId(), ImmutableList.copyOf(flows));
 
         List<PortNumber> outputPorts = new ArrayList<>();
+        List<FlowEntry> outputFlowEntries = handleFlows(trace, packet, in, outputFlows, builder, outputPorts);
 
+
+        log.debug("Handling Groups");
+        //Analyze Groups
+        List<Group> groups = new ArrayList<>();
+
+        Collection<FlowEntry> nonOutputFlows = flows;
+        nonOutputFlows.removeAll(outputFlowEntries);
+
+        //Handling groups pointed at by immediate instructions
+        for (FlowEntry entry : flows) {
+            getGroupsFromInstructions(trace, groups, entry.treatment().immediate(),
+                    entry.deviceId(), builder, outputPorts, in);
+        }
+
+        //If we have deferred instructions at this point we handle them.
+        if (deferredInstructions.size() > 0) {
+            builder = handleDeferredActions(trace, packet, in, deferredInstructions, outputPorts, groups);
+
+        }
+        packet = builder.build();
+
+        log.debug("Output Packet {}", packet);
+        return trace;
+    }
+
+    private List<FlowEntry> handleFlows(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in,
+                                        List<FlowEntry> outputFlows, Builder builder, List<PortNumber> outputPorts) {
         //TODO optimization
         //outputFlows contains also last rule of device, so we need filtering for OUTPUT instructions.
         List<FlowEntry> outputFlowEntries = outputFlows.stream().filter(flow -> flow.treatment()
@@ -834,28 +875,26 @@ public class TroubleshootManager implements TroubleshootService {
             buildOutputFromDevice(trace, in, builder, outputPorts, outputInstruction, ImmutableList.of());
 
         }
-        log.debug("Handling Groups");
-        //Analyze Groups
-        List<Group> groups = new ArrayList<>();
+        return outputFlowEntries;
+    }
 
-        Collection<FlowEntry> nonOutputFlows = flows;
-        nonOutputFlows.removeAll(outputFlowEntries);
-
-        //Handling groups pointed at by immediate instructions
-        for (FlowEntry entry : flows) {
-            getGroupsFromInstructions(trace, groups, entry.treatment().immediate(),
-                    entry.deviceId(), builder, outputPorts, in);
+    private boolean multipleRoutes(StaticPacketTrace trace) {
+        boolean multipleRoutes = false;
+        IPCriterion ipCriterion = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV4_DST));
+        IpAddress ip = null;
+        if (ipCriterion != null) {
+            ip = ipCriterion.ip().address();
+        } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST) != null) {
+            ip = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST)).ip().address();
         }
 
-        //If we have deferred instructions at this point we handle them.
-        if (deferredInstructions.size() > 0) {
-            builder = handleDeferredActions(trace, packet, in, deferredInstructions, outputPorts, groups);
-
+        Optional<ResolvedRoute> optionalRoute = routeService.longestPrefixLookup(ip);
+        if (ip != null && optionalRoute.isPresent()) {
+            ResolvedRoute route = optionalRoute.get();
+            route.prefix();
+            multipleRoutes = routeService.getAllResolvedRoutes(route.prefix()).size() > 1;
         }
-        packet = builder.build();
-
-        log.debug("Output Packet {}", packet);
-        return trace;
+        return multipleRoutes;
     }
 
     /**

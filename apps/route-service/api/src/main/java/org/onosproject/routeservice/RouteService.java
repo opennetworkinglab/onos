@@ -17,6 +17,7 @@
 package org.onosproject.routeservice;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.event.ListenerService;
 
 import java.util.Collection;
@@ -49,6 +50,15 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      * @return most specific matching route, if one exists
      */
     Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip);
+
+    /**
+     * Returns all resolved routes stored for the given prefix, including the
+     * best selected route.
+     *
+     * @param prefix IP prefix to look up routes for
+     * @return all stored resolved routes for this prefix
+     */
+    Collection<ResolvedRoute> getAllResolvedRoutes(IpPrefix prefix);
 
     /**
      * Performs a longest prefix match on the given IP address. The call will
