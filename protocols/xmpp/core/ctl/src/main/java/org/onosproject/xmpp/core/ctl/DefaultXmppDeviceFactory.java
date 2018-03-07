@@ -33,7 +33,8 @@ public final class DefaultXmppDeviceFactory implements XmppDeviceFactory {
 
     private final Logger logger = getLogger(getClass());
 
-    protected XmppDeviceAgent agent;
+    private XmppDeviceAgent agent;
+    private final Object agentLock = new Object();
 
     public void init(XmppDeviceAgent manager) {
         setAgent(manager);
@@ -45,7 +46,7 @@ public final class DefaultXmppDeviceFactory implements XmppDeviceFactory {
      * @param agent reference object of XMPP device manager
      */
     private void setAgent(XmppDeviceAgent agent) {
-        synchronized (agent) {
+        synchronized (agentLock) {
             if (this.agent == null) {
                 this.agent = agent;
             } else {
@@ -55,7 +56,7 @@ public final class DefaultXmppDeviceFactory implements XmppDeviceFactory {
     }
 
     public void cleanAgent() {
-        synchronized (agent) {
+        synchronized (agentLock) {
             if (this.agent != null) {
                 this.agent = null;
             } else {
