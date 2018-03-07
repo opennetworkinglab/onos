@@ -3,18 +3,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-xmpp</artifactId>
+        <artifactId>onos-protocols-xmpp</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-xmpp-core</artifactId>
-    <packaging>bundle</packaging>
+    <artifactId>onos-protocols-xmpp-core</artifactId>
+    <packaging>pom</packaging>
 
     <modules>
-        <module>onos-xmpp-core-api</module>
-        <module>onos-xmpp-core-ctl</module>
+        <module>api</module>
+        <module>ctl</module>
     </modules>
 
 
@@ -26,5 +26,23 @@
             </plugin>
         </plugins>
     </build>
-    
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>org.igniterealtime</groupId>
+                <artifactId>tinder</artifactId>
+                <version>1.3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml</groupId>
+                <artifactId>aalto-xml</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
 </project>

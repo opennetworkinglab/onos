@@ -3,18 +3,22 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-xmpp-core</artifactId>
+        <artifactId>onos-protocols-xmpp-core</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.13.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-xmpp-core-ctl</artifactId>
+    <artifactId>onos-protocols-xmpp-core-ctl</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS XMPP controller subsystem API</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
@@ -43,12 +47,13 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-xmpp-core-api</artifactId>
+            <artifactId>onos-protocols-xmpp-core-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>

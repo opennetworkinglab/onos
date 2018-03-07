@@ -9,11 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-xmpp</artifactId>
+    <artifactId>onos-protocols-xmpp</artifactId>
     <description>ONOS XMPP Protocol subsystem</description>
+    <packaging>pom</packaging>
 
     <modules>
-        <module>onos-xmpp-core</module>
+        <module>core</module>
     </modules>
 
 

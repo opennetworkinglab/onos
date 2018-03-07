@@ -111,7 +111,7 @@ public class XmppDeviceProviderTest {
     public void deactivate() throws Exception {
         provider.deactivate();
         assertNull("Device listener should be removed", xmppController.listener);
-        assertFalse("Provider should not be registered", deviceRegistry.getProviders().contains(provider));
+        assertFalse("Provider should not be registered", deviceRegistry.getProviders().contains(provider.id()));
         assertNull("Provider service should be null", provider.providerService);
     }
 
