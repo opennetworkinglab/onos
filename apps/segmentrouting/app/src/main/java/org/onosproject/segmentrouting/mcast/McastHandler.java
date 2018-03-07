@@ -94,6 +94,9 @@ import static org.onosproject.net.mcast.McastEvent.Type.ROUTE_REMOVED;
 import static org.onosproject.net.mcast.McastEvent.Type.SOURCE_ADDED;
 import static org.onosproject.net.mcast.McastEvent.Type.SOURCE_UPDATED;
 import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
+import static org.onosproject.segmentrouting.mcast.McastRole.EGRESS;
+import static org.onosproject.segmentrouting.mcast.McastRole.INGRESS;
+import static org.onosproject.segmentrouting.mcast.McastRole.TRANSIT;
 
 /**
  * Handles Multicast related events.
@@ -355,10 +358,10 @@ public class McastHandler {
                                                                   mcastIp, assignedVlan(newSource)));
             }
             addFilterToDevice(newSource.deviceId(), newSource.port(),
-                              assignedVlan(newSource), mcastIp);
+                              assignedVlan(newSource), mcastIp, INGRESS);
             // Setup mcast roles
             mcastRoleStore.put(new McastStoreKey(mcastIp, newSource.deviceId()),
-                               McastRole.INGRESS);
+                               INGRESS);
         } finally {
             mcastUnlock();
         }
@@ -376,11 +379,11 @@ public class McastHandler {
             log.debug("Processing route removed for group {}", mcastIp);
 
             // Find out the ingress, transit and egress device of the affected group
-            DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+            DeviceId ingressDevice = getDevice(mcastIp, INGRESS)
                     .stream().findAny().orElse(null);
-            DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
+            DeviceId transitDevice = getDevice(mcastIp, TRANSIT)
                     .stream().findAny().orElse(null);
-            Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+            Set<DeviceId> egressDevices = getDevice(mcastIp, EGRESS);
 
             // Verify leadership on the operation
             if (!isLeader(source)) {
@@ -491,7 +494,8 @@ public class McastHandler {
             }
 
             // Process the ingress device
-            addFilterToDevice(source.deviceId(), source.port(), assignedVlan(source), mcastIp);
+            addFilterToDevice(source.deviceId(), source.port(),
+                              assignedVlan(source), mcastIp, INGRESS);
 
             // When source and sink are on the same device
             if (source.deviceId().equals(sink.deviceId())) {
@@ -502,7 +506,7 @@ public class McastHandler {
                     return;
                 }
                 addPortToDevice(sink.deviceId(), sink.port(), mcastIp, assignedVlan(source));
-                mcastRoleStore.put(new McastStoreKey(mcastIp, sink.deviceId()), McastRole.INGRESS);
+                mcastRoleStore.put(new McastStoreKey(mcastIp, sink.deviceId()), INGRESS);
                 return;
             }
 
@@ -516,7 +520,8 @@ public class McastHandler {
                 links.forEach(link -> {
                     addPortToDevice(link.src().deviceId(), link.src().port(), mcastIp,
                                     assignedVlan(link.src().deviceId().equals(source.deviceId()) ? source : null));
-                    addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null), mcastIp);
+                    addFilterToDevice(link.dst().deviceId(), link.dst().port(),
+                                      assignedVlan(null), mcastIp, null);
                 });
 
                 // Process the egress device
@@ -524,11 +529,11 @@ public class McastHandler {
 
                 // Setup mcast roles
                 mcastRoleStore.put(new McastStoreKey(mcastIp, source.deviceId()),
-                                   McastRole.INGRESS);
+                                   INGRESS);
                 mcastRoleStore.put(new McastStoreKey(mcastIp, links.get(0).dst().deviceId()),
-                                   McastRole.TRANSIT);
+                                   TRANSIT);
                 mcastRoleStore.put(new McastStoreKey(mcastIp, sink.deviceId()),
-                                   McastRole.EGRESS);
+                                   EGRESS);
             } else {
                 log.warn("Unable to find a path from {} to {}. Abort sinkAdded",
                          source.deviceId(), sink.deviceId());
@@ -554,11 +559,11 @@ public class McastHandler {
                           affectedLink, mcastIp);
 
                 // Find out the ingress, transit and egress device of affected group
-                DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+                DeviceId ingressDevice = getDevice(mcastIp, INGRESS)
                         .stream().findAny().orElse(null);
-                DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
+                DeviceId transitDevice = getDevice(mcastIp, TRANSIT)
                         .stream().findAny().orElse(null);
-                Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+                Set<DeviceId> egressDevices = getDevice(mcastIp, EGRESS);
                 ConnectPoint source = getSource(mcastIp);
 
                 // Do not proceed if any of these info is missing
@@ -622,11 +627,11 @@ public class McastHandler {
                           deviceDown, mcastIp);
 
                 // Find out the ingress, transit and egress device of affected group
-                DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+                DeviceId ingressDevice = getDevice(mcastIp, INGRESS)
                         .stream().findAny().orElse(null);
-                DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
+                DeviceId transitDevice = getDevice(mcastIp, TRANSIT)
                         .stream().findAny().orElse(null);
-                Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+                Set<DeviceId> egressDevices = getDevice(mcastIp, EGRESS);
                 ConnectPoint source = getSource(mcastIp);
 
                 // Do not proceed if ingress device or source of this group are missing
@@ -714,7 +719,8 @@ public class McastHandler {
      * @param port ingress port number
      * @param assignedVlan assigned VLAN ID
      */
-    private void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan, IpAddress mcastIp) {
+    private void addFilterToDevice(DeviceId deviceId, PortNumber port,
+                                   VlanId assignedVlan, IpAddress mcastIp, McastRole mcastRole) {
         // Do nothing if the port is configured as suppressed
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
         SegmentRoutingAppConfig appConfig = srManager.cfgService
@@ -733,7 +739,7 @@ public class McastHandler {
         }
 
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(port, assignedVlan, mcastIp, routerMac);
+                filterObjBuilder(port, assignedVlan, mcastIp, routerMac, mcastRole);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
                         deviceId, port.toLong(), assignedVlan),
@@ -909,15 +915,15 @@ public class McastHandler {
         links.forEach(link -> {
             addPortToDevice(link.src().deviceId(), link.src().port(), mcastIp,
                             assignedVlan(link.src().deviceId().equals(source.deviceId()) ? source : null));
-            addFilterToDevice(link.dst().deviceId(), link.dst().port(), assignedVlan(null),
-                              mcastIp);
+            addFilterToDevice(link.dst().deviceId(), link.dst().port(),
+                              assignedVlan(null), mcastIp, null);
         });
         // Setup new transit mcast role
         mcastRoleStore.put(new McastStoreKey(mcastIp, links.get(0).dst().deviceId()),
-                           McastRole.TRANSIT);
+                           TRANSIT);
         // Setup new ingress mcast role
         mcastRoleStore.put(new McastStoreKey(mcastIp, links.get(0).src().deviceId()),
-                           McastRole.INGRESS);
+                           INGRESS);
     }
 
     /**
@@ -1003,28 +1009,33 @@ public class McastHandler {
      * @return filtering objective builder
      */
     private FilteringObjective.Builder filterObjBuilder(PortNumber ingressPort,
-            VlanId assignedVlan, IpAddress mcastIp, MacAddress routerMac) {
+            VlanId assignedVlan, IpAddress mcastIp, MacAddress routerMac, McastRole mcastRole) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
-
-        if (mcastIp.isIp4()) {
-            filtBuilder.withKey(Criteria.matchInPort(ingressPort))
-            .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
-                    MacAddress.IPV4_MULTICAST_MASK))
-            .addCondition(Criteria.matchVlanId(egressVlan()))
-            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        // Let's add the in port matching and the priority
+        filtBuilder.withKey(Criteria.matchInPort(ingressPort))
+                .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        // According to the mcast role we match on the proper vlan
+        // If the role is null we are on the transit or on the egress
+        if (mcastRole == null) {
+            filtBuilder.addCondition(Criteria.matchVlanId(egressVlan()));
         } else {
-            filtBuilder.withKey(Criteria.matchInPort(ingressPort))
-            .addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
-                     MacAddress.IPV6_MULTICAST_MASK))
-            .addCondition(Criteria.matchVlanId(egressVlan()))
-            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+            filtBuilder.addCondition(Criteria.matchVlanId(ingressVlan()));
         }
+        // According to the IP type we set the proper match on the mac address
+        if (mcastIp.isIp4()) {
+            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
+                    MacAddress.IPV4_MULTICAST_MASK));
+        } else {
+            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
+                     MacAddress.IPV6_MULTICAST_MASK));
+        }
+        // We finally build the meta treatment
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .pushVlan().setVlanId(assignedVlan)
                 .setEthDst(routerMac)
                 .build();
         filtBuilder.withMeta(tt);
-
+        // Done, we return a permit filtering objective
         return filtBuilder.permit().fromApp(srManager.appId());
     }
 
@@ -1238,6 +1249,17 @@ public class McastHandler {
     }
 
     /**
+     * Gets ingress VLAN from McastConfig.
+     *
+     * @return ingress VLAN or VlanId.NONE if not configured
+     */
+    private VlanId ingressVlan() {
+        McastConfig mcastConfig =
+                srManager.cfgService.getConfig(coreAppId, McastConfig.class);
+        return (mcastConfig != null) ? mcastConfig.ingressVlan() : VlanId.NONE;
+    }
+
+    /**
      * Gets egress VLAN from McastConfig.
      *
      * @return egress VLAN or VlanId.NONE if not configured
@@ -1286,7 +1308,7 @@ public class McastHandler {
      * @return spine-facing port on ingress device
      */
     private PortNumber ingressTransitPort(IpAddress mcastIp) {
-        DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+        DeviceId ingressDevice = getDevice(mcastIp, INGRESS)
                 .stream().findAny().orElse(null);
         if (ingressDevice != null) {
             NextObjective nextObj = mcastNextObjStore
@@ -1347,7 +1369,8 @@ public class McastHandler {
      * @param assignedVlan assigned VLAN ID
      * @param mcastIp multicast IP address
      */
-    private void removeFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan, IpAddress mcastIp) {
+    private void removeFilterToDevice(DeviceId deviceId, PortNumber port,
+                                      VlanId assignedVlan, IpAddress mcastIp, McastRole mcastRole) {
         // Do nothing if the port is configured as suppressed
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
         SegmentRoutingAppConfig appConfig = srManager.cfgService
@@ -1366,7 +1389,7 @@ public class McastHandler {
         }
 
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(port, assignedVlan, mcastIp, routerMac);
+                filterObjBuilder(port, assignedVlan, mcastIp, routerMac, mcastRole);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully removed filter on {}/{}, vlan {}",
                                          deviceId, port.toLong(), assignedVlan),
@@ -1397,9 +1420,9 @@ public class McastHandler {
                 ConnectPoint source = srManager.multicastRouteService.fetchSource(mcastRoute);
                 if (source.deviceId().equals(deviceId) && source.port().equals(portNum)) {
                     if (install) {
-                        addFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group());
+                        addFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group(), INGRESS);
                     } else {
-                        removeFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group());
+                        removeFilterToDevice(deviceId, portNum, vlanId, mcastRoute.group(), null);
                     }
                 }
             });
@@ -1455,11 +1478,11 @@ public class McastHandler {
 
                         // For each group we get current information in the store
                         // and issue a check of the next objectives in place
-                        DeviceId ingressDevice = getDevice(mcastIp, McastRole.INGRESS)
+                        DeviceId ingressDevice = getDevice(mcastIp, INGRESS)
                                 .stream().findAny().orElse(null);
-                        DeviceId transitDevice = getDevice(mcastIp, McastRole.TRANSIT)
+                        DeviceId transitDevice = getDevice(mcastIp, TRANSIT)
                                 .stream().findAny().orElse(null);
-                        Set<DeviceId> egressDevices = getDevice(mcastIp, McastRole.EGRESS);
+                        Set<DeviceId> egressDevices = getDevice(mcastIp, EGRESS);
                         // Get source and sinks from Mcast Route Service and warn about errors
                         ConnectPoint source = getSource(mcastIp);
                         Set<ConnectPoint> sinks = getSinks(mcastIp);

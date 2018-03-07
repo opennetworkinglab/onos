@@ -467,8 +467,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // Use the VLAN in criterion if metadata is not present and the traffic is tagged
             if (!vidCriterion.vlanId().equals(VlanId.NONE)) {
                 assignedVlan = vidCriterion.vlanId();
-            } else if (filt.meta() != null) {
-                assignedVlan = readVlanFromTreatment(filt.meta());
+            }
+            // If the meta VLAN is present let's update the assigned vlan
+            if (filt.meta() != null) {
+                VlanId metaVlan = readVlanFromTreatment(filt.meta());
+                if (metaVlan != null) {
+                    assignedVlan = metaVlan;
+                }
             }
 
             if (assignedVlan == null) {
