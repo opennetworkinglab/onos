@@ -176,6 +176,9 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
+        } else if (!vidCriterion.vlanId().equals(assignedVlan)) {
+            // Rewrite with assigned vlans
+            treatment.setVlanId(assignedVlan);
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
