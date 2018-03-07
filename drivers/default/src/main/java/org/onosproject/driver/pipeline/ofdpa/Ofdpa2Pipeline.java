@@ -619,7 +619,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 filteringRules.add(preRule);
             }
         }
-        return ImmutableList.of(assignmentRules, filteringRules);
+        return ImmutableList.of(filteringRules, assignmentRules);
     }
 
     /**
