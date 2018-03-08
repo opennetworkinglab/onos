@@ -18,26 +18,37 @@ module tapi-path-computation {
         Source: TapiPathComputation.uml
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0";
-    revision 2018-02-16 {
-        description "ONF Transport API version 2.0.1
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
         This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
         <https://wiki.opennetworking.org/display/OIMT/IISOMI>
-        Changes in this revision: <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/blob/develop/change-log.md>";
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/change-log.md>";
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
-                  <https://github.com/OpenNetworkingFoundation/Snowmass-ONFOpenTransport/tree/develop/UML>";
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/develop/UML>";
     }
     augment "/tapi-common:context" {
         uses path-computation-context;
         description "Augments the base TAPI Context with PathComputationService information";
     }
+
+    /*************************
+    * definitions of refrences
+    *************************/
+    grouping path-ref {
+        leaf path-id {
+            type leafref {
+                path '/tapi-common:context/tapi-path-computation:path/tapi-path-computation:uuid';
+            }
+        }
+    }
+
     /***********************
     * package object-classes
-    **********************/ 
+    **********************/
         grouping path {
-            leaf-list link {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
-                }
+            list link {
+                uses tapi-topology:link-ref;
+                key 'topology-id link-id';
                 config false;
                 min-elements 1;
                 description "none";
@@ -75,18 +86,17 @@ module tapi-path-computation {
             }
             uses tapi-common:local-class;
             description "The association of the FC to LTPs is made via EndPoints.
-                The EndPoint (EP) object class models the access to the FC function. 
-                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.  
-                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC. 
+                The EndPoint (EP) object class models the access to the FC function.
+                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.
+                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC.
                 It can represent a protected (resilient/reliable) point or a protecting (unreliable working or protection) point.
-                The EP replaces the Protection Unit of a traditional protection model. 
+                The EP replaces the Protection Unit of a traditional protection model.
                 The ForwadingConstruct can be considered as a component and the EndPoint as a Port on that component";
         }
         grouping path-computation-service {
-            leaf-list path {
-                type leafref {
-                    path '/tapi-common:context/tapi-path-computation:path/tapi-path-computation:uuid';
-                }
+            list path {
+                uses path-ref;
+                key 'path-id';
                 config false;
                 min-elements 1;
                 description "none";
@@ -179,10 +189,9 @@ module tapi-path-computation {
                 uses tapi-topology:latency-characteristic;
                 description "The effect on the latency of a queuing process. This only has significant effect for packet based systems and has a complex characteristic.";
             }
-            leaf-list include-topology {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
-                }
+            list include-topology {
+                uses tapi-topology:topology-ref;
+                key 'topology-id';
                 config false;
                 description "none";
             }

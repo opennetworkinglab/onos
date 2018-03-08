@@ -42,12 +42,12 @@ import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
 
 // import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180216.TapiConnectivity;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180216.TapiConnectivityService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.TapiConnectivityService;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180216.
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.
     tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180216.
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.
     tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
 
 
@@ -237,6 +237,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface createConnectivityService
          * @return rpcOutput output of service interface createConnectivityService
          */
+        @Override
         public RpcOutput createConnectivityService(RpcInput inputVar) {
             DataNode data = inputVar.data();
             ResourceId rid = inputVar.id();
@@ -266,6 +267,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface deleteConnectivityService
          * @return rpcOutput output of service interface deleteConnectivityService
          */
+        @Override
         public RpcOutput deleteConnectivityService(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
         }
@@ -278,6 +280,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface getConnectionDetails
          * @return rpcOutput output of service interface getConnectionDetails
          */
+        @Override
         public RpcOutput getConnectionDetails(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
 
@@ -289,6 +292,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface getConnectivityServiceList
          * @return rpcOutput output of service interface getConnectivityServiceList
          */
+        @Override
         public RpcOutput getConnectivityServiceList(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
 
@@ -300,6 +304,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface getConnectivityServiceDetails
          * @return rpcOutput output of service interface getConnectivityServiceDetails
          */
+        @Override
         public RpcOutput getConnectivityServiceDetails(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
 
@@ -312,6 +317,7 @@ public class ServiceApplicationComponent {
          * @param inputVar input of service interface updateConnectivityService
          * @return rpcOutput output of service interface updateConnectivityService
          */
+        @Override
         public RpcOutput updateConnectivityService(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
 
