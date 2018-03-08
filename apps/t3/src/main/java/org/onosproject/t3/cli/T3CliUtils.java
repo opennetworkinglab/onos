@@ -91,12 +91,12 @@ final class T3CliUtils {
                     if (previous == null || !previous.deviceId().equals(connectPoint.deviceId())) {
                         tracePrint.append("Device " + connectPoint.deviceId());
                         tracePrint.append("\n");
-                        tracePrint.append("Input from " + connectPoint);
+                        tracePrint.append("    Input from " + connectPoint);
                         tracePrint.append("\n");
                         tracePrint = printFlows(trace, verbose, connectPoint, tracePrint);
                     } else {
                         tracePrint = printGroups(trace, verbose, connectPoint, tracePrint);
-                        tracePrint.append("Output through " + connectPoint);
+                        tracePrint.append("    Output through " + connectPoint);
                         tracePrint.append("\n");
                     }
                     previous = connectPoint;
@@ -111,17 +111,17 @@ final class T3CliUtils {
     //Prints the flows for a given trace and a specified level of verbosity
     private static StringBuilder printFlows(StaticPacketTrace trace, boolean verbose, ConnectPoint connectPoint,
                                             StringBuilder tracePrint) {
-        tracePrint.append("Flows ");
+        tracePrint.append("    Flows ");
         tracePrint.append(trace.getFlowsForDevice(connectPoint.deviceId()).size());
-        tracePrint.append("\n");
+        tracePrint.append("    \n");
         trace.getFlowsForDevice(connectPoint.deviceId()).forEach(f -> {
             if (verbose) {
-                tracePrint.append(String.format(FLOW_SHORT_FORMAT, f.state(), f.bytes(), f.packets(),
+                tracePrint.append("    " + String.format(FLOW_SHORT_FORMAT, f.state(), f.bytes(), f.packets(),
                         f.table(), f.priority(), f.selector().criteria(),
                         printTreatment(f.treatment())));
                 tracePrint.append("\n");
             } else {
-                tracePrint.append(String.format("   flowId=%s, table=%s, selector=%s", f.id(), f.table(),
+                tracePrint.append(String.format("       flowId=%s, table=%s, selector=%s", f.id(), f.table(),
                         f.selector().criteria()));
                 tracePrint.append("\n");
             }
@@ -134,30 +134,30 @@ final class T3CliUtils {
                                              StringBuilder tracePrint) {
         List<GroupsInDevice> groupsInDevice = trace.getGroupOuputs(connectPoint.deviceId());
         if (groupsInDevice != null) {
-            tracePrint.append("Groups");
+            tracePrint.append("    Groups");
             tracePrint.append("\n");
             groupsInDevice.forEach(output -> {
                 if (output.getOutput().equals(connectPoint)) {
                     output.getGroups().forEach(group -> {
                         if (verbose) {
-                            tracePrint.append(String.format(GROUP_FORMAT, Integer.toHexString(group.id().id()),
+                            tracePrint.append("    " + String.format(GROUP_FORMAT, Integer.toHexString(group.id().id()),
                                     group.state(), group.type(), group.bytes(), group.packets(),
                                     group.appId().name(), group.referenceCount()));
                             tracePrint.append("\n");
                             int i = 0;
                             for (GroupBucket bucket : group.buckets().buckets()) {
-                                tracePrint.append(String.format(GROUP_BUCKET_FORMAT,
+                                tracePrint.append("    " + String.format(GROUP_BUCKET_FORMAT,
                                         Integer.toHexString(group.id().id()),
                                         ++i, bucket.bytes(), bucket.packets(),
                                         bucket.treatment().allInstructions()));
                                 tracePrint.append("\n");
                             }
                         } else {
-                            tracePrint.append("   groupId=" + group.id());
+                            tracePrint.append("       groupId=" + group.id());
                             tracePrint.append("\n");
                         }
                     });
-                    tracePrint.append("Outgoing Packet " + output.getFinalPacket());
+                    tracePrint.append("    Outgoing Packet " + output.getFinalPacket());
                     tracePrint.append("\n");
                 }
             });
