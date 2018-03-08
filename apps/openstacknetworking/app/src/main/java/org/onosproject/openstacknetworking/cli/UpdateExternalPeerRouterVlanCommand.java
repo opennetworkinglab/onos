@@ -24,6 +24,10 @@ import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.Router;
+import org.openstack4j.model.network.Subnet;
 
 import java.util.List;
 
@@ -47,37 +51,62 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackRouterService osRouterService = AbstractShellCommand.get(OpenstackRouterService.class);
 
         IpAddress externalPeerIpAddress = IpAddress.valueOf(
                 IpAddress.Version.INET, Ip4Address.valueOf(ipAddress).toOctets());
 
-        if (service.externalPeerRouters().isEmpty()) {
+        if (osNetService.externalPeerRouters().isEmpty()) {
             print(NO_ELEMENT);
             return;
-        } else if (service.externalPeerRouters().stream()
+        } else if (osNetService.externalPeerRouters().stream()
                 .noneMatch(router -> router.externalPeerRouterIp().toString().equals(ipAddress))) {
             print(NO_ELEMENT);
             return;
         }
 
+        Subnet subnet = osNetService.subnets().stream()
+                .filter(s -> s.getGateway().equals(ipAddress))
+                .findAny().orElse(null);
+        if (subnet == null) {
+            return;
+        }
+
+        Network network = osNetService.network(subnet.getNetworkId());
+        if (network == null) {
+            return;
+        }
+
+        Router router = osRouterService.routers().stream()
+                .filter(r -> r.getExternalGatewayInfo().getNetworkId().equals(network.getId()))
+                .findAny().orElse(null);
+
+        if (router == null) {
+            return;
+        }
+
         try {
             if (vlanId.equals(NONE)) {
-                service.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.NONE);
+                osNetService.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.NONE);
+                osNetService.deriveExternalPeerRouterMac(router.getExternalGatewayInfo(), router, VlanId.NONE);
             } else {
-                service.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.vlanId(vlanId));
+                osNetService.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.vlanId(vlanId));
+                osNetService.deriveExternalPeerRouterMac(
+                        router.getExternalGatewayInfo(), router, VlanId.vlanId(vlanId));
+
             }
         } catch (IllegalArgumentException e) {
             log.error("Exception occurred because of {}", e.toString());
         }
 
         print(FORMAT, "Router IP", "Mac Address", "VLAN ID");
-        List<ExternalPeerRouter> routers = Lists.newArrayList(service.externalPeerRouters());
+        List<ExternalPeerRouter> routers = Lists.newArrayList(osNetService.externalPeerRouters());
 
-        for (ExternalPeerRouter router: routers) {
-            print(FORMAT, router.externalPeerRouterIp(),
-                    router.externalPeerRouterMac().toString(),
-                    router.externalPeerRouterVlanId());
+        for (ExternalPeerRouter r: routers) {
+            print(FORMAT, r.externalPeerRouterIp(),
+                    r.externalPeerRouterMac().toString(),
+                    r.externalPeerRouterVlanId());
         }
     }
 }

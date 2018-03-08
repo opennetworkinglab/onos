@@ -34,8 +34,8 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -112,6 +112,7 @@ public class OpenstackRoutingArpHandler {
                     .filter(ip -> ip.getFloatingIpAddress().equals(targetIp.toString()))
                     .findAny().orElse(null);
 
+            //In case target ip is for associated floating ip, sets target mac to vm's.
             if (floatingIP != null && floatingIP.getPortId() != null) {
                 targetMac = MacAddress.valueOf(osNetworkService.port(floatingIP.getPortId()).getMacAddress());
             }
@@ -128,9 +129,9 @@ public class OpenstackRoutingArpHandler {
             Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                     targetMac, ethernet);
 
+
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setOutput(context.inPacket().receivedFrom().port())
-                    .build();
+                    .setOutput(context.inPacket().receivedFrom().port()).build();
 
             packetService.emit(new DefaultOutboundPacket(
                     context.inPacket().receivedFrom().deviceId(),

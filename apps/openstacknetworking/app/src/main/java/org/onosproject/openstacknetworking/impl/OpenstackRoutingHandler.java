@@ -49,6 +49,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
@@ -211,16 +212,17 @@ public class OpenstackRoutingHandler {
             setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), !osRouter.isAdminStateUp());
         });
 
+
+        ExternalPeerRouter externalPeerRouter = osNetworkService.externalPeerRouter(exGateway);
+        VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.externalPeerRouterVlanId();
+
         if (exGateway == null) {
             osNetworkService.deleteExternalPeerRouter(exGateway);
-            osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
-                setSourceNat(osRouter, iface, false);
-            });
+            osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> setSourceNat(iface, false));
         } else {
-            osNetworkService.deriveExternalPeerRouterMac(exGateway, osRouter);
-            osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
-                setSourceNat(osRouter, iface, exGateway.isEnableSnat());
-            });
+            osNetworkService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
+            osRouterService.routerInterfaces(osRouter.getId()).forEach(iface ->
+                    setSourceNat(iface, exGateway.isEnableSnat()));
         }
     }
 
@@ -251,7 +253,7 @@ public class OpenstackRoutingHandler {
         setGatewayIcmp(osSubnet, true);
         ExternalGateway exGateway = osRouter.getExternalGatewayInfo();
         if (exGateway != null && exGateway.isEnableSnat()) {
-            setSourceNat(osRouter, osRouterIface, true);
+            setSourceNat(osRouterIface, true);
         }
         log.info("Connected subnet({}) to {}", osSubnet.getCidr(), osRouter.getName());
     }
@@ -275,12 +277,12 @@ public class OpenstackRoutingHandler {
         setGatewayIcmp(osSubnet, false);
         ExternalGateway exGateway = osRouter.getExternalGatewayInfo();
         if (exGateway != null && exGateway.isEnableSnat()) {
-            setSourceNat(osRouter, osRouterIface, false);
+            setSourceNat(osRouterIface, false);
         }
         log.info("Disconnected subnet({}) from {}", osSubnet.getCidr(), osRouter.getName());
     }
 
-    private void setSourceNat(Router osRouter, RouterInterface routerIface, boolean install) {
+    private void setSourceNat(RouterInterface routerIface, boolean install) {
         Subnet osSubnet = osNetworkService.subnet(routerIface.getSubnetId());
         Network osNet = osNetworkService.network(osSubnet.getNetworkId());
 
@@ -320,8 +322,8 @@ public class OpenstackRoutingHandler {
 
         osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY)
                 .forEach(gwNode -> {
-                        instancePortService.instancePorts(netId).stream()
-                            .forEach(port -> setRulesForSnatIngressRule(gwNode.intgBridge(),
+                        instancePortService.instancePorts(netId)
+                                .forEach(port -> setRulesForSnatIngressRule(gwNode.intgBridge(),
                                     Long.parseLong(osNet.getProviderSegID()),
                                     IpPrefix.valueOf(port.ipAddress(), 32),
                                     port.deviceId(),
@@ -427,13 +429,11 @@ public class OpenstackRoutingHandler {
         }
 
         IpAddress gatewayIp = IpAddress.valueOf(osSubnet.getGateway());
-        osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
+        osNodeService.completeNodes(GATEWAY).forEach(gNode ->
             setGatewayIcmpRule(
                     gatewayIp,
                     gNode.intgBridge(),
-                    install
-            );
-        });
+                    install));
 
         final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
         log.debug(updateStr + "ICMP to {}", osSubnet.getGateway());

@@ -24,7 +24,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -43,6 +42,7 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
@@ -192,23 +192,24 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
-        MacAddress externalPeerRouterMac = externalPeerRouterMac(srcSubnet);
-        if (externalPeerRouterMac == null) {
+        ExternalPeerRouter externalPeerRouter = externalPeerRouter(srcSubnet);
+        if (externalPeerRouter == null) {
             return;
         }
 
         populateSnatFlowRules(context.inPacket(),
                 srcInstPort,
                 TpPort.tpPort(patPort),
-                externalGatewayIp, externalPeerRouterMac);
+                externalGatewayIp, externalPeerRouter);
+
 
         packetOut(eth.duplicate(),
                 packetIn.receivedFrom().deviceId(),
                 patPort,
-                externalGatewayIp, externalPeerRouterMac);
+                externalGatewayIp, externalPeerRouter);
     }
 
-    private MacAddress externalPeerRouterMac(Subnet subnet) {
+    private ExternalPeerRouter externalPeerRouter(Subnet subnet) {
         RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
                 .findAny().orElse(null);
@@ -225,8 +226,7 @@ public class OpenstackRoutingSnatHandler {
         }
 
         ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-
-        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
+        return osNetworkService.externalPeerRouter(exGatewayInfo);
     }
 
     private Subnet getSourceSubnet(InstancePort instance, IpAddress srcIp) {
@@ -282,7 +282,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void populateSnatFlowRules(InboundPacket packetIn, InstancePort srcInstPort,
-                                       TpPort patPort, IpAddress externalIp, MacAddress externalPeerRouterMac) {
+                                       TpPort patPort, IpAddress externalIp, ExternalPeerRouter externalPeerRouter) {
         Network osNet = osNetworkService.network(srcInstPort.networkId());
         if (osNet == null) {
             final String error = String.format("%s network %s not found",
@@ -294,13 +294,14 @@ public class OpenstackRoutingSnatHandler {
                 osNet.getProviderSegID(),
                 osNet.getNetworkType(),
                 externalIp,
+                externalPeerRouter,
                 patPort,
                 packetIn);
 
         setUpstreamRules(osNet.getProviderSegID(),
                 osNet.getNetworkType(),
                 externalIp,
-                externalPeerRouterMac,
+                externalPeerRouter,
                 patPort,
                 packetIn);
     }
@@ -308,6 +309,7 @@ public class OpenstackRoutingSnatHandler {
     private void setDownstreamRules(InstancePort srcInstPort, String segmentId,
                                     NetworkType networkType,
                                     IpAddress externalIp,
+                                    ExternalPeerRouter externalPeerRouter,
                                     TpPort patPort,
                                     InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();
@@ -322,6 +324,11 @@ public class OpenstackRoutingSnatHandler {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setEthDst(packetIn.parsed().getSourceMAC())
                 .setIpDst(internalIp);
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            sBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId());
+            tBuilder.popVlan();
+        }
 
         switch (networkType) {
             case VXLAN:
@@ -389,7 +396,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void setUpstreamRules(String segmentId, NetworkType networkType,
-                                  IpAddress externalIp, MacAddress externalPeerRouterMac,
+                                  IpAddress externalIp, ExternalPeerRouter externalPeerRouter,
                                   TpPort patPort,
                                   InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();
@@ -422,18 +429,22 @@ public class OpenstackRoutingSnatHandler {
                 sBuilder.matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
                         .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 tBuilder.setTcpSrc(patPort)
-                        .setEthDst(externalPeerRouterMac);
+                        .setEthDst(externalPeerRouter.externalPeerRouterMac());
                 break;
             case IPv4.PROTOCOL_UDP:
                 UDP udpPacket = (UDP) iPacket.getPayload();
                 sBuilder.matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
                         .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 tBuilder.setUdpSrc(patPort)
-                        .setEthDst(externalPeerRouterMac);
+                        .setEthDst(externalPeerRouter.externalPeerRouterMac());
                 break;
             default:
                 log.debug("Unsupported IPv4 protocol {}");
                 break;
+        }
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
         }
 
         tBuilder.setIpSrc(externalIp);
@@ -454,7 +465,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void packetOut(Ethernet ethPacketIn, DeviceId srcDevice, int patPort,
-                           IpAddress externalIp, MacAddress externalPeerRouterMac) {
+                           IpAddress externalIp, ExternalPeerRouter externalPeerRouter) {
         IPv4 iPacket = (IPv4) ethPacketIn.getPayload();
         switch (iPacket.getProtocol()) {
             case IPv4.PROTOCOL_TCP:
@@ -479,8 +490,14 @@ public class OpenstackRoutingSnatHandler {
         iPacket.setSourceAddress(externalIp.toString());
         iPacket.resetChecksum();
         iPacket.setParent(ethPacketIn);
-        ethPacketIn.setDestinationMACAddress(externalPeerRouterMac);
+        ethPacketIn.setSourceMACAddress(DEFAULT_GATEWAY_MAC);
+        ethPacketIn.setDestinationMACAddress(externalPeerRouter.externalPeerRouterMac());
         ethPacketIn.setPayload(iPacket);
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            ethPacketIn.setVlanID(externalPeerRouter.externalPeerRouterVlanId().toShort());
+        }
+
         ethPacketIn.resetChecksum();
 
         OpenstackNode srcNode = osNodeService.node(srcDevice);
@@ -490,11 +507,11 @@ public class OpenstackRoutingSnatHandler {
             throw new IllegalStateException(error);
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(srcNode.uplinkPortNum()).build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
         packetService.emit(new DefaultOutboundPacket(
                 srcDevice,
-                treatment,
+                tBuilder.setOutput(srcNode.uplinkPortNum()).build(),
                 ByteBuffer.wrap(ethPacketIn.serialize())));
     }
 

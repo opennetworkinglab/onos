@@ -124,7 +124,6 @@ public class OpenstackNetworkManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
-
     private final OpenstackNetworkStoreDelegate delegate = new InternalNetworkStoreDelegate();
 
     private ConsistentMap<String, ExternalPeerRouter> externalPeerRouterMap;
@@ -342,7 +341,22 @@ public class OpenstackNetworkManager
     }
 
     @Override
-    public void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router) {
+    public ExternalPeerRouter externalPeerRouter(ExternalGateway externalGateway) {
+        IpAddress ipAddress = getExternalPeerRouterIp(externalGateway);
+
+        if (ipAddress == null) {
+            return null;
+        }
+
+        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
+            return externalPeerRouterMap.get(ipAddress.toString()).value();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router, VlanId vlanId) {
         log.info("deriveExternalPeerRouterMac called");
 
         IpAddress sourceIp = getExternalGatewaySourceIp(externalGateway, router);
@@ -364,7 +378,7 @@ public class OpenstackNetworkManager
         Ethernet ethRequest = ARP.buildArpRequest(sourceMac.toBytes(),
                 sourceIp.toOctets(),
                 targetIp.toOctets(),
-                VlanId.NO_VID);
+                vlanId.id());
 
         if (osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY).isEmpty()) {
             log.warn("There's no complete gateway");
@@ -400,7 +414,7 @@ public class OpenstackNetworkManager
                 ByteBuffer.wrap(ethRequest.serialize())));
 
         externalPeerRouterMap.put(
-                targetIp.toString(), new DefaultExternalPeerRouter(targetIp, MacAddress.NONE, VlanId.NONE));
+                targetIp.toString(), new DefaultExternalPeerRouter(targetIp, MacAddress.NONE, vlanId));
 
         log.info("Initializes external peer router map with peer router IP {}", targetIp.toString());
     }
@@ -427,32 +441,6 @@ public class OpenstackNetworkManager
             externalPeerRouterMap.remove(ipAddress);
         }
 
-    }
-    private IpAddress getExternalGatewaySourceIp(ExternalGateway externalGateway, Router router) {
-        Port exGatewayPort = ports(externalGateway.getNetworkId())
-                .stream()
-                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
-                .findAny().orElse(null);
-        if (exGatewayPort == null) {
-            log.warn("no external gateway port for router({})", router.getName());
-            return null;
-        }
-
-        IP ipAddress = exGatewayPort.getFixedIps().stream().findFirst().orElse(null);
-
-        return ipAddress == null ? null : IpAddress.valueOf(ipAddress.getIpAddress());
-    }
-
-    private IpAddress getExternalPeerRouterIp(ExternalGateway externalGateway) {
-        Optional<Subnet> externalSubnet = subnets(externalGateway.getNetworkId())
-                .stream()
-                .findFirst();
-
-        if (externalSubnet.isPresent()) {
-            return IpAddress.valueOf(externalSubnet.get().getGateway());
-        } else {
-            return null;
-        }
     }
 
     @Override
@@ -497,9 +485,9 @@ public class OpenstackNetworkManager
     public void updateExternalPeerRouterVlan(IpAddress ipAddress, VlanId vlanId) {
 
         try {
-            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) -> {
-                return new DefaultExternalPeerRouter(ipAddress, existing.externalPeerRouterMac(), vlanId);
-            });
+            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
+                    new DefaultExternalPeerRouter(ipAddress, existing.externalPeerRouterMac(), vlanId));
+
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());
         }
@@ -533,5 +521,28 @@ public class OpenstackNetworkManager
                 process(event);
             }
         }
+    }
+
+    private IpAddress getExternalGatewaySourceIp(ExternalGateway externalGateway, Router router) {
+        Port exGatewayPort = ports(externalGateway.getNetworkId())
+                .stream()
+                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
+                .findAny().orElse(null);
+        if (exGatewayPort == null) {
+            log.warn("no external gateway port for router({})", router.getName());
+            return null;
+        }
+
+        IP ipAddress = exGatewayPort.getFixedIps().stream().findFirst().orElse(null);
+
+        return ipAddress == null ? null : IpAddress.valueOf(ipAddress.getIpAddress());
+    }
+
+    private IpAddress getExternalPeerRouterIp(ExternalGateway externalGateway) {
+        Optional<Subnet> externalSubnet = subnets(externalGateway.getNetworkId())
+                .stream()
+                .findFirst();
+
+        return externalSubnet.map(subnet -> IpAddress.valueOf(subnet.getGateway())).orElse(null);
     }
 }

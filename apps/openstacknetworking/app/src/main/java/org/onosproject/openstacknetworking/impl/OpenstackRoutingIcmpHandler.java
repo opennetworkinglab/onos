@@ -26,6 +26,7 @@ import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -39,6 +40,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -177,25 +179,25 @@ public class OpenstackRoutingIcmpHandler {
                                    ICMP icmp) {
         InstancePort instPort = instancePortService.instancePort(srcMac);
         if (instPort == null) {
-            log.trace(ERR_REQ + "unknown source host(MAC:{})", srcMac);
+            log.info(ERR_REQ + "unknown source host(MAC:{})", srcMac);
             return;
         }
 
         IpAddress srcIp = IpAddress.valueOf(ipPacket.getSourceAddress());
         Subnet srcSubnet = getSourceSubnet(instPort, srcIp);
         if (srcSubnet == null) {
-            log.trace(ERR_REQ + "unknown source subnet(IP:{})", srcIp);
+            log.info(ERR_REQ + "unknown source subnet(IP:{})", srcIp);
             return;
         }
         if (Strings.isNullOrEmpty(srcSubnet.getGateway())) {
-            log.trace(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no gateway",
+            log.info(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no gateway",
                     srcSubnet.getId(), srcSubnet.getCidr());
             return;
         }
 
-        MacAddress externalPeerRouterMac = externalPeerRouterMac(srcSubnet);
-        if (externalPeerRouterMac == null) {
-            log.trace(ERR_REQ + "failed to get external peer router mac");
+        ExternalPeerRouter externalPeerRouter = externalPeerRouter(srcSubnet);
+        if (externalPeerRouter == null) {
+            log.info(ERR_REQ + "failed to get external peer router");
             return;
         }
 
@@ -210,7 +212,7 @@ public class OpenstackRoutingIcmpHandler {
                 return;
             }
 
-            sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouterMac(srcSubnet));
+            sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouter);
             String icmpInfoKey = String.valueOf(getIcmpId(icmp))
                     .concat(String.valueOf(externalIp.getIp4Address().toInt()))
                     .concat(String.valueOf(ipPacket.getDestinationAddress()));
@@ -226,7 +228,7 @@ public class OpenstackRoutingIcmpHandler {
         }
     }
 
-    private MacAddress externalPeerRouterMac(Subnet subnet) {
+    private ExternalPeerRouter externalPeerRouter(Subnet subnet) {
         RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
                 .findAny().orElse(null);
@@ -244,7 +246,7 @@ public class OpenstackRoutingIcmpHandler {
 
         ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
 
-        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
+        return osNetworkService.externalPeerRouter(exGatewayInfo);
     }
 
     private void handleEchoReply(IPv4 ipPacket, ICMP icmp) {
@@ -355,7 +357,7 @@ public class OpenstackRoutingIcmpHandler {
     }
 
     private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice,
-                                        IpAddress srcNatIp, MacAddress externalRouterMac) {
+                                        IpAddress srcNatIp, ExternalPeerRouter externalPeerRouter) {
         ICMP icmpReq = (ICMP) ipPacket.getPayload();
         icmpReq.resetChecksum();
         ipPacket.setSourceAddress(srcNatIp.getIp4Address().toInt()).resetChecksum();
@@ -364,8 +366,13 @@ public class OpenstackRoutingIcmpHandler {
         Ethernet icmpRequestEth = new Ethernet();
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
                 .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(externalRouterMac)
-                .setPayload(ipPacket);
+                .setDestinationMACAddress(externalPeerRouter.externalPeerRouterMac());
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            icmpRequestEth.setVlanID(externalPeerRouter.externalPeerRouterVlanId().toShort());
+        }
+
+        icmpRequestEth.setPayload(ipPacket);
 
         OpenstackNode osNode = osNodeService.node(srcDevice);
         if (osNode == null) {
@@ -386,7 +393,13 @@ public class OpenstackRoutingIcmpHandler {
     }
 
     private void processReplyFromExternal(IPv4 ipPacket, InstancePort instPort) {
+
+        if (instPort.networkId() == null) {
+            return;
+        }
+
         ICMP icmpReply = (ICMP) ipPacket.getPayload();
+
         icmpReply.resetChecksum();
 
         ipPacket.setDestinationAddress(instPort.ipAddress().getIp4Address().toInt())

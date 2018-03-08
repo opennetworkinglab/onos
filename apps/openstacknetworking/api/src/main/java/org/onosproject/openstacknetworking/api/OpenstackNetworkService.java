@@ -106,8 +106,9 @@ public interface OpenstackNetworkService
      *
      * @param externalGateway external gateway information
      * @param router router which owns externalGateway
+     * @param vlanId vlan id of external network
      */
-    void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router);
+    void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router, VlanId vlanId);
 
     /**
      * Deletes external router with supplied external gateway.
@@ -163,6 +164,14 @@ public interface OpenstackNetworkService
      * @return external peer router
      */
     ExternalPeerRouter externalPeerRouter(IpAddress ipAddress);
+
+    /**
+     * Returns external router with supplied external gateway.
+     *
+     * @param externalGateway external gateway information
+     * @return external router
+     */
+    ExternalPeerRouter externalPeerRouter(ExternalGateway externalGateway);
 
     /**
      * Returns external peer router list.
