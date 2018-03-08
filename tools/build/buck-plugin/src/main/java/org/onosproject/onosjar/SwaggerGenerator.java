@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Year;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -502,7 +503,9 @@ public class SwaggerGenerator {
                 src = src.replace("${api.package}", apiPackage)
                         .replace("${web.context}", webContext)
                         .replace("${api.title}", apiTitle)
-                        .replace("${api.description}", apiDescription);
+                        .replace("${api.description}", apiDescription)
+                        .replace("${year}", Year.now().toString());
+
                 Files.write(src.getBytes(), reg);
             } catch (IOException e) {
                 throw new RuntimeException("Unable to write " + reg, e);

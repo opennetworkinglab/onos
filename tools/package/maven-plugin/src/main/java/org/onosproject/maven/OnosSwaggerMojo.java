@@ -41,6 +41,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -477,7 +478,8 @@ public class OnosSwaggerMojo extends AbstractMojo {
                 src = src.replace("${api.package}", apiPackage)
                         .replace("${web.context}", webContext)
                         .replace("${api.title}", apiTitle)
-                        .replace("${api.description}", apiTitle);
+                        .replace("${api.description}", apiTitle)
+                        .replace("${year}", Year.now().toString());
                 Files.write(src.getBytes(), reg);
             } catch (IOException e) {
                 getLog().warn("Unable to write " + reg);

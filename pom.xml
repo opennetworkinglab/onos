@@ -70,6 +70,7 @@
 
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
+        <module>tools/package/maven-plugin</module>
 
         <module>pipelines</module>
     </modules>
