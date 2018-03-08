@@ -31,15 +31,19 @@ public abstract class Generator<T> implements Iterable<T> {
 
         synchronized void set() {
             isSet = true;
-            notify();
+            notifyAll();
         }
 
         synchronized void await() throws InterruptedException {
             try {
+
                 if (isSet) {
                     return;
                 }
-                wait();
+
+                while (!isSet) {
+                    wait();
+                }
             } finally {
                 isSet = false;
             }
@@ -113,8 +117,10 @@ public abstract class Generator<T> implements Iterable<T> {
 
     private void startProducer() {
         assert producer == null;
-        if (threadGroup == null) {
-            threadGroup = new ThreadGroup("onos-t3-generator");
+        synchronized (this) {
+            if (threadGroup == null) {
+                threadGroup = new ThreadGroup("onos-t3-generator");
+            }
         }
         producer = new Thread(threadGroup, () -> {
             try {
