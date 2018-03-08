@@ -19,6 +19,7 @@ package org.onosproject.dhcprelay;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import com.google.common.collect.Sets;
@@ -168,7 +169,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
     protected HostProviderService providerService;
     protected ApplicationId appId;
-    protected Multimap<DeviceId, VlanId> ignoredVlans = HashMultimap.create();
+    protected Multimap<DeviceId, VlanId> ignoredVlans = Multimaps.synchronizedMultimap(HashMultimap.create());
     private InternalHostListener hostListener = new InternalHostListener();
 
     private List<DhcpServerInfo> defaultServerInfoList = new CopyOnWriteArrayList<>();
