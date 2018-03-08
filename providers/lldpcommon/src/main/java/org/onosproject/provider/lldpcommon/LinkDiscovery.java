@@ -133,7 +133,7 @@ public class LinkDiscovery implements TimerTask {
         Long portNum = port.number().toLong();
         String portName = port.annotations().value(PORT_NAME);
 
-        boolean newPort = containsPort(portNum);
+        boolean newPort = !containsPort(portNum);
         portMap.put(portNum, portName);
 
         boolean isMaster = context.mastershipService().isLocalMaster(device.id());
