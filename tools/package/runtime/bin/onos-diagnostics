@@ -56,6 +56,7 @@ function usage() {
     exit 1
 }
 
+# TODO We should make SR commands optional
 CLI_COMMANDS=(
     "feature:repo-list"
     "feature:list"
@@ -85,11 +86,19 @@ CLI_COMMANDS=(
     "roles"
     "masters"
 
+    "fpm-connections"
     "routes"
     "obj-next-ids"
     "obj-pending-nexts"
 
-    "log:display -l WARN"
+    "sr-device-subnets"
+    "sr-ecmp-spg"
+    "sr-link-state"
+    "sr-mcast-next"
+    "sr-mcast-tree"
+    "sr-next-hops"
+    "pseudowires"
+    "dhcp-relay"
 )
 
 # Scan arguments for user/password or other options...
