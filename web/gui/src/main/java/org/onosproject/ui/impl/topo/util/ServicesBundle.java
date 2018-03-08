@@ -23,6 +23,7 @@ import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
@@ -41,6 +42,7 @@ public class ServicesBundle {
 
     private TopologyService topologyService;
     private DeviceService deviceService;
+    private DriverService driverService;
     private HostService hostService;
     private LinkService linkService;
     private TunnelService tunnelService;
@@ -102,6 +104,15 @@ public class ServicesBundle {
      */
     public DeviceService device() {
         return deviceService;
+    }
+
+    /**
+     * Returns a reference to the driver service.
+     *
+     * @return driver service reference
+     */
+    public DriverService driver() {
+        return driverService;
     }
 
     /**

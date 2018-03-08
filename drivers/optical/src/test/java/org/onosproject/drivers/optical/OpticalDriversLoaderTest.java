@@ -17,6 +17,7 @@ package org.onosproject.drivers.optical;
 
 import org.junit.Before;
 import org.onosproject.net.driver.AbstractDriverLoaderTest;
+import org.onosproject.ui.UiExtensionServiceAdapter;
 
 /**
  * Optical drivers loader test.
@@ -26,5 +27,6 @@ public class OpticalDriversLoaderTest extends AbstractDriverLoaderTest {
     @Before
     public void setUp() {
         loader = new OpticalDriversLoader();
+        ((OpticalDriversLoader) loader).uiExtensionService = new UiExtensionServiceAdapter();
     }
 }

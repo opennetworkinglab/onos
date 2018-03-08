@@ -104,6 +104,7 @@
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.OpenFlowLambdaQuery"/>
         <property name="meterCapable">false</property>
+        <property name="uiType">policon</property>
     </driver>
 
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">

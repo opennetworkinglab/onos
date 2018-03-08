@@ -295,7 +295,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         Device device = event.subject();
         String uiType = device.annotations().value(AnnotationKeys.UI_TYPE);
         String devType = uiType != null ? uiType :
-                device.type().toString().toLowerCase();
+            services.driver().getDriver(device.id()).getProperty(AnnotationKeys.UI_TYPE);
+        if (devType == null) {
+            devType = device.type().toString().toLowerCase();
+        }
         String name = device.annotations().value(AnnotationKeys.NAME);
         name = isNullOrEmpty(name) ? device.id().toString() : name;
 
