@@ -25,7 +25,7 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
-import org.openstack4j.model.identity.v2.Access;
+import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
@@ -66,6 +66,8 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String password = null;
 
+    private static final String DOMAIN_DEFUALT = "default";
+
     private static final String SECURITY_GROUP_FORMAT = "%-40s%-20s";
     private static final String NETWORK_FORMAT = "%-40s%-20s%-20s%-8s";
     private static final String SUBNET_FORMAT = "%-40s%-20s%-20s";
@@ -82,14 +84,14 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
 
-        Access osAccess;
+        OSClient.OSClientV3 osClient;
         try {
-            osAccess = OSFactory.builderV2()
+            osClient = OSFactory.builderV3()
                     .endpoint(this.endpoint)
-                    .tenantName(this.tenant)
-                    .credentials(this.user, this.password)
-                    .authenticate()
-                    .getAccess();
+                    .credentials(this.user, this.password, Identifier.byName(DOMAIN_DEFUALT))
+                    .scopeToProject(Identifier.byName(this.tenant), Identifier.byName(DOMAIN_DEFUALT))
+                    .authenticate();
+
         } catch (AuthenticationException e) {
             print("Authentication failed");
             return;
@@ -97,8 +99,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             print("Failed to access OpenStack service");
             return;
         }
-
-        OSClient osClient = OSFactory.clientFromAccess(osAccess);
 
         print("Synchronizing OpenStack security groups");
         print(SECURITY_GROUP_FORMAT, "ID", "Name");
