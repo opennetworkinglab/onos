@@ -143,6 +143,8 @@ function topo {
     *)
         [ ! -f $ONOS_ROOT/tools/test/topos/$1.recipe ] && echo "No such topo recipe: $1" >&2 && return 1
         unset ONOS_TOPO OTD OTL OTH ONOS_DEVICES ONOS_HOSTS
+        ONOS_DEVICES=""
+        ONOS_HOSTS=""
         unset $(env | sed -n 's:\(^OT[DLH][0-9]\{1,\}\)=.*:\1 :g p')
         export ONOS_TOPO=$1
         . $ONOS_ROOT/tools/test/topos/$1.recipe
@@ -226,7 +228,7 @@ function cell {
         spec=${3:-3+1}
         spec=${spec/+/%2B}
         user=${4:-$(id -un)}
-        hint=${5}
+        hint=${5:""}
         query="duration=$duration&spec=$spec&user=$user&cellNameHint=$hint"
         curl -sS -X POST "http://$CELL_WARDEN:4321/?$query" -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
