@@ -391,6 +391,8 @@ public class TroubleshootManager implements TroubleshootService {
         //if the trace already contains the input connect point there is a loop
         if (pathContainsDevice(completePath, in.deviceId())) {
             trace.addResultMessage("Loop encountered in device " + in.deviceId());
+            completePath.add(in);
+            trace.addCompletePath(completePath);
             return trace;
         }
 
@@ -461,10 +463,14 @@ public class TroubleshootManager implements TroubleshootService {
                             }
                         }
                     }
+
                     //we use the pre-existing path up to the point we fork to a new output
                     if (inputForOutput != null && completePath.contains(inputForOutput)) {
                         List<ConnectPoint> temp = new ArrayList<>(previousPath);
-                        completePath = temp.subList(0, previousPath.indexOf(inputForOutput) + 1);
+                        temp = temp.subList(0, previousPath.indexOf(inputForOutput) + 1);
+                        if (completePath.containsAll(temp)) {
+                            completePath = temp;
+                        }
                     }
                 }
 
@@ -652,7 +658,7 @@ public class TroubleshootManager implements TroubleshootService {
             traverseList.add(output);
         }
         if (!trace.getCompletePaths().contains(traverseList)) {
-            trace.addCompletePath(traverseList);
+            trace.addCompletePath(ImmutableList.copyOf(traverseList));
             return true;
         }
         return false;
