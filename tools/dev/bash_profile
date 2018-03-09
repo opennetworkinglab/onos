@@ -228,7 +228,7 @@ function cell {
         spec=${3:-3+1}
         spec=${spec/+/%2B}
         user=${4:-$(id -un)}
-        hint=${5:""}
+        hint=${5:-""}
         query="duration=$duration&spec=$spec&user=$user&cellNameHint=$hint"
         curl -sS -X POST "http://$CELL_WARDEN:4321/?$query" -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
