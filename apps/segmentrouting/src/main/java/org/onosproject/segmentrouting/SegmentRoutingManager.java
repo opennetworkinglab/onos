@@ -430,6 +430,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         multicastRouteService.addListener(mcastListener);
         routeService.addListener(routeListener);
 
+        linkHandler.init();
+
         log.info("Started");
     }
 
