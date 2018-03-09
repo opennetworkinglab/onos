@@ -47,6 +47,7 @@ import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
@@ -94,6 +95,7 @@ public class DistributedHostStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
+    private AtomicCounter hostProbeIndex;
     private ConsistentMap<HostId, DefaultHost> hostsConsistentMap;
     private Map<HostId, DefaultHost> hosts;
     private Map<IpAddress, Set<Host>> hostsByIp;
@@ -157,6 +159,11 @@ public class DistributedHostStore
                 .build();
         pendingHostsConsistentMap.addListener(pendingHostListener);
         pendingHosts = pendingHostsConsistentMap.asJavaMap();
+
+        hostProbeIndex = storageService.atomicCounterBuilder()
+            .withName("onos-hosts-probe-index")
+            .build()
+            .asAtomicCounter();
 
         cacheCleaner.scheduleAtFixedRate(pendingHostsCache::cleanUp, 0,
                 PROBE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -412,7 +419,7 @@ public class DistributedHostStore
     @Override
     public MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         // Use ONLab OUI (3 bytes) + atomic counter (3 bytes) as the source MAC of the probe
-        long nextIndex = storageService.getAtomicCounter("onos-hosts-probe-index").getAndIncrement();
+        long nextIndex = hostProbeIndex.getAndIncrement();
         MacAddress probeMac = MacAddress.valueOf(MacAddress.NONE.toLong() + nextIndex);
         PendingHostLocation phl = new PendingHostLocation(hostId, connectPoint, probeMode);
 
