@@ -78,20 +78,43 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
     private static final String DEVICE_OWNER_GW = "network:router_gateway";
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
+    private static final String KEYSTONE_V2 = "v2.0";
+    private static final String KEYSTONE_V3 = "v3";
+
     @Override
     protected void execute() {
         OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
 
-        OSClient.OSClientV3 osClient;
-        try {
-            osClient = OSFactory.builderV3()
-                    .endpoint(this.endpoint)
-                    .credentials(this.user, this.password, Identifier.byName(DOMAIN_DEFUALT))
-                    .scopeToProject(Identifier.byName(this.tenant), Identifier.byName(DOMAIN_DEFUALT))
-                    .authenticate();
+        OSClient osClient;
 
+        try {
+            if (endpoint != null) {
+                if (endpoint.contains(KEYSTONE_V2)) {
+                    osClient = OSFactory.builderV2()
+                            .endpoint(this.endpoint)
+                            .tenantName(this.tenant)
+                            .credentials(this.user, this.password)
+                            .authenticate();
+                } else if (endpoint.contains(KEYSTONE_V3)) {
+
+                    Identifier project = Identifier.byName(this.tenant);
+                    Identifier domain = Identifier.byName(DOMAIN_DEFUALT);
+
+                    osClient = OSFactory.builderV3()
+                            .endpoint(this.endpoint)
+                            .credentials(this.user, this.password, domain)
+                            .scopeToProject(project, domain)
+                            .authenticate();
+                } else {
+                    print("Unrecognized keystone version type");
+                    return;
+                }
+            } else {
+                print("Need to specify a valid endpoint");
+                return;
+            }
         } catch (AuthenticationException e) {
             print("Authentication failed");
             return;

@@ -27,15 +27,21 @@ import java.util.SortedSet;
  */
 public class OpenStackEndPointCompleter implements Completer {
 
-    private static final String OPENSTACK_ENDPOINT_EXAMPLE =
+    private static final String OPENSTACK_ENDPOINT_EXAMPLE_V2 =
             "http://IP address of OpenStack end point:35357/v2.0 ProjectName ID Password";
+    private static final String OPENSTACK_ENDPOINT_EXAMPLE_V3 =
+            "http://IP address of OpenStack end point/identity/v3 ProjectName ID Password";
+    private static final String SEPARATOR = "\n or \n";
+
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
 
         SortedSet<String> strings = delegate.getStrings();
 
-        strings.add(OPENSTACK_ENDPOINT_EXAMPLE);
+        strings.add(OPENSTACK_ENDPOINT_EXAMPLE_V2);
+        strings.add(SEPARATOR);
+        strings.add(OPENSTACK_ENDPOINT_EXAMPLE_V3);
 
         return delegate.complete(buffer, cursor, candidates);
     }
