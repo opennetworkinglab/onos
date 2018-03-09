@@ -71,8 +71,8 @@
                     requires="~P2P-Intent.ExpectExceptionMarkEnd"/>
 
         <step name="P2P-Intent.Remove-Intent-XY" requires="~P2P-Intent.Net-Link-Down-Up"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli xy"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli xy"/>
         <step name="P2P-Intent.Remove-Intent-YX" requires="~P2P-Intent.Net-Link-Down-Up"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli yx"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli yx"/>
     </group>
 </scenario>

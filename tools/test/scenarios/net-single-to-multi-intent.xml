@@ -60,12 +60,12 @@
 
         <!-- Clean up intents -->
         <step name="S2M-Intent.Remove-Intent-forward" requires="~S2M-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli forward"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli forward"/>
         <step name="S2M-Intent.Remove-Intent-back1" requires="~S2M-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli back1"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli back1"/>
         <step name="S2M-Intent.Remove-Intent-back2" requires="~S2M-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli back2"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli back2"/>
         <step name="S2M-Intent.Remove-Intent-back3" requires="~S2M-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli back3"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli back3"/>
     </group>
 </scenario>

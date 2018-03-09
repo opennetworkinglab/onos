@@ -44,16 +44,16 @@
               exec="onos ${OCI} vnet-create-port ${networkId} device2 2 of:0000000000000009 1"/>
 
         <step name="Create-Bidirectional-Link" requires="^"
-              exec="onos -f ${OCI} vnet-create-link --bidirectional ${networkId} device2 2 device1 1"/>
+              exec="onos ${OCI} vnet-create-link --bidirectional ${networkId} device2 2 device1 1"/>
 
         <step name="Create-Intent-1" requires="^"
-              exec="onos -f ${OCI} add-vnet-intent --key 21 --encapsulation VLAN ${networkId} device2/2 device1/1"/>
+              exec="onos ${OCI} add-vnet-intent --key 21 --encapsulation VLAN ${networkId} device2/2 device1/1"/>
 
         <step name="Check-intents-installed-1" requires="^"
               exec="onos-check-intent ${OCI} 21 INSTALLED 1"/>
 
         <step name="Create-Intent-2" requires="^"
-              exec="onos -f ${OCI} add-vnet-intent --key 12 --encapsulation VLAN ${networkId} device1/1 device2/2"/>
+              exec="onos ${OCI} add-vnet-intent --key 12 --encapsulation VLAN ${networkId} device1/1 device2/2"/>
 
         <step name="Check-intents-installed-2" requires="^"
               exec="onos-check-intent ${OCI} 12 INSTALLED 1"/>

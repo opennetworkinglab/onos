@@ -57,6 +57,6 @@
                     requires="~Host-Intent.Validate-Intent-Installed-Again" />
 
         <step name="Host-Intent.Remove-Intent" requires="~Host-Intent.Net-Link-Down-Up"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli h2h"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli h2h"/>
     </group>
 </scenario>

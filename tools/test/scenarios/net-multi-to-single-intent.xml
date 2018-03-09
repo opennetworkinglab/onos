@@ -52,8 +52,8 @@
 
         <!-- Clean up intents -->
         <step name="M2S-Intent.Remove-Intent-forward" requires="~M2S-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli forward"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli forward"/>
         <step name="M2S-Intent.Remove-Intent-back" requires="~M2S-Intent.Ping-3-back"
-              exec="onos -f ${OC1} remove-intent -p org.onosproject.cli back"/>
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli back"/>
     </group>
 </scenario>

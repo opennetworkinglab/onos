@@ -86,10 +86,10 @@
               exec="onos ${OCI} links | grep ${physicalDevice1}/${physicalPort1} | grep ${physicalDevice2}/${physicalPort2}"/>
 
         <step name="Create-Bidirectional-VirtualLink" requires="^"
-              exec="onos -f ${OCI} vnet-create-link --bidirectional ${networkId} ${virtualDevice2} 2 ${virtualDevice1} 2"/>
+              exec="onos ${OCI} vnet-create-link --bidirectional ${networkId} ${virtualDevice2} 2 ${virtualDevice1} 2"/>
 
         <step name="Show-VirtualLink-Setup" requires="^"
-              exec="onos -f ${OCI} vnet-links ${networkId}"/>
+              exec="onos ${OCI} vnet-links ${networkId}"/>
 
         <step name="Create-VirtualHost-1" requires="^"
               exec="onos ${OCI} vnet-create-host ${networkId} ${virtualHost1Id} 65535 ${virtualDevice1} 1"/>

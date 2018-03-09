@@ -31,7 +31,7 @@
               exec="echo @stc virtualHost2Id=00:00:00:00:00:02"/>
 
         <step name="Remove-Bidirectional-VirtualLink" requires="^"
-              exec="onos -f ${OCI} vnet-remove-link --bidirectional ${networkId} ${virtualDevice2} 2 ${virtualDevice1} 2"/>
+              exec="onos ${OCI} vnet-remove-link --bidirectional ${networkId} ${virtualDevice2} 2 ${virtualDevice1} 2"/>
 
         <step name="Show-VirtualLink-Teardown" requires="^"
               exec="onos ${OCI} vnet-links ${networkId}"/>

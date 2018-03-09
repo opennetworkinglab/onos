@@ -20,13 +20,13 @@
               exec="test '${networkId}' != ''"/>
 
         <step name="Remove-Intent-1" requires="^"
-              exec="onos -f ${OCI} remove-vnet-intent -p ${networkId} org.onosproject.cli 21"/>
+              exec="onos ${OCI} remove-vnet-intent -p ${networkId} org.onosproject.cli 21"/>
 
         <step name="Check-intents-removed-1" requires="^"
               exec="onos-check-intent ${OCI} 21 WITHDRAWN 1"/>
 
         <step name="Remove-Intent-2" requires="^"
-              exec="onos -f ${OCI} remove-vnet-intent -p ${networkId} org.onosproject.cli 12"/>
+              exec="onos ${OCI} remove-vnet-intent -p ${networkId} org.onosproject.cli 12"/>
 
         <step name="Check-intents-removed-2" requires="^"
               exec="onos-check-intent ${OCI} 12 WITHDRAWN 1"/>
@@ -35,7 +35,7 @@
               exec="onos ${OCI} vnet-links ${networkId}"/>
 
         <step name="Remove-Bidirectional-Link" requires="^"
-              exec="onos -f ${OCI} vnet-remove-link --bidirectional ${networkId} device2 2 device1 1"/>
+              exec="onos ${OCI} vnet-remove-link --bidirectional ${networkId} device2 2 device1 1"/>
 
         <step name="Ping-hosts-2" requires="^"
               exec="onos-mininet sendAndExpect h4 ping -c1 h9 --expect \ 100% packet loss"/>
