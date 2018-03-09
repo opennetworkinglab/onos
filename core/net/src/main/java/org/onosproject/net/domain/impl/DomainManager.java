@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -81,7 +82,9 @@ public class DomainManager implements DomainService {
     @Override
     public DomainId getDomain(DeviceId deviceId) {
         checkNotNull(deviceId);
-        return checkNotNull(getAnnotatedDomainId(deviceService.getDevice(deviceId)));
+        return Optional.ofNullable(deviceService.getDevice(deviceId))
+                    .map(this::getAnnotatedDomainId)
+                    .orElse(null);
     }
 
     private DomainId getAnnotatedDomainId(Device device) {
