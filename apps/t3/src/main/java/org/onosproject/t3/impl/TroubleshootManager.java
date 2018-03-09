@@ -530,8 +530,8 @@ public class TroubleshootManager implements TroubleshootService {
                                         hostService.getHostsByIp(finalIpAddress).isEmpty()) {
                                     trace.addResultMessage("Packet is " +
                                             ((EthTypeCriterion) outputPath.getFinalPacket()
-                                            .getCriterion(Criterion.Type.ETH_TYPE)).ethType() + " and reached " +
-                                            cp + " with hosts " + hostsList);
+                                                    .getCriterion(Criterion.Type.ETH_TYPE)).ethType() +
+                                            " and reached " + cp + " with hosts " + hostsList);
                                 } else {
                                     trace.addResultMessage("Wrong output " + cp + " for required destination ip " +
                                             ipAddress);

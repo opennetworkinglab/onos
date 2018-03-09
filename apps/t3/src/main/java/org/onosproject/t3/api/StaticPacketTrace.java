@@ -137,7 +137,7 @@ public class StaticPacketTrace {
      * @return the list of Groups for this device.
      */
     public List<GroupsInDevice> getGroupOuputs(DeviceId deviceId) {
-        return outputsForDevice.get(deviceId);
+        return outputsForDevice.get(deviceId) == null ? null : ImmutableList.copyOf(outputsForDevice.get(deviceId));
     }
 
     /**
@@ -198,6 +198,7 @@ public class StaticPacketTrace {
 
     /**
      * Return if this trace is successful.
+     *
      * @return true if successful
      */
     public boolean isSuccess() {
@@ -206,6 +207,7 @@ public class StaticPacketTrace {
 
     /**
      * Sets if this trace is successful.
+     *
      * @param success true if trace is successful.
      */
     public void setSuccess(boolean success) {
