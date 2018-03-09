@@ -262,8 +262,9 @@ public class RADIUS extends BasePacket {
      * Decapsulates an EAP packet from the RADIUS packet.
      *
      * @return An EAP object containing the reassembled EAP message
+     * @throws DeserializationException if packet deserialization fails
      */
-    public EAP decapsulateMessage() {
+    public EAP decapsulateMessage() throws DeserializationException {
         EAP message = new EAP();
         ByteArrayOutputStream messageStream = new ByteArrayOutputStream();
         // Iterating through EAP-Message attributes to concatenate their value
@@ -275,7 +276,7 @@ public class RADIUS extends BasePacket {
             }
         }
         // Assembling EAP object from the concatenated stream
-        //message.deserialize(messageStream.toByteArray(), 0, messageStream.size());
+        message = EAP.deserializer().deserialize(messageStream.toByteArray(), 0, messageStream.size());
         return message;
     }
 
