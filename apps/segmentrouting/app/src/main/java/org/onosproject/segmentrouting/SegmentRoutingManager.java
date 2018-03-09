@@ -440,6 +440,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         routeService.addListener(routeListener);
         topologyService.addListener(topologyListener);
 
+        linkHandler.init();
         l2TunnelHandler.init();
 
         log.info("Started");

@@ -71,7 +71,6 @@ public class LinkHandler {
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         log.trace("Current size {}", downedPortStore.size());
-        init();
     }
 
     /**
@@ -88,10 +87,9 @@ public class LinkHandler {
     /**
      * Initialize LinkHandler.
      */
-    private void init() {
+    void init() {
         log.info("Loading stored links");
-        srManager.linkService.getActiveLinks()
-                .forEach(link -> processLinkAdded(link));
+        srManager.linkService.getActiveLinks().forEach(this::processLinkAdded);
     }
 
     /**
