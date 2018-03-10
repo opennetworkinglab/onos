@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 
+import io.netty.util.internal.StringUtil;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
@@ -132,6 +133,9 @@ public class LinkDiscovery implements TimerTask {
     public void addPort(Port port) {
         Long portNum = port.number().toLong();
         String portName = port.annotations().value(PORT_NAME);
+        if (portName == null) {
+            portName = StringUtil.EMPTY_STRING;
+        }
 
         boolean newPort = !containsPort(portNum);
         portMap.put(portNum, portName);
