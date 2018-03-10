@@ -16,11 +16,13 @@
 
 package org.onosproject.routeservice.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.routeservice.ResolvedRoute;
+import org.onosproject.routeservice.Route;
+import org.onosproject.routeservice.RouteAdminService;
+import org.onosproject.routeservice.RouteService;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -30,20 +32,22 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.routeservice.ResolvedRoute;
-import org.onosproject.routeservice.Route;
-import org.onosproject.routeservice.RouteAdminService;
-import org.onosproject.routeservice.RouteService;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Manage the unicast routing information.
  */
 @Path("routes")
 public class RouteServiceWebResource extends AbstractWebResource {
+
+    protected static final String ROUTES = "routes";
+    protected static final String ROUTES_KEY_ERROR = "Routes key must be present";
 
     /**
      * Get all unicast routes.
@@ -73,10 +77,10 @@ public class RouteServiceWebResource extends AbstractWebResource {
      * API are always created as STATIC routes, so there is no need to specify
      * the type.
      *
-     * @onos.rsModel RoutePost
      * @param route unicast route JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid, NO_CONTENT otherwise
+     * @onos.rsModel RoutePost
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -87,6 +91,39 @@ public class RouteServiceWebResource extends AbstractWebResource {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(route);
             Route r = codec(Route.class).decode(jsonTree, this);
             service.update(Collections.singletonList(r));
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+
+        return Response
+                .noContent()
+                .build();
+    }
+
+    /**
+     * Creates new unicast routes.
+     * Creates new routes in the unicast RIB. Routes created through the REST
+     * API are always created as STATIC routes, so there is no need to specify
+     * the type.
+     *
+     * @param routesStream unicast routes JSON array
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid, NO_CONTENT otherwise
+     * @onos.rsModel RoutesPost
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/bulk")
+    public Response createRoutes(InputStream routesStream) {
+        RouteAdminService service = get(RouteAdminService.class);
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(routesStream);
+            ArrayNode routesArray = nullIsIllegal((ArrayNode) jsonTree.get(ROUTES),
+                    ROUTES_KEY_ERROR);
+            List<Route> routes = codec(Route.class).decode(routesArray, this);
+            service.update(routes);
+
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
         }
@@ -116,5 +153,33 @@ public class RouteServiceWebResource extends AbstractWebResource {
             throw new IllegalArgumentException(ex);
         }
         return Response.noContent().build();
+    }
+
+    /**
+     * Removes unicast routes.
+     * Removes multiple routes from the unicast RIB.
+     *
+     * @param routesStream unicast routes array JSON
+     * @return 204 NO CONTENT
+     */
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/bulk")
+    public Response deleteRoutes(InputStream routesStream) {
+        RouteAdminService service = get(RouteAdminService.class);
+        try {
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(routesStream);
+            ArrayNode routesArray = nullIsIllegal((ArrayNode) jsonTree.get(ROUTES),
+                    ROUTES_KEY_ERROR);
+            List<Route> routes = codec(Route.class).decode(routesArray, this);
+            service.withdraw(routes);
+
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+
+        return Response
+                .noContent()
+                .build();
     }
 }
