@@ -107,6 +107,13 @@ public interface PrimitiveService {
     <V> AtomicValueBuilder<V> atomicValueBuilder();
 
     /**
+     * Creates a new DistributedLockBuilder.
+     *
+     * @return lock builder
+     */
+    DistributedLockBuilder lockBuilder();
+
+    /**
      * Creates a new LeaderElectorBuilder.
      *
      * @return leader elector builder
@@ -126,9 +133,7 @@ public interface PrimitiveService {
      *
      * @return AsyncAtomicCounter instance
      */
-    default AsyncAtomicCounter getAsyncAtomicCounter(String name) {
-        return atomicCounterBuilder().withName(name).build();
-    }
+    AsyncAtomicCounter getAsyncAtomicCounter(String name);
 
     /**
      * Returns an instance of {@code AsyncAtomicIdGenerator} with specified name.
@@ -136,9 +141,7 @@ public interface PrimitiveService {
      * @param name ID generator name
      * @return AsyncAtomicIdGenerator instance
      */
-    default AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
-        return atomicIdGeneratorBuilder().withName(name).build();
-    }
+    AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name);
 
     /**
      * Returns an instance of {@code AtomicCounter} with specified name.
@@ -180,17 +183,17 @@ public interface PrimitiveService {
      */
     <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer);
 
-     /** Returns a set backed instance of {@code AsyncConsistentMultimap} with
+    /**
+     * Returns a set backed instance of {@code AsyncConsistentMultimap} with
      * the specified name.
      *
-     * @param name the multimap name
+     * @param name       the multimap name
      * @param serializer serializer
-     * @param <K> key type
-     * @param <V> value type
+     * @param <K>        key type
+     * @param <V>        value type
      * @return set backed {@code AsyncConsistentMultimap} instance
      */
-    <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name,
-            Serializer serializer);
+    <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name, Serializer serializer);
 
     /**
      * Returns an instance of {@code AsyncConsistentTreeMap} with the specified
@@ -201,8 +204,7 @@ public interface PrimitiveService {
      * @param <V> value type
      * @return set backed {@code AsyncConsistentTreeMap} instance
      */
-    <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name,
-            Serializer serializer);
+    <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name, Serializer serializer);
 
     /**
      * Returns an instance of {@code Topic} with specified name.

@@ -59,6 +59,16 @@ public class TestStorageService extends StorageServiceAdapter {
     }
 
     @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return atomicCounterBuilder().withName(name).build();
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
+        return atomicIdGeneratorBuilder().withName(name).build();
+    }
+
+    @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
         return new TestTopic(name);
     }

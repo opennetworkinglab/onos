@@ -15,6 +15,8 @@
  */
 package org.onosproject.pcelabelstore.util;
 
+import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
@@ -87,6 +89,16 @@ public class StorageServiceAdapter implements StorageService {
 
     @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
+        return null;
+    }
+
+    @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return null;
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
         return null;
     }
 

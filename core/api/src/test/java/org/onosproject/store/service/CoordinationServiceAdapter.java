@@ -70,12 +70,27 @@ public class CoordinationServiceAdapter implements CoordinationService {
     }
 
     @Override
+    public DistributedLockBuilder lockBuilder() {
+        return null;
+    }
+
+    @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
         return null;
     }
 
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
+        return null;
+    }
+
+    @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return null;
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
         return null;
     }
 

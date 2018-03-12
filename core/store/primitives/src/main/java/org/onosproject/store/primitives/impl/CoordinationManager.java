@@ -33,7 +33,8 @@ import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AsyncAtomicValue;
+import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -45,6 +46,7 @@ import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMultimapBuilder;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.CoordinationService;
+import org.onosproject.store.service.DistributedLockBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -82,6 +84,7 @@ public class CoordinationManager implements CoordinationService {
 
     private StoragePartition partition;
     private DistributedPrimitiveCreator primitiveCreator;
+    private DistributedPrimitiveManager primitiveManager;
 
     @Activate
     public void activate() {
@@ -97,6 +100,7 @@ public class CoordinationManager implements CoordinationService {
                 clusterService);
         partition.open().join();
         primitiveCreator = partition.client();
+        primitiveManager = new DistributedPrimitiveManager(primitiveCreator);
         log.info("Started");
     }
 
@@ -190,6 +194,12 @@ public class CoordinationManager implements CoordinationService {
     }
 
     @Override
+    public DistributedLockBuilder lockBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultDistributedLockBuilder(primitiveCreator);
+    }
+
+    @Override
     public TransactionContextBuilder transactionContextBuilder() {
         throw new UnsupportedOperationException();
     }
@@ -201,38 +211,43 @@ public class CoordinationManager implements CoordinationService {
     }
 
     @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        checkPermission(STORAGE_WRITE);
+        return primitiveManager.getAsyncAtomicCounter(name);
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
+        checkPermission(STORAGE_WRITE);
+        return primitiveManager.getAsyncAtomicIdGenerator(name);
+    }
+
+    @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newWorkQueue(name, serializer);
+        return primitiveManager.getWorkQueue(name, serializer);
     }
 
     @Override
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncDocumentTree(name, serializer);
+        return primitiveManager.getDocumentTree(name, serializer);
     }
 
     @Override
-    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(
-            String name, Serializer serializer) {
+    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncConsistentSetMultimap(name,
-                                                                serializer);
+        return primitiveManager.getAsyncSetMultimap(name, serializer);
     }
 
     @Override
-    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(
-            String name, Serializer serializer) {
+    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncConsistentTreeMap(name, serializer);
+        return primitiveManager.getAsyncTreeMap(name, serializer);
     }
 
     @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
-        AsyncAtomicValue<T> atomicValue = this.<T>atomicValueBuilder()
-                                              .withName("topic-" + name)
-                                              .withSerializer(serializer)
-                                              .build();
-        return new DefaultDistributedTopic<>(atomicValue);
+        return primitiveManager.getTopic(name, serializer);
     }
 }

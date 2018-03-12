@@ -35,7 +35,8 @@ import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AsyncAtomicValue;
+import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -107,6 +108,7 @@ public class StorageManager implements StorageService, StorageAdminService {
             () -> TransactionId.from(UUID.randomUUID().toString());
     private DistributedPrimitiveCreator federatedPrimitiveCreator;
     private TransactionManager transactionManager;
+    private DistributedPrimitiveManager primitiveManager;
 
     @Activate
     public void activate() {
@@ -116,6 +118,7 @@ public class StorageManager implements StorageService, StorageAdminService {
             .forEach(id -> partitionMap.put(id, partitionService.getDistributedPrimitiveCreator(id)));
         federatedPrimitiveCreator = new FederatedDistributedPrimitiveCreator(partitionMap, BUCKETS);
         transactionManager = new TransactionManager(this, partitionService, BUCKETS);
+        primitiveManager = new DistributedPrimitiveManager(federatedPrimitiveCreator);
         log.info("Started");
     }
 
@@ -184,8 +187,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultConsistentMultimapBuilder<K, V>(
-                federatedPrimitiveCreator);
+        return new DefaultConsistentMultimapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
@@ -241,31 +243,47 @@ public class StorageManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        checkPermission(STORAGE_WRITE);
+        return primitiveManager.getAsyncAtomicCounter(name);
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
+        checkPermission(STORAGE_WRITE);
+        return primitiveManager.getAsyncAtomicIdGenerator(name);
+    }
+
+    @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return federatedPrimitiveCreator.newWorkQueue(name, serializer);
+        return primitiveManager.getWorkQueue(name, serializer);
     }
 
     @Override
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return federatedPrimitiveCreator.newAsyncDocumentTree(name, serializer);
+        return primitiveManager.getDocumentTree(name, serializer);
     }
 
     @Override
     public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(
             String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return federatedPrimitiveCreator.newAsyncConsistentSetMultimap(name,
-                                                                serializer);
+        return primitiveManager.getAsyncSetMultimap(name, serializer);
     }
 
     @Override
     public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(
             String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return federatedPrimitiveCreator.newAsyncConsistentTreeMap(name,
-                                                                   serializer);
+        return primitiveManager.getAsyncTreeMap(name, serializer);
+    }
+
+    @Override
+    public <T> Topic<T> getTopic(String name, Serializer serializer) {
+        checkPermission(STORAGE_WRITE);
+        return primitiveManager.getTopic(name, serializer);
     }
 
     @Override
@@ -314,14 +332,5 @@ public class StorageManager implements StorageService, StorageAdminService {
                                              .asConsistentMap();
                     return new MapInfo(name, map.size());
         }).collect(Collectors.toList());
-    }
-
-    @Override
-    public <T> Topic<T> getTopic(String name, Serializer serializer) {
-        AsyncAtomicValue<T> atomicValue = this.<T>atomicValueBuilder()
-                                              .withName("topic-" + name)
-                                              .withSerializer(serializer)
-                                              .build();
-        return new DefaultDistributedTopic<>(atomicValue);
     }
 }

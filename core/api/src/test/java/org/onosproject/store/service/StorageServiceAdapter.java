@@ -70,6 +70,16 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public AsyncAtomicCounter getAsyncAtomicCounter(String name) {
+        return null;
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
+        return null;
+    }
+
+    @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         return null;
     }
