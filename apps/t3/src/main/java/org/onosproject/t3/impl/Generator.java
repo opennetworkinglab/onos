@@ -97,6 +97,14 @@ public abstract class Generator<T> implements Iterable<T> {
                     itemAvailableOrHasFinished.await();
                 } catch (InterruptedException e) {
                     hasFinished = true;
+                    producer.interrupt();
+                    try {
+                        producer.join();
+                    } catch (InterruptedException e1) {
+                        // Interrupting the broken thread
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException(e1);
+                    }
                 }
                 if (exceptionRaisedByProducer != null) {
                     throw exceptionRaisedByProducer;
@@ -136,12 +144,5 @@ public abstract class Generator<T> implements Iterable<T> {
         });
         producer.setDaemon(true);
         producer.start();
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        producer.interrupt();
-        producer.join();
-        super.finalize();
     }
 }
