@@ -97,7 +97,7 @@ CLI_COMMANDS=(
     "sr-mcast-next"
     "sr-mcast-tree"
     "sr-next-hops"
-    "pseudowires"
+    "sr-pw-list"
     "dhcp-relay"
 )
 

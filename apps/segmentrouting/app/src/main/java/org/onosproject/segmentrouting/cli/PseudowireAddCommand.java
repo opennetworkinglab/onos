@@ -35,7 +35,7 @@ import static org.onosproject.segmentrouting.pwaas.PwaasUtil.*;
 /**
  * Command to add a pseuwodire.
  */
-@Command(scope = "onos", name = "pseudowire-add",
+@Command(scope = "onos", name = "sr-pw-add",
         description = "Add a pseudowire to the network configuration, if it already exists update it.")
 public class PseudowireAddCommand extends AbstractShellCommand {
 
@@ -121,10 +121,9 @@ public class PseudowireAddCommand extends AbstractShellCommand {
 
         switch (res) {
             case ADDITION_ERROR:
-                print("Pseudowire could not be added, please check logs for more details!");
+                print("Pseudowire could not be added!");
                 break;
             case SUCCESS:
-                print("Pseudowire was added succesfully!");
                 break;
             default:
                 break;

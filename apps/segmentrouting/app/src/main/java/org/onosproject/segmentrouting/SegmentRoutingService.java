@@ -23,6 +23,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastRole;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
@@ -89,6 +90,13 @@ public interface SegmentRoutingService {
     List<Policy> getPolicies();
 
     /**
+     * Returns the l2 tunnel descriptions.
+     *
+     * @return set of l2 tunnel descriptions.
+     */
+    Set<L2TunnelDescription> getL2TunnelDescriptions();
+
+    /**
      * Returns all l2 tunnels of pseudowires.
      *
      * @return list of l2 tunnels
@@ -103,7 +111,7 @@ public interface SegmentRoutingService {
     List<L2TunnelPolicy> getL2Policies();
 
     /**
-     * Removes pseudowire. Used ONLY by the REST api.
+     * Removes pseudowire.
      *
      * @param pwId The id of the pseudowire.
      * @return SUCCESS if operation successful or a descriptive error otherwise.
@@ -111,12 +119,20 @@ public interface SegmentRoutingService {
     L2TunnelHandler.Result removePseudowire(Integer pwId);
 
     /**
-     * Adds a Pseudowire to the configuration.
+     * Adds a Pseudowire to the system.
      *
      * @param tunnel The pseudowire tunnel.
      * @return SUCCESS if operation is successful or a descriptive error otherwise.
      */
     L2TunnelHandler.Result addPseudowire(L2TunnelDescription tunnel);
+
+    /**
+     * Adss a set of pseudowires.
+     * @param l2TunnelDescriptions The pseudowires to add.
+     * @return SUCCESS if ALL pseudowires can be instantiated and are deployed, or a
+     *         a descriptive error otherwise, without deploying any pseudowire.
+     */
+    L2TunnelHandler.Result addPseudowiresBulk(List<DefaultL2TunnelDescription> l2TunnelDescriptions);
 
     /**
      * Creates a policy.

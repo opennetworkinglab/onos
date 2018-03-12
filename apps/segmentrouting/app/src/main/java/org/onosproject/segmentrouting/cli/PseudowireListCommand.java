@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Command to show the pseudowires.
  */
-@Command(scope = "onos", name = "pseudowires",
+@Command(scope = "onos", name = "sr-pw-list",
         description = "Lists all pseudowires")
 public class PseudowireListCommand extends AbstractShellCommand {
 

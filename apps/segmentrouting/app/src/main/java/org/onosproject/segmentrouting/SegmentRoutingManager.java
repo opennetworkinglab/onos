@@ -556,6 +556,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public Set<L2TunnelDescription> getL2TunnelDescriptions() {
+        return l2TunnelHandler.getL2Descriptions();
+    }
+
+    @Override
     public List<L2Tunnel> getL2Tunnels() {
         return l2TunnelHandler.getL2Tunnels();
     }
@@ -566,43 +571,41 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public L2TunnelHandler.Result addPseudowiresBulk(List<DefaultL2TunnelDescription> bulkPseudowires) {
+
+        Set<L2TunnelDescription> pseudowires = l2TunnelHandler.getL2Descriptions();
+
+        pseudowires.addAll(bulkPseudowires);
+        Set<L2TunnelDescription> newPseudowires = new HashSet(bulkPseudowires);
+
+        // check global validity for all the new pseudowires, if it fails
+        // do not add any of them
+        boolean res = configurationValidity(pseudowires);
+        if (res) {
+            l2TunnelHandler.deploy(newPseudowires);
+            return L2TunnelHandler.Result.SUCCESS;
+        } else {
+            log.error("Bulk pseudowires {} can not be added, error in global configuration!",
+                     newPseudowires);
+            return L2TunnelHandler.Result.ADDITION_ERROR;
+        }
+    }
+
+    @Override
     public L2TunnelHandler.Result addPseudowire(L2TunnelDescription l2TunnelDescription) {
 
-        List<L2Tunnel> tunnels = getL2Tunnels();
-        List<L2TunnelPolicy> policies = getL2Policies();
-
-        // combine polices and tunnels to pseudowires
-        List<L2TunnelDescription> pseudowires = tunnels.stream()
-                .map(l2Tunnel -> {
-                    L2TunnelPolicy policy = null;
-                    for (L2TunnelPolicy l2Policy : policies) {
-                        if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
-                            policy = l2Policy;
-                            break;
-                        }
-                    }
-
-                    return new DefaultL2TunnelDescription(l2Tunnel, policy);
-                })
-                .collect(Collectors.toList());
-
-
-        // creating a new list with the new pseudowire
-        Set<L2TunnelDescription> newPseudowires = new HashSet<>(pseudowires);
+        Set<L2TunnelDescription> newPseudowires = l2TunnelHandler.getL2Descriptions();
 
         // corner case where we try to add the exact same pseudowire
         if (newPseudowires.contains(l2TunnelDescription)) {
             log.info("Pseudowire with {} already exists!", l2TunnelDescription);
             return L2TunnelHandler.Result.SUCCESS;
         }
-
         // add the new pseudowire to the Set
         newPseudowires.add(l2TunnelDescription);
-
         // validate the new set of pseudowires
         boolean res = configurationValidity(newPseudowires);
         if (res) {
-
             // deploy a set with ONLY the new pseudowire
             newPseudowires = new HashSet<>();
             newPseudowires.add(l2TunnelDescription);
@@ -612,7 +615,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                      l2TunnelDescription.l2Tunnel().tunnelId());
             return L2TunnelHandler.Result.SUCCESS;
         } else {
-
             log.error("Pseudowire with {} can not be added!", l2TunnelDescription.l2Tunnel().tunnelId());
             return L2TunnelHandler.Result.ADDITION_ERROR;
         }
@@ -645,7 +647,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         } else {
 
             l2TunnelHandler.tearDown(new HashSet<>(pseudowires));
-
             log.info("Removal of pseudowire with {} started, check log for any errors in this process!",
                      pwId);
             return L2TunnelHandler.Result.SUCCESS;

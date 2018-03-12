@@ -175,6 +175,27 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         // use it in the future.
     }
 
+    @Override
+    public Set<L2TunnelDescription> getL2Descriptions() {
+        List<L2Tunnel> tunnels = getL2Tunnels();
+        List<L2TunnelPolicy> policies = getL2Policies();
+
+        // determine affected pseudowires and update them at once
+        return tunnels.stream()
+                .map(l2Tunnel -> {
+                    L2TunnelPolicy policy = null;
+                    for (L2TunnelPolicy l2Policy : policies) {
+                        if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
+                            policy = l2Policy;
+                            break;
+                        }
+                    }
+
+                    return new DefaultL2TunnelDescription(l2Tunnel, policy);
+                })
+                .collect(Collectors.toSet());
+    }
+
     /**
      * Returns all L2 Policies.
      *
@@ -188,7 +209,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 .stream()
                 .map(Versioned::value)
                 .collect(Collectors.toList()));
-
     }
 
     /**
@@ -204,7 +224,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 .stream()
                 .map(Versioned::value)
                 .collect(Collectors.toList()));
-
     }
 
     @Override
@@ -298,6 +317,16 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
+     * Returns true if path size is valid according to the current logic.
+     *
+     * @param pathSize The size of the path
+     * @return True if path size is valid, false otherwise.
+     */
+    private boolean isValidPathSize(int pathSize) {
+        return ((pathSize >= 1) && (pathSize <= 4));
+    }
+
+    /**
      * Adds a single pseudowire.
      *
      * @param pw The pseudowire
@@ -327,31 +356,27 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         Link fwdNextHop;
         Link revNextHop;
-        if (!spinePw) {
-            if (path.size() != 2) {
-                log.info("Deploying process : Path between two leafs should have size of 2, for pseudowire {}",
-                         l2TunnelId);
-                return INTERNAL_ERROR;
-            }
-
-            fwdNextHop = path.get(0);
-            revNextHop = reverseLink(path.get(1));
-        } else {
-            if (path.size() != 1) {
-                log.info("Deploying process : Path between leaf spine should equal to 1, for pseudowire {}",
-                         l2TunnelId);
-                return INTERNAL_ERROR;
-            }
-
-            fwdNextHop = path.get(0);
-            revNextHop = reverseLink(path.get(0));
+        if (!isValidPathSize(path.size())) {
+            log.error("Deploying process : Path size for pseudowire should be of" +
+                              " one of the following sizes = [1, 2, 3, 4], for pseudowire {}",
+                      l2TunnelId);
+            return INTERNAL_ERROR;
         }
+
+        // spinePw signifies if we have a leaf-spine pw
+        // thus only one label should be pushed (that of pw)
+        // if size>1 we need to push intermediate labels also.
+        if (path.size() > 1) {
+            spinePw = false;
+        }
+
+        fwdNextHop = path.get(0);
+        revNextHop = reverseLink(path.get(path.size() - 1));
 
         pw.l2Tunnel().setPath(path);
         pw.l2Tunnel().setTransportVlan(determineTransportVlan(spinePw));
 
         // next hops for next objectives
-
         log.info("Deploying process : Establishing forward direction for pseudowire {}", l2TunnelId);
 
         VlanId egressVlan = determineEgressVlan(pw.l2TunnelPolicy().cP1OuterTag(),
@@ -618,23 +643,22 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         }
 
         Link fwdNextHop, revNextHop;
-        if (!finalNewPwSpine) {
-            if (path.size() != 2) {
-                log.error("Update process : Error, path between two leafs should have size of 2, for pseudowire {}",
-                         newPw.l2Tunnel().tunnelId());
-                return;
-            }
-            fwdNextHop = path.get(0);
-            revNextHop = reverseLink(path.get(1));
-        } else {
-            if (path.size() != 1) {
-                log.error("Update process : Error, path between leaf spine should equal to 1, for pseudowire {}",
-                         newPw.l2Tunnel().tunnelId());
-                return;
-            }
-            fwdNextHop = path.get(0);
-            revNextHop = reverseLink(path.get(0));
+        if (!isValidPathSize(path.size())) {
+            log.error("Deploying process : Path size for pseudowire should be of one of the following sizes" +
+                              " = [1, 2, 3, 4], for pseudowire {}",
+                      newPw.l2Tunnel().tunnelId());
+            return;
         }
+
+        // spinePw signifies if we have a leaf-spine pw
+        // thus only one label should be pushed (that of pw)
+        // if size>1 we need to push intermediate labels also.
+        if (path.size() > 1) {
+            newPwSpine = false;
+        }
+
+        fwdNextHop = path.get(0);
+        revNextHop = reverseLink(path.get(path.size() - 1));
 
         // set new path and transport vlan.
         newPw.l2Tunnel().setPath(path);

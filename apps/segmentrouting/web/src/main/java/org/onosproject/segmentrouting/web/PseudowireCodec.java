@@ -78,7 +78,7 @@ public final class PseudowireCodec extends JsonCodec<DefaultL2TunnelDescription>
      * @param json Json to decode.
      * @return The pseudowire id.
      */
-    public Integer decodeId(ObjectNode json) {
+    public static Integer decodeId(ObjectNode json) {
 
         Integer id = parsePwId(json.path(PW_ID).asText());
         if (id == null) {

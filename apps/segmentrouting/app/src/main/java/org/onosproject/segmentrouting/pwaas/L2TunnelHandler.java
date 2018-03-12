@@ -25,6 +25,13 @@ public interface L2TunnelHandler {
     void init();
 
     /**
+     * Combines policies and tunnels to create descriptions.
+     *
+     * @return Set of l2 tunnel descriptions.
+     */
+    Set<L2TunnelDescription> getL2Descriptions();
+
+    /**
      * Returns a copy of the l2 policies that exist in the store.
      *
      * @return The l2 policies
