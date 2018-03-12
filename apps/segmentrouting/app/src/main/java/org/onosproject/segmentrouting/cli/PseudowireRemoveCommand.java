@@ -29,7 +29,7 @@ import static org.onosproject.segmentrouting.pwaas.PwaasUtil.parsePwId;
 /**
  * Command to remove a pseudowire.
  */
-@Command(scope = "onos", name = "pseudowire-remove",
+@Command(scope = "onos", name = "sr-pw-remove",
         description = "Remove a pseudowire")
 public class PseudowireRemoveCommand extends AbstractShellCommand {
 

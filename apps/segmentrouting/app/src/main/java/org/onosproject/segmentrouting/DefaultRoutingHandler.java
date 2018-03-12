@@ -876,6 +876,39 @@ public class DefaultRoutingHandler {
             }
         }
 
+        if (!targetIsEdge && !dest1IsEdge) {
+            // MPLS rules for inter-connected spines
+            // can be merged with above if, left it here for clarity
+            log.debug(". populateEcmpRoutingRulePartial in device{} towards {} for "
+                              + "all MPLS rules", targetSw, destSw1);
+
+            result = rulePopulator.populateMplsRule(targetSw, destSw1,
+                                                        nextHops.get(destSw1),
+                                                        dest1RouterIpv4);
+            if (!result) {
+                return false;
+            }
+
+            if (dest1RouterIpv6 != null) {
+                int v4sid = 0, v6sid = 0;
+                try {
+                    v4sid = config.getIPv4SegmentId(destSw1);
+                    v6sid = config.getIPv6SegmentId(destSw1);
+                } catch (DeviceConfigNotFoundException e) {
+                    log.warn(e.getMessage());
+                }
+                if (v4sid != v6sid) {
+                    result = rulePopulator.populateMplsRule(targetSw, destSw1,
+                                                            nextHops.get(destSw1),
+                                                            dest1RouterIpv6);
+                    if (!result) {
+                        return false;
+                    }
+                }
+           }
+        }
+
+
         // To save on ECMP groups
         // avoid MPLS rules in non-edge-devices to non-edge-devices
         // avoid MPLS transit rules in edge-devices
