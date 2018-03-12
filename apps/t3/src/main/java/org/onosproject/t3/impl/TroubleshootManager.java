@@ -424,8 +424,9 @@ public class TroubleshootManager implements TroubleshootService {
                     && ((VlanIdCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID)).vlanId()
                     .equals(((VlanIdCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.VLAN_VID))
                             .vlanId())) {
-                trace.addResultMessage("Connect point out " + cp + " is same as initial input " +
-                        trace.getInitialConnectPoint());
+                if (computePath(completePath, trace, outputPath.getOutput())) {
+                    trace.addResultMessage("Connect point out " + cp + " is same as initial input " + in);
+                }
                 break;
             }
 
