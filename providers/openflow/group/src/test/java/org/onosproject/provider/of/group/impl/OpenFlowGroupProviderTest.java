@@ -24,6 +24,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -82,6 +83,7 @@ public class OpenFlowGroupProviderTest {
         provider.controller = controller;
         provider.providerRegistry = providerRegistry;
         provider.cfgService = new ComponentConfigAdapter();
+        provider.driverService = new DriverServiceAdapter();
         provider.activate(null);
     }
 

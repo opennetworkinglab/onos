@@ -105,6 +105,7 @@
                    impl="org.onosproject.driver.optical.query.OpenFlowLambdaQuery"/>
         <property name="meterCapable">false</property>
         <property name="uiType">policon</property>
+        <property name="groupCapable">false</property>
     </driver>
 
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">

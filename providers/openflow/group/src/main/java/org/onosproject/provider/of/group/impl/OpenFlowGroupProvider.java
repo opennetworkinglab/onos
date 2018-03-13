@@ -41,6 +41,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.Group;
@@ -366,11 +367,27 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     private boolean isGroupSupported(OpenFlowSwitch sw) {
         if (sw.factory().getVersion() == OFVersion.OF_10 ||
                 sw.factory().getVersion() == OFVersion.OF_11 ||
-                sw.factory().getVersion() == OFVersion.OF_12) {
+                sw.factory().getVersion() == OFVersion.OF_12 ||
+                !isGroupCapable(sw)) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Determine whether the given switch is group-capable.
+     *
+     * @param sw switch
+     * @return the boolean value of groupCapable property, or true if it is not configured.
+     */
+    private boolean isGroupCapable(OpenFlowSwitch sw) {
+        Driver driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(sw.getDpid())));
+        if (driver == null) {
+            return true;
+        }
+        String isGroupCapable = driver.getProperty(GROUP_CAPABLE);
+        return isGroupCapable == null || Boolean.parseBoolean(isGroupCapable);
     }
 
     private class InternalGroupProvider

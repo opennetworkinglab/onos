@@ -22,6 +22,14 @@ import org.onosproject.net.provider.Provider;
  * Abstraction of group provider.
  */
 public interface GroupProvider extends Provider {
+    /**
+     * Group capable property name.
+     * A driver is assumed to be group capable if this property is undefined. If
+     * the driver is group capable, then it supports group descriptions and
+     * optionally group statistics. If the driver is not group capable, then it
+     * supports neither group descriptions nor group statistics.
+     */
+    String GROUP_CAPABLE = "groupCapable";
 
     /**
      * Performs a batch of group operation in the specified device with the
