@@ -349,7 +349,8 @@ public class ECFlowRuleStore
     @Override
     public int getFlowRuleCount(DeviceId deviceId) {
         Integer count = flowCounts.get(deviceId);
-        return count != null ? count : 0;
+        return count != null ? count : flowTable.flowEntries.get(deviceId) != null ?
+                flowTable.flowEntries.get(deviceId).keySet().size() : 0;
     }
 
     @Override
