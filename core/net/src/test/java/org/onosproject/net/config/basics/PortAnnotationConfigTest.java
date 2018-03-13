@@ -15,7 +15,9 @@
  */
 package org.onosproject.net.config.basics;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.*;
 import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
 
@@ -66,6 +68,9 @@ public class PortAnnotationConfigTest {
 
     private final String key = "foo";
     private final String value = "bar";
+    private final String nullKey = "null";
+    private final String numberKey = "number";
+    private final String numberValue = "123";
 
 
     // TODO consolidate code-clone in ProtectionConfigTest, and define constants for field name
@@ -122,8 +127,11 @@ public class PortAnnotationConfigTest {
 
         assertThat(sut.subject(), is(cp));
         Map<String, String> annotations = sut.annotations();
-        assertThat(annotations.size(), is(1));
+        assertThat(annotations.size(), is(3));
         assertThat(annotations.get(key), is(value));
+        assertThat(annotations.get(nullKey), nullValue());
+        assertThat(annotations.get(numberKey), is(numberValue));
+        assertThat(sut.isValid(), is(true));
     }
 
     @Test
@@ -145,6 +153,7 @@ public class PortAnnotationConfigTest {
         Map<String, String> annotations = sut.annotations();
         assertThat(annotations.size(), is(1));
         assertThat(annotations.get(key), is(value));
+        assertThat(sut.isValid(), is(true));
     }
 
     @Test
@@ -166,6 +175,23 @@ public class PortAnnotationConfigTest {
         Map<String, String> annotations = sut.annotations();
         assertThat(annotations.size(), is(1));
         assertThat(annotations.get(key), is(value));
+        assertThat(sut.isValid(), is(true));
+    }
+
+    @Test
+    public void removeTest() {
+        PortAnnotationConfig sut = new PortAnnotationConfig();
+        sut.init(cp, PortAnnotationConfig.CONFIG_KEY, node, mapper, noopDelegate);
+
+        sut.annotation(key);
+
+        assertThat(sut.subject(), is(cp));
+        Map<String, String> annotations = sut.annotations();
+        assertThat(annotations.values(), hasSize(2));
+        assertThat(annotations.get(key), nullValue());
+        assertThat(annotations.get(nullKey), nullValue());
+        assertThat(annotations.get(numberKey), is(numberValue));
+        assertThat(sut.isValid(), is(true));
     }
 
 }

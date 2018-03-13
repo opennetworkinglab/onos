@@ -24,10 +24,15 @@ import org.junit.Test;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.InvalidFieldException;
 import org.onosproject.net.region.Region;
+import org.onosproject.ui.topo.LayoutLocation;
 
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -185,5 +190,38 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
         cfg.init(regionId(R1), BASIC, node, mapper, delegate);
 
         cfg.isValid();
+    }
+
+    @Test
+    public void testPeerLocMapping() {
+        String peer1 = "peer1";
+        String loc1 = LayoutLocation.Type.GRID.toString();
+        double loc1Y = 22.0;
+        double loc1X = 33.0;
+        String peer2 = "peer2";
+        String loc2 = LayoutLocation.Type.GEO.toString();
+        double loc2Y = 222.0;
+        double loc2X = 333.0;
+        loadRegion(R2);
+        cfg.addPeerLocMapping(peer1, loc1, loc1Y, loc1X);
+        cfg.addPeerLocMapping(peer2, loc2, loc2Y, loc2X);
+
+        List<LayoutLocation> locs = cfg.getMappings();
+
+        assertThat(locs, hasSize(2));
+
+        LayoutLocation createdLoc1 = locs.stream().filter(loc -> loc.id().equals(peer1)).findFirst().orElse(null);
+        LayoutLocation createdLoc2 = locs.stream().filter(loc -> loc.id().equals(peer2)).findFirst().orElse(null);
+
+        assertThat(createdLoc1, notNullValue());
+        assertThat(createdLoc2, notNullValue());
+
+        assertThat(createdLoc1.locType().toString(), is(loc1));
+        assertThat(createdLoc1.longOrX(), is(loc1X));
+        assertThat(createdLoc1.latOrY(), is(loc1Y));
+
+        assertThat(createdLoc2.locType().toString(), is(loc2));
+        assertThat(createdLoc2.longOrX(), is(loc2X));
+        assertThat(createdLoc2.latOrY(), is(loc2Y));
     }
 }

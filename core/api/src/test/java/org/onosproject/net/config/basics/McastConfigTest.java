@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,12 +27,14 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.net.config.basics.McastConfig;
 
 import java.io.InputStream;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for class {@link McastConfig}.

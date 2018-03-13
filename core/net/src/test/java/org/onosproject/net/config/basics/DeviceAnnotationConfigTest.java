@@ -16,6 +16,7 @@
 package org.onosproject.net.config.basics;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.config.BaseConfig;
 import org.onosproject.net.config.ConfigApplyDelegate;
 
@@ -67,6 +69,9 @@ public class DeviceAnnotationConfigTest {
     private final String value = "bar";
     private final String key1 = "foo1";
     private final String value1 = "bar1";
+    private final String nullKey = "null";
+    private final String numberKey = "number";
+    private final String numberValue = "123";
 
 
     // TODO consolidate code-clone in ProtectionConfigTest, and define constants for field name
@@ -123,8 +128,11 @@ public class DeviceAnnotationConfigTest {
 
         assertThat(sut.subject(), is(deviceId));
         Map<String, String> annotations = sut.annotations();
-        assertThat(annotations.size(), is(1));
+        assertThat(annotations.size(), is(3));
         assertThat(annotations.get(key), is(value));
+        assertThat(annotations.get(nullKey), nullValue());
+        assertThat(annotations.get(numberKey), is(numberValue));
+        assertThat(sut.isValid(), is(true));
     }
 
     @Test
@@ -197,6 +205,14 @@ public class DeviceAnnotationConfigTest {
         annotations = sut.annotations();
         assertThat(annotations.size(), is(1));
         assertThat(annotations.get(key1), is(value1));
+    }
+
+    @Test
+    public void detachedTest() {
+        DeviceAnnotationConfig config = new DeviceAnnotationConfig(NetTestTools.did("d1"));
+
+        // The default annotations have no JSON and are invalid
+        assertThat(config.isValid(), is(false));
     }
 
 }
