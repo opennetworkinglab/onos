@@ -43,7 +43,7 @@ public class StaticPacketTrace {
     private Map<DeviceId, List<FlowEntry>> flowsForDevice;
     private StringBuilder resultMessage;
     private Pair<Host, Host> hosts;
-    private boolean success = false;
+    private List<Boolean> success = new ArrayList<>();
 
     /**
      * Builds the trace with a given packet and a connect point.
@@ -197,21 +197,21 @@ public class StaticPacketTrace {
     }
 
     /**
-     * Return if this trace is successful.
+     * Return if all the possible paths of this trace are successful.
      *
-     * @return true if successful
+     * @return true if all paths are successful
      */
     public boolean isSuccess() {
-        return success;
+        return !success.contains(false);
     }
 
     /**
-     * Sets if this trace is successful.
+     * Sets if a path from this trace is successful.
      *
-     * @param success true if trace is successful.
+     * @param success true if a path of trace is successful.
      */
     public void setSuccess(boolean success) {
-        this.success = success;
+        this.success.add(success);
     }
 
 

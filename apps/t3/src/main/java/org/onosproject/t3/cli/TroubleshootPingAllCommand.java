@@ -28,6 +28,8 @@ import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 import org.onosproject.t3.impl.Generator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static java.lang.Thread.sleep;
@@ -69,39 +71,27 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
             //Create the generator for the list of traces.
             Generator<Set<StaticPacketTrace>> generator = service.pingAllGenerator(type);
             Host previousHost = null;
+            int totalTraces = 0;
+            List<StaticPacketTrace> failedTraces = new ArrayList<>();
+            boolean ipv4 = type.equals(EtherType.IPV4);
             while (generator.iterator().hasNext()) {
                 Set<StaticPacketTrace> traces = generator.iterator().next();
+                totalTraces++;
                 for (StaticPacketTrace trace : traces) {
-                    boolean ipv4 = type.equals(EtherType.IPV4);
                     //no verbosity is mininet style output
                     if (!verbosity1 && !verbosity2) {
                         if (trace.getEndpointHosts().isPresent()) {
                             Host src = trace.getEndpointHosts().get().getLeft();
                             if (previousHost == null || !previousHost.equals(src)) {
                                 print("%s", StringUtils.rightPad("", 125, '-'));
-                                IpAddress ipAddress = getIpAddress(trace, ipv4, src, true);
-                                if (ipAddress == null) {
-                                    print("%s", src.id() + " -->");
-                                } else {
-                                    print("%s (%s) -->", src.id(), ipAddress);
-                                }
-                                previousHost = src;
-                            } else {
-                                String host;
-                                IpAddress ipAddress = getIpAddress(trace, ipv4, src, false);
-                                if (ipAddress == null) {
-                                    host = String.format("       %s %s", trace.getEndpointHosts().get().getRight().id(),
-                                            trace.isSuccess());
-                                } else {
-                                    host = String.format("       %s (%s) %s",
-                                            trace.getEndpointHosts().get().getRight().id(), ipAddress,
-                                            trace.isSuccess());
-                                }
-                                if (!trace.isSuccess()) {
-                                    host = host + " " + trace.resultMessage();
-                                }
-                                print("%s", host);
+                                previousHost = printSrc(trace, ipv4, src);
                             }
+                            String host = getDstString(trace, ipv4, src);
+                            if (!trace.isSuccess()) {
+                                host = host + " " + trace.resultMessage();
+                                failedTraces.add(trace);
+                            }
+                            print("%s", host);
                         }
                     } else {
                         print("%s", StringUtils.leftPad("", 125, '-'));
@@ -129,7 +119,46 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
                 }
             }
             print("%s", StringUtils.rightPad("", 125, '-'));
+            print("Failed Traces: %s", failedTraces.size());
+            print("%s", StringUtils.rightPad("", 125, '-'));
+            failedTraces.forEach(t -> {
+                if (t.getEndpointHosts().isPresent()) {
+                    printSrc(t, ipv4, t.getEndpointHosts().get().getLeft());
+                    String dst = getDstString(t, ipv4, t.getEndpointHosts().get().getRight());
+                    dst = dst + " " + t.resultMessage();
+                    print("%s", dst);
+                    print("%s", StringUtils.rightPad("", 125, '-'));
+                }
+            });
+            print("Summary");
+            print("Total Traces %s, errors %s", totalTraces, failedTraces.size());
         }
+    }
+
+    private String getDstString(StaticPacketTrace trace, boolean ipv4, Host src) {
+        String host;
+        IpAddress ipAddress = getIpAddress(trace, ipv4, src, false);
+        if (ipAddress == null) {
+            host = String.format("       %s %s", trace.getEndpointHosts().get().getRight().id(),
+                    trace.isSuccess());
+        } else {
+            host = String.format("       %s (%s) %s",
+                    trace.getEndpointHosts().get().getRight().id(), ipAddress,
+                    trace.isSuccess());
+        }
+        return host;
+    }
+
+    private Host printSrc(StaticPacketTrace trace, boolean ipv4, Host src) {
+        Host previousHost;
+        IpAddress ipAddress = getIpAddress(trace, ipv4, src, true);
+        if (ipAddress == null) {
+            print("%s", src.id() + " -->");
+        } else {
+            print("%s (%s) -->", src.id(), ipAddress);
+        }
+        previousHost = src;
+        return previousHost;
     }
 
     private IpAddress getIpAddress(StaticPacketTrace trace, boolean ipv4, Host host, boolean src) {

@@ -180,11 +180,14 @@ public class TroubleshootManager implements TroubleshootService {
 
         if (source == null) {
             failTrace.addResultMessage("Source Host " + sourceHost + " does not exist");
+            failTrace.setSuccess(false);
+
             return ImmutableSet.of(failTrace);
         }
 
         if (destination == null) {
             failTrace.addResultMessage("Destination Host " + destinationHost + " does not exist");
+            failTrace.setSuccess(false);
             return ImmutableSet.of(failTrace);
         }
 
@@ -225,6 +228,7 @@ public class TroubleshootManager implements TroubleshootService {
             } else {
                 failTrace.addResultMessage("Host based trace supports only IPv4 or IPv6 as EtherType, " +
                         "please use packet based");
+                failTrace.setSuccess(false);
                 return ImmutableSet.of(failTrace);
             }
 
@@ -236,6 +240,7 @@ public class TroubleshootManager implements TroubleshootService {
             } else {
                 failTrace.addResultMessage("Can't get " + source.location().deviceId() +
                         " router MAC from segment routing config can't perform L3 tracing.");
+                failTrace.setSuccess(false);
             }
             ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
             source.locations().forEach(hostLocation -> {
@@ -282,6 +287,7 @@ public class TroubleshootManager implements TroubleshootService {
             }
         } else {
             failTrace.addResultMessage("Host " + host + " has no " + etherType + " address");
+            failTrace.setSuccess(false);
             return false;
         }
         return true;
@@ -393,6 +399,7 @@ public class TroubleshootManager implements TroubleshootService {
             trace.addResultMessage("Loop encountered in device " + in.deviceId());
             completePath.add(in);
             trace.addCompletePath(completePath);
+            trace.setSuccess(false);
             return trace;
         }
 
@@ -403,6 +410,7 @@ public class TroubleshootManager implements TroubleshootService {
         if (trace.getGroupOuputs(in.deviceId()) == null) {
             computePath(completePath, trace, null);
             trace.addResultMessage("No output out of device " + in.deviceId() + ". Packet is dropped");
+            trace.setSuccess(false);
             return trace;
         }
 
@@ -424,14 +432,13 @@ public class TroubleshootManager implements TroubleshootService {
                     && ((VlanIdCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.VLAN_VID)).vlanId()
                     .equals(((VlanIdCriterion) outputPath.getFinalPacket().getCriterion(Criterion.Type.VLAN_VID))
                             .vlanId())) {
-                if (computePath(completePath, trace, outputPath.getOutput())) {
+                if (trace.getGroupOuputs(in.deviceId()).size() == 1 &&
+                        computePath(completePath, trace, outputPath.getOutput())) {
                     trace.addResultMessage("Connect point out " + cp + " is same as initial input " + in);
+                    trace.setSuccess(false);
                 }
-                break;
-            }
-
-            //If the two host collections contain the same item it means we reached the proper output
-            if (!Collections.disjoint(hostsList, hosts)) {
+            } else if  (!Collections.disjoint(hostsList, hosts)) {
+                //If the two host collections contain the same item it means we reached the proper output
                 log.debug("Stopping here because host is expected destination {}, reached through", completePath);
                 if (computePath(completePath, trace, outputPath.getOutput())) {
                     trace.addResultMessage("Reached required destination Host " + cp);
@@ -536,6 +543,7 @@ public class TroubleshootManager implements TroubleshootService {
                                 } else {
                                     trace.addResultMessage("Wrong output " + cp + " for required destination ip " +
                                             ipAddress);
+                                    trace.setSuccess(false);
                                 }
                             } else {
                                 trace.addResultMessage("Packet is " + ((EthTypeCriterion) outputPath.getFinalPacket()
@@ -552,6 +560,7 @@ public class TroubleshootManager implements TroubleshootService {
                 log.warn("No links out of {}", cp);
                 computePath(completePath, trace, cp);
                 trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
+                trace.setSuccess(false);
             }
         }
         return trace;
@@ -712,6 +721,7 @@ public class TroubleshootManager implements TroubleshootService {
         FlowEntry nextTableIdEntry = findNextTableIdEntry(in.deviceId(), -1);
         if (nextTableIdEntry == null) {
             trace.addResultMessage("No flow rules for device " + in.deviceId() + ". Aborting");
+            trace.setSuccess(false);
             return trace;
         }
         TableId tableId = nextTableIdEntry.table();
@@ -743,6 +753,7 @@ public class TroubleshootManager implements TroubleshootService {
                 //(another possibility is max tableId)
                 if (nextTableIdEntry == null && flows.size() == 0) {
                     trace.addResultMessage("No matching flow rules for device " + in.deviceId() + ". Aborting");
+                    trace.setSuccess(false);
                     return trace;
 
                 } else if (nextTableIdEntry == null) {
@@ -761,6 +772,7 @@ public class TroubleshootManager implements TroubleshootService {
             } else if (flowEntry == null) {
                 trace.addResultMessage("Packet has no match on table " + tableId + " in device " +
                         in.deviceId() + ". Dropping");
+                trace.setSuccess(false);
                 return trace;
             } else {
 
@@ -1091,10 +1103,12 @@ public class TroubleshootManager implements TroubleshootService {
             }).findAny().orElse(null);
             if (group == null) {
                 trace.addResultMessage("Null group for Instruction " + instr);
+                trace.setSuccess(false);
                 break;
             }
             if (group.buckets().buckets().size() == 0) {
                 trace.addResultMessage("Group " + group.id() + "has no buckets");
+                trace.setSuccess(false);
                 break;
             }
 
