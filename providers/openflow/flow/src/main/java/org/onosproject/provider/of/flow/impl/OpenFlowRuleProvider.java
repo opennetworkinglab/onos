@@ -377,7 +377,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
             FlowModBuilder builder =
                     FlowModBuilder.builder(fbe.target(), sw.factory(),
                             Optional.of(batch.id()), Optional.of(driverService));
-            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
             switch (fbe.operator()) {
                 case ADD:
                     mod = builder.buildFlowAdd();
