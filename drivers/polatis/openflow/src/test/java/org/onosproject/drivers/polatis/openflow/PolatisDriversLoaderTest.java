@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018 Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.optical;
+package org.onosproject.drivers.polatis.openflow;
 
 import org.junit.Before;
 import org.onosproject.net.driver.AbstractDriverLoaderTest;
+import org.onosproject.ui.UiExtensionServiceAdapter;
 
 /**
- * Optical drivers loader test.
+ * Polatis OpenFlow drivers loader test.
  */
-public class OpticalDriversLoaderTest extends AbstractDriverLoaderTest {
+public class PolatisDriversLoaderTest extends AbstractDriverLoaderTest {
 
     @Before
     public void setUp() {
-        loader = new OpticalDriversLoader();
+        loader = new PolatisDriversLoader();
+        ((PolatisDriversLoader) loader).uiExtensionService = new UiExtensionServiceAdapter();
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.optical.handshaker;
+package org.onosproject.drivers.polatis.openflow;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

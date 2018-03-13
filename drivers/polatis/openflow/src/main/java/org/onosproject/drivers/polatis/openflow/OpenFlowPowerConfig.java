@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.optical.power;
+package org.onosproject.drivers.polatis.openflow;
 
 import com.google.common.collect.Range;
 import org.onosproject.net.DeviceId;

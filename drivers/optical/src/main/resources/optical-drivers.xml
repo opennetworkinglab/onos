@@ -93,21 +93,6 @@
 
     </driver>
 
-    <driver name="polatis" extends="default"
-            manufacturer="Polatis" hwVersion=".*" swVersion=".*">
-        <behaviour api="org.onosproject.net.optical.OpticalDevice"
-                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.optical.handshaker.PolatisHandshaker"/>
-        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
-                   impl="org.onosproject.driver.optical.power.OpenFlowPowerConfig"/>
-        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.optical.query.OpenFlowLambdaQuery"/>
-        <property name="meterCapable">false</property>
-        <property name="uiType">policon</property>
-        <property name="groupCapable">false</property>
-    </driver>
-
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
