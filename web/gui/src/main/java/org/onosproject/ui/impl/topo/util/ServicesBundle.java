@@ -67,6 +67,7 @@ public class ServicesBundle {
 
         topologyService = directory.get(TopologyService.class);
         deviceService = directory.get(DeviceService.class);
+        driverService = directory.get(DriverService.class);
         hostService = directory.get(HostService.class);
         linkService = directory.get(LinkService.class);
         tunnelService = directory.get(TunnelService.class);
