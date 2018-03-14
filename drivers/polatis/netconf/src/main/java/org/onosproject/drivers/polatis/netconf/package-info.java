@@ -17,4 +17,4 @@
 /**
  * Package for Polatis device drivers.
  */
-package org.onosproject.drivers.polatis;
+package org.onosproject.drivers.polatis.netconf;
