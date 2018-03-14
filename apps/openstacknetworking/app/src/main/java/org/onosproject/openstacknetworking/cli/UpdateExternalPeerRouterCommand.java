@@ -24,7 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 
 import java.util.List;
 
@@ -53,7 +53,7 @@ public class UpdateExternalPeerRouterCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkAdminService service = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
 
         IpAddress externalPeerIpAddress = IpAddress.valueOf(
                 IpAddress.Version.INET, Ip4Address.valueOf(ipAddress).toOctets());

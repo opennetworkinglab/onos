@@ -37,6 +37,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
@@ -160,9 +161,15 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(error);
         }
 
+
+        ExternalPeerRouter externalPeerRouter = externalPeerRouter(osNet);
+        if (externalPeerRouter == null) {
+            return;
+        }
+
         setComputeNodeToGateway(instPort, osNet, install);
-        setDownstreamRules(floatingIp, osNet, instPort, install);
-        setUpstreamRules(floatingIp, osNet, instPort, install);
+        setDownstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
+        setUpstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
     }
 
     private void setComputeNodeToGateway(InstancePort instPort, Network osNet, boolean install) {
@@ -216,7 +223,8 @@ public class OpenstackRoutingFloatingIpHandler {
     }
 
     private void setDownstreamRules(NetFloatingIP floatingIp, Network osNet,
-                                    InstancePort instPort, boolean install) {
+                                    InstancePort instPort, ExternalPeerRouter externalPeerRouter,
+                                    boolean install) {
         OpenstackNode cNode = osNodeService.node(instPort.deviceId());
         if (cNode == null) {
             final String error = String.format("Cannot find openstack node for device %s",
@@ -235,16 +243,22 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
-        TrafficSelector externalSelector = DefaultTrafficSelector.builder()
+        TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(floating.toIpPrefix())
-                .build();
+                .matchIPDst(floating.toIpPrefix());
+
+        TrafficTreatment.Builder externalBuilder = DefaultTrafficTreatment.builder()
+                .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
+                .setEthDst(instPort.macAddress())
+                .setIpDst(instPort.ipAddress().getIp4Address());
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
+            externalBuilder.popVlan();
+        }
 
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
-            TrafficTreatment.Builder externalBuilder = DefaultTrafficTreatment.builder()
-                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                    .setEthDst(instPort.macAddress())
-                    .setIpDst(instPort.ipAddress().getIp4Address());
+
 
             switch (osNet.getNetworkType()) {
                 case VXLAN:
@@ -270,7 +284,7 @@ public class OpenstackRoutingFloatingIpHandler {
             osFlowRuleService.setRule(
                     appId,
                     gNode.intgBridge(),
-                    externalSelector,
+                    externalSelectorBuilder.build(),
                     externalBuilder.build(),
                     PRIORITY_FLOATING_EXTERNAL,
                     GW_COMMON_TABLE,
@@ -321,7 +335,8 @@ public class OpenstackRoutingFloatingIpHandler {
     }
 
     private void setUpstreamRules(NetFloatingIP floatingIp, Network osNet,
-                                  InstancePort instPort, boolean install) {
+                                  InstancePort instPort, ExternalPeerRouter externalPeerRouter,
+                                  boolean install) {
         IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -340,21 +355,20 @@ public class OpenstackRoutingFloatingIpHandler {
                 throw new IllegalStateException(error);
         }
 
-        MacAddress externalPeerRouterMac = externalPeerRouterMac(osNet);
-        if (externalPeerRouterMac == null) {
-            return;
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setIpSrc(floating.getIp4Address())
+                .setEthSrc(instPort.macAddress())
+                .setEthDst(externalPeerRouter.externalPeerRouterMac());
+
+        if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
+            tBuilder.popVlan();
         }
 
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
+        }
 
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                    .setIpSrc(floating.getIp4Address())
-                    .setEthSrc(instPort.macAddress())
-                    .setEthDst(externalPeerRouterMac);
-
-            if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
-                tBuilder.popVlan();
-            }
 
             osFlowRuleService.setRule(
                     appId,
@@ -365,6 +379,32 @@ public class OpenstackRoutingFloatingIpHandler {
                     GW_COMMON_TABLE,
                     install);
         });
+    }
+
+    private ExternalPeerRouter externalPeerRouter(Network network) {
+        Subnet subnet = osNetworkService.subnet(network.getId());
+
+        if (subnet == null) {
+            return null;
+        }
+
+        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        Router osRouter = osRouterService.router(osRouterIface.getId());
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
+
+        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
+        return osNetworkService.externalPeerRouter(exGatewayInfo);
     }
 
     private MacAddress externalPeerRouterMac(Network network) {

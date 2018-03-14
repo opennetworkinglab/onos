@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkAdminService service = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
 
         if (service.externalPeerRouters().stream()
                 .noneMatch(router -> router.externalPeerRouterIp().toString().equals(ipAddress))) {

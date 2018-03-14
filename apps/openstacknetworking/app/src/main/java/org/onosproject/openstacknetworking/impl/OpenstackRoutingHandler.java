@@ -55,6 +55,7 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
@@ -130,6 +131,9 @@ public class OpenstackRoutingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNetworkAdminService osNetworkAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackRouterService osRouterService;
@@ -217,10 +221,10 @@ public class OpenstackRoutingHandler {
         VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.externalPeerRouterVlanId();
 
         if (exGateway == null) {
-            osNetworkService.deleteExternalPeerRouter(exGateway);
+            osNetworkAdminService.deleteExternalPeerRouter(exGateway);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> setSourceNat(iface, false));
         } else {
-            osNetworkService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
+            osNetworkAdminService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface ->
                     setSourceNat(iface, exGateway.isEnableSnat()));
         }

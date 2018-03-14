@@ -35,7 +35,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -68,7 +68,7 @@ public class OpenstackRoutingArpHandler {
     protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService osNetworkService;
+    protected OpenstackNetworkAdminService osNetworkAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackRouterService osRouterService;
@@ -114,7 +114,7 @@ public class OpenstackRoutingArpHandler {
 
             //In case target ip is for associated floating ip, sets target mac to vm's.
             if (floatingIP != null && floatingIP.getPortId() != null) {
-                targetMac = MacAddress.valueOf(osNetworkService.port(floatingIP.getPortId()).getMacAddress());
+                targetMac = MacAddress.valueOf(osNetworkAdminService.port(floatingIP.getPortId()).getMacAddress());
             }
 
             if (isExternalGatewaySourceIp(targetIp.getIp4Address())) {
@@ -147,7 +147,7 @@ public class OpenstackRoutingArpHandler {
             try {
                 if (receivedPortNum.equals(
                         osNodeService.node(context.inPacket().receivedFrom().deviceId()).uplinkPortNum())) {
-                    osNetworkService.updateExternalPeerRouterMac(
+                    osNetworkAdminService.updateExternalPeerRouterMac(
                             Ip4Address.valueOf(arp.getSenderProtocolAddress()),
                             MacAddress.valueOf(arp.getSenderHardwareAddress()));
                 }
@@ -185,7 +185,7 @@ public class OpenstackRoutingArpHandler {
     }
 
     private boolean isExternalGatewaySourceIp(IpAddress targetIp) {
-        return osNetworkService.ports().stream()
+        return osNetworkAdminService.ports().stream()
                 .filter(osPort -> Objects.equals(osPort.getDeviceOwner(),
                         DEVICE_OWNER_ROUTER_GW))
                 .flatMap(osPort -> osPort.getFixedIps().stream())
