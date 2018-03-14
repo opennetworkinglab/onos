@@ -260,8 +260,10 @@ public class PseudowireWebResource extends AbstractWebResource {
                     log.error("Pseudowire {} could not be removed, error in configuration," +
                                       " please check logs for more details!",
                               pseudowireId);
+                    break;
                 case SUCCESS:
                     log.debug("Pseudowire {} was removed succesfully!", pseudowireId);
+                    break;
                 default:
             }
         }
