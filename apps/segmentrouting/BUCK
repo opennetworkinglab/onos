@@ -9,5 +9,5 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'Segment routing application.',
-    required_apps = [ 'org.onosproject.route-service' ],
+    required_apps = [ 'org.onosproject.route-service', 'org.onosproject.mcast' ],
 )

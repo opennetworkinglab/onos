@@ -8,6 +8,8 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
     '//apps/route-service/api:onos-apps-route-service-api',
+    '//apps/mcast/api:onos-apps-mcast-api',
+    '//apps/mcast/cli:onos-apps-mcast-cli',
 ]
 
 TEST_DEPS = [

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.segmentrouting.cli;
 
 import com.google.common.collect.Maps;
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.mcast.cli.McastGroupCompleter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
@@ -37,19 +39,24 @@ import static com.google.common.base.Strings.isNullOrEmpty;
         description = "Lists all mcast nextids")
 public class McastNextListCommand extends AbstractShellCommand {
 
+    // OSGi workaround to introduce package dependency
+    McastGroupCompleter completer;
+
     // Format for group line
     private static final String FORMAT_MAPPING = "group=%s, deviceIds-nextIds=%s";
 
-    @Argument(index = 0, name = "mcastIp", description = "mcast Ip",
+    @Option(name = "-gAddr", aliases = "--groupAddress",
+            description = "IP Address of the multicast group",
+            valueToShowInHelp = "224.0.0.0",
             required = false, multiValued = false)
-    String mcastIp;
+    String gAddr = null;
 
     @Override
     protected void execute() {
         // Verify mcast group
         IpAddress mcastGroup = null;
-        if (!isNullOrEmpty(mcastIp)) {
-            mcastGroup = IpAddress.valueOf(mcastIp);
+        if (!isNullOrEmpty(gAddr)) {
+            mcastGroup = IpAddress.valueOf(gAddr);
 
         }
         // Get SR service
