@@ -18,10 +18,11 @@ package org.onosproject.segmentrouting.cli;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.mcast.cli.McastGroupCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -46,21 +47,26 @@ import static org.onosproject.segmentrouting.mcast.McastRole.TRANSIT;
         description = "Lists all mcast trees")
 public class McastTreeListCommand extends AbstractShellCommand {
 
+    // OSGi workaround to introduce package dependency
+    McastGroupCompleter completer;
+
     // Format for group line
     private static final String G_FORMAT_MAPPING = "group=%s, ingress=%s, transit=%s, egress=%s";
     // Format for sink line
     private static final String S_FORMAT_MAPPING = "\tsink=%s\tpath=%s";
 
-    @Argument(index = 0, name = "mcastIp", description = "mcast Ip",
+    @Option(name = "-gAddr", aliases = "--groupAddress",
+            description = "IP Address of the multicast group",
+            valueToShowInHelp = "224.0.0.0",
             required = false, multiValued = false)
-    String mcastIp;
+    String gAddr = null;
 
     @Override
     protected void execute() {
         // Verify mcast group
         IpAddress mcastGroup = null;
-        if (!isNullOrEmpty(mcastIp)) {
-            mcastGroup = IpAddress.valueOf(mcastIp);
+        if (!isNullOrEmpty(gAddr)) {
+            mcastGroup = IpAddress.valueOf(gAddr);
 
         }
         // Get SR service

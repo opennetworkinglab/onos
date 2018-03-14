@@ -44,6 +44,9 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.mcast.api.McastEvent;
+import org.onosproject.mcast.api.McastListener;
+import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -77,9 +80,6 @@ import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.mcast.McastEvent;
-import org.onosproject.net.mcast.McastListener;
-import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.neighbour.NeighbourResolutionService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -1096,10 +1096,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         routeHandler.processRouteRemoved((RouteEvent) event);
                     } else if (event.type() == RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED) {
                         routeHandler.processAlternativeRoutesChanged((RouteEvent) event);
-                    } else if (event.type() == McastEvent.Type.SOURCE_ADDED ||
-                            event.type() == McastEvent.Type.SOURCE_UPDATED ||
-                            event.type() == McastEvent.Type.SINK_ADDED ||
-                            event.type() == McastEvent.Type.SINK_REMOVED ||
+                    } else if (event.type() == McastEvent.Type.SOURCES_ADDED ||
+                            event.type() == McastEvent.Type.SOURCES_REMOVED ||
+                            event.type() == McastEvent.Type.SINKS_ADDED ||
+                            event.type() == McastEvent.Type.SINKS_REMOVED ||
+                            event.type() == McastEvent.Type.ROUTE_ADDED ||
                             event.type() == McastEvent.Type.ROUTE_REMOVED) {
                         mcastHandler.processMcastEvent((McastEvent) event);
                     } else if (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED) {
@@ -1503,10 +1504,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         @Override
         public void event(McastEvent event) {
             switch (event.type()) {
-                case SOURCE_ADDED:
-                case SOURCE_UPDATED:
-                case SINK_ADDED:
-                case SINK_REMOVED:
+                case SOURCES_ADDED:
+                case SOURCES_REMOVED:
+                case SINKS_ADDED:
+                case SINKS_REMOVED:
                 case ROUTE_REMOVED:
                     log.trace("Schedule Mcast event {}", event);
                     scheduleEventHandlerIfNotScheduled(event);
