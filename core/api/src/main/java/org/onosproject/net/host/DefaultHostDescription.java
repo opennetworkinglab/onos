@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.onlab.packet.EthType;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.SparseAnnotations;
@@ -42,6 +43,8 @@ public class DefaultHostDescription extends AbstractDescription
     private final VlanId vlan;
     private final Set<HostLocation> locations;
     private final Set<IpAddress> ip;
+    private final VlanId innerVlan;
+    private final EthType tpid;
     private final boolean configured;
 
     /**
@@ -135,11 +138,32 @@ public class DefaultHostDescription extends AbstractDescription
                                   Set<HostLocation> locations,
                                   Set<IpAddress> ip, boolean configured,
                                   SparseAnnotations... annotations) {
+        this(mac, vlan, locations, ip, VlanId.NONE, EthType.EtherType.UNKNOWN.ethType(),
+             configured, annotations);
+    }
+
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param mac          host MAC address
+     * @param vlan         host VLAN identifier
+     * @param locations    host locations
+     * @param ip           host IP address
+     * @param innerVlan    host inner VLAN identifier
+     * @param tpid         outer TPID of a host
+     * @param configured   true if configured via NetworkConfiguration
+     * @param annotations  optional key/value annotations map
+     */
+    public DefaultHostDescription(MacAddress mac, VlanId vlan, Set<HostLocation> locations,
+                                  Set<IpAddress> ip, VlanId innerVlan, EthType tpid,
+                                  boolean configured, SparseAnnotations... annotations) {
         super(annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.locations = new HashSet<>(locations);
         this.ip = new HashSet<>(ip);
+        this.innerVlan = innerVlan;
+        this.tpid = tpid;
         this.configured = configured;
     }
 
@@ -176,6 +200,16 @@ public class DefaultHostDescription extends AbstractDescription
     }
 
     @Override
+    public VlanId innerVlan() {
+        return innerVlan;
+    }
+
+    @Override
+    public EthType tpid() {
+        return tpid;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("mac", mac)
@@ -183,6 +217,8 @@ public class DefaultHostDescription extends AbstractDescription
                 .add("locations", locations)
                 .add("ipAddress", ip)
                 .add("configured", configured)
+                .add("innerVlanId", innerVlan)
+                .add("outerTPID", tpid)
                 .toString();
     }
 
@@ -201,7 +237,9 @@ public class DefaultHostDescription extends AbstractDescription
             return Objects.equal(this.mac, that.mac)
                     && Objects.equal(this.vlan, that.vlan)
                     && Objects.equal(this.locations, that.locations)
-                    && Objects.equal(this.ip, that.ip);
+                    && Objects.equal(this.ip, that.ip)
+                    && Objects.equal(this.innerVlan, that.innerVlan)
+                    && Objects.equal(this.tpid, that.tpid);
         }
         return false;
     }

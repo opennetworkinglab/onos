@@ -17,13 +17,17 @@ package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Basic configuration for network end-station hosts.
@@ -32,16 +36,29 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
 
     private static final String IPS = "ips";
     private static final String LOCATIONS = "locations";
+    private static final String INNER_VLAN = "innerVlan";
+    private static final String OUTER_TPID = "outerTpid";
     private static final String DASH = "-";
 
     @Override
     public boolean isValid() {
         // locations is mandatory and must have at least one
         // ipAddresses can be absent, but if present must be valid
+        // innerVlan: 0 < innerVlan < VlanId.MAX_VLAN, if present
+        // outerTpid: either 0x8100 or 0x88a8, if present
+        if (!isIntegralNumber(object, INNER_VLAN, FieldPresence.OPTIONAL, 0, VlanId.MAX_VLAN)) {
+            return false;
+        }
+        checkArgument(!hasField(object, OUTER_TPID) ||
+                              (short) (Integer.decode(get(OUTER_TPID, "0")) & 0xFFFF) ==
+                              EthType.EtherType.QINQ.ethType().toShort() ||
+                              (short) (Integer.decode(get(OUTER_TPID, "0")) & 0xFFFF) ==
+                              EthType.EtherType.VLAN.ethType().toShort());
         this.locations();
         this.ipAddresses();
-        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE, ROLES,
-                             GRID_X, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
+        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
+                             GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS,
+                             INNER_VLAN, OUTER_TPID);
     }
 
     @Override
@@ -118,5 +135,27 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
      */
     public BasicHostConfig setIps(Set<IpAddress> ipAddresses) {
         return (BasicHostConfig) setOrClear(IPS, ipAddresses);
+    }
+
+    public VlanId innerVlan() {
+        String vlan = get(INNER_VLAN, null);
+        return vlan == null ? VlanId.NONE : VlanId.vlanId(Short.valueOf(vlan));
+    }
+
+    public BasicHostConfig setInnerVlan(VlanId vlanId) {
+        return (BasicHostConfig) setOrClear(INNER_VLAN, vlanId.toString());
+    }
+
+    public EthType outerTpid() {
+        short tpid = (short) (Integer.decode(get(OUTER_TPID, "0")) & 0xFFFF);
+        if (!(tpid == EthType.EtherType.VLAN.ethType().toShort() ||
+                tpid == EthType.EtherType.QINQ.ethType().toShort())) {
+            return EthType.EtherType.UNKNOWN.ethType();
+        }
+        return EthType.EtherType.lookup(tpid).ethType();
+    }
+
+    public BasicHostConfig setOuterTpid(EthType tpid) {
+        return (BasicHostConfig) setOrClear(OUTER_TPID, String.format("0x%04X", tpid.toShort()));
     }
 }

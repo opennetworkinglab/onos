@@ -22,6 +22,7 @@ import org.onosproject.net.HostLocation;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.EthType;
 
 /**
  * Information describing host and its location.
@@ -41,6 +42,24 @@ public interface HostDescription extends Description {
      * @return the VLAN ID value
      */
     VlanId vlan();
+
+    /**
+     * Returns the inner VLAN associated with this host.
+     *
+     * @return VLAN ID value; VlanId.NONE if only one VLAN ID is associated with this host
+     */
+    default VlanId innerVlan() {
+        return VlanId.NONE;
+    }
+
+    /**
+     * Returns the TPID of the outermost VLAN associated with this host.
+     *
+     * @return TPID of the outermost VLAN header
+     */
+    default EthType tpid() {
+        return EthType.EtherType.UNKNOWN.ethType();
+    }
 
     /**
      * Returns the most recent location of the host on the network edge.

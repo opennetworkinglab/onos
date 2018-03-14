@@ -69,8 +69,8 @@ public final class BasicHostOperator extends BasicElementOperator {
 
         SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultHostDescription(descr.hwAddress(), descr.vlan(),
-                                          locations, ipAddresses,
-                                          descr.configured(), sa);
+                                          locations, ipAddresses, descr.innerVlan(),
+                                          descr.tpid(), descr.configured(), sa);
     }
 
     /**

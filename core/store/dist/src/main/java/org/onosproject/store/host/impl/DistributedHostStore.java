@@ -218,6 +218,8 @@ public class DistributedHostStore
         if (!Objects.equals(existingHost.providerId(), providerId) ||
                 !Objects.equals(existingHost.mac(), hostDescription.hwAddress()) ||
                 !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||
+                !Objects.equals(existingHost.innerVlan(), hostDescription.innerVlan()) ||
+                !Objects.equals(existingHost.tpid(), hostDescription.tpid()) ||
                 !Objects.equals(existingHost.locations(), hostDescription.locations())) {
             return true;
         }
@@ -275,6 +277,8 @@ public class DistributedHostStore
                                                   hostDescription.vlan(),
                                                   hostDescription.locations(),
                                                   addresses,
+                                                  hostDescription.innerVlan(),
+                                                  hostDescription.tpid(),
                                                   hostDescription.configured(),
                                                   annotations);
                        });

@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.NetTestTools;
@@ -36,7 +38,7 @@ import static org.hamcrest.Matchers.is;
 public class BasicHostConfigTest {
 
     /**
-     * Tests construction, setters and getters of a BasicLinkConfig object.
+     * Tests construction, setters and getters of a BasicHostConfig object.
      */
     @Test
     public void testConstruction() {
@@ -53,11 +55,15 @@ public class BasicHostConfigTest {
         HostLocation loc2 = new HostLocation(
                 NetTestTools.connectPoint("d2", 2), System.currentTimeMillis());
         Set<HostLocation> locs = ImmutableSet.of(loc1, loc2);
+        VlanId vlanId = VlanId.vlanId((short) 10);
+        EthType ethType = EthType.EtherType.lookup((short) 0x88a8).ethType();
 
         config.init(hostId, "KEY", JsonNodeFactory.instance.objectNode(), mapper, delegate);
 
         config.setIps(ips)
-              .setLocations(locs);
+              .setLocations(locs)
+              .setInnerVlan(vlanId)
+              .setOuterTpid(ethType);
 
         assertThat(config.isValid(), is(true));
         assertThat(config.name(), is("-"));
@@ -65,6 +71,8 @@ public class BasicHostConfigTest {
         assertThat(config.ipAddresses(), hasItems(ip1, ip2, ip3));
         assertThat(config.locations(), hasSize(2));
         assertThat(config.locations(), hasItems(loc1, loc2));
+        assertThat(config.innerVlan(), is(vlanId));
+        assertThat(config.outerTpid(), is(ethType));
     }
 
 }

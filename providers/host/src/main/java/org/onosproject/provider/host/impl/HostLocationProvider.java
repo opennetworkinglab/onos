@@ -28,6 +28,7 @@ import org.onlab.packet.ARP;
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
@@ -441,15 +442,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
          * Create or update host information.
          * Will not update IP if IP is null, all zero or self-assigned.
          *
-         * @param hid  host ID
-         * @param mac  source Mac address
-         * @param vlan VLAN ID
-         * @param hloc host location
-         * @param ip   source IP address or null if not updating
+         * @param hid       host ID
+         * @param mac       source Mac address
+         * @param vlan      VLAN ID
+         * @param innerVlan inner VLAN ID
+         * @param outerTpid outer TPID
+         * @param hloc      host location
+         * @param ip        source IP address or null if not updating
          */
-        private void createOrUpdateHost(HostId hid, MacAddress mac,
-                                        VlanId vlan, HostLocation hloc,
-                                        IpAddress ip) {
+        private void createOrUpdateHost(HostId hid, MacAddress mac, VlanId vlan,
+                                        VlanId innerVlan, EthType outerTpid,
+                                        HostLocation hloc, IpAddress ip) {
             Set<HostLocation> newLocations = Sets.newHashSet(hloc);
 
             if (multihomingEnabled) {
@@ -473,8 +476,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
 
             HostDescription desc = ip == null || ip.isZero() || ip.isSelfAssigned() ?
-                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(), false) :
-                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(ip), false);
+                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(),
+                                               innerVlan, outerTpid, false) :
+                    new DefaultHostDescription(mac, vlan, newLocations, Sets.newHashSet(ip),
+                                               innerVlan, outerTpid, false);
             try {
                 providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
@@ -521,6 +526,15 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
 
             VlanId vlan = VlanId.vlanId(eth.getVlanID());
+            VlanId outerVlan = VlanId.vlanId(eth.getQinQVID());
+            VlanId innerVlan = VlanId.NONE;
+            EthType outerTpid = EthType.EtherType.UNKNOWN.ethType();
+            // Set up values for double-tagged hosts
+            if (outerVlan.toShort() != Ethernet.VLAN_UNTAGGED) {
+                innerVlan = vlan;
+                vlan = outerVlan;
+                outerTpid = EthType.EtherType.lookup(eth.getQinQTPID()).ethType();
+            }
             ConnectPoint heardOn = context.inPacket().receivedFrom();
 
             // If this arrived on control port, bail out.
@@ -550,12 +564,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 ARP arp = (ARP) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET,
                                                  arp.getSenderProtocolAddress());
-                createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
+                createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, ip);
 
             // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 // Update host location
-                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+                createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, null);
                 if (useDhcp) {
                     DHCP dhcp = findDhcp(eth).orElse(null);
                     // DHCP ACK: additionally update IP of DHCP client
@@ -586,7 +600,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 // DHCPv6 protocol
                 DHCP6 dhcp6 = findDhcp6(pkt).orElse(null);
                 if (dhcp6 != null && useDhcp6) {
-                    createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+                    createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, null);
                     handleDhcp6(dhcp6, vlan);
                     return;
                 }
@@ -605,13 +619,13 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                 return;
                             }
                             // NeighborSolicitation, NeighborAdvertisement
-                            createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
+                            createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, ip);
 
                             // Also learn from the target address of NeighborAdvertisement
                             if (pkt instanceof NeighborAdvertisement) {
                                 NeighborAdvertisement na = (NeighborAdvertisement) pkt;
                                 Ip6Address targetAddr = Ip6Address.valueOf(na.getTargetAddress());
-                                createOrUpdateHost(hid, srcMac, vlan, hloc, targetAddr);
+                                createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, targetAddr);
                             }
                             return;
                         }
@@ -624,7 +638,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 }
 
                 // normal IPv6 packets
-                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
+                createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, null);
             }
         }
 

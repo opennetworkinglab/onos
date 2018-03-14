@@ -15,6 +15,7 @@
  */
 package org.onosproject.net;
 
+import org.onlab.packet.EthType;
 import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -37,8 +38,11 @@ public class DefaultHost extends AbstractElement implements Host {
     private final VlanId vlan;
     private final Set<HostLocation> locations;
     private final Set<IpAddress> ips;
+    private final VlanId innerVlan;
+    private final EthType tpid;
     private final boolean configured;
 
+    // TODO consider moving this constructor to a builder pattern.
     /**
      * Creates an end-station host using the supplied information.
      *
@@ -78,24 +82,47 @@ public class DefaultHost extends AbstractElement implements Host {
     /**
      * Creates an end-station host using the supplied information.
      *
-     * @param providerId  provider identity
-     * @param id          host identifier
-     * @param mac         host MAC address
-     * @param vlan        host VLAN identifier
-     * @param locations   set of host locations
-     * @param ips         host IP addresses
+     * @param providerId provider identity
+     * @param id         host identifier
+     * @param mac        host MAC address
+     * @param vlan       host VLAN identifier
+     * @param locations  set of host locations
+     * @param ips        host IP addresses
      * @param configured  true if configured via NetworkConfiguration
      * @param annotations optional key/value annotations
      */
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
                        VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips,
                        boolean configured, Annotations... annotations) {
+        this(providerId, id, mac, vlan, locations, ips, VlanId.NONE,
+             EthType.EtherType.UNKNOWN.ethType(), configured, annotations);
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId  provider identity
+     * @param id          host identifier
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param locations   set of host locations
+     * @param ips         host IP addresses
+     * @param innerVlan   host inner VLAN identifier
+     * @param tpid        outer TPID of a host
+     * @param configured  true if configured via NetworkConfiguration
+     * @param annotations optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac, VlanId vlan,
+                       Set<HostLocation> locations, Set<IpAddress> ips, VlanId innerVlan,
+                       EthType tpid, boolean configured, Annotations... annotations) {
         super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.locations = new HashSet<>(locations);
         this.ips = new HashSet<>(ips);
         this.configured = configured;
+        this.innerVlan = innerVlan;
+        this.tpid = tpid;
     }
 
     @Override
@@ -135,6 +162,16 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
+    public VlanId innerVlan() {
+        return innerVlan;
+    }
+
+    @Override
+    public EthType tpid() {
+        return tpid;
+    }
+
+    @Override
     public boolean configured() {
         return configured;
     }
@@ -156,6 +193,8 @@ public class DefaultHost extends AbstractElement implements Host {
                     Objects.equals(this.vlan, other.vlan) &&
                     Objects.equals(this.locations, other.locations) &&
                     Objects.equals(this.ipAddresses(), other.ipAddresses()) &&
+                    Objects.equals(this.innerVlan, other.innerVlan) &&
+                    Objects.equals(this.tpid, other.tpid) &&
                     Objects.equals(this.annotations(), other.annotations());
         }
         return false;
@@ -171,6 +210,8 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("ipAddresses", ipAddresses())
                 .add("annotations", annotations())
                 .add("configured", configured())
+                .add("innerVlanId", innerVlan())
+                .add("outerTPID", tpid())
                 .toString();
     }
 

@@ -40,6 +40,8 @@ public final class HostCodec extends AnnotatedCodec<Host> {
                 .put("id", host.id().toString())
                 .put("mac", host.mac().toString())
                 .put("vlan", host.vlan().toString())
+                .put("innerVlan", host.innerVlan().toString())
+                .put("outerTpid", host.tpid().toString())
                 .put("configured", host.configured());
 
         final ArrayNode jsonIpAddresses = result.putArray("ipAddresses");

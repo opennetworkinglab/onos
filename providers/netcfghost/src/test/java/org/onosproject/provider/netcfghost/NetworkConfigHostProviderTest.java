@@ -19,6 +19,7 @@ package org.onosproject.provider.netcfghost;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -54,6 +55,8 @@ public class NetworkConfigHostProviderTest {
     private Set<IpAddress> ips = new HashSet<>();
     private HostId hostId = HostId.hostId(mac, vlan);
     private HostDescription hostDescription;
+    private VlanId innerVlan = VlanId.vlanId((short) 20);
+    private EthType outerTpid = EthType.EtherType.lookup((short) 0x88a8).ethType();
 
     @Before
     public void setUp() {
@@ -62,12 +65,13 @@ public class NetworkConfigHostProviderTest {
         // Initialize test variables
         ips.add(IpAddress.valueOf("10.0.0.1"));
         ips.add(IpAddress.valueOf("192.168.0.1"));
-        hostDescription = new DefaultHostDescription(mac, vlan, locations, ips, true);
+        hostDescription = new DefaultHostDescription(mac, vlan, locations, ips,
+                                                     innerVlan, outerTpid, true);
     }
 
     @Test
     public void testAddHost() throws Exception {
-        provider.addHost(mac, vlan, locations, ips);
+        provider.addHost(mac, vlan, locations, ips, innerVlan, outerTpid);
         assertThat(providerService.hostId, is(hostId));
         assertThat(providerService.hostDescription, is(hostDescription));
         assertThat(providerService.event, is("hostDetected"));
@@ -76,7 +80,7 @@ public class NetworkConfigHostProviderTest {
 
     @Test
     public void testUpdateHost() throws Exception {
-        provider.updateHost(mac, vlan, locations, ips);
+        provider.updateHost(mac, vlan, locations, ips, innerVlan, outerTpid);
         assertThat(providerService.hostId, is(hostId));
         assertThat(providerService.hostDescription, is(hostDescription));
         assertThat(providerService.event, is("hostDetected"));
