@@ -15,7 +15,10 @@
  */
 package org.onosproject.net;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.provider.ProviderId;
+
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,6 +96,27 @@ public class DefaultEdgeLink extends DefaultLink implements EdgeLink {
         return new DefaultEdgeLink(ProviderId.NONE,
                                    new ConnectPoint(host.id(), PortNumber.P0),
                                    host.location(), isIngress, host.annotations());
+    }
+
+    /**
+     * Creates edge links, to the specified end-station.
+     *
+     * The edge link inherits the target host annotations.
+     *
+     * @param host      host
+     * @param isIngress true to indicate host-to-network direction; false
+     *                  for network-to-host direction
+     * @return new phantom edge link
+     */
+    public static Set<DefaultEdgeLink> createEdgeLinks(Host host, boolean isIngress) {
+        checkNotNull(host, "Host cannot be null");
+        ImmutableSet.Builder<DefaultEdgeLink> edgeLinksBuilder = ImmutableSet.builder();
+        host.locations().forEach(
+                location -> edgeLinksBuilder.add(new DefaultEdgeLink(ProviderId.NONE,
+                                                 new ConnectPoint(host.id(), PortNumber.P0),
+                                                 location, isIngress, host.annotations()))
+        );
+        return edgeLinksBuilder.build();
     }
 
 }

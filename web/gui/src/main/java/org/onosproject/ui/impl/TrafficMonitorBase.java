@@ -18,6 +18,7 @@
 package org.onosproject.ui.impl;
 
 import org.onosproject.incubator.net.PortStatisticsService.MetricType;
+import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.statistic.Load;
@@ -37,7 +38,7 @@ import java.util.TimerTask;
 
 import static org.onosproject.incubator.net.PortStatisticsService.MetricType.BYTES;
 import static org.onosproject.incubator.net.PortStatisticsService.MetricType.PACKETS;
-import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.IDLE;
 
 /**
@@ -306,8 +307,12 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
      */
     protected void addEdgeLinks(TrafficLinkMap linkMap) {
         services.host().getHosts().forEach(host -> {
-            linkMap.add(createEdgeLink(host, true));
-            linkMap.add(createEdgeLink(host, false));
+            // Ingress edge links
+            Set<DefaultEdgeLink> edgeLinks = createEdgeLinks(host, true);
+            edgeLinks.forEach(linkMap::add);
+            // Egress edge links
+            edgeLinks = createEdgeLinks(host, false);
+            edgeLinks.forEach(linkMap::add);
         });
     }
 
