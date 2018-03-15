@@ -26,6 +26,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
@@ -50,6 +51,10 @@ public class ExtensionInstructionSerializer extends
     public void write(Kryo kryo, Output output, Instructions.ExtensionInstructionWrapper object) {
         kryo.writeClassAndObject(output, object.extensionInstruction().type());
         kryo.writeClassAndObject(output, object.deviceId());
+        DriverService driverService = DefaultServiceDirectory.getService(DriverService.class);
+        // It raises ItemNotFoundException if it failed to find driver
+        Driver driver = driverService.getDriver(object.deviceId());
+        kryo.writeClassAndObject(output, driver.name());
         kryo.writeClassAndObject(output, object.extensionInstruction().serialize());
     }
 
@@ -58,13 +63,14 @@ public class ExtensionInstructionSerializer extends
                                                          Class<Instructions.ExtensionInstructionWrapper> type) {
         ExtensionTreatmentType exType = (ExtensionTreatmentType) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
+        String driverName = (String) kryo.readClassAndObject(input);
         DriverService driverService = DefaultServiceDirectory.getService(DriverService.class);
         byte[] bytes = (byte[]) kryo.readClassAndObject(input);
         ExtensionTreatment instruction;
 
         try {
             DriverHandler handler = new DefaultDriverHandler(
-                    new DefaultDriverData(driverService.getDriver(deviceId), deviceId));
+                    new DefaultDriverData(driverService.getDriver(driverName), deviceId));
             ExtensionTreatmentResolver resolver = handler.behaviour(ExtensionTreatmentResolver.class);
             instruction = resolver.getExtensionInstruction(exType);
             instruction.deserialize(bytes);
