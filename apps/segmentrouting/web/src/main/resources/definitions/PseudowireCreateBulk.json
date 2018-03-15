@@ -56,7 +56,7 @@
           },
           "pwLabel": {
             "type": "256",
-            "example": "",
+            "example": "1577",
             "description": "Pseudowire label."
           }
         }

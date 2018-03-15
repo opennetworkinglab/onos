@@ -19,14 +19,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
-import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
-import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
-import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Command to show the pseudowires.
  */
@@ -39,7 +32,8 @@ public class PseudowireListCommand extends AbstractShellCommand {
                     "   mode : %s, sdTag : %s, pwLabel : %s \n" +
                     "   cP1 : %s , cP1OuterTag : %s, cP1InnerTag : %s \n" +
                     "   cP2 : %s , cP2OuterTag : %s, cP2InnerTag : %s \n" +
-                    "   transportVlan : %s";
+                    "   transportVlan : %s \n" +
+                    "   pending = %s";
 
     @Override
     protected void execute() {
@@ -47,30 +41,14 @@ public class PseudowireListCommand extends AbstractShellCommand {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
-        List<L2Tunnel> tunnels = srService.getL2Tunnels();
-        List<L2TunnelPolicy> policies = srService.getL2Policies();
+        srService.getL2TunnelDescriptions(false)
+                .forEach(pw -> printPseudowire(pw, false));
 
-        // combine polices and tunnels to pseudowires
-        List<L2TunnelDescription> pseudowires = tunnels.stream()
-                                    .map(l2Tunnel -> {
-                                            L2TunnelPolicy policy = null;
-                                            for (L2TunnelPolicy l2Policy : policies) {
-                                                if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
-                                                    policy = l2Policy;
-                                                    break;
-                                                }
-                                            }
-
-                                            return new DefaultL2TunnelDescription(l2Tunnel, policy);
-                                    })
-                                    .collect(Collectors.toList());
-
-        pseudowires.forEach(pw -> printPseudowire(pw));
+        srService.getL2TunnelDescriptions(true)
+                .forEach(pw -> printPseudowire(pw, true));
     }
 
-    private void printPseudowire(L2TunnelDescription pseudowire) {
-
-
+    private void printPseudowire(L2TunnelDescription pseudowire, boolean pending) {
         VlanId vlan = pseudowire.l2Tunnel().transportVlan().equals(VlanId.vlanId((short) 4094)) ?
                 VlanId.NONE : pseudowire.l2Tunnel().transportVlan();
 
@@ -79,6 +57,6 @@ public class PseudowireListCommand extends AbstractShellCommand {
               pseudowire.l2TunnelPolicy().cP1(), pseudowire.l2TunnelPolicy().cP1OuterTag(),
               pseudowire.l2TunnelPolicy().cP1InnerTag(), pseudowire.l2TunnelPolicy().cP2(),
               pseudowire.l2TunnelPolicy().cP2OuterTag(), pseudowire.l2TunnelPolicy().cP2InnerTag(),
-              vlan);
+              vlan, pending);
     }
 }

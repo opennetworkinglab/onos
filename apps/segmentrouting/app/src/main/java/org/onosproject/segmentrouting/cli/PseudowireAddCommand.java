@@ -118,7 +118,6 @@ public class PseudowireAddCommand extends AbstractShellCommand {
 
         L2TunnelDescription pw = new DefaultL2TunnelDescription(tun, policy);
         L2TunnelHandler.Result res = srService.addPseudowire(pw);
-
         switch (res) {
             case ADDITION_ERROR:
                 print("Pseudowire could not be added!");

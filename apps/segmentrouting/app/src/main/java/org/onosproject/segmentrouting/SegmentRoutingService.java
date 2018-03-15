@@ -92,9 +92,10 @@ public interface SegmentRoutingService {
     /**
      * Returns the l2 tunnel descriptions.
      *
+     * @param pending if true fetch pending pseudowires, else fetch installed
      * @return set of l2 tunnel descriptions.
      */
-    Set<L2TunnelDescription> getL2TunnelDescriptions();
+    Set<L2TunnelDescription> getL2TunnelDescriptions(boolean pending);
 
     /**
      * Returns all l2 tunnels of pseudowires.

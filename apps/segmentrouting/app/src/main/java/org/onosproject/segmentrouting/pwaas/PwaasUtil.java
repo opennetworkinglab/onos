@@ -16,8 +16,6 @@
 
 package org.onosproject.segmentrouting.pwaas;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -25,6 +23,7 @@ import org.onosproject.net.ConnectPoint;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,10 +41,8 @@ public final class PwaasUtil {
 
     private static final Logger log = LoggerFactory.getLogger(PwaasUtil.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private static InterfaceService intfService = AbstractShellCommand.get(InterfaceService.class);
 
     private PwaasUtil() {
@@ -440,7 +437,7 @@ public final class PwaasUtil {
 
     }
 
-    public static boolean configurationValidity(Set<L2TunnelDescription> pseudowires) {
+    public static boolean configurationValidity(List<L2TunnelDescription> pseudowires) {
 
         // structures to keep pw information
         // in order to see if instantiating them will create
@@ -458,15 +455,14 @@ public final class PwaasUtil {
         // Ideally we would like to return a String which could also return to
         // the user issuing the rest request for adding the pseudowire.
         try {
-
             // check that pseudowires can be instantiated in the network
             // we try to guarantee that all the pws will work before
             // instantiating any of them
             for (L2TunnelDescription pw : pseudowires) {
+                log.debug("Verifying pseudowire {}", pw);
                 verifyPseudoWire(pw, labelsUsed, vlanIds, tunIds);
             }
         } catch (Exception e) {
-
             log.error("Caught exception while validating pseudowire : {}", e.getMessage());
             return false;
         }

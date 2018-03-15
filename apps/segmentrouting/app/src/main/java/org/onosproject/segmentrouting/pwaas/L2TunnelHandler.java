@@ -16,8 +16,6 @@
 
 package org.onosproject.segmentrouting.pwaas;
 
-import org.onosproject.net.Link;
-
 import java.util.List;
 import java.util.Set;
 
@@ -27,9 +25,11 @@ public interface L2TunnelHandler {
     /**
      * Combines policies and tunnels to create descriptions.
      *
+     * @param pending if it is true return pending to be installed pseudowires
+     *                from the appropriate store, else return installed pseudowires
      * @return Set of l2 tunnel descriptions.
      */
-    Set<L2TunnelDescription> getL2Descriptions();
+    Set<L2TunnelDescription> getL2Descriptions(boolean pending);
 
     /**
      * Returns a copy of the l2 policies that exist in the store.
@@ -46,12 +46,18 @@ public interface L2TunnelHandler {
     List<L2Tunnel> getL2Tunnels();
 
     /**
-     * Processes a link removal. Finds affected pseudowires and rewires them.
-     * TODO: Make it also take into account failures of links that are used for pw
-     * traffic in the spine.
-     * @param link The link that failed
+     * Returns a copy of the pending l2 policies that exist in the store.
+     *
+     * @return The l2 policies
      */
-    void processLinkDown(Link link);
+    List<L2TunnelPolicy> getL2PendingPolicies();
+
+    /**
+     * Returns a copy of the pending l2 tunnels that exist in the store.
+     *
+     * @return The l2 tunnels.
+     */
+    List<L2Tunnel> getL2PendingTunnels();
 
     /**
      * Helper function to handle the pw removal.
