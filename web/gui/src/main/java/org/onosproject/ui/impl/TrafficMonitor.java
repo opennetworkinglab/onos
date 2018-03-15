@@ -66,6 +66,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.RELATED_INTENTS;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.SELECTED_INTENT;
@@ -363,7 +364,7 @@ public class TrafficMonitor extends TrafficMonitorBase {
         Set<Host> hosts = services.host().getConnectedHosts(deviceId);
         if (hosts != null) {
             for (Host host : hosts) {
-                links.add(createEdgeLink(host, false));
+                links.addAll(createEdgeLinks(host, false));
             }
         }
 
