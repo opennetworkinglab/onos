@@ -145,7 +145,7 @@ public class RouteHandlerTest {
         srManager.deviceConfiguration = createMock(DeviceConfiguration.class);
         srManager.flowObjectiveService = new MockFlowObjectiveService(BRIDGING_TABLE, NEXT_TABLE);
         srManager.routingRulePopulator = new MockRoutingRulePopulator(srManager, ROUTING_TABLE);
-        srManager.defaultRoutingHandler = new MockDefaultRoutingHandler(srManager, SUBNET_TABLE);
+        srManager.defaultRoutingHandler = new MockDefaultRoutingHandler(srManager, SUBNET_TABLE, ROUTING_TABLE);
         srManager.interfaceService = new MockInterfaceService(INTERFACES);
         srManager.mastershipService = new MockMastershipService(LOCAL_DEVICES);
         hostService = new MockHostService(HOSTS);
