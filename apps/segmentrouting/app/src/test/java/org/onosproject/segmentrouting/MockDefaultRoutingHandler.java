@@ -27,11 +27,14 @@ import java.util.Set;
  */
 public class MockDefaultRoutingHandler extends DefaultRoutingHandler {
     private Map<ConnectPoint, Set<IpPrefix>> subnetTable;
+    private Map<MockRoutingTableKey, MockRoutingTableValue> routingTable;
 
     MockDefaultRoutingHandler(SegmentRoutingManager srManager,
-                              Map<ConnectPoint, Set<IpPrefix>> subnetTable) {
+                              Map<ConnectPoint, Set<IpPrefix>> subnetTable,
+                              Map<MockRoutingTableKey, MockRoutingTableValue> routingTable) {
         super(srManager);
         this.subnetTable = subnetTable;
+        this.routingTable = routingTable;
     }
 
     @Override
@@ -56,6 +59,7 @@ public class MockDefaultRoutingHandler extends DefaultRoutingHandler {
                 subnetTable.remove(entry.getKey());
             }
         }
+        routingTable.entrySet().removeIf(e -> subnets.contains(e.getKey().ipPrefix));
         return true;
     }
 }

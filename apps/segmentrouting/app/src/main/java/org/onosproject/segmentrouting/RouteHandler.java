@@ -222,9 +222,8 @@ public class RouteHandler {
             locations.forEach(location -> {
                 log.debug("RouteRemoved. removeSubnet {}, {}", location, prefix);
                 srManager.deviceConfiguration.removeSubnet(location, prefix);
-                log.debug("RouteRemoved. revokeRoute {}, {}, {}, {}", location, prefix, nextHopMac, nextHopVlan);
-                srManager.defaultRoutingHandler.revokeRoute(location.deviceId(), prefix,
-                        nextHopMac, nextHopVlan, location.port());
+                // We don't need to call revokeRoute again since revokeSubnet will remove the prefix
+                // from all devices, including the ones that next hop attaches to.
 
                 // Also remove redirection flows on the pair device if exists.
                 Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
