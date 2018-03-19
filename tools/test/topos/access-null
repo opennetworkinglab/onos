@@ -62,7 +62,7 @@ function sim {
 }
 
 function y {
-    let p="${3:-300} * ($1 - 1) - (${3:-300} * ($2 - 1)) / 2"
+    let p="${3:-400} * ($1 - 1) - (${3:-400} * ($2 - 1)) / 2 + ${4:-0}"
     echo $p
 }
 
@@ -88,8 +88,9 @@ for pair in $serviceLeafGroups; do
 
     # Create hosts for each leaf group; multi-homed to each leaf in the pair
     [ $pair = A ] && pn=1 || pn=2
+    [ $pair = A ] && offset=-400 || offset=400
     for host in $(seq 1 $serviceHosts); do
-        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host}"
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host} -400 $(y $host $serviceHosts 60 $offset) grid"
     done
 done
 
@@ -104,7 +105,7 @@ for access in $(seq $accessLeaves); do
     done
 
     # Create hosts for each access single leaf
-    sim "null-create-hosts Access-${access} 10.1${access}.1.*" $accessHosts
+    sim "null-create-hosts Access-${access} 10.1${access}.1.*" $accessHosts 500 $(y $access $accessLeaves) 6
     # sim "null-create-hosts Access-${access} 10.1${access}.2.*" $accessHosts
 done
 

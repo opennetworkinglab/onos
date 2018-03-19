@@ -17,23 +17,25 @@ package org.onosproject.routescale;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
  * Creates the specified number of routes for scale testing.
  */
-@Command(scope = "onos", name = "scale-create-flows",
-        description = "Creates the specified number of flows for scale testing")
+@Command(scope = "onos", name = "scale-flows",
+        description = "Sets the specified number of flows for scale testing")
 public class CreateFlows extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "flowCount", description = "Number of flows to create",
+    @Argument(index = 0, name = "flowCount", description = "Number of flows to maintain",
             required = true)
     int flowCount;
 
     @Override
     protected void execute() {
-        ScaleTestManager service = get(ScaleTestManager.class);
-        service.createFlows(flowCount);
+        ComponentConfigService service = get(ComponentConfigService.class);
+        service.setProperty("org.onosproject.routescale.ScaleManager",
+                            "flowCount", String.valueOf(flowCount));
     }
 
 }

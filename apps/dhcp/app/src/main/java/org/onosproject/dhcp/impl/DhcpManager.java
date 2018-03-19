@@ -186,6 +186,7 @@ public class DhcpManager implements DhcpService {
 
     @Deactivate
     protected void deactivate() {
+        componentConfigService.unregisterProperties(getClass(), false);
         cfgService.removeListener(cfgListener);
         factories.forEach(cfgService::unregisterConfigFactory);
         packetService.removeProcessor(processor);

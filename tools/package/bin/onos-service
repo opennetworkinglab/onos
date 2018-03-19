@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 # uncomment the following line for performance testing
-#export JAVA_OPTS="${JAVA_OPTS:--Xms8G -Xmx8G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+PrintGCDetails -XX:+PrintGCTimeStamps}"
+export JAVA_OPTS="${JAVA_OPTS:--Xms16G -Xmx16G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+PrintGCDetails -XX:+PrintGCTimeStamps}"
 
 # uncomment the following line for Netty TLS encryption
 # Do modify the keystore location/password and truststore location/password accordingly

@@ -19,9 +19,12 @@ package org.onosproject.provider.nil.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Tools;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.provider.nil.CustomTopologySimulator;
 import org.onosproject.provider.nil.NullProviders;
 import org.onosproject.provider.nil.TopologySimulator;
@@ -35,6 +38,8 @@ import java.util.List;
         description = "Adds a simulated end-station host to the custom topology simulation")
 public class CreateNullHosts extends CreateNullEntity {
 
+    private static final double NONE = -99999999.9999;
+
     @Argument(index = 0, name = "deviceName", description = "Name of device where hosts are attached",
             required = true)
     String deviceName = null;
@@ -47,9 +52,26 @@ public class CreateNullHosts extends CreateNullEntity {
             required = true)
     int hostCount = 0;
 
+    @Argument(index = 3, name = "gridY", description = "Grid y-coord for top of host block")
+    double gridY = NONE;
+
+    @Argument(index = 4, name = "gridX", description = "Grid X-coord for center of host block")
+    double gridX = NONE;
+
+    @Argument(index = 5, name = "hostsPerRow", description = "Number of hosts to render per row in block")
+    int hostsPerRow = 5;
+
+    @Argument(index = 6, name = "rowGap", description = "Y gap between rows")
+    double rowGap = 70;
+
+    @Argument(index = 7, name = "colGap", description = "X gap between rows")
+    double colGap = 50;
+
+
     @Override
     protected void execute() {
         NullProviders service = get(NullProviders.class);
+        NetworkConfigService cfgService = get(NetworkConfigService.class);
 
         TopologySimulator simulator = service.currentSimulator();
         if (!validateSimulator(simulator)) {
@@ -60,10 +82,27 @@ public class CreateNullHosts extends CreateNullEntity {
 
         List<ConnectPoint> points = findAvailablePorts(sim.deviceId(deviceName));
         String pattern = hostIpPattern.replace("*", "%d");
+        double yStep = rowGap / hostsPerRow;
+        double y = gridY;
+        double x = gridX - (colGap * (hostsPerRow - 1)) / 2;
+
         for (int h = 0; h < hostCount; h++) {
             HostLocation location = new HostLocation(points.get(h), System.currentTimeMillis());
             IpAddress ip = IpAddress.valueOf(String.format(pattern, h));
             HostId id = sim.nextHostId();
+
+            if (gridY != NONE) {
+                BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
+                setUiCoordinates(cfg, GRID, y, x);
+                if (((h + 1) % hostsPerRow) == 0) {
+                    x = gridX - (colGap * (hostsPerRow - 1)) / 2;
+                } else {
+                    x += colGap;
+                    y += yStep;
+                }
+            }
+
+            Tools.delay(10);
             sim.createHost(id, location, ip);
         }
     }
