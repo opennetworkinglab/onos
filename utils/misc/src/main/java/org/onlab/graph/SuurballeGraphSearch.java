@@ -69,8 +69,10 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
                 public Weight weight(E edge) {
                     return edge instanceof ReverseEdge ?
                             weightf.getInitialWeight() :
-                            weightf.weight(edge).merge(firstDijkstra.cost(edge.src()))
-                                    .subtract(firstDijkstra.cost(edge.dst()));
+                            (weightf.weight(edge).isNegative() ?
+                                    new ScalarWeight(-1.0) :
+                                    weightf.weight(edge).merge(firstDijkstra.cost(edge.src()))
+                                            .subtract(firstDijkstra.cost(edge.dst())));
                 }
 
                 @Override
