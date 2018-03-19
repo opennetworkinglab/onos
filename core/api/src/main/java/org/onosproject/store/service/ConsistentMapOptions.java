@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.service;
 
+import java.util.function.BiFunction;
+
 import org.onosproject.store.primitives.DistributedPrimitiveOptions;
 
 /**
@@ -28,6 +30,7 @@ public abstract class ConsistentMapOptions<O extends ConsistentMapOptions<O, K, 
 
     private boolean nullValues = false;
     private boolean purgeOnUninstall = false;
+    protected BiFunction<V, org.onosproject.core.Version, V> compatibilityFunction;
 
     public ConsistentMapOptions() {
         super(DistributedPrimitive.Type.CONSISTENT_MAP);
@@ -50,6 +53,19 @@ public abstract class ConsistentMapOptions<O extends ConsistentMapOptions<O, K, 
      */
     public O withPurgeOnUninstall() {
         purgeOnUninstall = true;
+        return (O) this;
+    }
+
+    /**
+     * Sets a compatibility function on the map.
+     *
+     * @param compatibilityFunction the compatibility function
+     * @return the consistent map builder
+     */
+    @SuppressWarnings("unchecked")
+    public O withCompatibilityFunction(
+        BiFunction<V, org.onosproject.core.Version, V> compatibilityFunction) {
+        this.compatibilityFunction = compatibilityFunction;
         return (O) this;
     }
 

@@ -29,6 +29,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.core.VersionService;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
@@ -79,6 +80,9 @@ public class CoordinationManager implements CoordinationService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PersistenceService persistenceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VersionService versionService;
 
     private StoragePartition partition;
     private DistributedPrimitiveCreator primitiveCreator;
@@ -135,7 +139,7 @@ public class CoordinationManager implements CoordinationService {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultConsistentMapBuilder<>(primitiveCreator);
+        return new DefaultConsistentMapBuilder<>(primitiveCreator, versionService.version());
     }
 
     @Override

@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import org.onosproject.core.Version;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -22,6 +23,7 @@ import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -88,6 +90,30 @@ public final class DistributedPrimitives {
      */
     public static <K, V> AsyncConsistentMap<K, V> newNotNullMap(AsyncConsistentMap<K, V> map) {
         return new NotNullAsyncConsistentMap<>(map);
+    }
+
+    /**
+     * Creates an instance of {@code AsyncConsistentMap} that converts values from other versions.
+     *
+     * @param map backing map
+     * @param compatibilityFunction the compatibility function
+     * @param version local node version
+     * @param <K> map key type
+     * @param <V> map value type
+     * @return compatible map
+     */
+    public static <K, V> AsyncConsistentMap<K, V> newCompatibleMap(
+        AsyncConsistentMap<K, CompatibleValue<V>> map,
+        BiFunction<V, Version, V> compatibilityFunction,
+        Version version) {
+        Function<V, CompatibleValue<V>> encoder = value -> new CompatibleValue<>(value, version);
+        Function<CompatibleValue<V>, V> decoder = value -> {
+            if (!value.version().equals(version)) {
+                return compatibilityFunction.apply(value.value(), value.version());
+            }
+            return value.value();
+        };
+        return new TranscodingAsyncConsistentMap<>(map, k -> k, k -> k, encoder, decoder);
     }
 
     /**

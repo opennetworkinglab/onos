@@ -38,8 +38,8 @@ public abstract class DistributedPrimitiveOptions<O extends DistributedPrimitive
     private boolean meteringDisabled = false;
     private boolean readOnly = false;
     private boolean relaxedReadConsistency = false;
-    private int revisionNumber = 1;
-    private RevisionType revisionType = RevisionType.NONE;
+    private Version version;
+    private RevisionType revisionType;
 
     public DistributedPrimitiveOptions(DistributedPrimitive.Type type) {
         this.type = type;
@@ -85,17 +85,7 @@ public abstract class DistributedPrimitiveOptions<O extends DistributedPrimitive
      * @return this builder
      */
     public O withVersion(Version version) {
-        return withRevisionNumber(version.toInt());
-    }
-
-    /**
-     * Sets the primitive revision.
-     *
-     * @param revision the primitive revision
-     * @return this builder
-     */
-    public O withRevisionNumber(int revision) {
-        this.revisionNumber = revision;
+        this.version = version;
         return (O) this;
     }
 
@@ -212,12 +202,12 @@ public abstract class DistributedPrimitiveOptions<O extends DistributedPrimitive
     }
 
     /**
-     * Returns the primitive revision number.
+     * Returns the primitive version.
      *
-     * @return the primitive revision number
+     * @return the primitive version
      */
-    public final int revision() {
-        return revisionNumber;
+    public final Version version() {
+        return version;
     }
 
     /**
