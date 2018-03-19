@@ -89,8 +89,6 @@ import static org.onosproject.security.AppPermission.Type.FLOWRULE_READ;
 import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
-
-
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
  */
@@ -101,10 +99,10 @@ public class FlowRuleManager
                                                  FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
-    public static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private final Logger log = getLogger(getClass());
 
-    public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
+    private static final String DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String FLOW_RULE_NULL = "FlowRule cannot be null";
     private static final boolean ALLOW_EXTRANEOUS_RULES = false;
 
     @Property(name = "allowExtraneousRules", boolValue = ALLOW_EXTRANEOUS_RULES,
@@ -236,7 +234,7 @@ public class FlowRuleManager
     @Override
     public int getFlowRuleCount(DeviceId deviceId) {
         checkPermission(FLOWRULE_READ);
-        checkNotNull(deviceId, "Device ID cannot be null");
+        checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getFlowRuleCount(deviceId);
     }
 
