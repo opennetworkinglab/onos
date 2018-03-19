@@ -17,12 +17,11 @@
 package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onosproject.net.config.basics.BasicElementConfig.ZERO_THRESHOLD;
 
 /**
@@ -35,10 +34,12 @@ public class BasicElementConfigTest {
     private static final String E1 = "e1";
     private static final String GEO = "geo";
     private static final String GRID = "grid";
+    public static final ImmutableSet<String> ROLES = ImmutableSet.of("spine", "primary");
 
     // concrete subclass of abstract class we are testing
     private static class ElmCfg extends BasicElementConfig<String> {
         ElmCfg() {
+            mapper = MAPPER;
             object = MAPPER.createObjectNode();
         }
 
@@ -149,5 +150,12 @@ public class BasicElementConfigTest {
         cfg.locType("foobar");
         print(cfg);
         assertEquals("not geo", GEO, cfg.locType());
+    }
+
+    @Test
+    public void roles() {
+        cfg.roles(ROLES);
+        print(cfg);
+        assertEquals("not roles", ROLES, cfg.roles());
     }
 }
