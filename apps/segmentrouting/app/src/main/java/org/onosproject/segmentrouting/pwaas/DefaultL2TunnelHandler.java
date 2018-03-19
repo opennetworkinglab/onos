@@ -422,13 +422,109 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
-     * Returns true if path size is valid according to the current logic.
+     * Returns the devices existing on a given path.
      *
-     * @param pathSize The size of the path
+     * @param path The path to traverse.
+     * @return The devices on the path with the order they
+     *         are traversed.
+     */
+    List<DeviceId> getDevicesOnPath(List<Link> path) {
+
+        // iterate over links and get all devices in the order
+        // we find them
+        List<DeviceId> deviceList = new ArrayList<DeviceId>();
+        for (Link link : path) {
+            if (!deviceList.contains(link.src().deviceId())) {
+                deviceList.add(link.src().deviceId());
+            }
+            if (!deviceList.contains(link.dst().deviceId())) {
+                deviceList.add(link.dst().deviceId());
+            }
+        }
+
+        return deviceList;
+    }
+
+    /**
+     * Returns true if path is valid according to the current logic.
+     * For example : leaf to spine pseudowires can be either leaf-spine or
+     * leaf-spine-spine. However, in the configuration we might specify spine device
+     * first which will result in spine-spine-leaf. If leafSpinePw == true we have one of these
+     * two cases and need to provision for them.
+     *
+     * If we have a leaf to leaf pseudowire then all the intermediate devices must
+     * be spines. However, in case of paired switches we can have two leafs interconnected
+     * with each other directly.
+     *
+     * @param path the chosen path
+     * @param leafSpinePw if it is a leaf to spine pseudowire
      * @return True if path size is valid, false otherwise.
      */
-    private boolean isValidPathSize(int pathSize) {
-        return ((pathSize >= 1) && (pathSize <= 4));
+    private boolean isValidPath(List<Link> path, boolean leafSpinePw) {
+
+        List<DeviceId> devices = getDevicesOnPath(path);
+        if (devices.size() < 2) {
+            log.error("Path size for pseudowire should be greater than 1!");
+            return false;
+        }
+
+        try {
+            if (leafSpinePw) {
+                // can either be leaf-spine-spine or leaf-spine
+                // first device is leaf, all other must be spines
+                log.debug("Devices on path are {} for leaf to spine pseudowire", devices);
+                // if first device is a leaf then all other must be spines
+                if (srManager.deviceConfiguration().isEdgeDevice(devices.get(0))) {
+                    devices.remove(0);
+                    for (DeviceId devId : devices) {
+                        log.debug("Device {} should be a spine!", devId);
+                        if (srManager.deviceConfiguration().isEdgeDevice(devId)) {
+                            return false;
+                        }
+                    }
+                } else {
+                    // if first device is spine, last device must be a leaf
+                    // all other devices must be spines
+                    if (!srManager.deviceConfiguration().isEdgeDevice(devices.get(devices.size() - 1))) {
+                        return false;
+                    }
+                    devices.remove(devices.size() - 1);
+                    for (DeviceId devId : devices) {
+                        log.debug("Device {} should be a spine!", devId);
+                        if (srManager.deviceConfiguration().isEdgeDevice(devId)) {
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                // can either be leaf-leaf (paired leafs) / leaf-spine-leaf
+                // or leaf-spine-spine-leaf
+                log.debug("Devices on path are {} for leaf to leaf pseudowire", devices);
+                // check first device, needs to be a leaf
+                if (!srManager.deviceConfiguration().isEdgeDevice(devices.get(0))) {
+                    return false;
+                }
+                // check last device, needs to be a leaf
+                if (!srManager.deviceConfiguration().isEdgeDevice(devices.get(devices.size() - 1))) {
+                    return false;
+                }
+                // remove these devices, rest must all be spines
+                devices.remove(0);
+                devices.remove(devices.size() - 1);
+                for (DeviceId devId : devices) {
+                    log.debug("Device {} should be a spine!", devId);
+                    if (srManager.deviceConfiguration().isEdgeDevice(devId)) {
+                        return false;
+                    }
+                }
+
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.error("Device not found in configuration : {}", e);
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -482,9 +578,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         Link fwdNextHop;
         Link revNextHop;
-        if (!isValidPathSize(path.size())) {
-            log.error("Deploying process : Path size for pseudowire should be of" +
-                              " one of the following sizes = [1, 2, 3, 4], for pseudowire {}",
+        if (!isValidPath(path, leafSpinePw)) {
+            log.error("Deploying process : Path for pseudowire {} is not valid",
                       l2TunnelId);
             return INTERNAL_ERROR;
         }
@@ -1006,14 +1101,14 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             Result result = tearDownPseudowire(tunnelId);
             switch (result) {
                 case WRONG_PARAMETERS:
-                    log.warn("Error in supplied parameters for the pseudowire removal with tunnel id {}!",
+                    log.error("Error in supplied parameters for the pseudowire removal with tunnel id {}!",
                             tunnelId);
                     break;
                 case REMOVAL_ERROR:
-                    log.warn("Error in pseudowire removal with tunnel id {}!", tunnelId);
+                    log.error("Error in pseudowire removal with tunnel id {}!", tunnelId);
                     break;
                 default:
-                    log.warn("Pseudowire with tunnel id {} was removed successfully", tunnelId);
+                    log.info("Pseudowire with tunnel id {} was removed successfully", tunnelId);
             }
         }
     }
