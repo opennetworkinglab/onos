@@ -15,7 +15,11 @@
  */
 package org.onosproject.net.config.basics;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableSet;
+
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Basic configuration for network elements, e.g. devices, hosts. Such elements
@@ -68,6 +72,11 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      * Key for owner.
      */
     protected static final String OWNER = "owner";
+
+    /**
+     * Key for roles.
+     */
+    protected static final String ROLES = "roles";
 
     /**
      * Threshold for detecting double value is zero.
@@ -286,6 +295,30 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      */
     public BasicElementConfig owner(String owner) {
         return (BasicElementConfig) setOrClear(OWNER, owner);
+    }
+
+    /**
+     * Returns set of roles assigned to the element.
+     *
+     * @return set of roles
+     */
+    public Set<String> roles() {
+        ImmutableSet.Builder<String> roles = ImmutableSet.builder();
+        if (object.has(ROLES)) {
+            ArrayNode roleNodes = (ArrayNode) object.path(ROLES);
+            roleNodes.forEach(r -> roles.add(r.asText()));
+        }
+        return roles.build();
+    }
+
+    /**
+     * Sets the roles of the element.
+     *
+     * @param roles new roles; null to clear
+     * @return self
+     */
+    public BasicElementConfig roles(Set<String> roles) {
+        return (BasicElementConfig) setOrClear(ROLES, roles);
     }
 
     @Override
