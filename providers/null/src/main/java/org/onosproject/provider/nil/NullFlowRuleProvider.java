@@ -74,12 +74,18 @@ class NullFlowRuleProvider extends NullProviders.AbstractNullProvider
 
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
-        throw new UnsupportedOperationException("Cannot apply individual flow rules");
+        for (FlowRule rule : flowRules) {
+            flowTable.getOrDefault(rule.deviceId(), Sets.newConcurrentHashSet())
+                .add(new DefaultFlowEntry(rule));
+        }
     }
 
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
-        throw new UnsupportedOperationException("Cannot remove individual flow rules");
+        for (FlowRule rule : flowRules) {
+            flowTable.getOrDefault(rule.deviceId(), Sets.newConcurrentHashSet())
+                    .remove(new DefaultFlowEntry(rule));
+        }
     }
 
     @Override

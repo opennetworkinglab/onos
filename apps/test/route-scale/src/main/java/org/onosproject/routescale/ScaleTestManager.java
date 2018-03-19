@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -29,28 +31,38 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.app.ApplicationService;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostAdminService;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteAdminService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 
 @Component(immediate = true)
 @Service(value = ScaleTestManager.class)
@@ -68,10 +80,24 @@ public class ScaleTestManager {
     protected HostAdminService hostAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteAdminService routeAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+    @Property(name = "flowCount", intValue = 0,
+            label = "Number of flows to be maintained in the system")
+    private int flowCount = 0;
+
+    @Property(name = "routeCount", intValue = 0,
+            label = "Number of routes to be maintained in the system")
+    private int routeCount = 0;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -80,38 +106,128 @@ public class ScaleTestManager {
     @Activate
     protected void activate() {
         appId = applicationService.getId("org.onosproject.routescale");
+        componentConfigService.registerProperties(getClass());
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        componentConfigService.unregisterProperties(getClass(), false);
         log.info("Stopped");
     }
 
-    public void createFlows(int flowCount) {
-        for (Device device : deviceService.getAvailableDevices()) {
-            DeviceId id = device.id();
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            return;
+        }
 
-            for (int i = 0; i < flowCount; i++) {
-                FlowRule.Builder frb = DefaultFlowRule.builder();
-                frb.fromApp(appId).makePermanent().withPriority(1000 + i);
-                TrafficSelector.Builder tsb = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
+        Dictionary<?, ?> properties = context.getProperties();
+        try {
+            String s = get(properties, "flowCount");
+            flowCount = isNullOrEmpty(s) ? flowCount : Integer.parseInt(s.trim());
 
-                tsb.matchEthType(Ethernet.TYPE_IPV4);
-                ttb.setEthDst(randomMac()).setEthSrc(randomMac());
-                ttb.setOutput(PortNumber.portNumber(random.nextInt(512)));
-                frb.withSelector(tsb.build()).withTreatment(ttb.build());
-                ops.add(frb.forDevice(id).build());
-            }
+            s = get(properties, "routeCount");
+            routeCount = isNullOrEmpty(s) ? routeCount : Integer.parseInt(s.trim());
 
-            flowRuleService.apply(ops.build());
+            log.info("Reconfigured; flowCount={}; routeCount={}", flowCount, routeCount);
 
+            adjustFlows();
+            adjustRoutes();
+
+        } catch (NumberFormatException | ClassCastException e) {
+            log.warn("Misconfigured", e);
         }
     }
 
-    public void createRoutes(int routeCount) {
+    private void adjustFlows() {
+        int deviceCount = deviceService.getAvailableDeviceCount();
+        if (deviceCount == 0) {
+            return;
+        }
+
+        int flowsPerDevice = flowCount / deviceCount;
+        for (Device device : deviceService.getAvailableDevices()) {
+            DeviceId id = device.id();
+            if (deviceService.getRole(id) != MastershipRole.MASTER ||
+                    flowsPerDevice == 0) {
+                continue;
+            }
+
+            int currentFlowCount = flowRuleService.getFlowRuleCount(id);
+            if (flowsPerDevice > currentFlowCount) {
+                addMoreFlows(flowsPerDevice, device, id, currentFlowCount);
+
+            } else if (flowsPerDevice < currentFlowCount) {
+                removeExcessFlows(flowsPerDevice, id, currentFlowCount);
+            }
+        }
+    }
+
+    private void addMoreFlows(int flowsPerDevice, Device device, DeviceId id,
+                              int currentFlowCount) {
+        int c = flowsPerDevice - currentFlowCount;
+        log.info("Adding {} flows for device {}", c, id);
+        List<PortNumber> ports = devicePorts(device);
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        for (int i = 0; i < c; i++) {
+            FlowRule.Builder frb = DefaultFlowRule.builder();
+            frb.fromApp(appId).makePermanent().withPriority(1000 + i);
+            TrafficSelector.Builder tsb = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
+
+            tsb.matchEthType(Ethernet.TYPE_IPV4);
+            ttb.setEthDst(randomMac()).setEthSrc(randomMac());
+            ttb.setOutput(randomPort(ports));
+            frb.withSelector(tsb.build()).withTreatment(ttb.build());
+            ops.add(frb.forDevice(id).build());
+        }
+        flowRuleService.apply(ops.build());
+    }
+
+    private void removeExcessFlows(int flowsPerDevice, DeviceId id,
+                                   int currentFlowCount) {
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        int c = flowsPerDevice - currentFlowCount;
+        log.info("Removing {} flows from device {}", c, id);
+        for (FlowEntry e : flowRuleService.getFlowEntries(id)) {
+            if (Objects.equals(e.appId(), appId.id()) && c > 0) {
+                ops.remove(e);
+                c--;
+            }
+        }
+        flowRuleService.apply(ops.build());
+    }
+
+    private void adjustRoutes() {
+        int currentRouteCount =
+                routeAdminService.getRouteTables().parallelStream()
+                        .mapToInt(t -> routeAdminService.getRoutes(t).size()).sum();
+        if (currentRouteCount < routeCount) {
+            createRoutes(routeCount - currentRouteCount);
+        } else if (currentRouteCount > routeCount) {
+            removeRoutes(currentRouteCount - routeCount);
+        }
+    }
+
+    // Returns a list of ports on the given device that have either links or
+    // hosts connected to them.
+    private List<PortNumber> devicePorts(Device device) {
+        DeviceId id = device.id();
+        ImmutableList.Builder<PortNumber> ports = ImmutableList.builder();
+        linkService.getDeviceEgressLinks(id).forEach(l -> ports.add(l.src().port()));
+        hostAdminService.getConnectedHosts(id)
+                .forEach(h -> h.locations().stream()
+                        .filter(l -> Objects.equals(id, l.elementId()))
+                        .findFirst()
+                        .ifPresent(l -> ports.add(l.port())));
+        return ports.build();
+    }
+
+    // Creates the specified number of random routes. Such routes are generated
+    // using random IP prefices with next hop being an IP address of a randomly
+    // chosen hosts.
+    private void createRoutes(int routeCount) {
         List<Host> hosts = ImmutableList.copyOf(hostAdminService.getHosts());
         ImmutableSet.Builder<Route> routes = ImmutableSet.builder();
         for (int i = 0; i < routeCount; i++) {
@@ -122,21 +238,34 @@ public class ScaleTestManager {
         routeAdminService.update(routes.build());
     }
 
+    // Removes the specified number of routes chosen at random.
+    private void removeRoutes(int routeCount) {
+        log.warn("Not implemented yet");
+    }
+
+    // Generates a random IP address.
     private IpAddress randomIp() {
         byte[] bytes = new byte[4];
         random.nextBytes(bytes);
         return IpAddress.valueOf(IpAddress.Version.INET, bytes, 0);
     }
 
+    // Generates a random MAC address.
+    private MacAddress randomMac() {
+        byte[] bytes = new byte[6];
+        random.nextBytes(bytes);
+        return MacAddress.valueOf(bytes);
+    }
+
+    // Returns IP address of a host randomly chosen from the specified list.
     private IpAddress randomIp(List<Host> hosts) {
         Host host = hosts.get(random.nextInt(hosts.size()));
         return host.ipAddresses().iterator().next();
     }
 
-    private MacAddress randomMac() {
-        byte[] bytes = new byte[6];
-        random.nextBytes(bytes);
-        return MacAddress.valueOf(bytes);
+    // Returns port number randomly chosen from the given list of port numbers.
+    private PortNumber randomPort(List<PortNumber> ports) {
+        return ports.get(random.nextInt(ports.size()));
     }
 
 }
