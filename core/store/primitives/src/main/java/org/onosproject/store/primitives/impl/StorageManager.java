@@ -15,6 +15,13 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -63,13 +70,6 @@ import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -112,7 +112,6 @@ public class StorageManager implements StorageService, StorageAdminService {
     public void activate() {
         Map<PartitionId, DistributedPrimitiveCreator> partitionMap = Maps.newHashMap();
         partitionService.getAllPartitionIds().stream()
-            .filter(id -> !id.equals(PartitionId.SHARED))
             .forEach(id -> partitionMap.put(id, partitionService.getDistributedPrimitiveCreator(id)));
         federatedPrimitiveCreator = new FederatedDistributedPrimitiveCreator(partitionMap, BUCKETS);
         transactionManager = new TransactionManager(this, partitionService, BUCKETS);

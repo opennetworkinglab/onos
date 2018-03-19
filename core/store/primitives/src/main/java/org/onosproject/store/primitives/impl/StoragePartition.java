@@ -52,7 +52,7 @@ import org.onosproject.store.service.Serializer;
 /**
  * Storage partition.
  */
-public abstract class StoragePartition implements Managed<StoragePartition> {
+public class StoragePartition implements Managed<StoragePartition> {
 
     static final String PARTITIONS_DIR =
             System.getProperty("karaf.data") + "/db/partitions/";
@@ -133,14 +133,18 @@ public abstract class StoragePartition implements Managed<StoragePartition> {
      *
      * @return the partition data folder
      */
-    public abstract File getDataFolder();
+    public File getDataFolder() {
+        return new File(PARTITIONS_DIR + partition.getId());
+    }
 
     /**
      * Returns the partition name.
      *
      * @return the partition name
      */
-    public abstract String getName();
+    public String getName() {
+        return partition.getId().toString();
+    }
 
     /**
      * Returns the identifier of the {@link Partition partition} associated with this instance.
@@ -180,7 +184,13 @@ public abstract class StoragePartition implements Managed<StoragePartition> {
      * Attempts to rejoin the partition.
      * @return future that is completed after the operation is complete
      */
-    protected abstract CompletableFuture<Void> openServer();
+    protected CompletableFuture<Void> openServer() {
+        StoragePartitionServer server = new StoragePartitionServer(
+            this,
+            MemberId.from(localNodeId.id()),
+            clusterCommunicator);
+        return server.open().thenRun(() -> this.server = server);
+    }
 
     /**
      * Attempts to join the partition as a new member.

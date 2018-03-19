@@ -85,9 +85,9 @@ public class CoordinationManager implements CoordinationService {
 
     @Activate
     public void activate() {
-        partition = new ActiveStoragePartition(
+        partition = new StoragePartition(
                 new DefaultPartition(
-                        PartitionId.SHARED,
+                        PartitionId.from(0),
                         null,
                         clusterService.getNodes()
                                 .stream()

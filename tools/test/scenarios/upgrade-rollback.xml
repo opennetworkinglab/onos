@@ -20,16 +20,8 @@
     <group name="Upgrade-Rollback" requires="Distributed-Primitives-Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
 
-        <step name="Initialize-ECM"
-              exec="onos ${OC1} ec-map-test foo put a b"/>
-
-        <step name="Initialize-CM"
-              exec="onos ${OC1} map-test foo put a b"
-              requires="Initialize-ECM"/>
-
         <step name="Initialize-Upgrade"
-              exec="onos ${OC1} issu init"
-              requires="Initialize-ECM"/>
+              exec="onos ${OC1} issu init"/>
 
         <group name="Phase-1">
             <sequential var="${OCMI#}"
@@ -67,52 +59,12 @@
                 <step name="Phase-One-Distributed-Primitives-Check-Apps-${#}"
                       exec="onos-check-apps ${OCMI#} distributedprimitives includes"
                       requires="Phase-One-Wait-for-Start-${#}"/>
-
-                <step name="Phase-One-Check-ECM-${#}"
-                      exec="onos-execute-expect ${OCMI#} ec-map-test foo get a --retry 5 --expect b"
-                      requires="Phase-One-Distributed-Primitives-Check-Apps-${#}"/>
-
-                <step name="Phase-One-Check-CM-${#}"
-                      exec="onos-execute-expect ${OCMI#} map-test foo get a --retry 5 --expect b"
-                      requires="Phase-One-Check-ECM-${#}"/>
             </sequential>
-        </group>
-
-        <group name="Change-ECM-values" requires="Phase-1">
-            <step name="Change-Majority-ECM"
-                  exec="onos ${OCMA1} ec-map-test foo put a d"/>
-
-            <step name="Change-Majority-CM"
-                  exec="onos ${OCMA1} map-test foo put a d"/>
-
-            <step name="Change-Minority-ECM"
-                  exec="onos ${OCMI1} ec-map-test foo put a c"/>
-
-            <step name="Change-Minority-CM"
-                  exec="onos ${OCMI1} map-test foo put a c"/>
-        </group>
-
-        <group name="Check-ECM-values" requires="Change-ECM-values">
-            <parallel var="${OCMI#}">
-                <step name="Parallel-Check-Minority-ECM-${#}"
-                      exec="onos-execute-expect ${OCMI#} ec-map-test foo get a --retry 5 --expect c"/>
-
-                <step name="Parallel-Check-Minority-CM-${#}"
-                      exec="onos-execute-expect ${OCMI#} map-test foo get a --retry 5 --expect c"/>
-            </parallel>
-
-            <parallel var="${OCMA#}">
-                <step name="Parallel-Check-Majority-ECM-${#}"
-                      exec="onos-execute-expect ${OCMA#} ec-map-test foo get a --retry 5 --expect d"/>
-
-                <step name="Parallel-Check-Majority-CM-${#}"
-                      exec="onos-execute-expect ${OCMA#} map-test foo get a --retry 5 --expect d"/>
-            </parallel>
         </group>
 
         <step name="Run-Upgrade"
               exec="onos ${OC1} issu upgrade"
-              requires="Check-ECM-values"/>
+              requires="Phase-1"/>
 
         <step name="Run-Rollback"
               exec="onos ${OC1} issu rollback"
@@ -154,14 +106,6 @@
                 <step name="Phase-Two-Distributed-Primitives-Check-Apps-${#}"
                       exec="onos-check-apps ${OCMA#} distributedprimitives includes"
                       requires="Phase-Two-Wait-for-Start-${#}"/>
-
-                <step name="Phase-Two-Check-ECM-${#}"
-                      exec="onos-execute-expect ${OC#} ec-map-test foo get a --retry 5 --expect d"
-                      requires="Phase-Two-Distributed-Primitives-Check-Apps-${#}"/>
-
-                <step name="Phase-Two-Check-CM-${#}"
-                      exec="onos-execute-expect ${OC#} map-test foo get a --retry 5 --expect d"
-                      requires="Phase-Two-Check-ECM-${#}"/>
             </sequential>
         </group>
 
