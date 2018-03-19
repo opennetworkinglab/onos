@@ -52,6 +52,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -372,25 +374,29 @@ public class DefaultRoutingHandler {
      * Populates the routing rules or makes hash group changes according to the
      * route-path changes due to link failure, switch failure or link up. This
      * method should only be called for one of these three possible event-types.
-     * Note that when a switch goes away, all of its links fail as well,
-     * but this is handled as a single switch removal event.
+     * Note that when a switch goes away, all of its links fail as well, but
+     * this is handled as a single switch removal event.
      *
-     * @param linkDown the single failed link, or null for other conditions
-     *                  such as link-up or a removed switch
+     * @param linkDown the single failed link, or null for other conditions such
+     *            as link-up or a removed switch
      * @param linkUp the single link up, or null for other conditions such as
-     *                  link-down or a removed switch
-     * @param switchDown the removed switch, or null for other conditions such as
-     *                  link-down or link-up
-     */ // refactor
+     *            link-down or a removed switch
+     * @param switchDown the removed switch, or null for other conditions such
+     *            as link-down or link-up
+     * @param seenBefore true if this event is for a linkUp or linkDown for a
+     *            seen link
+     */
+    // TODO This method should be refactored into three separated methods
     public void populateRoutingRulesForLinkStatusChange(Link linkDown,
                                                            Link linkUp,
-                                                           DeviceId switchDown) {
-        if ((linkDown != null && (linkUp != null || switchDown != null)) ||
-                (linkUp != null && (linkDown != null || switchDown != null)) ||
-                (switchDown != null && (linkUp != null || linkDown != null))) {
+                                                           DeviceId switchDown,
+                                                           boolean seenBefore) {
+        if (Stream.of(linkDown, linkUp, switchDown).filter(Objects::nonNull)
+                .count() != 1) {
             log.warn("Only one event can be handled for link status change .. aborting");
             return;
         }
+
         lastRoutingChange = Instant.now();
         statusLock.lock();
         try {
@@ -432,14 +438,7 @@ public class DefaultRoutingHandler {
                 routeChanges = computeRouteChange(switchDown);
 
                 // deal with linkUp of a seen-before link
-                if (linkUp != null && srManager.linkHandler.isSeenLink(linkUp)) {
-                    if (!srManager.linkHandler.isBidirectional(linkUp)) {
-                        log.warn("Not a bidirectional link yet .. not "
-                                + "processing link {}", linkUp);
-                        srManager.linkHandler.updateSeenLink(linkUp, true);
-                        populationStatus = Status.ABORTED;
-                        return;
-                    }
+                if (linkUp != null && seenBefore) {
                     // link previously seen before
                     // do hash-bucket changes instead of a re-route
                     processHashGroupChange(routeChanges, false, null);
@@ -449,12 +448,6 @@ public class DefaultRoutingHandler {
                 }
                 // for a linkUp of a never-seen-before link
                 // let it fall through to a reroute of the routeChanges
-
-                // now that we are past the check for a previously seen link
-                // it is safe to update the store for the linkUp
-                if (linkUp != null) {
-                    srManager.linkHandler.updateSeenLink(linkUp, true);
-                }
 
                 //deal with switchDown
                 if (switchDown != null) {
@@ -1215,6 +1208,7 @@ public class DefaultRoutingHandler {
     /**
      * Computes set of affected routes due to new links or failed switches.
      *
+     * @param failedSwitch deviceId of failed switch if any
      * @return the set of affected routes which may be empty if no routes were
      *         affected
      */

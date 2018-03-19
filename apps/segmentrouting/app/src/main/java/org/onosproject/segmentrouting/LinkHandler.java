@@ -16,6 +16,7 @@
 
 package org.onosproject.segmentrouting;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -37,8 +38,10 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+
 
 public class LinkHandler {
     private static final Logger log = LoggerFactory.getLogger(LinkHandler.class);
@@ -52,7 +55,7 @@ public class LinkHandler {
     // Currently the optimized routing logic depends on "forgetting" a link
     // when a switch goes down, but "remembering" it when only the link goes down.
     private Map<Link, Boolean> seenLinks = new ConcurrentHashMap<>();
-
+    private Set<Link> seenBefore = Sets.newConcurrentHashSet();
     private EventuallyConsistentMap<DeviceId, Set<PortNumber>> downedPortStore = null;
 
     /**
@@ -123,59 +126,66 @@ public class LinkHandler {
                 }
             }
         }
+
+        if (isSeenLink(link)) {
+            // temp store retains previous state, just before the state is updated in
+            // seenLinks; previous state is necessary when processing the
+            // linkupdate in defaultRoutingHandler
+            seenBefore.add(link);
+        }
+        updateSeenLink(link, true);
+
         if (srManager.deviceConfiguration == null ||
                 !srManager.deviceConfiguration.isConfigured(link.src().deviceId())) {
-            updateSeenLink(link, true);
             log.warn("Source device of this link is not configured.. "
                     + "not processing further");
             return;
         }
 
-        /*
-         // process link only if it is bidirectional
-         if (!isBidirectional(link)) {
+        // process link only if it is bidirectional
+        if (!isBidirectionalLinkUp(link)) {
             log.debug("Link not bidirectional.. waiting for other direction " +
-                      "src {} --> dst {} ", link.dst(), link.src());
-            // note that if we are not processing for routing, it should at least
-            // be considered a seen-link
-            updateSeenLink(link, true); return;
-          }
-         //TODO ensure that rehash is still done correctly even if link is not processed for
-         //rerouting - perhaps rehash in both directions when it ultimately becomes bidi?
-         */
+                    "src {} --> dst {} ", link.dst(), link.src());
+            return;
+        }
+        log.info("processing bidi links {} <--> {} UP", link.src(), link.dst());
 
-        log.debug("Starting optimized route-path processing for added link "
-                + "{} --> {}", link.src(), link.dst());
-        boolean seenBefore = isSeenLink(link);
-        // seenLink updates will be done after route-path changes
-        srManager.defaultRoutingHandler
-                .populateRoutingRulesForLinkStatusChange(null, link, null);
+        for (Link ulink : getBidiComponentLinks(link)) {
+            log.info("Starting optimized route-path processing for component "
+                    + "unidirectional link {} --> {} UP", ulink.src(), ulink.dst());
+            srManager.defaultRoutingHandler
+                    .populateRoutingRulesForLinkStatusChange(null, ulink, null,
+                                                             seenBefore.contains(ulink));
 
-        if (srManager.mastershipService.isLocalMaster(link.src().deviceId())) {
-            // handle edge-ports for dual-homed hosts
-            updateDualHomedHostPorts(link, true);
+            if (srManager.mastershipService.isLocalMaster(ulink.src().deviceId())) {
+                // handle edge-ports for dual-homed hosts
+                updateDualHomedHostPorts(ulink, true);
 
-            // It's possible that linkUp causes no route-path change as ECMP graph does
-            // not change if the link is a parallel link (same src-dst as
-            // another link). However we still need to update ECMP hash groups to include new buckets
-            // for the link that has come up.
-            if (groupHandler != null) {
-                if (!seenBefore && isParallelLink(link)) {
-                    // if link seen first time, we need to ensure hash-groups have
-                    // all ports
-                    log.debug("Attempting retryHash for paralled first-time link {}",
-                            link);
-                    groupHandler.retryHash(link, false, true);
-                } else {
-                    // seen before-link
-                    if (isParallelLink(link)) {
-                        log.debug("Attempting retryHash for paralled seen-before "
-                                + "link {}", link);
-                        groupHandler.retryHash(link, false, false);
+                // It's possible that linkUp causes no route-path change as ECMP graph does
+                // not change if the link is a parallel link (same src-dst as
+                // another link). However we still need to update ECMP hash
+                // groups to include new buckets for the link that has come up.
+                if (groupHandler != null) {
+                    if (!seenBefore.contains(ulink) && isParallelLink(ulink)) {
+                        // if link seen first time, we need to ensure hash-groups have
+                        // all ports
+                        log.debug("Attempting retryHash for paralled first-time link {}",
+                                  ulink);
+                        groupHandler.retryHash(ulink, false, true);
+                    } else {
+                        // seen before-link
+                        if (isParallelLink(ulink)) {
+                            log.debug("Attempting retryHash for paralled seen-before "
+                                    + "link {}", ulink);
+                            groupHandler.retryHash(ulink, false, false);
+                        }
                     }
                 }
             }
+            //clean up temp state
+            seenBefore.remove(ulink);
         }
+
     }
 
     /**
@@ -212,31 +222,41 @@ public class LinkHandler {
             return;
         }
 
-        log.debug("Starting optimized route-path processing for removed link "
-                + "{} --> {}", link.src(), link.dst());
-        srManager.defaultRoutingHandler
-                .populateRoutingRulesForLinkStatusChange(link, null, null);
+        // process link only if it is bidirectional
+        if (!isBidirectionalLinkDown(link)) {
+            log.debug("Link not bidirectional.. waiting for other direction " +
+                    "src {} --> dst {} ", link.dst(), link.src());
+            return;
+        }
+        log.info("processing bidi links {} <--> {} DOWN", link.src(), link.dst());
 
-        // attempt rehashing for parallel links
-        DefaultGroupHandler groupHandler = srManager.groupHandlerMap
-                .get(link.src().deviceId());
-        if (groupHandler != null) {
-            if (srManager.mastershipService.isLocalMaster(link.src().deviceId())
-                    && isParallelLink(link)) {
-                log.debug("* retrying hash for parallel link removed:{}", link);
-                groupHandler.retryHash(link, true, false);
+        for (Link ulink : getBidiComponentLinks(link)) {
+            log.info("Starting optimized route-path processing for component "
+                    + "unidirectional link {} --> {} DOWN", ulink.src(), ulink.dst());
+            srManager.defaultRoutingHandler
+                .populateRoutingRulesForLinkStatusChange(ulink, null, null, true);
+
+            // attempt rehashing for parallel links
+            DefaultGroupHandler groupHandler = srManager.groupHandlerMap
+                    .get(ulink.src().deviceId());
+            if (groupHandler != null) {
+                if (srManager.mastershipService.isLocalMaster(ulink.src().deviceId())
+                        && isParallelLink(ulink)) {
+                    log.debug("* retrying hash for parallel link removed:{}", ulink);
+                    groupHandler.retryHash(ulink, true, false);
+                } else {
+                    log.debug("Not attempting retry-hash for link removed: {} .. {}",
+                              ulink,
+                              (srManager.mastershipService.isLocalMaster(ulink
+                                      .src().deviceId())) ? "not parallel"
+                                                          : "not master");
+                }
+                // ensure local stores are updated after all rerouting or rehashing
+                groupHandler.portDownForLink(ulink);
             } else {
-                log.debug("Not attempting retry-hash for link removed: {} .. {}",
-                          link,
-                          (srManager.mastershipService.isLocalMaster(link.src()
-                                  .deviceId())) ? "not parallel"
-                                                : "not master");
+                log.warn("group handler not found for dev:{} when removing link: {}",
+                         ulink.src().deviceId(), ulink);
             }
-            // ensure local stores are updated after all rerouting or rehashing
-            groupHandler.portDownForLink(link);
-        } else {
-            log.warn("group handler not found for dev:{} when removing link: {}",
-                     link.src().deviceId(), link);
         }
     }
 
@@ -435,6 +455,7 @@ public class LinkHandler {
      */
     private void purgeSeenLink(Link link) {
         seenLinks.remove(link);
+        seenBefore.remove(link);
     }
 
     /**
@@ -463,16 +484,17 @@ public class LinkHandler {
     }
 
     /**
-     * Returns true if the link being queried is a bidirectional link. A bidi
-     * link is defined as a link, whose reverse link - ie. the link in the
-     * reverse direction - has been seen-before and is up. It is not necessary
-     * for the link being queried to be a seen-link.
+     * Returns true if the link being queried is a bidirectional link that is
+     * up. A bidi-link is defined as a component unidirectional link, whose
+     * reverse link - ie. the component unidirectional link in the reverse
+     * direction - has been seen-before and is up. It is NOT necessary for the
+     * link being queried to be a previously seen-link.
      *
-     * @param link the infrastructure link being queried
+     * @param link the infrastructure (unidirectional) link being queried
      * @return true if another unidirectional link exists in the reverse
      *         direction, has been seen-before and is up
      */
-    boolean isBidirectional(Link link) {
+    boolean isBidirectionalLinkUp(Link link) {
         Link reverseLink = linkService.getLink(link.dst(), link.src());
         if (reverseLink == null) {
             return false;
@@ -482,6 +504,69 @@ public class LinkHandler {
             return false;
         }
         return result.booleanValue();
+    }
+
+    /**
+     * Returns true if the link being queried is a bidirectional link that is
+     * down. A bidi-link is defined as a component unidirectional link, whose
+     * reverse link - i.e the component unidirectional link in the reverse
+     * direction - has been seen before and is down. It is necessary for the
+     * reverse-link to have been previously seen.
+     *
+     * @param link the infrastructure (unidirectional) link being queried
+     * @return true if another unidirectional link exists in the reverse
+     *         direction, has been seen-before and is down
+     */
+    boolean isBidirectionalLinkDown(Link link) {
+        // cannot call linkService as link may be gone
+        Link reverseLink = getReverseLink(link);
+        if (reverseLink == null) {
+            log.warn("Query for bidi-link down but reverse-link not found "
+                    + "for link {}", link);
+            return false;
+        }
+        Boolean result = seenLinks.get(reverseLink);
+        if (result == null) {
+            return false;
+        }
+        // if reverse link is seen UP (true), then its not bidi yet
+        return !result.booleanValue();
+    }
+
+    /**
+     * Returns the link in the reverse direction from the given link, by
+     * consulting the seen-links store.
+     *
+     * @param link the given link
+     * @return the reverse link or null
+     */
+    Link getReverseLink(Link link) {
+        return seenLinks.keySet().stream()
+                .filter(l -> l.src().equals(link.dst()) && l.dst().equals(link.src()))
+                .findAny()
+                .orElse(null);
+    }
+
+    /**
+     * Returns the component unidirectional links of a declared bidirectional
+     * link, by consulting the seen-links store. Caller is responsible for
+     * previously verifying bidirectionality. Returned list may be empty if
+     * errors are encountered.
+     *
+     * @param link the declared bidirectional link
+     * @return list of component unidirectional links
+     */
+    List<Link> getBidiComponentLinks(Link link) {
+        Link reverseLink = getReverseLink(link);
+        List<Link> componentLinks;
+        if (reverseLink == null) { // really should not happen if link is bidi
+            log.error("cannot find reverse link for given link: {} ... is it "
+                    + "bi-directional?", link);
+            componentLinks = ImmutableList.of();
+        } else {
+            componentLinks = ImmutableList.of(reverseLink, link);
+        }
+        return componentLinks;
     }
 
     /**
@@ -573,6 +658,22 @@ public class LinkHandler {
 
     ImmutableMap<DeviceId, Set<PortNumber>> getDownedPorts() {
         return ImmutableMap.copyOf(downedPortStore.entrySet());
+    }
+
+    /**
+     * Returns all links that egress from given device that are UP in the
+     * seenLinks store. The returned links are also confirmed to be
+     * bidirectional.
+     *
+     * @param deviceId the device identifier
+     * @return set of egress links from the device
+     */
+    Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
+        return seenLinks.keySet().stream()
+                .filter(link -> link.src().deviceId().equals(deviceId))
+                .filter(link -> seenLinks.get(link))
+                .filter(link -> isBidirectionalLinkUp(link))
+                .collect(Collectors.toSet());
     }
 
 }

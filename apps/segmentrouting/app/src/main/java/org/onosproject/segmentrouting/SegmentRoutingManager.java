@@ -1245,7 +1245,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // going down as well, but it is treated as a single switch down event
         // while the link-downs are ignored.
         defaultRoutingHandler
-            .populateRoutingRulesForLinkStatusChange(null, null, device.id());
+            .populateRoutingRulesForLinkStatusChange(null, null, device.id(), true);
         defaultRoutingHandler.purgeEcmpGraph(device.id());
         xConnectHandler.removeDevice(device.id());
 
