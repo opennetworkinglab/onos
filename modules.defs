@@ -239,6 +239,7 @@ ONOS_APPS = [
     '//apps/kafka-integration:onos-apps-kafka-integration-oar',
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
     '//apps/odtn:onos-apps-odtn-oar',
+    '//apps/mcast:onos-apps-mcast-oar',
 ]
 
 PROTOCOL_APPS = [

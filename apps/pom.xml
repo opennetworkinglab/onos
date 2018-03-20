@@ -101,6 +101,7 @@
         <module>routeradvertisement</module>
         <module>simplefabric</module>
         <module>odtn</module>
+        <module>mcast</module>
     </modules>
 
     <properties>
