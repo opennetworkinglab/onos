@@ -95,7 +95,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of flow rules using a distributed state management protocol.
+ *
+ * @deprecated in Nightingale Release (1.13)
  */
+@Deprecated
 @Component(enabled = false)
 @Service
 public class DistributedFlowRuleStore

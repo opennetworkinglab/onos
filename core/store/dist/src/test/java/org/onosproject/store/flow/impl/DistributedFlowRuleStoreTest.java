@@ -22,6 +22,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.cluster.ClusterService;
@@ -62,7 +63,11 @@ import static org.onosproject.net.NetTestTools.did;
 
 /**
  * Test class for DistributedFlowRuleStore.
+ *
+ * @deprecated in Nightingale Release (1.13)
  */
+@Deprecated
+@Ignore("The distributed flow rule store has been deprecated")
 public class DistributedFlowRuleStoreTest {
 
     DistributedFlowRuleStore flowStoreImpl;
