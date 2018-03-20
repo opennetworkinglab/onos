@@ -103,9 +103,9 @@ import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastHandler;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
+import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
-import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
@@ -569,7 +569,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return l2TunnelHandler.getL2Policies();
     }
 
-    @Override
+    @Deprecated
     public L2TunnelHandler.Result addPseudowiresBulk(List<DefaultL2TunnelDescription> bulkPseudowires) {
 
         // get both added and pending pseudowires
@@ -580,20 +580,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         Set<L2TunnelDescription> newPseudowires = new HashSet(bulkPseudowires);
 
-        // check global validity for all the new pseudowires, if it fails
-        // do not add any of them
-        log.debug("Verifying set of pseudowires {}", pseudowires);
-        boolean res = configurationValidity(pseudowires);
-        if (res) {
-            log.debug("Pseudowire configuration is valid, deploying pseudowires!");
-            l2TunnelHandler.deploy(newPseudowires);
-
-            return L2TunnelHandler.Result.SUCCESS;
-        } else {
-            log.error("Bulk pseudowires {} can not be added, error in global configuration!",
-                     newPseudowires);
-            return L2TunnelHandler.Result.ADDITION_ERROR;
+        L2TunnelHandler.Result retRes = L2TunnelHandler.Result.SUCCESS;
+        L2TunnelHandler.Result res;
+        for (DefaultL2TunnelDescription pw : bulkPseudowires) {
+            res = addPseudowire(pw);
+            if (res != L2TunnelHandler.Result.SUCCESS) {
+                log.error("Pseudowire with id {} can not be instantiated !", res);
+                retRes = res;
+            }
         }
+
+        return retRes;
     }
 
     @Override
@@ -607,19 +604,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // add the new pseudowire to the List
         newPseudowires.add(l2TunnelDescription);
         // validate the new list of pseudowires
-        boolean res = configurationValidity(newPseudowires);
-        if (res) {
-            // deploy a set with ONLY the new pseudowire
-            Set<L2TunnelDescription> pwToDeploy = new HashSet<>();
-            pwToDeploy.add(l2TunnelDescription);
-            l2TunnelHandler.deploy(pwToDeploy);
-
-            log.info("Pseudowire with {} deployment started, check log for any errors in this process!",
+        L2TunnelHandler.Result res = configurationValidity(newPseudowires);
+        if (res == L2TunnelHandler.Result.SUCCESS) {
+            log.debug("Pseudowire with {} deployment started, check log for any errors in this process!",
                      l2TunnelDescription.l2Tunnel().tunnelId());
-            return L2TunnelHandler.Result.SUCCESS;
+            return l2TunnelHandler.deployPseudowire(l2TunnelDescription, false);
         } else {
-            log.error("Pseudowire with {} can not be added!", l2TunnelDescription.l2Tunnel().tunnelId());
-            return L2TunnelHandler.Result.ADDITION_ERROR;
+            log.error("Pseudowire with {} can not be added, error in global validity!",
+                      l2TunnelDescription.l2Tunnel().tunnelId());
+            return res;
         }
     }
 
@@ -638,16 +631,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         if ((pendingPseudowires.size() == 0) && (pseudowires.size() == 0)) {
             log.error("Pseudowire with id {} does not exist", pwId);
-            return L2TunnelHandler.Result.REMOVAL_ERROR;
+            return L2TunnelHandler.Result.WRONG_PARAMETERS
+                    .appendError("Pseudowire does not exist.");
         }
         if (pendingPseudowires.size() != 0) {
             log.info("Remove pseudowire from pending store!");
             // will fill when we implement failure mechanism detection.
         }
         if (pseudowires.size() != 0) {
-            l2TunnelHandler.tearDown(new HashSet<>(pseudowires));
             log.info("Removal of pseudowire with {} started, check log for any errors in this process!",
                      pwId);
+            return l2TunnelHandler.tearDownPseudowire(pwId);
         }
 
         return L2TunnelHandler.Result.SUCCESS;

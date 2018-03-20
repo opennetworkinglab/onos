@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.util.Pair;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -116,18 +117,19 @@ public class PseudowireWebResource extends AbstractWebResource {
             return Response.serverError().status(Response.Status.BAD_REQUEST).build();
         }
 
-        log.debug("Creating pseudowire {} from rest api!", pseudowire.l2Tunnel().tunnelId());
+        long tunId = pseudowire.l2Tunnel().tunnelId();
+        log.debug("Creating pseudowire {} from rest api!", tunId);
 
         L2TunnelHandler.Result res = srService.addPseudowire(pseudowire);
         switch (res) {
-            case ADDITION_ERROR:
-                log.error("Pseudowire {} could not be added, error in configuration," +
-                                  " please check logs for more details!",
-                          pseudowire.l2Tunnel().tunnelId());
+            case WRONG_PARAMETERS:
+            case CONFIGURATION_ERROR:
+            case PATH_NOT_FOUND:
+            case INTERNAL_ERROR:
+                log.error("Pseudowire {} could not be added : {}", tunId, res.getSpecificError());
                 return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-
             case SUCCESS:
-                log.debug("Pseudowire {} succesfully deployed!", pseudowire.l2Tunnel().tunnelId());
+                log.info("Pseudowire {} succesfully deployed!", pseudowire.l2Tunnel().tunnelId());
                 return Response.ok().build();
             default:
                 return Response.ok().build();
@@ -160,20 +162,24 @@ public class PseudowireWebResource extends AbstractWebResource {
         }
 
         log.debug("Creating pseudowires {} from rest api!", pseudowires);
+        List<Pair<DefaultL2TunnelDescription, String>> failed = new ArrayList<>();
 
-        L2TunnelHandler.Result res = srService.addPseudowiresBulk(pseudowires);
-        switch (res) {
-            case ADDITION_ERROR:
-                log.error("Bulk of pseudowires {} could not be added, error in configuration," +
-                                  " please check logs for more details!",
-                          pseudowires);
-                return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        for (DefaultL2TunnelDescription pw : pseudowires) {
+            L2TunnelHandler.Result res = srService.addPseudowire(pw);
+            if (!(res == L2TunnelHandler.Result.SUCCESS)) {
+                log.trace("Could not create pseudowire {} : {}", pw.l2Tunnel().tunnelId(), res.getSpecificError());
+                failed.add(new Pair<>(pw, res.getSpecificError()));
+            }
+        }
 
-            case SUCCESS:
-                log.debug("Bulk of pseudowires {} succesfully deployed!", pseudowires);
-                return Response.ok().build();
-            default:
-                return Response.ok().build();
+        if (failed.size() == 0) {
+            // all pseudowires were instantiated
+            return Response.ok().build();
+        } else {
+            PseudowireCodec pwCodec = new PseudowireCodec();
+            // some failed, need to report them to user
+            ObjectNode result = pwCodec.encodeFailedPseudowires(failed, this);
+            return Response.serverError().entity(result).build();
         }
     }
 
@@ -202,11 +208,10 @@ public class PseudowireWebResource extends AbstractWebResource {
 
         L2TunnelHandler.Result res = srService.removePseudowire(pseudowireId);
         switch (res) {
-            case REMOVAL_ERROR:
-                log.error("Pseudowire {} could not be removed, error in configuration," +
-                                  " please check logs for more details!",
-                          pseudowireId);
-
+            case WRONG_PARAMETERS:
+            case INTERNAL_ERROR:
+                log.error("Pseudowire {} could not be removed : {}",
+                          pseudowireId, res.getSpecificError());
                 return Response.noContent().build();
             case SUCCESS:
                 log.debug("Pseudowire {} was removed succesfully!", pseudowireId);
@@ -257,10 +262,10 @@ public class PseudowireWebResource extends AbstractWebResource {
         for (Integer pseudowireId : ids) {
             L2TunnelHandler.Result res = srService.removePseudowire(pseudowireId);
             switch (res) {
-                case REMOVAL_ERROR:
-                    log.error("Pseudowire {} could not be removed, error in configuration," +
-                                      " please check logs for more details!",
-                              pseudowireId);
+                case WRONG_PARAMETERS:
+                case INTERNAL_ERROR:
+                    log.error("Pseudowire {} could not be removed, internal error : {}",
+                              pseudowireId, res.getSpecificError());
                     break;
                 case SUCCESS:
                     log.debug("Pseudowire {} was removed succesfully!", pseudowireId);

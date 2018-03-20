@@ -53,13 +53,6 @@ public interface L2TunnelHandler {
     List<L2TunnelPolicy> getL2PendingPolicies();
 
     /**
-     * Returns a copy of the pending l2 tunnels that exist in the store.
-     *
-     * @return The l2 tunnels.
-     */
-    List<L2Tunnel> getL2PendingTunnels();
-
-    /**
      * Helper function to handle the pw removal.
      * <p>
      * This method should for the mastership of the device because it is
@@ -67,8 +60,17 @@ public interface L2TunnelHandler {
      * one instance only to program each pseudowire.
      *
      * @param pwToRemove the pseudo wires to remove
+     * @deprecated onos-1.12 Do not use this method.
      */
+    @Deprecated
     void tearDown(Set<L2TunnelDescription> pwToRemove);
+
+    /**
+     * Returns a copy of the pending l2 tunnels that exist in the store.
+     *
+     * @return The l2 tunnels.
+     */
+    List<L2Tunnel> getL2PendingTunnels();
 
     /**
      * Pwaas pipelines.
@@ -106,25 +108,31 @@ public interface L2TunnelHandler {
         /**
          *
          */
-        REMOVAL_ERROR(5, "Can not remove pseudowire from network configuration"),
+        PATH_NOT_FOUND(7, "Could not find valid path between connection points!"),
 
         /**
          *
          */
-        ADDITION_ERROR(6, "Can not add pseudowire in network configuration"),
-
-        /**
-         *
-         */
-        CONFIG_NOT_FOUND(7, "Can not find configuration class for pseudowires");
+        CONFIGURATION_ERROR(8, "Conflicting pseudowire configurations!");
 
         private final int code;
         private final String description;
-        protected int nextId;
+
+        private String specificError;
+        public int nextId;
 
         Result(int code, String description) {
             this.code = code;
             this.description = description;
+        }
+
+        public Result appendError(String error) {
+           this.specificError = error;
+           return this;
+        }
+
+        public String getSpecificError() {
+            return specificError;
         }
 
         public String getDescription() {
