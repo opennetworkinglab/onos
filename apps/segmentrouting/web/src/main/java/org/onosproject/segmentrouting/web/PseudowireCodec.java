@@ -15,7 +15,9 @@
  */
 package org.onosproject.segmentrouting.web;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.util.Pair;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
@@ -27,6 +29,8 @@ import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static org.onosproject.segmentrouting.pwaas.PwaasUtil.*;
 
@@ -46,6 +50,11 @@ public final class PseudowireCodec extends JsonCodec<DefaultL2TunnelDescription>
     private static final String MODE = "mode";
     private static final String SERVICE_DELIM_TAG = "serviceTag";
     private static final String PW_LABEL = "pwLabel";
+
+    // JSON field names for error in return
+    private static final String FAILED_PWS = "failedPws";
+    private static final String FAILED_PW = "pw";
+    private static final String REASON = "reason";
 
     private static Logger log = LoggerFactory
             .getLogger(PseudowireCodec.class);
@@ -70,6 +79,44 @@ public final class PseudowireCodec extends JsonCodec<DefaultL2TunnelDescription>
         result.put(PW_LABEL, pseudowire.l2Tunnel().pwLabel().toString());
 
         return result;
+    }
+
+    /**
+     * Encoded in an Object Node the pseudowire and the specificError it failed.
+     *
+     * @param failedPW The failed pseudowire
+     * @param specificError The specificError it failed
+     * @param context Our context
+     * @return A node containing the information we provided
+     */
+    public ObjectNode encodeError(DefaultL2TunnelDescription failedPW, String specificError,
+                                          CodecContext context) {
+        ObjectNode result = context.mapper().createObjectNode();
+
+        ObjectNode pw = encode(failedPW, context);
+        result.set(FAILED_PW, pw);
+        result.put(REASON, specificError);
+
+        return result;
+    }
+
+    /**
+     * Returns a JSON containing the failed pseudowires and the reason that its one failed.
+     *
+     * @param failedPws Pairs of pws and reasons.
+     * @param context The context
+     * @return ObjectNode representing the json to return
+     */
+    public ObjectNode encodeFailedPseudowires(
+            List<Pair<DefaultL2TunnelDescription, String>> failedPws,
+            CodecContext context) {
+
+        ArrayNode failedNodes = context.mapper().createArrayNode();
+        failedPws.stream()
+                .forEach(failed -> failedNodes.add(encodeError(failed.getKey(), failed.getValue(), context)));
+        final ObjectNode toReturn = context.mapper().createObjectNode();
+        toReturn.set(FAILED_PWS, failedNodes);
+        return toReturn;
     }
 
     /**

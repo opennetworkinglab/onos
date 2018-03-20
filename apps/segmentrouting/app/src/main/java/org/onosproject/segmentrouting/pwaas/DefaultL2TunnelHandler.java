@@ -406,7 +406,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         } else {
             for (short i = transportVlanUpper; i > transportVlanLower; i--) {
 
-                VlanId vlanToUse = VlanId.vlanId((short) i);
+                VlanId vlanToUse = VlanId.vlanId(i);
                 if (!vlanStore.contains(vlanToUse)) {
 
                     vlanStore.add(vlanToUse);
@@ -428,7 +428,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @return The devices on the path with the order they
      *         are traversed.
      */
-    List<DeviceId> getDevicesOnPath(List<Link> path) {
+    private List<DeviceId> getDevicesOnPath(List<Link> path) {
 
         // iterate over links and get all devices in the order
         // we find them
@@ -534,7 +534,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @param removeFromPending if to remove the pseudowire from the pending store
      * @return result of pseudowire deployment
      */
-    private Result deployPseudowire(L2TunnelDescription pw, boolean removeFromPending) {
+    public Result deployPseudowire(L2TunnelDescription pw, boolean removeFromPending) {
 
         Result result;
         long l2TunnelId;
@@ -543,7 +543,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         // The tunnel id cannot be 0.
         if (l2TunnelId == 0) {
             log.warn("Tunnel id id must be > 0");
-            return Result.ADDITION_ERROR;
+            return Result.WRONG_PARAMETERS
+                    .appendError("Tunnel id id must be > 0");
         }
 
         // leafSpinePw determines if this is a leaf-leaf
@@ -556,7 +557,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             if (!srManager.deviceConfiguration().isEdgeDevice(cp1.deviceId()) &&
                     !srManager.deviceConfiguration().isEdgeDevice(cp2.deviceId())) {
                 log.error("Can not deploy pseudowire from spine to spine!");
-                return Result.INTERNAL_ERROR;
+                return Result.WRONG_PARAMETERS
+                        .appendError("Can not deploy pseudowire from spine to spine!");
             } else if (srManager.deviceConfiguration().isEdgeDevice(cp1.deviceId()) &&
                     srManager.deviceConfiguration().isEdgeDevice(cp2.deviceId())) {
                 leafSpinePw = false;
@@ -564,16 +566,17 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 leafSpinePw = true;
             }
         } catch (DeviceConfigNotFoundException e) {
-            log.error("A device for pseudowire connection points does not exist.");
-            return Result.INTERNAL_ERROR;
+            log.error("Device for pseudowire connection points does not exist in the configuration");
+            return Result.INTERNAL_ERROR
+                    .appendError("Device for pseudowire connection points does not exist in the configuration");
         }
 
         // get path here, need to use the same for fwd and rev direction
         List<Link> path = getPath(pw.l2TunnelPolicy().cP1(),
                                   pw.l2TunnelPolicy().cP2());
         if (path == null) {
-            log.info("Deploying process : No path between the connection points for pseudowire {}", l2TunnelId);
-            return WRONG_PARAMETERS;
+            log.error("Deploying process : No path between the connection points for pseudowire {}", l2TunnelId);
+            return PATH_NOT_FOUND.appendError("No path between the connection points for pseudowire!");
         }
 
         Link fwdNextHop;
@@ -581,7 +584,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         if (!isValidPath(path, leafSpinePw)) {
             log.error("Deploying process : Path for pseudowire {} is not valid",
                       l2TunnelId);
-            return INTERNAL_ERROR;
+            return INTERNAL_ERROR.appendError("Internal error : path for pseudowire is not valid!");
         }
 
         // oneHope flag is used to determine if we need to
@@ -616,7 +619,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                       egressVlan);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire initiation for CP1");
-            return Result.ADDITION_ERROR;
+            return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire initiation for CP1");
         }
 
         // We create the policy.
@@ -628,7 +631,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                               result.nextId);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire policy for CP1");
-            return Result.ADDITION_ERROR;
+            return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire policy for CP1");
         }
 
         // We terminate the tunnel
@@ -641,8 +644,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire termination for CP1");
-            return Result.ADDITION_ERROR;
-
+            return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire termination for CP1");
         }
 
         log.info("Deploying process : Establishing reverse direction for pseudowire {}", l2TunnelId);
@@ -663,7 +665,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                        egressVlan);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire initiation for CP2");
-            return Result.ADDITION_ERROR;
+            return Result.INTERNAL_ERROR
+                    .appendError("Error in deploying pseudowire initiation for CP2");
         }
 
 
@@ -675,7 +678,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                result.nextId);
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying policy for CP2");
-            return Result.ADDITION_ERROR;
+            return Result.INTERNAL_ERROR
+                    .appendError("Deploying process : Error in deploying policy for CP2");
         }
 
         result = deployPseudoWireTerm(pw.l2Tunnel(),
@@ -687,13 +691,13 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire termination for CP2");
-            return Result.ADDITION_ERROR;
+            return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire termination for CP2");
         }
 
         result = manageIntermediateFiltering(pw, leafSpinePw);
         if (result != SUCCESS) {
-            log.info("Deploying process : Error in installing intermediate rules for tagged transport!");
-            return Result.ADDITION_ERROR;
+            log.info("Deploying process : Error in installing intermediate rules for tagged transport");
+            return Result.INTERNAL_ERROR.appendError("Error in installing intermediate rules for tagged transport");
         }
 
         log.info("Deploying process : Updating relevant information for pseudowire {}", l2TunnelId);
@@ -719,255 +723,14 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
-     * To deploy a number of pseudo wires.
-     *
-     * @param pwToAdd the set of pseudo wires to add
-     */
-    public void deploy(Set<L2TunnelDescription> pwToAdd) {
-
-        Result result;
-
-        for (L2TunnelDescription currentL2Tunnel : pwToAdd) {
-            // add pseudowires one by one
-            long tunnelId = currentL2Tunnel.l2TunnelPolicy().tunnelId();
-            result = deployPseudowire(currentL2Tunnel, false);
-            switch (result) {
-                case INTERNAL_ERROR:
-                    log.warn("Could not deploy pseudowire {}, internal error!", tunnelId);
-                    break;
-                case WRONG_PARAMETERS:
-                    log.warn("Could not deploy pseudowire {}, wrong parameters!", tunnelId);
-                    break;
-                case ADDITION_ERROR:
-                    log.warn("Could not deploy pseudowire {}, error in populating rules!", tunnelId);
-                    break;
-                default:
-                    log.info("Pseudowire with {} succesfully deployed!", tunnelId);
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Helper function to update a pw.
-     * <p>
-     * Called upon configuration changes that update existing pseudowires and
-     * when links fail. Checking of mastership for CP1 is mandatory because it is
-     * called in multiple instances for both cases.
-     * <p>
-     * Meant to call asynchronously for various events, thus this call can not block and need
-     * to perform asynchronous operations.
-     * <p>
-     * For this reason error checking is omitted.
-     *
-     * @param oldPw the pseudo wire to remove
-     * @param newPw the pseudo wire to add
-     */
-    /*
-    private void updatePw(L2TunnelDescription oldPw,
-                         L2TunnelDescription newPw) {
-        ConnectPoint oldCp1 = oldPw.l2TunnelPolicy().cP1();
-        long tunnelId = oldPw.l2Tunnel().tunnelId();
-
-        // only determine if the new pseudowire is leaf-spine, because
-        // removal process is the same for both leaf-leaf and leaf-spine pws
-        boolean newPwSpine;
-        try {
-            newPwSpine = !srManager.deviceConfiguration().isEdgeDevice(newPw.l2TunnelPolicy().cP1().deviceId()) ||
-                    !srManager.deviceConfiguration().isEdgeDevice(newPw.l2TunnelPolicy().cP2().deviceId());
-        } catch (DeviceConfigNotFoundException e) {
-            // if exception is caught treat the new pw as leaf-leaf
-            newPwSpine = false;
-        }
-
-        // copy the variable here because we need to use it in lambda thus it needs to be final
-        boolean finalNewPwSpine = newPwSpine;
-
-        log.info("Updating pseudowire {}", oldPw.l2Tunnel().tunnelId());
-
-        // The async tasks to orchestrate the next and forwarding update
-        CompletableFuture<ObjectiveError> fwdInitNextFuture = new CompletableFuture<>();
-        CompletableFuture<ObjectiveError> revInitNextFuture = new CompletableFuture<>();
-        CompletableFuture<ObjectiveError> fwdTermNextFuture = new CompletableFuture<>();
-        CompletableFuture<ObjectiveError> revTermNextFuture = new CompletableFuture<>();
-        CompletableFuture<ObjectiveError> fwdPwFuture = new CompletableFuture<>();
-        CompletableFuture<ObjectiveError> revPwFuture = new CompletableFuture<>();
-
-        // first delete all information from our stores, we can not do it asynchronously
-        l2PolicyStore.remove(Long.toString(tunnelId));
-
-        // grab the old l2 tunnel from the store, since it carries information which is not exposed
-        // to the user configuration and set it to oldPw.
-        oldPw.setL2Tunnel(l2TunnelStore.get(Long.toString(tunnelId)).value());
-        VlanId transportVlan = l2TunnelStore.get(Long.toString(tunnelId)).value().transportVlan();
-        l2TunnelStore.remove(Long.toString(tunnelId));
-
-        // remove the reserved transport vlan, if one is used
-        if (!transportVlan.equals(UNTAGGED_TRANSPORT_VLAN)) {
-            vlanStore.remove(transportVlan);
-        }
-
-        // First we remove both policy.
-        log.debug("Start deleting fwd policy for {}", tunnelId);
-        VlanId egressVlan = determineEgressVlan(oldPw.l2TunnelPolicy().cP1OuterTag(),
-                                                 oldPw.l2TunnelPolicy().cP1InnerTag(),
-                                                 oldPw.l2TunnelPolicy().cP2OuterTag(),
-                                                 oldPw.l2TunnelPolicy().cP2InnerTag());
-        deletePolicy(tunnelId, oldPw.l2TunnelPolicy().cP1(),
-                      oldPw.l2TunnelPolicy().cP1InnerTag(),
-                      oldPw.l2TunnelPolicy().cP1OuterTag(),
-                      egressVlan,
-                      fwdInitNextFuture,
-                      FWD);
-
-        deletePolicy(tunnelId, oldPw.l2TunnelPolicy().cP2(),
-                      oldPw.l2TunnelPolicy().cP2InnerTag(),
-                      oldPw.l2TunnelPolicy().cP2OuterTag(),
-                      egressVlan, revInitNextFuture,
-                      REV);
-
-        // Finally we remove both the tunnels.
-        fwdInitNextFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-                log.debug("Update process : Fwd policy removed. " +
-                                  "Now remove fwd {} for {}", INITIATION, tunnelId);
-                tearDownPseudoWireInit(tunnelId, oldPw.l2TunnelPolicy().cP1(), fwdTermNextFuture, FWD);
-            }
-        });
-        revInitNextFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-                log.debug("Update process : Rev policy removed. " +
-                                  "Now remove rev {} for {}", INITIATION, tunnelId);
-                tearDownPseudoWireInit(tunnelId, oldPw.l2TunnelPolicy().cP2(), revTermNextFuture, REV);
-            }
-        });
-        fwdTermNextFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-                log.debug("Update process : Fwd {} removed. " +
-                                  "Now remove fwd {} for {}", INITIATION, TERMINATION, tunnelId);
-                tearDownPseudoWireTerm(oldPw.l2Tunnel(), oldPw.l2TunnelPolicy().cP2(),  fwdPwFuture, FWD);
-            }
-        });
-        revTermNextFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-                log.debug("Update process : Rev {} removed. " +
-                                  "Now remove rev {} for {}", INITIATION, TERMINATION, tunnelId);
-                tearDownPseudoWireTerm(oldPw.l2Tunnel(), oldPw.l2TunnelPolicy().cP1(), revPwFuture, REV);
-            }
-        });
-
-        // get path here, need to use the same for fwd and rev direction
-        List<Link> path = getPath(newPw.l2TunnelPolicy().cP1(),
-                                   newPw.l2TunnelPolicy().cP2());
-        if (path == null) {
-            log.error("Update process : " +
-                             "No path between the connection points for pseudowire {}", newPw.l2Tunnel().tunnelId());
-            return;
-        }
-
-        Link fwdNextHop, revNextHop;
-        if (!isValidPathSize(path.size())) {
-            log.error("Deploying process : Path size for pseudowire should be of one of the following sizes" +
-                              " = [1, 2, 3, 4], for pseudowire {}",
-                      newPw.l2Tunnel().tunnelId());
-            return;
-        }
-
-        // spinePw signifies if we have a leaf-spine pw
-        // thus only one label should be pushed (that of pw)
-        // if size>1 we need to push intermediate labels also.
-        boolean oneHope = true;
-        if (path.size() > 1) {
-            oneHope = false;
-        }
-        final boolean oneHopeFinal = oneHope;
-
-        fwdNextHop = path.get(0);
-        revNextHop = reverseLink(path.get(path.size() - 1));
-
-        // set new path and transport vlan.
-        newPw.l2Tunnel().setPath(path);
-        newPw.l2Tunnel().setTransportVlan(determineTransportVlan(newPwSpine));
-
-        // At the end we install the updated PW.
-        fwdPwFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-
-                // Upgrade stores and book keeping information, need to move this here
-                // cause this call is asynchronous.
-                l2PolicyStore.put(Long.toString(tunnelId), newPw.l2TunnelPolicy());
-                l2TunnelStore.put(Long.toString(tunnelId), newPw.l2Tunnel());
-
-                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP1OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP1InnerTag(),
-                                                          newPw.l2TunnelPolicy().cP2OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP2InnerTag());
-
-                log.debug("Update process : Deploying new fwd pw for {}", tunnelId);
-                Result lamdaResult = deployPseudoWireInit(newPw.l2Tunnel(), newPw.l2TunnelPolicy().cP1(),
-                                                           newPw.l2TunnelPolicy().cP2(), FWD,
-                                                           fwdNextHop, finalNewPwSpine, oneHopeFinal, egressVlanId);
-                if (lamdaResult != SUCCESS) {
-                    return;
-                }
-
-                lamdaResult = deployPolicy(tunnelId, newPw.l2TunnelPolicy().cP1(),
-                                            newPw.l2TunnelPolicy().cP1InnerTag(),
-                                           newPw.l2TunnelPolicy().cP1OuterTag(),
-                                            egressVlanId, lamdaResult.nextId);
-                if (lamdaResult != SUCCESS) {
-                    return;
-                }
-                deployPseudoWireTerm(newPw.l2Tunnel(), newPw.l2TunnelPolicy().cP2(),
-                                      egressVlanId, FWD, finalNewPwSpine, oneHopeFinal);
-
-            }
-        });
-        revPwFuture.thenAcceptAsync(status -> {
-            if (status == null) {
-
-                log.debug("Update process : Deploying new rev pw for {}", tunnelId);
-
-                VlanId egressVlanId = determineEgressVlan(newPw.l2TunnelPolicy().cP2OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP2InnerTag(),
-                                                          newPw.l2TunnelPolicy().cP1OuterTag(),
-                                                          newPw.l2TunnelPolicy().cP1InnerTag());
-
-                Result lamdaResult = deployPseudoWireInit(newPw.l2Tunnel(),
-                                                           newPw.l2TunnelPolicy().cP2(),
-                                                           newPw.l2TunnelPolicy().cP1(),
-                                                           REV,
-                                                           revNextHop, finalNewPwSpine, oneHopeFinal, egressVlanId);
-                if (lamdaResult != SUCCESS) {
-                    return;
-                }
-
-                lamdaResult = deployPolicy(tunnelId,
-                                            newPw.l2TunnelPolicy().cP2(),
-                                            newPw.l2TunnelPolicy().cP2InnerTag(),
-                                            newPw.l2TunnelPolicy().cP2OuterTag(),
-                                            egressVlanId,
-                                            lamdaResult.nextId);
-                if (lamdaResult != SUCCESS) {
-                    return;
-                }
-                deployPseudoWireTerm(newPw.l2Tunnel(),
-                                      newPw.l2TunnelPolicy().cP1(),
-                                      egressVlanId,
-                                      REV, finalNewPwSpine, oneHopeFinal);
-            }
-        });
-    }
-    */
-
-    /**
      * Tears down connection points of pseudowires. We can either tear down both connection points,
      * or each one of them.
      *
      * @param l2TunnelId The tunnel id for this pseudowire.
      * @param tearDownFirst Boolean, true if we want to tear down cp1
      * @param tearDownSecond Boolean, true if we want to tear down cp2
-     * @return
+     * @return Result of tearing down the pseudowire, SUCCESS if everything was ok
+     *         WRONG_PARAMETERS or INTERNAL_ERROR otherwise
      */
     private Result tearDownConnectionPoints(long l2TunnelId, boolean tearDownFirst, boolean tearDownSecond) {
 
@@ -979,7 +742,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         if (l2TunnelId == 0) {
             log.warn("Removal process : Tunnel id cannot be 0");
-            return Result.WRONG_PARAMETERS;
+            return Result.WRONG_PARAMETERS.appendError("Pseudowire id can not be 0.");
         }
 
         // check existence of tunnels/policy in the store, if one is missing abort!
@@ -987,7 +750,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         Versioned<L2TunnelPolicy> l2TunnelPolicyVersioned = l2PolicyStore.get(Long.toString(l2TunnelId));
         if ((l2TunnelVersioned == null) || (l2TunnelPolicyVersioned == null)) {
             log.warn("Removal process : Policy and/or tunnel missing for tunnel id {}", l2TunnelId);
-            return Result.REMOVAL_ERROR;
+            return Result.INTERNAL_ERROR
+                    .appendError("Policy and/or tunnel missing for pseudowire!");
         }
 
         L2TunnelDescription pwToRemove = new DefaultL2TunnelDescription(l2TunnelVersioned.value(),
@@ -1086,11 +850,11 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @return Returns SUCCESS if no error is obeserved or an appropriate
      * error on a failure
      */
-    private Result tearDownPseudowire(long l2TunnelId) {
+    public Result tearDownPseudowire(long l2TunnelId) {
         return tearDownConnectionPoints(l2TunnelId, true, true);
     }
 
-    @Override
+    @Deprecated
     public void tearDown(Set<L2TunnelDescription> pwToRemove) {
 
         for (L2TunnelDescription currentL2Tunnel : pwToRemove) {
@@ -1099,16 +863,8 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             log.info("Removing pseudowire {}", tunnelId);
 
             Result result = tearDownPseudowire(tunnelId);
-            switch (result) {
-                case WRONG_PARAMETERS:
-                    log.error("Error in supplied parameters for the pseudowire removal with tunnel id {}!",
-                            tunnelId);
-                    break;
-                case REMOVAL_ERROR:
-                    log.error("Error in pseudowire removal with tunnel id {}!", tunnelId);
-                    break;
-                default:
-                    log.info("Pseudowire with tunnel id {} was removed successfully", tunnelId);
+            if (result != Result.SUCCESS) {
+                log.error("Could not remove pseudowire {}!", tunnelId);
             }
         }
     }
@@ -1602,12 +1358,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @return the path
      */
     private List<Link> getPath(ConnectPoint srcCp, ConnectPoint dstCp) {
-        /* TODO We retrieve a set of paths in case of a link failure, what happens
-         * if the TopologyService gets the link notification AFTER us and has not updated the paths?
-         *
-         * TODO This has the potential to act on old topology.
-         * Maybe we should make SRManager be a listener on topology events instead raw link events.
-         */
         Set<Path> paths = srManager.topologyService.getPaths(
                 srManager.topologyService.currentTopology(),
                 srcCp.deviceId(), dstCp.deviceId());
@@ -1713,12 +1463,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             }
             return;
         }
-        NextObjective nextObjective = l2InitiationNextObjStore.get(key).value();
 
         // un-comment in case you want to delete groups used by the pw
         // however, this will break the update of pseudowires cause the L2 interface group can
         // not be deleted (it is referenced by other groups)
         /*
+        NextObjective nextObjective = l2InitiationNextObjStore.get(key).value();
         ObjectiveContext context = new ObjectiveContext() {
             @Override
             public void onSuccess(Objective objective) {

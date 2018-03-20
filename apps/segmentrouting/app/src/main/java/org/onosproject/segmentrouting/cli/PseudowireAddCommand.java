@@ -119,14 +119,26 @@ public class PseudowireAddCommand extends AbstractShellCommand {
         L2TunnelDescription pw = new DefaultL2TunnelDescription(tun, policy);
         L2TunnelHandler.Result res = srService.addPseudowire(pw);
         switch (res) {
-            case ADDITION_ERROR:
-                print("Pseudowire could not be added!");
+            case WRONG_PARAMETERS:
+                print("Pseudowire could not be added , error in the parameters : \n\t%s",
+                      res.getSpecificError());
+                break;
+            case CONFIGURATION_ERROR:
+                print("Pseudowire could not be added, configuration error : \n\t%s",
+                      res.getSpecificError());
+                break;
+            case PATH_NOT_FOUND:
+                print("Pseudowire path not found : \n\t%s",
+                      res.getSpecificError());
+                break;
+            case INTERNAL_ERROR:
+                print("Pseudowire could not be added, internal error : \n\t%s",
+                      res.getSpecificError());
                 break;
             case SUCCESS:
                 break;
             default:
                 break;
         }
-
     }
 }

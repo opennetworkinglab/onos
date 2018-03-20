@@ -128,11 +128,15 @@ public interface SegmentRoutingService {
     L2TunnelHandler.Result addPseudowire(L2TunnelDescription tunnel);
 
     /**
-     * Adss a set of pseudowires.
+     * Adds a set of pseudowires.
+     *
+     *
      * @param l2TunnelDescriptions The pseudowires to add.
      * @return SUCCESS if ALL pseudowires can be instantiated and are deployed, or a
      *         a descriptive error otherwise, without deploying any pseudowire.
+     * @deprecated onos-1.12 use addPseudowire instead
      */
+    @Deprecated
     L2TunnelHandler.Result addPseudowiresBulk(List<DefaultL2TunnelDescription> l2TunnelDescriptions);
 
     /**

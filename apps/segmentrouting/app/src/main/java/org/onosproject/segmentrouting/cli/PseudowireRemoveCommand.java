@@ -56,11 +56,15 @@ public class PseudowireRemoveCommand extends AbstractShellCommand {
 
         L2TunnelHandler.Result res = mngr.removePseudowire(pwIntId);
         switch (res) {
-            case REMOVAL_ERROR:
-                error("Error in deletion, pseudowire not found!");
+            case WRONG_PARAMETERS:
+                error("Pseudowire could not be removed , wrong parameters: \n\t %s\n",
+                      res.getSpecificError());
                 break;
-            case CONFIG_NOT_FOUND:
-                error("Could not fetch pseudowire class configuration!");
+            case INTERNAL_ERROR:
+                error("Pseudowire could not be removed, internal error : \n\t %s\n",
+                      res.getSpecificError());
+                break;
+            case SUCCESS:
                 break;
             default:
                 break;

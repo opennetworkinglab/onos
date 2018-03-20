@@ -437,7 +437,7 @@ public final class PwaasUtil {
 
     }
 
-    public static boolean configurationValidity(List<L2TunnelDescription> pseudowires) {
+    public static L2TunnelHandler.Result configurationValidity(List<L2TunnelDescription> pseudowires) {
 
         // structures to keep pw information
         // in order to see if instantiating them will create
@@ -462,13 +462,12 @@ public final class PwaasUtil {
                 log.debug("Verifying pseudowire {}", pw);
                 verifyPseudoWire(pw, labelsUsed, vlanIds, tunIds);
             }
+
+            return L2TunnelHandler.Result.SUCCESS;
         } catch (Exception e) {
             log.error("Caught exception while validating pseudowire : {}", e.getMessage());
-            return false;
+            return L2TunnelHandler.Result.CONFIGURATION_ERROR
+                    .appendError(e.getMessage());
         }
-
-        // return true
-        return true;
     }
-
 }
