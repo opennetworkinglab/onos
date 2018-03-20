@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
@@ -81,8 +82,8 @@ public class DeviceConfiguration implements DeviceProperties {
         int pwRoutingLabel;
 
         public SegmentRouterInfo() {
-            gatewayIps = HashMultimap.create();
-            subnets = HashMultimap.create();
+            gatewayIps = Multimaps.synchronizedSetMultimap(HashMultimap.create());
+            subnets = Multimaps.synchronizedSetMultimap(HashMultimap.create());
         }
     }
 
