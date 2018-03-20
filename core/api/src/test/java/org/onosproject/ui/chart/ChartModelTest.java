@@ -36,7 +36,7 @@ public class ChartModelTest {
 
     @Test(expected = NullPointerException.class)
     public void guardAgainstNullSeries() {
-        cm = new ChartModel(null);
+        cm = new ChartModel((String[]) null);
     }
 
     @Test

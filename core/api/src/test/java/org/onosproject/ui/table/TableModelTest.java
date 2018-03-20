@@ -57,7 +57,7 @@ public class TableModelTest {
 
     @Test(expected = NullPointerException.class)
     public void guardAgainstNull() {
-        tm = new TableModel(null);
+        tm = new TableModel((String[]) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
