@@ -1351,12 +1351,15 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
     private void channelIdle(ChannelHandlerContext ctx,
                                IdleStateEvent e)
             throws IOException {
-        OFMessage m = factory.buildEchoRequest().build();
-        log.debug("Sending Echo Request on idle channel: {}",
-                  ctx.channel());
-        ctx.write(Collections.singletonList(m), ctx.voidPromise());
-        // XXX S some problems here -- echo request has no transaction id, and
-        // echo reply is not correlated to the echo request.
+        // Factory can be null if the channel goes idle during initial handshake. Since the switch
+        // is not even initialized properly, we just skip this and disconnect the channel.
+        if (factory != null) {
+            OFMessage m = factory.buildEchoRequest().build();
+            log.debug("Sending Echo Request on idle channel: {}", ctx.channel());
+            ctx.write(Collections.singletonList(m), ctx.voidPromise());
+            // XXX S some problems here -- echo request has no transaction id, and
+            // echo reply is not correlated to the echo request.
+        }
         state.processIdle(this);
     }
 
