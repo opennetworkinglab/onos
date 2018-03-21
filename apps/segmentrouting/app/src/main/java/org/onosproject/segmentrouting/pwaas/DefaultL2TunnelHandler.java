@@ -68,6 +68,7 @@ import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Pipeline.TERM
 import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Result.*;
 import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Direction.FWD;
 import static org.onosproject.segmentrouting.pwaas.L2TunnelHandler.Direction.REV;
+import static org.onosproject.segmentrouting.pwaas.PwaasUtil.*;
 
 /**
  * Handles pwaas related events.
@@ -176,7 +177,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 .withSerializer(Serializer.using(l2TunnelKryo.build()))
                 .build();
 
-
         vlanStore = srManager.storageService.<VlanId>setBuilder()
                 .withName("onos-transport-vlan-store")
                 .withSerializer(Serializer.using(
@@ -200,10 +200,9 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     @Override
     public Set<L2TunnelDescription> getL2Descriptions(boolean pending) {
-        if (!pending) {
-            List<L2Tunnel> tunnels = getL2Tunnels();
-            List<L2TunnelPolicy> policies = getL2Policies();
-
+            // get pending tunnels/policies OR installed tunnels/policies
+            List<L2Tunnel> tunnels = pending ? getL2PendingTunnels() : getL2Tunnels();
+            List<L2TunnelPolicy> policies = pending ? getL2PendingPolicies() : getL2Policies();
             return tunnels.stream()
                 .map(l2Tunnel -> {
                     L2TunnelPolicy policy = null;
@@ -217,29 +216,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                     return new DefaultL2TunnelDescription(l2Tunnel, policy);
                 })
                 .collect(Collectors.toSet());
-        } else {
-            List<L2Tunnel> tunnels = getL2PendingTunnels();
-            List<L2TunnelPolicy> policies = getL2PendingPolicies();
-
-            return tunnels.stream()
-                    .map(l2Tunnel -> {
-                        L2TunnelPolicy policy = null;
-                        for (L2TunnelPolicy l2Policy : policies) {
-                            if (l2Policy.tunnelId() == l2Tunnel.tunnelId()) {
-                                policy = l2Policy;
-                                break;
-                            }
-                        }
-
-                        return new DefaultL2TunnelDescription(l2Tunnel, policy);
-                    })
-                    .collect(Collectors.toSet());
-        }
     }
 
     @Override
     public List<L2TunnelPolicy> getL2Policies() {
-
         return new ArrayList<>(l2PolicyStore
                 .values()
                 .stream()
@@ -249,7 +229,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     @Override
     public List<L2Tunnel> getL2Tunnels() {
-
         return new ArrayList<>(l2TunnelStore
                 .values()
                 .stream()
@@ -259,7 +238,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     @Override
     public List<L2TunnelPolicy> getL2PendingPolicies() {
-
         return new ArrayList<>(pendingL2PolicyStore
                                        .values()
                                        .stream()
@@ -269,12 +247,24 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     @Override
     public List<L2Tunnel> getL2PendingTunnels() {
-
         return new ArrayList<>(pendingL2TunnelStore
                                        .values()
                                        .stream()
                                        .map(Versioned::value)
                                        .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result verifyGlobalValidity(L2TunnelDescription pwToAdd) {
+
+        // get both added and pending pseudowires
+        List<L2TunnelDescription> newPseudowires = new ArrayList<>();
+        newPseudowires.addAll(getL2Descriptions(false));
+        newPseudowires.addAll(getL2Descriptions(true));
+        // add the new one
+        newPseudowires.add(pwToAdd);
+
+        return configurationValidity(newPseudowires);
     }
 
     /**
@@ -531,13 +521,15 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * Adds a single pseudowire.
      *
      * @param pw The pseudowire to deploy
-     * @param removeFromPending if to remove the pseudowire from the pending store
      * @return result of pseudowire deployment
      */
-    public Result deployPseudowire(L2TunnelDescription pw, boolean removeFromPending) {
+    public Result deployPseudowire(L2TunnelDescription pw) {
 
         Result result;
         long l2TunnelId;
+
+        log.debug("Pseudowire with {} deployment started, check log for any errors in this process!",
+                  pw.l2Tunnel().tunnelId());
 
         l2TunnelId = pw.l2Tunnel().tunnelId();
         // The tunnel id cannot be 0.
@@ -545,6 +537,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             log.warn("Tunnel id id must be > 0");
             return Result.WRONG_PARAMETERS
                     .appendError("Tunnel id id must be > 0");
+        }
+
+        result = verifyGlobalValidity(pw);
+        if (result != SUCCESS) {
+            log.error("Global validity for pseudowire {} is wrong!", l2TunnelId);
+            return result;
         }
 
         // leafSpinePw determines if this is a leaf-leaf
@@ -705,21 +703,26 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         // Populate stores as the final step of the process
         l2TunnelStore.put(Long.toString(l2TunnelId), pw.l2Tunnel());
         l2PolicyStore.put(Long.toString(l2TunnelId), pw.l2TunnelPolicy());
-        // if removeFromPending then remove the information from the pending stores.
-        if (removeFromPending) {
-            // check existence of tunnels/policy in the pending store, if one is missing abort!
-            Versioned<L2Tunnel> l2TunnelVersioned = pendingL2TunnelStore.get(Long.toString(l2TunnelId));
-            Versioned<L2TunnelPolicy> l2TunnelPolicyVersioned = pendingL2PolicyStore.get(Long.toString(l2TunnelId));
-            if ((l2TunnelVersioned == null) || (l2TunnelPolicyVersioned == null)) {
-                log.warn("Removal process : Policy and/or tunnel missing for tunnel id {} in pending store",
-                         l2TunnelId);
-            } else {
-                pendingL2TunnelStore.remove(Long.toString(l2TunnelId));
-                pendingL2PolicyStore.remove(Long.toString(l2TunnelId));
-            }
-        }
 
         return Result.SUCCESS;
+    }
+
+    @Override
+    public Result checkIfPwExists(long tunnelId, boolean pending) {
+
+        List<L2TunnelDescription> pseudowires = getL2Descriptions(pending)
+                .stream()
+                .filter(pw -> pw.l2Tunnel().tunnelId() == tunnelId)
+                .collect(Collectors.toList());
+
+        if (pseudowires.size() == 0) {
+            String store = ((pending) ? "pending" : "installed");
+            log.error("Pseudowire {} does not exist in {} store", tunnelId, store);
+            return Result.WRONG_PARAMETERS.
+                    appendError("Pseudowire " + tunnelId + " does not exist in " + store);
+        } else {
+            return SUCCESS;
+        }
     }
 
     /**
@@ -729,14 +732,17 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @param l2TunnelId The tunnel id for this pseudowire.
      * @param tearDownFirst Boolean, true if we want to tear down cp1
      * @param tearDownSecond Boolean, true if we want to tear down cp2
+     * @param pending Boolean, if true remove only pseudowire from pending stores since no flows/groups
+     *                in the network, else remove flows/groups in the devices also.
      * @return Result of tearing down the pseudowire, SUCCESS if everything was ok
-     *         WRONG_PARAMETERS or INTERNAL_ERROR otherwise
+     *         a descriptive error otherwise.
      */
-    private Result tearDownConnectionPoints(long l2TunnelId, boolean tearDownFirst, boolean tearDownSecond) {
+    private Result tearDownConnectionPoints(long l2TunnelId, boolean tearDownFirst,
+                                            boolean tearDownSecond, boolean pending) {
 
+        Result res;
         CompletableFuture<ObjectiveError> fwdInitNextFuture = new CompletableFuture<>();
         CompletableFuture<ObjectiveError> fwdTermNextFuture = new CompletableFuture<>();
-
         CompletableFuture<ObjectiveError> revInitNextFuture = new CompletableFuture<>();
         CompletableFuture<ObjectiveError> revTermNextFuture = new CompletableFuture<>();
 
@@ -745,9 +751,19 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             return Result.WRONG_PARAMETERS.appendError("Pseudowire id can not be 0.");
         }
 
-        // check existence of tunnels/policy in the store, if one is missing abort!
-        Versioned<L2Tunnel> l2TunnelVersioned = l2TunnelStore.get(Long.toString(l2TunnelId));
-        Versioned<L2TunnelPolicy> l2TunnelPolicyVersioned = l2PolicyStore.get(Long.toString(l2TunnelId));
+        res = checkIfPwExists(l2TunnelId, pending);
+        if (res != Result.SUCCESS) {
+            return res;
+        }
+
+        // remove and get the tunnel and the policy from the appropriate store
+        // if null, return error.
+        Versioned<L2Tunnel> l2TunnelVersioned = pending ?
+                pendingL2TunnelStore.remove(Long.toString(l2TunnelId)) :
+                l2TunnelStore.remove(Long.toString(l2TunnelId));
+        Versioned<L2TunnelPolicy> l2TunnelPolicyVersioned = pending ?
+                pendingL2PolicyStore.remove(Long.toString(l2TunnelId)) :
+                l2PolicyStore.remove(Long.toString(l2TunnelId));
         if ((l2TunnelVersioned == null) || (l2TunnelPolicyVersioned == null)) {
             log.warn("Removal process : Policy and/or tunnel missing for tunnel id {}", l2TunnelId);
             return Result.INTERNAL_ERROR
@@ -757,15 +773,18 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         L2TunnelDescription pwToRemove = new DefaultL2TunnelDescription(l2TunnelVersioned.value(),
                                                                         l2TunnelPolicyVersioned.value());
 
-        // remove the tunnels and the policies from the store
-        l2PolicyStore.remove(Long.toString(l2TunnelId));
-        l2TunnelStore.remove(Long.toString(l2TunnelId));
-
         // remove the reserved transport vlan
         if (!pwToRemove.l2Tunnel().transportVlan().equals(UNTAGGED_TRANSPORT_VLAN)) {
             vlanStore.remove(pwToRemove.l2Tunnel().transportVlan());
         }
 
+        if (pending) {
+            // no need to remove flows / groups for a pseudowire
+            // in pending state
+            return Result.SUCCESS;
+        }
+
+        // remove flows/groups involving with this pseudowire
         if (tearDownFirst) {
             log.info("Removal process : Tearing down forward direction of pseudowire {}", l2TunnelId);
 
@@ -842,16 +861,24 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
     /**
      * Helper function for removing a single pseudowire.
-     * <p>
-     * No mastership of CP1 is checked, because it can be called from
-     * the CLI for removal of pseudowires.
+     *
+     * Tries to remove pseudowire from any store it might reside (pending or installed).
      *
      * @param l2TunnelId the id of the pseudowire to tear down
      * @return Returns SUCCESS if no error is obeserved or an appropriate
      * error on a failure
      */
     public Result tearDownPseudowire(long l2TunnelId) {
-        return tearDownConnectionPoints(l2TunnelId, true, true);
+
+        if (checkIfPwExists(l2TunnelId, true) == Result.SUCCESS) {
+            return tearDownConnectionPoints(l2TunnelId, true, true, true);
+        } else if (checkIfPwExists(l2TunnelId, false) == Result.SUCCESS) {
+            return tearDownConnectionPoints(l2TunnelId, true, true, false);
+        } else {
+            return Result.WRONG_PARAMETERS.appendError("Pseudowire with "
+                                                        + l2TunnelId
+                                                        + " did not reside in any store!");
+        }
     }
 
     @Deprecated

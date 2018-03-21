@@ -73,6 +73,24 @@ public interface L2TunnelHandler {
     List<L2Tunnel> getL2PendingTunnels();
 
     /**
+     * Verifies global validity for existing pseudowires, both ones in
+     * the pending store and the ones installed.
+     *
+     * @param pwToAdd the new pseudowire to add
+     * @return a Result describing the outcome
+     */
+    Result verifyGlobalValidity(L2TunnelDescription pwToAdd);
+
+    /**
+     * Check if pseudowire exists in the store.
+     *
+     * @param tunnelId The tunnel id to check for.
+     * @param pending Check in pending store for pseudowires.
+     * @return The result of the operation.
+     */
+    Result checkIfPwExists(long tunnelId, boolean pending);
+
+    /**
      * Pwaas pipelines.
      */
     enum Pipeline {
@@ -106,12 +124,12 @@ public interface L2TunnelHandler {
         INTERNAL_ERROR(3, "Internal error"),
 
         /**
-         *
+         * No path found between the connection points.
          */
         PATH_NOT_FOUND(7, "Could not find valid path between connection points!"),
 
         /**
-         *
+         * Error in global pseudowires configuration.
          */
         CONFIGURATION_ERROR(8, "Conflicting pseudowire configurations!");
 
