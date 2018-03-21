@@ -21,8 +21,6 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * Builder for AtomicIdGenerator.
  */
 public abstract class AtomicIdGeneratorBuilder
-    extends DistributedPrimitiveBuilder<AtomicIdGeneratorBuilder, AsyncAtomicIdGenerator> {
-    public AtomicIdGeneratorBuilder() {
-        super(DistributedPrimitive.Type.ID_GENERATOR);
-    }
+    extends AtomicIdGeneratorOptions<AtomicIdGeneratorBuilder>
+    implements DistributedPrimitiveBuilder<AsyncAtomicIdGenerator> {
 }

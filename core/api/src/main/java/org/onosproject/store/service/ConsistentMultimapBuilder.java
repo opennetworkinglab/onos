@@ -22,34 +22,8 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * A builder class for {@code AsyncConsistentMultimap}.
  */
 public abstract class ConsistentMultimapBuilder<K, V>
-        extends DistributedPrimitiveBuilder<ConsistentMultimapBuilder<K, V>,
-        ConsistentMultimap<K, V>> {
-
-    private boolean purgeOnUninstall = false;
-
-    public ConsistentMultimapBuilder() {
-        super(DistributedPrimitive.Type.CONSISTENT_MULTIMAP);
-    }
-
-    /**
-     * Clears multimap contents when the owning application is uninstalled.
-     *
-     * @return this builder
-     */
-    public ConsistentMultimapBuilder<K, V> withPurgeOnUninstall() {
-        purgeOnUninstall = true;
-        return this;
-    }
-
-    /**
-     * Returns if multimap entries need to be cleared when owning application
-     * is uninstalled.
-     *
-     * @return true if items are to be cleared on uninstall
-     */
-    public boolean purgeOnUninstall() {
-        return purgeOnUninstall;
-    }
+    extends ConsistentMultimapOptions<ConsistentMultimapBuilder<K, V>, K, V>
+    implements DistributedPrimitiveBuilder<ConsistentMultimap<K, V>> {
 
     /**
      * Builds the distributed multimap based on the configuration options

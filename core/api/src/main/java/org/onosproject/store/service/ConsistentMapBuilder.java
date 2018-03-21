@@ -24,51 +24,8 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * @param <V> type for map value
  */
 public abstract class ConsistentMapBuilder<K, V>
-    extends DistributedPrimitiveBuilder<ConsistentMapBuilder<K, V>, ConsistentMap<K, V>> {
-
-    private boolean nullValues = false;
-    private boolean purgeOnUninstall = false;
-
-    public ConsistentMapBuilder() {
-        super(DistributedPrimitive.Type.CONSISTENT_MAP);
-    }
-
-    /**
-     * Enables null values in the map.
-     *
-     * @return this builder
-     */
-    public ConsistentMapBuilder<K, V> withNullValues() {
-        nullValues = true;
-        return this;
-    }
-
-    /**
-     * Clears map contents when the owning application is uninstalled.
-     *
-     * @return this builder
-     */
-    public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
-        purgeOnUninstall = true;
-        return this;
-    }
-
-    /**
-     * Returns whether null values are supported by the map.
-     *
-     * @return {@code true} if null values are supported; {@code false} otherwise
-     */
-    public boolean nullValues() {
-        return nullValues;
-    }
-
-    /**
-     * Returns if map entries need to be cleared when owning application is uninstalled.
-     * @return {@code true} if yes; {@code false} otherwise.
-     */
-    public boolean purgeOnUninstall() {
-        return purgeOnUninstall;
-    }
+    extends ConsistentMapOptions<ConsistentMapBuilder<K, V>, K, V>
+    implements DistributedPrimitiveBuilder<ConsistentMap<K, V>> {
 
     /**
      * Builds an async consistent map based on the configuration options

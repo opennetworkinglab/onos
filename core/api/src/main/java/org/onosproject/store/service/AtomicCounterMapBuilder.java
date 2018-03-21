@@ -21,10 +21,8 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * Builder for AtomicCounterMap.
  */
 public abstract class AtomicCounterMapBuilder<K>
-        extends DistributedPrimitiveBuilder<AtomicCounterMapBuilder<K>, AtomicCounterMap<K>> {
-    public AtomicCounterMapBuilder() {
-        super(DistributedPrimitive.Type.COUNTER_MAP);
-    }
+    extends AtomicCounterMapOptions<AtomicCounterMapBuilder<K>, K>
+    implements DistributedPrimitiveBuilder<AtomicCounterMap<K>> {
 
     /**
      * Builds an async atomic counter map based on the configuration options

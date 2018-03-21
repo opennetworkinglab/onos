@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  */
 package org.onosproject.store.service;
 
-import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
+import org.onosproject.store.primitives.DistributedPrimitiveOptions;
 
 /**
- * Builder for AtomicCounter.
+ * Options for AtomicIdGenerator.
  */
-public abstract class AtomicCounterBuilder
-    extends AtomicCounterOptions<AtomicCounterBuilder>
-    implements DistributedPrimitiveBuilder<AsyncAtomicCounter> {
+public abstract class AtomicIdGeneratorOptions<O extends AtomicIdGeneratorOptions<O>>
+    extends DistributedPrimitiveOptions<O> {
+    public AtomicIdGeneratorOptions() {
+        super(DistributedPrimitive.Type.ID_GENERATOR);
+    }
 }

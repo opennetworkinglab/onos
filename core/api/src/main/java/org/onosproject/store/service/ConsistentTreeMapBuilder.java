@@ -22,32 +22,8 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * Builder for {@link ConsistentTreeMap}.
  */
 public abstract class ConsistentTreeMapBuilder<V>
-        extends DistributedPrimitiveBuilder<ConsistentTreeMapBuilder<V>, ConsistentTreeMap<V>> {
-
-    private boolean purgeOnUninstall = false;
-
-    public ConsistentTreeMapBuilder() {
-        super(DistributedPrimitive.Type.CONSISTENT_TREEMAP);
-    }
-
-    /**
-     * Clears map contents when the owning application is uninstalled.
-     *
-     * @return this builder
-     */
-    public ConsistentTreeMapBuilder<V> withPurgeOnUninstall() {
-        purgeOnUninstall = true;
-        return this;
-    }
-
-    /**
-     * Return if map entries need to be cleared when owning application is uninstalled.
-     *
-     * @return true if items are to be cleared on uninstall
-     */
-    public boolean purgeOnUninstall() {
-        return purgeOnUninstall;
-    }
+    extends ConsistentTreeMapOptions<ConsistentTreeMapBuilder<V>, V>
+    implements DistributedPrimitiveBuilder<ConsistentTreeMap<V>> {
 
     /**
      * Builds the distributed tree map based on the configuration options supplied

@@ -64,6 +64,7 @@ import io.atomix.protocols.raft.protocol.ReconfigureResponse;
 import io.atomix.protocols.raft.protocol.ResetRequest;
 import io.atomix.protocols.raft.protocol.VoteRequest;
 import io.atomix.protocols.raft.protocol.VoteResponse;
+import io.atomix.protocols.raft.service.PropagationStrategy;
 import io.atomix.protocols.raft.session.RaftSessionMetadata;
 import io.atomix.protocols.raft.session.SessionId;
 import io.atomix.protocols.raft.storage.log.entry.CloseSessionEntry;
@@ -149,6 +150,7 @@ public final class StorageNamespaces {
             .register(RaftMember.Type.class)
             .register(Instant.class)
             .register(Configuration.class)
+            .register(PropagationStrategy.class)
             .build("RaftProtocol");
 
     /**
@@ -176,6 +178,7 @@ public final class StorageNamespaces {
             .register(RaftMember.Type.class)
             .register(Instant.class)
             .register(Configuration.class)
+            .register(PropagationStrategy.class)
             .build("RaftStorage");
 
     private StorageNamespaces() {

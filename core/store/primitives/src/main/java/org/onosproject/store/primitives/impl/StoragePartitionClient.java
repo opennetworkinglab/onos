@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Suppliers;
@@ -27,6 +26,7 @@ import io.atomix.protocols.raft.ReadConsistency;
 import io.atomix.protocols.raft.cluster.MemberId;
 import io.atomix.protocols.raft.protocol.RaftClientProtocol;
 import io.atomix.protocols.raft.proxy.CommunicationStrategy;
+import io.atomix.protocols.raft.service.PropagationStrategy;
 import io.atomix.protocols.raft.session.RaftSessionMetadata;
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
@@ -52,11 +52,22 @@ import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
+import org.onosproject.store.service.AtomicCounterMapOptions;
+import org.onosproject.store.service.AtomicCounterOptions;
+import org.onosproject.store.service.AtomicIdGeneratorOptions;
+import org.onosproject.store.service.AtomicValueOptions;
+import org.onosproject.store.service.ConsistentMapOptions;
+import org.onosproject.store.service.ConsistentMultimapOptions;
+import org.onosproject.store.service.ConsistentTreeMapOptions;
+import org.onosproject.store.service.DistributedLockOptions;
 import org.onosproject.store.service.DistributedPrimitive;
-import org.onosproject.store.service.Ordering;
+import org.onosproject.store.service.DistributedSetOptions;
+import org.onosproject.store.service.DocumentTreeOptions;
+import org.onosproject.store.service.LeaderElectorOptions;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
+import org.onosproject.store.service.WorkQueueOptions;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -137,193 +148,212 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
+    public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(ConsistentMapOptions options) {
         AtomixConsistentMap rawMap =
                 new AtomixConsistentMap(client.newProxyBuilder()
-                        .withName(name)
+                        .withName(options.name())
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_MAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withMinTimeout(MIN_TIMEOUT)
                         .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
+                        .withRevision(options.revision())
+                        .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                         .build()
                         .open()
                         .join());
 
-        if (serializer != null) {
+        if (options.serializer() != null) {
             return DistributedPrimitives.newTranscodingMap(rawMap,
-                    key -> HexString.toHexString(serializer.encode(key)),
-                    string -> serializer.decode(HexString.fromHexString(string)),
-                    value -> value == null ? null : serializer.encode(value),
-                    bytes -> serializer.decode(bytes));
+                    key -> HexString.toHexString(options.serializer().encode(key)),
+                    string -> options.serializer().decode(HexString.fromHexString(string)),
+                    value -> value == null ? null : options.serializer().encode(value),
+                    bytes -> options.serializer().decode(bytes));
         }
         return (AsyncConsistentMap<K, V>) rawMap;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name, Serializer serializer) {
+    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(ConsistentTreeMapOptions options) {
         AtomixConsistentTreeMap rawMap =
                 new AtomixConsistentTreeMap(client.newProxyBuilder()
-                        .withName(name)
+                        .withName(options.name())
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_TREEMAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withMinTimeout(MIN_TIMEOUT)
                         .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
+                        .withRevision(options.revision())
+                        .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                         .build()
                         .open()
                         .join());
 
-        if (serializer != null) {
+        if (options.serializer() != null) {
             return DistributedPrimitives.newTranscodingTreeMap(
                             rawMap,
-                            value -> value == null ? null : serializer.encode(value),
-                            bytes -> serializer.decode(bytes));
+                            value -> value == null ? null : options.serializer().encode(value),
+                            bytes -> options.serializer().decode(bytes));
         }
         return (AsyncConsistentTreeMap<V>) rawMap;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(String name, Serializer serializer) {
+    public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(ConsistentMultimapOptions options) {
         AtomixConsistentSetMultimap rawMap =
                 new AtomixConsistentSetMultimap(client.newProxyBuilder()
-                        .withName(name)
+                        .withName(options.name())
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_MULTIMAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
                         .withMinTimeout(MIN_TIMEOUT)
                         .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
+                        .withRevision(options.revision())
+                        .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                         .build()
                         .open()
                         .join());
 
-        if (serializer != null) {
+        if (options.serializer() != null) {
             return DistributedPrimitives.newTranscodingMultimap(
                             rawMap,
-                            key -> HexString.toHexString(serializer.encode(key)),
-                            string -> serializer.decode(HexString.fromHexString(string)),
-                            value -> serializer.encode(value),
-                            bytes -> serializer.decode(bytes));
+                            key -> HexString.toHexString(options.serializer().encode(key)),
+                            string -> options.serializer().decode(HexString.fromHexString(string)),
+                            value -> options.serializer().encode(value),
+                            bytes -> options.serializer().decode(bytes));
         }
         return (AsyncConsistentMultimap<K, V>) rawMap;
     }
 
     @Override
-    public <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer) {
-        return DistributedPrimitives.newSetFromMap(newAsyncConsistentMap(name, serializer));
+    public <E> AsyncDistributedSet<E> newAsyncDistributedSet(DistributedSetOptions options) {
+        return DistributedPrimitives.newSetFromMap(newAsyncConsistentMap(options.name(), options.serializer()));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(String name, Serializer serializer) {
+    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(AtomicCounterMapOptions options) {
         AtomixAtomicCounterMap rawMap = new AtomixAtomicCounterMap(client.newProxyBuilder()
-                .withName(name)
+                .withName(options.name())
                 .withServiceType(DistributedPrimitive.Type.COUNTER_MAP.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(MIN_TIMEOUT)
                 .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());
 
-        if (serializer != null) {
+        if (options.serializer() != null) {
             return DistributedPrimitives.newTranscodingAtomicCounterMap(
                             rawMap,
-                            key -> HexString.toHexString(serializer.encode(key)),
-                            string -> serializer.decode(HexString.fromHexString(string)));
+                            key -> HexString.toHexString(options.serializer().encode(key)),
+                            string -> options.serializer().decode(HexString.fromHexString(string)));
         }
         return (AsyncAtomicCounterMap<K>) rawMap;
     }
 
     @Override
-    public AsyncAtomicCounter newAsyncCounter(String name) {
+    public AsyncAtomicCounter newAsyncCounter(AtomicCounterOptions options) {
         return new AtomixCounter(client.newProxyBuilder()
-                .withName(name)
+                .withName(options.name())
                 .withServiceType(DistributedPrimitive.Type.COUNTER.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(MIN_TIMEOUT)
                 .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());
     }
 
     @Override
-    public AsyncAtomicIdGenerator newAsyncIdGenerator(String name) {
-        return new AtomixIdGenerator(newAsyncCounter(name));
+    public AsyncAtomicIdGenerator newAsyncIdGenerator(AtomicIdGeneratorOptions options) {
+        return new AtomixIdGenerator(newAsyncCounter(options.name()));
     }
 
     @Override
-    public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
-        return new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
+    public <V> AsyncAtomicValue<V> newAsyncAtomicValue(AtomicValueOptions options) {
+        return new DefaultAsyncAtomicValue<>(options.name(), options.serializer(), onosAtomicValuesMap.get());
     }
 
     @Override
-    public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer) {
+    public <E> WorkQueue<E> newWorkQueue(WorkQueueOptions options) {
         AtomixWorkQueue atomixWorkQueue = new AtomixWorkQueue(client.newProxyBuilder()
-                .withName(name)
+                .withName(options.name())
                 .withServiceType(DistributedPrimitive.Type.WORK_QUEUE.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(MIN_TIMEOUT)
                 .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());
-        return new DefaultDistributedWorkQueue<>(atomixWorkQueue, serializer);
+        return new DefaultDistributedWorkQueue<>(atomixWorkQueue, options.serializer());
     }
 
     @Override
-    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer, Ordering ordering) {
+    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(DocumentTreeOptions options) {
+        String serviceType = String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), options.ordering());
         AtomixDocumentTree atomixDocumentTree = new AtomixDocumentTree(client.newProxyBuilder()
-                .withName(name)
-                .withServiceType(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), ordering))
+                .withName(options.name())
+                .withServiceType(serviceType)
                 .withReadConsistency(ReadConsistency.SEQUENTIAL)
                 .withCommunicationStrategy(CommunicationStrategy.ANY)
                 .withMinTimeout(MIN_TIMEOUT)
                 .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());
-        return new DefaultDistributedDocumentTree<>(name, atomixDocumentTree, serializer);
+        return new DefaultDistributedDocumentTree<>(options.name(), atomixDocumentTree, options.serializer());
     }
 
     @Override
-    public AsyncDistributedLock newAsyncDistributedLock(String name) {
+    public AsyncDistributedLock newAsyncDistributedLock(DistributedLockOptions options) {
         return new AtomixDistributedLock(client.newProxyBuilder()
-                .withName(name)
+                .withName(options.name())
                 .withServiceType(DistributedPrimitive.Type.LOCK.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(MIN_TIMEOUT)
                 .withMaxTimeout(MIN_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());
     }
 
     @Override
-    public AsyncLeaderElector newAsyncLeaderElector(String name, long leaderTimeout, TimeUnit timeUnit) {
+    public AsyncLeaderElector newAsyncLeaderElector(LeaderElectorOptions options) {
         return new AtomixLeaderElector(client.newProxyBuilder()
-                .withName(name)
+                .withName(options.name())
                 .withServiceType(DistributedPrimitive.Type.LEADER_ELECTOR.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withMinTimeout(Duration.ofMillis(timeUnit.toMillis(leaderTimeout)))
+                .withMinTimeout(Duration.ofMillis(options.electionTimeoutMillis()))
                 .withMaxTimeout(MIN_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
+                .withRevision(options.revision())
+                .withPropagationStrategy(PropagationStrategy.valueOf(options.revisionType().name()))
                 .build()
                 .open()
                 .join());

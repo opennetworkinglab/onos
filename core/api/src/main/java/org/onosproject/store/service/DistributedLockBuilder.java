@@ -21,8 +21,6 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * Builder for DistributedLock.
  */
 public abstract class DistributedLockBuilder
-    extends DistributedPrimitiveBuilder<DistributedLockBuilder, AsyncDistributedLock> {
-    public DistributedLockBuilder() {
-        super(DistributedPrimitive.Type.LOCK);
-    }
+    extends DistributedLockOptions<DistributedLockBuilder>
+    implements DistributedPrimitiveBuilder<AsyncDistributedLock> {
 }

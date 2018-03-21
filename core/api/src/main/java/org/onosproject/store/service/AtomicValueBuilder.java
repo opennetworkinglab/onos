@@ -23,9 +23,6 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  * @param <V> atomic value type
  */
 public abstract class AtomicValueBuilder<V>
-    extends DistributedPrimitiveBuilder<AtomicValueBuilder<V>, AsyncAtomicValue<V>> {
-
-    public AtomicValueBuilder() {
-        super(DistributedPrimitive.Type.VALUE);
-    }
+    extends AtomicValueOptions<AtomicValueBuilder<V>, V>
+    implements DistributedPrimitiveBuilder<AsyncAtomicValue<V>> {
 }

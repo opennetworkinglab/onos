@@ -22,30 +22,7 @@ import org.onosproject.store.primitives.DistributedPrimitiveBuilder;
  *
  * @param <E> type set elements.
  */
-public abstract class DistributedSetBuilder<E> extends DistributedPrimitiveBuilder<DistributedSetBuilder<E>,
-                                                                                   AsyncDistributedSet<E>> {
-
-    private boolean purgeOnUninstall = false;
-
-    public DistributedSetBuilder() {
-        super(DistributedPrimitive.Type.SET);
-    }
-
-    /**
-     * Enables clearing set contents when the owning application is uninstalled.
-     *
-     * @return this builder
-     */
-    public DistributedSetBuilder<E> withPurgeOnUninstall() {
-        purgeOnUninstall = true;
-        return this;
-    }
-
-    /**
-     * Returns if set contents need to be cleared when owning application is uninstalled.
-     * @return {@code true} if yes; {@code false} otherwise.
-     */
-    public boolean purgeOnUninstall() {
-        return purgeOnUninstall;
-    }
+public abstract class DistributedSetBuilder<E>
+    extends DistributedSetOptions<DistributedSetBuilder<E>, E>
+    implements DistributedPrimitiveBuilder<AsyncDistributedSet<E>> {
 }

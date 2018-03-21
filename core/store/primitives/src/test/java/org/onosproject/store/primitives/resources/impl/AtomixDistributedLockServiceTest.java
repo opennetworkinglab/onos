@@ -65,6 +65,7 @@ public class AtomixDistributedLockServiceTest {
         expect(context.serviceId()).andReturn(ServiceId.from(1)).anyTimes();
         expect(context.currentIndex()).andReturn(index.get()).anyTimes();
         expect(context.currentOperation()).andReturn(OperationType.COMMAND).anyTimes();
+        expect(context.locked()).andReturn(false).anyTimes();
 
         RaftContext server = mock(RaftContext.class);
         expect(server.getProtocol()).andReturn(mock(RaftServerProtocol.class)).anyTimes();
