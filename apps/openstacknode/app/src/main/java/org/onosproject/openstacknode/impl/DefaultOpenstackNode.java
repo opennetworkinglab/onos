@@ -29,7 +29,10 @@ import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -51,6 +54,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final String vlanIntf;
     private final String uplinkPort;
     private final NodeState state;
+    private final Collection<OpenstackPhyInterface> phyIntfs;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -67,6 +71,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
      * @param vlanIntf      VLAN interface
      * @param uplinkPort    uplink port name
      * @param state         node state
+     * @param phyIntfs      physical interfaces
      */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
@@ -74,7 +79,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    IpAddress dataIp,
                                    String vlanIntf,
                                    String uplinkPort,
-                                   NodeState state) {
+                                   NodeState state,
+                                   Collection<OpenstackPhyInterface> phyIntfs) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -83,6 +89,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.vlanIntf = vlanIntf;
         this.uplinkPort = uplinkPort;
         this.state = state;
+        this.phyIntfs = phyIntfs;
     }
 
     @Override
@@ -220,7 +227,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(managementIp, that.managementIp) &&
                     Objects.equals(dataIp, that.dataIp) &&
                     Objects.equals(uplinkPort, that.uplinkPort) &&
-                    Objects.equals(vlanIntf, that.vlanIntf);
+                    Objects.equals(vlanIntf, that.vlanIntf) &&
+                    Objects.equals(phyIntfs, that.phyIntfs);
         }
         return false;
     }
@@ -233,7 +241,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 managementIp,
                 dataIp,
                 vlanIntf,
-                uplinkPort);
+                uplinkPort,
+                phyIntfs);
     }
 
     @Override
@@ -247,6 +256,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("vlanIntf", vlanIntf)
                 .add("uplinkPort", uplinkPort)
                 .add("state", state)
+                .add("phyIntfs", phyIntfs)
                 .toString();
     }
 
@@ -261,7 +271,18 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .vlanIntf(vlanIntf)
                 .uplinkPort(uplinkPort)
                 .state(newState)
+                .phyIntfs(phyIntfs)
                 .build();
+    }
+
+    @Override
+    public Collection<OpenstackPhyInterface> phyIntfs() {
+
+        if (phyIntfs == null) {
+            return new ArrayList<>();
+        }
+
+        return phyIntfs;
     }
 
     /**
@@ -288,7 +309,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .dataIp(osNode.dataIp())
                 .vlanIntf(osNode.vlanIntf())
                 .uplinkPort(osNode.uplinkPort())
-                .state(osNode.state());
+                .state(osNode.state())
+                .phyIntfs(osNode.phyIntfs());
     }
 
     /**
@@ -304,6 +326,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private String vlanIntf;
         private String uplinkPort;
         private NodeState state;
+        private Collection<OpenstackPhyInterface> phyIntfs;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -331,7 +354,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     dataIp,
                     vlanIntf,
                     uplinkPort,
-                    state);
+                    state,
+                    phyIntfs);
         }
 
         @Override
@@ -381,6 +405,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder state(NodeState state) {
             this.state = state;
+            return this;
+        }
+
+        @Override
+        public Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs) {
+            this.phyIntfs = phyIntfs;
             return this;
         }
     }

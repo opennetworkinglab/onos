@@ -20,6 +20,7 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.openstacknode.api.Constants;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
 import static org.onosproject.openstacknode.api.Constants.DATA_IP;
 import static org.onosproject.openstacknode.api.Constants.MANAGEMENT_IP;
@@ -33,6 +34,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private final OpenstackNode node;
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
+    private static final String PHYSICAL_INTERFACES = "phyIntfs";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -97,6 +99,32 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             if (!jsonDataIp.asText().equals(dataIp)) {
                 description.appendText("Data IP was " + jsonDataIp.asText());
                 return false;
+            }
+        }
+
+        // check physical interfaces
+        JsonNode jsonPhyIntfs = jsonNode.get(PHYSICAL_INTERFACES);
+        if (jsonPhyIntfs != null) {
+            if (jsonPhyIntfs.size() != node.phyIntfs().size()) {
+                description.appendText("physical interface size was " + jsonPhyIntfs.size());
+                return false;
+            }
+
+            for (OpenstackPhyInterface phyIntf : node.phyIntfs()) {
+                boolean intfFound = false;
+                for (int intfIndex = 0; intfIndex < jsonPhyIntfs.size(); intfIndex++) {
+                    OpenstackPhyInterfaceJsonMatcher intfMatcher =
+                            OpenstackPhyInterfaceJsonMatcher.matchesOpenstackPhyInterface(phyIntf);
+                    if (intfMatcher.matches(jsonPhyIntfs.get(intfIndex))) {
+                        intfFound = true;
+                        break;
+                    }
+                }
+
+                if (!intfFound) {
+                    description.appendText("PhyIntf not found " + phyIntf.toString());
+                    return false;
+                }
             }
         }
 

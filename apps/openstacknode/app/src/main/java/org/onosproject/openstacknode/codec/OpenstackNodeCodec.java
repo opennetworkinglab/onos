@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknode.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
@@ -22,8 +24,13 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
@@ -45,6 +52,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String TYPE = "type";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
+    private static final String PHYSICAL_INTERFACES = "phyIntfs";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
 
@@ -76,6 +84,13 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         // TODO: need to find a way to not refer to ServiceDirectory from
         // DefaultOpenstackNode
 
+        ArrayNode phyIntfs = context.mapper().createArrayNode();
+        node.phyIntfs().forEach(phyIntf -> {
+            ObjectNode phyIntfJson = context.codec(OpenstackPhyInterface.class).encode(phyIntf, context);
+            phyIntfs.add(phyIntfJson);
+        });
+        result.set(PHYSICAL_INTERFACES, phyIntfs);
+
         return result;
     }
 
@@ -84,6 +99,8 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         if (json == null || !json.isObject()) {
             return null;
         }
+
+        final JsonCodec<OpenstackPhyInterface> phyIntfCodec = context.codec(OpenstackPhyInterface.class);
 
         String hostname = nullIsIllegal(json.get(HOST_NAME).asText(),
                 HOST_NAME + MISSING_MESSAGE);
@@ -111,6 +128,17 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         if (json.get(DATA_IP) != null) {
             nodeBuilder.dataIp(IpAddress.valueOf(json.get(DATA_IP).asText()));
         }
+
+        // parse physical interfaces
+        List<OpenstackPhyInterface> phyIntfs = new ArrayList<>();
+        JsonNode phyIntfsJson = json.get(PHYSICAL_INTERFACES);
+        if (phyIntfsJson != null) {
+            IntStream.range(0, phyIntfsJson.size()).forEach(i -> {
+                ObjectNode intfJson = get(phyIntfsJson, i);
+                phyIntfs.add(phyIntfCodec.decode(intfJson, context));
+            });
+        }
+        nodeBuilder.phyIntfs(phyIntfs);
 
         log.trace("node is {}", nodeBuilder.build().toString());
 

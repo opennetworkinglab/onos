@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +30,9 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
+import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +54,7 @@ import static org.onosproject.openstacknode.codec.OpenstackNodeJsonMatcher.match
 public class OpenstackNodeCodecTest {
     MockCodecContext context;
     JsonCodec<OpenstackNode> openstackNodeCodec;
+    JsonCodec<OpenstackPhyInterface> openstackPhyIntfJsonCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -58,7 +62,10 @@ public class OpenstackNodeCodecTest {
     public void setUp() {
         context = new MockCodecContext();
         openstackNodeCodec = new OpenstackNodeCodec();
+        openstackPhyIntfJsonCodec = new OpenstackPhyInterfaceCodec();
+
         assertThat(openstackNodeCodec, notNullValue());
+        assertThat(openstackPhyIntfJsonCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -68,6 +75,16 @@ public class OpenstackNodeCodecTest {
 
     @Test
     public void testOpenstackNodeEncode() {
+
+        OpenstackPhyInterface phyIntf1 = DefaultOpenstackPhyInterface.builder()
+                                .network("mgmtnetwork")
+                                .intf("eth3")
+                                .build();
+        OpenstackPhyInterface phyIntf2 = DefaultOpenstackPhyInterface.builder()
+                                .network("oamnetwork")
+                                .intf("eth4")
+                                .build();
+
         OpenstackNode node = DefaultOpenstackNode.builder()
                                 .hostname("compute")
                                 .type(OpenstackNode.NodeType.COMPUTE)
@@ -76,6 +93,7 @@ public class OpenstackNodeCodecTest {
                                 .intgBridge(DeviceId.deviceId("br-int"))
                                 .vlanIntf("vxlan")
                                 .dataIp(IpAddress.valueOf("20.20.20.2"))
+                                .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
                                 .build();
 
         ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
@@ -92,6 +110,16 @@ public class OpenstackNodeCodecTest {
         assertThat(node.dataIp().toString(), is("172.16.130.4"));
         assertThat(node.intgBridge().toString(), is("of:00000000000000a1"));
         assertThat(node.vlanIntf(), is("eth2"));
+        assertThat(node.phyIntfs().size(), is(2));
+
+        node.phyIntfs().forEach(intf -> {
+            if (intf.network().equals("mgmtnetwork")) {
+                assertThat(intf.intf(), is("eth3"));
+            }
+            if (intf.network().equals("oamnetwork")) {
+                assertThat(intf.intf(), is("eth4"));
+            }
+        });
     }
 
     /**
@@ -133,6 +161,9 @@ public class OpenstackNodeCodecTest {
         @Override
         @SuppressWarnings("unchecked")
         public <T> JsonCodec<T> codec(Class<T> entityClass) {
+            if (entityClass == OpenstackPhyInterface.class) {
+                return (JsonCodec<T>) openstackPhyIntfJsonCodec;
+            }
             return manager.getCodec(entityClass);
         }
 

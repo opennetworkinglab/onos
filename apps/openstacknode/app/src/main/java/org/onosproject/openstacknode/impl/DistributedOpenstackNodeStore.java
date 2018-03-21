@@ -30,6 +30,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeStore;
 import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -40,6 +41,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -75,6 +77,9 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackNode.class)
             .register(OpenstackNode.NodeType.class)
             .register(NodeState.class)
+            .register(OpenstackPhyInterface.class)
+            .register(DefaultOpenstackPhyInterface.class)
+            .register(Collection.class)
             .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

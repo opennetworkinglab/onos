@@ -22,17 +22,21 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.group.GroupKey;
 
+import java.util.Collection;
+
 /**
  * Representation of a node used in OpenstackNetworking service.
  */
 public interface OpenstackNode {
 
     /**
-     * List of valid virtual network modes.
+     * List of valid network modes.
+     * This includes both physical and virtual network types.
      */
     enum NetworkMode {
         VXLAN,
-        VLAN
+        VLAN,
+        FLAT
     }
 
     /**
@@ -166,6 +170,13 @@ public interface OpenstackNode {
     OpenstackNode updateState(NodeState newState);
 
     /**
+     * Returns a collection of physical interfaces.
+     *
+     * @return physical interfaces
+     */
+    Collection<OpenstackPhyInterface> phyIntfs();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -240,6 +251,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder state(NodeState state);
+
+        /**
+         * Returns openstack node builder with supplied physical interfaces.
+         *
+         * @param phyIntfs a collection of physical interfaces
+         * @return openstack node builder
+         */
+        Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs);
     }
 }
 

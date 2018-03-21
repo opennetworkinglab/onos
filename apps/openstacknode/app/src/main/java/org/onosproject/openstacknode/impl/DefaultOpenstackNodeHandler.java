@@ -59,6 +59,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeHandler;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
@@ -210,6 +211,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     !isIntfEnabled(osNode, osNode.vlanIntf())) {
                 addSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.vlanIntf());
             }
+
+            osNode.phyIntfs().forEach(i -> {
+                if (!isIntfEnabled(osNode, i.intf())) {
+                    addSystemInterface(osNode, INTEGRATION_BRIDGE, i.intf());
+                }
+            });
+
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());
         }
@@ -384,6 +392,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         !isIntfEnabled(osNode, osNode.uplinkPort())) {
                     return false;
                 }
+
+                for (OpenstackPhyInterface intf : osNode.phyIntfs()) {
+                    if (intf != null && !isIntfEnabled(osNode, intf.intf())) {
+                        return false;
+                    }
+                }
+
                 return true;
             case COMPLETE:
             case INCOMPLETE:
@@ -508,7 +523,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == DEVICE_CREATED && (
                                 Objects.equals(portName, DEFAULT_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
-                                Objects.equals(portName, osNode.uplinkPort()))) {
+                                Objects.equals(portName, osNode.uplinkPort()) ||
+                                        containsPhyIntf(osNode, portName))) {
                             log.debug("Interface {} added to {}", portName, event.subject().id());
                             bootstrapNode(osNode);
                         }
@@ -521,7 +537,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == COMPLETE && (
                                 Objects.equals(portName, DEFAULT_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
-                                        Objects.equals(portName, osNode.uplinkPort()))) {
+                                        Objects.equals(portName, osNode.uplinkPort()) ||
+                                        containsPhyIntf(osNode, portName))) {
                             log.warn("Interface {} removed from {}", portName, event.subject().id());
                             setState(osNode, INCOMPLETE);
                         }
@@ -534,6 +551,24 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     break;
             }
         }
+    }
+
+    /**
+     * Checks whether the openstack node contains the given physical interface.
+     *
+     * @param osNode openstack node
+     * @param portName physical interface
+     * @return true if openstack node contains the given physical interface,
+     *          false otherwise
+     */
+    private boolean containsPhyIntf(OpenstackNode osNode, String portName) {
+        for (OpenstackPhyInterface phyIntf : osNode.phyIntfs()) {
+            if (Objects.equals(portName, phyIntf.intf())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

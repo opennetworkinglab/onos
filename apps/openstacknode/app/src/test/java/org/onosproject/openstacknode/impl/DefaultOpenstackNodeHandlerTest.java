@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
@@ -69,6 +70,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 
@@ -144,6 +146,10 @@ public class DefaultOpenstackNodeHandlerTest {
 
     private static final String GATEWAY_UPLINK_PORT = "eth0";
 
+    private static final Set<OpenstackPhyInterface> COMPUTE_1_PHY_INTFS = createPhyIntfs();
+    private static final Set<OpenstackPhyInterface> COMPUTE_2_PHY_INTFS = createPhyIntfs();
+    private static final Set<OpenstackPhyInterface> COMPUTE_3_PHY_INTFS = createPhyIntfs();
+
     private static final Device COMPUTE_1_INTG_DEVICE = createOpenFlowDevice(1, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_2_INTG_DEVICE = createOpenFlowDevice(2, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_3_INTG_DEVICE = createOpenFlowDevice(3, INTEGRATION_BRIDGE);
@@ -161,7 +167,8 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE,
             COMPUTE_1_INTG_DEVICE,
             COMPUTE_1_IP,
-            INIT
+            INIT,
+            COMPUTE_1_PHY_INTFS
     );
 
     private static final OpenstackNode COMPUTE_2 = createNode(
@@ -169,7 +176,8 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE,
             COMPUTE_2_INTG_DEVICE,
             COMPUTE_2_IP,
-            DEVICE_CREATED
+            DEVICE_CREATED,
+            COMPUTE_2_PHY_INTFS
     );
 
     private static final OpenstackNode COMPUTE_3 = createNode(
@@ -177,10 +185,11 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE,
             COMPUTE_3_INTG_DEVICE,
             COMPUTE_3_IP,
-            COMPLETE
+            COMPLETE,
+            COMPUTE_3_PHY_INTFS
     );
 
-    private static final OpenstackNode GATEWAY_1 = createNode(
+    private static final OpenstackNode GATEWAY_1 = createGatewayNode(
             GATEWAY_1_HOSTNAME,
             GATEWAY,
             GATEWAY_1_INTG_DEVICE,
@@ -189,7 +198,7 @@ public class DefaultOpenstackNodeHandlerTest {
             INIT
     );
 
-    private static final OpenstackNode GATEWAY_2 = createNode(
+    private static final OpenstackNode GATEWAY_2 = createGatewayNode(
             GATEWAY_2_HOSTNAME,
             GATEWAY,
             GATEWAY_2_INTG_DEVICE,
@@ -198,7 +207,7 @@ public class DefaultOpenstackNodeHandlerTest {
             DEVICE_CREATED
     );
 
-    private static final OpenstackNode GATEWAY_3 = createNode(
+    private static final OpenstackNode GATEWAY_3 = createGatewayNode(
             GATEWAY_3_HOSTNAME,
             GATEWAY,
             GATEWAY_3_INTG_DEVICE,
@@ -382,21 +391,26 @@ public class DefaultOpenstackNodeHandlerTest {
                 DefaultAnnotations.builder().set(PORT_NAME, portName).build());
     }
 
+    private static Set<OpenstackPhyInterface> createPhyIntfs() {
+        return Sets.newConcurrentHashSet();
+    }
+
     private static OpenstackNode createNode(String hostname,
                                             OpenstackNode.NodeType type,
                                             Device intgBridge,
                                             IpAddress ipAddr,
-                                            NodeState state) {
+                                            NodeState state,
+                                            Set<OpenstackPhyInterface> phyIntfs) {
         return new TestOpenstackNode(
                 hostname,
                 type,
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, null, state);
+                null, null, state, phyIntfs);
     }
 
-    private static OpenstackNode createNode(String hostname,
+    private static OpenstackNode createGatewayNode(String hostname,
                                             OpenstackNode.NodeType type,
                                             Device intgBridge,
                                             IpAddress ipAddr,
@@ -408,7 +422,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, uplinkPort, state);
+                null, uplinkPort, state, null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -465,7 +479,8 @@ public class DefaultOpenstackNodeHandlerTest {
                                   IpAddress dataIp,
                                   String vlanIntf,
                                   String uplinkPort,
-                                  NodeState state) {
+                                  NodeState state,
+                                  Set<OpenstackPhyInterface> phyIntfs) {
             super(hostname,
                     type,
                     intgBridge,
@@ -473,7 +488,8 @@ public class DefaultOpenstackNodeHandlerTest {
                     dataIp,
                     vlanIntf,
                     uplinkPort,
-                    state);
+                    state,
+                    phyIntfs);
         }
 
         @Override

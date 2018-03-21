@@ -22,7 +22,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
+import org.onosproject.openstacknode.codec.OpenstackPhyInterfaceCodec;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -40,6 +42,7 @@ public class OpenstackNodeCodecRegister {
     @Activate
     protected void activate() {
         codecService.registerCodec(OpenstackNode.class, new OpenstackNodeCodec());
+        codecService.registerCodec(OpenstackPhyInterface.class, new OpenstackPhyInterfaceCodec());
 
         log.info("Started");
     }
@@ -47,6 +50,7 @@ public class OpenstackNodeCodecRegister {
     @Deactivate
     protected void deactivate() {
         codecService.unregisterCodec(OpenstackNode.class);
+        codecService.unregisterCodec(OpenstackPhyInterface.class);
 
         log.info("Stopped");
     }
