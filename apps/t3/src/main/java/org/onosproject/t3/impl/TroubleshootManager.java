@@ -373,9 +373,9 @@ public class TroubleshootManager implements TroubleshootService {
         StaticPacketTrace trace = new StaticPacketTrace(packet, in);
         boolean isDualHomed = getHosts(trace).stream().anyMatch(host -> host.locations().size() > 1);
         //FIXME this can be done recursively
-        trace = traceInDevice(trace, packet, in, isDualHomed);
         //Building output connect Points
         List<ConnectPoint> path = new ArrayList<>();
+        trace = traceInDevice(trace, packet, in, isDualHomed, path);
         trace = getTrace(path, in, trace, isDualHomed);
         return trace;
     }
@@ -437,7 +437,7 @@ public class TroubleshootManager implements TroubleshootService {
                     trace.addResultMessage("Connect point out " + cp + " is same as initial input " + in);
                     trace.setSuccess(false);
                 }
-            } else if  (!Collections.disjoint(hostsList, hosts)) {
+            } else if (!Collections.disjoint(hostsList, hosts)) {
                 //If the two host collections contain the same item it means we reached the proper output
                 log.debug("Stopping here because host is expected destination {}, reached through", completePath);
                 if (computePath(completePath, trace, outputPath.getOutput())) {
@@ -496,7 +496,7 @@ public class TroubleshootManager implements TroubleshootService {
                     updatedPacket.add(Criteria.matchInPort(dst.port()));
                     log.debug("DST Connect Point {}", dst);
                     //build the elements for that device
-                    traceInDevice(trace, updatedPacket.build(), dst, isDualHomed);
+                    traceInDevice(trace, updatedPacket.build(), dst, isDualHomed, completePath);
                     //continue the trace along the path
                     getTrace(completePath, dst, trace, isDualHomed);
                 }
@@ -677,14 +677,15 @@ public class TroubleshootManager implements TroubleshootService {
     /**
      * Traces the packet inside a device starting from an input connect point.
      *
-     * @param trace       the trace we are building
-     * @param packet      the packet we are tracing
-     * @param in          the input connect point.
-     * @param isDualHomed true if the trace we are doing starts or ends in a dual homed host
+     * @param trace        the trace we are building
+     * @param packet       the packet we are tracing
+     * @param in           the input connect point.
+     * @param isDualHomed  true if the trace we are doing starts or ends in a dual homed host
+     * @param completePath the path up until this device
      * @return updated trace
      */
     private StaticPacketTrace traceInDevice(StaticPacketTrace trace, TrafficSelector packet, ConnectPoint in,
-                                            boolean isDualHomed) {
+                                            boolean isDualHomed, List<ConnectPoint> completePath) {
 
         boolean multipleRoutes = false;
         if (trace.getGroupOuputs(in.deviceId()) != null) {
@@ -700,6 +701,7 @@ public class TroubleshootManager implements TroubleshootService {
         //if device is not available exit here.
         if (!deviceService.isAvailable(in.deviceId())) {
             trace.addResultMessage("Device is offline " + in.deviceId());
+            computePath(completePath, trace, null);
             return trace;
         }
 
@@ -721,6 +723,7 @@ public class TroubleshootManager implements TroubleshootService {
         FlowEntry nextTableIdEntry = findNextTableIdEntry(in.deviceId(), -1);
         if (nextTableIdEntry == null) {
             trace.addResultMessage("No flow rules for device " + in.deviceId() + ". Aborting");
+            computePath(completePath, trace, null);
             trace.setSuccess(false);
             return trace;
         }
@@ -753,6 +756,7 @@ public class TroubleshootManager implements TroubleshootService {
                 //(another possibility is max tableId)
                 if (nextTableIdEntry == null && flows.size() == 0) {
                     trace.addResultMessage("No matching flow rules for device " + in.deviceId() + ". Aborting");
+                    computePath(completePath, trace, null);
                     trace.setSuccess(false);
                     return trace;
 
@@ -772,6 +776,7 @@ public class TroubleshootManager implements TroubleshootService {
             } else if (flowEntry == null) {
                 trace.addResultMessage("Packet has no match on table " + tableId + " in device " +
                         in.deviceId() + ". Dropping");
+                computePath(completePath, trace, null);
                 trace.setSuccess(false);
                 return trace;
             } else {
@@ -825,6 +830,7 @@ public class TroubleshootManager implements TroubleshootService {
                             flows.add(secondVlanFlow);
                         } else {
                             trace.addResultMessage("Missing forwarding rule for tagged packet on " + in);
+                            computePath(completePath, trace, null);
                             return trace;
                         }
                     }
@@ -855,12 +861,12 @@ public class TroubleshootManager implements TroubleshootService {
         //Handling groups pointed at by immediate instructions
         for (FlowEntry entry : flows) {
             getGroupsFromInstructions(trace, groups, entry.treatment().immediate(),
-                    entry.deviceId(), builder, outputPorts, in);
+                    entry.deviceId(), builder, outputPorts, in, completePath);
         }
 
         //If we have deferred instructions at this point we handle them.
         if (deferredInstructions.size() > 0) {
-            builder = handleDeferredActions(trace, packet, in, deferredInstructions, outputPorts, groups);
+            builder = handleDeferredActions(trace, packet, in, deferredInstructions, outputPorts, groups, completePath);
 
         }
         packet = builder.build();
@@ -1032,7 +1038,8 @@ public class TroubleshootManager implements TroubleshootService {
 
     private Builder handleDeferredActions(StaticPacketTrace trace, TrafficSelector packet,
                                           ConnectPoint in, List<Instruction> deferredInstructions,
-                                          List<PortNumber> outputPorts, List<Group> groups) {
+                                          List<PortNumber> outputPorts, List<Group> groups,
+                                          List<ConnectPoint> completePath) {
 
         //Update the packet with the deferred instructions
         Builder builder = updatePacket(packet, deferredInstructions);
@@ -1055,7 +1062,7 @@ public class TroubleshootManager implements TroubleshootService {
         //If there is no output let's see if there any deferred instruction point to groups.
         if (outputFlowInstruction.size() == 0) {
             getGroupsFromInstructions(trace, groups, deferredInstructions,
-                    in.deviceId(), builder, outputPorts, in);
+                    in.deviceId(), builder, outputPorts, in, completePath);
         }
         return builder;
     }
@@ -1073,7 +1080,7 @@ public class TroubleshootManager implements TroubleshootService {
     private void getGroupsFromInstructions(StaticPacketTrace trace, List<Group> groupsForDevice,
                                            List<Instruction> instructions, DeviceId deviceId,
                                            Builder builder, List<PortNumber> outputPorts,
-                                           ConnectPoint in) {
+                                           ConnectPoint in, List<ConnectPoint> completePath) {
         List<Instruction> groupInstructionlist = new ArrayList<>();
         for (Instruction instruction : instructions) {
             log.debug("Considering Instruction {}", instruction);
@@ -1107,8 +1114,9 @@ public class TroubleshootManager implements TroubleshootService {
                 break;
             }
             if (group.buckets().buckets().size() == 0) {
-                trace.addResultMessage("Group " + group.id() + "has no buckets");
+                trace.addResultMessage("Group " + group.id() + " has no buckets");
                 trace.setSuccess(false);
+                computePath(completePath, trace, null);
                 break;
             }
 
@@ -1121,7 +1129,7 @@ public class TroubleshootManager implements TroubleshootService {
                 }
 
                 getGroupsFromInstructions(trace, groupsForDevice, bucket.treatment().allInstructions(),
-                        deviceId, builder, outputPorts, in);
+                        deviceId, builder, outputPorts, in, completePath);
             }
         }
     }
