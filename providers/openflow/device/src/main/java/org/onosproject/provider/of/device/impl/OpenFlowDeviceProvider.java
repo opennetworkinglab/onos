@@ -90,6 +90,7 @@ import org.projectfloodlight.openflow.protocol.OFPortDescProp;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropEthernet;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
+import org.projectfloodlight.openflow.protocol.OFPortDescStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortMod;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
@@ -800,6 +801,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                                                  cId, annotations);
             providerService.deviceConnected(did, description);
             providerService.updatePorts(did, buildPortDescriptions(sw));
+            //sends port description stats request again if OF version supports
+            if (sw.features().getVersion().compareTo(OFVersion.OF_13) >= 0) {
+                sendPortDescStatsRequest(sw);
+            }
 
             if (sw.features().getCapabilities().contains(OFCapabilities.PORT_STATS)) {
                 PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
@@ -811,6 +816,18 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (controller.getSwitch(dpid) == null) {
                 switchRemoved(dpid);
             }
+        }
+
+        /**
+         * Sends port description statistic request to switch if supported.
+         */
+        private void sendPortDescStatsRequest(OpenFlowSwitch sw) {
+            if (sw == null) {
+                return;
+            }
+            OFPortDescStatsRequest descStatsRequest = sw.factory().buildPortDescStatsRequest()
+                    .build();
+            sw.sendMsg(descStatsRequest);
         }
 
         private void stopCollectorIfNeeded(PortStatsCollector collector) {
