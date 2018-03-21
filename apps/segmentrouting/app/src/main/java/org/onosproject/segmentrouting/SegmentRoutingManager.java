@@ -147,7 +147,6 @@ import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REGISTERED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGISTERED;
-import static org.onosproject.segmentrouting.pwaas.PwaasUtil.configurationValidity;
 
 /**
  * Segment routing manager.
@@ -595,56 +594,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Override
     public L2TunnelHandler.Result addPseudowire(L2TunnelDescription l2TunnelDescription) {
-
-        // get both added and pending pseudowires
-        List<L2TunnelDescription> newPseudowires = new ArrayList<>();
-        newPseudowires.addAll(l2TunnelHandler.getL2Descriptions(false));
-        newPseudowires.addAll(l2TunnelHandler.getL2Descriptions(true));
-
-        // add the new pseudowire to the List
-        newPseudowires.add(l2TunnelDescription);
-        // validate the new list of pseudowires
-        L2TunnelHandler.Result res = configurationValidity(newPseudowires);
-        if (res == L2TunnelHandler.Result.SUCCESS) {
-            log.debug("Pseudowire with {} deployment started, check log for any errors in this process!",
-                     l2TunnelDescription.l2Tunnel().tunnelId());
-            return l2TunnelHandler.deployPseudowire(l2TunnelDescription, false);
-        } else {
-            log.error("Pseudowire with {} can not be added, error in global validity!",
-                      l2TunnelDescription.l2Tunnel().tunnelId());
-            return res;
-        }
+        return l2TunnelHandler.deployPseudowire(l2TunnelDescription);
     }
 
     @Override
     public L2TunnelHandler.Result removePseudowire(Integer pwId) {
-
-        // get both added and pending pseudowires
-        Set<L2TunnelDescription> pseudowires = l2TunnelHandler.getL2Descriptions(false)
-                .stream()
-                .filter(pw -> pw.l2Tunnel().tunnelId() == pwId)
-                .collect(Collectors.toSet());
-        Set<L2TunnelDescription> pendingPseudowires = l2TunnelHandler.getL2Descriptions(true)
-                .stream()
-                .filter(pw -> pw.l2Tunnel().tunnelId() == pwId)
-                .collect(Collectors.toSet());
-
-        if ((pendingPseudowires.size() == 0) && (pseudowires.size() == 0)) {
-            log.error("Pseudowire with id {} does not exist", pwId);
-            return L2TunnelHandler.Result.WRONG_PARAMETERS
-                    .appendError("Pseudowire does not exist.");
-        }
-        if (pendingPseudowires.size() != 0) {
-            log.info("Remove pseudowire from pending store!");
-            // will fill when we implement failure mechanism detection.
-        }
-        if (pseudowires.size() != 0) {
-            log.info("Removal of pseudowire with {} started, check log for any errors in this process!",
-                     pwId);
-            return l2TunnelHandler.tearDownPseudowire(pwId);
-        }
-
-        return L2TunnelHandler.Result.SUCCESS;
+        return l2TunnelHandler.tearDownPseudowire(pwId);
     }
 
     @Override
