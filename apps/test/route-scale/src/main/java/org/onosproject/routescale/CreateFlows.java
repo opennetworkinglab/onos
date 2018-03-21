@@ -34,7 +34,7 @@ public class CreateFlows extends AbstractShellCommand {
     @Override
     protected void execute() {
         ComponentConfigService service = get(ComponentConfigService.class);
-        service.setProperty("org.onosproject.routescale.ScaleManager",
+        service.setProperty("org.onosproject.routescale.ScaleTestManager",
                             "flowCount", String.valueOf(flowCount));
     }
 

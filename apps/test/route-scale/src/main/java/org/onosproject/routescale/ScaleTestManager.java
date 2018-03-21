@@ -103,6 +103,8 @@ public class ScaleTestManager {
 
     private ApplicationId appId;
 
+    private long macBase = System.currentTimeMillis();
+
     @Activate
     protected void activate() {
         appId = applicationService.getId("org.onosproject.routescale");
@@ -172,11 +174,12 @@ public class ScaleTestManager {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (int i = 0; i < c; i++) {
             FlowRule.Builder frb = DefaultFlowRule.builder();
-            frb.fromApp(appId).makePermanent().withPriority(1000 + i);
+            frb.fromApp(appId).makePermanent().withPriority((currentFlowCount + i) % FlowRule.MAX_PRIORITY);
             TrafficSelector.Builder tsb = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
 
             tsb.matchEthType(Ethernet.TYPE_IPV4);
+            tsb.matchEthDst(randomMac());
             ttb.setEthDst(randomMac()).setEthSrc(randomMac());
             ttb.setOutput(randomPort(ports));
             frb.withSelector(tsb.build()).withTreatment(ttb.build());
@@ -188,12 +191,14 @@ public class ScaleTestManager {
     private void removeExcessFlows(int flowsPerDevice, DeviceId id,
                                    int currentFlowCount) {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        int c = flowsPerDevice - currentFlowCount;
+        int c = currentFlowCount - flowsPerDevice;
         log.info("Removing {} flows from device {}", c, id);
         for (FlowEntry e : flowRuleService.getFlowEntries(id)) {
             if (Objects.equals(e.appId(), appId.id()) && c > 0) {
                 ops.remove(e);
                 c--;
+            } else if (c == 0) {
+                break;
             }
         }
         flowRuleService.apply(ops.build());
@@ -252,9 +257,7 @@ public class ScaleTestManager {
 
     // Generates a random MAC address.
     private MacAddress randomMac() {
-        byte[] bytes = new byte[6];
-        random.nextBytes(bytes);
-        return MacAddress.valueOf(bytes);
+        return MacAddress.valueOf(macBase++);
     }
 
     // Returns IP address of a host randomly chosen from the specified list.
