@@ -46,7 +46,9 @@
                 <entry key="-src" value-ref="connectpointCompleter"/>
             </optional-completers>
         </command>
-
+        <command>
+            <action class="org.onosproject.mcast.cli.McastRoutesListCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
