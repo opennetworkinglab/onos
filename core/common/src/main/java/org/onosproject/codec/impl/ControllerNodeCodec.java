@@ -40,7 +40,9 @@ public final class ControllerNodeCodec extends JsonCodec<ControllerNode> {
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
                 .put("tcpPort", node.tcpPort())
-                .put("status", service.getState(node.id()).toString());
+                .put("status", service.getState(node.id()).toString())
+                .put("lastUpdate", Long.toString(service.getLastUpdatedInstant(node.id()).toEpochMilli()))
+                .put("humanReadableLastUpdate", service.localStatus(node.id()));
     }
 
 

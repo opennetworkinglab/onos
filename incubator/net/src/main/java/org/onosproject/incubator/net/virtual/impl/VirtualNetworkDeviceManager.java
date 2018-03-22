@@ -182,6 +182,12 @@ public class VirtualNetworkDeviceManager
         return null;
     }
 
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        // TODO not supported at this time
+        return 0;
+    }
+
     /**
      * Translates VirtualNetworkEvent to DeviceEvent.
      */

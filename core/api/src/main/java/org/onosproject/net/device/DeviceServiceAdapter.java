@@ -142,4 +142,9 @@ public class DeviceServiceAdapter implements DeviceService {
         return null;
     }
 
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        return 0;
+    }
+
 }

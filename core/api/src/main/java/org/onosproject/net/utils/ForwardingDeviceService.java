@@ -127,4 +127,9 @@ public abstract class ForwardingDeviceService implements DeviceService {
         return delegate.localStatus(deviceId);
     }
 
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        return delegate.getLastUpdatedInstant(deviceId);
+    }
+
 }

@@ -116,4 +116,9 @@ class NetconfDeviceServiceMock implements DeviceService {
     public String localStatus(DeviceId deviceId) {
         return null;
     }
+
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        return 0;
+    }
 }
