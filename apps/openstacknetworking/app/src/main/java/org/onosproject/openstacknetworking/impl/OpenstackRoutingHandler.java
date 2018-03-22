@@ -89,13 +89,13 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -309,6 +309,10 @@ public class OpenstackRoutingHandler {
     private void setStatefulSnatRules(RouterInterface routerIface, boolean install) {
         Subnet osSubnet = osNetworkService.subnet(routerIface.getSubnetId());
         Network osNet = osNetworkService.network(osSubnet.getNetworkId());
+
+        if (osNet.getNetworkType() == NetworkType.FLAT) {
+            return;
+        }
 
         Optional<Router> osRouter = osRouterService.routers().stream()
                 .filter(router -> osRouterService.routerInterfaces(routerIface.getId()) != null)
@@ -1041,6 +1045,9 @@ public class OpenstackRoutingHandler {
         }
 
         private void instPortDetected(InstancePort instPort) {
+            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
+                return;
+            }
             osNodeService.completeNodes(GATEWAY)
                     .forEach(gwNode -> setRulesForSnatIngressRule(gwNode.intgBridge(),
                                     Long.parseLong(osNetworkService.network(instPort.networkId()).getProviderSegID()),
@@ -1050,6 +1057,9 @@ public class OpenstackRoutingHandler {
         }
 
         private void instPortRemoved(InstancePort instPort) {
+            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
+                return;
+            }
             osNodeService.completeNodes(GATEWAY)
                     .forEach(gwNode -> setRulesForSnatIngressRule(gwNode.intgBridge(),
                                     Long.parseLong(osNetworkService.network(instPort.networkId()).getProviderSegID()),

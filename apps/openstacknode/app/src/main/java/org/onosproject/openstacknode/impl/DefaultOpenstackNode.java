@@ -34,6 +34,7 @@ import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.AnnotationKeys.PORT_MAC;
@@ -285,6 +286,24 @@ public class DefaultOpenstackNode implements OpenstackNode {
         return phyIntfs;
     }
 
+    @Override
+    public PortNumber phyIntfPortNum(String providerPhysnet) {
+        Optional<OpenstackPhyInterface> openstackPhyInterface =
+                phyIntfs.stream().filter(p -> p.network().equals(providerPhysnet)).findAny();
+
+        if (openstackPhyInterface.isPresent()) {
+            DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+            Port port = deviceService.getPorts(intgBridge).stream()
+                    .filter(p -> p.isEnabled() &&
+                            Objects.equals(p.annotations().value(PORT_NAME), openstackPhyInterface.get().intf()))
+                    .findAny().orElse(null);
+
+            return port != null ? port.number() : null;
+        } else {
+            return null;
+        }
+
+    }
     /**
      * Returns new builder instance.
      *

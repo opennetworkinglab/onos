@@ -497,7 +497,6 @@ public class OpenstackNetworkManager
     public Set<ExternalPeerRouter> externalPeerRouters() {
         return ImmutableSet.copyOf(externalPeerRouterMap.asJavaMap().values());
     }
-
     private boolean isNetworkInUse(String netId) {
         return !subnets(netId).isEmpty() && !ports(netId).isEmpty();
     }

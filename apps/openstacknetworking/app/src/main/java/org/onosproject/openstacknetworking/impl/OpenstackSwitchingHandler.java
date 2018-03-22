@@ -28,6 +28,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -57,6 +58,7 @@ import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
@@ -126,7 +128,7 @@ public final class OpenstackSwitchingHandler {
 
     /**
      * Configures L2 forwarding rules.
-     * Currently, SONA only supports VXLAN and VLAN tunnelled L2 forwarding.
+     * Currently, SONA supports Flat, VXLAN and VLAN modes.
      *
      * @param instPort instance port object
      * @param install install flag, add the rule if true, remove it otherwise
@@ -142,11 +144,83 @@ public final class OpenstackSwitchingHandler {
                 setVlanTagFlowRules(instPort, install);
                 setForwardingRulesForVlan(instPort, install);
                 break;
+            case FLAT:
+                setDownstreamRules(instPort, install);
+                setUpstreamRules(instPort, install);
+                break;
             default:
                 log.warn("Unsupported network tunnel type {}", type.name());
                 break;
         }
     }
+
+    private void setDownstreamRules(InstancePort instPort, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(instPort.ipAddress().toIpPrefix())
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(instPort.portNumber())
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                instPort.deviceId(),
+                selector,
+                treatment,
+                PRIORITY_FLAT_RULE,
+                SRC_VNI_TABLE,
+                install);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpTpa(instPort.ipAddress().getIp4Address())
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                instPort.deviceId(),
+                selector,
+                treatment,
+                PRIORITY_FLAT_RULE,
+                SRC_VNI_TABLE,
+                install);
+    }
+
+    private void setUpstreamRules(InstancePort instPort, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(instPort.portNumber())
+                .build();
+
+        Network network = osNetworkService.network(instPort.networkId());
+
+        if (network == null) {
+            log.warn("The network does not exist");
+            return;
+        }
+
+        PortNumber portNumber = osNodeService.node(instPort.deviceId())
+                .phyIntfPortNum(network.getProviderPhyNet());
+
+        if (portNumber == null) {
+            log.warn("The port number does not exist");
+            return;
+        }
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(portNumber)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                instPort.deviceId(),
+                selector,
+                treatment,
+                PRIORITY_FLAT_RULE,
+                SRC_VNI_TABLE,
+                install);
+    }
+
 
     /**
      * Configures the flow rules which are used for L2 packet switching.

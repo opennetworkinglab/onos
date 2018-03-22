@@ -52,6 +52,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.NetworkType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
@@ -176,8 +177,12 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
                 .set(ANNOTATION_PORT_ID, osPort.getId())
-                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()))
-                .set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
+                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()));
+
+        if (osNet.getNetworkType() != NetworkType.FLAT) {
+            annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
+
+        }
 
         HostDescription hostDesc = new DefaultHostDescription(
                 macAddr,

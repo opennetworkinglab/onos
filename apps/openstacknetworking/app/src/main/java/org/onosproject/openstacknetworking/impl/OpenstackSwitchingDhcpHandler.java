@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.DHCP;
-import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -33,24 +32,27 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
+import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
@@ -61,10 +63,20 @@ import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.List;
 
-import static org.onlab.packet.DHCP.DHCPOptionCode.*;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_BroadcastAddress;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_LeaseTime;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -100,6 +112,12 @@ public class OpenstackSwitchingDhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNodeService osNodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackFlowRuleService osFlowRuleService;
+
     @Property(name = DHCP_SERVER_MAC, value = DEFAULT_GATEWAY_MAC_STR,
             label = "Fake MAC address for virtual network subnet gateway")
     private String dhcpServerMac = DEFAULT_GATEWAY_MAC_STR;
@@ -117,14 +135,14 @@ public class OpenstackSwitchingDhcpHandler {
         appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
         configService.registerProperties(getClass());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
-        requestPackets();
+        setDhcpRule(true);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        cancelPackets();
+        setDhcpRule(false);
         packetService.removeProcessor(packetProcessor);
         configService.unregisterProperties(getClass(), false);
 
@@ -151,24 +169,28 @@ public class OpenstackSwitchingDhcpHandler {
         log.info("Modified");
     }
 
-    private void requestPackets() {
+    private void setDhcpRule(boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
                 .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
                 .build();
-        packetService.requestPackets(selector, PacketPriority.CONTROL, appId);
-    }
 
-    private void cancelPackets() {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.CONTROLLER)
                 .build();
-        packetService.cancelPackets(selector, PacketPriority.CONTROL, appId);
+
+        osNodeService.completeNodes(COMPUTE).forEach(node -> {
+            osFlowRuleService.setRule(
+                    appId,
+                    node.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_DHCP_RULE,
+                    SRC_VNI_TABLE,
+                    install);
+        });
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
