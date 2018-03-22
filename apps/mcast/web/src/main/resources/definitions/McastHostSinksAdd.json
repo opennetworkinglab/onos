@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "title": "sinks",
+  "required": [
+    "sinks"
+  ],
+  "properties": {
+    "sinks": {
+      "type": "array",
+      "xml": {
+        "name": "sinks",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "of:0000000000000206/8",
+        "description": "A sink connect point for a host in the route"
+      },
+      "description": "Sink connect points for a host in the route"
+    }
+  }
+}

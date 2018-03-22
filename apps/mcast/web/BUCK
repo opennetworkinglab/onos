@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//lib:JACKSON',
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
+    '//apps/mcast/api:onos-apps-mcast-api'
 ]
 
 TEST_DEPS = [
@@ -16,4 +17,9 @@ TEST_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/mcast',
+    api_title = 'Multicast API',
+    api_version = '1.0',
+    api_description = 'REST API for Multicast',
+    api_package = 'org.onosproject.mcast.web',
 )

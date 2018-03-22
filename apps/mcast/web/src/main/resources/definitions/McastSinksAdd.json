@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "title": "sinks",
+  "required": [
+    "sinks"
+  ],
+  "properties": {
+    "sinks": {
+      "type": "array",
+      "xml": {
+        "name": "sinks",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "00:CC:00:00:00:01/None",
+        "description": "A host sink for the route"
+      },
+      "description": "Host sinks for the route"
+    }
+  }
+}

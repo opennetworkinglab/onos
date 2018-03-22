@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "title": "sources",
+  "required": [
+    "sources"
+  ],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "xml": {
+        "name": "sources",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "of:0000000000000206/8",
+        "description": "A source connect point for the route"
+      },
+      "description": "Source connect points for the route"
+    }
+  }
+}

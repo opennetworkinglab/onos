@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "title": "multicast-route-creation",
+  "required": [
+    "group",
+    "source"
+  ],
+  "optional": [
+    "sources",
+    "sinks"
+  ],
+  "properties": {
+    "group": {
+      "type": "string",
+      "example": "224.0.1.1",
+      "description": "Multicast Route Group IP Address"
+    },
+    "source": {
+      "type": "string",
+      "example": "10.0.1.1",
+      "description": "Multicast Route Source IP Address"
+    },
+    "sources": {
+      "type": "array",
+      "xml": {
+        "name": "sources",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "of:0000000000000206/8",
+        "description": "A source connect point for the route"
+      },
+      "description": "Source connect points for the route"
+    },
+    "sinks": {
+      "type": "array",
+      "xml": {
+        "name": "sinks",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "example": "00:CC:00:00:00:01/None",
+        "description": "A host sink for the route"
+      },
+      "description": "Host sinks for the route"
+    }
+  }
+}

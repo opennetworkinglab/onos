@@ -54,7 +54,7 @@ public interface MulticastRouteService
     /**
      * Gets a Multicast route in the system.
      *
-     * @param groupIp Multicast group IP address
+     * @param groupIp  Multicast group IP address
      * @param sourceIp Multicasto source Ip address
      * @return set of Multicast routes
      */
@@ -92,6 +92,16 @@ public interface MulticastRouteService
      * @param hostId a sink host
      */
     void addSink(McastRoute route, HostId hostId);
+
+    /**
+     * Adds a set of sink connect points for a given host sink to the route to
+     * which a data stream should be sent to.
+     *
+     * @param route         a Multicast route
+     * @param hostId        a sink host
+     * @param connectPoints the sink for the specific host
+     */
+    void addSinks(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
 
     /**
      * Adds a set of sink to the route to which a data stream should be

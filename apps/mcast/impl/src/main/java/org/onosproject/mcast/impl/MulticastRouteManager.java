@@ -158,6 +158,14 @@ public class MulticastRouteManager
     }
 
     @Override
+    public void addSinks(McastRoute route, HostId hostId, Set<ConnectPoint> sinks) {
+        if (checkRoute(route)) {
+            store.addSink(route, hostId, sinks);
+        }
+
+    }
+
+    @Override
     public void addSink(McastRoute route, Set<ConnectPoint> sinks) {
         checkNotNull(route, "Route cannot be null");
         checkNotNull(sinks, "Sinks cannot be null");
