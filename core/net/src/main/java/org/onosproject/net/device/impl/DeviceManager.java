@@ -344,6 +344,15 @@ public class DeviceManager
         return (ls.connected) ? "connected " + timeAgo : "disconnected " + timeAgo;
     }
 
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        LocalStatus ls = deviceLocalStatus.get(deviceId);
+        if (ls == null) {
+            return 0;
+        }
+        return ls.dateTime.toEpochMilli();
+    }
+
     // Check a device for control channel connectivity.
     private boolean isReachable(DeviceId deviceId) {
         if (deviceId == null) {

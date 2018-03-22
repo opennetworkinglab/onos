@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.onlab.util.Tools;
 import org.onosproject.core.Version;
 import org.onosproject.event.ListenerService;
 
@@ -79,6 +80,21 @@ public interface ClusterService extends ListenerService<ClusterEvent, ClusterEve
                     .map(DateTime::getMillis)
                     .map(Instant::ofEpochMilli)
                     .orElse(null);
+    }
+
+    /**
+     * Returns a human readable form of the system time when the availability state was last updated.
+     *
+     * @param nodeId controller node identifier
+     * @return human readable string for system time when the availability state was last updated.
+     */
+    default String localStatus(NodeId nodeId) {
+        Instant lastUpdated = getLastUpdatedInstant(nodeId);
+        String timeAgo = "Never";
+        if (lastUpdated != null) {
+            timeAgo = Tools.timeAgo(lastUpdated.toEpochMilli());
+        }
+        return timeAgo;
     }
 
     /**

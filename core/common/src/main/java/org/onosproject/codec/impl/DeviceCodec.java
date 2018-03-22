@@ -47,7 +47,8 @@ public final class DeviceCodec extends AnnotatedCodec<Device> {
     private static final String SERIAL = "serial";
     private static final String CHASSIS_ID = "chassisId";
     private static final String DRIVER = "driver";
-
+    private static final String LAST_UPDATE = "lastUpdate";
+    private static final String HUMAN_READABLE_LAST_UPDATE = "humanReadableLastUpdate";
 
     @Override
     public ObjectNode encode(Device device, CodecContext context) {
@@ -64,7 +65,9 @@ public final class DeviceCodec extends AnnotatedCodec<Device> {
                 .put(SW, device.swVersion())
                 .put(SERIAL, device.serialNumber())
                 .put(DRIVER, driveService.getDriver(device.id()).name())
-                .put(CHASSIS_ID, device.chassisId().toString());
+                .put(CHASSIS_ID, device.chassisId().toString())
+                .put(LAST_UPDATE, Long.toString(service.getLastUpdatedInstant(device.id())))
+                .put(HUMAN_READABLE_LAST_UPDATE, service.localStatus(device.id()));
         return annotate(result, device, context);
     }
 

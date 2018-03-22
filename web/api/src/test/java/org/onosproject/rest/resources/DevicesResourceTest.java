@@ -173,8 +173,8 @@ public class DevicesResourceTest extends ResourceTest {
 
         @Override
         public boolean matchesSafely(JsonArray json) {
-            final int minExpectedAttributes = 9;
-            final int maxExpectedAttributes = 10;
+            final int minExpectedAttributes = 11;
+            final int maxExpectedAttributes = 12;
 
             boolean deviceFound = false;
 
@@ -233,6 +233,12 @@ public class DevicesResourceTest extends ResourceTest {
                 .anyTimes();
         expect(mockDeviceService.getRole(isA(DeviceId.class)))
                 .andReturn(MastershipRole.MASTER)
+                .anyTimes();
+        expect(mockDeviceService.getLastUpdatedInstant(isA(DeviceId.class)))
+                .andReturn(0L)
+                .anyTimes();
+        expect(mockDeviceService.localStatus(isA(DeviceId.class)))
+                .andReturn("")
                 .anyTimes();
 
 

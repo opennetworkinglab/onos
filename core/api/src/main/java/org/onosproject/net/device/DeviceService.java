@@ -185,4 +185,14 @@ public interface DeviceService
      */
     String localStatus(DeviceId deviceId);
 
+
+    /**
+     * Indicates how long ago the device connected or disconnected from this
+     * controller instance as a time offset.
+     *
+     * @param deviceId device identifier
+     * @return time offset in miliseconds
+     */
+    long getLastUpdatedInstant(DeviceId deviceId);
+
 }

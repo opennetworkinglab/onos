@@ -151,4 +151,9 @@ public class MockDeviceService implements DeviceService {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public long getLastUpdatedInstant(DeviceId deviceId) {
+        return 0;
+    }
 }
