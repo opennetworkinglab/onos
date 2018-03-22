@@ -17,6 +17,7 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.util.Tools;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigService;
@@ -74,6 +75,7 @@ public class CreateNullDevice extends CreateNullEntity {
         cfg.name(name);
         setUiCoordinates(cfg, locType, latOrY, longOrX);
 
+        Tools.delay(10);
         sim.createDevice(deviceId, name, Device.Type.valueOf(type.toUpperCase()), portCount);
     }
 

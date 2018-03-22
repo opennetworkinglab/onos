@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Tools;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -81,6 +82,7 @@ public class CreateNullHost extends CreateNullEntity {
         BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
         setUiCoordinates(cfg, locType, latOrY, longOrX);
 
+        Tools.delay(10);
         sim.createHost(id, locations, ips);
     }
 
