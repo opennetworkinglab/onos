@@ -103,7 +103,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void storeRoute(McastRoute route) {
-        mcastRoutes.put(route, McastRouteData.empty());
+        mcastRoutes.putIfAbsent(route, McastRouteData.empty());
     }
 
     @Override
@@ -123,7 +123,8 @@ public class DistributedMcastRoutesStore
     public void removeSources(McastRoute route) {
         mcastRoutes.compute(route, (k, v) -> {
             v.removeSources();
-            return v;
+            // Since we have cleared the sources, we should remove the route
+            return null;
         });
     }
 
@@ -131,9 +132,9 @@ public class DistributedMcastRoutesStore
     public void removeSources(McastRoute route, Set<ConnectPoint> sources) {
         mcastRoutes.compute(route, (k, v) -> {
             v.removeSources(sources);
-            return v;
+            // Since there are no sources, we should remove the route
+            return v.sources().isEmpty() ? null : v;
         });
-
     }
 
     @Override
@@ -256,7 +257,6 @@ public class DistributedMcastRoutesStore
                                 mcastRouteUpdate(route, oldData.sources(), oldData.sinks()),
                                 mcastRouteUpdate(route, newData.sources(), newData.sinks())));
                     } else if (newData.allSinks().size() < oldData.allSinks().size()) {
-                        log.info("Removed");
                         notifyDelegate(new McastEvent(McastEvent.Type.SINKS_REMOVED,
                                 mcastRouteUpdate(route, oldData.sources(), oldData.sinks()),
                                 mcastRouteUpdate(route, newData.sources(), newData.sinks())));

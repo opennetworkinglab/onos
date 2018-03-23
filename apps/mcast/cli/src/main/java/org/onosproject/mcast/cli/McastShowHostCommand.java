@@ -15,15 +15,17 @@
  */
 package org.onosproject.mcast.cli;
 
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,11 +38,13 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class McastShowHostCommand extends AbstractShellCommand {
 
     // Format for group line
-    private static final String FORMAT_MAPPING = "origin=%s, group=%s, source=%s, sinks=%s";
+    private static final String FORMAT_MAPPING = "origin=%s, group=%s, source IP=%s, sources=%s, sinks=%s";
 
-    @Argument(index = 0, name = "mcastIp", description = "mcast Ip",
+    @Option(name = "-gAddr", aliases = "--groupAddress",
+            description = "IP Address of the multicast group",
+            valueToShowInHelp = "224.0.0.0",
             required = false, multiValued = false)
-    String mcastIp;
+    String gAddr = null;
 
     @Override
     protected void execute() {
@@ -49,19 +53,15 @@ public class McastShowHostCommand extends AbstractShellCommand {
         // Get the routes
         Set<McastRoute> routes = mcastService.getRoutes();
         // Verify mcast group
-        if (!isNullOrEmpty(mcastIp)) {
+        if (!isNullOrEmpty(gAddr)) {
             // Let's find the group
-            IpAddress mcastGroup = IpAddress.valueOf(mcastIp);
+            IpAddress mcastGroup = IpAddress.valueOf(gAddr);
             McastRoute mcastRoute = routes.stream()
                     .filter(route -> route.group().equals(mcastGroup))
                     .findAny().orElse(null);
             // If it exists
             if (mcastRoute != null) {
-                // Get the sinks and print info
-                Set<ConnectPoint> sinks = mcastService.sinks(mcastRoute);
-                Set<ConnectPoint> sources = mcastService.sources(mcastRoute);
-                print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(),
-                        sources, sinks);
+                printRoute(mcastService, mcastRoute);
             }
             return;
         }
@@ -73,11 +73,7 @@ public class McastShowHostCommand extends AbstractShellCommand {
         ipv4Routes.stream()
                 .sorted(Comparator.comparing(McastRoute::group))
                 .forEach(route -> {
-                    // Get sinks
-                    Set<ConnectPoint> sinks = mcastService.sinks(route);
-                    Set<ConnectPoint> sources = mcastService.sources(route);
-                    print(FORMAT_MAPPING, route.type(), route.group(),
-                            sources, sinks);
+                    printRoute(mcastService, route);
                 });
         // Filter ipv6
         Set<McastRoute> ipv6Routes = routes.stream()
@@ -87,12 +83,19 @@ public class McastShowHostCommand extends AbstractShellCommand {
         ipv6Routes.stream()
                 .sorted(Comparator.comparing(McastRoute::group))
                 .forEach(route -> {
-                    // Get sinks
-                    Set<ConnectPoint> sinks = mcastService.sinks(route);
-                    Set<ConnectPoint> sources = mcastService.sources(route);
-                    print(FORMAT_MAPPING, route.type(), route.group(),
-                            sources, sinks);
+                    printRoute(mcastService, route);
                 });
+    }
+
+    private void printRoute(MulticastRouteService mcastService, McastRoute route) {
+        Map<HostId, Set<ConnectPoint>> sinks = mcastService.routeData(route).sinks();
+        Set<ConnectPoint> sources = mcastService.sources(route);
+        String srcIp = "*";
+        if (route.source().isPresent()) {
+            srcIp = route.source().get().toString();
+        }
+
+        print(FORMAT_MAPPING, route.type(), route.group(), srcIp, sources, sinks);
     }
 
 }

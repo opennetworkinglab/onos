@@ -20,30 +20,38 @@
         <command>
             <action class="org.onosproject.mcast.cli.McastHostJoinCommand"/>
             <optional-completers>
-                <entry key="-srcs" value-ref="deviceIdCompleter"/>
+                <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+                <entry key="-srcs" value-ref="connectpointCompleter"/>
                 <entry key="-sinks" value-ref="hostIdCompleter"/>
             </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.mcast.cli.McastShowHostCommand"/>
+            <optional-completers>
+                <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+            </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.mcast.cli.McastHostDeleteCommand"/>
             <optional-completers>
-                <entry key="-cps" value-ref="deviceIdCompleter"/>
+                <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+                <entry key="-cps" value-ref="connectpointCompleter"/>
                 <entry key="-h" value-ref="hostIdCompleter"/>
             </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.mcast.cli.McastSourceDeleteCommand"/>
             <optional-completers>
-                <entry key="-src" value-ref="deviceIdCompleter"/>
+                <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+                <entry key="-src" value-ref="connectpointCompleter"/>
             </optional-completers>
         </command>
 
     </command-bundle>
 
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
-    <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
+    <bean id="connectpointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
+    <bean id="mcastGroupCompleter" class="org.onosproject.mcast.cli.McastGroupCompleter"/>
+
 
 </blueprint>
