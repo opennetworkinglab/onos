@@ -344,6 +344,14 @@ public class DeviceManager
         return (ls.connected) ? "connected " + timeAgo : "disconnected " + timeAgo;
     }
 
+    private boolean isLocallyConnected(DeviceId deviceId) {
+        LocalStatus ls = deviceLocalStatus.get(deviceId);
+        if (ls == null) {
+            return false;
+        }
+        return ls.connected;
+    }
+
     @Override
     public long getLastUpdatedInstant(DeviceId deviceId) {
         LocalStatus ls = deviceLocalStatus.get(deviceId);
@@ -353,14 +361,21 @@ public class DeviceManager
         return ls.dateTime.toEpochMilli();
     }
 
-    // Check a device for control channel connectivity.
+    // Check a device for control channel connectivity
+    // and changes local-status appropriately.
     private boolean isReachable(DeviceId deviceId) {
         if (deviceId == null) {
             return false;
         }
         DeviceProvider provider = getProvider(deviceId);
         if (provider != null) {
-            return provider.isReachable(deviceId);
+            boolean reachable = provider.isReachable(deviceId);
+            if (reachable && !isLocallyConnected(deviceId)) {
+                deviceLocalStatus.put(deviceId, new LocalStatus(true, Instant.now()));
+            } else if (!reachable && isLocallyConnected(deviceId)) {
+                deviceLocalStatus.put(deviceId, new LocalStatus(false, Instant.now()));
+            }
+            return reachable;
         } else {
             log.debug("Provider not found for {}", deviceId);
             return false;
