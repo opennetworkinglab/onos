@@ -58,29 +58,42 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
-
+        // Clear all routes
         if ("*".equals(sAddr) && "*".equals(gAddr)) {
-            // Clear all routes
             mcastRouteManager.getRoutes().forEach(mcastRouteManager::remove);
             return;
         }
-        if (host != null && host.isEmpty()) {
-            print("Please provide a non-empty host Id");
+        // Removing/updating a specific entry
+        IpAddress sAddrIp = null;
+        //If the source Ip is * we want ASM so we leave it as null and the route will have it as an optional.empty()
+        if (!sAddr.equals("*")) {
+            sAddrIp = IpAddress.valueOf(sAddr);
+        }
+        McastRoute mRoute = new McastRoute(sAddrIp, IpAddress.valueOf(gAddr),
+                                           McastRoute.Type.STATIC);
+        // If the user provides only sAddr and gAddr, we have to remove the route
+        if (host == null || host.isEmpty()) {
+            mcastRouteManager.remove(mRoute);
+            printMcastRoute(D_FORMAT_MAPPING, mRoute);
             return;
         }
-        print("%s", host);
+        // Otherwise we need to remove a specific sink
         HostId hostId = HostId.hostId(host);
-        McastRoute mRoute = new McastRoute(IpAddress.valueOf(sAddr),
-                IpAddress.valueOf(gAddr), McastRoute.Type.STATIC);
         if (!mcastRouteManager.getRoutes().contains(mRoute)) {
             print("Route is not present, store it first");
-            print(U_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
             return;
         }
+        // Otherwise remove the entire host id
         if (host != null) {
             mcastRouteManager.removeSink(mRoute, hostId);
         }
-        print(U_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
-        print("%s", mcastRouteManager.routeData(mRoute));
+        // We have done
+        printMcastRoute(U_FORMAT_MAPPING, mRoute);
+    }
+
+    private void printMcastRoute(String format, McastRoute mcastRoute) {
+        // If the source is present let's use it, otherwise we need to print *
+        print(format, mcastRoute.type(), mcastRoute.group(),
+              mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
     }
 }

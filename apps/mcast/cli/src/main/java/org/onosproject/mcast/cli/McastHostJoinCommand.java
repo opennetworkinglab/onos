@@ -20,7 +20,6 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
-import org.onosproject.mcast.api.McastRouteData;
 import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
@@ -76,14 +75,12 @@ public class McastHostJoinCommand extends AbstractShellCommand {
         }
 
         McastRoute mRoute = new McastRoute(sAddrIp, IpAddress.valueOf(gAddr), McastRoute.Type.STATIC);
-        log.info("Route {}", mRoute);
         mcastRouteManager.add(mRoute);
 
         if (sources != null) {
             Set<ConnectPoint> sourcesSet = Arrays.stream(sources)
                     .map(ConnectPoint::deviceConnectPoint)
                     .collect(Collectors.toSet());
-            log.info("{}", sourcesSet);
             mcastRouteManager.addSources(mRoute, sourcesSet);
         }
 
@@ -94,14 +91,12 @@ public class McastHostJoinCommand extends AbstractShellCommand {
             }
         }
         printMcastRoute(mRoute);
-        printMcastRouteData(mcastRouteManager.routeData(mRoute));
     }
 
     private void printMcastRoute(McastRoute mcastRoute) {
-        print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(), mcastRoute.source());
+        // If the source is present let's use it, otherwise we need to print *
+        print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(),
+              mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
     }
 
-    private void printMcastRouteData(McastRouteData mcastRouteData) {
-        print("%s", mcastRouteData);
-    }
 }
