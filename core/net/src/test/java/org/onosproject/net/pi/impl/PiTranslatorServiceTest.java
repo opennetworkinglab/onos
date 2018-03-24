@@ -50,6 +50,7 @@ import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiGroupKey;
+import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
@@ -134,6 +135,9 @@ public class PiTranslatorServiceTest {
                 .matchEthType(ethType)
                 .build();
 
+        TrafficSelector emptySelector = DefaultTrafficSelector
+                .builder().build();
+
         TrafficTreatment outPort2 = DefaultTrafficTreatment
                 .builder()
                 .setOutput(PortNumber.portNumber(outPort))
@@ -159,8 +163,19 @@ public class PiTranslatorServiceTest {
                 .withPriority(priority)
                 .build();
 
+        FlowRule defActionRule = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .forTable(tableId)
+                .fromApp(appId)
+                .withSelector(emptySelector)
+                .withTreatment(outPort2)
+                .makeTemporary(timeout)
+                .withPriority(priority)
+                .build();
+
         PiTableEntry entry1 = PiFlowRuleTranslatorImpl.translate(rule1, pipeconf, null);
-        PiTableEntry entry2 = PiFlowRuleTranslatorImpl.translate(rule1, pipeconf, null);
+        PiTableEntry entry2 = PiFlowRuleTranslatorImpl.translate(rule2, pipeconf, null);
+        PiTableEntry defActionEntry = PiFlowRuleTranslatorImpl.translate(defActionRule, pipeconf, null);
 
         // check equality, i.e. same rules must produce same entries
         new EqualsTester()
@@ -204,6 +219,9 @@ public class PiTranslatorServiceTest {
         //            entry1.priority().get(), is(equalTo(MAX_PI_PRIORITY - rule1.priority())));
         assertThat("Incorrect timeout value",
                    entry1.timeout(), is(equalTo(expectedTimeout)));
+        assertThat("Match key should be empty",
+                   defActionEntry.matchKey(), is(equalTo(PiMatchKey.EMPTY)));
+        assertThat("Priority should not be set", !defActionEntry.priority().isPresent());
 
     }
 

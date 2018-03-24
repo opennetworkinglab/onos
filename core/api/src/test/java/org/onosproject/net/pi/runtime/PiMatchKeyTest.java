@@ -75,6 +75,7 @@ public class PiMatchKeyTest {
 
         new EqualsTester()
                 .addEqualityGroup(piMatchKey1, sameAsPiMatchKey1)
+                .addEqualityGroup(PiMatchKey.EMPTY, PiMatchKey.EMPTY)
                 .addEqualityGroup(piMatchKey2)
                 .testEquals();
     }

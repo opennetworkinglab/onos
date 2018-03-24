@@ -97,27 +97,35 @@ final class PiFlowRuleTranslatorImpl {
         final PiTableId piTableId = translateTableId(rule.table(), interpreter);
         final PiTableModel tableModel = getTableModel(piTableId, pipelineModel);
         // Translate selector.
-        final Collection<PiFieldMatch> fieldMatches = translateFieldMatches(interpreter, rule.selector(), tableModel);
+        final PiMatchKey piMatchKey;
+        final boolean needPriority;
+        if (rule.selector().criteria().isEmpty()) {
+            piMatchKey = PiMatchKey.EMPTY;
+            needPriority = false;
+        } else {
+            final Collection<PiFieldMatch> fieldMatches = translateFieldMatches(
+                    interpreter, rule.selector(), tableModel);
+            piMatchKey = PiMatchKey.builder()
+                    .addFieldMatches(fieldMatches)
+                    .build();
+            // FIXME: P4Runtime limit
+            // Need to ignore priority if no TCAM lookup match field
+            needPriority = fieldMatches.stream()
+                    .anyMatch(match -> match.type() == PiMatchType.TERNARY ||
+                            match.type() == PiMatchType.RANGE);
+        }
         // Translate treatment.
         final PiTableAction piTableAction = translateTreatment(rule.treatment(), interpreter, piTableId, pipelineModel);
 
         // Build PI entry.
         final PiTableEntry.Builder tableEntryBuilder = PiTableEntry.builder();
 
-        // FIXME: P4Runtime limit
-        // Need to ignore priority if no TCAM lookup match field
-        boolean dontIgnorePriority = fieldMatches.stream()
-                .anyMatch(match -> match.type() == PiMatchType.TERNARY ||
-                        match.type() == PiMatchType.RANGE);
-
         tableEntryBuilder
                 .forTable(piTableId)
-                .withMatchKey(PiMatchKey.builder()
-                                      .addFieldMatches(fieldMatches)
-                                      .build())
+                .withMatchKey(piMatchKey)
                 .withAction(piTableAction);
 
-        if (dontIgnorePriority) {
+        if (needPriority) {
             tableEntryBuilder.withPriority(rule.priority());
         }
 

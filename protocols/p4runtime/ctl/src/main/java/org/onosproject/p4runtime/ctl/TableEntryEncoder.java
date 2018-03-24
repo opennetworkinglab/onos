@@ -201,8 +201,12 @@ final class TableEntryEncoder {
         tableEntryMsgBuilder.setTableId(tableInfo.getPreamble().getId());
 
         // Field matches.
-        for (PiFieldMatch piFieldMatch : matchKey.fieldMatches()) {
-            tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
+        if (matchKey.equals(PiMatchKey.EMPTY)) {
+            tableEntryMsgBuilder.setIsDefaultAction(true);
+        } else {
+            for (PiFieldMatch piFieldMatch : matchKey.fieldMatches()) {
+                tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
+            }
         }
 
         return tableEntryMsgBuilder.build();
@@ -234,8 +238,12 @@ final class TableEntryEncoder {
         tableEntryMsgBuilder.setAction(encodePiTableAction(piTableEntry.action(), browser));
 
         // Field matches.
-        for (PiFieldMatch piFieldMatch : piTableEntry.matchKey().fieldMatches()) {
-            tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
+        if (piTableEntry.matchKey().equals(PiMatchKey.EMPTY)) {
+            tableEntryMsgBuilder.setIsDefaultAction(true);
+        } else {
+            for (PiFieldMatch piFieldMatch : piTableEntry.matchKey().fieldMatches()) {
+                tableEntryMsgBuilder.addMatch(encodePiFieldMatch(piFieldMatch, tableInfo, browser));
+            }
         }
 
         return tableEntryMsgBuilder.build();
@@ -360,7 +368,11 @@ final class TableEntryEncoder {
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         P4InfoOuterClass.Table tableInfo = browser.tables().getById(tableEntryMsg.getTableId());
-        return decodeFieldMatchMsgs(tableEntryMsg.getMatchList(), tableInfo, browser);
+        if (tableEntryMsg.getMatchCount() == 0) {
+            return PiMatchKey.EMPTY;
+        } else {
+            return decodeFieldMatchMsgs(tableEntryMsg.getMatchList(), tableInfo, browser);
+        }
     }
 
     private static PiMatchKey decodeFieldMatchMsgs(Collection<FieldMatch> fieldMatchs, P4InfoOuterClass.Table tableInfo,
