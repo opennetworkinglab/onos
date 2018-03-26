@@ -198,20 +198,22 @@ public class TroubleshootManager implements TroubleshootService {
 
 
         try {
+            ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
             //if the location deviceId is the same, the two hosts are under same subnet and vlan on the interface
             // we are under same leaf so it's L2 Unicast.
             if (areBridged(source, destination)) {
                 selectorBuilder.matchEthDst(destination.mac());
-                ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
                 source.locations().forEach(hostLocation -> {
                     selectorBuilder.matchInPort(hostLocation.port());
                     StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
                     trace.addEndpointHosts(Pair.of(source, destination));
                     traces.add(trace);
                 });
-                return traces.build();
+                //The destination host is not dual homed, if it is the other path might be done through routing.
+                if (destination.locations().size() == 1) {
+                    return traces.build();
+                }
             }
-
             //handle the IPs for src and dst in case of L3
             if (etherType.equals(EtherType.IPV4) || etherType.equals(EtherType.IPV6)) {
 
@@ -242,7 +244,6 @@ public class TroubleshootManager implements TroubleshootService {
                         " router MAC from segment routing config can't perform L3 tracing.");
                 failTrace.setSuccess(false);
             }
-            ImmutableSet.Builder<StaticPacketTrace> traces = ImmutableSet.builder();
             source.locations().forEach(hostLocation -> {
                 selectorBuilder.matchInPort(hostLocation.port());
                 StaticPacketTrace trace = trace(selectorBuilder.build(), hostLocation);
@@ -508,11 +509,10 @@ public class TroubleshootManager implements TroubleshootService {
                         " which is enabled and is edge port");
                 trace.setSuccess(true);
                 computePath(completePath, trace, outputPath.getOutput());
-                completePath.clear();
                 if (!hasOtherOutput(in.deviceId(), trace, outputPath.getOutput())) {
                     return trace;
                 }
-            } else if (deviceService.getPort(cp).isEnabled()) {
+            } else if (deviceService.getPort(cp) != null && deviceService.getPort(cp).isEnabled()) {
                 EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) trace.getInitialPacket()
                         .getCriterion(Criterion.Type.ETH_TYPE);
                 //We treat as correct output only if it's not LLDP or BDDP
@@ -556,11 +556,17 @@ public class TroubleshootManager implements TroubleshootService {
                 }
 
             } else {
-                //No links means that the packet gets dropped.
-                log.warn("No links out of {}", cp);
                 computePath(completePath, trace, cp);
-                trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
                 trace.setSuccess(false);
+                if (deviceService.getPort(cp) == null) {
+                    //Port is not existant on device.
+                    log.warn("Port {} is not available on device.", cp);
+                    trace.addResultMessage("Port " + cp + "is not available on device. Packet is dropped");
+                } else {
+                    //No links means that the packet gets dropped.
+                    log.warn("No links out of {}", cp);
+                    trace.addResultMessage("No links depart from " + cp + ". Packet is dropped");
+                }
             }
         }
         return trace;
