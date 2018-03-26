@@ -52,14 +52,16 @@ import org.onosproject.net.HostLocation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+public final class Dhcp6HandlerUtil {
 
+    private static final Logger log = LoggerFactory.getLogger(Dhcp6HandlerUtil.class);
 
-public class Dhcp6HandlerUtil {
+    private Dhcp6HandlerUtil() {
+    }
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
     // Returns the first v6 interface ip out of a set of interfaces or null.
     // Checks all interfaces, and ignores v6 interface ips
-    public Ip6Address getRelayAgentIPv6Address(Set<Interface> intfs) {
+    public static Ip6Address getRelayAgentIPv6Address(Set<Interface> intfs) {
         for (Interface intf : intfs) {
             for (InterfaceIpAddress ip : intf.ipAddressesList()) {
                 Ip6Address relayAgentIp = ip.ipAddress().getIp6Address();
@@ -71,6 +73,22 @@ public class Dhcp6HandlerUtil {
         return null;
     }
 
+    /**
+     * Returns the first interface ip from interface.
+     *
+     * @param iface interface of one connect point
+     * @return the first interface IP; null if not exists an IP address in
+     *         these interfaces
+     */
+    private static Ip6Address getFirstIpFromInterface(Interface iface) {
+        checkNotNull(iface, "Interface can't be null");
+        return iface.ipAddressesList().stream()
+                .map(InterfaceIpAddress::ipAddress)
+                .filter(IpAddress::isIp6)
+                .map(IpAddress::getIp6Address)
+                .findFirst()
+                .orElse(null);
+    }
     /**
      *
      * process the LQ reply packet from dhcp server.
@@ -85,7 +103,7 @@ public class Dhcp6HandlerUtil {
      * @param recevingInterfaces set of server side interfaces
      * @return a packet ready to be sent to relevant output interface
      */
-    public InternalPacket processLQ6PacketFromServer(
+    public static InternalPacket processLQ6PacketFromServer(
             List<DhcpServerInfo> defaultServerInfoList,
             List<DhcpServerInfo> indirectServerInfoList,
             Interface serverInterface,
@@ -141,14 +159,14 @@ public class Dhcp6HandlerUtil {
         if ((directConnFlag || indirectDhcpServerIp == null)
                 && !inPort.equals(dhcpServerConnectPoint)) {
             log.warn("Receiving port {} is not the same as server connect point {} for direct or indirect-null",
-                     inPort, dhcpServerConnectPoint);
+                    inPort, dhcpServerConnectPoint);
             return null;
         }
 
         if (!directConnFlag && indirectDhcpServerIp != null &&
                 !inPort.equals(indirectDhcpServerConnectPoint)) {
             log.warn("Receiving port {} is not the same as server connect point {} for indirect",
-                     inPort, indirectDhcpServerConnectPoint);
+                    inPort, indirectDhcpServerConnectPoint);
             return null;
         }
 
@@ -180,9 +198,6 @@ public class Dhcp6HandlerUtil {
         etherReply.setSourceMACAddress(iface.mac());
         etherReply.setDestinationMACAddress(host.mac());
 
-
-        // add host or route
-        //addHostOrRoute(directConnFlag, clientConnectionPoint, lq6Reply, embeddedDhcp6, clientMac, clientInterface);
         // workaround for a bug where core sends src port as 547 (server)
         udpPacket.setDestinationPort(UDP.DHCP_V6_SERVER_PORT);
         udpPacket.setPayload(lq6Reply);
@@ -190,23 +205,7 @@ public class Dhcp6HandlerUtil {
         ipv6Packet.setPayload(udpPacket);
         etherReply.setPayload(ipv6Packet);
 
-        return new Dhcp6HandlerUtil().new InternalPacket(etherReply, clientConnectionPoint);
-    }
-    /**
-     * Returns the first interface ip from interface.
-     *
-     * @param iface interface of one connect point
-     * @return the first interface IP; null if not exists an IP address in
-     *         these interfaces
-     */
-    public Ip6Address getFirstIpFromInterface(Interface iface) {
-        checkNotNull(iface, "Interface can't be null");
-        return iface.ipAddressesList().stream()
-                .map(InterfaceIpAddress::ipAddress)
-                .filter(IpAddress::isIp6)
-                .map(IpAddress::getIp6Address)
-                .findFirst()
-                .orElse(null);
+        return InternalPacket.internalPacket(etherReply, clientConnectionPoint);
     }
 
     /**
@@ -215,7 +214,7 @@ public class Dhcp6HandlerUtil {
      * @param dhcp6 dhcp6 relay-reply or relay-foward
      * @return dhcp6Packet dhcp6 packet extracted from relay-message
      */
-    public DHCP6 dhcp6PacketFromRelayPacket(DHCP6 dhcp6) {
+    public static DHCP6 dhcp6PacketFromRelayPacket(DHCP6 dhcp6) {
 
         // extract the relay message if exist
         DHCP6 dhcp6Payload = dhcp6.getOptions().stream()
@@ -239,7 +238,7 @@ public class Dhcp6HandlerUtil {
      * @param relayPacket dhcp6 relay packet
      * @return leafPacket non-relay dhcp6 packet
      */
-    public DHCP6 getDhcp6Leaf(DHCP6 relayPacket) {
+    public static DHCP6 getDhcp6Leaf(DHCP6 relayPacket) {
         DHCP6 dhcp6Parent = relayPacket;
         DHCP6 dhcp6Child = null;
 
@@ -264,12 +263,24 @@ public class Dhcp6HandlerUtil {
     }
 
     /**
+     * Determine DHCP message type (direct DHCPv6 or wrapped into relay messages).
+     *
+     * @param relayPacket {@link DHCP6} packet to be parsed
+     * @return {@link DHCP6.MsgType} contained message type of dhcpv6 packet/relay-message
+     */
+    public static DHCP6.MsgType getDhcp6LeafMessageType(DHCP6 relayPacket) {
+        checkNotNull(relayPacket);
+        DHCP6 dhcp6Child = getDhcp6Leaf(relayPacket);
+        return DHCP6.MsgType.getType(dhcp6Child != null ? dhcp6Child.getMsgType() : relayPacket.getMsgType());
+    }
+
+    /**
      * check if DHCP6 relay-reply is reply.
      *
      * @param relayPacket dhcp6 relay-reply
      * @return boolean relay-reply contains ack
      */
-    public boolean isDhcp6Reply(DHCP6 relayPacket) {
+    public static boolean isDhcp6Reply(DHCP6 relayPacket) {
         DHCP6 leafDhcp6 = getDhcp6Leaf(relayPacket);
         if (leafDhcp6 != null) {
             if (leafDhcp6.getMsgType() == DHCP6.MsgType.REPLY.value()) {
@@ -291,7 +302,7 @@ public class Dhcp6HandlerUtil {
      * @param dhcp6Payload dhcp6 packet
      * @return boolean dhcp6 contains release
      */
-    public boolean isDhcp6Release(DHCP6 dhcp6Payload) {
+    public static  boolean isDhcp6Release(DHCP6 dhcp6Payload) {
         if (dhcp6Payload.getMsgType() ==  DHCP6.MsgType.RELEASE.value()) {
             log.debug("isDhcp6Release  true.");
             return true;  // must be directly connected
@@ -319,7 +330,7 @@ public class Dhcp6HandlerUtil {
      * @param msgTypeVal msgType byte of dhcp6 packet
      * @return String string value of dhcp6 msg type
      */
-    public String getMsgTypeStr(byte msgTypeVal) {
+    public static String getMsgTypeStr(byte msgTypeVal) {
         MsgType msgType = DHCP6.MsgType.getType(msgTypeVal);
         return DHCP6.MsgType.getMsgTypeStr(msgType);
     }
@@ -331,7 +342,7 @@ public class Dhcp6HandlerUtil {
      * @param dhcp6Packet dhcp6 packet
      * @return String string value of dhcp6 leaf packet msg type
      */
-    public String findLeafMsgType(boolean directConnFlag, DHCP6  dhcp6Packet) {
+    public static String findLeafMsgType(boolean directConnFlag, DHCP6  dhcp6Packet) {
         if (directConnFlag) {
             return getMsgTypeStr(dhcp6Packet.getMsgType());
         } else {
@@ -351,7 +362,7 @@ public class Dhcp6HandlerUtil {
      * @param vlanId the vlan id
      * @return true if the Interface contains the vlan id
      */
-    public boolean interfaceContainsVlan(Interface iface, VlanId vlanId) {
+    public static boolean interfaceContainsVlan(Interface iface, VlanId vlanId) {
         if (vlanId.equals(VlanId.NONE)) {
             // untagged packet, check if vlan untagged or vlan native is not NONE
             return !iface.vlanUntagged().equals(VlanId.NONE) ||
@@ -362,26 +373,12 @@ public class Dhcp6HandlerUtil {
     }
 
     /**
-     * the new class the contains Ethernet packet and destination port.
-     */
-    public class InternalPacket {
-        Ethernet packet;
-        ConnectPoint destLocation;
-        public InternalPacket(Ethernet newPacket, ConnectPoint newLocation) {
-            packet = newPacket;
-            destLocation = newLocation;
-        }
-        void setLocation(ConnectPoint newLocation) {
-            destLocation = newLocation;
-        }
-    }
-    /**
      * Check if the host is directly connected to the network or not.
      *
      * @param dhcp6Payload the dhcp6 payload
      * @return true if the host is directly connected to the network; false otherwise
      */
-    public boolean directlyConnected(DHCP6 dhcp6Payload) {
+    public static boolean directlyConnected(DHCP6 dhcp6Payload) {
 
         log.debug("directlyConnected enters");
         if (dhcp6Payload.getMsgType() == DHCP6.MsgType.LEASEQUERY.value() ||
@@ -405,7 +402,8 @@ public class Dhcp6HandlerUtil {
                 return false;
             } else {
                 // relay-reply
-                if (dhcp6Payload2.getMsgType() != DHCP6.MsgType.RELAY_REPL.value()) {
+                if (dhcp6Payload2.getMsgType() != DHCP6.MsgType.RELAY_REPL.value()
+                        && dhcp6Payload2.getMsgType() != MsgType.LEASEQUERY_REPLY.value()) {
                     log.debug("directlyConnected  true. 2nd MsgType {}", dhcp6Payload2.getMsgType());
                     return true;  // must be directly connected
                 } else {
@@ -425,7 +423,7 @@ public class Dhcp6HandlerUtil {
      * @param serverInfo server info to check
      * @return true if server info has v6 ip address; false otherwise
      */
-    public boolean isServerIpEmpty(DhcpServerInfo serverInfo) {
+    public static boolean isServerIpEmpty(DhcpServerInfo serverInfo) {
         if (!serverInfo.getDhcpServerIp6().isPresent()) {
             log.warn("DhcpServerIp not available, use default DhcpServerIp {}",
                     HexString.toHexString(serverInfo.getDhcpServerIp6().get().toOctets()));
@@ -434,7 +432,7 @@ public class Dhcp6HandlerUtil {
         return false;
     }
 
-    private boolean isConnectMacEmpty(DhcpServerInfo serverInfo, Set<Interface> clientInterfaces) {
+    private static boolean isConnectMacEmpty(DhcpServerInfo serverInfo, Set<Interface> clientInterfaces) {
         if (!serverInfo.getDhcpConnectMac().isPresent()) {
             log.warn("DHCP6 {} not yet resolved .. Aborting DHCP "
                             + "packet processing from client on port: {}",
@@ -446,7 +444,7 @@ public class Dhcp6HandlerUtil {
         return false;
     }
 
-    private boolean isRelayAgentIpFromCfgEmpty(DhcpServerInfo serverInfo, DeviceId receivedFromDevice) {
+    private static boolean isRelayAgentIpFromCfgEmpty(DhcpServerInfo serverInfo, DeviceId receivedFromDevice) {
         if (!serverInfo.getRelayAgentIp6(receivedFromDevice).isPresent()) {
             log.warn("indirect connection: relayAgentIp NOT availale from config file! Use dynamic.");
             return true;
@@ -454,7 +452,7 @@ public class Dhcp6HandlerUtil {
         return false;
     }
 
-    private Dhcp6Option getInterfaceIdIdOption(PacketContext context, Ethernet clientPacket) {
+    private static Dhcp6Option getInterfaceIdIdOption(PacketContext context, Ethernet clientPacket) {
         String inPortString = "-" + context.inPacket().receivedFrom().toString() + ":";
         Dhcp6Option interfaceId = new Dhcp6Option();
         interfaceId.setCode(DHCP6.OptionCode.INTERFACE_ID.value());
@@ -482,7 +480,7 @@ public class Dhcp6HandlerUtil {
         return interfaceId;
     }
 
-    private void addDhcp6OptionsFromClient(List<Dhcp6Option> options, byte[] dhcp6PacketByte,
+    private static void addDhcp6OptionsFromClient(List<Dhcp6Option> options, byte[] dhcp6PacketByte,
                                            PacketContext context, Ethernet clientPacket) {
         Dhcp6Option relayMessage = new Dhcp6Option();
         relayMessage.setCode(DHCP6.OptionCode.RELAY_MSG.value());
@@ -504,7 +502,7 @@ public class Dhcp6HandlerUtil {
      * @param serverInterface target server interface
      * @return ethernet packet with dhcp6 packet info
      */
-    public Ethernet buildDhcp6PacketFromClient(PacketContext context, Ethernet clientPacket,
+    public static Ethernet buildDhcp6PacketFromClient(PacketContext context, Ethernet clientPacket,
                                                Set<Interface> clientInterfaces, DhcpServerInfo serverInfo,
                                                Interface serverInterface) {
         ConnectPoint receivedFrom = context.inPacket().receivedFrom();
@@ -604,7 +602,7 @@ public class Dhcp6HandlerUtil {
      * @param serverInfo server to check its connect point
      * @return boolean true if serverInfo is found; false otherwise
      */
-    public boolean checkDhcpServerConnPt(boolean directConnFlag,
+    public static boolean checkDhcpServerConnPt(boolean directConnFlag,
                                           DhcpServerInfo serverInfo) {
         if (serverInfo.getDhcpServerConnectPoint() == null) {
             log.warn("DHCP6 server connect point for {} connPt {}",

@@ -18,12 +18,8 @@ package org.onosproject.dhcprelay;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.VlanId;
-
-import org.onlab.packet.Ethernet;
-
 import org.onlab.util.HexString;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
 
@@ -31,10 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Set;
 
-public class Dhcp4HandlerUtil {
+public final class Dhcp4HandlerUtil {
+    private static final Logger log = LoggerFactory.getLogger(Dhcp4HandlerUtil.class);
 
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private Dhcp4HandlerUtil() {
+    }
 
     /**
      * Returns the first v4 interface ip out of a set of interfaces or null.
@@ -42,7 +39,7 @@ public class Dhcp4HandlerUtil {
      * @param intfs set of interfaces
      * @return Ip4Address / null if not present
      */
-    public Ip4Address getRelayAgentIPv4Address(Set<Interface> intfs) {
+    public static Ip4Address getRelayAgentIPv4Address(Set<Interface> intfs) {
         for (Interface intf : intfs) {
             for (InterfaceIpAddress ip : intf.ipAddressesList()) {
                 Ip4Address relayAgentIp = ip.ipAddress().getIp4Address();
@@ -61,7 +58,7 @@ public class Dhcp4HandlerUtil {
      * @param vlanId the vlan id
      * @return true if the Interface contains the vlan id
      */
-    public boolean interfaceContainsVlan(Interface iface, VlanId vlanId) {
+    public static boolean interfaceContainsVlan(Interface iface, VlanId vlanId) {
         if (vlanId.equals(VlanId.NONE)) {
             // untagged packet, check if vlan untagged or vlan native is not NONE
             return !iface.vlanUntagged().equals(VlanId.NONE) ||
@@ -77,7 +74,7 @@ public class Dhcp4HandlerUtil {
      * @param serverInfo server info to check
      * @return true if server info has v6 ip address; false otherwise
      */
-    public boolean isServerIpEmpty(DhcpServerInfo serverInfo) {
+    public static boolean isServerIpEmpty(DhcpServerInfo serverInfo) {
         if (!serverInfo.getDhcpServerIp4().isPresent()) {
             log.warn("DhcpServerIp not available, use default DhcpServerIp {}",
                     HexString.toHexString(serverInfo.getDhcpServerIp4().get().toOctets()));
@@ -85,20 +82,5 @@ public class Dhcp4HandlerUtil {
         }
         return false;
     }
-
-
-    /**
-     * the new class the contains Ethernet packet and destination port.
-     */
-    public class InternalPacket {
-        Ethernet packet;
-        ConnectPoint destLocation;
-        public InternalPacket(Ethernet newPacket, ConnectPoint newLocation) {
-            packet = newPacket;
-            destLocation = newLocation;
-        }
-    }
-
-
 }
 

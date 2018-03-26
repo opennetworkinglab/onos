@@ -56,15 +56,15 @@ import org.onosproject.dhcprelay.api.DhcpHandler;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
-import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
-import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.config.EnableDhcpFpmConfig;
+import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
+import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
 import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.Device;
-import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.net.Host;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.device.DeviceEvent;
@@ -206,7 +206,6 @@ public class DhcpRelayManager implements DhcpRelayService {
             label = "Enable DhcpRelay Fpm")
     protected boolean dhcpFpmEnabled = false;
 
-
     private ScheduledExecutorService timerExecutor;
 
     protected DeviceListener deviceListener = new InternalDeviceListener();
@@ -321,7 +320,6 @@ public class DhcpRelayManager implements DhcpRelayService {
             }
             v6Handler.setDhcpFpmEnabled(dhcpFpmEnabled);
         }
-
     }
 
     private static List<TrafficSelector> buildClientDhcpSelectors() {
