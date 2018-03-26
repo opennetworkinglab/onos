@@ -20,11 +20,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-app-mcast</artifactId>
-        <version>1.12.1-SNAPSHOT</version>
+        <artifactId>onos-apps-mcast</artifactId>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-mcast-pkg</artifactId>
+    <artifactId>onos-apps-mcast-pkg</artifactId>
     <packaging>pom</packaging>
 
     <description>ONOS Multicast handling application</description>
@@ -32,22 +32,22 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-api</artifactId>
+            <artifactId>onos-apps-mcast-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-impl</artifactId>
+            <artifactId>onos-apps-mcast-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-web</artifactId>
+            <artifactId>onos-apps-mcast-web</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-cli</artifactId>
+            <artifactId>onos-apps-mcast-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

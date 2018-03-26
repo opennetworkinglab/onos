@@ -19,9 +19,9 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <feature>onos-drivers-default</feature>
-        <bundle>mvn:${project.groupId}/onos-app-mcast-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mcast-impl/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mcast-web/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mcast-cli/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mcast-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mcast-impl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mcast-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mcast-cli/${project.version}</bundle>
     </feature>
 </features>

@@ -19,8 +19,8 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-mcast-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mcast-impl/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mcast-web/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mcast-cli/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mcast-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mcast-impl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mcast-web/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mcast-cli/${project.version}</artifact>
 </app>
