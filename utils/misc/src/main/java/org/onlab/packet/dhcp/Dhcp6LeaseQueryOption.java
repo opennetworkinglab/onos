@@ -36,9 +36,11 @@ public final class Dhcp6LeaseQueryOption extends Dhcp6Option {
     //public short QueryType;
     public Ip6Address linkAddress;
     private List<Dhcp6Option> options;
+    public byte queryType;
 
     public Dhcp6LeaseQueryOption(Dhcp6Option dhcp6Option) {
         super(dhcp6Option);
+        options =  Lists.newArrayList();
     }
 
     @Override
@@ -66,10 +68,10 @@ public final class Dhcp6LeaseQueryOption extends Dhcp6Option {
             Dhcp6LeaseQueryOption lQ6Option = new Dhcp6LeaseQueryOption(dhcp6Option);
 
             byte[] optionData = lQ6Option.getData();
-            if (optionData.length >= 61) { // 61 is LQ option length + 4 header
+            if (optionData.length >= DEFAULT_LEN) {
                 ByteBuffer bb = ByteBuffer.wrap(optionData);
                 // fetch the Query type - just pop the byte from the byte buffer for subsequent parsing...
-                bb.get();
+                lQ6Option.queryType = bb.get();
                 byte[] ipv6Addr = new byte[16];
                 bb.get(ipv6Addr);
                 lQ6Option.linkAddress = Ip6Address.valueOf(ipv6Addr);
@@ -108,10 +110,13 @@ public final class Dhcp6LeaseQueryOption extends Dhcp6Option {
 
     @Override
     public byte[] serialize() {
-        ByteBuffer bb = ByteBuffer.allocate(this.getLength() + Dhcp6Option.DEFAULT_LEN);
+        byte[] serializedPayload = payload.serialize();
+
+        ByteBuffer bb = ByteBuffer.allocate(serializedPayload.length + Dhcp6Option.DEFAULT_LEN);
         bb.putShort(getCode());
         bb.putShort(getLength());
-        bb.put(payload.serialize());
+        bb.put(serializedPayload);
+
         return bb.array();
     }
 
