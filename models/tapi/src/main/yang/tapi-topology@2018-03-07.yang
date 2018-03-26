@@ -37,7 +37,9 @@ module tapi-topology {
             type leafref {
                 path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     grouping link-ref {
@@ -46,7 +48,9 @@ module tapi-topology {
             type leafref {
                 path '/tapi-common:context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     grouping node-ref {
@@ -55,7 +59,9 @@ module tapi-topology {
             type leafref {
                 path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     grouping owned-node-edge-point-ref {
@@ -64,7 +70,9 @@ module tapi-topology {
             type leafref {
                 path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     grouping node-rule-group-ref {
@@ -73,12 +81,14 @@ module tapi-topology {
             type leafref {
                 path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:node-rule-group/tapi-topology:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     /***********************
     * package object-classes
-    **********************/
+    **********************/ 
         grouping link {
             list node-edge-point {
                 uses owned-node-edge-point-ref;
@@ -96,8 +106,8 @@ module tapi-topology {
             leaf direction {
                 type tapi-common:forwarding-direction;
                 config false;
-                description "The directionality of the Link.
-                    Is applicable to simple Links where all LinkEnds are BIDIRECTIONAL (the Link will be BIDIRECTIONAL) or UNIDIRECTIONAL (the Link will be UNIDIRECTIONAL).
+                description "The directionality of the Link. 
+                    Is applicable to simple Links where all LinkEnds are BIDIRECTIONAL (the Link will be BIDIRECTIONAL) or UNIDIRECTIONAL (the Link will be UNIDIRECTIONAL). 
                     Is not present in more complex cases.";
             }
             container resilience-type {
@@ -122,10 +132,9 @@ module tapi-topology {
                 uses node-edge-point;
                 description "none";
             }
-            leaf-list aggregated-node-edge-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
-                }
+            list aggregated-node-edge-point {
+            	uses owned-node-edge-point-ref;
+                key 'topology-id node-id owned-node-edge-point-id';
                 config false;
                 description "none";
             }
@@ -151,7 +160,7 @@ module tapi-topology {
             uses transfer-cost-pac;
             uses transfer-integrity-pac;
             uses transfer-timing-pac;
-            description "The ForwardingDomain (FD) object class models the “ForwardingDomain” topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding.
+            description "The ForwardingDomain (FD) object class models the ForwardingDomain topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding. 
                 At the lowest level of recursion, an FD (within a network element (NE)) represents a switch matrix (i.e., a fabric). Note that an NE can encompass multiple switch matrices (FDs). ";
         }
         grouping topology {
@@ -174,7 +183,7 @@ module tapi-topology {
                 description "none";
             }
             uses tapi-common:resource-spec;
-            description "The ForwardingDomain (FD) object class models the “ForwardingDomain” topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding.
+            description "The ForwardingDomain (FD) object class models the ForwardingDomain topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding. 
                 At the lowest level of recursion, an FD (within a network element (NE)) represents a switch matrix (i.e., a fabric). Note that an NE can encompass multiple switch matrices (FDs). ";
         }
         grouping layer-protocol-transition-pac {
@@ -183,8 +192,8 @@ module tapi-topology {
                 min-elements 2;
                 description "Provides the ordered structure of layer protocol transitions encapsulated in the TopologicalEntity. The ordering relates to the LinkPort role.";
             }
-            description "Relevant for a Link that is formed by abstracting one or more LTPs (in a stack) to focus on the flow and deemphasize the protocol transformation.
-                This abstraction is relevant when considering multi-layer routing.
+            description "Relevant for a Link that is formed by abstracting one or more LTPs (in a stack) to focus on the flow and deemphasize the protocol transformation. 
+                This abstraction is relevant when considering multi-layer routing. 
                 The layer protocols of the LTP and the order of their application to the signal is still relevant and need to be accounted for. This is derived from the LTP spec details.
                 This Pac provides the relevant abstractions of the LTPs and provides the necessary association to the LTPs involved.
                 Links that included details in this Pac are often referred to as Transitional Links.";
@@ -195,10 +204,9 @@ module tapi-topology {
                 config false;
                 description "none";
             }
-            leaf-list aggregated-node-edge-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
-                }
+            list aggregated-node-edge-point {
+            	uses owned-node-edge-point-ref;
+                key 'topology-id node-id owned-node-edge-point-id';
                 config false;
                 description "none";
             }
@@ -222,7 +230,7 @@ module tapi-topology {
             uses tapi-common:admin-state-pac;
             uses tapi-common:termination-pac;
             uses tapi-common:capacity-pac;
-            description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers.
+            description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
                 The structure of LTP supports all transport protocols including circuit and packet forms.";
         }
         grouping risk-parameter-pac {
@@ -233,7 +241,7 @@ module tapi-topology {
                 uses risk-characteristic;
                 description "A list of risk characteristics for consideration in an analysis of shared risk. Each element of the list represents a specific risk consideration.";
             }
-            description "The risk characteristics of a TopologicalEntity come directly from the underlying physical realization.
+            description "The risk characteristics of a TopologicalEntity come directly from the underlying physical realization. 
                 The risk characteristics propagate from the physical realization to the client and from the server layer to the client layer, this propagation may be modified by protection.
                 A TopologicalEntity may suffer degradation or failure as a result of a problem in a part of the underlying realization.
                 The realization can be partitioned into segments which have some relevant common failure modes.
@@ -254,16 +262,16 @@ module tapi-topology {
                 uses cost-characteristic;
                 description "The list of costs where each cost relates to some aspect of the TopologicalEntity.";
             }
-            description "The cost characteristics of a TopologicalEntity not necessarily correlated to the cost of the underlying physical realization.
+            description "The cost characteristics of a TopologicalEntity not necessarily correlated to the cost of the underlying physical realization. 
                 They may be quite specific to the individual TopologicalEntity e.g. opportunity cost. Relates to layer capacity
-                There may be many perspectives from which cost may be considered  for a particular TopologicalEntity and hence many specific costs and potentially cost algorithms.
+                There may be many perspectives from which cost may be considered  for a particular TopologicalEntity and hence many specific costs and potentially cost algorithms. 
                 Using an entity will incur a cost. ";
         }
         grouping transfer-integrity-pac {
             leaf error-characteristic {
                 type string;
                 config false;
-                description "Describes the degree to which the signal propagated can be errored.
+                description "Describes the degree to which the signal propagated can be errored. 
                     Applies to TDM systems as the errored signal will be propagated and not packet as errored packets will be discarded.";
             }
             leaf loss-characteristic {
@@ -275,7 +283,7 @@ module tapi-topology {
             leaf repeat-delivery-characteristic {
                 type string;
                 config false;
-                description "Primarily applies to packet systems where a packet may be delivered more than once (in fault recovery for example).
+                description "Primarily applies to packet systems where a packet may be delivered more than once (in fault recovery for example). 
                     It can also apply to TDM where several frames may be received twice due to switching in a system with a large differential propagation delay.";
             }
             leaf delivery-order-characteristic {
@@ -319,10 +327,9 @@ module tapi-topology {
             description "Validation covers the various adjacenct discovery and reachability verification protocols. Also may cover Information source and degree of integrity.";
         }
         grouping network-topology-service {
-            leaf-list topology {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
-                }
+            list topology {
+                uses topology-ref;
+                key 'topology-id';
                 config false;
                 description "none";
             }
@@ -370,10 +377,9 @@ module tapi-topology {
                 uses rule;
                 description "none";
             }
-            leaf-list node-edge-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
-                }
+            list node-edge-point {
+            	uses owned-node-edge-point-ref;
+                key 'topology-id node-id owned-node-edge-point-id';
                 min-elements 1;
                 description "none";
             }

@@ -30,7 +30,9 @@ module tapi-common {
             type leafref {
                 path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     /***********************
@@ -276,13 +278,13 @@ module tapi-common {
                 }
                 enum POTENTIAL_AVAILABLE {
                     description "The supporting resources are present in the network but are shared with other clients; or require further configuration before they can be used; or both.
-                        o    When a potential resource is configured and allocated to a client it is moved to the “installed” state for that client.
-                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the “planned” state for all other clients.";
+                        o    When a potential resource is configured and allocated to a client it is moved to the installed state for that client.
+                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the planned state for all other clients.";
                 }
                 enum POTENTIAL_BUSY {
                     description "The supporting resources are present in the network but are shared with other clients; or require further configuration before they can be used; or both.
-                        o    When a potential resource is configured and allocated to a client it is moved to the “installed” state for that client.
-                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the “planned” state for all other clients.";
+                        o    When a potential resource is configured and allocated to a client it is moved to the installed state for that client.
+                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the planned state for all other clients.";
                 }
                 enum INSTALLED {
                     description "The resource is present in the network and is capable of providing the service expected.";

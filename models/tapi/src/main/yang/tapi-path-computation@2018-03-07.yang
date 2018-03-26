@@ -39,12 +39,14 @@ module tapi-path-computation {
             type leafref {
                 path '/tapi-common:context/tapi-path-computation:path/tapi-path-computation:uuid';
             }
+            description "none";
         }
+        description "none";
     }
 
     /***********************
     * package object-classes
-    **********************/
+    **********************/ 
         grouping path {
             list link {
                 uses tapi-topology:link-ref;
@@ -62,10 +64,8 @@ module tapi-path-computation {
             description "Path is described by an ordered list of TE Links. A TE Link is defined by a pair of Node/NodeEdgePoint IDs. A Connection is realized by concatenating link resources (associated with a Link) and the lower-level connections (cross-connections) in the different nodes";
         }
         grouping path-service-end-point {
-            leaf service-interface-point {
-                type leafref {
-                    path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
-                }
+            container service-interface-point {
+            	uses tapi-common:service-interface-point-ref;
                 config false;
                 description "none";
             }
@@ -86,11 +86,11 @@ module tapi-path-computation {
             }
             uses tapi-common:local-class;
             description "The association of the FC to LTPs is made via EndPoints.
-                The EndPoint (EP) object class models the access to the FC function.
-                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.
-                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC.
+                The EndPoint (EP) object class models the access to the FC function. 
+                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.  
+                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC. 
                 It can represent a protected (resilient/reliable) point or a protecting (unreliable working or protection) point.
-                The EP replaces the Protection Unit of a traditional protection model.
+                The EP replaces the Protection Unit of a traditional protection model. 
                 The ForwadingConstruct can be considered as a component and the EndPoint as a Port on that component";
         }
         grouping path-computation-service {
@@ -195,10 +195,9 @@ module tapi-path-computation {
                 config false;
                 description "none";
             }
-            leaf-list avoid-topology {
-                type leafref {
-                    path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
-                }
+            list avoid-topology {
+                uses tapi-topology:topology-ref;
+                key 'topology-id';
                 config false;
                 description "none";
             }
