@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.mcast;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.HostId;
 
 import java.util.Objects;
 
@@ -31,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 class McastCacheKey {
     // The group ip
     private final IpAddress mcastIp;
+    // The sink id
+    private final HostId sinkHost;
     // The sink connect point
     private final ConnectPoint sink;
 
@@ -39,6 +42,8 @@ class McastCacheKey {
      *
      * @param mcastIp multicast group IP address
      * @param sink connect point of the sink
+     *
+     * @deprecated in 1.12 ("Magpie") release.
      */
     public McastCacheKey(IpAddress mcastIp, ConnectPoint sink) {
         checkNotNull(mcastIp, "mcastIp cannot be null");
@@ -46,6 +51,22 @@ class McastCacheKey {
         checkArgument(mcastIp.isMulticast(), "mcastIp must be a multicast address");
         this.mcastIp = mcastIp;
         this.sink = sink;
+        this.sinkHost = null;
+    }
+
+    /**
+     * Constructs a key for multicast event cache.
+     *
+     * @param mcastIp multicast group IP address
+     * @param hostId id of the sink
+     */
+    public McastCacheKey(IpAddress mcastIp, HostId hostId) {
+        checkNotNull(mcastIp, "mcastIp cannot be null");
+        checkNotNull(hostId, "sink cannot be null");
+        checkArgument(mcastIp.isMulticast(), "mcastIp must be a multicast address");
+        this.mcastIp = mcastIp;
+        this.sinkHost = hostId;
+        this.sink = null;
     }
 
     /**
@@ -61,9 +82,20 @@ class McastCacheKey {
      * Returns the sink of this key.
      *
      * @return connect point of the sink
+     *
+     * @deprecated in 1.12 ("Magpie") release.
      */
     public ConnectPoint sink() {
         return sink;
+    }
+
+    /**
+     * Returns the sink of this key.
+     *
+     * @return host id of the sink
+     */
+    public HostId sinkHost() {
+        return sinkHost;
     }
 
     @Override
@@ -77,7 +109,8 @@ class McastCacheKey {
         McastCacheKey that =
                 (McastCacheKey) o;
         return (Objects.equals(this.mcastIp, that.mcastIp) &&
-                Objects.equals(this.sink, that.sink));
+                Objects.equals(this.sink, that.sink) &&
+                Objects.equals(this.sinkHost, that.sinkHost));
     }
 
     @Override
@@ -90,6 +123,7 @@ class McastCacheKey {
         return toStringHelper(getClass())
                 .add("mcastIp", mcastIp)
                 .add("sink", sink)
+                .add("sinkHost", sinkHost)
                 .toString();
     }
 }
