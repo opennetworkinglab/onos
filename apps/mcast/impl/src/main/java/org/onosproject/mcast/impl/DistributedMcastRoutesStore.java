@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -74,9 +73,6 @@ public class DistributedMcastRoutesStore
     private ConsistentMap<McastRoute, McastRouteData> mcastRib;
     private MapEventListener<McastRoute, McastRouteData> mcastRouteListener =
             new McastRouteListener();
-
-    private ScheduledExecutorService executor;
-
 
     @Activate
     public void activate() {
@@ -117,7 +113,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void storeSources(McastRoute route, Set<ConnectPoint> sources) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.addSources(sources);
             return v;
         });
@@ -125,7 +121,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSources(McastRoute route) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSources();
             return v;
         });
@@ -133,7 +129,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSources(McastRoute route, Set<ConnectPoint> sources) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSources(sources);
             return v;
         });
@@ -142,7 +138,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void addSink(McastRoute route, HostId hostId, Set<ConnectPoint> sinks) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.addSinks(hostId, sinks);
             return v;
         });
@@ -150,7 +146,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void addSinks(McastRoute route, Set<ConnectPoint> sinks) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.addSinks(HostId.NONE, sinks);
             return v;
         });
@@ -159,7 +155,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSinks(McastRoute route) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSinks();
             return v;
         });
@@ -167,7 +163,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSink(McastRoute route, HostId hostId) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSinks(hostId);
             return v;
         });
@@ -175,7 +171,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSinks(McastRoute route, HostId hostId, Set<ConnectPoint> sinks) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSinks(hostId, sinks);
             return v;
         });
@@ -183,7 +179,7 @@ public class DistributedMcastRoutesStore
 
     @Override
     public void removeSinks(McastRoute route, Set<ConnectPoint> sinks) {
-        McastRouteData data = mcastRoutes.compute(route, (k, v) -> {
+        mcastRoutes.compute(route, (k, v) -> {
             v.removeSinks(HostId.NONE, sinks);
             return v;
         });

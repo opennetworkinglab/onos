@@ -21,12 +21,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.MulticastRouteService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
-
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Deletes a multicast route.
@@ -60,13 +55,6 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
             valueToShowInHelp = "00:00:00:00:00:00/None")
     String host = null;
 
-    @Option(name = "-cps", aliases = "--connectPoint",
-            description = "Egress port of:XXXXXXXXXX/XX",
-            valueToShowInHelp = "of:0000000000000001/1",
-            multiValued = true)
-    String[] egressList = null;
-
-
     @Override
     protected void execute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
@@ -89,12 +77,7 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
             print(U_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
             return;
         }
-        if (host != null && egressList != null) {
-            Set<ConnectPoint> sinksSet = Arrays.stream(egressList)
-                    .map(ConnectPoint::deviceConnectPoint)
-                    .collect(Collectors.toSet());
-            mcastRouteManager.removeSinks(mRoute, hostId, sinksSet);
-        } else if (host != null) {
+        if (host != null) {
             mcastRouteManager.removeSink(mRoute, hostId);
         }
         print(U_FORMAT_MAPPING, mRoute.type(), mRoute.group(), mRoute.source());
