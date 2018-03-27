@@ -97,9 +97,7 @@ public final class McastRouteData {
      */
     public void addSources(Set<ConnectPoint> sources) {
         checkArgument(!sources.contains(null));
-        sources.forEach(source -> {
-            this.sources.put(source, true);
-        });
+        sources.forEach(source -> this.sources.put(source, true));
     }
 
     /**
@@ -129,7 +127,12 @@ public final class McastRouteData {
     public void addSinks(HostId hostId, Set<ConnectPoint> sinks) {
         checkNotNull(hostId);
         checkArgument(!sinks.contains(null));
-        this.sinks.put(hostId, sinks);
+        //if existing we add to current set, otherwise we put them all
+        if (this.sinks.containsKey(hostId)) {
+            this.sinks.get(hostId).addAll(sinks);
+        } else {
+            this.sinks.put(hostId, sinks);
+        }
     }
 
     /**
@@ -168,7 +171,10 @@ public final class McastRouteData {
     public void removeSinks(HostId hostId, Set<ConnectPoint> sinks) {
         checkNotNull(hostId);
         checkArgument(!sinks.contains(null));
-        this.sinks.get(hostId).removeAll(sinks);
+        //if existing we remove from current set, otherwise just skip them
+        if (this.sinks.containsKey(hostId)) {
+            this.sinks.get(hostId).removeAll(sinks);
+        }
     }
 
     /**

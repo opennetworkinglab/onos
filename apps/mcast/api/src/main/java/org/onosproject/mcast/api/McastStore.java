@@ -23,7 +23,7 @@ import org.onosproject.store.Store;
 import java.util.Set;
 
 /**
- * Entity responsible for storing multicast state information.
+ * Entity responsible for storing Multicast state information.
  */
 @Beta
 public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
@@ -31,21 +31,21 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     /**
      * Updates the store with the route information.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void storeRoute(McastRoute route);
 
     /**
-     * Updates the store with the route information.
+     * Removes from the store the route information.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void removeRoute(McastRoute route);
 
     /**
      * Add to the store with source information for the given route.
      *
-     * @param route   a multicast route
+     * @param route   a Multicast route
      * @param sources a set of sources
      */
     void storeSources(McastRoute route, Set<ConnectPoint> sources);
@@ -53,7 +53,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     /**
      * Removes from the store all the sources information for a given route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void removeSources(McastRoute route);
 
@@ -61,7 +61,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * Removes from the store the source information for the given route.
      * value.
      *
-     * @param route   a multicast route
+     * @param route   a Multicast route
      * @param sources a set of sources
      */
     void removeSources(McastRoute route, Set<ConnectPoint> sources);
@@ -70,7 +70,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * Updates the store with a host based sink information for a given route. There may be
      * multiple sink connect points for the given host.
      *
-     * @param route  a multicast route
+     * @param route  a Multicast route
      * @param hostId the host sink
      * @param sinks  the sinks
      */
@@ -81,7 +81,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * The sinks stored with this method are not tied with any host.
      * Traffic will be sent to all of them.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @param sinks set of specific connect points
      */
     void addSinks(McastRoute route, Set<ConnectPoint> sinks);
@@ -89,73 +89,72 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     /**
      * Removes from the store all the sink information for a given route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void removeSinks(McastRoute route);
 
     /**
      * Removes from the store the complete set of sink information for a given host for a given route.
      *
-     * @param route  a multicast route
+     * @param route  a Multicast route
      * @param hostId a specific host
      */
     void removeSink(McastRoute route, HostId hostId);
 
     /**
-     * Removes from the store the given set of sink information for a given host for a given route.
+     * Removes a set of sink connect points for a given host the route.
      *
-     * @param route  a multicast route
-     * @param hostId the host
-     * @param sinks  a set of multicast sink connect points
+     * @param route         the multicast route
+     * @param hostId        a sink host
+     * @param connectPoints a given set of connect points to remove
      */
-    void removeSinks(McastRoute route, HostId hostId, Set<ConnectPoint> sinks);
+    void removeSinks(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
 
     /**
      * Removes from the store the set of non host bind sink information for a given route.
      *
-     * @param route a multicast route
-     * @param sinks a set of multicast sinks
+     * @param route a Multicast route
+     * @param sinks a set of Multicast sinks
      */
     void removeSinks(McastRoute route, Set<ConnectPoint> sinks);
 
     /**
-     * Obtains the sources for a multicast route.
+     * Obtains the sources for a Multicast route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @return a connect point
      */
     Set<ConnectPoint> sourcesFor(McastRoute route);
 
     /**
-     * Obtains the sinks for a multicast route.
+     * Obtains the sinks for a Multicast route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @return a set of sinks
      */
     Set<ConnectPoint> sinksFor(McastRoute route);
 
     /**
-     * Obtains the sinks for a given host for a given multicast route.
+     * Obtains the sinks for a given host for a given Multicast route.
      *
-     * @param route  a multicast route
+     * @param route  a Multicast route
      * @param hostId the host
      * @return a set of sinks
      */
     Set<ConnectPoint> sinksFor(McastRoute route, HostId hostId);
 
-
     /**
-     * Gets the set of all known multicast routes.
+     * Gets the set of all known Multicast routes.
      *
-     * @return set of multicast routes.
+     * @return set of Multicast routes.
      */
     Set<McastRoute> getRoutes();
 
     /**
-     * Gets the multicast data for a given route.
+     * Gets the Multicast data for a given route.
      *
      * @param route the route
-     * @return set of multicast routes.
+     * @return set of Multicast routes.
      */
     McastRouteData getRouteData(McastRoute route);
 }

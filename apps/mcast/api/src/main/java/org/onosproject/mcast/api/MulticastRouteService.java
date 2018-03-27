@@ -21,11 +21,10 @@ import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
- * A service interface for maintaining multicast information.
+ * A service interface for maintaining Multicast information.
  */
 @Beta
 public interface MulticastRouteService
@@ -34,73 +33,73 @@ public interface MulticastRouteService
     /**
      * Adds an empty route to the information base for the given group IP.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void add(McastRoute route);
 
     /**
      * Removes a route from the information base.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      */
     void remove(McastRoute route);
 
     /**
-     * Gets all multicast routes in the system.
+     * Gets all Multicast routes in the system.
      *
-     * @return set of multicast routes
+     * @return set of Multicast routes
      */
     Set<McastRoute> getRoutes();
 
     /**
-     * Gets a multicast route in the system.
+     * Gets a Multicast route in the system.
      *
-     * @param groupIp multicast group IP address
-     * @param sourceIp multicasto source Ip address
-     * @return set of multicast routes
+     * @param groupIp Multicast group IP address
+     * @param sourceIp Multicasto source Ip address
+     * @return set of Multicast routes
      */
-    Optional<McastRoute> getRoute(IpAddress groupIp, IpAddress sourceIp);
+    Set<McastRoute> getRoute(IpAddress groupIp, IpAddress sourceIp);
 
     /**
-     * Adds a set of source to the route from where the
+     * Adds a set of sources connect points to the route from where the
      * data stream is originating.
      *
-     * @param route   the multicast route
+     * @param route   the Multicast route
      * @param sources a set of sources
      */
     void addSources(McastRoute route, Set<ConnectPoint> sources);
 
     /**
-     * Removes all the sources from the route.
+     * Removes all the sources connect points from the route.
      *
-     * @param route the multicast route
+     * @param route the Multicast route
      */
     void removeSources(McastRoute route);
 
     /**
-     * Removes a set of sources from the route.
+     * Removes a set of sources connect points from the route.
      *
-     * @param route   the multicast route
+     * @param route   the Multicast route
      * @param sources a set of sources
      */
     void removeSources(McastRoute route, Set<ConnectPoint> sources);
 
     /**
-     * Adds a set of sink to the route to which a data stream should be
+     * Adds a sink to the route to which a data stream should be
      * sent to.
      *
-     * @param route  a multicast route
+     * @param route  a Multicast route
      * @param hostId a sink host
      */
     void addSink(McastRoute route, HostId hostId);
 
     /**
      * Adds a set of sink to the route to which a data stream should be
-     * sent to. If this method is used this the connect points will all
-     * be used a sink for that Mcast Tree. For dual-homed sinks please use
-     * {@link #addSink(McastRoute route, HostId hostId) addSink}.
+     * sent to. If this method is used the connect points will all be
+     * used as different sinks for that Mcast Tree. For dual-homed sinks
+     * please use {@link #addSink(McastRoute route, HostId hostId) addSink}.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @param sinks a set of sink connect point
      */
     void addSink(McastRoute route, Set<ConnectPoint> sinks);
@@ -108,26 +107,17 @@ public interface MulticastRouteService
     /**
      * Removes all the sinks from the route.
      *
-     * @param route the multicast route
+     * @param route the Multicast route
      */
     void removeSinks(McastRoute route);
 
     /**
-     * Removes a sink host from the route.
+     * Removes a sink from the route.
      *
-     * @param route  the multicast route
+     * @param route  the Multicast route
      * @param hostId a sink host
      */
     void removeSink(McastRoute route, HostId hostId);
-
-    /**
-     * Removes a set of sink connect points for a given host the route.
-     *
-     * @param route         the multicast route
-     * @param hostId        a sink host
-     * @param connectPoints a given set of connect points to remove
-     */
-    void removeSinks(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
 
     /**
      * Removes a set of sinks to the route to which a data stream should be
@@ -135,13 +125,13 @@ public interface MulticastRouteService
      * for any other sink until it's added. For dual-homed sinks please use
      * {@link #removeSink(McastRoute route, HostId hostId) removeSink}.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @param sink  a sink connect point
      */
     void removeSinks(McastRoute route, Set<ConnectPoint> sink);
 
     /**
-     * Return the Data for this route.
+     * Return the Multicast data for this route.
      *
      * @param route route
      * @return the mcast route data
@@ -149,9 +139,9 @@ public interface MulticastRouteService
     McastRouteData routeData(McastRoute route);
 
     /**
-     * Find the data source association for this multicast route.
+     * Find the data source association for this Multicast route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @return a connect point
      */
     Set<ConnectPoint> sources(McastRoute route);
@@ -159,24 +149,24 @@ public interface MulticastRouteService
     /**
      * Find the list of sinks for this route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @return a list of connect points
      */
     Set<ConnectPoint> sinks(McastRoute route);
 
     /**
-     * Find the list of sinks for a given host for this route.
+     * Find the set of connect points for a given sink for this route.
      *
-     * @param route  a multicast route
+     * @param route  a Multicast route
      * @param hostId the host
      * @return a list of connect points
      */
     Set<ConnectPoint> sinks(McastRoute route, HostId hostId);
 
     /**
-     * Obtains all the non host specific sinks for a multicast route.
+     * Obtains all the non host specific sinks for a Multicast route.
      *
-     * @param route a multicast route
+     * @param route a Multicast route
      * @return a set of sinks
      */
     Set<ConnectPoint> nonHostSinks(McastRoute route);
