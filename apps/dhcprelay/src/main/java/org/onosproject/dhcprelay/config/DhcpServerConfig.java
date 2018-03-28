@@ -27,17 +27,21 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * DHCP server configuration.
  */
 public class DhcpServerConfig {
+    private final Logger log = getLogger(getClass());
+
     private static final String DHCP_CONNECT_POINT = "dhcpServerConnectPoint";
     private static final String DHCP_SERVER_IP = "serverIps";
     private static final String DHCP_GATEWAY_IP = "gatewayIps";
@@ -102,10 +106,20 @@ public class DhcpServerConfig {
                 Ip4Address ipv4 = null;
                 Ip6Address ipv6 = null;
                 if (ips.has(IPV4)) {
-                    ipv4 = Ip4Address.valueOf(ips.get(IPV4).asText());
+                    String ipv4Str = ips.get(IPV4).asText();
+                    try {
+                        ipv4 = Ip4Address.valueOf(ipv4Str);
+                    } catch (IllegalArgumentException iae) {
+                        log.warn("Invalid IPv4 address {} found in DHCP relay config. Ignored.", ipv4Str);
+                    }
                 }
                 if (ips.has(IPV6)) {
-                    ipv6 = Ip6Address.valueOf(ips.get(IPV6).asText());
+                    String ipv6Str = ips.get(IPV6).asText();
+                    try {
+                        ipv6 = Ip6Address.valueOf(ipv6Str);
+                    } catch (IllegalArgumentException iae) {
+                        log.warn("Invalid IPv6 address {} found in DHCP relay config. Ignored.", ipv6Str);
+                    }
                 }
                 relayAgentIps.put(deviceId, Pair.of(ipv4, ipv6));
             });
