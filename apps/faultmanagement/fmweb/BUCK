@@ -18,4 +18,9 @@ TEST_DEPS = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/v1/fm',
+    api_title = 'Fault Management Rest API',
+    api_version = '1.0',
+    api_description = 'REST API for Fault Management',
+    api_package = 'org.onosproject.faultmanagement'
 )
