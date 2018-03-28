@@ -16,8 +16,8 @@
 
 package org.onosproject.drivers.polatis.netconf;
 
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.CrossConnects;
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.crossconnects.Pair;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.CrossConnects;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.crossconnects.Pair;
 
 import com.google.common.collect.ImmutableList;
 

@@ -33,11 +33,11 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.CrossConnects;
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.crossconnects.Pair;
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.crossconnects.DefaultPair;
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.DefaultCrossConnects;
-import org.onosproject.yang.gen.v1.opticalswitch.rev20170804.opticalswitch.PortFormat;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.CrossConnects;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.crossconnects.Pair;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.crossconnects.DefaultPair;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.DefaultCrossConnects;
+import org.onosproject.yang.gen.v1.opticalswitch.rev20180322.opticalswitch.PortFormat;
 
 import java.util.List;
 import java.util.Set;
