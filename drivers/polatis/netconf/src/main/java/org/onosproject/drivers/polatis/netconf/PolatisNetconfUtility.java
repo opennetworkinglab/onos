@@ -40,18 +40,23 @@ import static org.slf4j.LoggerFactory.getLogger;
 public final class PolatisNetconfUtility {
 
     public static final String KEY_XMLNS = "xmlns=\"http://www.polatis.com/yang/optical-switch\"";
+    public static final String KEY_POLATIS_XMLNS = "xmlns=\"http://www.polatis.com/yang/polatis-switch\"";
     public static final String KEY_DATA = "data";
     public static final String KEY_PORT = "port";
     public static final String KEY_PORTID = "port-id";
     public static final String KEY_PORTCONFIG = "port-config";
+    public static final String KEY_SYSTEMALARMS = "system-alarms";
+    public static final String KEY_ALARM = "alarm";
     public static final String KEY_CONNS = "cross-connects";
     public static final String KEY_PRODINF = "product-information";
     public static final String KEY_PORTCONFIG_XMLNS = String.format("%s %s", KEY_PORTCONFIG, KEY_XMLNS);
+    public static final String KEY_SYSTEMALARMS_XMLNS = String.format("%s %s", KEY_SYSTEMALARMS, KEY_POLATIS_XMLNS);
     public static final String KEY_CONNS_XMLNS = String.format("%s %s", KEY_CONNS, KEY_XMLNS);
     public static final String KEY_PRODINF_XMLNS = String.format("%s %s", KEY_PRODINF, KEY_XMLNS);
     public static final String KEY_DATA_CONNS = String.format("%s.%s", KEY_DATA, KEY_CONNS);
     public static final String KEY_DATA_PRODINF = String.format("%s.%s", KEY_DATA, KEY_PRODINF);
     public static final String KEY_DATA_PORTCONFIG = String.format("%s.%s.%s", KEY_DATA, KEY_PORTCONFIG, KEY_PORT);
+    public static final String KEY_DATA_SYSTEMALARMS = String.format("%s.%s.%s", KEY_DATA, KEY_SYSTEMALARMS, KEY_ALARM);
     public static final String KEY_OPM = "opm-power";
     public static final String KEY_OPM_XMLNS = String.format("%s %s", KEY_OPM, KEY_XMLNS);
     public static final String KEY_DATA_OPM = String.format("%s.%s.%s", KEY_DATA, KEY_OPM, KEY_PORT);

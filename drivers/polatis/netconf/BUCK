@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//lib:onos-yang-model',
     '//apps/optical-model:onos-apps-optical-model',
+    '//incubator/api:onos-incubator-api',
 ]
 
 APPS = [
@@ -12,6 +13,7 @@ APPS = [
     'org.onosproject.models.common',
     'org.onosproject.models.polatis',
     'org.onosproject.optical-model',
+    'org.onosproject.faultmanagement',
 ]
 
 TEST_DEPS = [
