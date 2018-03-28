@@ -171,7 +171,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
                     List<HierarchicalConfiguration> idFields =
                             child.configurationsAt(RESOURCE_ID);
                     if (idFields.isEmpty()) {
-                        log.error("{} does not exsit: SQ={}, TYPE={}, SEV={}, CLEARED={}",
+                        log.error("{} does not exist: SQ={}, TYPE={}, SEV={}, CLEARED={}",
                                 RESOURCE_ID, seqNum, alertType, severity, cleared);
                         continue;
                     }
@@ -273,7 +273,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
         List<HierarchicalConfiguration> timeFields =
                 cfg.configurationsAt(ALERT_TIME);
         if (timeFields.isEmpty()) {
-            log.debug("{} does not exsit", ALERT_TIME);
+            log.debug("{} does not exist", ALERT_TIME);
         } else {
             for (HierarchicalConfiguration child : timeFields) {
                 strDate = child.getString(DATE);
@@ -288,7 +288,7 @@ public class FujitsuVoltAlarmConsumer extends AbstractHandlerBehaviour implement
                         log.error("Cannot parse exception {} {} {}", strDate, strTime, e);
                     }
                 } else {
-                    log.error("{} or {} does not exsit", DATE, TIME);
+                    log.error("{} or {} does not exist", DATE, TIME);
                 }
             }
         }
