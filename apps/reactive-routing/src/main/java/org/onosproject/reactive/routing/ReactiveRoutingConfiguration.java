@@ -33,6 +33,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.ConfigFactory;
@@ -130,13 +131,16 @@ public class ReactiveRoutingConfiguration implements
         for (LocalIpPrefixEntry entry : config.localIp4PrefixEntries()) {
             localPrefixTable4.put(createBinaryString(entry.ipPrefix()), entry);
             gatewayIpAddresses.add(entry.getGatewayIpAddress());
+            log.info("adding local IPv4 entry: {} {}", entry.ipPrefix(), entry.getGatewayIpAddress());
         }
         for (LocalIpPrefixEntry entry : config.localIp6PrefixEntries()) {
             localPrefixTable6.put(createBinaryString(entry.ipPrefix()), entry);
             gatewayIpAddresses.add(entry.getGatewayIpAddress());
+            log.info("adding local IPv6 entry: {} {}", entry.ipPrefix(), entry.getGatewayIpAddress());
         }
 
         virtualGatewayMacAddress = config.virtualGatewayMacAddress();
+        log.info("virtual gateway MAC: {}", virtualGatewayMacAddress);
 
         // Setup BGP peer connect points
         ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
@@ -156,7 +160,7 @@ public class ReactiveRoutingConfiguration implements
                     .flatMap(speaker -> speaker.peers().stream())
                     .map(peer -> interfaceService.getMatchingInterface(peer))
                     .filter(Objects::nonNull)
-                    .map(intf -> intf.connectPoint())
+                    .map(Interface::connectPoint)
                     .collect(Collectors.toSet());
         }
     }
