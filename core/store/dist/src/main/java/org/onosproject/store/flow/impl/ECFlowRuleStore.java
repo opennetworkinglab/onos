@@ -837,11 +837,11 @@ public class ECFlowRuleStore
         }
 
         public void add(FlowEntry rule) {
-            StoredFlowEntry stored = getFlowEntriesInternal(rule.deviceId(), rule.id())
-                .putIfAbsent((StoredFlowEntry) rule, (StoredFlowEntry) rule);
-            if (stored == null) {
-                lastUpdateTimes.put(rule.deviceId(), System.currentTimeMillis());
-            }
+            getFlowEntriesInternal(rule.deviceId(), rule.id())
+                    .compute((StoredFlowEntry) rule, (k, stored) -> {
+                        return (StoredFlowEntry) rule;
+                    });
+            lastUpdateTimes.put(rule.deviceId(), System.currentTimeMillis());
         }
 
         public void update(FlowEntry rule) {
